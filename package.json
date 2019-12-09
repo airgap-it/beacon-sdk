@@ -32,7 +32,6 @@
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
     "@subspace/vdf": "^0.1.0",
-    "@types/node": "^12.12.6",
     "libsodium-wrappers": "^0.7.6",
     "matrix-js-sdk": "2.4.3",
     "node-localstorage": "^1.3.1",
@@ -41,6 +40,7 @@
   "devDependencies": {
     "@types/chai-as-promised": "^7.1.2",
     "@types/mocha": "^5.2.7",
+    "@types/node": "^12.12.6",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "mocha": "^6.2.2",
