@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@types/chai-as-promised": "^7.1.2",
+    "@types/libsodium-wrappers": "^0.7.7",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.12.6",
     "chai": "^4.2.0",
