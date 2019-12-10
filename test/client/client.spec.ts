@@ -19,13 +19,13 @@ describe(`client - Custom Tests`, () => {
     return new Promise(async resolve => {
       const intervals: NodeJS.Timeout[] = []
 
-      const aliceClient = new WalletCommunicationClient('alice1234')
+      const aliceClient = new WalletCommunicationClient('Alice', 'alice1234', 1)
       await aliceClient.start()
 
-      const bobClient = new WalletCommunicationClient('bob1234')
+      const bobClient = new WalletCommunicationClient('Bob', 'bob1234', 1)
       await bobClient.start()
 
-      const charlieClient = new WalletCommunicationClient('charlie1234')
+      const charlieClient = new WalletCommunicationClient('Charlie', 'charlie1234', 1)
       await charlieClient.start()
 
       aliceClient.listenForEncryptedMessage(bobClient.getPublicKey(), (message: string) => {
