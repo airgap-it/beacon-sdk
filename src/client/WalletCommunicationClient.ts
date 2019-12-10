@@ -13,11 +13,6 @@ interface Room {
   currentState: any
 }
 
-// enum InteractionMessageType {
-//   MESSAGE = 'message',
-//   CHANNEL_OPEN = 'channel_open'
-// }
-
 function toHex(value: any): string {
   return Buffer.from(value).toString('hex')
 }
@@ -34,38 +29,17 @@ function encryptCryptoboxPayload(message: string, sharedKey: Uint8Array): string
   const nonce = Buffer.from(sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES))
   const combinedPayload = Buffer.concat([nonce, Buffer.from(sodium.crypto_secretbox_easy(Buffer.from(message, 'utf8'), nonce, sharedKey))])
 
-  console.log('nonce', nonce)
-  console.log('combinedPayload', toHex(combinedPayload))
-
   return toHex(combinedPayload)
 }
 
 function decryptCryptoboxPayload(payload: Uint8Array, sharedKey: Uint8Array): string {
-  console.log('ciphertext', toHex(payload))
-
   const nonce = payload.slice(0, sodium.crypto_secretbox_NONCEBYTES)
   const ciphertext = payload.slice(sodium.crypto_secretbox_NONCEBYTES)
-
-  console.log('nonce', toHex(nonce))
 
   return Buffer.from(sodium.crypto_secretbox_open_easy(ciphertext, nonce, sharedKey)).toString('utf8')
 }
 
 // function assertNever(_: never) {}
-
-// function getMessageString(type: InteractionMessageType, message: string): string {
-//   const MESSAGE_PREFIX = '@'
-//   const CHANNEL_OPEN = `@channel_open:{recipient}:{encryptedPubkey}`
-//   switch (type) {
-//     case InteractionMessageType.MESSAGE:
-//       return `@m:${message}`
-//     case InteractionMessageType.CHANNEL_OPEN:
-//       return `@channel_open:${message}`
-//     default:
-//       assertNever(type)
-//       return ``
-//   }
-// }
 
 function recipientString(recipientHash: string, relayServer: string): string {
   return '@' + recipientHash + ':' + relayServer
@@ -204,7 +178,7 @@ export class WalletCommunicationClient {
 
     for (let client of this.clients) {
       client.on('event', (event: any) => {
-        if (event.getType() === 'm.room.message' && event.getSender().startsWith('@' + getHexHash(Buffer.from(senderPublicKey, 'hex')))) {
+        if (this.isRoomMessage(event) && this.isSender(event, senderPublicKey)) {
           let payload = Buffer.from(event.getContent().body, 'hex')
           if (payload.length >= sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES) {
             messageCallback(decryptCryptoboxPayload(payload, sharedRx))
@@ -236,16 +210,9 @@ export class WalletCommunicationClient {
   }
 
   public async listenForChannelOpening(messageCallback: (message: string) => void) {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
-
     for (let client of this.clients) {
       client.on('event', (event: any) => {
-        if (
-          event.getType() === 'm.room.message' &&
-          event.getContent().body.startsWith('@channel-open:@' + getHexHash(Buffer.from(this.getPublicKey(), 'hex')))
-        ) {
+        if (this.isRoomMessage(event) && this.isChannelOpenMessage(event)) {
           if (!this.keyPair) {
             throw new Error('KeyPair not available')
           }
@@ -271,9 +238,10 @@ export class WalletCommunicationClient {
     for (let client of this.clients) {
       const room = await this.getRelevantRoom(client, recipient)
 
+      const encryptedMessage = encryptCryptoboxPayload(this.getPublicKey(), Buffer.from(recipientPublicKey, 'hex'))
       client.sendMessage(room.roomId, {
         msgtype: 'm.text',
-        body: '@channel-open:' + recipient + ':' + encryptCryptoboxPayload(this.getPublicKey(), Buffer.from(recipientPublicKey, 'hex'))
+        body: ['@channel-open', recipient, encryptedMessage].join(':')
       })
     }
   }
@@ -302,6 +270,18 @@ export class WalletCommunicationClient {
     }
 
     return room
+  }
+
+  public isRoomMessage(event: any): boolean {
+    return event.getType() === 'm.room.message'
+  }
+
+  public isChannelOpenMessage(event: any): boolean {
+    return event.getContent().body.startsWith('@channel-open:@' + getHexHash(Buffer.from(this.getPublicKey(), 'hex')))
+  }
+
+  public isSender(event: any, senderPublicKey: string): boolean {
+    return event.getSender().startsWith('@' + getHexHash(Buffer.from(senderPublicKey, 'hex')))
   }
 
   private log(...args: any[]): void {
