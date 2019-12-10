@@ -39,6 +39,22 @@ function decryptCryptoboxPayload(payload: Uint8Array, sharedKey: Uint8Array): st
   return Buffer.from(sodium.crypto_secretbox_open_easy(ciphertext, nonce, sharedKey)).toString('utf8')
 }
 
+function sealCryptobox(payload: string | Buffer, publicKey: Uint8Array): string {
+  const kxSelfPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(Buffer.from(publicKey)) //secret bytes to scalar bytes
+  const encryptedMessage = sodium.crypto_box_seal(payload, kxSelfPublicKey)
+
+  return toHex(encryptedMessage)
+}
+
+function openCryptobox(encryptedPayload: string | Buffer, publicKey: Uint8Array, privateKey: Uint8Array): string {
+  const kxSelfPrivateKey = sodium.crypto_sign_ed25519_sk_to_curve25519(Buffer.from(privateKey)) //secret bytes to scalar bytes
+  const kxSelfPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(Buffer.from(publicKey)) //secret bytes to scalar bytes
+
+  const decryptedMessage = sodium.crypto_box_seal_open(encryptedPayload, kxSelfPublicKey, kxSelfPrivateKey)
+
+  return Buffer.from(decryptedMessage).toString()
+}
+
 // function assertNever(_: never) {}
 
 function recipientString(recipientHash: string, relayServer: string): string {
@@ -50,9 +66,9 @@ export class WalletCommunicationClient {
   private clients: any[] = []
 
   private KNOWN_RELAY_SERVERS = [
-    'matrix.papers.tech'
-    // 'matrix.tez.ie'
-    // 'matrix-dev.papers.tech'
+    'matrix.papers.tech',
+    'matrix.tez.ie',
+    'matrix-dev.papers.tech'
     // "matrix.stove-labs.com",
     // "yadayada.cryptonomic-infra.tech"
   ]
@@ -222,7 +238,7 @@ export class WalletCommunicationClient {
           const payload = Buffer.from(splits[splits.length - 1], 'hex')
 
           if (payload.length >= sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES) {
-            messageCallback(decryptCryptoboxPayload(payload, this.keyPair.publicKey))
+            messageCallback(openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey))
           }
         }
       })
@@ -238,7 +254,7 @@ export class WalletCommunicationClient {
     for (let client of this.clients) {
       const room = await this.getRelevantRoom(client, recipient)
 
-      const encryptedMessage = encryptCryptoboxPayload(this.getPublicKey(), Buffer.from(recipientPublicKey, 'hex'))
+      const encryptedMessage = sealCryptobox(this.getPublicKey(), Buffer.from(recipientPublicKey, 'hex'))
       client.sendMessage(room.roomId, {
         msgtype: 'm.text',
         body: ['@channel-open', recipient, encryptedMessage].join(':')
