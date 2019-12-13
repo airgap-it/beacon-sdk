@@ -55,8 +55,6 @@ function openCryptobox(encryptedPayload: string | Buffer, publicKey: Uint8Array,
   return Buffer.from(decryptedMessage).toString()
 }
 
-// function assertNever(_: never) {}
-
 function recipientString(recipientHash: string, relayServer: string): string {
   return '@' + recipientHash + ':' + relayServer
 }
