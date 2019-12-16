@@ -32,7 +32,7 @@
         "module-source-path": "full"
       }
     },
-    // "no-implicit-dependencies": [true, "dev"],
+    "no-implicit-dependencies": [true, "dev"],
     "type-literal-delimiter": false
   }
 }
