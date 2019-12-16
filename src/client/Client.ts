@@ -1,20 +1,7 @@
-import {
-  PermissionRequest,
-  PermissionResponse,
-  MessageTypes,
-  Messages
-  // SignPayloadRequest,
-  // SignPayloadResponse,
-  // OperationResponse,
-  // BroadcastResponse,
-  // OperationRequest,
-  // BroadcastRequest
-} from './Messages'
-import { Serializer } from './Serializer'
-import { ExposedPromise, exposedPromise } from '../exposed-promise'
+import { Messages, MessageTypes, PermissionRequest, PermissionResponse } from './Messages'
 import myWindow from './MockWindow'
-
-// function assertNever(_: never) {}
+import { Serializer } from './Serializer'
+import { ExposedPromise, exposedPromise } from './utils/exposed-promise'
 
 interface Request {
   id: string
@@ -22,7 +9,7 @@ interface Request {
 }
 
 export class Client {
-  private name: string = ''
+  private readonly name: string = ''
   private readonly serializer = new Serializer()
   private readonly listeners = new Map<MessageTypes, ((payload: any, callback: any) => void)[]>()
   private readonly openRequests = new Map<MessageTypes, Request[]>()
@@ -69,7 +56,7 @@ export class Client {
   public addOpenRequest(type: MessageTypes, id: string, promise: ExposedPromise<Messages>) {
     console.log(this.name, 'adding request')
     const openRequests = this.openRequests.get(type) || []
-    openRequests.push({ id, promise: promise })
+    openRequests.push({ id, promise })
     this.openRequests.set(type, openRequests)
   }
 

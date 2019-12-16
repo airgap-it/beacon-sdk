@@ -1,26 +1,18 @@
 import {
+  BroadcastRequest,
+  BroadcastResponse,
+  Messages,
+  MessageTypes,
+  OperationRequest,
+  OperationResponse,
   PermissionRequest,
   PermissionResponse,
-  MessageTypes,
-  Messages,
   SignPayloadRequest,
-  SignPayloadResponse,
-  OperationResponse,
-  BroadcastResponse,
-  BroadcastRequest,
-  OperationRequest
-  // SignPayloadRequest,
-  // SignPayloadResponse,
-  // OperationResponse,
-  // BroadcastResponse,
-  // OperationRequest,
-  // BroadcastRequest
+  SignPayloadResponse
 } from './Messages'
-import { Serializer } from './Serializer'
-import { ExposedPromise, exposedPromise } from '../exposed-promise'
 import myWindow from './MockWindow'
-
-// function assertNever(_: never) {}
+import { Serializer } from './Serializer'
+import { ExposedPromise, exposedPromise } from './utils/exposed-promise'
 
 interface Request {
   id: string
@@ -28,7 +20,7 @@ interface Request {
 }
 
 export class DAppClient {
-  private name: string = ''
+  private readonly name: string = ''
   private readonly serializer = new Serializer()
   private readonly listeners = new Map<MessageTypes, ((payload: any, callback: any) => void)[]>()
   private readonly openRequests = new Map<MessageTypes, Request[]>()
@@ -75,7 +67,7 @@ export class DAppClient {
   public addOpenRequest(type: MessageTypes, id: string, promise: ExposedPromise<Messages>) {
     console.log(this.name, 'adding request')
     const openRequests = this.openRequests.get(type) || []
-    openRequests.push({ id, promise: promise })
+    openRequests.push({ id, promise })
     this.openRequests.set(type, openRequests)
   }
 
