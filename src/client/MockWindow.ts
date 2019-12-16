@@ -1,5 +1,5 @@
 let myWindow: any = {}
-let cbs = [(_message: any) => {}]
+const cbs = [(_message: any) => {}]
 
 myWindow.postMessage = message => {
   console.log('GOT POST MESSAGE', message)
