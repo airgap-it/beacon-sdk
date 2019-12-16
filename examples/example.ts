@@ -1,4 +1,4 @@
-import { WalletCommunicationClient } from './src/index'
+import { WalletCommunicationClient } from '../src/index'
 
 let QR:
   | {
@@ -21,6 +21,7 @@ function log(...args) {
 
   // 2. DApp prepares pubkey as QR
   QR = dapp.getHandshakeInfo()
+  console.log('QR', dapp.getHandshakeQR())
 
   // 3. Listen to messages addressed to our PubKey
   dapp.listenForChannelOpening(pubKey => {

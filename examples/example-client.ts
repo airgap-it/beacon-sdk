@@ -1,5 +1,5 @@
-import { Client } from './src/client/Client'
-import { MessageTypes } from './src/client/Messages'
+import { Client } from '../src/client/Client'
+import { MessageTypes } from '../src/client/Messages'
 
 const dapp = new Client('DAPP')
 const wallet = new Client('WALLET')
