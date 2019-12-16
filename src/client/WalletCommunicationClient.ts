@@ -1,5 +1,6 @@
 import * as sodium from 'libsodium-wrappers'
 import * as matrixsdk from 'matrix-js-sdk'
+import * as qrcode from 'qrcode-generator'
 
 interface Member {
   membership: string
@@ -61,12 +62,12 @@ function recipientString(recipientHash: string, relayServer: string): string {
 
 export class WalletCommunicationClient {
   private keyPair: sodium.KeyPair | undefined
-  private clients: any[] = []
+  private readonly clients: any[] = []
 
-  private KNOWN_RELAY_SERVERS = [
-    'matrix.papers.tech',
-    'matrix.tez.ie',
-    'matrix-dev.papers.tech'
+  private readonly KNOWN_RELAY_SERVERS = [
+    // 'matrix.papers.tech',
+    'matrix.tez.ie'
+    // 'matrix-dev.papers.tech'
     // "matrix.stove-labs.com",
     // "yadayada.cryptonomic-infra.tech"
   ]
@@ -87,7 +88,8 @@ export class WalletCommunicationClient {
   }
 
   private getAbsoluteBigIntDifference(firstHash: string, secondHash: string): BigInt {
-    let difference = BigInt('0x' + firstHash) - BigInt('0x' + secondHash)
+    const difference = BigInt('0x' + firstHash) - BigInt('0x' + secondHash)
+
     return this.bigIntAbsolute(difference)
   }
 
@@ -98,14 +100,29 @@ export class WalletCommunicationClient {
     }
   }
 
+  public getHandshakeQR(type?: 'data' | 'svg') {
+    const typeNumber: TypeNumber = 4
+    const errorCorrectionLevel: ErrorCorrectionLevel = 'L'
+    const qr = qrcode(typeNumber, errorCorrectionLevel)
+    qr.addData(JSON.stringify(this.getHandshakeInfo()))
+    qr.make()
+    if (type === 'svg') {
+      return qr.createSvgTag()
+    } else {
+      return qr.createDataURL()
+    }
+  }
+
   public getRelayServer(publicKeyHash?: string, nonce: string = ''): string {
     if (!this.keyPair) {
       throw new Error('KeyPair not available')
     }
     const hash: string = publicKeyHash || getHexHash(this.keyPair.publicKey)
+
     return this.KNOWN_RELAY_SERVERS.reduce((prev, curr) => {
       const prevRelayServerHash = getHexHash(prev + nonce)
       const currRelayServerHash = getHexHash(curr + nonce)
+
       return this.getAbsoluteBigIntDifference(hash, prevRelayServerHash) < this.getAbsoluteBigIntDifference(hash, currRelayServerHash)
         ? prev
         : curr
@@ -154,6 +171,7 @@ export class WalletCommunicationClient {
     if (!this.keyPair) {
       throw new Error('KeyPair not available')
     }
+
     return toHex(this.keyPair.publicKey)
   }
 
@@ -161,6 +179,7 @@ export class WalletCommunicationClient {
     if (!this.keyPair) {
       throw new Error('KeyPair not available')
     }
+
     return getHexHash(this.keyPair.publicKey)
   }
 
@@ -175,11 +194,13 @@ export class WalletCommunicationClient {
 
   private async createCryptoBoxServer(otherPublicKey: string, selfPrivateKey: Uint8Array): Promise<sodium.CryptoKX> {
     const keys = await this.createCryptoBox(otherPublicKey, selfPrivateKey)
+
     return sodium.crypto_kx_server_session_keys(...keys)
   }
 
   private async createCryptoBoxClient(otherPublicKey: string, selfPrivateKey: Uint8Array): Promise<sodium.CryptoKX> {
     const keys = await this.createCryptoBox(otherPublicKey, selfPrivateKey)
+
     return sodium.crypto_kx_client_session_keys(...keys)
   }
 
@@ -190,10 +211,10 @@ export class WalletCommunicationClient {
 
     const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
 
-    for (let client of this.clients) {
+    for (const client of this.clients) {
       client.on('event', (event: any) => {
         if (this.isRoomMessage(event) && this.isSender(event, senderPublicKey)) {
-          let payload = Buffer.from(event.getContent().body, 'hex')
+          const payload = Buffer.from(event.getContent().body, 'hex')
           if (payload.length >= sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES) {
             messageCallback(decryptCryptoboxPayload(payload, sharedRx))
           }
@@ -212,7 +233,7 @@ export class WalletCommunicationClient {
       const recipientHash = getHexHash(Buffer.from(recipientPublicKey, 'hex'))
       const recipient = recipientString(recipientHash, this.getRelayServer(recipientHash, i.toString()))
 
-      for (let client of this.clients) {
+      for (const client of this.clients) {
         const room = await this.getRelevantRoom(client, recipient)
 
         client.sendMessage(room.roomId, {
@@ -224,7 +245,7 @@ export class WalletCommunicationClient {
   }
 
   public async listenForChannelOpening(messageCallback: (message: string) => void) {
-    for (let client of this.clients) {
+    for (const client of this.clients) {
       client.on('event', (event: any) => {
         if (this.isRoomMessage(event) && this.isChannelOpenMessage(event)) {
           if (!this.keyPair) {
@@ -249,7 +270,7 @@ export class WalletCommunicationClient {
     const recipient = recipientString(recipientHash, relayServer)
 
     this.log('currently there are ' + this.clients.length + ' clients open')
-    for (let client of this.clients) {
+    for (const client of this.clients) {
       const room = await this.getRelevantRoom(client, recipient)
 
       const encryptedMessage = sealCryptobox(this.getPublicKey(), Buffer.from(recipientPublicKey, 'hex'))
