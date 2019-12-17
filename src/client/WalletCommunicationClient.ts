@@ -80,8 +80,8 @@ export class WalletCommunicationClient {
   ) {}
 
   private bigIntAbsolute(inputBigInt: any): BigInt {
-    if (inputBigInt < 0n) {
-      return inputBigInt * -1n
+    if (inputBigInt < BigInt(0)) {
+      return inputBigInt * BigInt(-1)
     } else {
       return inputBigInt
     }
