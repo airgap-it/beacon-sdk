@@ -8,7 +8,7 @@ then
   echo "cannot publish non-beta version"
 else
   echo "version is beta, using --tag next"
-  npm publish --tag next
+  npm publish --access public --tag next
 fi
 
 rm .npmrc

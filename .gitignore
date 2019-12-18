@@ -64,3 +64,5 @@ typings/
 .vscode
 
 dist/
+
+.history
