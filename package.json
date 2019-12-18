@@ -1,7 +1,7 @@
 {
-  "name": "wallet-communication-sdk",
+  "name": "beacon-sdk",
   "version": "0.0.1",
-  "description": "The wallet-communication-sdk is setup in a way to allow for p2p communication between wallets and dapps",
+  "description": "The beacon-sdk is setup in a way to allow for p2p communication between wallets and dapps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "keywords": [
@@ -18,7 +18,7 @@
   "homepage": "https://www.airgap.it",
   "repository": {
     "type": "git",
-    "url": "https://github.com/airgap-it/wallet-communication-sdk"
+    "url": "https://github.com/airgap-it/beacon-sdk"
   },
   "scripts": {
     "build": "tsc",
