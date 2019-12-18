@@ -5,7 +5,7 @@ export class LocalStorage implements Storage {
     return Promise.resolve(typeof window !== 'undefined' && !!window.localStorage)
   }
 
-  public async get(key: string): Promise<any> {
+  public async get(key: string): Promise<unknown> {
     return localStorage.getItem(key)
   }
 

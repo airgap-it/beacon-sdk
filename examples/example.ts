@@ -1,5 +1,11 @@
 import { WalletCommunicationClient } from '../src/index'
 
+import  { getStorage} from '../src/client/storage/StorageProvider'
+
+console.log(getStorage().then(storage => {
+  console.log(storage)
+}))
+
 let QR:
   | {
       pubKey: string

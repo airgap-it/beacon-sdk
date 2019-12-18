@@ -5,33 +5,37 @@ import { Storage } from './Storage'
 const file: string = './storage.json'
 
 interface JsonObject {
-  [key: string]: any
+  [key: string]: unknown
 }
 
+/* eslint-disable prefer-arrow/prefer-arrow-functions */
+
 function readLocalFile(): Promise<JsonObject> {
-  return new Promise((resolve, reject) => {
-    readFile(file, { encoding: 'utf8' }, (err, result) => {
-      if (err) {
-        reject(err)
+  return new Promise((resolve: (_: JsonObject) => void, reject: (error: unknown) => void): void => {
+    readFile(file, { encoding: 'utf8' }, (fileReadError: unknown, fileContent: string) => {
+      if (fileReadError) {
+        reject(fileReadError)
       }
       try {
-        const json: JsonObject = JSON.parse(result)
+        const json: JsonObject = JSON.parse(fileContent)
         resolve(json)
-      } catch (e) {
-        reject(e)
+      } catch (jsonParseError) {
+        reject(jsonParseError)
       }
     })
   })
 }
 
 function writeLocalFile(json: JsonObject): Promise<void> {
-  return new Promise(resolve => {
-    const data: string = JSON.stringify(json)
-    writeFile(data, { encoding: 'utf8' }, () => {
+  return new Promise((resolve: (_: void) => void): void => {
+    const fileContent: string = JSON.stringify(json)
+    writeFile(fileContent, { encoding: 'utf8' }, () => {
       resolve()
     })
   })
 }
+
+/* eslint-enable prefer-arrow/prefer-arrow-functions */
 
 /**
  * This can be used for development in node.
@@ -43,7 +47,7 @@ export class FileStorage implements Storage {
     return Promise.resolve(typeof global !== 'undefined')
   }
 
-  public async get(key: string): Promise<any> {
+  public async get(key: string): Promise<unknown> {
     const json: JsonObject = await readLocalFile()
 
     return json[key]
@@ -58,7 +62,7 @@ export class FileStorage implements Storage {
 
   public async delete(key: string): Promise<void> {
     const json: JsonObject = await readLocalFile()
-    delete json[key]
+    json[key] = undefined
 
     return writeLocalFile(json)
   }

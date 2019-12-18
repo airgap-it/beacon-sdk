@@ -1,25 +1,28 @@
-let myWindow: any = {}
-const cbs = [(_message: any) => {}]
 
-myWindow.postMessage = message => {
-  console.log('GOT POST MESSAGE', message)
-  cbs.forEach(cb => {
-    cb({ data: message })
-  })
-}
+type Callback = (message: unknown) => void
 
-myWindow.addEventListener = (name, callback) => {
-  console.log('addEventListener', name)
-  cbs.push(callback)
+const cbs: Callback[] = [(_: unknown): void => undefined]
+
+let myWindow = {
+  postMessage: (message: string, _target?: string): void => {
+    console.log('GOT POST MESSAGE', message)
+    cbs.forEach((callbackElement: Callback) => {
+      callbackElement({ data: message })
+    })
+  },
+  addEventListener: (name: string, eventCallback: Callback): void => {
+    console.log('addEventListener', name)
+    cbs.push(eventCallback)
+  }
 }
-console.log('before')
 
 try {
   if (typeof window !== 'undefined') {
-    myWindow = window
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    myWindow = (window as any)
   }
-} catch (e) {}
+} catch (windowError) {
+  console.log(`not defined: ${windowError}`)
+}
 
-export default myWindow
-
-console.log('after')
+export { myWindow }
