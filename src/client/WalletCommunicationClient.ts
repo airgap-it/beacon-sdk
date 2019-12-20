@@ -1,6 +1,7 @@
 import * as sodium from 'libsodium-wrappers'
 import * as matrixsdk from 'matrix-js-sdk'
 import * as qrcode from 'qrcode-generator'
+
 import {
   getHexHash,
   getKeypairFromSeed,
@@ -18,9 +19,9 @@ export class WalletCommunicationClient {
   private readonly clients: MatrixClient[] = []
 
   private readonly KNOWN_RELAY_SERVERS = [
-    // 'matrix.papers.tech',
-    'matrix.tez.ie'
-    // 'matrix-dev.papers.tech'
+    'matrix.papers.tech',
+    'matrix.tez.ie',
+    'matrix-dev.papers.tech'
     // "matrix.stove-labs.com",
     // "yadayada.cryptonomic-infra.tech"
   ]
@@ -40,15 +41,20 @@ export class WalletCommunicationClient {
   }
 
   public getHandshakeQR(type?: 'data' | 'svg'): string {
-    const typeNumber: TypeNumber = 4
+    const typeNumber: TypeNumber = 0
     const errorCorrectionLevel: ErrorCorrectionLevel = 'L'
     const qr = qrcode(typeNumber, errorCorrectionLevel)
-    qr.addData(JSON.stringify(this.getHandshakeInfo()))
-    qr.make()
-    if (type === 'svg') {
-      return qr.createSvgTag()
-    } else {
-      return qr.createDataURL()
+    try {
+      qr.addData(JSON.stringify(this.getHandshakeInfo()))
+      qr.make()
+      if (type === 'svg') {
+        return qr.createSvgTag()
+      } else {
+        return qr.createDataURL()
+      }
+    } catch (qrError) {
+      console.error('error', qrError)
+      throw qrError
     }
   }
 

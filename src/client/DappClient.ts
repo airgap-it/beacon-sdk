@@ -13,8 +13,13 @@ import {
 import { myWindow } from './MockWindow'
 import { Serializer } from './Serializer'
 import { ExposedPromise, exposedPromise } from './utils/exposed-promise'
+import { showAlert } from './Alert'
+import { WalletCommunicationClient } from '..'
 
-interface BeaconEvent { id: string; type: MessageTypes }
+interface BeaconEvent {
+  id: string
+  type: MessageTypes
+}
 
 interface Request {
   id: string
@@ -48,7 +53,9 @@ export class DAppClient {
 
     const openRequestsHandler = (event: BeaconEvent): void => {
       const openRequests = this.openRequests.get(event.type) || []
-      const openRequest = openRequests.find(openRequestElement => openRequestElement.id === event.id)
+      const openRequest = openRequests.find(
+        openRequestElement => openRequestElement.id === event.id
+      )
       if (openRequest) {
         console.log('found openRequest')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,6 +94,20 @@ export class DAppClient {
     this.addOpenRequest(type, (request as any).id, exposed)
 
     return exposed.promise
+  }
+
+  public async connect(): Promise<void> {
+    // Check if mobile browser
+    // Talk to chrome extension
+    // If not available, then make connection ourselves
+    const client = new WalletCommunicationClient('DAPP', 'asdfasdf', 1, false)
+    await client.start()
+    showAlert({
+      title: 'Pair Wallet',
+      text: 'Please scan the QR with your wallet.',
+      html: client.getHandshakeQR('svg'),
+      confirmButtonText: 'Done!'
+    })
   }
 
   public async requestPermissions(request: PermissionRequest): Promise<PermissionResponse> {

@@ -1,6 +1,6 @@
 import { WalletCommunicationClient } from '../src/index'
 
-import  { getStorage} from '../src/client/storage/StorageProvider'
+import { getStorage } from '../src/client/storage/StorageProvider'
 
 console.log(getStorage().then(storage => {
   console.log(storage)
@@ -8,9 +8,9 @@ console.log(getStorage().then(storage => {
 
 let QR:
   | {
-      pubKey: string
-      relayServer: string
-    }
+    pubKey: string
+    relayServer: string
+  }
   | undefined
 
 function log(...args) {
@@ -18,7 +18,7 @@ function log(...args) {
 }
 
 // 1. Independent apps that know nothing about each other
-;(async function() {
+; (async function () {
   const dapp = new WalletCommunicationClient('DAPP', '1', 1, true)
   await dapp.start()
   log('DAPP PubKey', dapp.getPublicKey())
@@ -27,7 +27,6 @@ function log(...args) {
 
   // 2. DApp prepares pubkey as QR
   QR = dapp.getHandshakeInfo()
-  console.log('QR', dapp.getHandshakeQR())
 
   // 3. Listen to messages addressed to our PubKey
   dapp.listenForChannelOpening(pubKey => {
@@ -39,30 +38,31 @@ function log(...args) {
     dapp.sendMessage(pubKey, 'CHANNEL SUCCESSFULLY OPENED!')
   })
 })()
-;(async function() {
-  const wallet = new WalletCommunicationClient('WALLET', '2', 1, true)
-  await wallet.start()
-  log('WALLET PubKey', wallet.getPublicKey())
-  log('WALLET PubKeyHash', wallet.getPublicKeyHash())
-  log('WALLET Relay', wallet.getRelayServer())
+  ; (async function () {
+    const wallet = new WalletCommunicationClient('WALLET', '2', 1, true)
+    await wallet.start()
 
-  // 4. Scan QR code from DApp
-  setTimeout(() => {
-    if (!QR) {
-      throw new Error('QR not defined')
-    }
-    log('SCANNING QR: ', QR)
+    log('WALLET PubKey', wallet.getPublicKey())
+    log('WALLET PubKeyHash', wallet.getPublicKeyHash())
+    log('WALLET Relay', wallet.getRelayServer())
 
-    // 5. Open channel with DApp by sending own PubKey to their PubKey
-    wallet.openChannel(QR.pubKey, QR.relayServer) // TODO: Should we have a confirmation here?
-
-    // 6. Open regular channel with DApp
-    wallet.listenForEncryptedMessage(QR.pubKey, message => {
-      log('WALLET gotEncryptedMessage:', message)
-    })
-
+    // 4. Scan QR code from DApp
     setTimeout(() => {
-      wallet.sendMessage(QR!.pubKey, 'TEST')
+      if (!QR) {
+        throw new Error('QR not defined')
+      }
+      log('SCANNING QR: ', QR)
+
+      // 5. Open channel with DApp by sending own PubKey to their PubKey
+      wallet.openChannel(QR.pubKey, QR.relayServer) // TODO: Should we have a confirmation here?
+
+      // 6. Open regular channel with DApp
+      wallet.listenForEncryptedMessage(QR.pubKey, message => {
+        log('WALLET gotEncryptedMessage:', message)
+      })
+
+      setTimeout(() => {
+        wallet.sendMessage(QR!.pubKey, 'TEST')
+      }, 5000)
     }, 5000)
-  }, 5000)
-})()
+  })()
