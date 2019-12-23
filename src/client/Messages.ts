@@ -1,4 +1,6 @@
-export type PermissionScope = 'read_address' | 'sign' | 'payment_request' | 'threshold'
+import { TezosOperation } from "./operations/OperationTypes"
+
+export type PermissionScope = 'read_address' | 'sign' | 'operation_request' | 'threshold'
 
 export enum MessageTypes {
   PermissionRequest = 'permission_request',
@@ -30,7 +32,7 @@ export interface PermissionRequest {
 export type PermissionResponse = {
   id: string
   type: MessageTypes.PermissionResponse
-  address: string
+  pubkey: string
   networks: string[]
   permissions: PermissionScope[]
 }[]
@@ -56,9 +58,7 @@ export interface OperationRequest {
   type: MessageTypes.OperationRequest
 
   network: string
-  recipient: string
-  amount: string
-  source?: string
+  operationDetails: TezosOperation
 }
 
 export interface OperationResponse {
