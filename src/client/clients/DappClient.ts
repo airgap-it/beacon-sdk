@@ -10,7 +10,7 @@ import {
 } from '../Messages'
 import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
-import { ExtensionTransport } from '../transports/ExtensionTransport'
+import { PostMessageTransport } from '../transports/PostMessageTransport'
 import { P2PTransport } from '../transports/P2PTransport'
 import { Transport } from '../transports/Transport'
 import { TezosOperation } from '../operations/OperationTypes'
@@ -64,8 +64,8 @@ export class DAppClient {
   public async init(transport?: Transport): Promise<void> {
     if (transport) {
       this.transport = transport // Let users define their own transport
-    } else if (await ExtensionTransport.isAvailable()) {
-      this.transport = new ExtensionTransport() // Talk to extension first and relay everything
+    } else if (await PostMessageTransport.isAvailable()) {
+      this.transport = new PostMessageTransport() // Talk to extension first and relay everything
     } else if (await P2PTransport.isAvailable()) {
       this.transport = new P2PTransport() // Establish our own connection with the wallet
     }

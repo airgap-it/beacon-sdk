@@ -12,6 +12,13 @@ let myWindow = {
   addEventListener: (name: string, eventCallback: Callback): void => {
     console.log('addEventListener', name)
     cbs.push(eventCallback)
+  },
+  removeEventListener: (name: string, eventCallback: Callback): void => {
+    console.log('addEventListener', name)
+    cbs.splice(
+      cbs.indexOf(element => element === eventCallback),
+      1
+    )
   }
 }
 

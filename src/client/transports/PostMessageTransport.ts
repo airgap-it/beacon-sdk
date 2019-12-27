@@ -8,13 +8,28 @@ export class PostMessageTransport extends Transport {
   }
 
   public static async isAvailable(): Promise<boolean> {
-    return Promise.resolve(false)
+    return new Promise(resolve => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fn = (event: any): void => {
+        if (event.data === 'beacon:pong') {
+          resolve(true)
+          myWindow.removeEventListener('message', fn)
+        }
+      }
+      myWindow.addEventListener('message', fn)
+
+      myWindow.postMessage('beacon:ping', '*')
+
+      setTimeout(() => {
+        resolve(false)
+        myWindow.removeEventListener('message', fn)
+      }, 100)
+    })
   }
 
   public async init(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     myWindow.addEventListener('message', (event: any) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.notifyListeners(event.data).catch(error => {
         throw error
       })
