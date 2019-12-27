@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "0.0.1-beta.0",
+  "version": "0.0.1-beta.1",
   "description": "The beacon-sdk is setup in a way to allow for p2p communication between wallets and dapps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -59,7 +59,7 @@
     "nyc": "^14.1.1",
     "prettier": "^1.19.1",
     "sonar-scanner": "^3.1.0",
-    "ts-node": "^8.4.1",
+    "ts-node": "^8.5.4",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
     "tslint-config-valorsoft": "^2.2.1",

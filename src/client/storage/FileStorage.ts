@@ -29,7 +29,7 @@ function readLocalFile(): Promise<JsonObject> {
 function writeLocalFile(json: JsonObject): Promise<void> {
   return new Promise((resolve: (_: void) => void): void => {
     const fileContent: string = JSON.stringify(json)
-    writeFile(fileContent, { encoding: 'utf8' }, () => {
+    writeFile(file, fileContent, { encoding: 'utf8' }, () => {
       resolve()
     })
   })
