@@ -25,6 +25,12 @@ export class DAppClient {
 
   private transport: Transport | undefined
 
+  private readonly internalReady: ExposedPromise<boolean> = exposedPromise()
+
+  public get ready(): Promise<boolean> {
+    return this.internalReady.promise
+  }
+
   constructor(name: string) {
     this.name = name
   }
@@ -47,6 +53,8 @@ export class DAppClient {
   }
 
   public async makeRequest<T extends Messages>(request: Messages): Promise<T> {
+    await this.init()
+
     request.id = Math.random().toString()
     const payload = this.serializer.serialize(request)
 
@@ -61,7 +69,11 @@ export class DAppClient {
     return exposed.promise
   }
 
-  public async init(transport?: Transport): Promise<void> {
+  public async init(transport?: Transport): Promise<boolean> {
+    if (this.transport) {
+      return this.internalReady.promise
+    }
+
     if (transport) {
       this.transport = transport // Let users define their own transport
     } else if (await PostMessageTransport.isAvailable()) {
@@ -69,7 +81,8 @@ export class DAppClient {
     } else if (await P2PTransport.isAvailable()) {
       this.transport = new P2PTransport() // Establish our own connection with the wallet
     }
-    await this.connect()
+
+    return this.connect()
   }
 
   public async requestPermissions(request?: PermissionScope[]): Promise<PermissionResponse> {
@@ -128,7 +141,7 @@ export class DAppClient {
     })
   }
 
-  private async connect(): Promise<void> {
+  private async connect(): Promise<boolean> {
     if (this.transport) {
       await this.transport.connect()
       this.transport
@@ -137,8 +150,11 @@ export class DAppClient {
           this.handleResponse(deserializedMessage)
         })
         .catch(error => console.log(error))
+      this.internalReady.resolve(true)
     } else {
-      throw new Error('no transport available')
+      this.internalReady.reject('no transport available')
     }
+
+    return this.internalReady.promise
   }
 }

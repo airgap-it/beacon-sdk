@@ -23,20 +23,23 @@ export class P2PTransport extends Transport {
   }
 
   public async connect(): Promise<void> {
-    const key = await this.getOrCreateKey()
-    this.client = new WalletCommunicationClient('DAPP', key, 1, false)
-    await this.client.start()
+    return new Promise(async resolve => {
+      const key = await this.getOrCreateKey()
+      this.client = new WalletCommunicationClient('DAPP', key, 1, false)
+      await this.client.start()
 
-    await this.client.listenForChannelOpening(pubKey => {
-      this.pubKey = pubKey
-      this.listen()
-    })
+      await this.client.listenForChannelOpening(pubKey => {
+        this.pubKey = pubKey
+        this.listen()
+        resolve()
+      })
 
-    return showAlert({
-      title: `Pair Wallet (${key})`,
-      text: 'Please scan the QR with your wallet.',
-      html: this.client.getHandshakeQR('svg'),
-      confirmButtonText: 'Done!'
+      showAlert({
+        title: `Pair Wallet (${key})`,
+        text: 'Please scan the QR with your wallet.',
+        html: this.client.getHandshakeQR('svg'),
+        confirmButtonText: 'Done!'
+      })
     })
   }
 

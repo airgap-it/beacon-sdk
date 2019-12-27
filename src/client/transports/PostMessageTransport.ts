@@ -30,13 +30,15 @@ export class PostMessageTransport extends Transport {
   public async init(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     myWindow.addEventListener('message', (event: any) => {
-      this.notifyListeners(event.data).catch(error => {
-        throw error
-      })
+      if (event.method === 'toPage') {
+        this.notifyListeners(event.data).catch(error => {
+          throw error
+        })
+      }
     })
   }
 
   public async send(message: string): Promise<void> {
-    myWindow.postMessage(message, '*')
+    myWindow.postMessage({ method: 'toExtension', data: message }, '*')
   }
 }

@@ -3,7 +3,7 @@ type Callback = (message: unknown) => void
 const cbs: Callback[] = [(_: unknown): void => undefined]
 
 let myWindow = {
-  postMessage: (message: string, _target?: string): void => {
+  postMessage: (message: string | Record<string, unknown>, _target?: string): void => {
     console.log('GOT POST MESSAGE', message)
     cbs.forEach((callbackElement: Callback) => {
       callbackElement({ data: message })
