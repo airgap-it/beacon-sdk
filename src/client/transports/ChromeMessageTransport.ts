@@ -3,7 +3,7 @@ import { Transport } from './Transport'
 
 const logger = new Logger('ChromeMessageTransport')
 
-export class ExtensionTransport extends Transport {
+export class ChromeMessageTransport extends Transport {
   constructor() {
     super()
     this.init().catch(error => console.error(error))
@@ -18,8 +18,9 @@ export class ExtensionTransport extends Transport {
   }
 
   private async init(): Promise<void> {
-    chrome.runtime.onMessage.addListener((msg, _sender) => {
-      logger.log('init', 'background.js: receive ', msg)
+    chrome.runtime.onMessage.addListener((message, _sender) => {
+      logger.log('init', 'background.js: receive ', message)
+      this.notifyListeners(message).catch(error => logger.error(error))
     })
   }
 }

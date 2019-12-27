@@ -1,7 +1,7 @@
 import { myWindow } from '../MockWindow'
 import { Transport } from './Transport'
 
-export class ExtensionTransport extends Transport {
+export class PostMessageTransport extends Transport {
   constructor() {
     super()
     this.init().catch(error => console.error(error))
