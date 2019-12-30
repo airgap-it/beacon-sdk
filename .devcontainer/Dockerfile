@@ -21,7 +21,7 @@ RUN apt-get update \
     && wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true \
     #
     # Typescript
-    && npm install -g typescript ts-node
+    && npm install -g typescript ts-node \
     #
     # Clean up
     && apt-get autoremove -y \
