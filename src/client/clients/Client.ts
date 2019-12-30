@@ -1,5 +1,5 @@
 export enum BeaconEvent {
-  BEACON_HANDSHAKE = 'beacon_handshake', //
+  BEACON_HANDSHAKE = 'beacon_handshake', // 
   CONNECTED = 'connected' // Triggered when connection is established
 }
 

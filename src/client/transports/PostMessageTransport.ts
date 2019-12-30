@@ -11,14 +11,15 @@ export class PostMessageTransport extends Transport {
     return new Promise(resolve => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const fn = (event: any): void => {
-        if (event.data === 'beacon:pong') {
+        if (event.data && event.data.payload === 'pong') {
           resolve(true)
           myWindow.removeEventListener('message', fn)
         }
       }
+
       myWindow.addEventListener('message', fn)
 
-      myWindow.postMessage('beacon:ping', '*')
+      myWindow.postMessage({ method: 'toExtension', payload: 'ping' }, '*')
 
       setTimeout(() => {
         resolve(false)
@@ -31,7 +32,7 @@ export class PostMessageTransport extends Transport {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     myWindow.addEventListener('message', (event: any) => {
       if (event.method === 'toPage') {
-        this.notifyListeners(event.data).catch(error => {
+        this.notifyListeners(event.payload).catch(error => {
           throw error
         })
       }
@@ -39,6 +40,6 @@ export class PostMessageTransport extends Transport {
   }
 
   public async send(message: string): Promise<void> {
-    myWindow.postMessage({ method: 'toExtension', data: message }, '*')
+    myWindow.postMessage({ method: 'toExtension', payload: message }, '*')
   }
 }
