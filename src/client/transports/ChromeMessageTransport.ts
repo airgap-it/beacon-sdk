@@ -13,8 +13,8 @@ export class ChromeMessageTransport extends Transport {
     return Promise.resolve(false)
   }
 
-  public async send(message: string): Promise<void> {
-    chrome.runtime.sendMessage(message)
+  public async send(payload: string | Record<string, unknown>): Promise<void> {
+    chrome.runtime.sendMessage({ method: 'toPage', payload })
   }
 
   private async init(): Promise<void> {

@@ -30,11 +30,14 @@ export class PostMessageTransport extends Transport {
 
   public async init(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    myWindow.addEventListener('message', (event: any) => {
-      if (event.method === 'toPage') {
-        this.notifyListeners(event.payload).catch(error => {
-          throw error
-        })
+    myWindow.addEventListener('message', (message) => {
+      if (typeof message === 'object' && message) {
+        const data = (message as any).data
+        if (data.method === 'toPage') {
+          this.notifyListeners(data.payload).catch(error => {
+            throw error
+          })
+        }
       }
     })
   }

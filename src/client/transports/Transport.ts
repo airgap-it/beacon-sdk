@@ -30,8 +30,10 @@ export class Transport {
   }
 
   protected async notifyListeners(message: string): Promise<void> {
-    if (this.listeners.length) {
-      console.warn('0 listeners notified!')
+    if (this.listeners.length === 0) {
+      console.warn('0 listeners notified!', this)
+    } else {
+      console.log(`Notifying ${this.listeners.length} listeners`, this)
     }
 
     this.listeners.forEach(listener => {
