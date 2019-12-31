@@ -1,6 +1,6 @@
-import { TezosOperation, TezosOperationType } from "./OperationTypes"
+import { TezosOperation, TezosOperationType } from './OperationTypes'
 
 export interface TezosEndorsementOperation extends TezosOperation {
-    kind: TezosOperationType.ENDORSEMENT
-    level: string
+  kind: TezosOperationType.ENDORSEMENT
+  level: string
 }

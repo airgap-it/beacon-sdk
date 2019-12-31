@@ -1,7 +1,7 @@
-import { TezosOperation, TezosOperationType } from "./OperationTypes"
+import { TezosOperation, TezosOperationType } from './OperationTypes'
 
 export interface TezosProposalOperation extends TezosOperation {
-    kind: TezosOperationType.PROPOSALS
-    period: string
-    proposals: string[]
+  kind: TezosOperationType.PROPOSALS
+  period: string
+  proposals: string[]
 }
