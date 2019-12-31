@@ -1,4 +1,6 @@
-export type PermissionScope = 'read_address' | 'sign' | 'payment_request' | 'threshold'
+import { TezosOperation } from './operations/OperationTypes'
+
+export type PermissionScope = 'read_address' | 'sign' | 'operation_request' | 'threshold'
 
 export enum MessageTypes {
   PermissionRequest = 'permission_request',
@@ -21,64 +23,58 @@ export type Messages =
   | BroadcastRequest
   | BroadcastResponse
 
-export interface PermissionRequest {
+export interface BaseMessage {
   id: string
+  type: MessageTypes
+}
+
+export interface PermissionRequest extends BaseMessage {
   type: MessageTypes.PermissionRequest
   scope: PermissionScope[]
 }
 
-export type PermissionResponse = {
-  id: string
+export interface PermissionResponse extends BaseMessage {
   type: MessageTypes.PermissionResponse
-  address: string
-  networks: string[]
-  permissions: PermissionScope[]
-}[]
+  permissions: {
+    pubkey: string
+    networks: string[]
+    scopes: PermissionScope[]
+  }
+}
 
-export interface SignPayloadRequest {
-  // TODO: ID?
-  id: string
+export interface SignPayloadRequest extends BaseMessage {
   type: MessageTypes.SignPayloadRequest
   payload: Buffer[]
   sourceAddress: string
 }
 
-export interface SignPayloadResponse {
-  // TODO: No payload / ID?
-  id: string
+export interface SignPayloadResponse extends BaseMessage {
   type: MessageTypes.SignPayloadResponse
 
   signature: Buffer[]
 }
 
-export interface OperationRequest {
-  id: string
+export interface OperationRequest extends BaseMessage {
   type: MessageTypes.OperationRequest
 
   network: string
-  recipient: string
-  amount: string
-  source?: string
+  operationDetails: TezosOperation
 }
 
-export interface OperationResponse {
-  id: string
+export interface OperationResponse extends BaseMessage {
   type: MessageTypes.OperationResponse
 
   transactionHash: string
 }
-// BROADCAST_ERROR: Should the signed tx be returned?
 
-export interface BroadcastRequest {
-  id: string
+export interface BroadcastRequest extends BaseMessage {
   type: MessageTypes.BroadcastRequest
 
   network: string
   signedTransaction: Buffer[]
 }
 
-export interface BroadcastResponse {
-  id: string
+export interface BroadcastResponse extends BaseMessage {
   type: MessageTypes.BroadcastResponse
 
   transactionHash: string

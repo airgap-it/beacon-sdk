@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "0.0.1-beta.0",
+  "version": "0.0.1-beta.3",
   "description": "The beacon-sdk is setup in a way to allow for p2p communication between wallets and dapps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -36,10 +36,12 @@
     "libsodium-wrappers": "^0.7.6",
     "matrix-js-sdk": "2.4.3",
     "node-localstorage": "^1.3.1",
-    "qrcode-generator": "^1.4.4"
+    "qrcode-generator": "^1.4.4",
+    "sweetalert2": "^9.5.3"
   },
   "devDependencies": {
     "@types/chai-as-promised": "^7.1.2",
+    "@types/chrome": "0.0.91",
     "@types/libsodium-wrappers": "^0.7.7",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.12.6",
@@ -57,7 +59,7 @@
     "nyc": "^14.1.1",
     "prettier": "^1.19.1",
     "sonar-scanner": "^3.1.0",
-    "ts-node": "^8.4.1",
+    "ts-node": "^8.5.4",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
     "tslint-config-valorsoft": "^2.2.1",
