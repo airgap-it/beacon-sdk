@@ -35,15 +35,13 @@ function writeLocalFile(json: JsonObject): Promise<void> {
   })
 }
 
-/* eslint-enable prefer-arrow/prefer-arrow-functions */
-
 /**
  * This can be used for development in node.
  *
  * DO NOT USE IN PRODUCTION
  */
 export class FileStorage implements Storage {
-  public async isSupported(): Promise<boolean> {
+  public static async isSupported(): Promise<boolean> {
     return Promise.resolve(typeof global !== 'undefined')
   }
 
