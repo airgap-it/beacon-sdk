@@ -36,8 +36,7 @@ export class P2PTransport extends Transport {
 
       showAlert({
         title: `Pair Wallet (${key})`,
-        text: 'Please scan the QR with your wallet.',
-        html: this.client.getHandshakeQR('svg'),
+        html: this.client.getHandshakeQR('svg').replace('width="98px"', 'width="300px"').replace('height="98px"', 'height="300px"'),
         confirmButtonText: 'Done!'
       })
     })
