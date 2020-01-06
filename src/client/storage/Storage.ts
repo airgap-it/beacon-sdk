@@ -1,6 +1,6 @@
-export interface Storage {
-  isSupported(): Promise<boolean>
-  get(key: string): Promise<unknown>
-  set(key: string, value: string): Promise<void>
-  delete(key: string): Promise<void>
+export abstract class Storage {
+  public static isSupported(): Promise<boolean> { return Promise.resolve(false) }
+  abstract get(key: string): Promise<unknown>
+  abstract set(key: string, value: string): Promise<void>
+  abstract delete(key: string): Promise<void>
 }

@@ -7,21 +7,18 @@ import { ChromeStorage } from './ChromeStorage'
 const logger = new Logger('STORAGE')
 
 export const getStorage: () => Promise<Storage> = async (): Promise<Storage> => {
-  const local: LocalStorage = new LocalStorage()
-  const file: FileStorage = new FileStorage()
-  const chrome: ChromeStorage = new ChromeStorage()
-  if (await chrome.isSupported()) {
+  if (await ChromeStorage.isSupported()) {
     logger.log('getStorage', 'USING CHROME STORAGE')
 
-    return chrome
-  } else if (await local.isSupported()) {
+    return new ChromeStorage()
+  } else if (await LocalStorage.isSupported()) {
     logger.log('getStorage', 'USING LOCAL STORAGE')
 
-    return local
-  } else if (await file.isSupported()) {
+    return new LocalStorage()
+  } else if (await FileStorage.isSupported()) {
     logger.log('getStorage', 'USING FILE STORAGE')
 
-    return file
+    return new FileStorage()
   } else {
     throw new Error('no storage type supported')
   }

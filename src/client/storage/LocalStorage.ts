@@ -1,7 +1,7 @@
 import { Storage } from './Storage'
 
 export class LocalStorage implements Storage {
-  public async isSupported(): Promise<boolean> {
+  public static async isSupported(): Promise<boolean> {
     return Promise.resolve(typeof window !== 'undefined' && !!window.localStorage)
   }
 
