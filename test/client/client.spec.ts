@@ -21,13 +21,13 @@ describe(`client - Custom Tests`, () => {
       const intervals: NodeJS.Timeout[] = []
 
       const aliceClient = new WalletCommunicationClient('Alice', 'alice1234', 1)
-      await aliceClient.start()
+      await aliceClient.start().catch(aliceClientError => console.log('aliceClientError', aliceClientError))
 
       const bobClient = new WalletCommunicationClient('Bob', 'bob1234', 1)
-      await bobClient.start()
+      await bobClient.start().catch(bobClientError => console.log('bobClientError', bobClientError))
 
       const charlieClient = new WalletCommunicationClient('Charlie', 'charlie1234', 1)
-      await charlieClient.start()
+      await charlieClient.start().catch(charlieClientError => console.log('charlieClientError', charlieClientError))
 
       aliceClient.listenForEncryptedMessage(bobClient.getPublicKey(), (message: string) => {
         console.log('\n\nalice received from bob: ' + message)
