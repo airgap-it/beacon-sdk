@@ -1,4 +1,4 @@
-import { Storage } from './Storage'
+import { Storage, StorageKey, StorageKeyReturnType } from './Storage'
 
 export class ChromeStorage implements Storage {
   public static async isSupported(): Promise<boolean> {
@@ -7,7 +7,7 @@ export class ChromeStorage implements Storage {
     )
   }
 
-  public async get(key: string): Promise<unknown> {
+  public async get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {
     return new Promise(resolve => {
       chrome.storage.local.get(null, storageContent => {
         resolve(storageContent[key])
@@ -15,7 +15,7 @@ export class ChromeStorage implements Storage {
     })
   }
 
-  public async set(key: string, value: string): Promise<void> {
+  public async set<K extends StorageKey>(key: K, value: StorageKeyReturnType[K]): Promise<void> {
     return new Promise(resolve => {
       chrome.storage.local.set({ [key]: value }, () => {
         resolve()
@@ -23,7 +23,7 @@ export class ChromeStorage implements Storage {
     })
   }
 
-  public async delete(key: string): Promise<void> {
+  public async delete<K extends StorageKey>(key: K): Promise<void> {
     return new Promise(resolve => {
       chrome.storage.local.set({ [key]: undefined }, () => {
         resolve()

@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'fs'
 
-import { Storage } from './Storage'
+import { Storage, StorageKey, StorageKeyReturnType, defaultValues } from './Storage'
 
 const file: string = './storage.json'
 
@@ -45,20 +45,24 @@ export class FileStorage implements Storage {
     return Promise.resolve(typeof global !== 'undefined')
   }
 
-  public async get(key: string): Promise<unknown> {
+  public async get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {
     const json: JsonObject = await readLocalFile()
 
-    return json[key]
+    if (json[key]) {
+      return json[key] as StorageKeyReturnType[K]
+    } else {
+      return defaultValues[key]
+    }
   }
 
-  public async set(key: string, value: string): Promise<void> {
+  public async set<K extends StorageKey>(key: K, value: StorageKeyReturnType[K]): Promise<void> {
     const json: JsonObject = await readLocalFile()
     json[key] = value
 
     return writeLocalFile(json)
   }
 
-  public async delete(key: string): Promise<void> {
+  public async delete<K extends StorageKey>(key: K): Promise<void> {
     const json: JsonObject = await readLocalFile()
     json[key] = undefined
 
