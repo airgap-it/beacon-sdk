@@ -25,4 +25,5 @@ export function exposedPromise<T>(): ExposedPromise<T> {
 
   return { promise, resolve, reject }
 }
+
 /* eslint-enable prefer-arrow/prefer-arrow-functions */

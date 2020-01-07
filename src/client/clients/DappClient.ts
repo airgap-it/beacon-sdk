@@ -16,6 +16,7 @@ import { Transport } from '../transports/Transport'
 import { TezosOperation } from '../operations/OperationTypes'
 import { Logger } from '../utils/Logger'
 import { getStorage } from '../storage/getStorage'
+import { generateGUID } from '../utils/generate-uuid'
 
 const logger = new Logger('DAppClient')
 
@@ -57,7 +58,7 @@ export class DAppClient {
     await this.init()
     await this.connect()
 
-    request.id = Math.random().toString()
+    request.id = generateGUID()
     const payload = this.serializer.serialize(request)
 
     const exposed = exposedPromise<T>()

@@ -1,6 +1,7 @@
 import { WalletCommunicationClient } from '../..'
 import { showAlert } from '../Alert'
 import { Storage, StorageKey } from '../storage/Storage'
+import { generateGUID } from '../utils/generate-uuid'
 import { Transport } from './Transport'
 
 export class P2PTransport extends Transport {
@@ -74,12 +75,6 @@ export class P2PTransport extends Transport {
   }
 
   private async getOrCreateKey(): Promise<string> {
-    await new Promise(resolve => {
-      setTimeout(() => {
-        resolve()
-      }, 100)
-    })
-
     if (!this.storage) {
       throw new Error('no storage')
     }
@@ -87,7 +82,7 @@ export class P2PTransport extends Transport {
     if (storageValue && typeof storageValue === 'string') {
       return storageValue
     } else {
-      const key = Math.random().toString()
+      const key = generateGUID()
       await this.storage.set(StorageKey.COMMUNICATION_SECRET_KEY, key)
 
       return key
