@@ -56,7 +56,11 @@ export class P2PTransport extends Transport {
 
       showAlert({
         title: `Pair Wallet`,
-        html: this.client.getHandshakeQR('svg').replace('width="98px"', 'width="300px"').replace('height="98px"', 'height="300px"'),
+        html: [
+          this.client.getHandshakeQR('svg').replace('width="98px"', 'width="300px"').replace('height="98px"', 'height="300px"'),
+          '<br />',
+          this.client.getHandshakeInfo()
+        ].join(''),
         confirmButtonText: 'Done!'
       })
     })
