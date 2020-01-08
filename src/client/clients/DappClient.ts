@@ -15,6 +15,8 @@ import { P2PTransport } from '../transports/P2PTransport'
 import { Transport } from '../transports/Transport'
 import { TezosOperation } from '../operations/OperationTypes'
 import { Logger } from '../utils/Logger'
+import { getStorage } from '../storage/getStorage'
+import { generateGUID } from '../utils/generate-uuid'
 
 const logger = new Logger('DAppClient')
 
@@ -54,8 +56,9 @@ export class DAppClient {
 
   public async makeRequest<T extends Messages>(request: Messages): Promise<T> {
     await this.init()
+    await this.connect()
 
-    request.id = Math.random().toString()
+    request.id = generateGUID()
     const payload = this.serializer.serialize(request)
 
     const exposed = exposedPromise<T>()
@@ -71,18 +74,22 @@ export class DAppClient {
 
   public async init(transport?: Transport): Promise<boolean> {
     if (this.transport) {
-      return this.internalReady.promise
+      return true
     }
+
+    const storage = await getStorage()
 
     if (transport) {
       this.transport = transport // Let users define their own transport
     } else if (await PostMessageTransport.isAvailable()) {
       this.transport = new PostMessageTransport() // Talk to extension first and relay everything
     } else if (await P2PTransport.isAvailable()) {
-      this.transport = new P2PTransport() // Establish our own connection with the wallet
+      this.transport = new P2PTransport(storage) // Establish our own connection with the wallet
+    } else {
+      throw new Error('no transport available for this platform!')
     }
 
-    return this.connect()
+    return true
   }
 
   public async requestPermissions(request?: PermissionScope[]): Promise<PermissionResponse> {

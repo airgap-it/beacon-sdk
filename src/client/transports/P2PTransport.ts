@@ -1,21 +1,16 @@
 import { WalletCommunicationClient } from '../..'
 import { showAlert } from '../Alert'
-import { Storage } from '../storage/Storage'
-import { getStorage } from '../storage/getStorage'
+import { Storage, StorageKey } from '../storage/Storage'
+import { generateGUID } from '../utils/generate-uuid'
 import { Transport } from './Transport'
 
-const CommunicationSecretKey = 'communication-secret-key'
-
 export class P2PTransport extends Transport {
-  private storage: Storage | undefined
+  private readonly storage: Storage
   private client: WalletCommunicationClient | undefined
-  private pubKey: string | undefined
 
-  constructor() {
+  constructor(storage: Storage) {
     super()
-    getStorage()
-      .then(storage => (this.storage = storage))
-      .catch(error => console.error(error))
+    this.storage = storage
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -23,19 +18,42 @@ export class P2PTransport extends Transport {
   }
 
   public async connect(): Promise<void> {
-    return new Promise(async resolve => {
-      const key = await this.getOrCreateKey()
-      this.client = new WalletCommunicationClient('DAPP', key, 1, false)
-      await this.client.start()
+    const key = await this.getOrCreateKey()
 
-      await this.client.listenForChannelOpening(pubKey => {
-        this.pubKey = pubKey
-        this.listen()
+    this.client = new WalletCommunicationClient('DAPP', key, 1, false)
+    await this.client.start()
+
+    const knownPeers = await this.storage.get(StorageKey.COMMUNICATION_PEERS)
+
+    if (knownPeers.length > 0) {
+      knownPeers.forEach(peer => {
+        this.listen(peer)
+      })
+    } else {
+      return this.connectNewPeer()
+    }
+
+  }
+
+  public async connectNewPeer(): Promise<void> {
+    return new Promise(async resolve => {
+      if (!this.client) {
+        throw new Error('client not ready')
+      }
+
+      await this.client.listenForChannelOpening(async pubKey => {
+        const knownPeers = await this.storage.get(StorageKey.COMMUNICATION_PEERS)
+        if (!knownPeers.some(peer => peer === pubKey)) {
+          knownPeers.push(pubKey)
+          this.storage.set(StorageKey.COMMUNICATION_PEERS, knownPeers).catch(storageError => console.error(storageError))
+          this.listen(pubKey)
+        }
+
         resolve()
       })
 
       showAlert({
-        title: `Pair Wallet (${key})`,
+        title: `Pair Wallet`,
         html: this.client.getHandshakeQR('svg').replace('width="98px"', 'width="300px"').replace('height="98px"', 'height="300px"'),
         confirmButtonText: 'Done!'
       })
@@ -43,46 +61,40 @@ export class P2PTransport extends Transport {
   }
 
   public async send(message: string): Promise<void> {
-    if (!this.client) {
-      throw new Error('client not ready')
-    }
-    if (!this.pubKey) {
-      throw new Error('channel not ready')
-    }
+    const knownPeers = await this.storage.get(StorageKey.COMMUNICATION_PEERS)
 
-    return this.client.sendMessage(this.pubKey, message)
+    const promises = knownPeers.map(peer => {
+      if (!this.client) {
+        throw new Error('client not ready')
+      }
+
+      return this.client.sendMessage(peer, message)
+    })
+
+    return Promise.all(promises)[0]
   }
 
   private async getOrCreateKey(): Promise<string> {
-    await new Promise(resolve => {
-      setTimeout(() => {
-        resolve()
-      }, 100)
-    })
-
     if (!this.storage) {
       throw new Error('no storage')
     }
-    const storageValue: unknown = await this.storage.get(CommunicationSecretKey)
+    const storageValue: unknown = await this.storage.get(StorageKey.COMMUNICATION_SECRET_KEY)
     if (storageValue && typeof storageValue === 'string') {
       return storageValue
     } else {
-      const key = Math.random().toString()
-      await this.storage.set(CommunicationSecretKey, key)
+      const key = generateGUID()
+      await this.storage.set(StorageKey.COMMUNICATION_SECRET_KEY, key)
 
       return key
     }
   }
 
-  private listen(): void {
+  private listen(pubKey: string): void {
     if (!this.client) {
       throw new Error('client not ready')
     }
-    if (!this.pubKey) {
-      throw new Error('channel not ready')
-    }
     this.client
-      .listenForEncryptedMessage(this.pubKey, message => {
+      .listenForEncryptedMessage(pubKey, message => {
         this.notifyListeners(message).catch(error => {
           throw error
         })

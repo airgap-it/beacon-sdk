@@ -8,6 +8,7 @@ import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 
+import { generateGUID } from '../../src/client/utils/generate-uuid'
 import { WalletCommunicationClient } from '../../src'
 
 // use chai-as-promised plugin
@@ -20,13 +21,13 @@ describe(`client - Custom Tests`, () => {
       const intervals: NodeJS.Timeout[] = []
 
       const aliceClient = new WalletCommunicationClient('Alice', 'alice1234', 1)
-      await aliceClient.start()
+      await aliceClient.start().catch(aliceClientError => console.log('aliceClientError', aliceClientError))
 
       const bobClient = new WalletCommunicationClient('Bob', 'bob1234', 1)
-      await bobClient.start()
+      await bobClient.start().catch(bobClientError => console.log('bobClientError', bobClientError))
 
       const charlieClient = new WalletCommunicationClient('Charlie', 'charlie1234', 1)
-      await charlieClient.start()
+      await charlieClient.start().catch(charlieClientError => console.log('charlieClientError', charlieClientError))
 
       aliceClient.listenForEncryptedMessage(bobClient.getPublicKey(), (message: string) => {
         console.log('\n\nalice received from bob: ' + message)
@@ -54,22 +55,22 @@ describe(`client - Custom Tests`, () => {
 
       intervals.push(
         setInterval(() => {
-          bobClient.sendMessage(aliceClient.getPublicKey(), `hey from bob ${Math.random()}\n\n`)
+          bobClient.sendMessage(aliceClient.getPublicKey(), `hey from bob ${generateGUID()}\n\n`)
           //bobClient.sendMessage(charlieClient.getPublicKey(), 'matrix-dev.papers.tech', "hey from bob")
         }, 5000)
       )
 
       intervals.push(
         setInterval(() => {
-          aliceClient.sendMessage(bobClient.getPublicKey(), `hey from alice ${Math.random()}\n\n`)
-          aliceClient.sendMessage(charlieClient.getPublicKey(), `hey from alice ${Math.random()}\n\n`)
+          aliceClient.sendMessage(bobClient.getPublicKey(), `hey from alice ${generateGUID()}\n\n`)
+          aliceClient.sendMessage(charlieClient.getPublicKey(), `hey from alice ${generateGUID()}\n\n`)
         }, 5000)
       )
 
       intervals.push(
         setInterval(() => {
           //charlieClient.sendMessage(bobClient.getPublicKey(), 'matrix.tez.ie', "hey from charlie")
-          charlieClient.sendMessage(aliceClient.getPublicKey(), `hey from charlie ${Math.random()}\n\n`)
+          charlieClient.sendMessage(aliceClient.getPublicKey(), `hey from charlie ${generateGUID()}\n\n`)
         }, 5000)
       )
 
