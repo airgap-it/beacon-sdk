@@ -28,7 +28,11 @@ export interface BaseMessage {
   type: MessageTypes
 }
 
-export interface PermissionRequest extends BaseMessage {
+export interface BaseRequest extends BaseMessage {
+  name: string // Name of the Dapp
+}
+
+export interface PermissionRequest extends BaseRequest {
   type: MessageTypes.PermissionRequest
   scope: PermissionScope[]
 }
@@ -42,7 +46,7 @@ export interface PermissionResponse extends BaseMessage {
   }
 }
 
-export interface SignPayloadRequest extends BaseMessage {
+export interface SignPayloadRequest extends BaseRequest {
   type: MessageTypes.SignPayloadRequest
   payload: Buffer[]
   sourceAddress: string
@@ -54,7 +58,7 @@ export interface SignPayloadResponse extends BaseMessage {
   signature: Buffer[]
 }
 
-export interface OperationRequest extends BaseMessage {
+export interface OperationRequest extends BaseRequest {
   type: MessageTypes.OperationRequest
 
   network: string
@@ -67,7 +71,7 @@ export interface OperationResponse extends BaseMessage {
   transactionHash: string
 }
 
-export interface BroadcastRequest extends BaseMessage {
+export interface BroadcastRequest extends BaseRequest {
   type: MessageTypes.BroadcastRequest
 
   network: string

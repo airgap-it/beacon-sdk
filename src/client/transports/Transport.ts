@@ -1,4 +1,15 @@
+export enum TransportType {
+  CHROME_MESSAGE = 'chrome_message',
+  POST_MESSAGE = 'post_message',
+  DEEPLINK = 'deeplink',
+  LEDGER = 'ledger',
+  P2P = 'p2p',
+  MEMORY = 'in_memory'
+}
+
 export class Transport {
+  public readonly type: TransportType = TransportType.MEMORY
+  
   private listeners: ((message: string) => void)[] = []
 
   public static async isAvailable(): Promise<boolean> {

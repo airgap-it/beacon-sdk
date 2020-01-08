@@ -1,11 +1,9 @@
-import {
-  BaseMessage,
-} from '../Messages'
+import { BaseMessage } from '../Messages'
 import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { PostMessageTransport } from '../transports/PostMessageTransport'
 import { P2PTransport } from '../transports/P2PTransport'
-import { Transport } from '../transports/Transport'
+import { Transport, TransportType } from '../transports/Transport'
 import { Logger } from '../utils/Logger'
 import { getStorage } from '../storage/getStorage'
 
@@ -16,15 +14,15 @@ export class WalletClient {
 
   private transport: Transport | undefined
 
-  private readonly internalReady: ExposedPromise<boolean> = exposedPromise()
+  private readonly _isConnected: ExposedPromise<boolean> = exposedPromise()
 
-  public get ready(): Promise<boolean> {
-    return this.internalReady.promise
+  public get isConnected(): Promise<boolean> {
+    return this._isConnected.promise
   }
 
-  public async init(transport?: Transport): Promise<boolean> {
+  public async init(transport?: Transport): Promise<TransportType> {
     if (this.transport) {
-      return true
+      return this.transport.type
     }
 
     const storage = await getStorage()
@@ -39,7 +37,7 @@ export class WalletClient {
       throw new Error('no transport available for this platform!')
     }
 
-    return true
+    return this.transport.type
   }
 
   public async connect(newMessageCallback: (message: BaseMessage) => void): Promise<boolean> {
@@ -51,11 +49,11 @@ export class WalletClient {
         })
         .catch(error => logger.log(error))
       await this.transport.connect()
-      this.internalReady.resolve(true)
+      this._isConnected.resolve(true)
     } else {
-      this.internalReady.reject('no transport available')
+      this._isConnected.reject('no transport available')
     }
 
-    return this.internalReady.promise
+    return this._isConnected.promise
   }
 }

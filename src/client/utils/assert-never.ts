@@ -1,7 +1,7 @@
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 
-export function assertNever(_: never): never {
-  return _
+export function assertNever(empty: never): never {
+  return empty
 }
 
 /* eslint-enable prefer-arrow/prefer-arrow-functions */

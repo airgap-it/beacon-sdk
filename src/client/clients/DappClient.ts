@@ -12,7 +12,7 @@ import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { PostMessageTransport } from '../transports/PostMessageTransport'
 import { P2PTransport } from '../transports/P2PTransport'
-import { Transport } from '../transports/Transport'
+import { Transport, TransportType } from '../transports/Transport'
 import { TezosOperation } from '../operations/OperationTypes'
 import { Logger } from '../utils/Logger'
 import { getStorage } from '../storage/getStorage'
@@ -27,10 +27,10 @@ export class DAppClient {
 
   private transport: Transport | undefined
 
-  private readonly internalReady: ExposedPromise<boolean> = exposedPromise()
+  private readonly _isConnected: ExposedPromise<boolean> = exposedPromise()
 
-  public get ready(): Promise<boolean> {
-    return this.internalReady.promise
+  public get isConnected(): Promise<boolean> {
+    return this._isConnected.promise
   }
 
   constructor(name: string) {
@@ -72,9 +72,9 @@ export class DAppClient {
     return exposed.promise
   }
 
-  public async init(transport?: Transport): Promise<boolean> {
+  public async init(transport?: Transport): Promise<TransportType> {
     if (this.transport) {
-      return true
+      return this.transport.type
     }
 
     const storage = await getStorage()
@@ -89,12 +89,13 @@ export class DAppClient {
       throw new Error('no transport available for this platform!')
     }
 
-    return true
+    return this.transport.type
   }
 
   public async requestPermissions(request?: PermissionScope[]): Promise<PermissionResponse> {
     return this.makeRequest({
       id: '',
+      name: this.name,
       type: MessageTypes.PermissionRequest,
       scope: request || ['read_address', 'sign', 'operation_request', 'threshold']
     })
@@ -110,6 +111,7 @@ export class DAppClient {
 
     return this.makeRequest({
       id: '',
+      name: this.name,
       type: MessageTypes.SignPayloadRequest,
       payload: request.payload,
       sourceAddress: request.sourceAddress || ''
@@ -126,6 +128,7 @@ export class DAppClient {
 
     return this.makeRequest({
       id: '',
+      name: this.name,
       type: MessageTypes.OperationRequest,
       network: request.network || 'mainnet',
       operationDetails: request.operationDetails
@@ -142,6 +145,7 @@ export class DAppClient {
 
     return this.makeRequest({
       id: '',
+      name: this.name,
       type: MessageTypes.BroadcastRequest,
       network: request.network || 'mainnet',
       signedTransaction: request.signedTransaction
@@ -157,11 +161,11 @@ export class DAppClient {
           this.handleResponse(deserializedMessage)
         })
         .catch(error => console.log(error))
-      this.internalReady.resolve(true)
+      this._isConnected.resolve(true)
     } else {
-      this.internalReady.reject('no transport available')
+      this._isConnected.reject('no transport available')
     }
 
-    return this.internalReady.promise
+    return this._isConnected.promise
   }
 }

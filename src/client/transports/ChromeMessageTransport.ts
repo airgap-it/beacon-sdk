@@ -1,9 +1,11 @@
 import { Logger } from '../utils/Logger'
-import { Transport } from './Transport'
+import { Transport, TransportType } from './Transport'
 
 const logger = new Logger('ChromeMessageTransport')
 
 export class ChromeMessageTransport extends Transport {
+  public readonly type: TransportType = TransportType.CHROME_MESSAGE
+
   constructor() {
     super()
     this.init().catch(error => console.error(error))

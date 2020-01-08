@@ -1,7 +1,9 @@
 import { myWindow } from '../MockWindow'
-import { Transport } from './Transport'
+import { Transport, TransportType } from './Transport'
 
 export class PostMessageTransport extends Transport {
+  public readonly type: TransportType = TransportType.POST_MESSAGE
+
   constructor() {
     super()
     this.init().catch(error => console.error(error))
@@ -29,9 +31,9 @@ export class PostMessageTransport extends Transport {
   }
 
   public async init(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     myWindow.addEventListener('message', message => {
       if (typeof message === 'object' && message) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = (message as any).data
         if (data.method === 'toPage') {
           this.notifyListeners(data.payload).catch(error => {

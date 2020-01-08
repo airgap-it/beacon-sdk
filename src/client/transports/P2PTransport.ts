@@ -2,9 +2,11 @@ import { WalletCommunicationClient } from '../..'
 import { showAlert } from '../Alert'
 import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'
-import { Transport } from './Transport'
+import { Transport, TransportType } from './Transport'
 
 export class P2PTransport extends Transport {
+  public readonly type: TransportType = TransportType.P2P
+
   private readonly storage: Storage
   private client: WalletCommunicationClient | undefined
 

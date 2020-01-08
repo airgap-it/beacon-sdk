@@ -20,8 +20,8 @@ export class WalletCommunicationClient {
 
   private readonly KNOWN_RELAY_SERVERS = [
     'matrix.papers.tech',
-    'matrix.tez.ie',
-    'matrix-dev.papers.tech'
+    // 'matrix.tez.ie',
+    // 'matrix-dev.papers.tech'
     // "matrix.stove-labs.com",
     // "yadayada.cryptonomic-infra.tech"
   ]
