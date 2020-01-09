@@ -1,3 +1,9 @@
+export enum TransportStatus {
+  NOT_CONNECTED = 'NOT_CONNECTED',
+  CONNECTING = 'CONNECTING',
+  CONNECTED = 'CONNECTED'
+}
+
 export enum TransportType {
   CHROME_MESSAGE = 'chrome_message',
   POST_MESSAGE = 'post_message',
@@ -9,7 +15,12 @@ export enum TransportType {
 
 export class Transport {
   public readonly type: TransportType = TransportType.MEMORY
-  
+
+  protected _isConnected: TransportStatus = TransportStatus.NOT_CONNECTED
+  public get connectionStatus(): TransportStatus {
+    return this._isConnected
+  }
+
   private listeners: ((message: string) => void)[] = []
 
   public static async isAvailable(): Promise<boolean> {
@@ -17,6 +28,8 @@ export class Transport {
   }
 
   public async connect(): Promise<void> {
+    this._isConnected = TransportStatus.CONNECTED
+
     return
   }
 

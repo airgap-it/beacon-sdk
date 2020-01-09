@@ -2,7 +2,7 @@ import { WalletCommunicationClient } from '../..'
 import { showAlert } from '../Alert'
 import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'
-import { Transport, TransportType } from './Transport'
+import { TransportStatus, Transport, TransportType } from './Transport'
 
 export class P2PTransport extends Transport {
   public readonly type: TransportType = TransportType.P2P
@@ -20,6 +20,8 @@ export class P2PTransport extends Transport {
   }
 
   public async connect(): Promise<void> {
+    this._isConnected = TransportStatus.CONNECTING
+    
     const key = await this.getOrCreateKey()
 
     this.client = new WalletCommunicationClient('DAPP', key, 1, false)
@@ -35,6 +37,7 @@ export class P2PTransport extends Transport {
       return this.connectNewPeer()
     }
 
+    await super.connect()
   }
 
   public async connectNewPeer(): Promise<void> {
