@@ -8,44 +8,37 @@ import {
   MessageTypes,
   PermissionScope
 } from '../Messages'
-import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
-import { PostMessageTransport } from '../transports/PostMessageTransport'
-import { P2PTransport } from '../transports/P2PTransport'
-import { Transport, TransportType, TransportStatus } from '../transports/Transport'
+
 import { TezosOperation } from '../operations/OperationTypes'
 import { Logger } from '../utils/Logger'
-import { getStorage } from '../storage/getStorage'
 import { generateGUID } from '../utils/generate-uuid'
+import { BaseClient } from './Client'
 
 const logger = new Logger('DAppClient')
 
-export class DAppClient {
+export class DAppClient extends BaseClient {
   private readonly name: string = ''
-  private readonly serializer = new Serializer()
   private readonly openRequests = new Map<string, ExposedPromise<Messages>>()
-
-  private transport: Transport | undefined
-
-  private readonly _isConnected: ExposedPromise<boolean> = exposedPromise()
 
   public get isConnected(): Promise<boolean> {
     return this._isConnected.promise
   }
 
   constructor(name: string) {
+    super()
     this.name = name
-  }
 
-  public handleResponse(event: BaseMessage): void {
-    const openRequest = this.openRequests.get(event.id)
-    if (openRequest) {
-      logger.log('handleResponse', 'found openRequest', event.id)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      openRequest.resolve(event as any)
-      this.openRequests.delete(event.id)
-    } else {
-      logger.error('handleResponse', 'no request found for id ', event.id)
+    this.handleResponse = (event: BaseMessage): void => {
+      const openRequest = this.openRequests.get(event.id)
+      if (openRequest) {
+        logger.log('handleResponse', 'found openRequest', event.id)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        openRequest.resolve(event as any)
+        this.openRequests.delete(event.id)
+      } else {
+        logger.error('handleResponse', 'no request found for id ', event.id)
+      }
     }
   }
 
@@ -55,8 +48,10 @@ export class DAppClient {
   }
 
   public async makeRequest<T extends Messages>(request: Messages): Promise<T> {
+    logger.log('makeRequest')
     await this.init()
     await this.connect()
+    logger.log('makeRequest', 'after connecting')
 
     request.id = generateGUID()
     const payload = this.serializer.serialize(request)
@@ -72,24 +67,8 @@ export class DAppClient {
     return exposed.promise
   }
 
-  public async init(transport?: Transport): Promise<TransportType> {
-    if (this.transport) {
-      return this.transport.type
-    }
-
-    const storage = await getStorage()
-
-    if (transport) {
-      this.transport = transport // Let users define their own transport
-    } else if (await PostMessageTransport.isAvailable()) {
-      this.transport = new PostMessageTransport() // Talk to extension first and relay everything
-    } else if (await P2PTransport.isAvailable()) {
-      this.transport = new P2PTransport(storage) // Establish our own connection with the wallet
-    } else {
-      throw new Error('no transport available for this platform!')
-    }
-
-    return this.transport.type
+  public async connect(): Promise<boolean> {
+    return super._connect()
   }
 
   public async requestPermissions(request?: PermissionScope[]): Promise<PermissionResponse> {
@@ -150,22 +129,5 @@ export class DAppClient {
       network: request.network || 'mainnet',
       signedTransaction: request.signedTransaction
     })
-  }
-
-  private async connect(): Promise<boolean> {
-    if (this.transport && this.transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
-      await this.transport.connect()
-      this.transport
-        .addListener((message: string) => {
-          const deserializedMessage = this.serializer.deserialize(message) as BaseMessage // TODO: Check type
-          this.handleResponse(deserializedMessage)
-        })
-        .catch(error => console.log(error))
-      this._isConnected.resolve(true)
-    } else {
-      this._isConnected.reject('no transport available')
-    }
-
-    return this._isConnected.promise
   }
 }

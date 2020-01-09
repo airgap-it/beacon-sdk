@@ -89,7 +89,7 @@ export class WalletCommunicationClient {
 
     this.log(`connecting to ${this.replicationCount} servers`)
 
-    for (let i = 0; i < this.replicationCount; i++) {
+    for (let i = 0; i < this.replicationCount; i++) { // TODO: Parallel
       const client = matrixsdk.createClient({
         baseUrl: `https://${this.getRelayServer(this.getPublicKeyHash(), i.toString())}`,
         deviceId: toHex(this.keyPair.publicKey),
@@ -112,6 +112,11 @@ export class WalletCommunicationClient {
         }
       })
       await client.startClient({ initialSyncLimit: 0 })
+
+      // FIXME: See below
+      // TODO: This call `client.startClient({ initialSyncLimit: 0 });` doesn't properly await, so we don't know when the SDK is ready.
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
       for (const room of client.getRooms()) {
         if (room.getMyMembership() === 'invite') {
           await client.joinRoom(room.roomId)

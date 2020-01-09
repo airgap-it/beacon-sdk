@@ -1,8 +1,12 @@
+import Swal from 'sweetalert2'
 import { WalletCommunicationClient } from '../..'
 import { showAlert } from '../Alert'
 import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'
+import { Logger } from '../utils/Logger'
 import { TransportStatus, Transport, TransportType } from './Transport'
+
+const logger = new Logger('Transport')
 
 export class P2PTransport extends Transport {
   public readonly type: TransportType = TransportType.P2P
@@ -20,6 +24,7 @@ export class P2PTransport extends Transport {
   }
 
   public async connect(): Promise<void> {
+    logger.log('connect')
     this._isConnected = TransportStatus.CONNECTING
     
     const key = await this.getOrCreateKey()
@@ -30,9 +35,11 @@ export class P2PTransport extends Transport {
     const knownPeers = await this.storage.get(StorageKey.COMMUNICATION_PEERS)
 
     if (knownPeers.length > 0) {
-      knownPeers.forEach(peer => {
+      logger.log('connect', `connecting to ${knownPeers.length} peers`)
+      const connectionPromises = knownPeers.map(async peer => 
         this.listen(peer)
-      })
+      )
+      await Promise.all(connectionPromises)
     } else {
       return this.connectNewPeer()
     }
@@ -41,18 +48,31 @@ export class P2PTransport extends Transport {
   }
 
   public async connectNewPeer(): Promise<void> {
+    logger.log('connectNewPeer')
+
     return new Promise(async resolve => {
       if (!this.client) {
         throw new Error('client not ready')
       }
 
       await this.client.listenForChannelOpening(async pubKey => {
+        logger.log('connectNewPeer', `new pubkey ${pubKey}`)
+
         const knownPeers = await this.storage.get(StorageKey.COMMUNICATION_PEERS)
         if (!knownPeers.some(peer => peer === pubKey)) {
           knownPeers.push(pubKey)
           this.storage.set(StorageKey.COMMUNICATION_PEERS, knownPeers).catch(storageError => console.error(storageError))
-          this.listen(pubKey)
+          await this.listen(pubKey)
         }
+
+        Swal.close()
+
+        showAlert({
+          title: `Pair Wallet`,
+          icon: `success`,
+          confirmButtonText: 'Done!',
+          timer: 1500
+        })
 
         resolve()
       })
@@ -98,11 +118,11 @@ export class P2PTransport extends Transport {
     }
   }
 
-  private listen(pubKey: string): void {
+  private async listen(pubKey: string): Promise<void> {
     if (!this.client) {
       throw new Error('client not ready')
     }
-    this.client
+    await this.client
       .listenForEncryptedMessage(pubKey, message => {
         this.notifyListeners(message).catch(error => {
           throw error

@@ -1,3 +1,5 @@
+import { Logger } from "../utils/Logger"
+
 export enum TransportStatus {
   NOT_CONNECTED = 'NOT_CONNECTED',
   CONNECTING = 'CONNECTING',
@@ -12,6 +14,8 @@ export enum TransportType {
   P2P = 'p2p',
   MEMORY = 'in_memory'
 }
+
+const logger = new Logger('Transport')
 
 export class Transport {
   public readonly type: TransportType = TransportType.MEMORY
@@ -28,13 +32,14 @@ export class Transport {
   }
 
   public async connect(): Promise<void> {
+    logger.log('connect')
     this._isConnected = TransportStatus.CONNECTED
 
     return
   }
 
   public async send(message: string): Promise<void> {
-    console.log('MESSAGE SENT: ', message)
+    logger.log('send', message)
 
     await this.notifyListeners(message)
 
@@ -42,22 +47,28 @@ export class Transport {
   }
 
   public async addListener(listener: (message: string) => void): Promise<void> {
+    logger.log('addListener')
+
     this.listeners.push(listener)
 
     return
   }
 
   public async removeListener(listener: (message: string) => void): Promise<void> {
+    logger.log('removeListener')
+
     this.listeners = this.listeners.filter(element => element !== listener)
 
     return
   }
 
   protected async notifyListeners(message: string): Promise<void> {
+    logger.log('notifyListeners')
+
     if (this.listeners.length === 0) {
-      console.warn('0 listeners notified!', this)
+      logger.warn('notifyListeners', '0 listeners notified!', this)
     } else {
-      console.log(`Notifying ${this.listeners.length} listeners`, this)
+      logger.log(`Notifying ${this.listeners.length} listeners`, this)
     }
 
     this.listeners.forEach(listener => {
