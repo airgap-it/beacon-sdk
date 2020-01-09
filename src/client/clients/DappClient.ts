@@ -12,7 +12,7 @@ import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { PostMessageTransport } from '../transports/PostMessageTransport'
 import { P2PTransport } from '../transports/P2PTransport'
-import { Transport, TransportType } from '../transports/Transport'
+import { Transport, TransportType, TransportStatus } from '../transports/Transport'
 import { TezosOperation } from '../operations/OperationTypes'
 import { Logger } from '../utils/Logger'
 import { getStorage } from '../storage/getStorage'
@@ -153,7 +153,7 @@ export class DAppClient {
   }
 
   private async connect(): Promise<boolean> {
-    if (this.transport) {
+    if (this.transport && this.transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
       await this.transport.connect()
       this.transport
         .addListener((message: string) => {
