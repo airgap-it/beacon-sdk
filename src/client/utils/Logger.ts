@@ -1,6 +1,6 @@
-  /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-  export class Logger {
+export class Logger {
   private readonly name: string
 
   constructor(service: string) {

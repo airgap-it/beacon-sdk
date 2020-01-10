@@ -1,4 +1,4 @@
-import { Logger } from "../utils/Logger"
+import { Logger } from '../utils/Logger'
 
 export enum TransportStatus {
   NOT_CONNECTED = 'NOT_CONNECTED',
