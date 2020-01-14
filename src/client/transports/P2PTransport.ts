@@ -26,7 +26,7 @@ export class P2PTransport extends Transport {
   public async connect(): Promise<void> {
     logger.log('connect')
     this._isConnected = TransportStatus.CONNECTING
-    
+
     const key = await this.getOrCreateKey()
 
     this.client = new WalletCommunicationClient('DAPP', key, 1, false)
@@ -36,9 +36,7 @@ export class P2PTransport extends Transport {
 
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
-      const connectionPromises = knownPeers.map(async peer => 
-        this.listen(peer)
-      )
+      const connectionPromises = knownPeers.map(async peer => this.listen(peer))
       await Promise.all(connectionPromises)
     } else {
       return this.connectNewPeer()
@@ -61,7 +59,9 @@ export class P2PTransport extends Transport {
         const knownPeers = await this.storage.get(StorageKey.COMMUNICATION_PEERS)
         if (!knownPeers.some(peer => peer === pubKey)) {
           knownPeers.push(pubKey)
-          this.storage.set(StorageKey.COMMUNICATION_PEERS, knownPeers).catch(storageError => console.error(storageError))
+          this.storage
+            .set(StorageKey.COMMUNICATION_PEERS, knownPeers)
+            .catch(storageError => console.error(storageError))
           await this.listen(pubKey)
         }
 
@@ -80,7 +80,10 @@ export class P2PTransport extends Transport {
       showAlert({
         title: `Pair Wallet`,
         html: [
-          this.client.getHandshakeQR('svg').replace('width="98px"', 'width="300px"').replace('height="98px"', 'height="300px"'),
+          this.client
+            .getHandshakeQR('svg')
+            .replace('width="98px"', 'width="300px"')
+            .replace('height="98px"', 'height="300px"'),
           '<br />',
           JSON.stringify(this.client.getHandshakeInfo())
         ].join(''),

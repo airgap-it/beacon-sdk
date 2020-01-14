@@ -19,7 +19,7 @@ export class WalletCommunicationClient {
   private readonly clients: MatrixClient[] = []
 
   private readonly KNOWN_RELAY_SERVERS = [
-    'matrix.papers.tech',
+    'matrix.papers.tech'
     // 'matrix.tez.ie',
     // 'matrix-dev.papers.tech'
     // "matrix.stove-labs.com",
@@ -89,7 +89,8 @@ export class WalletCommunicationClient {
 
     this.log(`connecting to ${this.replicationCount} servers`)
 
-    for (let i = 0; i < this.replicationCount; i++) { // TODO: Parallel
+    for (let i = 0; i < this.replicationCount; i++) {
+      // TODO: Parallel
       const client = matrixsdk.createClient({
         baseUrl: `https://${this.getRelayServer(this.getPublicKeyHash(), i.toString())}`,
         deviceId: toHex(this.keyPair.publicKey),

@@ -16,7 +16,9 @@ export const defaultValues: StorageKeyReturnDefaults = {
 }
 
 export abstract class Storage {
-  public static isSupported(): Promise<boolean> { return Promise.resolve(false) }
+  public static isSupported(): Promise<boolean> {
+    return Promise.resolve(false)
+  }
   abstract get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]>
   abstract set<K extends StorageKey>(key: K, value: StorageKeyReturnType[K]): Promise<void>
   abstract delete<K extends StorageKey>(key: K): Promise<void>

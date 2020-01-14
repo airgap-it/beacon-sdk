@@ -1,5 +1,5 @@
-import { BaseMessage } from "../Messages"
-import { BaseClient } from "./Client"
+import { BaseMessage } from '../Messages'
+import { BaseClient } from './Client'
 
 export class WalletClient extends BaseClient {
   public async connect(newMessageCallback: (message: BaseMessage) => void): Promise<boolean> {
