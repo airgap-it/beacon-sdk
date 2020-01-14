@@ -10,6 +10,23 @@
 
 The `beacon-sdk` simplifies and abstracts the communication between dapps and wallets over different transport layers. 
 
+### Example
+
+```ts
+const client = new DAppClient('My Sample DApp')
+client
+  .init()
+  .then(() => {
+    client
+      .requestPermissions()
+      .then(permissions => {
+        console.log('got permissions', permissions)
+      })
+      .catch(error => console.log(error))
+  })
+  .catch(error => console.error(error))
+```
+
 ### Requirements
 
 ```
