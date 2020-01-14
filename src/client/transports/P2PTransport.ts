@@ -61,7 +61,7 @@ export class P2PTransport extends Transport {
           knownPeers.push(pubKey)
           this.storage
             .set(StorageKey.COMMUNICATION_PEERS, knownPeers)
-            .catch(storageError => console.error(storageError))
+            .catch(storageError => logger.error(storageError))
           await this.listen(pubKey)
         }
 
