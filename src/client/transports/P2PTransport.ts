@@ -100,7 +100,7 @@ export class P2PTransport extends Transport {
       return this.client.sendMessage(peer, message)
     })
 
-    return Promise.all(promises)[0]
+    return (await Promise.all(promises))[0]
   }
 
   private async getOrCreateKey(): Promise<string> {
