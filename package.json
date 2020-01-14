@@ -35,8 +35,7 @@
   "dependencies": {
     "libsodium-wrappers": "0.7.6",
     "matrix-js-sdk": "2.4.3",
-    "qrcode-generator": "1.4.4",
-    "sweetalert2": "9.5.3"
+    "qrcode-generator": "1.4.4"
   },
   "devDependencies": {
     "@types/chai-as-promised": "7.1.2",

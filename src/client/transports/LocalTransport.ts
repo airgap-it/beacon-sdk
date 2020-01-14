@@ -7,7 +7,7 @@ export class LocalTransport extends Transport {
   public static async isAvailable(): Promise<boolean> {
     return Promise.resolve(false)
   }
-  
+
   public transformer: (message: string) => string = (message: string) => message
 
   public async send(message: string): Promise<void> {

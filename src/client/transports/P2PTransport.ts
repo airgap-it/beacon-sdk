@@ -1,6 +1,5 @@
-import Swal from 'sweetalert2'
 import { WalletCommunicationClient } from '../..'
-import { showAlert } from '../Alert'
+import { openAlert, closeAlert } from '../alert/Alert'
 import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'
 import { Logger } from '../utils/Logger'
@@ -65,21 +64,21 @@ export class P2PTransport extends Transport {
           await this.listen(pubKey)
         }
 
-        Swal.close()
+        closeAlert()
+        openAlert('success!')
 
-        showAlert({
-          title: `Pair Wallet`,
-          icon: `success`,
-          confirmButtonText: 'Done!',
-          timer: 1500
-        })
+        // showAlert({
+        //   title: `Pair Wallet`,
+        //   icon: `success`,
+        //   confirmButtonText: 'Done!',
+        //   timer: 1500
+        // })
 
         resolve()
       })
 
-      showAlert({
-        title: `Pair Wallet`,
-        html: [
+      openAlert(
+        [
           this.client
             .getHandshakeQR('svg')
             .replace('width="98px"', 'width="300px"')
@@ -87,8 +86,10 @@ export class P2PTransport extends Transport {
           '<br />',
           JSON.stringify(this.client.getHandshakeInfo())
         ].join(''),
-        confirmButtonText: 'Done!'
-      })
+        () => {
+          console.log('CALLBACK')
+        }
+      )
     })
   }
 
