@@ -65,7 +65,7 @@ export class P2PTransport extends Transport {
         }
 
         closeAlert()
-        openAlert('success!')
+        openAlert('success!', 5000)
 
         // showAlert({
         //   title: `Pair Wallet`,
@@ -86,6 +86,7 @@ export class P2PTransport extends Transport {
           '<br />',
           JSON.stringify(this.client.getHandshakeInfo())
         ].join(''),
+        5000,
         () => {
           console.log('CALLBACK')
         }

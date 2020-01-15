@@ -172,7 +172,7 @@ function formatQRCodeModal(qrCodeImage: string) {
 `
 }
 
-function openAlert(uri: string, cb?: any) {
+function openAlert(uri: string, timeoutInterval: number, cb?: any) {
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', 'beacon-wrapper')
   const qrCodeImage = formatQRCodeImage(uri)
@@ -181,6 +181,10 @@ function openAlert(uri: string, cb?: any) {
 
   document.body.appendChild(wrapper)
   const closeButton = document.getElementById('beacon-qrcode-close')
+  setTimeout(() => {
+    closeAlert()
+  }, timeoutInterval)
+
   if (closeButton) {
     closeButton.addEventListener('click', () => {
       closeAlert()
