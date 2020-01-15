@@ -65,7 +65,10 @@ export class P2PTransport extends Transport {
         }
 
         closeAlert()
-        openAlert('success!', 5000)
+        openAlert({
+          title: 'success',
+          confirmButtonText: 'ok'
+        })
 
         // showAlert({
         //   title: `Pair Wallet`,
@@ -77,10 +80,11 @@ export class P2PTransport extends Transport {
         resolve()
       })
 
-      openAlert(
-        'this is a title',
-        5000,
-        [
+      const uri = {
+        title: 'this is a title',
+        confirmButtonText: 'ok',
+        timer: 5000,
+        qrURI: [
           this.client
             .getHandshakeQR('svg')
             .replace('width="98px"', 'width="300px"')
@@ -88,10 +92,11 @@ export class P2PTransport extends Transport {
           '<br />',
           JSON.stringify(this.client.getHandshakeInfo())
         ].join(''),
-        () => {
+        cb: () => {
           console.log('CALLBACK')
         }
-      )
+      }
+      openAlert(uri)
     })
   }
 

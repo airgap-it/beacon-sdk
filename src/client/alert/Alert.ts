@@ -1,5 +1,13 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
+export interface AlertURI {
+  title: string
+  confirmButtonText: string
+  timer?: number
+  qrURI?: string
+  cb?: any
+}
+
 let document: Document
 if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document = window.document
@@ -13,7 +21,7 @@ function formatQRCodeImage(dataString: string) {
   return result
 }
 
-function formatQRCodeModal(qrCodeImage: string, title: string) {
+function formatQRCodeModal(qrCodeImage: string, title: string, confirmButtonText: string) {
   const callToAction = title
   return `
   <style>
@@ -165,7 +173,7 @@ function formatQRCodeModal(qrCodeImage: string, title: string) {
               ${callToAction}
             </p>
             ${qrCodeImage}
-            <button onclick="closeAlert()" id="beacon-qrcode-close">OK</button>
+            <button onclick="${closeAlert()}" id="beacon-qrcode-close">${confirmButtonText}</button>
           </div>
         </div>
       </div>
@@ -173,20 +181,28 @@ function formatQRCodeModal(qrCodeImage: string, title: string) {
 `
 }
 
-function openAlert(title: string, timeoutInterval?: number, uri?: string, cb?: any) {
+function openAlert(alertURI: AlertURI) {
+  const uri = alertURI.qrURI
+  const title = alertURI.title
+  const timer = alertURI.timer
+  const confirmButtonText = alertURI.confirmButtonText
+  const cb = alertURI.cb
+
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', 'beacon-wrapper')
   if (uri) {
     const qrCodeImage = formatQRCodeImage(uri)
-    wrapper.innerHTML = formatQRCodeModal(qrCodeImage, title)
+    wrapper.innerHTML = formatQRCodeModal(qrCodeImage, title, confirmButtonText)
   }
 
   document.body.appendChild(wrapper)
   const closeButton = document.getElementById('beacon-qrcode-close')
-  setTimeout(() => {
-    closeAlert()
-  }, timeoutInterval)
 
+  if (timer) {
+    setTimeout(() => {
+      closeAlert()
+    }, timer)
+  }
   if (closeButton) {
     closeButton.addEventListener('click', () => {
       closeAlert()
