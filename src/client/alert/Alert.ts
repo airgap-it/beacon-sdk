@@ -151,7 +151,7 @@ function formatQRCodeModal(qrCodeImage: string) {
         <div class="beacon-modal__header">
           <div class="beacon-modal__close__wrapper">
             <div
-              id="beacon-qrcode-close"
+              
               class="beacon-modal__close__icon"
             >
               <div class="beacon-modal__close__line1""></div>
@@ -165,6 +165,7 @@ function formatQRCodeModal(qrCodeImage: string) {
               ${callToAction}
             </p>
             ${qrCodeImage}
+            <button onclick="closeAlert()" id="beacon-qrcode-close">OK</button>
           </div>
         </div>
       </div>
