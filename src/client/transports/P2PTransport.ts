@@ -78,6 +78,8 @@ export class P2PTransport extends Transport {
       })
 
       openAlert(
+        'this is a title',
+        5000,
         [
           this.client
             .getHandshakeQR('svg')
@@ -86,7 +88,6 @@ export class P2PTransport extends Transport {
           '<br />',
           JSON.stringify(this.client.getHandshakeInfo())
         ].join(''),
-        5000,
         () => {
           console.log('CALLBACK')
         }

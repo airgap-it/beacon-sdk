@@ -13,8 +13,8 @@ function formatQRCodeImage(dataString: string) {
   return result
 }
 
-function formatQRCodeModal(qrCodeImage: string) {
-  const callToAction = 'Scan QR code with a Beacon-compatible wallet'
+function formatQRCodeModal(qrCodeImage: string, title: string) {
+  const callToAction = title
   return `
   <style>
   :root {
@@ -173,12 +173,13 @@ function formatQRCodeModal(qrCodeImage: string) {
 `
 }
 
-function openAlert(uri: string, timeoutInterval: number, cb?: any) {
+function openAlert(title: string, timeoutInterval?: number, uri?: string, cb?: any) {
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', 'beacon-wrapper')
-  const qrCodeImage = formatQRCodeImage(uri)
-
-  wrapper.innerHTML = formatQRCodeModal(qrCodeImage)
+  if (uri) {
+    const qrCodeImage = formatQRCodeImage(uri)
+    wrapper.innerHTML = formatQRCodeModal(qrCodeImage, title)
+  }
 
   document.body.appendChild(wrapper)
   const closeButton = document.getElementById('beacon-qrcode-close')
