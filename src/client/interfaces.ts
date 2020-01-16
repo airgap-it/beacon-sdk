@@ -23,6 +23,8 @@ export interface MatrixClient {
     }
   ): void
   on(eventName: string, eventCallback: (event: MatrixEvent) => void): void
+  removeListener(event: string, callback: unknown): void
+  removeAllListeners(event: string): void
 }
 
 export interface Member {
@@ -38,4 +40,9 @@ export interface Room {
   currentState: {
     getMembers(): Member[]
   }
+}
+
+export interface ICommunicationPair {
+  pubKey: string
+  relayServer: string
 }
