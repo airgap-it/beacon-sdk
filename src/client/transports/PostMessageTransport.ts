@@ -4,8 +4,8 @@ import { Transport, TransportType } from './Transport'
 export class PostMessageTransport extends Transport {
   public readonly type: TransportType = TransportType.POST_MESSAGE
 
-  constructor() {
-    super()
+  constructor(name: string) {
+    super(name)
     this.init().catch(error => console.error(error))
   }
 
@@ -36,7 +36,7 @@ export class PostMessageTransport extends Transport {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = (message as any).data
         if (data.method === 'toPage') {
-          this.notifyListeners(data.payload).catch(error => {
+          this.notifyListeners(data.payload, {}).catch(error => {
             throw error
           })
         }

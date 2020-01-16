@@ -6,8 +6,8 @@ const logger = new Logger('ChromeMessageTransport')
 export class ChromeMessageTransport extends Transport {
   public readonly type: TransportType = TransportType.CHROME_MESSAGE
 
-  constructor() {
-    super()
+  constructor(name: string) {
+    super(name)
     this.init().catch(error => console.error(error))
   }
 
@@ -22,7 +22,7 @@ export class ChromeMessageTransport extends Transport {
   private async init(): Promise<void> {
     chrome.runtime.onMessage.addListener((message, _sender) => {
       logger.log('init', 'background.js: receive ', message)
-      this.notifyListeners(message).catch(error => logger.error(error))
+      this.notifyListeners(message, {}).catch(error => logger.error(error))
     })
   }
 }

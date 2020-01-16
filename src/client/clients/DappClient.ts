@@ -14,11 +14,11 @@ import { TezosOperation } from '../operations/OperationTypes'
 import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
 import { BaseClient } from './Client'
+import { TransportType } from '../transports/Transport'
 
 const logger = new Logger('DAppClient')
 
 export class DAppClient extends BaseClient {
-  private readonly name: string = ''
   private readonly openRequests = new Map<string, ExposedPromise<Messages>>()
 
   public get isConnected(): Promise<boolean> {
@@ -26,8 +26,7 @@ export class DAppClient extends BaseClient {
   }
 
   constructor(name: string) {
-    super()
-    this.name = name
+    super(name)
 
     this.handleResponse = (event: BaseMessage): void => {
       const openRequest = this.openRequests.get(event.id)
@@ -47,6 +46,10 @@ export class DAppClient extends BaseClient {
     this.openRequests.set(id, promise)
   }
 
+  public async init(): Promise<TransportType> {
+    return super.init(true)
+  }
+
   public async makeRequest<T extends Messages>(request: Messages): Promise<T> {
     logger.log('makeRequest')
     await this.init()
@@ -62,7 +65,7 @@ export class DAppClient extends BaseClient {
     if (!this.transport) {
       throw new Error('No transport')
     }
-    await this.transport.send(payload)
+    await this.transport.send(payload, {})
 
     return exposed.promise
   }
