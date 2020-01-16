@@ -26,6 +26,8 @@ export class WalletCommunicationClient {
     // "yadayada.cryptonomic-infra.tech"
   ]
 
+  private readonly activeListeners: Map<string, (event: MatrixEvent) => void> = new Map()
+
   constructor(
     private readonly name: string,
     private readonly privateSeed: string,
@@ -160,19 +162,48 @@ export class WalletCommunicationClient {
 
     const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
 
-    for (const client of this.clients) {
-      client.on('event', (event: MatrixEvent) => {
-        if (this.isRoomMessage(event) && this.isSender(event, senderPublicKey)) {
-          const payload = Buffer.from(event.getContent().body, 'hex')
-          if (
-            payload.length >=
-            sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
-          ) {
-            messageCallback(decryptCryptoboxPayload(payload, sharedRx))
-          }
-        }
-      })
+    if (this.activeListeners.has(senderPublicKey)) {
+      return
     }
+
+    const callbackFunction = (event: MatrixEvent) => {
+      if (this.isRoomMessage(event) && this.isSender(event, senderPublicKey)) {
+        const payload = Buffer.from(event.getContent().body, 'hex')
+        if (
+          payload.length >=
+          sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
+        ) {
+          messageCallback(decryptCryptoboxPayload(payload, sharedRx))
+        }
+      }
+    }
+
+    this.activeListeners.set(senderPublicKey, callbackFunction)
+
+    for (const client of this.clients) {
+      client.on('event', callbackFunction)
+    }
+  }
+
+  public async unsubscribeFromEncryptedMessage(senderPublicKey: string) {
+    const listener = this.activeListeners.get(senderPublicKey)
+    if (!listener) {
+      return
+    }
+
+    for (const client of this.clients) {
+      client.removeListener('event', listener)
+    }
+
+    this.activeListeners.delete(senderPublicKey)
+  }
+
+  public async unsubscribeFromEncryptedMessages() {
+    for (const client of this.clients) {
+      client.removeAllListeners('event')
+    }
+
+    this.activeListeners.clear()
   }
 
   public async sendMessage(recipientPublicKey: string, message: string): Promise<void> {
