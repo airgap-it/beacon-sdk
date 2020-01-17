@@ -58,6 +58,7 @@
     "prettier": "1.19.1",
     "sonar-scanner": "3.1.0",
     "ts-node": "8.6.2",
+    "tslint": "^5.20.1",
     "typescript": "3.8.0-beta"
   },
   "files": [
