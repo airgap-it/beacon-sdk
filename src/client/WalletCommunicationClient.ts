@@ -59,8 +59,8 @@ export class WalletCommunicationClient {
         const blackLine = new Array(length + 3).join(black)
 
         let ascii = ''
-        ascii += blackLine + '\n'
-        ascii += whiteLine + '\n'
+        ascii += `${blackLine}\n`
+        ascii += `${whiteLine}\n`
         for (let x = 0; x < length; x++) {
           ascii += white
 
@@ -68,7 +68,7 @@ export class WalletCommunicationClient {
             ascii += qr.isDark(x, y) ? black : white
           }
 
-          ascii += white + '\n'
+          ascii += `${white}\n`
         }
         ascii += whiteLine
         ascii += blackLine

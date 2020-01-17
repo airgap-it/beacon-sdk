@@ -5,7 +5,7 @@ export interface AlertConfig {
   body?: string
   confirmButtonText?: string
   timer?: number
-  successCallback?: any
+  successCallback?(): void
 }
 
 let document: Document
@@ -13,16 +13,21 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document = window.document
 }
 
-function formatQRCodeImage(dataString: string) {
-  let result = ''
+const formatQRCodeImage = (dataString: string): string => {
   if (typeof dataString === 'string') {
-    result = dataString.replace('<svg', `<svg class="beacon-qrcode__image"`)
+    return dataString.replace('<svg', `<svg class="beacon-qrcode__image"`)
   }
-  return result
+
+  return dataString
 }
 
-function formatQRCodeModal(qrCodeImage: string, title: string, confirmButtonText: string = 'Ok') {
+const formatQRCodeModal = (
+  qrCodeImage: string,
+  title: string,
+  confirmButtonText: string = 'Ok'
+): string => {
   const callToAction = title
+
   return `
   <style>
   :root {
@@ -173,7 +178,7 @@ function formatQRCodeModal(qrCodeImage: string, title: string, confirmButtonText
               ${callToAction}
             </p>
             ${qrCodeImage}
-            <button onclick="${closeAlert()}" id="beacon-qrcode-button-ok">${confirmButtonText}</button>
+            <button id="beacon-qrcode-button-ok">${confirmButtonText}</button>
           </div>
         </div>
       </div>
@@ -181,11 +186,27 @@ function formatQRCodeModal(qrCodeImage: string, title: string, confirmButtonText
 `
 }
 
-function openAlert(alertConfig: AlertConfig) {
+const closeAlert = (): void => {
+  const elm = document.getElementById('beacon-qrcode-modal')
+  if (elm) {
+    const animationDuration = 300
+
+    elm.className = elm.className.replace('fadeIn', 'fadeOut')
+    setTimeout(() => {
+      const wrapper = document.getElementById('beacon-wrapper')
+      if (wrapper) {
+        document.body.removeChild(wrapper)
+      }
+    }, animationDuration)
+  }
+}
+
+const openAlert = (alertConfig: AlertConfig): void => {
   const body = alertConfig.body
   const title = alertConfig.title
   const timer = alertConfig.timer
   const confirmButtonText = alertConfig.confirmButtonText
+  // eslint-disable-next-line @typescript-eslint/unbound-method
   const successCallback = alertConfig.successCallback
 
   const wrapper = document.createElement('div')
@@ -218,21 +239,6 @@ function openAlert(alertConfig: AlertConfig) {
     closeButton.addEventListener('click', () => {
       closeAlert()
     })
-  }
-}
-
-function closeAlert() {
-  const elm = document.getElementById('beacon-qrcode-modal')
-  if (elm) {
-    const animationDuration = 300
-
-    elm.className = elm.className.replace('fadeIn', 'fadeOut')
-    setTimeout(() => {
-      const wrapper = document.getElementById('beacon-wrapper')
-      if (wrapper) {
-        document.body.removeChild(wrapper)
-      }
-    }, animationDuration)
   }
 }
 

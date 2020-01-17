@@ -28,9 +28,7 @@ export interface BaseMessage {
   type: MessageTypes
 }
 
-export interface BaseRequest extends BaseMessage {}
-
-export interface PermissionRequest extends BaseRequest {
+export interface PermissionRequest extends BaseMessage {
   type: MessageTypes.PermissionRequest
   name: string
   scope: PermissionScope[]
@@ -45,7 +43,7 @@ export interface PermissionResponse extends BaseMessage {
   }
 }
 
-export interface SignPayloadRequest extends BaseRequest {
+export interface SignPayloadRequest extends BaseMessage {
   type: MessageTypes.SignPayloadRequest
   payload: Buffer[]
   sourceAddress: string
@@ -57,7 +55,7 @@ export interface SignPayloadResponse extends BaseMessage {
   signature: Buffer[]
 }
 
-export interface OperationRequest extends BaseRequest {
+export interface OperationRequest extends BaseMessage {
   type: MessageTypes.OperationRequest
 
   network: string
@@ -70,7 +68,7 @@ export interface OperationResponse extends BaseMessage {
   transactionHash: string
 }
 
-export interface BroadcastRequest extends BaseRequest {
+export interface BroadcastRequest extends BaseMessage {
   type: MessageTypes.BroadcastRequest
 
   network: string

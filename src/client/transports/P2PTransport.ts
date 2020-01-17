@@ -97,6 +97,56 @@ export class P2PTransport extends Transport {
     })
   }
 
+  public async getPeers(): Promise<any[]> {
+    logger.log('getPeers')
+    const peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
+    logger.log('getPeers', `${peers.length} connected`)
+
+    return peers
+  }
+
+  public async addPeer(newPeer: any): Promise<void> {
+    logger.log('addPeer', newPeer)
+    const peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
+    if (!peers.some(peer => peer.pubKey === newPeer.pubKey)) {
+      peers.push({
+        pubKey: newPeer.pubKey,
+        relayServer: newPeer.relayServer
+      })
+      await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
+      logger.log('addPeer', `peer added, now ${peers.length} peers`)
+    }
+
+    if (!this.client) {
+      throw new Error('client not ready')
+    }
+
+    await this.client.openChannel(newPeer.pubKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
+    await this.listen(newPeer.pubKey) // TODO: Prevent channels from being opened multiple times
+  }
+
+  public async removePeer(peerToBeRemoved: any): Promise<void> {
+    logger.log('removePeer', peerToBeRemoved)
+    let peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
+    peers = peers.filter(peer => peer.pubKey !== peerToBeRemoved.pubKey)
+    await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
+    if (!this.client) {
+      throw new Error('client not ready')
+    }
+    await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.pubKey)
+    logger.log('removePeer', `${peers.length} peers left`)
+  }
+
+  public async removeAllPeers(): Promise<void> {
+    logger.log('removeAllPeers')
+    await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, [])
+
+    if (!this.client) {
+      throw new Error('client not ready')
+    }
+    await this.client.unsubscribeFromEncryptedMessages()
+  }
+
   public async send(message: string): Promise<void> {
     const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
 
@@ -139,54 +189,5 @@ export class P2PTransport extends Transport {
       .catch(error => {
         throw error
       })
-  }
-
-  public async getPeers(): Promise<any[]> {
-    logger.log('getPeers')
-    const peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-    logger.log('getPeers', `${peers.length} connected`)
-    return peers
-  }
-
-  public async addPeer(newPeer: any): Promise<void> {
-    logger.log('addPeer', newPeer)
-    let peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-    if (!peers.some(peer => peer.pubKey === newPeer.pubKey)) {
-      peers.push({
-        pubKey: newPeer.pubKey,
-        relayServer: newPeer.relayServer
-      })
-      await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
-      logger.log('addPeer', `peer added, now ${peers.length} peers`)
-    }
-
-    if (!this.client) {
-      throw new Error('client not ready')
-    }
-
-    await this.client.openChannel(newPeer.pubKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
-    this.listen(newPeer.pubKey) // TODO: Prevent channels from being opened multiple times
-  }
-
-  public async removePeer(peerToBeRemoved: any): Promise<void> {
-    logger.log('removePeer', peerToBeRemoved)
-    let peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-    peers = peers.filter(peer => peer.pubKey !== peerToBeRemoved.pubKey)
-    await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
-    if (!this.client) {
-      throw new Error('client not ready')
-    }
-    this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.pubKey)
-    logger.log('removePeer', `${peers.length} peers left`)
-  }
-
-  public async removeAllPeers(): Promise<void> {
-    logger.log('removeAllPeers')
-    await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, [])
-
-    if (!this.client) {
-      throw new Error('client not ready')
-    }
-    this.client.unsubscribeFromEncryptedMessages()
   }
 }

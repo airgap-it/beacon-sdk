@@ -1,6 +1,6 @@
 import { BaseMessage } from '../Messages'
-import { BaseClient } from './Client'
 import { TransportType } from '../transports/Transport'
+import { BaseClient } from './Client'
 
 export class WalletClient extends BaseClient {
   private pendingRequests: BaseMessage[] = []

@@ -13,8 +13,8 @@ import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { TezosOperation } from '../operations/OperationTypes'
 import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
-import { BaseClient } from './Client'
 import { TransportType } from '../transports/Transport'
+import { BaseClient } from './Client'
 
 const logger = new Logger('DAppClient')
 

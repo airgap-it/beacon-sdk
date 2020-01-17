@@ -49,6 +49,38 @@ export class BaseClient {
     return this._isConnected.promise
   }
 
+  public async getPeers(): Promise<string[]> {
+    if (!this.transport) {
+      throw new Error('no transport defined')
+    }
+
+    return this.transport.getPeers()
+  }
+
+  public async addPeer(id: string): Promise<void> {
+    if (!this.transport) {
+      throw new Error('no transport defined')
+    }
+
+    return this.transport.addPeer(id)
+  }
+
+  public async removePeer(id: string): Promise<void> {
+    if (!this.transport) {
+      throw new Error('no transport defined')
+    }
+
+    return this.transport.removePeer(id)
+  }
+
+  public async removeAllPeers(): Promise<void> {
+    if (!this.transport) {
+      throw new Error('no transport defined')
+    }
+
+    return this.transport.removeAllPeers()
+  }
+
   protected async _connect(): Promise<boolean> {
     if (this.transport && this.transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
       await this.transport.connect()
@@ -64,33 +96,5 @@ export class BaseClient {
     }
 
     return this._isConnected.promise
-  }
-
-  public async getPeers(): Promise<string[]> {
-    if (!this.transport) {
-      throw new Error('no transport defined')
-    }
-    return this.transport.getPeers()
-  }
-
-  public async addPeer(id: string): Promise<void> {
-    if (!this.transport) {
-      throw new Error('no transport defined')
-    }
-    return this.transport.addPeer(id)
-  }
-
-  public async removePeer(id: string): Promise<void> {
-    if (!this.transport) {
-      throw new Error('no transport defined')
-    }
-    return this.transport.removePeer(id)
-  }
-
-  public async removeAllPeers(): Promise<void> {
-    if (!this.transport) {
-      throw new Error('no transport defined')
-    }
-    return this.transport.removeAllPeers()
   }
 }

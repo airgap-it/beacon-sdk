@@ -23,6 +23,9 @@ export abstract class Transport {
   protected readonly name: string
   protected _isConnected: TransportStatus = TransportStatus.NOT_CONNECTED
 
+  private listeners: ((message: string, connectionInfo: any) => void)[] = []
+  private peers: string[] = []
+
   public get connectionStatus(): TransportStatus {
     return this._isConnected
   }
@@ -31,11 +34,31 @@ export abstract class Transport {
     this.name = name
   }
 
-  private listeners: ((message: string, connectionInfo: any) => void)[] = []
-  private peers: string[] = []
-
   public static async isAvailable(): Promise<boolean> {
     return Promise.resolve(false)
+  }
+
+  public async getPeers(): Promise<string[]> {
+    logger.log('getPeers', `${this.peers.length}`)
+
+    return this.peers
+  }
+
+  public async addPeer(id: string): Promise<void> {
+    logger.log('addPeer', id)
+    this.peers = [...this.peers.filter(peer => peer !== id), id]
+    logger.log('addPeer', `${this.peers.length} peers`)
+  }
+
+  public async removePeer(id: string): Promise<void> {
+    logger.log('removePeer', id)
+    this.peers = this.peers.filter(peer => peer !== id)
+    logger.log('removePeer', `${this.peers.length} peers left`)
+  }
+
+  public async removeAllPeers(): Promise<void> {
+    logger.log('removeAllPeers', `removing ${this.peers.length} peers`)
+    this.peers = []
   }
 
   public async connect(): Promise<void> {
@@ -87,27 +110,5 @@ export abstract class Transport {
     })
 
     return
-  }
-
-  public async getPeers(): Promise<string[]> {
-    logger.log('getPeers', `${this.peers.length}`)
-    return this.peers
-  }
-
-  public async addPeer(id: string): Promise<void> {
-    logger.log('addPeer', id)
-    this.peers = [...this.peers.filter(peer => peer !== id), id]
-    logger.log('addPeer', `${this.peers.length} peers`)
-  }
-
-  public async removePeer(id: string): Promise<void> {
-    logger.log('removePeer', id)
-    this.peers = this.peers.filter(peer => peer !== id)
-    logger.log('removePeer', `${this.peers.length} peers left`)
-  }
-
-  public async removeAllPeers(): Promise<void> {
-    logger.log('removeAllPeers', `removing ${this.peers.length} peers`)
-    this.peers = []
   }
 }
