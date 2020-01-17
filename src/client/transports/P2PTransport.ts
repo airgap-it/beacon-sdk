@@ -1,5 +1,5 @@
 import { WalletCommunicationClient } from '../..'
-import { openAlert, closeAlert } from '../alert/Alert'
+import { openAlert, closeAlert, AlertConfig } from '../alert/Alert'
 import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'
 import { Logger } from '../utils/Logger'
@@ -74,7 +74,7 @@ export class P2PTransport extends Transport {
         resolve()
       })
 
-      const alertConfig = {
+      const alertConfig: AlertConfig = {
         title: 'Pairing Request',
         confirmButtonText: 'Ok!',
         body: [
@@ -85,7 +85,7 @@ export class P2PTransport extends Transport {
           '<br />',
           JSON.stringify(this.client.getHandshakeInfo())
         ].join(''),
-        cb: () => {
+        successCallback: () => {
           console.log('CALLBACK')
         }
       }
