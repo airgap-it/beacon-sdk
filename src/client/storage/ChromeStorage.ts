@@ -3,7 +3,11 @@ import { Storage, StorageKey, StorageKeyReturnType } from './Storage'
 export class ChromeStorage implements Storage {
   public static async isSupported(): Promise<boolean> {
     return Promise.resolve(
-      typeof window !== 'undefined' && typeof chrome !== 'undefined' && chrome && chrome.runtime && !!chrome.runtime.id
+      typeof window !== 'undefined' &&
+        typeof chrome !== 'undefined' &&
+        chrome &&
+        chrome.runtime &&
+        !!chrome.runtime.id
     )
   }
 

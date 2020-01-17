@@ -35,8 +35,9 @@ export class WalletCommunicationClient {
     private readonly debug: boolean = false
   ) {}
 
-  public getHandshakeInfo(): { pubKey: string; relayServer: string } {
+  public getHandshakeInfo(): { name: string; pubKey: string; relayServer: string } {
     return {
+      name: this.name,
       pubKey: this.getPublicKey(),
       relayServer: this.getRelayServer()
     }
@@ -52,7 +53,7 @@ export class WalletCommunicationClient {
       if (type === 'svg') {
         return qr.createSvgTag()
       } else if (type === 'ascii') {
-        const length = qr.getModuleCount()
+        const length: number = qr.getModuleCount()
         const black = '\x1B[40m  \x1B[0m'
         const white = '\x1B[47m  \x1B[0m'
         const whiteLine = new Array(length + 3).join(white)
