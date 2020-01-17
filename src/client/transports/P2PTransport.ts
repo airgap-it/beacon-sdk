@@ -1,5 +1,5 @@
 import { WalletCommunicationClient } from '../..'
-import { openAlert, closeAlert } from '../alert/Alert'
+import { openAlert, closeAlert, AlertConfig } from '../alert/Alert'
 import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'
 import { Logger } from '../utils/Logger'
@@ -69,20 +69,19 @@ export class P2PTransport extends Transport {
         }
 
         closeAlert()
-        openAlert('success!')
-
-        // showAlert({
-        //   title: `Pair Wallet`,
-        //   icon: `success`,
-        //   confirmButtonText: 'Done!',
-        //   timer: 1500
-        // })
+        openAlert({
+          title: 'Success',
+          confirmButtonText: 'Ok!',
+          timer: 1500
+        })
 
         resolve()
       })
 
-      openAlert(
-        [
+      const alertConfig: AlertConfig = {
+        title: 'Pairing Request',
+        confirmButtonText: 'Ok!',
+        body: [
           this.client
             .getHandshakeQR('svg')
             .replace('width="98px"', 'width="300px"')
@@ -90,10 +89,11 @@ export class P2PTransport extends Transport {
           '<br />',
           JSON.stringify(this.client.getHandshakeInfo())
         ].join(''),
-        () => {
+        successCallback: () => {
           console.log('CALLBACK')
         }
-      )
+      }
+      openAlert(alertConfig)
     })
   }
 

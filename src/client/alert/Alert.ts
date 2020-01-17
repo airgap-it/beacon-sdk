@@ -1,5 +1,13 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
+export interface AlertConfig {
+  title: string
+  body?: string
+  confirmButtonText?: string
+  timer?: number
+  successCallback?: any
+}
+
 let document: Document
 if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document = window.document
@@ -13,8 +21,8 @@ function formatQRCodeImage(dataString: string) {
   return result
 }
 
-function formatQRCodeModal(qrCodeImage: string) {
-  const callToAction = 'Scan QR code with a Beacon-compatible wallet'
+function formatQRCodeModal(qrCodeImage: string, title: string, confirmButtonText: string = 'Ok') {
+  const callToAction = title
   return `
   <style>
   :root {
@@ -165,6 +173,7 @@ function formatQRCodeModal(qrCodeImage: string) {
               ${callToAction}
             </p>
             ${qrCodeImage}
+            <button onclick="${closeAlert()}" id="beacon-qrcode-button-ok">${confirmButtonText}</button>
           </div>
         </div>
       </div>
@@ -172,21 +181,42 @@ function formatQRCodeModal(qrCodeImage: string) {
 `
 }
 
-function openAlert(uri: string, cb?: any) {
+function openAlert(alertConfig: AlertConfig) {
+  const body = alertConfig.body
+  const title = alertConfig.title
+  const timer = alertConfig.timer
+  const confirmButtonText = alertConfig.confirmButtonText
+  const successCallback = alertConfig.successCallback
+
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', 'beacon-wrapper')
-  const qrCodeImage = formatQRCodeImage(uri)
+  if (body) {
+    const qrCodeImage = formatQRCodeImage(body)
+    wrapper.innerHTML = formatQRCodeModal(qrCodeImage, title, confirmButtonText)
+  }
 
-  wrapper.innerHTML = formatQRCodeModal(qrCodeImage)
+  if (timer) {
+    setTimeout(() => {
+      closeAlert()
+    }, timer)
+  }
 
   document.body.appendChild(wrapper)
+  const okButton = document.getElementById('beacon-qrcode-button-ok')
   const closeButton = document.getElementById('beacon-qrcode-close')
+
+  if (okButton) {
+    okButton.addEventListener('click', () => {
+      closeAlert()
+      if (successCallback) {
+        successCallback()
+      }
+    })
+  }
+
   if (closeButton) {
     closeButton.addEventListener('click', () => {
       closeAlert()
-      if (cb) {
-        cb()
-      }
     })
   }
 }
