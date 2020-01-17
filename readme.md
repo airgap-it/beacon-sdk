@@ -14,17 +14,14 @@ The `beacon-sdk` simplifies and abstracts the communication between dapps and wa
 
 ```ts
 const client = new DAppClient('My Sample DApp')
+
 client
-  .init()
-  .then(() => {
-    client
-      .requestPermissions()
-      .then(permissions => {
-        console.log('got permissions', permissions)
-      })
-      .catch(error => console.log(error))
+  .requestPermissions()
+  .then(permissions => {
+    console.log('got permissions', permissions)
   })
-  .catch(error => console.error(error))
+  .catch(error => console.log(error))
+
 ```
 
 ### Requirements
