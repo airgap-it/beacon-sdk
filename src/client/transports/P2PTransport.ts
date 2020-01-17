@@ -66,25 +66,18 @@ export class P2PTransport extends Transport {
 
         closeAlert()
         openAlert({
-          title: 'success',
-          confirmButtonText: 'ok'
+          title: 'Success',
+          confirmButtonText: 'Ok!',
+          timer: 1500
         })
-
-        // showAlert({
-        //   title: `Pair Wallet`,
-        //   icon: `success`,
-        //   confirmButtonText: 'Done!',
-        //   timer: 1500
-        // })
 
         resolve()
       })
 
-      const uri = {
-        title: 'this is a title',
-        confirmButtonText: 'ok',
-        timer: 5000,
-        qrURI: [
+      const alertConfig = {
+        title: 'Pairing Request',
+        confirmButtonText: 'Ok!',
+        body: [
           this.client
             .getHandshakeQR('svg')
             .replace('width="98px"', 'width="300px"')
@@ -96,7 +89,7 @@ export class P2PTransport extends Transport {
           console.log('CALLBACK')
         }
       }
-      openAlert(uri)
+      openAlert(alertConfig)
     })
   }
 

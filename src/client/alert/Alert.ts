@@ -1,11 +1,11 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
-export interface AlertURI {
+export interface AlertConfig {
   title: string
-  confirmButtonText: string
+  body?: string
+  confirmButtonText?: string
   timer?: number
-  qrURI?: string
-  cb?: any
+  successCallback?: any
 }
 
 let document: Document
@@ -21,7 +21,7 @@ function formatQRCodeImage(dataString: string) {
   return result
 }
 
-function formatQRCodeModal(qrCodeImage: string, title: string, confirmButtonText: string) {
+function formatQRCodeModal(qrCodeImage: string, title: string, confirmButtonText: string = 'Ok') {
   const callToAction = title
   return `
   <style>
@@ -159,7 +159,7 @@ function formatQRCodeModal(qrCodeImage: string, title: string, confirmButtonText
         <div class="beacon-modal__header">
           <div class="beacon-modal__close__wrapper">
             <div
-              
+              id="beacon-qrcode-close"
               class="beacon-modal__close__icon"
             >
               <div class="beacon-modal__close__line1""></div>
@@ -173,7 +173,7 @@ function formatQRCodeModal(qrCodeImage: string, title: string, confirmButtonText
               ${callToAction}
             </p>
             ${qrCodeImage}
-            <button onclick="${closeAlert()}" id="beacon-qrcode-close">${confirmButtonText}</button>
+            <button onclick="${closeAlert()}" id="beacon-qrcode-button-ok">${confirmButtonText}</button>
           </div>
         </div>
       </div>
@@ -181,34 +181,42 @@ function formatQRCodeModal(qrCodeImage: string, title: string, confirmButtonText
 `
 }
 
-function openAlert(alertURI: AlertURI) {
-  const uri = alertURI.qrURI
-  const title = alertURI.title
-  const timer = alertURI.timer
-  const confirmButtonText = alertURI.confirmButtonText
-  const cb = alertURI.cb
+function openAlert(alertConfig: AlertConfig) {
+  const body = alertConfig.body
+  const title = alertConfig.title
+  const timer = alertConfig.timer
+  const confirmButtonText = alertConfig.confirmButtonText
+  const successCallback = alertConfig.successCallback
 
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', 'beacon-wrapper')
-  if (uri) {
-    const qrCodeImage = formatQRCodeImage(uri)
+  if (body) {
+    const qrCodeImage = formatQRCodeImage(body)
     wrapper.innerHTML = formatQRCodeModal(qrCodeImage, title, confirmButtonText)
   }
-
-  document.body.appendChild(wrapper)
-  const closeButton = document.getElementById('beacon-qrcode-close')
 
   if (timer) {
     setTimeout(() => {
       closeAlert()
     }, timer)
   }
+
+  document.body.appendChild(wrapper)
+  const okButton = document.getElementById('beacon-qrcode-button-ok')
+  const closeButton = document.getElementById('beacon-qrcode-close')
+
+  if (okButton) {
+    okButton.addEventListener('click', () => {
+      closeAlert()
+      if (successCallback) {
+        successCallback()
+      }
+    })
+  }
+
   if (closeButton) {
     closeButton.addEventListener('click', () => {
       closeAlert()
-      if (cb) {
-        cb()
-      }
     })
   }
 }
