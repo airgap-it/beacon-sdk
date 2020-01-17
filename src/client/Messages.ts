@@ -28,12 +28,11 @@ export interface BaseMessage {
   type: MessageTypes
 }
 
-export interface BaseRequest extends BaseMessage {
-  name: string // Name of the Dapp
-}
+export interface BaseRequest extends BaseMessage {}
 
 export interface PermissionRequest extends BaseRequest {
   type: MessageTypes.PermissionRequest
+  name: string
   scope: PermissionScope[]
 }
 

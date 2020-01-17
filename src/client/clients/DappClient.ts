@@ -93,7 +93,6 @@ export class DAppClient extends BaseClient {
 
     return this.makeRequest({
       id: '',
-      name: this.name,
       type: MessageTypes.SignPayloadRequest,
       payload: request.payload,
       sourceAddress: request.sourceAddress || ''
@@ -110,7 +109,6 @@ export class DAppClient extends BaseClient {
 
     return this.makeRequest({
       id: '',
-      name: this.name,
       type: MessageTypes.OperationRequest,
       network: request.network || 'mainnet',
       operationDetails: request.operationDetails
@@ -127,7 +125,6 @@ export class DAppClient extends BaseClient {
 
     return this.makeRequest({
       id: '',
-      name: this.name,
       type: MessageTypes.BroadcastRequest,
       network: request.network || 'mainnet',
       signedTransaction: request.signedTransaction
