@@ -73,7 +73,7 @@ const formatQRCodeModal = (
     background: #fff;
     transform: translateY(-50%);
     margin: 0 auto;
-    border-radius: 8px;
+    border-radius: 4px;
     overflow: hidden;
     box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.1);
     width: 100%;
@@ -81,6 +81,7 @@ const formatQRCodeModal = (
   }
   
   .beacon-modal__header {
+    padding-top: 16px;
     position: relative;
     width: 100%;
     display: flex;
@@ -97,14 +98,14 @@ const formatQRCodeModal = (
   
   .beacon-modal__close__wrapper {
     position: absolute;
-    top: 15px;
-    right: 15px;
+    top: 16px;
+    right: 16px;
     z-index: 10000;
   }
   
   .beacon-modal__close__icon {
-    width: 25px;
-    height: 25px;
+    width: 24px;
+    height: 24px;
     position: relative;
     top: 0;
     right: 0;
@@ -139,11 +140,11 @@ const formatQRCodeModal = (
   
   .beacon-qrcode__text {
     color: #7c828b;
-    font-family: Avenir;
+    font-family: Roboto;
     font-size: 18px;
     text-align: center;
     margin: 0 auto;
-    padding: 0 30px;
+    padding: 0 0 16px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -152,8 +153,13 @@ const formatQRCodeModal = (
   .beacon-qrcode__image {
     width: 300px;
     height: 300px;
-    padding: 30px;
     box-sizing: border-box;
+    box-shadow: 0 10px 20px 0 rgba(49,27,88,.12);
+    border: 1px solid rgba(0,232,204,.08);
+  }
+
+  .beacon-modal__content {
+    padding: 24px;
   }
   
   </style>
@@ -163,6 +169,7 @@ const formatQRCodeModal = (
     >
       <div class="beacon-modal__base">
         <div class="beacon-modal__header">
+        <img src="assets/img/beacon_logoy_type_hor_padding.svg" />
           <div class="beacon-modal__close__wrapper">
             <div
               id="beacon-qrcode-close"
@@ -173,13 +180,15 @@ const formatQRCodeModal = (
             </div>
           </div>
         </div>
-        <div>
+        <div class="beacon-modal__content">
           <div>
             <p id="beacon-qrcode-text" class="beacon-qrcode__text">
               ${callToAction}
             </p>
             ${qrCodeImage}
+            <!-- 
             <button id="beacon-qrcode-button-ok">${confirmButtonText}</button>
+            -->
           </div>
         </div>
       </div>
