@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "0.0.1-beta.12",
+  "version": "0.0.1-beta.13",
   "description": "The beacon-sdk is setup in a way to allow for p2p communication between wallets and dapps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
