@@ -130,10 +130,9 @@ export class P2PTransport extends Transport {
     let peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
     peers = peers.filter(peer => peer.pubKey !== peerToBeRemoved.pubKey)
     await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
-    if (!this.client) {
-      throw new Error('client not ready')
+    if (this.client) {
+      await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.pubKey)
     }
-    await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.pubKey)
     logger.log('removePeer', `${peers.length} peers left`)
   }
 
@@ -141,10 +140,9 @@ export class P2PTransport extends Transport {
     logger.log('removeAllPeers')
     await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, [])
 
-    if (!this.client) {
-      throw new Error('client not ready')
+    if (this.client) {
+      await this.client.unsubscribeFromEncryptedMessages()
     }
-    await this.client.unsubscribeFromEncryptedMessages()
   }
 
   public async send(message: string): Promise<void> {
