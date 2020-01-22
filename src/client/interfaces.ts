@@ -43,6 +43,7 @@ export interface Room {
 }
 
 export interface ICommunicationPair {
+  name: string
   pubKey: string
   relayServer: string
 }

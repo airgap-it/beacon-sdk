@@ -61,7 +61,7 @@ export class P2PTransport extends Transport {
 
         const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
         if (!knownPeers.some(peer => peer.pubKey === pubKey)) {
-          knownPeers.push({ pubKey, relayServer: '' })
+          knownPeers.push({ name: '', pubKey, relayServer: '' })
           this.storage
             .set(StorageKey.TRANSPORT_P2P_PEERS, knownPeers)
             .catch(storageError => logger.error(storageError))
@@ -108,6 +108,7 @@ export class P2PTransport extends Transport {
     const peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
     if (!peers.some(peer => peer.pubKey === newPeer.pubKey)) {
       peers.push({
+        name: newPeer.name,
         pubKey: newPeer.pubKey,
         relayServer: newPeer.relayServer
       })
