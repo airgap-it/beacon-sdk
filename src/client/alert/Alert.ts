@@ -150,7 +150,8 @@ const formatQRCodeModal = (
   }
   
   .beacon-qrcode__image {
-    width: 100%;
+    width: 300px;
+    height: 300px;
     padding: 30px;
     box-sizing: border-box;
   }

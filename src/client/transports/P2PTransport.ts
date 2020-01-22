@@ -83,9 +83,7 @@ export class P2PTransport extends Transport {
         confirmButtonText: 'Ok!',
         body: [
           this.client
-            .getHandshakeQR('svg')
-            .replace('width="98px"', 'width="300px"')
-            .replace('height="98px"', 'height="300px"'),
+            .getHandshakeQR('svg'),
           '<br />',
           JSON.stringify(this.client.getHandshakeInfo())
         ].join(''),
