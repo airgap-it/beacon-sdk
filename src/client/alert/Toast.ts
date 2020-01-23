@@ -10,6 +10,8 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document = window.document
 }
 
+let timeout: NodeJS.Timeout | undefined
+
 const getToastHTML = (config: ToastConfig): string => {
   const text = config.body
 
@@ -129,6 +131,11 @@ const closeToast = (): Promise<void> =>
     if (elm) {
       const animationDuration = 300
 
+      if (timeout) {
+        clearTimeout(timeout)
+        timeout = undefined
+      }
+
       elm.className = elm.className.replace('fadeIn', 'fadeOut')
       setTimeout(() => {
         const wrapper = document.getElementById('beacon-toast-wrapper')
@@ -152,7 +159,7 @@ const openToast = async (toastConfig: ToastConfig): Promise<void> => {
   wrapper.innerHTML = getToastHTML(toastConfig)
 
   if (timer) {
-    setTimeout(async () => {
+    timeout = setTimeout(async () => {
       await closeToast()
     }, timer)
   }
