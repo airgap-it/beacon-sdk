@@ -47,8 +47,10 @@ export class WalletCommunicationClient {
     const typeNumber: TypeNumber = 0
     const errorCorrectionLevel: ErrorCorrectionLevel = 'L'
     const qr = qrcode(typeNumber, errorCorrectionLevel)
+    const data = JSON.stringify(this.getHandshakeInfo())
+    console.log(data)
     try {
-      qr.addData(JSON.stringify(this.getHandshakeInfo()))
+      qr.addData(data)
       qr.make()
       if (type === 'svg') {
         return qr.createSvgTag()

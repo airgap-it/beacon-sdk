@@ -82,9 +82,7 @@ export class P2PTransport extends Transport {
         title: 'Pairing Request',
         confirmButtonText: 'Ok!',
         body: [
-          this.client.getHandshakeQR('svg'),
-          '<br />',
-          JSON.stringify(this.client.getHandshakeInfo())
+          this.client.getHandshakeQR('svg')
         ].join(''),
         successCallback: () => {
           console.log('CALLBACK')
