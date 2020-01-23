@@ -14,6 +14,7 @@ import { TezosOperation } from '../operations/OperationTypes'
 import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
 import { TransportType } from '../transports/Transport'
+import { openToast } from '../alert/Toast'
 import { BaseClient } from './Client'
 
 const logger = new Logger('DAppClient')
@@ -75,6 +76,8 @@ export class DAppClient extends BaseClient {
   }
 
   public async requestPermissions(request?: PermissionScope[]): Promise<PermissionResponse> {
+    await openToast({body: 'Permission request sent', timer: 4000})
+
     return this.makeRequest({
       id: '',
       name: this.name,
@@ -90,6 +93,7 @@ export class DAppClient extends BaseClient {
     if (!request.payload) {
       throw new Error('Payload must be provided')
     }
+    await openToast({body: 'Signing request sent', timer: 4000})
 
     return this.makeRequest({
       id: '',
@@ -106,6 +110,7 @@ export class DAppClient extends BaseClient {
     if (!request.operationDetails) {
       throw new Error('Operation details must be provided')
     }
+    await openToast({body: 'Operation request sent', timer: 4000})
 
     return this.makeRequest({
       id: '',
@@ -122,6 +127,7 @@ export class DAppClient extends BaseClient {
     if (!request.signedTransaction) {
       throw new Error('Operation details must be provided')
     }
+    await openToast({body: 'Broadcast request sent', timer: 4000})
 
     return this.makeRequest({
       id: '',
