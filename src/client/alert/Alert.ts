@@ -13,6 +13,8 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document = window.document
 }
 
+let timeout: NodeJS.Timeout | undefined
+
 const formatQRCodeImage = (dataString: string): string => {
   if (typeof dataString === 'string') {
     return dataString.replace('<svg', `<svg class="beacon-qrcode__image"`)
@@ -196,10 +198,15 @@ const formatQRCodeModal = (
 `
 }
 
-const closeAlert = (): void => {
+const closeAlert = (): Promise<void> => new Promise(resolve => {
   const elm = document.getElementById('beacon-qrcode-modal')
   if (elm) {
     const animationDuration = 300
+
+    if (timeout) {
+      clearTimeout(timeout)
+      timeout = undefined
+    }
 
     elm.className = elm.className.replace('fadeIn', 'fadeOut')
     setTimeout(() => {
@@ -207,17 +214,22 @@ const closeAlert = (): void => {
       if (wrapper) {
         document.body.removeChild(wrapper)
       }
+      resolve()
     }, animationDuration)
+  } else {
+    resolve()
   }
-}
+})
 
-const openAlert = (alertConfig: AlertConfig): void => {
+const openAlert = async (alertConfig: AlertConfig): Promise<void> => {
   const body = alertConfig.body
   const title = alertConfig.title
   const timer = alertConfig.timer
   const confirmButtonText = alertConfig.confirmButtonText
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const successCallback = alertConfig.successCallback
+
+  await closeAlert()
 
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', 'beacon-wrapper')
@@ -227,8 +239,8 @@ const openAlert = (alertConfig: AlertConfig): void => {
   }
 
   if (timer) {
-    setTimeout(() => {
-      closeAlert()
+    timeout = setTimeout(async () => {
+      await closeAlert()
     }, timer)
   }
 
@@ -237,8 +249,8 @@ const openAlert = (alertConfig: AlertConfig): void => {
   const closeButton = document.getElementById('beacon-qrcode-close')
 
   if (okButton) {
-    okButton.addEventListener('click', () => {
-      closeAlert()
+    okButton.addEventListener('click', async () => {
+      await closeAlert()
       if (successCallback) {
         successCallback()
       }
@@ -246,8 +258,8 @@ const openAlert = (alertConfig: AlertConfig): void => {
   }
 
   if (closeButton) {
-    closeButton.addEventListener('click', () => {
-      closeAlert()
+    closeButton.addEventListener('click', async () => {
+      await closeAlert()
     })
   }
 }
