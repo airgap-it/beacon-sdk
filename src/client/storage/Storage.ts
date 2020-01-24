@@ -1,20 +1,23 @@
-import { ICommunicationPair } from '../interfaces'
+import { ICommunicationPair, Permission } from '../interfaces'
 
 export enum StorageKey {
   TRANSPORT_P2P_SECRET_KEY = 'beacon:communication-secret-key',
-  TRANSPORT_P2P_PEERS = 'beacon:communication-peers'
+  TRANSPORT_P2P_PEERS = 'beacon:communication-peers',
+  PERMISSIONS = 'beacon:permissions'
 }
 
 export interface StorageKeyReturnType {
   [StorageKey.TRANSPORT_P2P_SECRET_KEY]: string | undefined
   [StorageKey.TRANSPORT_P2P_PEERS]: ICommunicationPair[]
+  [StorageKey.PERMISSIONS]: Permission[]
 }
 
 export type StorageKeyReturnDefaults = { [key in StorageKey]: StorageKeyReturnType[key] }
 
 export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.TRANSPORT_P2P_SECRET_KEY]: undefined,
-  [StorageKey.TRANSPORT_P2P_PEERS]: []
+  [StorageKey.TRANSPORT_P2P_PEERS]: [],
+  [StorageKey.PERMISSIONS]: []
 }
 
 export abstract class Storage {

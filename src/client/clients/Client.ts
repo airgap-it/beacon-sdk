@@ -1,4 +1,4 @@
-import { BaseMessage } from '../Messages'
+import { BaseMessage } from '../../messages/Messages'
 import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { PostMessageTransport } from '../transports/PostMessageTransport'
@@ -6,6 +6,8 @@ import { P2PTransport } from '../transports/P2PTransport'
 import { Transport, TransportType, TransportStatus } from '../transports/Transport'
 // Import { Logger } from '../utils/Logger'
 import { getStorage } from '../storage/getStorage'
+import { Permission } from '../interfaces'
+import { Storage, StorageKey } from '../storage/Storage'
 
 // Const logger = new Logger('BaseClient')
 
@@ -14,6 +16,7 @@ export class BaseClient {
   protected readonly serializer = new Serializer()
   protected handleResponse: (_event: BaseMessage, connectionInfo: any) => void
 
+  protected storage: Storage | undefined
   protected transport: Transport | undefined
 
   protected readonly _isConnected: ExposedPromise<boolean> = exposedPromise()
@@ -30,14 +33,16 @@ export class BaseClient {
       return this.transport.type
     }
 
-    const storage = await getStorage()
+    if (!this.storage) {
+      this.storage = await getStorage()
+    }
 
     if (transport) {
       this.transport = transport // Let users define their own transport
     } else if (await PostMessageTransport.isAvailable()) {
       this.transport = new PostMessageTransport(name) // Talk to extension first and relay everything
     } else if (await P2PTransport.isAvailable()) {
-      this.transport = new P2PTransport(this.name, storage, isDapp) // Establish our own connection with the wallet
+      this.transport = new P2PTransport(this.name, this.storage, isDapp) // Establish our own connection with the wallet
     } else {
       throw new Error('no transport available for this platform!')
     }
@@ -79,6 +84,48 @@ export class BaseClient {
     }
 
     return this.transport.removeAllPeers()
+  }
+
+  public async getConnectedAccounts(): Promise<Permission[]> {
+    if (!this.storage) {
+      throw new Error('no storage defined')
+    }
+
+    return this.storage.get(StorageKey.PERMISSIONS)
+  }
+
+  public async addConnectedAccount(permission: Permission): Promise<void> {
+    if (!this.storage) {
+      throw new Error('no storage defined')
+    }
+
+    const permissions = await this.storage.get(StorageKey.PERMISSIONS)
+
+    if (!permissions.some(element => element.pubkey === permission.pubkey)) {
+      permissions.push(permission)
+    }
+
+    return this.storage.set(StorageKey.PERMISSIONS, permissions)
+  }
+
+  public async removeConnectedAccount(pubkey: string): Promise<void> {
+    if (!this.storage) {
+      throw new Error('no storage defined')
+    }
+
+    const permissions = await this.storage.get(StorageKey.PERMISSIONS)
+
+    const filteredPermissions = permissions.filter(permission => permission.pubkey !== pubkey)
+
+    return this.storage.set(StorageKey.PERMISSIONS, filteredPermissions)
+  }
+
+  public async removaAllConnectedAccounts(): Promise<void> {
+    if (!this.storage) {
+      throw new Error('no storage defined')
+    }
+
+    return this.storage.delete(StorageKey.PERMISSIONS)
   }
 
   protected async _connect(): Promise<boolean> {

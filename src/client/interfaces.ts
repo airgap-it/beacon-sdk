@@ -1,3 +1,5 @@
+import { PermissionScope } from '../messages/Messages'
+
 export interface MatrixEvent {
   getSender(): string
   getContent(): { body: string }
@@ -46,4 +48,10 @@ export interface ICommunicationPair {
   name: string
   pubKey: string
   relayServer: string
+}
+
+export interface Permission {
+  pubkey: string
+  networks: string[]
+  scopes: PermissionScope[]
 }

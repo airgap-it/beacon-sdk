@@ -198,28 +198,29 @@ const formatQRCodeModal = (
 `
 }
 
-const closeAlert = (): Promise<void> => new Promise(resolve => {
-  const elm = document.getElementById('beacon-qrcode-modal')
-  if (elm) {
-    const animationDuration = 300
+const closeAlert = (): Promise<void> =>
+  new Promise(resolve => {
+    const elm = document.getElementById('beacon-qrcode-modal')
+    if (elm) {
+      const animationDuration = 300
 
-    if (timeout) {
-      clearTimeout(timeout)
-      timeout = undefined
-    }
-
-    elm.className = elm.className.replace('fadeIn', 'fadeOut')
-    setTimeout(() => {
-      const wrapper = document.getElementById('beacon-wrapper')
-      if (wrapper) {
-        document.body.removeChild(wrapper)
+      if (timeout) {
+        clearTimeout(timeout)
+        timeout = undefined
       }
+
+      elm.className = elm.className.replace('fadeIn', 'fadeOut')
+      setTimeout(() => {
+        const wrapper = document.getElementById('beacon-wrapper')
+        if (wrapper) {
+          document.body.removeChild(wrapper)
+        }
+        resolve()
+      }, animationDuration)
+    } else {
       resolve()
-    }, animationDuration)
-  } else {
-    resolve()
-  }
-})
+    }
+  })
 
 const openAlert = async (alertConfig: AlertConfig): Promise<void> => {
   const body = alertConfig.body

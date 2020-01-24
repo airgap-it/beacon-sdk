@@ -1,4 +1,4 @@
-import { BaseMessage } from '../Messages'
+import { BaseMessage } from '../../messages/Messages'
 import { TransportType } from '../transports/Transport'
 import { BaseClient } from './Client'
 

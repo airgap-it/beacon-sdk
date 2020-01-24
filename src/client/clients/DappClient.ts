@@ -7,7 +7,7 @@ import {
   BaseMessage,
   MessageTypes,
   PermissionScope
-} from '../Messages'
+} from '../../messages/Messages'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 
 import { TezosOperation } from '../operations/OperationTypes'
@@ -34,7 +34,13 @@ export class DAppClient extends BaseClient {
       if (openRequest) {
         logger.log('handleResponse', 'found openRequest', event.id)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        openRequest.resolve(event as any)
+        if ((event as any).error) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          openRequest.reject(event as any)
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          openRequest.resolve(event as any)
+        }
         this.openRequests.delete(event.id)
       } else {
         logger.error('handleResponse', 'no request found for id ', event.id)
@@ -76,13 +82,18 @@ export class DAppClient extends BaseClient {
   }
 
   public async requestPermissions(request?: PermissionScope[]): Promise<PermissionResponse> {
-    openToast({body: 'Permission request sent', timer: 3000}).catch(toastError => console.error(toastError))
+    openToast({ body: 'Permission request sent', timer: 3000 }).catch(toastError =>
+      console.error(toastError)
+    )
 
-    return this.makeRequest({
+    return this.makeRequest<PermissionResponse>({
       id: '',
       name: this.name,
       type: MessageTypes.PermissionRequest,
       scope: request || ['read_address', 'sign', 'operation_request', 'threshold']
+    }).catch(error => {
+      console.log('error', error)
+      throw new Error(error)
     })
   }
 
@@ -93,13 +104,18 @@ export class DAppClient extends BaseClient {
     if (!request.payload) {
       throw new Error('Payload must be provided')
     }
-    openToast({body: 'Signing request sent', timer: 3000}).catch(toastError => console.error(toastError))
+    openToast({ body: 'Signing request sent', timer: 3000 }).catch(toastError =>
+      console.error(toastError)
+    )
 
-    return this.makeRequest({
+    return this.makeRequest<SignPayloadResponse>({
       id: '',
       type: MessageTypes.SignPayloadRequest,
       payload: request.payload,
       sourceAddress: request.sourceAddress || ''
+    }).catch(error => {
+      console.log('error', error)
+      throw new Error(error)
     })
   }
 
@@ -110,13 +126,18 @@ export class DAppClient extends BaseClient {
     if (!request.operationDetails) {
       throw new Error('Operation details must be provided')
     }
-    openToast({body: 'Operation request sent', timer: 3000}).catch(toastError => console.error(toastError))
+    openToast({ body: 'Operation request sent', timer: 3000 }).catch(toastError =>
+      console.error(toastError)
+    )
 
-    return this.makeRequest({
+    return this.makeRequest<OperationResponse>({
       id: '',
       type: MessageTypes.OperationRequest,
       network: request.network || 'mainnet',
       operationDetails: request.operationDetails
+    }).catch(error => {
+      console.log('error', error)
+      throw new Error(error)
     })
   }
 
@@ -127,13 +148,18 @@ export class DAppClient extends BaseClient {
     if (!request.signedTransaction) {
       throw new Error('Operation details must be provided')
     }
-    openToast({body: 'Broadcast request sent', timer: 3000}).catch(toastError => console.error(toastError))
+    openToast({ body: 'Broadcast request sent', timer: 3000 }).catch(toastError =>
+      console.error(toastError)
+    )
 
-    return this.makeRequest({
+    return this.makeRequest<BroadcastResponse>({
       id: '',
       type: MessageTypes.BroadcastRequest,
       network: request.network || 'mainnet',
       signedTransaction: request.signedTransaction
+    }).catch(error => {
+      console.log('error', error)
+      throw new Error(error)
     })
   }
 }
