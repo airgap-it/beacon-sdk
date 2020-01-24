@@ -6,9 +6,13 @@
 [![codecov](https://img.shields.io/codecov/c/gh/airgap-it/beacon-sdk.svg)](https://codecov.io/gh/airgap-it/beacon-sdk/)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
+> Connect Wallets with dApps on Tezos
+
+[Beacon](https://walletbeacon.io) is the implementation of the wallet interaction standard [tzip-10](https://gitlab.com/tzip/tzip/blob/master/proposals/tzip-10/tzip-10.md) which describes the connnection of a dApp with a wallet.
+
 ## Intro
 
-The `beacon-sdk` simplifies and abstracts the communication between dapps and wallets over different transport layers. 
+The `beacon-sdk` simplifies and abstracts the communication between dApps and wallets over different transport layers.
 
 ### Example
 
@@ -21,7 +25,6 @@ client
     console.log('got permissions', permissions)
   })
   .catch(error => console.log(error))
-
 ```
 
 ### Requirements
