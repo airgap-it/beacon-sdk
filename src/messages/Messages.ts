@@ -59,24 +59,24 @@ export interface OperationRequest extends BaseMessage {
   type: MessageTypes.OperationRequest
 
   network: string
-  operationDetails: TezosOperation
+  operationDetails: TezosOperation[]
 }
 
 export interface OperationResponse extends BaseMessage {
   type: MessageTypes.OperationResponse
 
-  transactionHash: string
+  transactionHashes: string[]
 }
 
 export interface BroadcastRequest extends BaseMessage {
   type: MessageTypes.BroadcastRequest
 
   network: string
-  signedTransaction: Buffer[]
+  signedTransactions: Buffer[]
 }
 
 export interface BroadcastResponse extends BaseMessage {
   type: MessageTypes.BroadcastResponse
 
-  transactionHash: string
+  transactionHashes: string[]
 }

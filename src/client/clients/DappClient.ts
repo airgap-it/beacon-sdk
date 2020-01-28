@@ -121,7 +121,7 @@ export class DAppClient extends BaseClient {
 
   public async requestOperation(request: {
     network: string
-    operationDetails: TezosOperation
+    operationDetails: TezosOperation[]
   }): Promise<OperationResponse> {
     if (!request.operationDetails) {
       throw new Error('Operation details must be provided')
@@ -143,9 +143,9 @@ export class DAppClient extends BaseClient {
 
   public async requestBroadcast(request: {
     network: string
-    signedTransaction: Buffer[]
+    signedTransactions: Buffer[]
   }): Promise<BroadcastResponse> {
-    if (!request.signedTransaction) {
+    if (!request.signedTransactions) {
       throw new Error('Operation details must be provided')
     }
     openToast({ body: 'Broadcast request sent', timer: 3000 }).catch(toastError =>
@@ -156,7 +156,7 @@ export class DAppClient extends BaseClient {
       id: '',
       type: MessageTypes.BroadcastRequest,
       network: request.network || 'mainnet',
-      signedTransaction: request.signedTransaction
+      signedTransactions: request.signedTransactions
     }).catch(error => {
       console.log('error', error)
       throw new Error(error)
