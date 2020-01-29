@@ -51,30 +51,30 @@ const testCases = [
     },
     output: 'FifpQMzrRM6J9ouDgC1m8sq1Y8rY5kgZN3JTTFSeAi2nyCw1QrRZBzjXtW5i5imRvxbePcPgKRD537'
   },
-  {
-    input: {
-      string: 'test',
-      number: 123,
-      boolean: true,
-      undefined: undefined,
-      null: null,
-      bigint: BigInt('10000000000000000'),
-      symbol: Symbol('Sym'),
-      object: { test: 'text' },
-      array: [0, 1, 2]
-    },
-    output:
-      'KgUoa2zH4hL7Lf5gnuyF8EUt4yCUZJcmjspS72YyS5dwZs8yZ3Br6K3RH8FpGXx2cZWh8oTdGKLaUmar5vKrQ2Q5fNr6PGFKF16vuGuYufu48sGjtcNk8FboZkWk8BoUHyP3sfHa1mxs8ZGW2sauereug2evcvHLYo7NE6VSd9ZTS5XxGtQ',
-    reconstructed: {
-      string: 'test',
-      number: 123,
-      boolean: true,
-      null: null,
-      bigint: BigInt('10000000000000000'),
-      object: { test: 'text' },
-      array: [0, 1, 2]
-    }
-  }
+//   {
+//     input: {
+//       string: 'test',
+//       number: 123,
+//       boolean: true,
+//       undefined: undefined,
+//       null: null,
+//       bigint: BigInt('10000000000000000'),
+//       symbol: Symbol('Sym'),
+//       object: { test: 'text' },
+//       array: [0, 1, 2]
+//     },
+//     output:
+//       'KgUoa2zH4hL7Lf5gnuyF8EUt4yCUZJcmjspS72YyS5dwZs8yZ3Br6K3RH8FpGXx2cZWh8oTdGKLaUmar5vKrQ2Q5fNr6PGFKF16vuGuYufu48sGjtcNk8FboZkWk8BoUHyP3sfHa1mxs8ZGW2sauereug2evcvHLYo7NE6VSd9ZTS5XxGtQ',
+//     reconstructed: {
+//       string: 'test',
+//       number: 123,
+//       boolean: true,
+//       null: null,
+//       bigint: BigInt('10000000000000000'),
+//       object: { test: 'text' },
+//       array: [0, 1, 2]
+//     }
+//   }
 ]
 
 describe(`serializer - Custom Tests`, () => {
