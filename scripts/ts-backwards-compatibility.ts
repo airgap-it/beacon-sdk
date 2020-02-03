@@ -6,6 +6,6 @@ const replaceInFile: (file: string, src: string, dest: string) => void = (file: 
   writeFileSync(file, newContent)
 }
 
-replaceInFile('./dist/client/storage/FileStorage.js', 'const fs_1 = require("fs");', '// const fs_1 = require("fs");')
-replaceInFile('./dist/client/clients/Client.d.ts', 'get isConnected(): Promise<boolean>;', 'readonly isConnected: Promise<boolean>;')
-replaceInFile('./dist/client/transports/Transport.d.ts', 'get connectionStatus(): TransportStatus;', 'readonly connectionStatus: TransportStatus;')
+replaceInFile('./dist/storage/FileStorage.js', 'const fs_1 = require("fs");', '// const fs_1 = require("fs");')
+replaceInFile('./dist/clients/Client.d.ts', 'get isConnected(): Promise<boolean>;', 'readonly isConnected: Promise<boolean>;')
+replaceInFile('./dist/transports/Transport.d.ts', 'get connectionStatus(): TransportStatus;', 'readonly connectionStatus: TransportStatus;')
