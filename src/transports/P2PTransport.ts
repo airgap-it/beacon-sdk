@@ -1,4 +1,4 @@
-import { WalletCommunicationClient } from '../..'
+import { WalletCommunicationClient } from '..'
 import { openAlert, closeAlert, AlertConfig } from '../alert/Alert'
 import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'

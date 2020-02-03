@@ -1,4 +1,4 @@
-import { TezosOperation } from '../client/operations/OperationTypes'
+import { TezosOperation } from '../operations/OperationTypes'
 
 export type PermissionScope = 'read_address' | 'sign' | 'operation_request' | 'threshold'
 

@@ -1,3 +1,3 @@
-import { WalletCommunicationClient } from './client/WalletCommunicationClient'
+import { WalletCommunicationClient } from './WalletCommunicationClient'
 
 export { WalletCommunicationClient }

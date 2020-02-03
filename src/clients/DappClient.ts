@@ -7,7 +7,7 @@ import {
   BaseMessage,
   MessageTypes,
   PermissionScope
-} from '../../messages/Messages'
+} from '../messages/Messages'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 
 import { TezosOperation } from '../operations/OperationTypes'

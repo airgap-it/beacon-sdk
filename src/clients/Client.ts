@@ -1,4 +1,4 @@
-import { BaseMessage } from '../../messages/Messages'
+import { BaseMessage } from '../messages/Messages'
 import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { PostMessageTransport } from '../transports/PostMessageTransport'

@@ -1,4 +1,4 @@
-import { PermissionScope } from '../messages/Messages'
+import { PermissionScope } from './messages/Messages'
 
 export interface MatrixEvent {
   getSender(): string
