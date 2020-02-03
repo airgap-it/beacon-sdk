@@ -1,63 +1,53 @@
 
 
-# P2P Flow
+# P2P Direct Flow (Direct)
 
 ## Init
 
 ```mermaid
 sequenceDiagram
-    Popup->>Popup: User Prompt (Add/Generate Mnemonic?)
-    Popup->>Background: Save Mnemonic
-    alt generate
-        Popup->>Background: New / Save mnemonic
-        Background->>Background: Generate new Mnemonic
-    end
-    Background->>Popup: Return Mnemonic
+    dApp->>Wallet: Show QR Code (pubkey exchange)
+    Wallet->>Wallet: User scans QR code
+    Wallet->>dApp: Send own pubkey to dApp, connection established
 ```
 
 ## Permission Request
 
 ```mermaid
 sequenceDiagram
-    dApp->>Background: Request
-    Background->>Popup: Permission Request
-    Popup->>Popup: User confirmation
-    Popup->>Background: Permission Response
-    Background->>dApp: Response
+    dApp->>Wallet: User Prompt (Do you want to pair?)
+    Wallet->>Wallet: Grant permissions
+    Wallet->>dApp: Return Address & Permissions
 ```
 
 ## Operation Request
 
 ```mermaid
 sequenceDiagram
-    dApp->>Background: Request
+    dApp->>Wallet: Request
     opt threshold
-        Background->>Background: Signing Request
-        Note left of Background: Only spend<br/>No contract calls
+        Wallet->>Wallet: Signing Request
+        Note left of Wallet: Only spend<br/>No contract calls
     end
     opt no threshold
-        Background->>Popup: Signing Request
-        Popup->>Popup: User confirmation
-        Popup->>Background: Signing Response
+        Wallet->>Wallet: User confirmation
     end
-    Background->>dApp: Response
+    Wallet->>dApp: Response
 ```
 
 ## Signing Request
 
 ```mermaid
 sequenceDiagram
-    dApp->>Background: Request
+    dApp->>Wallet: Request
     opt threshold
-        Background->>Background: Signing Request
-        Note left of Background: Only spend<br/>No contract calls
+        Wallet->>Wallet: Signing Request
+        Note left of Wallet: Only spend<br/>No contract calls
     end
     opt no threshold
-        Background->>Popup: Signing Request
-        Popup->>Popup: User confirmation
-        Popup->>Background: Signing Response
+        Wallet->>Wallet: User confirmation
     end
-    Background->>dApp: Response
+    Wallet->>dApp: Response
 ```
 
 | WARNING: Can threshold be abused to sign contract calls? |
@@ -67,11 +57,9 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    dApp->>Background: Request
+    dApp->>Wallet: Request
 
-    Background->>Popup: Signing Request
-    Popup->>Popup: User confirmation
-    Popup->>Background: Signing Response
+    Wallet->>Wallet: User confirmation
 
-    Background->>dApp: Response
+    Wallet->>dApp: Response
 ```

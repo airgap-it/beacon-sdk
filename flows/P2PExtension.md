@@ -1,6 +1,6 @@
 
 
-# Wallet Flow
+# P2P Flow (Extension)
 
 ## Init
 
