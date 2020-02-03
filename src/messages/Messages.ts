@@ -45,7 +45,7 @@ export interface PermissionResponse extends BaseMessage {
 
 export interface SignPayloadRequest extends BaseMessage {
   type: MessageTypes.SignPayloadRequest
-  payload: Buffer[]
+  payload: string[]
   sourceAddress: string
 }
 

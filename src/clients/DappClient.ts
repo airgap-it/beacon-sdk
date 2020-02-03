@@ -98,7 +98,7 @@ export class DAppClient extends BaseClient {
   }
 
   public async signPayloads(request: {
-    payload: Buffer[]
+    payload: string[]
     sourceAddress: string
   }): Promise<SignPayloadResponse> {
     if (!request.payload) {
@@ -143,7 +143,7 @@ export class DAppClient extends BaseClient {
 
   public async requestBroadcast(request: {
     network: string
-    signedTransactions: Buffer[]
+    signedTransactions: string[]
   }): Promise<BroadcastResponse> {
     if (!request.signedTransactions) {
       throw new Error('Operation details must be provided')
