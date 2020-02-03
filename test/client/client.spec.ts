@@ -8,7 +8,7 @@ import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 
-import { generateGUID } from '../../src/client/utils/generate-uuid'
+import { generateGUID } from '../../src/utils/generate-uuid'
 import { WalletCommunicationClient } from '../../src'
 
 // use chai-as-promised plugin
