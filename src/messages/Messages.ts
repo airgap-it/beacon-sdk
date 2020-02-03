@@ -52,7 +52,7 @@ export interface SignPayloadRequest extends BaseMessage {
 export interface SignPayloadResponse extends BaseMessage {
   type: MessageTypes.SignPayloadResponse
 
-  signature: Buffer[]
+  signature: string[]
 }
 
 export interface OperationRequest extends BaseMessage {
@@ -72,7 +72,7 @@ export interface BroadcastRequest extends BaseMessage {
   type: MessageTypes.BroadcastRequest
 
   network: string
-  signedTransactions: Buffer[]
+  signedTransactions: string[]
 }
 
 export interface BroadcastResponse extends BaseMessage {
