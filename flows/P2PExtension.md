@@ -1,5 +1,3 @@
-
-
 # P2P Flow (Extension)
 
 ## Init
@@ -36,13 +34,11 @@ sequenceDiagram
     Background->>Wallet: Operation Request
     Wallet->>Wallet: Forge Operation
 
-    opt threshold
-        Wallet->>Wallet: Sign
-    end
     opt no threshold
         Wallet->>Wallet: User confirmation
-        Wallet->>Wallet: Sign
     end
+    Wallet->>Wallet: Sign
+
     Wallet->>Background: Operation Response
     Background->>dApp: Response
 ```
@@ -54,13 +50,10 @@ sequenceDiagram
     dApp->>Background: Request
     Background->>Wallet: Sign Request
 
-    opt threshold
-        Wallet->>Wallet: Sign
-    end
     opt no threshold
         Wallet->>Wallet: User confirmation
-        Wallet->>Wallet: Sign
     end
+    Wallet->>Wallet: Sign
     Wallet->>Background: Sign Response
     Background->>dApp: Response
 ```
@@ -74,6 +67,8 @@ sequenceDiagram
     Background->>Wallet: Signing Request
     Wallet->>Wallet: User confirmation
     Wallet->>Background: Signing Response
+
+    Background->>Background: Broadcast
 
     Background->>dApp: Response
 ```

@@ -1,5 +1,3 @@
-
-
 # P2P Direct Flow (Direct)
 
 ## Init
@@ -25,12 +23,10 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     dApp->>Wallet: Request
-    opt threshold
-        Wallet->>Wallet: Signing Request
-        Note left of Wallet: Only spend<br/>No contract calls
-    end
+    Wallet->>Wallet: Forge Operation
     opt no threshold
         Wallet->>Wallet: User confirmation
+        Wallet->>Wallet: Sign
     end
     Wallet->>dApp: Response
 ```
@@ -40,18 +36,16 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     dApp->>Wallet: Request
-    opt threshold
-        Wallet->>Wallet: Signing Request
-        Note left of Wallet: Only spend<br/>No contract calls
-    end
     opt no threshold
         Wallet->>Wallet: User confirmation
+        Wallet->>Wallet: Sign
     end
     Wallet->>dApp: Response
 ```
 
 | WARNING: Can threshold be abused to sign contract calls? |
-| --- |
+| -------------------------------------------------------- |
+
 
 ## Broadcast Request
 
@@ -60,6 +54,7 @@ sequenceDiagram
     dApp->>Wallet: Request
 
     Wallet->>Wallet: User confirmation
+    Wallet->>Wallet: Broadcast
 
     Wallet->>dApp: Response
 ```

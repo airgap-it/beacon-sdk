@@ -1,5 +1,3 @@
-
-
 # Ledger Flow
 
 ## Init
@@ -39,7 +37,7 @@ sequenceDiagram
     Background->>Ledger: Operation Request
     Ledger->>Ledger: User confirmation
     Ledger->>Background: Signed Operation
-    
+
     Background->>dApp: Response
 ```
 
@@ -55,18 +53,21 @@ sequenceDiagram
     Background->>Ledger: Sign Request
     Ledger->>Ledger: User confirmation
     Ledger->>Background: Signed Operation
-    
+
     Background->>dApp: Response
 ```
+
 ## Broadcast Request
 
 ```mermaid
 sequenceDiagram
     dApp->>Background: Request
 
-    Background->>Popup: Signing Request
+    Background->>Popup: Broascast Request
     Popup->>Popup: User confirmation
-    Popup->>Background: Signing Response
+    Popup->>Background: Broascast Response
+
+    Background->>Background: Broadcast
 
     Background->>dApp: Response
 ```

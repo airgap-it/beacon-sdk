@@ -1,5 +1,3 @@
-
-
 # Local Mnemonic Flow
 
 ## Init
@@ -31,15 +29,16 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     dApp->>Background: Request
-    opt threshold
-        Background->>Background: Operation Request
-        Note left of Background: Only spend<br/>No contract calls
-    end
+        Background->>Background: Forge Operation
     opt no threshold
+        Note left of Background: Everything except<br/>simple spend has<br/>to be approved
         Background->>Popup: Operation Request
         Popup->>Popup: User confirmation
         Popup->>Background: Operation Response
     end
+
+    Background->>Background: Sign Operation
+
     Background->>dApp: Response
 ```
 
@@ -48,20 +47,21 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     dApp->>Background: Request
-    opt threshold
-        Background->>Background: Signing Request
-        Note left of Background: Only spend<br/>No contract calls
-    end
     opt no threshold
+        Note left of Background: Everything except<br/>simple spend has<br/>to be approved
         Background->>Popup: Signing Request
         Popup->>Popup: User confirmation
         Popup->>Background: Signing Response
     end
+
+    Background->>Background: Sign Operation
+
     Background->>dApp: Response
 ```
 
 | WARNING: Can threshold be abused to sign contract calls? |
-| --- |
+| -------------------------------------------------------- |
+
 
 ## Broadcast Request
 
@@ -69,9 +69,11 @@ sequenceDiagram
 sequenceDiagram
     dApp->>Background: Request
 
-    Background->>Popup: Signing Request
+    Background->>Popup: Broascast Request
     Popup->>Popup: User confirmation
-    Popup->>Background: Signing Response
+    Popup->>Background: Broascast Response
+
+    Background->>Background: Broadcast
 
     Background->>dApp: Response
 ```
