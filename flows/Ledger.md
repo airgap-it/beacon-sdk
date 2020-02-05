@@ -29,10 +29,10 @@ sequenceDiagram
 sequenceDiagram
     dApp->>Background: Request
 
-    Background->>Background: Prepare Operation
-
     Background->>Popup: Operation Request
     Popup->>Background: Confirm
+
+    Background->>Background: Forge Operation
 
     Background->>Ledger: Operation Request
     Ledger->>Ledger: User confirmation

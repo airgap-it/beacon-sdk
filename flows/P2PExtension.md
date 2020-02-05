@@ -32,11 +32,11 @@ sequenceDiagram
 sequenceDiagram
     dApp->>Background: Request
     Background->>Wallet: Operation Request
-    Wallet->>Wallet: Forge Operation
 
     opt no threshold
         Wallet->>Wallet: User confirmation
     end
+    Wallet->>Wallet: Forge Operation
     Wallet->>Wallet: Sign
 
     Wallet->>Background: Operation Response

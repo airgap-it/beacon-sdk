@@ -29,7 +29,6 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     dApp->>Background: Request
-        Background->>Background: Forge Operation
     opt no threshold
         Note left of Background: Everything except<br/>simple spend has<br/>to be approved
         Background->>Popup: Operation Request
@@ -37,6 +36,7 @@ sequenceDiagram
         Popup->>Background: Operation Response
     end
 
+    Background->>Background: Forge Operation
     Background->>Background: Sign Operation
 
     Background->>dApp: Response

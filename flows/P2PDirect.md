@@ -23,11 +23,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     dApp->>Wallet: Request
-    Wallet->>Wallet: Forge Operation
+
     opt no threshold
         Wallet->>Wallet: User confirmation
-        Wallet->>Wallet: Sign
     end
+
+    Wallet->>Wallet: Forge Operation
+    Wallet->>Wallet: Sign
+
     Wallet->>dApp: Response
 ```
 
@@ -38,8 +41,8 @@ sequenceDiagram
     dApp->>Wallet: Request
     opt no threshold
         Wallet->>Wallet: User confirmation
-        Wallet->>Wallet: Sign
     end
+    Wallet->>Wallet: Sign
     Wallet->>dApp: Response
 ```
 
