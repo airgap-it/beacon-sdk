@@ -1,12 +1,13 @@
 ```mermaid
 graph LR
-    A[dApp] -->|Connect| B[P2P]
-    A[dApp] -->|Connect| C[Extension]
-    C --> D{Signing<br/>Method}
-    D --> E[P2P]
-    D --> F[Ledger]
-    D --> G[Deeplink]
-    D --> H[Local Mnemonic]
+    A[dApp] --> B[P2P]
+    A[dApp] --> C[Extension]
+    C --> D{Proxy}
+    C --> E{Signers}
+    D --> F[P2P]
+    E --> G[Ledger]
+    D --> H[Deeplink]
+    E --> I[Local Mnemonic]
 ```
 
 The different flows are defined in the flows folder.
