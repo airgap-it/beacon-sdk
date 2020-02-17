@@ -106,6 +106,13 @@ export class DAppClient extends BaseClient {
   }
 
   public async requestPermissions(request?: PermissionScope[]): Promise<PermissionResponse> {
+    if (await this.addRequestAndCheckIfRateLimited()) {
+      this.events
+        .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
+        .catch(emitError => console.warn(emitError))
+
+      throw new Error('rate limit reached')
+    }
     this.events
       .emit(InternalEvent.PERMISSION_REQUEST_SENT)
       .catch(emitError => console.warn(emitError))
@@ -134,6 +141,13 @@ export class DAppClient extends BaseClient {
   }): Promise<SignPayloadResponse> {
     if (!request.payload) {
       throw new Error('Payload must be provided')
+    }
+    if (await this.addRequestAndCheckIfRateLimited()) {
+      this.events
+        .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
+        .catch(emitError => console.warn(emitError))
+
+      throw new Error('rate limit reached')
     }
 
     const req: SignPayloadRequest = {
@@ -168,6 +182,13 @@ export class DAppClient extends BaseClient {
     if (!request.operationDetails) {
       throw new Error('Operation details must be provided')
     }
+    if (await this.addRequestAndCheckIfRateLimited()) {
+      this.events
+        .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
+        .catch(emitError => console.warn(emitError))
+
+      throw new Error('rate limit reached')
+    }
 
     const req: OperationRequest = {
       id: '',
@@ -200,6 +221,13 @@ export class DAppClient extends BaseClient {
   }): Promise<BroadcastResponse> {
     if (!request.signedTransactions) {
       throw new Error('Operation details must be provided')
+    }
+    if (await this.addRequestAndCheckIfRateLimited()) {
+      this.events
+        .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
+        .catch(emitError => console.warn(emitError))
+
+      throw new Error('rate limit reached')
     }
 
     const req: BroadcastRequest = {

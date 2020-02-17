@@ -12,6 +12,9 @@ import { Storage, StorageKey } from '../storage/Storage'
 // Const logger = new Logger('BaseClient')
 
 export class BaseClient {
+  protected readonly rateLimit: number = 2
+  protected readonly rateLimitWindowInSeconds: number = 5
+  protected requestCounter: number[] = []
   protected readonly name: string
   protected readonly serializer = new Serializer()
   protected handleResponse: (_event: BaseMessage, connectionInfo: any) => void
@@ -26,6 +29,17 @@ export class BaseClient {
     this.handleResponse = (_event: BaseMessage) => {
       throw new Error('not overwritten')
     }
+  }
+
+  public async addRequestAndCheckIfRateLimited(): Promise<boolean> {
+    const now: number = new Date().getTime()
+    this.requestCounter = this.requestCounter.filter(
+      date => date + this.rateLimitWindowInSeconds * 1000 > now
+    )
+
+    this.requestCounter.push(now)
+
+    return this.requestCounter.length > this.rateLimit
   }
 
   public async init(isDapp: boolean = true, transport?: Transport): Promise<TransportType> {
