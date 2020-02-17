@@ -29,6 +29,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     dApp->>Background: Request
+    Background->>Background: Fetch operation data
     opt no threshold
         Note left of Background: Everything except<br/>simple spend has<br/>to be approved
         Background->>Popup: Operation Request
