@@ -109,14 +109,14 @@ export class P2PTransport extends Transport {
       })
       await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
       logger.log('addPeer', `peer added, now ${peers.length} peers`)
-    }
 
-    if (!this.client) {
-      throw new Error('client not ready')
-    }
+      if (!this.client) {
+        throw new Error('client not ready')
+      }
 
-    await this.client.openChannel(newPeer.pubKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
-    await this.listen(newPeer.pubKey) // TODO: Prevent channels from being opened multiple times
+      await this.client.openChannel(newPeer.pubKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
+      await this.listen(newPeer.pubKey) // TODO: Prevent channels from being opened multiple times
+    }
   }
 
   public async removePeer(peerToBeRemoved: any): Promise<void> {
