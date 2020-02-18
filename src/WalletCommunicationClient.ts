@@ -21,7 +21,7 @@ export class WalletCommunicationClient {
   private readonly KNOWN_RELAY_SERVERS = [
     'matrix.papers.tech'
     // 'matrix.tez.ie',
-    // 'matrix-dev.papers.tech'
+    // 'matrix-dev.papers.tech',
     // "matrix.stove-labs.com",
     // "yadayada.cryptonomic-infra.tech"
   ]
@@ -144,7 +144,8 @@ export class WalletCommunicationClient {
 
       // FIXME: See below
       // TODO: This call `client.startClient({ initialSyncLimit: 0 });` doesn't properly await, so we don't know when the SDK is ready.
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // TODO: We temporarily comment this out to try if it works without it
+      // Await new Promise(resolve => setTimeout(resolve, 1000))
 
       for (const room of client.getRooms()) {
         if (room.getMyMembership() === 'invite') {
