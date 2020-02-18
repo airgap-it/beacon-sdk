@@ -103,6 +103,7 @@ const formatQRCodeModal = (
     top: 16px;
     right: 16px;
     z-index: 10000;
+    cursor: pointer;
   }
   
   .beacon-modal__close__icon {
@@ -142,7 +143,7 @@ const formatQRCodeModal = (
   
   .beacon-qrcode__text {
     color: #7c828b;
-    font-family: Roboto;
+    font-family: Roboto, sans-serif;
     font-size: 18px;
     text-align: center;
     margin: 0 auto;

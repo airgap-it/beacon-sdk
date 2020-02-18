@@ -70,7 +70,7 @@ const getToastHTML = (config: ToastConfig): string => {
 
     .beacon-toast__content {
       padding: 0 0 0 16px;
-      font-family: Roboto;
+      font-family: Roboto, sans-serif;
     }
     .spinner .loader,
     .spinner .loader:after {
