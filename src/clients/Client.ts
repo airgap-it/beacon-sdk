@@ -8,15 +8,18 @@ import { Transport, TransportType, TransportStatus } from '../transports/Transpo
 import { getStorage } from '../storage/getStorage'
 import { Permission } from '../interfaces'
 import { Storage, StorageKey } from '../storage/Storage'
+import { generateGUID } from '../utils/generate-uuid'
 
 // Const logger = new Logger('BaseClient')
 
 export class BaseClient {
+  protected requestCounter: number[] = []
   protected readonly rateLimit: number = 2
   protected readonly rateLimitWindowInSeconds: number = 5
-  protected requestCounter: number[] = []
+  protected beaconId: string | undefined
   protected readonly name: string
   protected readonly serializer = new Serializer()
+
   protected handleResponse: (_event: BaseMessage, connectionInfo: any) => void
 
   protected storage: Storage | undefined
@@ -50,6 +53,8 @@ export class BaseClient {
     if (!this.storage) {
       this.storage = await getStorage()
     }
+
+    this.beaconId = await this.getOrCreateBeaconId()
 
     if (transport) {
       this.transport = transport // Let users define their own transport
@@ -157,5 +162,20 @@ export class BaseClient {
     }
 
     return this._isConnected.promise
+  }
+
+  private async getOrCreateBeaconId(): Promise<string> {
+    if (!this.storage) {
+      throw new Error('no storage')
+    }
+    const storageValue: unknown = await this.storage.get(StorageKey.BEACON_SDK_ID)
+    if (storageValue && typeof storageValue === 'string') {
+      return storageValue
+    } else {
+      const key = generateGUID()
+      await this.storage.set(StorageKey.BEACON_SDK_ID, key)
+
+      return key
+    }
   }
 }

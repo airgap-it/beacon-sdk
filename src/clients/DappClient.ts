@@ -87,7 +87,7 @@ export class DAppClient extends BaseClient {
   }
 
   public async checkPermissions(type: MessageTypes): Promise<boolean> {
-    const permissions = this.permissions.get('')
+    const permissions = this.permissions.get('') // For now we only store one set of permissions
 
     if (!permissions) {
       return false
@@ -106,6 +106,10 @@ export class DAppClient extends BaseClient {
   }
 
   public async requestPermissions(request?: PermissionScope[]): Promise<PermissionResponse> {
+    if (!this.beaconId) {
+      throw new Error('BeaconID not defined')
+    }
+
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
@@ -119,9 +123,10 @@ export class DAppClient extends BaseClient {
 
     return this.makeRequest<PermissionResponse>({
       id: '',
-      name: this.name,
+      senderId: this.beaconId,
+      senderName: this.name,
       type: MessageTypes.PermissionRequest,
-      scope: request || ['read_address', 'sign', 'operation_request', 'threshold']
+      scopes: request || ['read_address', 'sign', 'operation_request', 'threshold']
     })
       .catch(error => {
         console.log('error', error)
@@ -139,6 +144,9 @@ export class DAppClient extends BaseClient {
     payload: string[]
     sourceAddress: string
   }): Promise<SignPayloadResponse> {
+    if (!this.beaconId) {
+      throw new Error('BeaconID not defined')
+    }
     if (!request.payload) {
       throw new Error('Payload must be provided')
     }
@@ -152,6 +160,7 @@ export class DAppClient extends BaseClient {
 
     const req: SignPayloadRequest = {
       id: '',
+      senderId: this.beaconId,
       type: MessageTypes.SignPayloadRequest,
       payload: request.payload,
       sourceAddress: request.sourceAddress || ''
@@ -179,6 +188,9 @@ export class DAppClient extends BaseClient {
     network: string
     operationDetails: TezosOperation[]
   }): Promise<OperationResponse> {
+    if (!this.beaconId) {
+      throw new Error('BeaconID not defined')
+    }
     if (!request.operationDetails) {
       throw new Error('Operation details must be provided')
     }
@@ -192,6 +204,7 @@ export class DAppClient extends BaseClient {
 
     const req: OperationRequest = {
       id: '',
+      senderId: this.beaconId,
       type: MessageTypes.OperationRequest,
       network: request.network || 'mainnet',
       operationDetails: request.operationDetails
@@ -219,6 +232,9 @@ export class DAppClient extends BaseClient {
     network: string
     signedTransactions: string[]
   }): Promise<BroadcastResponse> {
+    if (!this.beaconId) {
+      throw new Error('BeaconID not defined')
+    }
     if (!request.signedTransactions) {
       throw new Error('Operation details must be provided')
     }
@@ -232,6 +248,7 @@ export class DAppClient extends BaseClient {
 
     const req: BroadcastRequest = {
       id: '',
+      senderId: this.beaconId,
       type: MessageTypes.BroadcastRequest,
       network: request.network || 'mainnet',
       signedTransactions: request.signedTransactions

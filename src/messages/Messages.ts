@@ -25,13 +25,14 @@ export type Messages =
 
 export interface BaseMessage {
   id: string
+  senderId: string
   type: MessageTypes
 }
 
 export interface PermissionRequest extends BaseMessage {
   type: MessageTypes.PermissionRequest
-  name: string
-  scope: PermissionScope[]
+  senderName: string
+  scopes: PermissionScope[]
 }
 
 export interface PermissionResponse extends BaseMessage {
