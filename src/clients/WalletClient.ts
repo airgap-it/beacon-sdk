@@ -25,9 +25,11 @@ export class WalletClient extends BaseClient {
 
   public async respond(requestId: string, message: string) {
     console.log('responding to message', message)
-    const request = this.pendingRequests.find(request => request.id === requestId)
+    const request = this.pendingRequests.find(pendingRequest => pendingRequest.id === requestId)
     if (request) {
-      this.pendingRequests = this.pendingRequests.filter(request => request.id !== requestId)
+      this.pendingRequests = this.pendingRequests.filter(
+        pendingRequest => pendingRequest.id !== requestId
+      )
     }
     if (!this.transport) {
       throw new Error('no transport defined')

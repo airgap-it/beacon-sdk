@@ -5,11 +5,13 @@ import {
   PermissionResponse,
   SignPayloadResponse,
   BaseMessage,
-  MessageTypes,
+  MessageType,
   PermissionScope,
   BroadcastRequest,
   OperationRequest,
-  SignPayloadRequest
+  SignPayloadRequest,
+  Network,
+  NetworkType
 } from '../messages/Messages'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 
@@ -18,14 +20,14 @@ import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
 import { TransportType } from '../transports/Transport'
 import { InternalEvent, InternalEventHandler } from '../events'
-import { BaseClient } from './Client'
+import { AccountIdentifier, AccountInfo, BaseClient } from './Client'
 
 const logger = new Logger('DAppClient')
 
 export class DAppClient extends BaseClient {
   private readonly events: InternalEventHandler = new InternalEventHandler()
   private readonly openRequests = new Map<string, ExposedPromise<Messages>>()
-  private readonly permissions: Map<string, string[]> = new Map<string, string[]>()
+  private activeAccount: AccountInfo | undefined
 
   public get isConnected(): Promise<boolean> {
     return this._isConnected.promise
@@ -68,7 +70,6 @@ export class DAppClient extends BaseClient {
     await this.connect()
     logger.log('makeRequest', 'after connecting')
 
-    request.id = generateGUID()
     const payload = this.serializer.serialize(request)
 
     const exposed = exposedPromise<T>()
@@ -86,26 +87,38 @@ export class DAppClient extends BaseClient {
     return super._connect()
   }
 
-  public async checkPermissions(type: MessageTypes): Promise<boolean> {
-    const permissions = this.permissions.get('') // For now we only store one set of permissions
+  public async checkPermissions(
+    type: MessageType,
+    identifier: AccountIdentifier
+  ): Promise<boolean> {
+    const accountInfo = await this.getAccount(identifier)
 
-    if (!permissions) {
+    if (!accountInfo) {
       return false
     }
 
     switch (type) {
-      case MessageTypes.OperationRequest:
-        return permissions.some(permission => permission === 'operation_request')
-      case MessageTypes.SignPayloadRequest:
-        return permissions.some(permission => permission === 'sign')
-      case MessageTypes.BroadcastRequest:
+      case MessageType.OperationRequest:
+        return accountInfo.scopes.some(
+          permission => permission === PermissionScope.OPERATION_REQUEST
+        )
+      case MessageType.SignPayloadRequest:
+        return accountInfo.scopes.some(permission => permission === PermissionScope.SIGN)
+      case MessageType.BroadcastRequest:
         return true
       default:
         return false
     }
   }
 
-  public async requestPermissions(request?: PermissionScope[]): Promise<PermissionResponse> {
+  public async requestPermissions(
+    network: Network = { type: NetworkType.MAIN },
+    scopes: PermissionScope[] = [
+      PermissionScope.READ_ADDRESS,
+      PermissionScope.OPERATION_REQUEST,
+      PermissionScope.SIGN
+    ]
+  ): Promise<PermissionResponse> {
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
     }
@@ -122,21 +135,31 @@ export class DAppClient extends BaseClient {
       .catch(emitError => console.warn(emitError))
 
     return this.makeRequest<PermissionResponse>({
-      id: '',
+      id: generateGUID(),
       senderId: this.beaconId,
       senderName: this.name,
-      type: MessageTypes.PermissionRequest,
-      scopes: request || ['read_address', 'sign', 'operation_request', 'threshold']
+      type: MessageType.PermissionRequest,
+      network,
+      scopes
     })
       .catch(error => {
         console.log('error', error)
         throw new Error(error)
       })
-      .then(async permissions => {
-        this.permissions.set('', permissions.permissions.scopes)
-        console.log('permissions interception', permissions)
+      .then(async response => {
+        const accountInfo = {
+          accountIdentifier: response.permissions.accountIdentifier,
+          senderId: response.senderId,
+          pubkey: response.permissions.pubkey,
+          network: response.permissions.network,
+          scopes: response.permissions.scopes,
+          firstConnected: new Date()
+        }
+        this.activeAccount = accountInfo
+        await this.addAccount(response.permissions.accountIdentifier, accountInfo)
+        console.log('permissions interception', response)
 
-        return permissions
+        return response
       })
   }
 
@@ -150,6 +173,9 @@ export class DAppClient extends BaseClient {
     if (!request.payload) {
       throw new Error('Payload must be provided')
     }
+    if (!this.activeAccount) {
+      throw new Error('No account is active')
+    }
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
@@ -159,14 +185,14 @@ export class DAppClient extends BaseClient {
     }
 
     const req: SignPayloadRequest = {
-      id: '',
+      id: generateGUID(),
       senderId: this.beaconId,
-      type: MessageTypes.SignPayloadRequest,
+      type: MessageType.SignPayloadRequest,
       payload: request.payload,
       sourceAddress: request.sourceAddress || ''
     }
 
-    if (await this.checkPermissions(req.type)) {
+    if (await this.checkPermissions(req.type, this.activeAccount)) {
       this.events.emit(InternalEvent.SIGN_REQUEST_SENT).catch(emitError => console.warn(emitError))
 
       this.events
@@ -194,6 +220,9 @@ export class DAppClient extends BaseClient {
     if (!request.operationDetails) {
       throw new Error('Operation details must be provided')
     }
+    if (!this.activeAccount) {
+      throw new Error('No account is active')
+    }
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
@@ -203,14 +232,14 @@ export class DAppClient extends BaseClient {
     }
 
     const req: OperationRequest = {
-      id: '',
+      id: generateGUID(),
       senderId: this.beaconId,
-      type: MessageTypes.OperationRequest,
+      type: MessageType.OperationRequest,
       network: request.network || 'mainnet',
       operationDetails: request.operationDetails
     }
 
-    if (await this.checkPermissions(req.type)) {
+    if (await this.checkPermissions(req.type, this.activeAccount)) {
       this.events
         .emit(InternalEvent.OPERATION_REQUEST_SENT)
         .catch(emitError => console.warn(emitError))
@@ -238,6 +267,9 @@ export class DAppClient extends BaseClient {
     if (!request.signedTransactions) {
       throw new Error('Operation details must be provided')
     }
+    if (!this.activeAccount) {
+      throw new Error('No account is active')
+    }
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
@@ -247,14 +279,14 @@ export class DAppClient extends BaseClient {
     }
 
     const req: BroadcastRequest = {
-      id: '',
+      id: generateGUID(),
       senderId: this.beaconId,
-      type: MessageTypes.BroadcastRequest,
+      type: MessageType.BroadcastRequest,
       network: request.network || 'mainnet',
       signedTransactions: request.signedTransactions
     }
 
-    if (await this.checkPermissions(req.type)) {
+    if (await this.checkPermissions(req.type, this.activeAccount)) {
       this.events
         .emit(InternalEvent.BROADCAST_REQUEST_SENT)
         .catch(emitError => console.warn(emitError))
