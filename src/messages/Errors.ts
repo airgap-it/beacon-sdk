@@ -1,6 +1,7 @@
 import { BaseMessage } from './Messages'
 
 export enum BeaconErrorType {
+  NETWORK_NOT_SUPPORTED = 'NETWORK_NOT_SUPPORTED', // Permission: Will be returned if the selected network is not supported by the wallet / extension.
   NO_ADDRESS_ERROR = 'NO_ADDRESS_ERROR', // Permission: Will be returned if there is no address present for the protocol / network requested.
   NOT_GRANTED_ERROR = 'NOT_GRANTED_ERROR', // Sign: Will be returned if the signature was blocked // (Not needed?) Permission: Will be returned if the permissions requested by the App were not granted.
   NO_PRIVATE_KEY_FOUND_ERROR = 'NO_PRIVATE_KEY_FOUND_ERROR', // Sign: Will be returned if the private key matching the sourceAddress could not be found.
@@ -10,6 +11,8 @@ export enum BeaconErrorType {
 }
 
 const errorDescriptions: { [key in BeaconErrorType]: string } = {
+  [BeaconErrorType.NETWORK_NOT_SUPPORTED]:
+    'The wallet does not support this network. Please chose another one.',
   [BeaconErrorType.NO_ADDRESS_ERROR]:
     'The wallet does not have an account set up. Please make sure to set up your wallet and try again.',
   [BeaconErrorType.NOT_GRANTED_ERROR]:
@@ -26,6 +29,10 @@ const errorDescriptions: { [key in BeaconErrorType]: string } = {
 
 export interface BeaconError extends BaseMessage {
   errorType: BeaconErrorType
+}
+
+export interface NetworkNotSupportedError extends BeaconError {
+  errorType: BeaconErrorType.NETWORK_NOT_SUPPORTED
 }
 
 export interface NotGrantedBeaconError extends BeaconError {
