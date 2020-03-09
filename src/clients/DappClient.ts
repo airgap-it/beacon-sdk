@@ -20,6 +20,7 @@ import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
 import { TransportType } from '../transports/Transport'
 import { InternalEvent, InternalEventHandler } from '../events'
+import { StorageKey } from '../storage/Storage'
 import { AccountIdentifier, AccountInfo, BaseClient } from './Client'
 
 const logger = new Logger('DAppClient')
@@ -61,7 +62,27 @@ export class DAppClient extends BaseClient {
   }
 
   public async init(): Promise<TransportType> {
-    return super.init(true)
+    const initResponse = await super.init(true)
+    if (!this.storage) {
+      throw new Error('Storage not defined after init!')
+    }
+
+    this.storage
+      .get(StorageKey.ACTIVE_ACCOUNT)
+      .then(async activeAccount => {
+        if (activeAccount) {
+          await this.setActiveAccount(await this.getAccount(activeAccount))
+        }
+      })
+      .catch(storageError => {
+        console.error(storageError)
+      })
+
+    return initResponse
+  }
+
+  public async getActiveAccount(): Promise<AccountInfo | undefined> {
+    return this.activeAccount
   }
 
   public async makeRequest<T extends Messages>(request: Messages): Promise<T> {
@@ -302,5 +323,18 @@ export class DAppClient extends BaseClient {
 
       throw new Error('No permissions to send this request to wallet!')
     }
+  }
+
+  private async setActiveAccount(account?: AccountInfo): Promise<void> {
+    if (!account) {
+      return
+    }
+    if (!this.storage) {
+      throw new Error('no storage defined')
+    }
+
+    this.activeAccount = account
+
+    return this.storage.set(StorageKey.ACTIVE_ACCOUNT, account.accountIdentifier)
   }
 }
