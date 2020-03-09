@@ -62,6 +62,6 @@ export interface BroadcastBeaconError extends BeaconError {
 
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 export function getErrorMessageForError(error: BeaconError): string {
-  return errorDescriptions[error.type] ?? 'Unknown error'
+  return errorDescriptions[error.type] || 'Unknown error'
 }
 /* eslint-enable prefer-arrow/prefer-arrow-functions */
