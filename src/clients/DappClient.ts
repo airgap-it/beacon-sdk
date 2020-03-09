@@ -156,7 +156,7 @@ export class DAppClient extends BaseClient {
           firstConnected: new Date()
         }
         this.activeAccount = accountInfo
-        await this.addAccount(response.permissions.accountIdentifier, accountInfo)
+        await this.addAccount(accountInfo)
         console.log('permissions interception', response)
 
         return response
@@ -192,7 +192,7 @@ export class DAppClient extends BaseClient {
       sourceAddress: request.sourceAddress || ''
     }
 
-    if (await this.checkPermissions(req.type, this.activeAccount)) {
+    if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
       this.events.emit(InternalEvent.SIGN_REQUEST_SENT).catch(emitError => console.warn(emitError))
 
       this.events
@@ -239,7 +239,7 @@ export class DAppClient extends BaseClient {
       operationDetails: request.operationDetails
     }
 
-    if (await this.checkPermissions(req.type, this.activeAccount)) {
+    if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
       this.events
         .emit(InternalEvent.OPERATION_REQUEST_SENT)
         .catch(emitError => console.warn(emitError))
@@ -286,7 +286,7 @@ export class DAppClient extends BaseClient {
       signedTransactions: request.signedTransactions
     }
 
-    if (await this.checkPermissions(req.type, this.activeAccount)) {
+    if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
       this.events
         .emit(InternalEvent.BROADCAST_REQUEST_SENT)
         .catch(emitError => console.warn(emitError))

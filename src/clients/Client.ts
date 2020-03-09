@@ -1,4 +1,4 @@
-import { BaseMessage } from '../messages/Messages'
+import { BaseMessage, Network, PermissionScope } from '../messages/Messages'
 import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { PostMessageTransport } from '../transports/PostMessageTransport'
@@ -6,11 +6,21 @@ import { P2PTransport } from '../transports/P2PTransport'
 import { Transport, TransportType, TransportStatus } from '../transports/Transport'
 // Import { Logger } from '../utils/Logger'
 import { getStorage } from '../storage/getStorage'
-import { Permission } from '../interfaces'
 import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'
 
 // Const logger = new Logger('BaseClient')
+
+export type AccountIdentifier = string
+
+export interface AccountInfo {
+  accountIdentifier: AccountIdentifier
+  senderId: string
+  pubkey: string
+  network: Network
+  scopes: PermissionScope[]
+  firstConnected: Date
+}
 
 export class BaseClient {
   protected requestCounter: number[] = []
@@ -105,46 +115,58 @@ export class BaseClient {
     return this.transport.removeAllPeers()
   }
 
-  public async getConnectedAccounts(): Promise<Permission[]> {
+  public async getAccounts(): Promise<AccountInfo[]> {
     if (!this.storage) {
       throw new Error('no storage defined')
     }
 
-    return this.storage.get(StorageKey.PERMISSIONS)
+    return this.storage.get(StorageKey.ACCOUNTS)
   }
 
-  public async addConnectedAccount(permission: Permission): Promise<void> {
+  public async getAccount(accountIdentifier: string): Promise<AccountInfo | undefined> {
     if (!this.storage) {
       throw new Error('no storage defined')
     }
 
-    const permissions = await this.storage.get(StorageKey.PERMISSIONS)
+    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
 
-    if (!permissions.some(element => element.pubkey === permission.pubkey)) {
-      permissions.push(permission)
-    }
-
-    return this.storage.set(StorageKey.PERMISSIONS, permissions)
+    return accounts.find(account => account.accountIdentifier === accountIdentifier)
   }
 
-  public async removeConnectedAccount(pubkey: string): Promise<void> {
+  public async addAccount(accountInfo: AccountInfo): Promise<void> {
     if (!this.storage) {
       throw new Error('no storage defined')
     }
 
-    const permissions = await this.storage.get(StorageKey.PERMISSIONS)
+    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
 
-    const filteredPermissions = permissions.filter(permission => permission.pubkey !== pubkey)
+    if (!accounts.some(element => element.accountIdentifier === accountInfo.accountIdentifier)) {
+      accounts.push(accountInfo)
+    }
 
-    return this.storage.set(StorageKey.PERMISSIONS, filteredPermissions)
+    return this.storage.set(StorageKey.ACCOUNTS, accounts)
   }
 
-  public async removaAllConnectedAccounts(): Promise<void> {
+  public async removeAccount(accountIdentifier: string): Promise<void> {
     if (!this.storage) {
       throw new Error('no storage defined')
     }
 
-    return this.storage.delete(StorageKey.PERMISSIONS)
+    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
+
+    const filteredAccounts = accounts.filter(
+      accountInfo => accountInfo.accountIdentifier !== accountIdentifier
+    )
+
+    return this.storage.set(StorageKey.ACCOUNTS, filteredAccounts)
+  }
+
+  public async removeAllAccounts(): Promise<void> {
+    if (!this.storage) {
+      throw new Error('no storage defined')
+    }
+
+    return this.storage.delete(StorageKey.ACCOUNTS)
   }
 
   protected async _connect(): Promise<boolean> {
@@ -162,6 +184,10 @@ export class BaseClient {
     }
 
     return this._isConnected.promise
+  }
+
+  protected async getAccountIdentifier(pubkey: string, network: Network): Promise<string> {
+    return `${pubkey}-${network.type}-${network.name}`
   }
 
   private async getOrCreateBeaconId(): Promise<string> {
