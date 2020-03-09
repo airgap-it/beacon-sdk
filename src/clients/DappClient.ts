@@ -22,6 +22,7 @@ import { TransportType } from '../transports/Transport'
 import { InternalEvent, InternalEventHandler } from '../events'
 import { StorageKey } from '../storage/Storage'
 import { AccountIdentifier, AccountInfo, BaseClient } from './Client'
+import { BeaconError } from '../messages/Errors'
 
 const logger = new Logger('DAppClient')
 
@@ -168,6 +169,11 @@ export class DAppClient extends BaseClient {
         throw new Error(error)
       })
       .then(async response => {
+        if (((response as any) as BeaconError).errorType) {
+          console.log('error', ((response as any) as BeaconError).errorType)
+          throw new Error(((response as any) as BeaconError).errorType)
+        }
+
         const accountInfo = {
           accountIdentifier: response.permissions.accountIdentifier,
           senderId: response.senderId,
