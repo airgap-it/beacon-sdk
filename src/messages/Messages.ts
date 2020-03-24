@@ -1,8 +1,13 @@
 import { TezosOperation } from '../operations/OperationTypes'
 
-export type PermissionScope = 'read_address' | 'sign' | 'operation_request' | 'threshold'
+export enum PermissionScope {
+  READ_ADDRESS = 'read_address',
+  SIGN = 'sign',
+  OPERATION_REQUEST = 'operation_request',
+  THRESHOLD = 'threshold'
+}
 
-export enum MessageTypes {
+export enum MessageType {
   PermissionRequest = 'permission_request',
   SignPayloadRequest = 'sign_payload_request',
   OperationRequest = 'operation_request',
@@ -24,60 +29,74 @@ export type Messages =
   | BroadcastResponse
 
 export interface BaseMessage {
-  id: string
-  senderId: string
-  type: MessageTypes
+  id: string // ID of the message. The same ID is used in the request and response
+  senderId: string // ID of the sender. This is used to identify the sender of the message
+  // TODO: We could add a signature so people can not spoof which dApp the request came from
+  type: MessageType
+}
+
+export enum NetworkType {
+  MAINNET = 'mainnet',
+  BABYLONNET = 'babylonnet',
+  CARTHAGENET = 'carthagenet',
+  CUSTOM = 'custom'
+}
+
+export interface Network {
+  type: NetworkType
+  name?: string
+  rpcUrl?: string
 }
 
 export interface PermissionRequest extends BaseMessage {
-  type: MessageTypes.PermissionRequest
+  type: MessageType.PermissionRequest
   senderName: string
+  network: Network
   scopes: PermissionScope[]
 }
 
 export interface PermissionResponse extends BaseMessage {
-  type: MessageTypes.PermissionResponse
+  type: MessageType.PermissionResponse
   permissions: {
-    pubkey: string
-    networks: string[]
+    accountIdentifier: string // Hash of pubkey + network name
+    pubkey: string // To verify signed data
+    network: Network
     scopes: PermissionScope[]
   }
 }
 
 export interface SignPayloadRequest extends BaseMessage {
-  type: MessageTypes.SignPayloadRequest
+  type: MessageType.SignPayloadRequest
   payload: string[]
-  sourceAddress: string
+  sourceAddress?: string
 }
 
 export interface SignPayloadResponse extends BaseMessage {
-  type: MessageTypes.SignPayloadResponse
-
-  signature: string[]
+  type: MessageType.SignPayloadResponse
+  signature: string
 }
 
 export interface OperationRequest extends BaseMessage {
-  type: MessageTypes.OperationRequest
-
-  network: string
+  type: MessageType.OperationRequest
+  network: Network
   operationDetails: TezosOperation[]
 }
 
 export interface OperationResponse extends BaseMessage {
-  type: MessageTypes.OperationResponse
+  type: MessageType.OperationResponse
 
   transactionHashes: string[]
 }
 
 export interface BroadcastRequest extends BaseMessage {
-  type: MessageTypes.BroadcastRequest
+  type: MessageType.BroadcastRequest
 
-  network: string
+  network: Network
   signedTransactions: string[]
 }
 
 export interface BroadcastResponse extends BaseMessage {
-  type: MessageTypes.BroadcastResponse
+  type: MessageType.BroadcastResponse
 
   transactionHashes: string[]
 }
