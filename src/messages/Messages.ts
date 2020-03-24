@@ -36,9 +36,9 @@ export interface BaseMessage {
 }
 
 export enum NetworkType {
-  MAIN = 'mainnet',
-  BABYLON = 'babylonnet',
-  CARTHAGE = 'carthagenet',
+  MAINNET = 'mainnet',
+  BABYLONNET = 'babylonnet',
+  CARTHAGENET = 'carthagenet',
   CUSTOM = 'custom'
 }
 
@@ -68,19 +68,17 @@ export interface PermissionResponse extends BaseMessage {
 export interface SignPayloadRequest extends BaseMessage {
   type: MessageType.SignPayloadRequest
   payload: string[]
-  sourceAddress: string
+  sourceAddress?: string
 }
 
 export interface SignPayloadResponse extends BaseMessage {
   type: MessageType.SignPayloadResponse
-
-  signature: string[]
+  signature: string
 }
 
 export interface OperationRequest extends BaseMessage {
   type: MessageType.OperationRequest
-
-  network: string
+  network: Network
   operationDetails: TezosOperation[]
 }
 
@@ -93,7 +91,7 @@ export interface OperationResponse extends BaseMessage {
 export interface BroadcastRequest extends BaseMessage {
   type: MessageType.BroadcastRequest
 
-  network: string
+  network: Network
   signedTransactions: string[]
 }
 

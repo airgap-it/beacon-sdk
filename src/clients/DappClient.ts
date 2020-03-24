@@ -21,8 +21,8 @@ import { generateGUID } from '../utils/generate-uuid'
 import { TransportType } from '../transports/Transport'
 import { InternalEvent, InternalEventHandler } from '../events'
 import { StorageKey } from '../storage/Storage'
-import { AccountIdentifier, AccountInfo, BaseClient } from './Client'
 import { BeaconError } from '../messages/Errors'
+import { AccountIdentifier, AccountInfo, BaseClient } from './Client'
 
 const logger = new Logger('DAppClient')
 
@@ -134,12 +134,10 @@ export class DAppClient extends BaseClient {
   }
 
   public async requestPermissions(
-    network: Network = { type: NetworkType.MAIN },
-    scopes: PermissionScope[] = [
-      PermissionScope.READ_ADDRESS,
-      PermissionScope.OPERATION_REQUEST,
-      PermissionScope.SIGN
-    ]
+    request: {
+      scopes: PermissionScope[]
+    },
+    network: Network = { type: NetworkType.MAINNET }
   ): Promise<PermissionResponse> {
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
@@ -162,7 +160,11 @@ export class DAppClient extends BaseClient {
       senderName: this.name,
       type: MessageType.PermissionRequest,
       network,
-      scopes
+      scopes: request.scopes || [
+        PermissionScope.READ_ADDRESS,
+        PermissionScope.OPERATION_REQUEST,
+        PermissionScope.SIGN
+      ]
     })
       .catch(error => {
         console.log('error', error)
@@ -237,10 +239,12 @@ export class DAppClient extends BaseClient {
     }
   }
 
-  public async requestOperation(request: {
-    network: string
-    operationDetails: TezosOperation[]
-  }): Promise<OperationResponse> {
+  public async requestOperation(
+    request: {
+      operationDetails: TezosOperation[]
+    },
+    network: Network = { type: NetworkType.MAINNET }
+  ): Promise<OperationResponse> {
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
     }
@@ -262,7 +266,7 @@ export class DAppClient extends BaseClient {
       id: generateGUID(),
       senderId: this.beaconId,
       type: MessageType.OperationRequest,
-      network: request.network || 'mainnet',
+      network,
       operationDetails: request.operationDetails
     }
 
@@ -284,10 +288,12 @@ export class DAppClient extends BaseClient {
     }
   }
 
-  public async requestBroadcast(request: {
-    network: string
-    signedTransactions: string[]
-  }): Promise<BroadcastResponse> {
+  public async requestBroadcast(
+    request: {
+      signedTransactions: string[]
+    },
+    network: Network = { type: NetworkType.MAINNET }
+  ): Promise<BroadcastResponse> {
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
     }
@@ -309,7 +315,7 @@ export class DAppClient extends BaseClient {
       id: generateGUID(),
       senderId: this.beaconId,
       type: MessageType.BroadcastRequest,
-      network: request.network || 'mainnet',
+      network,
       signedTransactions: request.signedTransactions
     }
 
