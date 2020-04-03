@@ -12,7 +12,7 @@ import {
   SignPayloadRequest,
   Network,
   NetworkType
-} from '../messages/Messages'
+} from '../types/Messages'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 
 import { TezosOperation } from '../operations/OperationTypes'
@@ -21,7 +21,7 @@ import { generateGUID } from '../utils/generate-uuid'
 import { TransportType } from '../transports/Transport'
 import { InternalEvent, InternalEventHandler } from '../events'
 import { StorageKey } from '../storage/Storage'
-import { BeaconError } from '../messages/Errors'
+import { BeaconError } from '../types/Errors'
 import { AccountIdentifier, AccountInfo, BaseClient } from './Client'
 
 const logger = new Logger('DAppClient')

@@ -1,4 +1,4 @@
-import { BaseMessage, Network, PermissionScope } from '../messages/Messages'
+import { BaseMessage, Network, PermissionScope } from '../types/Messages'
 import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { PostMessageTransport } from '../transports/PostMessageTransport'

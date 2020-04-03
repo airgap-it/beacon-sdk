@@ -1,4 +1,8 @@
+// eslint-disable-next-line spaced-comment
+/// <reference types="chrome"/>
+
 import { Logger } from '../utils/Logger'
+import { ExtensionMessage, ExtensionMessageTarget } from '../types/ExtensionMessage'
 import { Transport, TransportType } from './Transport'
 
 const logger = new Logger('ChromeMessageTransport')
@@ -12,11 +16,17 @@ export class ChromeMessageTransport extends Transport {
   }
 
   public static async isAvailable(): Promise<boolean> {
-    return Promise.resolve(false)
+    const isAvailable: boolean = !!(window.chrome && chrome.runtime && chrome.runtime.id)
+
+    return Promise.resolve(isAvailable)
   }
 
   public async send(payload: string | Record<string, unknown>): Promise<void> {
-    chrome.runtime.sendMessage({ method: 'toPage', payload })
+    const message: ExtensionMessage<string | Record<string, unknown>> = {
+      target: ExtensionMessageTarget.PAGE,
+      payload
+    }
+    chrome.runtime.sendMessage(message)
   }
 
   private async init(): Promise<void> {

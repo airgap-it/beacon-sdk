@@ -3,6 +3,7 @@ import { Transport } from './Transport'
 
 const logger = new Logger('LocalTransport')
 
+// Only used for testing
 export class LocalTransport extends Transport {
   public static async isAvailable(): Promise<boolean> {
     return Promise.resolve(false)

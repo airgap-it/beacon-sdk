@@ -1,4 +1,5 @@
 import { myWindow } from '../MockWindow'
+import { ExtensionMessage, ExtensionMessageTarget } from '../types/ExtensionMessage'
 import { Transport, TransportType } from './Transport'
 
 export class PostMessageTransport extends Transport {
@@ -12,8 +13,9 @@ export class PostMessageTransport extends Transport {
   public static async isAvailable(): Promise<boolean> {
     return new Promise(resolve => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fn = (event: any): void => {
-        if (event.data && event.data.payload === 'pong') {
+      const fn = (event): void => {
+        const data = event.data as ExtensionMessage<string>
+        if (data && data.payload === 'pong') {
           resolve(true)
           myWindow.removeEventListener('message', fn)
         }
@@ -21,7 +23,12 @@ export class PostMessageTransport extends Transport {
 
       myWindow.addEventListener('message', fn)
 
-      myWindow.postMessage({ method: 'toExtension', payload: 'ping' }, '*')
+      const message: ExtensionMessage<string> = {
+        target: ExtensionMessageTarget.EXTENSION,
+        payload: 'ping'
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      myWindow.postMessage(message as any, '*')
 
       setTimeout(() => {
         resolve(false)
@@ -34,8 +41,8 @@ export class PostMessageTransport extends Transport {
     myWindow.addEventListener('message', message => {
       if (typeof message === 'object' && message) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const data = (message as any).data
-        if (data.method === 'toPage') {
+        const data: ExtensionMessage<string> = (message as any).data
+        if (data.target === ExtensionMessageTarget.PAGE) {
           this.notifyListeners(data.payload, {}).catch(error => {
             throw error
           })
@@ -45,6 +52,11 @@ export class PostMessageTransport extends Transport {
   }
 
   public async send(message: string): Promise<void> {
-    myWindow.postMessage({ method: 'toExtension', payload: message }, '*')
+    const data: ExtensionMessage<string> = {
+      target: ExtensionMessageTarget.EXTENSION,
+      payload: message
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    myWindow.postMessage(data as any, '*')
   }
 }
