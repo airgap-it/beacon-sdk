@@ -43,7 +43,7 @@ export class ChromeMessageTransport extends Transport {
       ) => {
         logger.log('init', 'receiving chrome message', message, sender)
         const connectionContext: ConnectionContext = { sender, sendResponse }
-        this.notifyListeners(message.payload, connectionContext).catch(error => logger.error(error))
+        this.notifyListeners(message, connectionContext).catch(error => logger.error(error))
 
         // return true from the event listener to indicate you wish to send a response asynchronously
         // (this will keep the message channel open to the other end until sendResponse is called).

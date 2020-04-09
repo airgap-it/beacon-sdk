@@ -173,9 +173,11 @@ export class BaseClient {
     if (this.transport && this.transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
       await this.transport.connect()
       this.transport
-        .addListener((message: string, connectionInfo: any) => {
-          const deserializedMessage = this.serializer.deserialize(message) as BaseMessage // TODO: Check type
-          this.handleResponse(deserializedMessage, connectionInfo)
+        .addListener((message: unknown, connectionInfo: any) => {
+          if (typeof message === 'string') {
+            const deserializedMessage = this.serializer.deserialize(message) as BaseMessage // TODO: Check type
+            this.handleResponse(deserializedMessage, connectionInfo)
+          }
         })
         .catch(error => console.log(error))
       this._isConnected.resolve(true)

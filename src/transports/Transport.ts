@@ -23,7 +23,7 @@ export abstract class Transport {
   protected readonly name: string
   protected _isConnected: TransportStatus = TransportStatus.NOT_CONNECTED
 
-  private listeners: ((message: string, connectionInfo: any) => void)[] = []
+  private listeners: ((message: unknown, connectionInfo: any) => void)[] = []
   private peers: string[] = []
 
   public get connectionStatus(): TransportStatus {
@@ -77,7 +77,7 @@ export abstract class Transport {
   }
 
   public async addListener(
-    listener: (message: string, connectionInfo: any) => void
+    listener: (message: unknown, connectionInfo: any) => void
   ): Promise<void> {
     logger.log('addListener')
 
@@ -96,7 +96,7 @@ export abstract class Transport {
     return
   }
 
-  protected async notifyListeners(message: string, connectionInfo: any): Promise<void> {
+  protected async notifyListeners(message: unknown, connectionInfo: any): Promise<void> {
     logger.log('notifyListeners')
 
     if (this.listeners.length === 0) {
