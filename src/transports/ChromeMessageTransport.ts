@@ -7,6 +7,11 @@ import { Transport, TransportType } from './Transport'
 
 const logger = new Logger('ChromeMessageTransport')
 
+interface ConnectionContext {
+  sender: chrome.runtime.MessageSender
+  sendResponse(response?: unknown): void
+}
+
 export class ChromeMessageTransport extends Transport {
   public readonly type: TransportType = TransportType.CHROME_MESSAGE
 
@@ -30,9 +35,20 @@ export class ChromeMessageTransport extends Transport {
   }
 
   private async init(): Promise<void> {
-    chrome.runtime.onMessage.addListener((message, _sender) => {
-      logger.log('init', 'background.js: receive ', message)
-      this.notifyListeners(message, {}).catch(error => logger.error(error))
-    })
+    chrome.runtime.onMessage.addListener(
+      (
+        message: ExtensionMessage<string>,
+        sender: chrome.runtime.MessageSender,
+        sendResponse: (response?: unknown) => void
+      ) => {
+        logger.log('init', 'receiving chrome message', message, sender)
+        const connectionContext: ConnectionContext = { sender, sendResponse }
+        this.notifyListeners(message.payload, connectionContext).catch(error => logger.error(error))
+
+        // return true from the event listener to indicate you wish to send a response asynchronously
+        // (this will keep the message channel open to the other end until sendResponse is called).
+        return true
+      }
+    )
   }
 }
