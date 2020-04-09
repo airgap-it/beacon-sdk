@@ -1,4 +1,4 @@
-import { Storage, StorageKey, StorageKeyReturnType } from './Storage'
+import { Storage, StorageKey, StorageKeyReturnType, defaultValues } from './Storage'
 
 export class ChromeStorage implements Storage {
   public static async isSupported(): Promise<boolean> {
@@ -14,7 +14,11 @@ export class ChromeStorage implements Storage {
   public async get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {
     return new Promise(resolve => {
       chrome.storage.local.get(null, storageContent => {
-        resolve(storageContent[key])
+        if (storageContent[key]) {
+          resolve(storageContent[key])
+        } else {
+          resolve(defaultValues[key])
+        }
       })
     })
   }
