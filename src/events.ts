@@ -18,7 +18,7 @@ const listenerFallback = async (data?: unknown): Promise<void> => {
 }
 
 const showSentToast = () => {
-  openToast({ body: 'Request sent', timer: 3000 }).catch(toastError => console.error(toastError))
+  openToast({ body: 'Request sent', timer: 3000 }).catch((toastError) => console.error(toastError))
 }
 
 const showNoPermissionAlert = async (): Promise<void> => {
@@ -59,9 +59,10 @@ export class InternalEventHandler {
         await showNoPermissionAlert()
       },
       [InternalEvent.LOCAL_RATE_LIMIT_REACHED]: async (_data?: unknown): Promise<void> => {
-        openToast({ body: 'Rate limit reached. Please slow down', timer: 3000 }).catch(toastError =>
-          console.error(toastError)
-        )
+        openToast({
+          body: 'Rate limit reached. Please slow down',
+          timer: 3000
+        }).catch((toastError) => console.error(toastError))
       }
     }
 
@@ -87,7 +88,7 @@ export class InternalEventHandler {
   public async emit(event: InternalEvent, data?: unknown): Promise<void> {
     const listeners = this.callbackMap[event]
     if (listeners && listeners.length > 0) {
-      listeners.forEach(listener => {
+      listeners.forEach((listener) => {
         listener(data)
       })
     } else {

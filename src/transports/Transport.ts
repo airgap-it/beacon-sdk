@@ -44,13 +44,13 @@ export abstract class Transport {
 
   public async addPeer(id: string): Promise<void> {
     logger.log('addPeer', id)
-    this.peers = [...this.peers.filter(peer => peer !== id), id]
+    this.peers = [...this.peers.filter((peer) => peer !== id), id]
     logger.log('addPeer', `${this.peers.length} peers`)
   }
 
   public async removePeer(id: string): Promise<void> {
     logger.log('removePeer', id)
-    this.peers = this.peers.filter(peer => peer !== id)
+    this.peers = this.peers.filter((peer) => peer !== id)
     logger.log('removePeer', `${this.peers.length} peers left`)
   }
 
@@ -89,7 +89,7 @@ export abstract class Transport {
   ): Promise<void> {
     logger.log('removeListener')
 
-    this.listeners = this.listeners.filter(element => element !== listener)
+    this.listeners = this.listeners.filter((element) => element !== listener)
 
     return
   }
@@ -103,7 +103,7 @@ export abstract class Transport {
       logger.log(`Notifying ${this.listeners.length} listeners`, this)
     }
 
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       listener(message, connectionInfo)
     })
 

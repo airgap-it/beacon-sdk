@@ -12,8 +12,8 @@ export class ChromeStorage implements Storage {
   }
 
   public async get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {
-    return new Promise(resolve => {
-      chrome.storage.local.get(null, storageContent => {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(null, (storageContent) => {
         if (storageContent[key]) {
           resolve(storageContent[key])
         } else {
@@ -24,7 +24,7 @@ export class ChromeStorage implements Storage {
   }
 
   public async set<K extends StorageKey>(key: K, value: StorageKeyReturnType[K]): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       chrome.storage.local.set({ [key]: value }, () => {
         resolve()
       })
@@ -32,7 +32,7 @@ export class ChromeStorage implements Storage {
   }
 
   public async delete<K extends StorageKey>(key: K): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       chrome.storage.local.set({ [key]: undefined }, () => {
         resolve()
       })

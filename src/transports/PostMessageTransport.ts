@@ -7,11 +7,11 @@ export class PostMessageTransport extends Transport {
 
   constructor(name: string) {
     super(name)
-    this.init().catch(error => console.error(error))
+    this.init().catch((error) => console.error(error))
   }
 
   public static async isAvailable(): Promise<boolean> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const fn = (event): void => {
         const data = event.data as ExtensionMessage<string>
@@ -38,12 +38,12 @@ export class PostMessageTransport extends Transport {
   }
 
   public async init(): Promise<void> {
-    myWindow.addEventListener('message', message => {
+    myWindow.addEventListener('message', (message) => {
       if (typeof message === 'object' && message) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data: ExtensionMessage<string> = (message as any).data
         if (data.target === ExtensionMessageTarget.PAGE) {
-          this.notifyListeners(data.payload, {}).catch(error => {
+          this.notifyListeners(data.payload, {}).catch((error) => {
             throw error
           })
         }

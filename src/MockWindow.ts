@@ -16,7 +16,7 @@ let myWindow = {
   removeEventListener: (name: string, eventCallback: Callback): void => {
     console.log('addEventListener', name)
     cbs.splice(
-      cbs.indexOf(element => element === eventCallback),
+      cbs.indexOf((element) => element === eventCallback),
       1
     )
   }

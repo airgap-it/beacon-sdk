@@ -37,7 +37,7 @@ export class BaseClient {
   public async addRequestAndCheckIfRateLimited(): Promise<boolean> {
     const now: number = new Date().getTime()
     this.requestCounter = this.requestCounter.filter(
-      date => date + this.rateLimitWindowInSeconds * 1000 > now
+      (date) => date + this.rateLimitWindowInSeconds * 1000 > now
     )
 
     this.requestCounter.push(now)
@@ -120,7 +120,7 @@ export class BaseClient {
 
     const accounts = await this.storage.get(StorageKey.ACCOUNTS)
 
-    return accounts.find(account => account.accountIdentifier === accountIdentifier)
+    return accounts.find((account) => account.accountIdentifier === accountIdentifier)
   }
 
   public async addAccount(accountInfo: AccountInfo): Promise<void> {
@@ -130,7 +130,7 @@ export class BaseClient {
 
     const accounts = await this.storage.get(StorageKey.ACCOUNTS)
 
-    if (!accounts.some(element => element.accountIdentifier === accountInfo.accountIdentifier)) {
+    if (!accounts.some((element) => element.accountIdentifier === accountInfo.accountIdentifier)) {
       accounts.push(accountInfo)
     }
 
@@ -145,7 +145,7 @@ export class BaseClient {
     const accounts = await this.storage.get(StorageKey.ACCOUNTS)
 
     const filteredAccounts = accounts.filter(
-      accountInfo => accountInfo.accountIdentifier !== accountIdentifier
+      (accountInfo) => accountInfo.accountIdentifier !== accountIdentifier
     )
 
     return this.storage.set(StorageKey.ACCOUNTS, filteredAccounts)
@@ -169,7 +169,7 @@ export class BaseClient {
             this.handleResponse(deserializedMessage, connectionInfo)
           }
         })
-        .catch(error => console.log(error))
+        .catch((error) => console.log(error))
       this._isConnected.resolve(true)
     } else {
       this._isConnected.reject('no transport available')

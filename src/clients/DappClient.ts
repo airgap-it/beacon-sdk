@@ -71,12 +71,12 @@ export class DAppClient extends BaseClient {
 
     this.storage
       .get(StorageKey.ACTIVE_ACCOUNT)
-      .then(async activeAccount => {
+      .then(async (activeAccount) => {
         if (activeAccount) {
           await this.setActiveAccount(await this.getAccount(activeAccount))
         }
       })
-      .catch(storageError => {
+      .catch((storageError) => {
         console.error(storageError)
       })
 
@@ -123,10 +123,10 @@ export class DAppClient extends BaseClient {
     switch (type) {
       case MessageType.OperationRequest:
         return accountInfo.scopes.some(
-          permission => permission === PermissionScope.OPERATION_REQUEST
+          (permission) => permission === PermissionScope.OPERATION_REQUEST
         )
       case MessageType.SignPayloadRequest:
-        return accountInfo.scopes.some(permission => permission === PermissionScope.SIGN)
+        return accountInfo.scopes.some((permission) => permission === PermissionScope.SIGN)
       case MessageType.BroadcastRequest:
         return true
       default:
@@ -145,13 +145,13 @@ export class DAppClient extends BaseClient {
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
-        .catch(emitError => console.warn(emitError))
+        .catch((emitError) => console.warn(emitError))
 
       throw new Error('rate limit reached')
     }
     this.events
       .emit(InternalEvent.PERMISSION_REQUEST_SENT)
-      .catch(emitError => console.warn(emitError))
+      .catch((emitError) => console.warn(emitError))
 
     return this.makeRequest<PermissionResponse>({
       id: generateGUID(),
@@ -166,11 +166,11 @@ export class DAppClient extends BaseClient {
           ? request.scopes
           : [PermissionScope.READ_ADDRESS, PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN]
     })
-      .catch(error => {
+      .catch((error) => {
         console.log('error', error)
         throw new Error(error)
       })
-      .then(async response => {
+      .then(async (response) => {
         if (((response as any) as BeaconError).errorType) {
           console.log('error', ((response as any) as BeaconError).errorType)
           throw new Error(((response as any) as BeaconError).errorType)
@@ -212,7 +212,7 @@ export class DAppClient extends BaseClient {
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
-        .catch(emitError => console.warn(emitError))
+        .catch((emitError) => console.warn(emitError))
 
       throw new Error('rate limit reached')
     }
@@ -226,18 +226,22 @@ export class DAppClient extends BaseClient {
     }
 
     if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
-      this.events.emit(InternalEvent.SIGN_REQUEST_SENT).catch(emitError => console.warn(emitError))
+      this.events
+        .emit(InternalEvent.SIGN_REQUEST_SENT)
+        .catch((emitError) => console.warn(emitError))
 
       this.events
         .emit(InternalEvent.OPERATION_REQUEST_SENT)
-        .catch(emitError => console.warn(emitError))
+        .catch((emitError) => console.warn(emitError))
 
-      return this.makeRequest<SignPayloadResponse>(req).catch(error => {
+      return this.makeRequest<SignPayloadResponse>(req).catch((error) => {
         console.log('error', error)
         throw new Error(error)
       })
     } else {
-      this.events.emit(InternalEvent.SIGN_REQUEST_ERROR).catch(emitError => console.warn(emitError))
+      this.events
+        .emit(InternalEvent.SIGN_REQUEST_ERROR)
+        .catch((emitError) => console.warn(emitError))
 
       throw new Error('No permissions to send this request to wallet!')
     }
@@ -259,7 +263,7 @@ export class DAppClient extends BaseClient {
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
-        .catch(emitError => console.warn(emitError))
+        .catch((emitError) => console.warn(emitError))
 
       throw new Error('rate limit reached')
     }
@@ -275,16 +279,16 @@ export class DAppClient extends BaseClient {
     if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
       this.events
         .emit(InternalEvent.OPERATION_REQUEST_SENT)
-        .catch(emitError => console.warn(emitError))
+        .catch((emitError) => console.warn(emitError))
 
-      return this.makeRequest<OperationResponse>(req).catch(error => {
+      return this.makeRequest<OperationResponse>(req).catch((error) => {
         console.log('error', error)
         throw new Error(error)
       })
     } else {
       this.events
         .emit(InternalEvent.OPERATION_REQUEST_ERROR)
-        .catch(emitError => console.warn(emitError))
+        .catch((emitError) => console.warn(emitError))
 
       throw new Error('No permissions to send this request to wallet!')
     }
@@ -306,7 +310,7 @@ export class DAppClient extends BaseClient {
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
-        .catch(emitError => console.warn(emitError))
+        .catch((emitError) => console.warn(emitError))
 
       throw new Error('rate limit reached')
     }
@@ -322,16 +326,16 @@ export class DAppClient extends BaseClient {
     if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
       this.events
         .emit(InternalEvent.BROADCAST_REQUEST_SENT)
-        .catch(emitError => console.warn(emitError))
+        .catch((emitError) => console.warn(emitError))
 
-      return this.makeRequest<BroadcastResponse>(req).catch(error => {
+      return this.makeRequest<BroadcastResponse>(req).catch((error) => {
         console.log('error', error)
         throw new Error(error)
       })
     } else {
       this.events
         .emit(InternalEvent.BROADCAST_REQUEST_ERROR)
-        .catch(emitError => console.warn(emitError))
+        .catch((emitError) => console.warn(emitError))
 
       throw new Error('No permissions to send this request to wallet!')
     }

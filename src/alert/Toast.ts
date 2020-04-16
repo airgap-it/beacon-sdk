@@ -126,7 +126,7 @@ const getToastHTML = (config: ToastConfig): string => {
 }
 
 const closeToast = (): Promise<void> =>
-  new Promise(resolve => {
+  new Promise((resolve) => {
     const elm = document.getElementById('beacon-toast')
     if (elm) {
       const animationDuration = 300

@@ -200,7 +200,7 @@ const formatQRCodeModal = (
 }
 
 const closeAlert = (): Promise<void> =>
-  new Promise(resolve => {
+  new Promise((resolve) => {
     const elm = document.getElementById('beacon-qrcode-modal')
     if (elm) {
       const animationDuration = 300

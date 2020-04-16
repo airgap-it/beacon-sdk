@@ -13,7 +13,7 @@ export class Logger {
 
     if (args.length === 0) {
       console.log(origin, css)
-    } else if (args.every(arg => typeof arg === 'string')) {
+    } else if (args.every((arg) => typeof arg === 'string')) {
       console.log(`${origin}:`, css, args.join(' '))
     } else {
       console.log(`${origin}:`, css, args)

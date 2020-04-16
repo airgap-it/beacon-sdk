@@ -17,7 +17,7 @@ export class ChromeMessageTransport extends Transport {
 
   constructor(name: string) {
     super(name)
-    this.init().catch(error => console.error(error))
+    this.init().catch((error) => console.error(error))
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -43,7 +43,7 @@ export class ChromeMessageTransport extends Transport {
       ) => {
         logger.log('init', 'receiving chrome message', message, sender)
         const connectionContext: ConnectionContext = { sender, sendResponse }
-        this.notifyListeners(message, connectionContext).catch(error => logger.error(error))
+        this.notifyListeners(message, connectionContext).catch((error) => logger.error(error))
 
         // return true from the event listener to indicate you wish to send a response asynchronously
         // (this will keep the message channel open to the other end until sendResponse is called).

@@ -13,7 +13,7 @@ export class WalletClient extends BaseClient {
     newMessageCallback: (message: BaseMessage, connectionInfo: any) => void
   ): Promise<boolean> {
     this.handleResponse = (message, connectionInfo) => {
-      if (!this.pendingRequests.some(request => request.id === message.id)) {
+      if (!this.pendingRequests.some((request) => request.id === message.id)) {
         this.pendingRequests.push(message)
         console.log('PUSHING NEW REQUEST', message, connectionInfo)
         newMessageCallback(message, connectionInfo)
@@ -25,10 +25,10 @@ export class WalletClient extends BaseClient {
 
   public async respond(requestId: string, message: string) {
     console.log('responding to message', message)
-    const request = this.pendingRequests.find(pendingRequest => pendingRequest.id === requestId)
+    const request = this.pendingRequests.find((pendingRequest) => pendingRequest.id === requestId)
     if (request) {
       this.pendingRequests = this.pendingRequests.filter(
-        pendingRequest => pendingRequest.id !== requestId
+        (pendingRequest) => pendingRequest.id !== requestId
       )
     }
     if (!this.transport) {
