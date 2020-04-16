@@ -29,7 +29,9 @@
     "test": "nyc mocha --require ts-node/register --require source-map-support/register --full-trace --timeout 40000 ./test/**/**.spec.ts",
     "test-ci": "nyc --reporter=lcov npm test",
     "sonar-scanner": "sonar-scanner",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
@@ -47,6 +49,7 @@
     "@typescript-eslint/eslint-plugin": "2.16.0",
     "@typescript-eslint/eslint-plugin-tslint": "2.16.0",
     "@typescript-eslint/parser": "2.16.0",
+    "@vuepress/plugin-back-to-top": "^1.4.1",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "eslint": "6.8.0",
@@ -60,7 +63,11 @@
     "sonar-scanner": "3.1.0",
     "ts-node": "8.6.2",
     "tslint": "^5.20.1",
-    "typescript": "3.8.3"
+    "typescript": "3.8.3",
+    "vuepress": "^1.4.1",
+    "vuepress-bar": "^0.2.6",
+    "vuepress-plugin-code-copy": "^1.0.6",
+    "vuepress-plugin-mermaidjs": "^1.4.0"
   },
   "files": [
     "/dist"
