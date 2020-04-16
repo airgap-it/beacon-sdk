@@ -7,7 +7,8 @@ export enum BeaconErrorType {
   NO_PRIVATE_KEY_FOUND_ERROR = 'NO_PRIVATE_KEY_FOUND_ERROR', // Sign: Will be returned if the private key matching the sourceAddress could not be found.
   PARAMETERS_INVALID_ERROR = 'PARAMETERS_INVALID_ERROR', // Operation Request: Will be returned if any of the parameters are invalid.
   BROADCAST_ERROR = 'BROADCAST_ERROR', // Broadcast | Operation Request: Will be returned if the user choses that the transaction is broadcast but there is an error (eg. node not available).
-  TRANSACTION_INVALID_ERROR = 'TRANSACTION_INVALID_ERROR' // Broadcast: Will be returned if the transaction is not parsable or is rejected by the node.
+  TRANSACTION_INVALID_ERROR = 'TRANSACTION_INVALID_ERROR', // Broadcast: Will be returned if the transaction is not parsable or is rejected by the node.
+  TOO_MANY_OPERATIONS = 'TOO_MANY_OPERATIONS' // Operation Request: Will be returned if too many operations were in the request and they were not able to fit into a single operation group.
 }
 
 const errorDescriptions: { [key in BeaconErrorType]: string } = {
@@ -24,7 +25,9 @@ const errorDescriptions: { [key in BeaconErrorType]: string } = {
   [BeaconErrorType.BROADCAST_ERROR]:
     'The transaction could not be broadcast to the network. Please try again.',
   [BeaconErrorType.TRANSACTION_INVALID_ERROR]:
-    'The transaction is invalid and the node did not accept it.'
+    'The transaction is invalid and the node did not accept it.',
+  [BeaconErrorType.TOO_MANY_OPERATIONS]:
+    'The request contains too many transactions. Please include fewer operations and try again.'
 }
 
 export interface BeaconError extends BaseMessage {
@@ -58,6 +61,10 @@ export interface TransactionInvalidBeaconError extends BeaconError {
 
 export interface BroadcastBeaconError extends BeaconError {
   errorType: BeaconErrorType.BROADCAST_ERROR
+}
+
+export interface TooManyOperationsBeaconError extends BeaconError {
+  errorType: BeaconErrorType.TOO_MANY_OPERATIONS
 }
 
 /* eslint-disable prefer-arrow/prefer-arrow-functions */

@@ -30,17 +30,16 @@ export type Messages =
 
 export interface BaseMessage {
   id: string // ID of the message. The same ID is used in the request and response
-  senderId: string // ID of the sender. This is used to identify the sender of the message
+  beaconId: string // ID of the sender. Public Key. This is used to identify the sender of the message
   // TODO: We could add a signature so people can not spoof which dApp the request came from
   type: MessageType
 }
 
 export enum NetworkType {
   MAINNET = 'mainnet',
-  BABYLONNET = 'babylonnet',
-  CARTHAGENET = 'carthagenet',
   CUSTOM = 'custom'
 }
+// TODO: Create API with testnets
 
 export interface Network {
   type: NetworkType
@@ -48,26 +47,29 @@ export interface Network {
   rpcUrl?: string
 }
 
+export interface AppMetadata {
+  name: string
+  icon?: string // URL
+}
+
 export interface PermissionRequest extends BaseMessage {
   type: MessageType.PermissionRequest
-  senderName: string
+  appMetadata: AppMetadata
   network: Network
   scopes: PermissionScope[]
 }
 
 export interface PermissionResponse extends BaseMessage {
   type: MessageType.PermissionResponse
-  permissions: {
-    accountIdentifier: string // Hash of pubkey + network name
-    pubkey: string // To verify signed data
-    network: Network
-    scopes: PermissionScope[]
-  }
+  accountIdentifier: string // Hash of pubkey + network name
+  pubkey?: string // Public key instead of address to verify signed data
+  network: Network
+  scopes: PermissionScope[]
 }
 
 export interface SignPayloadRequest extends BaseMessage {
   type: MessageType.SignPayloadRequest
-  payload: string[]
+  payload: string
   sourceAddress?: string
 }
 
@@ -84,19 +86,16 @@ export interface OperationRequest extends BaseMessage {
 
 export interface OperationResponse extends BaseMessage {
   type: MessageType.OperationResponse
-
-  transactionHashes: string[]
+  transactionHash: string
 }
 
 export interface BroadcastRequest extends BaseMessage {
   type: MessageType.BroadcastRequest
-
   network: Network
-  signedTransactions: string[]
+  signedTransaction: string
 }
 
 export interface BroadcastResponse extends BaseMessage {
   type: MessageType.BroadcastResponse
-
-  transactionHashes: string[]
+  transactionHash: string
 }

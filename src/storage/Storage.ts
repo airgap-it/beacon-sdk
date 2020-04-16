@@ -1,5 +1,5 @@
 import { ICommunicationPair } from '../interfaces'
-import { AccountInfo, AccountIdentifier } from '../clients/Client'
+import { AccountInfo, AccountIdentifier } from '../types/AccountInfo'
 
 export enum StorageKey {
   TRANSPORT_P2P_SECRET_KEY = 'beacon:communication-secret-key',

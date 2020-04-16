@@ -9,16 +9,14 @@ export enum TransportStatus {
 export enum TransportType {
   CHROME_MESSAGE = 'chrome_message',
   POST_MESSAGE = 'post_message',
-  DEEPLINK = 'deeplink',
   LEDGER = 'ledger',
-  P2P = 'p2p',
-  MEMORY = 'in_memory'
+  P2P = 'p2p'
 }
 
 const logger = new Logger('Transport')
 
 export abstract class Transport {
-  public readonly type: TransportType = TransportType.MEMORY
+  public readonly type: TransportType = TransportType.POST_MESSAGE
 
   protected readonly name: string
   protected _isConnected: TransportStatus = TransportStatus.NOT_CONNECTED

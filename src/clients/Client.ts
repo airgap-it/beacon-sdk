@@ -1,4 +1,4 @@
-import { BaseMessage, Network, PermissionScope } from '../types/Messages'
+import { BaseMessage, Network } from '../types/Messages'
 import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { PostMessageTransport } from '../transports/PostMessageTransport'
@@ -8,19 +8,9 @@ import { Transport, TransportType, TransportStatus } from '../transports/Transpo
 import { getStorage } from '../storage/getStorage'
 import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'
+import { AccountInfo } from '../types/AccountInfo'
 
 // Const logger = new Logger('BaseClient')
-
-export type AccountIdentifier = string
-
-export interface AccountInfo {
-  accountIdentifier: AccountIdentifier
-  senderId: string
-  pubkey: string
-  network: Network
-  scopes: PermissionScope[]
-  firstConnected: Date
-}
 
 export class BaseClient {
   protected requestCounter: number[] = []
@@ -173,9 +163,9 @@ export class BaseClient {
     if (this.transport && this.transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
       await this.transport.connect()
       this.transport
-        .addListener((message: unknown, connectionInfo: any) => {
+        .addListener(async (message: unknown, connectionInfo: any) => {
           if (typeof message === 'string') {
-            const deserializedMessage = this.serializer.deserialize(message) as BaseMessage // TODO: Check type
+            const deserializedMessage = (await this.serializer.deserialize(message)) as BaseMessage // TODO: Check type
             this.handleResponse(deserializedMessage, connectionInfo)
           }
         })

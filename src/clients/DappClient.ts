@@ -22,7 +22,8 @@ import { TransportType } from '../transports/Transport'
 import { InternalEvent, InternalEventHandler } from '../events'
 import { StorageKey } from '../storage/Storage'
 import { BeaconError } from '../types/Errors'
-import { AccountIdentifier, AccountInfo, BaseClient } from './Client'
+import { AccountInfo, AccountIdentifier, Origin } from '../types/AccountInfo'
+import { BaseClient } from './Client'
 
 const logger = new Logger('DAppClient')
 
@@ -92,7 +93,7 @@ export class DAppClient extends BaseClient {
     await this.connect()
     logger.log('makeRequest', 'after connecting')
 
-    const payload = this.serializer.serialize(request)
+    const payload = await this.serializer.serialize(request)
 
     const exposed = exposedPromise<T>()
     this.addOpenRequest(request.id, exposed)
@@ -154,8 +155,10 @@ export class DAppClient extends BaseClient {
 
     return this.makeRequest<PermissionResponse>({
       id: generateGUID(),
-      senderId: this.beaconId,
-      senderName: this.name,
+      beaconId: this.beaconId,
+      appMetadata: {
+        name: this.name
+      },
       type: MessageType.PermissionRequest,
       network: request && request.network ? request.network : { type: NetworkType.MAINNET },
       scopes:
@@ -174,12 +177,16 @@ export class DAppClient extends BaseClient {
         }
 
         const accountInfo = {
-          accountIdentifier: response.permissions.accountIdentifier,
-          senderId: response.senderId,
-          pubkey: response.permissions.pubkey,
-          network: response.permissions.network,
-          scopes: response.permissions.scopes,
-          firstConnected: new Date()
+          accountIdentifier: response.accountIdentifier,
+          beaconId: response.beaconId,
+          origin: {
+            type: Origin.P2P, // TODO: Extension or BeaconP2P
+            id: response.beaconId
+          },
+          pubkey: response.pubkey,
+          network: response.network,
+          scopes: response.scopes,
+          connectedAt: new Date()
         }
         this.activeAccount = accountInfo
         await this.addAccount(accountInfo)
@@ -190,7 +197,7 @@ export class DAppClient extends BaseClient {
   }
 
   public async signPayloads(request: {
-    payload: string[]
+    payload: string
     sourceAddress: string
   }): Promise<SignPayloadResponse> {
     if (!this.beaconId) {
@@ -212,7 +219,7 @@ export class DAppClient extends BaseClient {
 
     const req: SignPayloadRequest = {
       id: generateGUID(),
-      senderId: this.beaconId,
+      beaconId: this.beaconId,
       type: MessageType.SignPayloadRequest,
       payload: request.payload,
       sourceAddress: request.sourceAddress || ''
@@ -259,7 +266,7 @@ export class DAppClient extends BaseClient {
 
     const req: OperationRequest = {
       id: generateGUID(),
-      senderId: this.beaconId,
+      beaconId: this.beaconId,
       type: MessageType.OperationRequest,
       network: request.network || { type: NetworkType.MAINNET },
       operationDetails: request.operationDetails
@@ -285,13 +292,13 @@ export class DAppClient extends BaseClient {
 
   public async requestBroadcast(request: {
     network?: Network
-    signedTransactions: string[]
+    signedTransaction: string
   }): Promise<BroadcastResponse> {
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
     }
-    if (!request.signedTransactions) {
-      throw new Error('Operation details must be provided')
+    if (!request.signedTransaction) {
+      throw new Error('Signed transaction must be provided')
     }
     if (!this.activeAccount) {
       throw new Error('No account is active')
@@ -306,10 +313,10 @@ export class DAppClient extends BaseClient {
 
     const req: BroadcastRequest = {
       id: generateGUID(),
-      senderId: this.beaconId,
+      beaconId: this.beaconId,
       type: MessageType.BroadcastRequest,
       network: request.network || { type: NetworkType.MAINNET },
-      signedTransactions: request.signedTransactions
+      signedTransaction: request.signedTransaction
     }
 
     if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
