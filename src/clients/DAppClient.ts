@@ -2,7 +2,7 @@ import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 
 import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
-import { TransportType } from '../transports/Transport'
+import { TransportType, Transport } from '../transports/Transport'
 import { InternalEvent, InternalEventHandler } from '../events'
 import { StorageKey } from '../storage/Storage'
 import { AccountInfo, AccountIdentifier } from '../types/AccountInfo'
@@ -66,8 +66,8 @@ export class DAppClient extends BaseClient {
     this.openRequests.set(id, promise)
   }
 
-  public async init(): Promise<TransportType> {
-    const initResponse = await super.init(true)
+  public async init(_isDapp?: boolean, transport?: Transport): Promise<TransportType> {
+    const initResponse = await super.init(true, transport)
     if (!this.storage) {
       throw new Error('Storage not defined after init!')
     }

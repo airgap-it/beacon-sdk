@@ -49,6 +49,7 @@ import { ParametersInvalidBeaconError } from './errors/ParametersInvalidBeaconEr
 import { TooManyOperationsBeaconError } from './errors/TooManyOperationsBeaconError'
 import { TransactionInvalidBeaconError } from './errors/TransactionInvalidBeaconError'
 import { UnknownBeaconError } from './errors/UnknownBeaconError'
+import { BeaconErrorMessage } from './types/BeaconErrorMessage'
 
 export { WalletCommunicationClient }
 
@@ -107,6 +108,7 @@ export {
 export {
   BeaconError,
   BeaconErrorType,
+  BeaconErrorMessage,
   BroadcastBeaconError,
   NetworkNotSupportedBeaconError,
   NoAddressBeaconError,

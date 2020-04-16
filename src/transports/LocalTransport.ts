@@ -9,7 +9,8 @@ export class LocalTransport extends Transport {
     return Promise.resolve(false)
   }
 
-  public transformer: (message: string) => string = (message: string) => message
+  public transformer: (message: string) => Promise<string> = (message: string) =>
+    Promise.resolve(message)
 
   public async send(message: string): Promise<void> {
     logger.log('send', message)
