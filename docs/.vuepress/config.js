@@ -2,12 +2,15 @@ const getConfig = require('vuepress-bar')
 const barConfig = getConfig(`${__dirname}/..`)
 
 module.exports = {
-  base: '/beacon-sdk/',
+  base: '/',
   title: 'Beacon SDK Documentation',
   description: 'Connecting dApps on Tezos with your wallet.',
   themeConfig: {
     repo: 'airgap-it/beacon-sdk',
-    nav: [{ text: 'Example dApp', link: 'https://www.walletbeacon.io/', target: '_blank' }],
+    nav: [
+      { text: 'Example dApp', link: 'https://www.walletbeacon.io/', target: '_blank' },
+      { text: 'Chrome Extension', link: 'https://github.com/airgap-it/beacon-extension/releases', target: '_blank' }
+    ],
     sidebar: barConfig.sidebar
   },
   plugins: [
