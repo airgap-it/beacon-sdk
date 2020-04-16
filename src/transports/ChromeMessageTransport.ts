@@ -2,8 +2,8 @@
 /// <reference types="chrome"/>
 
 import { Logger } from '../utils/Logger'
-import { ExtensionMessage, ExtensionMessageTarget } from '../..'
 import { Transport, TransportType } from './Transport'
+import { ExtensionMessage, ExtensionMessageTarget } from '..'
 
 const logger = new Logger('ChromeMessageTransport')
 
