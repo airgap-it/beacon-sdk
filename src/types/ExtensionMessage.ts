@@ -1,8 +1,4 @@
-export enum ExtensionMessageTarget {
-  BACKGROUND = 'toBackground',
-  PAGE = 'toPage',
-  EXTENSION = 'toExtension'
-}
+import { ExtensionMessageTarget } from '..'
 
 export interface ExtensionMessage<T> {
   target: ExtensionMessageTarget

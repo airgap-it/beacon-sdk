@@ -1,5 +1,3 @@
-import { TezosOperation, TezosOperationType } from './OperationTypes'
-
 export type MichelsonPrimitives =
   | 'ADD'
   | 'IF_NONE'
@@ -119,31 +117,3 @@ export type MichelsonPrimitives =
   | 'ITER'
   | 'code'
   | 'AND'
-
-export type MichelineMichelsonV1Expression =
-  | { int: string }
-  | { string: string }
-  | { bytes: string }
-  | MichelineMichelsonV1Expression[]
-  | {
-      prim: MichelsonPrimitives
-      args?: MichelineMichelsonV1Expression[]
-      annots?: string[]
-    }
-
-export interface Parameters {
-  entrypoint: 'default' | 'root' | 'do' | 'set_delegate' | 'remove_delegate' | string
-  value: MichelineMichelsonV1Expression
-}
-
-export interface TezosTransactionOperation extends TezosOperation {
-  kind: TezosOperationType.TRANSACTION
-  source: string
-  fee: string
-  counter: string
-  gas_limit: string
-  storage_limit: string
-  amount: string
-  destination: string
-  parameters?: Parameters
-}

@@ -1,11 +1,6 @@
-import { PermissionScope, Network } from './Messages'
+import { Origin, Network, PermissionScope } from '..'
 
 export type AccountIdentifier = string
-
-export enum Origin {
-  EXTENSION = 'extension',
-  P2P = 'p2p'
-}
 
 export interface AccountInfo {
   accountIdentifier: AccountIdentifier

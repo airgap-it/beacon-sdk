@@ -1,16 +1,16 @@
-import { BaseMessage } from '../types/Messages'
 import { TransportType } from '../transports/Transport'
 import { BaseClient } from './Client'
+import { BeaconBaseMessage } from '..'
 
 export class WalletClient extends BaseClient {
-  private pendingRequests: BaseMessage[] = []
+  private pendingRequests: BeaconBaseMessage[] = []
 
   public async init(): Promise<TransportType> {
     return super.init(false)
   }
 
   public async connect(
-    newMessageCallback: (message: BaseMessage, connectionInfo: any) => void
+    newMessageCallback: (message: BeaconBaseMessage, connectionInfo: any) => void
   ): Promise<boolean> {
     this.handleResponse = (message, connectionInfo) => {
       if (!this.pendingRequests.some((request) => request.id === message.id)) {

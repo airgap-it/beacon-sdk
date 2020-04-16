@@ -1,4 +1,4 @@
-import { TezosOperation, TezosOperationType, TezosBlockHeader } from './OperationTypes'
+import { TezosOperation, TezosOperationType, TezosBlockHeader } from '../../..'
 
 export interface InlinedEndorsement {
   branch: string

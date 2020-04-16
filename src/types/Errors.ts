@@ -1,4 +1,4 @@
-import { BaseMessage } from './Messages'
+import { BeaconBaseMessage } from '..'
 
 export enum BeaconErrorType {
   NETWORK_NOT_SUPPORTED = 'NETWORK_NOT_SUPPORTED', // Permission: Will be returned if the selected network is not supported by the wallet / extension.
@@ -30,7 +30,7 @@ const errorDescriptions: { [key in BeaconErrorType]: string } = {
     'The request contains too many transactions. Please include fewer operations and try again.'
 }
 
-export interface BeaconError extends BaseMessage {
+export interface BeaconError extends BeaconBaseMessage {
   errorType: BeaconErrorType
 }
 

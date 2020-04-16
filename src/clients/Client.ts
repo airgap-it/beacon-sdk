@@ -1,4 +1,3 @@
-import { BaseMessage, Network } from '../types/Messages'
 import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { PostMessageTransport } from '../transports/PostMessageTransport'
@@ -9,6 +8,7 @@ import { getStorage } from '../storage/getStorage'
 import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'
 import { AccountInfo } from '../types/AccountInfo'
+import { BeaconBaseMessage, Network } from '..'
 
 // Const logger = new Logger('BaseClient')
 
@@ -20,7 +20,7 @@ export class BaseClient {
   protected readonly name: string
   protected readonly serializer = new Serializer()
 
-  protected handleResponse: (_event: BaseMessage, connectionInfo: any) => void
+  protected handleResponse: (_event: BeaconBaseMessage, connectionInfo: any) => void
 
   protected storage: Storage | undefined
   protected transport: Transport | undefined
@@ -29,7 +29,7 @@ export class BaseClient {
 
   constructor(name: string) {
     this.name = name
-    this.handleResponse = (_event: BaseMessage) => {
+    this.handleResponse = (_event: BeaconBaseMessage) => {
       throw new Error('not overwritten')
     }
   }
@@ -165,7 +165,9 @@ export class BaseClient {
       this.transport
         .addListener(async (message: unknown, connectionInfo: any) => {
           if (typeof message === 'string') {
-            const deserializedMessage = (await this.serializer.deserialize(message)) as BaseMessage // TODO: Check type
+            const deserializedMessage = (await this.serializer.deserialize(
+              message
+            )) as BeaconBaseMessage // TODO: Check type
             this.handleResponse(deserializedMessage, connectionInfo)
           }
         })

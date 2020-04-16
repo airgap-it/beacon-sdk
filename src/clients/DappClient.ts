@@ -1,35 +1,38 @@
-import {
-  BroadcastResponse,
-  Messages,
-  OperationResponse,
-  PermissionResponse,
-  SignPayloadResponse,
-  BaseMessage,
-  MessageType,
-  PermissionScope,
-  BroadcastRequest,
-  OperationRequest,
-  SignPayloadRequest,
-  Network,
-  NetworkType
-} from '../types/Messages'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 
-import { TezosOperation } from '../operations/OperationTypes'
 import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
 import { TransportType } from '../transports/Transport'
 import { InternalEvent, InternalEventHandler } from '../events'
 import { StorageKey } from '../storage/Storage'
 import { BeaconError } from '../types/Errors'
-import { AccountInfo, AccountIdentifier, Origin } from '../types/AccountInfo'
+import { AccountInfo, AccountIdentifier } from '../types/AccountInfo'
+import { RequestPermissionInput } from '../types/RequestPermissionInput'
+import { RequestSignPayloadInput } from '../types/RequestSignPayloadInput'
+import { RequestOperationInput } from '../types/RequestOperationInput'
+import { RequestBroadcastInput } from '../types/RequestBroadcastInput'
+import { BeaconMessages } from '../types/beacon/BeaconMessages'
 import { BaseClient } from './Client'
+import {
+  BeaconBaseMessage,
+  BeaconMessageType,
+  PermissionScope,
+  PermissionResponse,
+  NetworkType,
+  Origin,
+  SignPayloadResponse,
+  SignPayloadRequest,
+  OperationResponse,
+  OperationRequest,
+  BroadcastResponse,
+  BroadcastRequest
+} from '..'
 
 const logger = new Logger('DAppClient')
 
 export class DAppClient extends BaseClient {
   private readonly events: InternalEventHandler = new InternalEventHandler()
-  private readonly openRequests = new Map<string, ExposedPromise<Messages>>()
+  private readonly openRequests = new Map<string, ExposedPromise<BeaconMessages>>()
   private activeAccount: AccountInfo | undefined
 
   public get isConnected(): Promise<boolean> {
@@ -39,7 +42,7 @@ export class DAppClient extends BaseClient {
   constructor(name: string) {
     super(name)
 
-    this.handleResponse = (event: BaseMessage): void => {
+    this.handleResponse = (event: BeaconBaseMessage): void => {
       const openRequest = this.openRequests.get(event.id)
       if (openRequest) {
         logger.log('handleResponse', 'found openRequest', event.id)
@@ -58,7 +61,7 @@ export class DAppClient extends BaseClient {
     }
   }
 
-  public addOpenRequest(id: string, promise: ExposedPromise<Messages>): void {
+  public addOpenRequest(id: string, promise: ExposedPromise<BeaconMessages>): void {
     logger.log('addOpenRequest', this.name, `adding request ${id} and waiting for answer`)
     this.openRequests.set(id, promise)
   }
@@ -87,7 +90,7 @@ export class DAppClient extends BaseClient {
     return this.activeAccount
   }
 
-  public async makeRequest<T extends Messages>(request: Messages): Promise<T> {
+  public async makeRequest<T extends BeaconMessages>(request: BeaconMessages): Promise<T> {
     logger.log('makeRequest')
     await this.init()
     await this.connect()
@@ -111,7 +114,7 @@ export class DAppClient extends BaseClient {
   }
 
   public async checkPermissions(
-    type: MessageType,
+    type: BeaconMessageType,
     identifier: AccountIdentifier
   ): Promise<boolean> {
     const accountInfo = await this.getAccount(identifier)
@@ -121,23 +124,20 @@ export class DAppClient extends BaseClient {
     }
 
     switch (type) {
-      case MessageType.OperationRequest:
+      case BeaconMessageType.OperationRequest:
         return accountInfo.scopes.some(
           (permission) => permission === PermissionScope.OPERATION_REQUEST
         )
-      case MessageType.SignPayloadRequest:
+      case BeaconMessageType.SignPayloadRequest:
         return accountInfo.scopes.some((permission) => permission === PermissionScope.SIGN)
-      case MessageType.BroadcastRequest:
+      case BeaconMessageType.BroadcastRequest:
         return true
       default:
         return false
     }
   }
 
-  public async requestPermissions(request?: {
-    network?: Network
-    scopes?: PermissionScope[]
-  }): Promise<PermissionResponse> {
+  public async requestPermissions(request?: RequestPermissionInput): Promise<PermissionResponse> {
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
     }
@@ -159,7 +159,7 @@ export class DAppClient extends BaseClient {
       appMetadata: {
         name: this.name
       },
-      type: MessageType.PermissionRequest,
+      type: BeaconMessageType.PermissionRequest,
       network: request && request.network ? request.network : { type: NetworkType.MAINNET },
       scopes:
         request && request.scopes
@@ -196,10 +196,7 @@ export class DAppClient extends BaseClient {
       })
   }
 
-  public async signPayloads(request: {
-    payload: string
-    sourceAddress: string
-  }): Promise<SignPayloadResponse> {
+  public async requestSignPayload(request: RequestSignPayloadInput): Promise<SignPayloadResponse> {
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
     }
@@ -220,7 +217,7 @@ export class DAppClient extends BaseClient {
     const req: SignPayloadRequest = {
       id: generateGUID(),
       beaconId: this.beaconId,
-      type: MessageType.SignPayloadRequest,
+      type: BeaconMessageType.SignPayloadRequest,
       payload: request.payload,
       sourceAddress: request.sourceAddress || ''
     }
@@ -247,10 +244,7 @@ export class DAppClient extends BaseClient {
     }
   }
 
-  public async requestOperation(request: {
-    network?: Network
-    operationDetails: TezosOperation[]
-  }): Promise<OperationResponse> {
+  public async requestOperation(request: RequestOperationInput): Promise<OperationResponse> {
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
     }
@@ -271,9 +265,9 @@ export class DAppClient extends BaseClient {
     const req: OperationRequest = {
       id: generateGUID(),
       beaconId: this.beaconId,
-      type: MessageType.OperationRequest,
+      type: BeaconMessageType.OperationRequest,
       network: request.network || { type: NetworkType.MAINNET },
-      operationDetails: request.operationDetails
+      operationDetails: request.operationDetails as any // TODO: Fix type
     }
 
     if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
@@ -294,10 +288,7 @@ export class DAppClient extends BaseClient {
     }
   }
 
-  public async requestBroadcast(request: {
-    network?: Network
-    signedTransaction: string
-  }): Promise<BroadcastResponse> {
+  public async requestBroadcast(request: RequestBroadcastInput): Promise<BroadcastResponse> {
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
     }
@@ -318,7 +309,7 @@ export class DAppClient extends BaseClient {
     const req: BroadcastRequest = {
       id: generateGUID(),
       beaconId: this.beaconId,
-      type: MessageType.BroadcastRequest,
+      type: BeaconMessageType.BroadcastRequest,
       network: request.network || { type: NetworkType.MAINNET },
       signedTransaction: request.signedTransaction
     }
