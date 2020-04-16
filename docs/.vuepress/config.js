@@ -1,8 +1,6 @@
 const getConfig = require('vuepress-bar')
 const barConfig = getConfig(`${__dirname}/..`)
 
-console.log('config', barConfig.sidebar)
-
 module.exports = {
   base: '/beacon-sdk/',
   title: 'Beacon SDK Documentation',
@@ -16,7 +14,7 @@ module.exports = {
     '@vuepress/last-updated',
     '@vuepress/plugin-back-to-top',
     '@vuepress/nprogress',
-    'mermaidjs',
+    'vuepress-plugin-mermaidjs',
     ['vuepress-plugin-code-copy', true]
   ],
   evergreen: true
