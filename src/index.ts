@@ -38,6 +38,17 @@ import { TezosOperations } from './types/tezos/TezosOperations'
 import { BaseClient } from './clients/Client'
 import { WalletClient } from './clients/WalletClient'
 import { DAppClient } from './clients/DAppClient'
+import { BeaconError } from './errors/BeaconError'
+import { BeaconErrorType } from './types/BeaconErrorType'
+import { BroadcastBeaconError } from './errors/BroadcastBeaconError'
+import { NetworkNotSupportedBeaconError } from './errors/NetworkNotSupportedBeaconError'
+import { NoAddressBeaconError } from './errors/NoAddressBeaconError'
+import { NoPrivateKeyBeaconError } from './errors/NoPrivateKeyBeaconError'
+import { NotGrantedBeaconError } from './errors/NotGrantedBeaconError'
+import { ParametersInvalidBeaconError } from './errors/ParametersInvalidBeaconError'
+import { TooManyOperationsBeaconError } from './errors/TooManyOperationsBeaconError'
+import { TransactionInvalidBeaconError } from './errors/TransactionInvalidBeaconError'
+import { UnknownBeaconError } from './errors/UnknownBeaconError'
 
 export { WalletCommunicationClient }
 
@@ -90,4 +101,19 @@ export {
   AccountInfo,
   ExtensionMessageTarget,
   ExtensionMessage
+}
+
+// Errors
+export {
+  BeaconError,
+  BeaconErrorType,
+  BroadcastBeaconError,
+  NetworkNotSupportedBeaconError,
+  NoAddressBeaconError,
+  NoPrivateKeyBeaconError,
+  NotGrantedBeaconError,
+  ParametersInvalidBeaconError,
+  TooManyOperationsBeaconError,
+  TransactionInvalidBeaconError,
+  UnknownBeaconError
 }
