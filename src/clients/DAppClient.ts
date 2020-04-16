@@ -5,7 +5,6 @@ import { generateGUID } from '../utils/generate-uuid'
 import { TransportType } from '../transports/Transport'
 import { InternalEvent, InternalEventHandler } from '../events'
 import { StorageKey } from '../storage/Storage'
-import { BeaconError } from '../types/BeaconErrorMessage'
 import { AccountInfo, AccountIdentifier } from '../types/AccountInfo'
 import { RequestPermissionInput } from '../types/RequestPermissionInput'
 import { RequestSignPayloadInput } from '../types/RequestSignPayloadInput'
@@ -27,6 +26,7 @@ import {
   BroadcastResponse,
   BroadcastRequest
 } from '..'
+import { BeaconErrorMessage } from '../types/BeaconErrorMessage'
 
 const logger = new Logger('DAppClient')
 
@@ -171,9 +171,9 @@ export class DAppClient extends BaseClient {
         throw new Error(error)
       })
       .then(async (response) => {
-        if (((response as any) as BeaconError).errorType) {
-          console.log('error', ((response as any) as BeaconError).errorType)
-          throw new Error(((response as any) as BeaconError).errorType)
+        if (((response as any) as BeaconErrorMessage).errorType) {
+          console.log('error', ((response as any) as BeaconErrorMessage).errorType)
+          throw new Error(((response as any) as BeaconErrorMessage).errorType)
         }
 
         const accountInfo = {
