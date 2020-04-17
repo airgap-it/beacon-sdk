@@ -27,7 +27,6 @@ import { TezosProposalOperation } from './types/tezos/operations/Proposal'
 import { TezosRevealOperation } from './types/tezos/operations/Reveal'
 import { TezosSeedNonceRevelationOperation } from './types/tezos/operations/SeedNonceRevelation'
 import { TezosTransactionOperation } from './types/tezos/operations/Transaction'
-import { MichelineMichelsonV1Expression } from './types/tezos/MichelineMichelsonV1Expression'
 import { MichelsonPrimitives } from './types/tezos/MichelsonPrimitives'
 import { TezosTransactionParameters } from './types/tezos/TezosTransactionParameters'
 import { Origin } from './types/Origin'
@@ -81,7 +80,6 @@ export {
   TezosOperation,
   TezosOperationType,
   TezosBlockHeader,
-  MichelineMichelsonV1Expression,
   MichelsonPrimitives,
   TezosTransactionParameters,
   TezosOperations

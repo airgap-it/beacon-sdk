@@ -1,4 +1,6 @@
-import { StorageKeyReturnDefaults, StorageKey, StorageKeyReturnType } from '..'
+import { StorageKeyReturnDefaults } from '../types/storage/StorageKeyReturnDefaults'
+import { StorageKey } from '../types/storage/StorageKey'
+import { StorageKeyReturnType } from '../types/storage/StorageKeyReturnType'
 
 export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.TRANSPORT_P2P_SECRET_KEY]: undefined,

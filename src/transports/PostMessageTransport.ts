@@ -1,5 +1,6 @@
 import { myWindow } from '../MockWindow'
-import { ExtensionMessage, ExtensionMessageTarget, TransportType, Transport } from '..'
+import { Transport } from './Transport'
+import { ExtensionMessage, ExtensionMessageTarget, TransportType } from '..'
 
 export class PostMessageTransport extends Transport {
   public readonly type: TransportType = TransportType.POST_MESSAGE
