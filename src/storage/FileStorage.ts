@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'fs'
-
-import { Storage, StorageKey, StorageKeyReturnType, defaultValues } from './Storage'
+import { defaultValues } from './Storage'
+import { Storage, StorageKey, StorageKeyReturnType } from '..'
 
 const file: string = './storage.json'
 

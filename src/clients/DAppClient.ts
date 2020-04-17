@@ -2,17 +2,14 @@ import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 
 import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
-import { TransportType, Transport } from '../transports/Transport'
 import { InternalEvent, InternalEventHandler } from '../events'
-import { StorageKey } from '../storage/Storage'
-import { AccountInfo, AccountIdentifier } from '../types/AccountInfo'
-import { RequestPermissionInput } from '../types/RequestPermissionInput'
-import { RequestSignPayloadInput } from '../types/RequestSignPayloadInput'
-import { RequestOperationInput } from '../types/RequestOperationInput'
-import { RequestBroadcastInput } from '../types/RequestBroadcastInput'
-import { BeaconMessages } from '../types/beacon/BeaconMessages'
-import { BaseClient } from './Client'
 import {
+  AccountInfo,
+  AccountIdentifier,
+  BaseClient,
+  TransportType,
+  Transport,
+  StorageKey,
   BeaconBaseMessage,
   BeaconMessageType,
   PermissionScope,
@@ -24,9 +21,14 @@ import {
   OperationResponse,
   OperationRequest,
   BroadcastResponse,
-  BroadcastRequest
+  BroadcastRequest,
+  BeaconErrorMessage,
+  BeaconMessages,
+  RequestPermissionInput,
+  RequestSignPayloadInput,
+  RequestOperationInput,
+  RequestBroadcastInput
 } from '..'
-import { BeaconErrorMessage } from '../types/BeaconErrorMessage'
 
 const logger = new Logger('DAppClient')
 

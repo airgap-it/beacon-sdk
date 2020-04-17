@@ -1,5 +1,5 @@
 import { Logger } from '../utils/Logger'
-import { Transport } from './Transport'
+import { Transport } from '..'
 
 const logger = new Logger('LocalTransport')
 

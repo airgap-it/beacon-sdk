@@ -1,4 +1,5 @@
-import { Storage, StorageKey, StorageKeyReturnType, defaultValues } from './Storage'
+import { defaultValues } from './Storage'
+import { Storage, StorageKey, StorageKeyReturnType } from '..'
 
 export class LocalStorage implements Storage {
   public static async isSupported(): Promise<boolean> {

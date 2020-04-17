@@ -1,8 +1,5 @@
 import { Logger } from '../utils/Logger'
-import { FileStorage } from './FileStorage'
-import { LocalStorage } from './LocalStorage'
-import { Storage } from './Storage'
-import { ChromeStorage } from './ChromeStorage'
+import { ChromeStorage, Storage, LocalStorage, FileStorage } from '..'
 
 const logger = new Logger('STORAGE')
 

@@ -1,16 +1,22 @@
-import { Serializer } from '../Serializer'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
-import { PostMessageTransport } from '../transports/PostMessageTransport'
-import { P2PTransport } from '../transports/P2PTransport'
-import { Transport, TransportType, TransportStatus } from '../transports/Transport'
-// Import { Logger } from '../utils/Logger'
-import { getStorage } from '../storage/getStorage'
-import { Storage, StorageKey } from '../storage/Storage'
+// import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
-import { AccountInfo } from '../types/AccountInfo'
-import { BeaconBaseMessage, Network } from '..'
+import {
+  Serializer,
+  PostMessageTransport,
+  P2PTransport,
+  Transport,
+  TransportType,
+  TransportStatus,
+  getStorage,
+  Storage,
+  StorageKey,
+  AccountInfo,
+  BeaconBaseMessage,
+  Network
+} from '..'
 
-// Const logger = new Logger('BaseClient')
+// const logger = new Logger('BaseClient')
 
 export class BaseClient {
   protected requestCounter: number[] = []

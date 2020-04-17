@@ -1,9 +1,14 @@
 import { openAlert, closeAlert, AlertConfig } from '../alert/Alert'
-import { Storage, StorageKey } from '../storage/Storage'
 import { generateGUID } from '../utils/generate-uuid'
 import { Logger } from '../utils/Logger'
-import { TransportStatus, Transport, TransportType } from './Transport'
-import { WalletCommunicationClient } from '..'
+import {
+  Storage,
+  StorageKey,
+  TransportStatus,
+  Transport,
+  TransportType,
+  WalletCommunicationClient
+} from '..'
 
 const logger = new Logger('Transport')
 

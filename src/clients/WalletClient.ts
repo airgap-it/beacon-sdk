@@ -1,6 +1,4 @@
-import { TransportType } from '../transports/Transport'
-import { BaseClient } from './Client'
-import { BeaconBaseMessage } from '..'
+import { BaseClient, BeaconBaseMessage, TransportType } from '..'
 
 export class WalletClient extends BaseClient {
   private pendingRequests: BeaconBaseMessage[] = []
@@ -23,17 +21,18 @@ export class WalletClient extends BaseClient {
     return super._connect()
   }
 
-  public async respond(requestId: string, message: string) {
+  public async respond(message: BeaconBaseMessage) {
+    const serializedMessage: string = await this.serializer.serialize(message)
     console.log('responding to message', message)
-    const request = this.pendingRequests.find((pendingRequest) => pendingRequest.id === requestId)
+    const request = this.pendingRequests.find((pendingRequest) => pendingRequest.id === message.id)
     if (request) {
       this.pendingRequests = this.pendingRequests.filter(
-        (pendingRequest) => pendingRequest.id !== requestId
+        (pendingRequest) => pendingRequest.id !== message.id
       )
     }
     if (!this.transport) {
       throw new Error('no transport defined')
     }
-    this.transport.send(message, {})
+    this.transport.send(serializedMessage, {})
   }
 }

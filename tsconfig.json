@@ -1,21 +1,12 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": [
-      "es2015",
-      "es2017.string",
-      "dom"
-    ],
+    "lib": ["es2015", "es2017.string", "dom"],
     "module": "commonjs",
     "declaration": true,
     "outDir": "./dist",
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
-    "types": [
-      "node",
-      "chrome"
-    ],
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node", "chrome"],
     "sourceMap": true,
     /* Strict Type-Checking Options */
     // "strict": true /* Enable all strict type-checking options. */,
@@ -32,7 +23,5 @@
     "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
     "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */
   },
-  "include": [
-    "src/**/*.ts"
-  ]
+  "include": ["src/**/*.ts"]
 }

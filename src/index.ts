@@ -31,7 +31,7 @@ import { MichelineMichelsonV1Expression } from './types/tezos/MichelineMichelson
 import { MichelsonPrimitives } from './types/tezos/MichelsonPrimitives'
 import { TezosTransactionParameters } from './types/tezos/TezosTransactionParameters'
 import { Origin } from './types/Origin'
-import { AccountInfo } from './types/AccountInfo'
+import { AccountInfo, AccountIdentifier } from './types/AccountInfo'
 import { ExtensionMessage } from './types/ExtensionMessage'
 import { ExtensionMessageTarget } from './types/ExtensionMessageTarget'
 import { TezosOperations } from './types/tezos/TezosOperations'
@@ -50,7 +50,30 @@ import { TooManyOperationsBeaconError } from './errors/TooManyOperationsBeaconEr
 import { TransactionInvalidBeaconError } from './errors/TransactionInvalidBeaconError'
 import { UnknownBeaconError } from './errors/UnknownBeaconError'
 import { BeaconErrorMessage } from './types/BeaconErrorMessage'
+import { TransportStatus } from './types/transport/TransportStatus'
+import { TransportType } from './types/transport/TransportType'
+import { PostMessageTransport } from './transports/PostMessageTransport'
+import { Transport } from './transports/Transport'
+import { P2PTransport } from './transports/P2PTransport'
+import { LocalTransport } from './transports/LocalTransport'
+import { ChromeMessageTransport } from './transports/ChromeMessageTransport'
+import { Storage } from './storage/Storage'
+import { StorageKey } from './types/storage/StorageKey'
+import { StorageKeyReturnDefaults } from './types/storage/StorageKeyReturnDefaults'
+import { StorageKeyReturnType } from './types/storage/StorageKeyReturnType'
+import { P2PPairInfo } from './types/P2PPairInfo'
+import { ChromeStorage } from './storage/ChromeStorage'
+import { FileStorage } from './storage/FileStorage'
+import { LocalStorage } from './storage/LocalStorage'
+import { getStorage } from './storage/getStorage'
+import { BeaconMessages } from './types/beacon/BeaconMessages'
+import { Serializer } from './Serializer'
+import { RequestPermissionInput } from './types/RequestPermissionInput'
+import { RequestSignPayloadInput } from './types/RequestSignPayloadInput'
+import { RequestOperationInput } from './types/RequestOperationInput'
+import { RequestBroadcastInput } from './types/RequestBroadcastInput'
 
+// Clients
 export { WalletCommunicationClient }
 
 // Tezos
@@ -84,9 +107,11 @@ export { BaseClient, DAppClient, WalletClient }
 
 // Beacon
 export {
+  AccountIdentifier,
   AppMetadata,
   Network,
   NetworkType,
+  BeaconMessages,
   PermissionRequest,
   PermissionResponse,
   OperationRequest,
@@ -101,7 +126,11 @@ export {
   Origin,
   AccountInfo,
   ExtensionMessageTarget,
-  ExtensionMessage
+  ExtensionMessage,
+  RequestPermissionInput,
+  RequestSignPayloadInput,
+  RequestOperationInput,
+  RequestBroadcastInput
 }
 
 // Errors
@@ -119,3 +148,29 @@ export {
   TransactionInvalidBeaconError,
   UnknownBeaconError
 }
+
+// Transport
+export {
+  TransportStatus,
+  TransportType,
+  Transport,
+  PostMessageTransport,
+  P2PTransport,
+  LocalTransport,
+  ChromeMessageTransport
+}
+
+// Storage
+export {
+  Storage,
+  StorageKey,
+  StorageKeyReturnDefaults,
+  StorageKeyReturnType,
+  ChromeStorage,
+  FileStorage,
+  LocalStorage,
+  getStorage
+}
+
+// Others
+export { P2PPairInfo as ICommunicationPair, Serializer }
