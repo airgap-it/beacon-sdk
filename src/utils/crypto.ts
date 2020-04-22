@@ -1,4 +1,5 @@
 import * as sodium from 'libsodium-wrappers'
+import * as bs58check from 'bs58check'
 
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 
@@ -11,7 +12,9 @@ export function getHexHash(key: string | Buffer | Uint8Array): string {
   return toHex(sodium.crypto_generichash(32, key))
 }
 
-export function getKeypairFromSeed(seed: string): sodium.KeyPair {
+export async function getKeypairFromSeed(seed: string): Promise<sodium.KeyPair> {
+  await sodium.ready
+
   return sodium.crypto_sign_seed_keypair(sodium.crypto_generichash(32, sodium.from_string(seed)))
 }
 
@@ -56,6 +59,14 @@ export function openCryptobox(
   )
 
   return Buffer.from(decryptedMessage).toString()
+}
+
+export async function getAddressFromPublicKey(publicKey: string): Promise<string> {
+  await sodium.ready
+  const payload: Uint8Array = sodium.crypto_generichash(20, Buffer.from(publicKey, 'hex'))
+  const tz1Prefix: Buffer = Buffer.from(new Uint8Array([6, 161, 159]))
+
+  return bs58check.encode(Buffer.concat([tz1Prefix, Buffer.from(payload)]))
 }
 
 export function recipientString(recipientHash: string, relayServer: string): string {
