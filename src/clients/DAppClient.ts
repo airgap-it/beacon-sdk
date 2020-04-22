@@ -24,7 +24,7 @@ import {
   BroadcastResponse,
   BroadcastRequest,
   BeaconErrorMessage,
-  BeaconMessages,
+  BeaconMessage,
   RequestPermissionInput,
   RequestSignPayloadInput,
   RequestOperationInput,
@@ -44,7 +44,7 @@ export type OperationRequestInput = Omit<OperationRequest, IgnoredInputPropertie
 export type SignPayloadRequestInput = Omit<SignPayloadRequest, IgnoredInputProperties>
 export type BroadcastRequestInput = Omit<BroadcastRequest, IgnoredInputProperties>
 
-export type BeaconMessagesInput =
+export type BeaconRequestInputMessage =
   | PermissionRequestInput
   | OperationRequestInput
   | SignPayloadRequestInput
@@ -60,7 +60,7 @@ export type OperationResponseOutput = Omit<OperationResponse, IgnoredOutputPrope
 export type SignPayloadResponseOutput = Omit<SignPayloadResponse, IgnoredOutputProperties>
 export type BroadcastResponseOutput = Omit<BroadcastResponse, IgnoredOutputProperties>
 
-export type BeaconMessagesOutput =
+export type BeaconResponseOutputMessage =
   | PermissionResponseOutput
   | OperationResponseOutput
   | SignPayloadResponseOutput
@@ -108,7 +108,7 @@ export class DAppClient extends BaseClient {
   private readonly openRequests = new Map<
     string,
     ExposedPromise<
-      { message: BeaconMessages; connectionInfo: ConnectionContext },
+      { message: BeaconMessage; connectionInfo: ConnectionContext },
       BeaconErrorMessage
     >
   >()
@@ -127,7 +127,7 @@ export class DAppClient extends BaseClient {
     })
     this.iconUrl = config.iconUrl
 
-    this.handleResponse = (event: BeaconMessages, connectionInfo: ConnectionContext): void => {
+    this.handleResponse = (event: BeaconMessage, connectionInfo: ConnectionContext): void => {
       const openRequest = this.openRequests.get(event.id)
       if (openRequest) {
         logger.log('handleResponse', 'found openRequest', event.id)
@@ -147,7 +147,7 @@ export class DAppClient extends BaseClient {
   public addOpenRequest(
     id: string,
     promise: ExposedPromise<
-      { message: BeaconMessages; connectionInfo: ConnectionContext },
+      { message: BeaconMessage; connectionInfo: ConnectionContext },
       BeaconErrorMessage
     >
   ): void {
@@ -177,6 +177,20 @@ export class DAppClient extends BaseClient {
 
   public async getActiveAccount(): Promise<AccountInfo | undefined> {
     return this.activeAccount
+  }
+
+  public async setActiveAccount(account?: AccountInfo): Promise<void> {
+    if (!account) {
+      return
+    }
+
+    this.activeAccount = account
+
+    await this.storage.set(StorageKey.ACTIVE_ACCOUNT, account.accountIdentifier)
+
+    await this.events.emit(InternalEvent.ACTIVE_ACCOUNT_SET, account)
+
+    return
   }
 
   public async getAppMetadata(): Promise<AppMetadata> {
@@ -346,7 +360,10 @@ export class DAppClient extends BaseClient {
     return { beaconId, transactionHash }
   }
 
-  private async handleRequestError(request: BeaconMessagesInput, error: Error): Promise<void> {
+  private async handleRequestError(
+    request: BeaconRequestInputMessage,
+    error: Error
+  ): Promise<void> {
     console.error('requestError', error)
     this.events
       .emit(messageEvents[request.type].error)
@@ -362,7 +379,7 @@ export class DAppClient extends BaseClient {
     }
   }
 
-  private async makeRequest<T extends BeaconMessagesInput, U extends BeaconMessages>(
+  private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Omit<T, IgnoredInputProperties>
   ): Promise<{
     message: U
@@ -413,19 +430,5 @@ export class DAppClient extends BaseClient {
     await this.transport.send(payload)
 
     return exposed.promise
-  }
-
-  private async setActiveAccount(account?: AccountInfo): Promise<void> {
-    if (!account) {
-      return
-    }
-
-    this.activeAccount = account
-
-    await this.storage.set(StorageKey.ACTIVE_ACCOUNT, account.accountIdentifier)
-
-    await this.events.emit(InternalEvent.ACTIVE_ACCOUNT_SET, account)
-
-    return
   }
 }

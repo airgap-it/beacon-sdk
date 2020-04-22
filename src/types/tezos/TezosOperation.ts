@@ -1,5 +1,5 @@
 import { TezosOperationType } from '../..'
 
-export interface TezosOperation {
+export interface TezosBaseOperation {
   kind: TezosOperationType
 }

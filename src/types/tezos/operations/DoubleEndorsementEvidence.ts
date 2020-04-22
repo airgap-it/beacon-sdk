@@ -1,4 +1,4 @@
-import { TezosOperation, TezosOperationType } from '../../..'
+import { TezosBaseOperation, TezosOperationType } from '../../..'
 
 export interface InlinedEndorsement {
   branch: string
@@ -11,7 +11,7 @@ export interface InlinedEndorsementContents {
   level: string
 }
 
-export interface TezosDoubleEndorsementEvidenceOperation extends TezosOperation {
+export interface TezosDoubleEndorsementEvidenceOperation extends TezosBaseOperation {
   kind: TezosOperationType.DOUBLE_ENDORSEMENT_EVIDENCE
   op1: InlinedEndorsement
   op2: InlinedEndorsement

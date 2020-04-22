@@ -9,7 +9,7 @@ import {
   BroadcastResponse
 } from '../..'
 
-export type BeaconMessages =
+export type BeaconMessage =
   | PermissionRequest
   | PermissionResponse
   | OperationRequest

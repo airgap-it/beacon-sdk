@@ -16,7 +16,7 @@ import {
   AccountInfo,
   BeaconBaseMessage,
   Network,
-  BeaconMessages
+  BeaconMessage
 } from '..'
 
 // const logger = new Logger('BaseClient')
@@ -28,7 +28,7 @@ export class BaseClient {
   protected beaconId: string | undefined
   protected readonly name: string
 
-  protected handleResponse: (_event: BeaconMessages, connectionInfo: ConnectionContext) => void
+  protected handleResponse: (_event: BeaconMessage, connectionInfo: ConnectionContext) => void
 
   protected _keyPair: ExposedPromise<sodium.KeyPair> = exposedPromise()
   protected get keyPair(): Promise<sodium.KeyPair> {
@@ -165,7 +165,7 @@ export class BaseClient {
           if (typeof message === 'string') {
             const deserializedMessage = (await new Serializer().deserialize(
               message
-            )) as BeaconMessages
+            )) as BeaconMessage
             this.handleResponse(deserializedMessage, connectionInfo)
           }
         })

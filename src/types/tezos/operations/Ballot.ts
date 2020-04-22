@@ -1,6 +1,6 @@
-import { TezosOperation, TezosOperationType } from '../../..'
+import { TezosBaseOperation, TezosOperationType } from '../../..'
 
-export interface TezosBallotOperation extends TezosOperation {
+export interface TezosBallotOperation extends TezosBaseOperation {
   kind: TezosOperationType.BALLOT
   source: string
   period: string

@@ -1,6 +1,6 @@
-import { TezosOperation, TezosOperationType, TezosTransactionParameters } from '../../..'
+import { TezosBaseOperation, TezosOperationType, TezosTransactionParameters } from '../../..'
 
-export interface TezosTransactionOperation extends TezosOperation {
+export interface TezosTransactionOperation extends TezosBaseOperation {
   kind: TezosOperationType.TRANSACTION
   source: string
   fee: string

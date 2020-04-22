@@ -11,7 +11,7 @@ import {
   TezosTransactionOperation
 } from '../..'
 
-export type TezosOperations =
+export type TezosOperations =  // TODO: Rename to TezosOperation
   | TezosActivateAccountOperation
   | TezosBallotOperation
   | TezosDelegationOperation

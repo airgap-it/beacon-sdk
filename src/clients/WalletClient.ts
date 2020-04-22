@@ -14,7 +14,7 @@ import {
   BroadcastResponse,
   AppMetadata,
   BeaconMessageType,
-  BeaconMessages,
+  BeaconMessage,
   Origin,
   PermissionScope,
   Serializer,
@@ -36,20 +36,20 @@ export type SignPayloadRequestOutput = Omit<SignPayloadRequest, IgnoredResponseO
 export type BroadcastRequestOutput = Omit<BroadcastRequest, IgnoredResponseOutputProperties> &
   ExtraResponseOutputProperties
 
-type BeaconMessagesOutput =
+export type BeaconRequestOutputMessage =
   | PermissionRequestOutput
   | OperationRequestOutput
   | SignPayloadRequestOutput
   | BroadcastRequestOutput
 
-type IgnoredResponseInputProperties = 'beaconId' | 'version'
+export type IgnoredResponseInputProperties = 'beaconId' | 'version'
 
 export type PermissionResponseInput = Omit<PermissionResponse, IgnoredResponseInputProperties>
 export type OperationResponseInput = Omit<OperationResponse, IgnoredResponseInputProperties>
 export type SignPayloadResponseInput = Omit<SignPayloadResponse, IgnoredResponseInputProperties>
 export type BroadcastResponseInput = Omit<BroadcastResponse, IgnoredResponseInputProperties>
 
-type BeaconMessagesInput =
+export type BeaconResponseInputMessage =
   | PermissionResponseInput
   | OperationResponseInput
   | SignPayloadResponseInput
@@ -109,10 +109,13 @@ export class WalletClient extends BaseClient {
   }
 
   public async connect(
-    newMessageCallback: (message: BeaconMessagesOutput, connectionInfo: ConnectionContext) => void
+    newMessageCallback: (
+      message: BeaconRequestOutputMessage,
+      connectionInfo: ConnectionContext
+    ) => void
   ): Promise<boolean> {
     this.handleResponse = async (
-      message: BeaconMessages,
+      message: BeaconMessage,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
       if (!this.pendingRequests.some((request) => request.id === message.id)) {
@@ -166,7 +169,7 @@ export class WalletClient extends BaseClient {
     return super._connect()
   }
 
-  public async respond(message: BeaconMessagesInput): Promise<void> {
+  public async respond(message: BeaconResponseInputMessage): Promise<void> {
     console.log('responding to message', message)
     const request = this.pendingRequests.find((pendingRequest) => pendingRequest.id === message.id)
     if (!request) {
@@ -226,7 +229,7 @@ export class WalletClient extends BaseClient {
     }
   }
 
-  private async respondToMessage(message: BeaconMessages): Promise<void> {
+  private async respondToMessage(message: BeaconMessage): Promise<void> {
     if (!this.transport) {
       throw new Error('no transport defined')
     }
