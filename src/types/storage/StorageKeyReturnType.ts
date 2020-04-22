@@ -1,9 +1,8 @@
-import { StorageKey, AccountInfo, AccountIdentifier, ICommunicationPair } from '../..'
+import { StorageKey, AccountInfo, AccountIdentifier, P2PPairInfo } from '../..'
 
 export interface StorageKeyReturnType {
-  [StorageKey.TRANSPORT_P2P_SECRET_KEY]: string | undefined
-  [StorageKey.TRANSPORT_P2P_PEERS]: ICommunicationPair[]
+  [StorageKey.TRANSPORT_P2P_PEERS]: P2PPairInfo[]
   [StorageKey.ACCOUNTS]: AccountInfo[]
   [StorageKey.ACTIVE_ACCOUNT]: AccountIdentifier | undefined
-  [StorageKey.BEACON_SDK_ID]: string | undefined
+  [StorageKey.BEACON_SDK_SECRET_SEED]: string | undefined
 }
