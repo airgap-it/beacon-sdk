@@ -391,8 +391,6 @@ export class DAppClient extends BaseClient {
       .emit(messageEvents[requestInput.type].success)
       .catch((emitError) => console.warn(emitError))
 
-    const payload = await new Serializer().serialize(requestInput)
-
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
     }
@@ -406,6 +404,8 @@ export class DAppClient extends BaseClient {
 
     const exposed = exposedPromise<{ message: U; connectionInfo: ConnectionContext }>()
     this.addOpenRequest(request.id, exposed)
+
+    const payload = await new Serializer().serialize(request)
 
     if (!this.transport) {
       throw new Error('No transport')
