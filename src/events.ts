@@ -12,6 +12,9 @@ export enum InternalEvent {
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
   LOCAL_RATE_LIMIT_REACHED = 'LOCAL_RATE_LIMIT_REACHED',
   NO_PERMISSIONS = 'NO_PERMISSIONS',
+
+  ACTIVE_ACCOUNT_SET = 'ACTIVE_ACCOUNT_SET',
+
   UNKNOWN = 'UNKNOWN'
 }
 
@@ -72,6 +75,9 @@ export class InternalEventHandler {
           timer: 3000
         }).catch((toastError) => console.error(toastError))
       },
+      [InternalEvent.ACTIVE_ACCOUNT_SET]: async (data?: unknown): Promise<void> => {
+        console.log('internal event: active account set', data)
+      },
       [InternalEvent.UNKNOWN]: async (_data?: unknown): Promise<void> => {
         /* Do nothing */
       }
@@ -88,6 +94,7 @@ export class InternalEventHandler {
       [InternalEvent.BROADCAST_REQUEST_ERROR]: [],
       [InternalEvent.LOCAL_RATE_LIMIT_REACHED]: [],
       [InternalEvent.NO_PERMISSIONS]: [],
+      [InternalEvent.ACTIVE_ACCOUNT_SET]: [],
       [InternalEvent.UNKNOWN]: []
     }
   }

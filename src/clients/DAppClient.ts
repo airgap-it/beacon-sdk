@@ -31,7 +31,10 @@ import {
   RequestBroadcastInput,
   PermissionRequest,
   AppMetadata,
-  BeaconBaseMessage
+  BeaconBaseMessage,
+  Serializer,
+  LocalStorage,
+  Storage
 } from '..'
 
 const logger = new Logger('DAppClient')
@@ -117,9 +120,12 @@ export class DAppClient extends BaseClient {
     return this._isConnected.promise
   }
 
-  constructor(name: string, iconUrl?: string) {
-    super(name)
-    this.iconUrl = iconUrl
+  constructor(config: { name: string; iconUrl?: string; storage?: Storage }) {
+    super({
+      storage: config.storage ? config.storage : new LocalStorage(),
+      ...config
+    })
+    this.iconUrl = config.iconUrl
 
     this.handleResponse = (event: BeaconMessages, connectionInfo: ConnectionContext): void => {
       const openRequest = this.openRequests.get(event.id)
@@ -249,8 +255,8 @@ export class DAppClient extends BaseClient {
       connectedAt: new Date()
     }
 
-    this.activeAccount = accountInfo
     await this.addAccount(accountInfo)
+    await this.setActiveAccount(accountInfo)
     console.log('permissions interception', response)
 
     const { beaconId, network, scopes } = message
@@ -375,7 +381,7 @@ export class DAppClient extends BaseClient {
       .emit(messageEvents[requestInput.type].success)
       .catch((emitError) => console.warn(emitError))
 
-    const payload = await this.serializer.serialize(requestInput)
+    const payload = await new Serializer().serialize(requestInput)
 
     if (!this.beaconId) {
       throw new Error('BeaconID not defined')
@@ -403,12 +409,13 @@ export class DAppClient extends BaseClient {
     if (!account) {
       return
     }
-    if (!this.storage) {
-      throw new Error('no storage defined')
-    }
 
     this.activeAccount = account
 
-    return this.storage.set(StorageKey.ACTIVE_ACCOUNT, account.accountIdentifier)
+    await this.storage.set(StorageKey.ACTIVE_ACCOUNT, account.accountIdentifier)
+
+    await this.events.emit(InternalEvent.ACTIVE_ACCOUNT_SET, account)
+
+    return
   }
 }

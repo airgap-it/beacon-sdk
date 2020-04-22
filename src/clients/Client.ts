@@ -11,7 +11,6 @@ import {
   Transport,
   TransportType,
   TransportStatus,
-  getStorage,
   Storage,
   StorageKey,
   AccountInfo,
@@ -28,23 +27,23 @@ export class BaseClient {
   protected readonly rateLimitWindowInSeconds: number = 5
   protected beaconId: string | undefined
   protected readonly name: string
-  protected readonly serializer = new Serializer()
 
-  protected handleResponse: (_event: BeaconMessages, connectionInfo: any) => void
+  protected handleResponse: (_event: BeaconMessages, connectionInfo: ConnectionContext) => void
 
   protected _keyPair: ExposedPromise<sodium.KeyPair> = exposedPromise()
   protected get keyPair(): Promise<sodium.KeyPair> {
     return this._keyPair.promise
   }
 
-  protected storage: Storage | undefined
+  protected storage: Storage
   protected transport: Transport | undefined
 
   protected readonly _isConnected: ExposedPromise<boolean> = exposedPromise()
 
-  constructor(name: string) {
-    this.name = name
-    this.handleResponse = (_event: BeaconBaseMessage, _connectionInfo: any) => {
+  constructor(config: { name: string; storage: Storage }) {
+    this.name = config.name
+    this.storage = config.storage
+    this.handleResponse = (_event: BeaconBaseMessage, _connectionInfo: ConnectionContext) => {
       throw new Error('not overwritten')
     }
     this.loadOrCreateBeaconSecret().catch(console.error)
@@ -73,10 +72,6 @@ export class BaseClient {
   public async init(isDapp: boolean = true, transport?: Transport): Promise<TransportType> {
     if (this.transport) {
       return this.transport.type
-    }
-
-    if (!this.storage) {
-      this.storage = await getStorage()
     }
 
     if (transport) {
@@ -129,28 +124,16 @@ export class BaseClient {
   }
 
   public async getAccounts(): Promise<AccountInfo[]> {
-    if (!this.storage) {
-      throw new Error('no storage defined')
-    }
-
     return this.storage.get(StorageKey.ACCOUNTS)
   }
 
   public async getAccount(accountIdentifier: string): Promise<AccountInfo | undefined> {
-    if (!this.storage) {
-      throw new Error('no storage defined')
-    }
-
     const accounts = await this.storage.get(StorageKey.ACCOUNTS)
 
     return accounts.find((account) => account.accountIdentifier === accountIdentifier)
   }
 
   public async addAccount(accountInfo: AccountInfo): Promise<void> {
-    if (!this.storage) {
-      throw new Error('no storage defined')
-    }
-
     const accounts = await this.storage.get(StorageKey.ACCOUNTS)
 
     if (!accounts.some((element) => element.accountIdentifier === accountInfo.accountIdentifier)) {
@@ -161,10 +144,6 @@ export class BaseClient {
   }
 
   public async removeAccount(accountIdentifier: string): Promise<void> {
-    if (!this.storage) {
-      throw new Error('no storage defined')
-    }
-
     const accounts = await this.storage.get(StorageKey.ACCOUNTS)
 
     const filteredAccounts = accounts.filter(
@@ -175,10 +154,6 @@ export class BaseClient {
   }
 
   public async removeAllAccounts(): Promise<void> {
-    if (!this.storage) {
-      throw new Error('no storage defined')
-    }
-
     return this.storage.delete(StorageKey.ACCOUNTS)
   }
 
@@ -188,7 +163,7 @@ export class BaseClient {
       this.transport
         .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
           if (typeof message === 'string') {
-            const deserializedMessage = (await this.serializer.deserialize(
+            const deserializedMessage = (await new Serializer().deserialize(
               message
             )) as BeaconMessages
             this.handleResponse(deserializedMessage, connectionInfo)
@@ -204,9 +179,6 @@ export class BaseClient {
   }
 
   private async loadOrCreateBeaconSecret(): Promise<void> {
-    if (!this.storage) {
-      throw new Error('no storage')
-    }
     const storageValue: unknown = await this.storage.get(StorageKey.BEACON_SDK_SECRET_SEED)
     if (storageValue && typeof storageValue === 'string') {
       this._keyPair.resolve(getKeypairFromSeed(storageValue))

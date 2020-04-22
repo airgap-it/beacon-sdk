@@ -16,7 +16,9 @@ import {
   BeaconMessageType,
   BeaconMessages,
   Origin,
-  PermissionScope
+  PermissionScope,
+  Serializer,
+  LocalStorage
 } from '..'
 
 type IgnoredResponseOutputProperties = 'version'
@@ -55,6 +57,10 @@ type BeaconMessagesInput =
 
 export class WalletClient extends BaseClient {
   private pendingRequests: BeaconBaseMessage[] = []
+
+  constructor(config: { name: string }) {
+    super({ name: config.name, storage: new LocalStorage() })
+  }
 
   public async init(): Promise<TransportType> {
     return super.init(false)
@@ -224,7 +230,7 @@ export class WalletClient extends BaseClient {
     if (!this.transport) {
       throw new Error('no transport defined')
     }
-    const serializedMessage: string = await this.serializer.serialize(message)
+    const serializedMessage: string = await new Serializer().serialize(message)
     await this.transport.send(serializedMessage)
   }
 }
