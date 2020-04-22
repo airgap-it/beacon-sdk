@@ -2,14 +2,10 @@
 /// <reference types="chrome"/>
 
 import { Logger } from '../utils/Logger'
-import { ExtensionMessage, ExtensionMessageTarget, Transport, TransportType } from '..'
+import { ConnectionContext } from '../types/ConnectionContext'
+import { ExtensionMessage, ExtensionMessageTarget, Transport, TransportType, Origin } from '..'
 
 const logger = new Logger('ChromeMessageTransport')
-
-interface ConnectionContext {
-  sender: chrome.runtime.MessageSender
-  sendResponse(response?: unknown): void
-}
 
 export class ChromeMessageTransport extends Transport {
   public readonly type: TransportType = TransportType.CHROME_MESSAGE
@@ -41,7 +37,11 @@ export class ChromeMessageTransport extends Transport {
         sendResponse: (response?: unknown) => void
       ) => {
         logger.log('init', 'receiving chrome message', message, sender)
-        const connectionContext: ConnectionContext = { sender, sendResponse }
+        const connectionContext: ConnectionContext = {
+          origin: Origin.EXTENSION,
+          id: sender.id ? sender.id : '',
+          extras: { sender, sendResponse }
+        }
         this.notifyListeners(message, connectionContext).catch((error) => logger.error(error))
 
         // return true from the event listener to indicate you wish to send a response asynchronously

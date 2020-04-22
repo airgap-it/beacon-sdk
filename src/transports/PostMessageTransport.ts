@@ -43,7 +43,7 @@ export class PostMessageTransport extends Transport {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data: ExtensionMessage<string> = (message as any).data
         if (data.target === ExtensionMessageTarget.PAGE) {
-          this.notifyListeners(data.payload, {}).catch((error) => {
+          this.notifyListeners(data.payload, {} as any).catch((error) => {
             throw error
           })
         }

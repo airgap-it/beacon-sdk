@@ -1,4 +1,5 @@
 import { Logger } from '../utils/Logger'
+import { ConnectionContext } from '../types/ConnectionContext'
 import { TransportType, TransportStatus } from '..'
 
 const logger = new Logger('Transport')
@@ -9,7 +10,7 @@ export abstract class Transport {
   protected readonly name: string
   protected _isConnected: TransportStatus = TransportStatus.NOT_CONNECTED
 
-  private listeners: ((message: unknown, connectionInfo: any) => void)[] = []
+  private listeners: ((message: unknown, connectionInfo: ConnectionContext) => void)[] = []
   private peers: string[] = []
 
   public get connectionStatus(): TransportStatus {
@@ -54,16 +55,14 @@ export abstract class Transport {
     return
   }
 
-  public async send(message: string, connectionInfo: any): Promise<void> {
-    logger.log('send', message, connectionInfo)
-
-    await this.notifyListeners(message, connectionInfo)
+  public async send(message: string): Promise<void> {
+    logger.log('send', message)
 
     return
   }
 
   public async addListener(
-    listener: (message: unknown, connectionInfo: any) => void
+    listener: (message: unknown, connectionInfo: ConnectionContext) => void
   ): Promise<void> {
     logger.log('addListener')
 
@@ -73,7 +72,7 @@ export abstract class Transport {
   }
 
   public async removeListener(
-    listener: (message: string, connectionInfo: any) => void
+    listener: (message: string, connectionInfo: ConnectionContext) => void
   ): Promise<void> {
     logger.log('removeListener')
 
@@ -82,7 +81,10 @@ export abstract class Transport {
     return
   }
 
-  protected async notifyListeners(message: unknown, connectionInfo: any): Promise<void> {
+  protected async notifyListeners(
+    message: unknown,
+    connectionInfo: ConnectionContext
+  ): Promise<void> {
     logger.log('notifyListeners')
 
     if (this.listeners.length === 0) {

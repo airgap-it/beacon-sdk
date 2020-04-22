@@ -1,13 +1,15 @@
+import * as sodium from 'libsodium-wrappers'
 import { openAlert, closeAlert, AlertConfig } from '../alert/Alert'
-import { generateGUID } from '../utils/generate-uuid'
 import { Logger } from '../utils/Logger'
+import { ConnectionContext } from '../types/ConnectionContext'
 import {
   Storage,
   StorageKey,
   TransportStatus,
   Transport,
   TransportType,
-  WalletCommunicationClient
+  WalletCommunicationClient,
+  Origin
 } from '..'
 
 const logger = new Logger('Transport')
@@ -17,10 +19,13 @@ export class P2PTransport extends Transport {
 
   private readonly isDapp: boolean = true
   private readonly storage: Storage
+  private readonly keyPair: sodium.KeyPair
+
   private client: WalletCommunicationClient | undefined
 
-  constructor(name: string, storage: Storage, isDapp: boolean) {
+  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, isDapp: boolean) {
     super(name)
+    this.keyPair = keyPair
     this.storage = storage
     this.isDapp = isDapp
   }
@@ -33,9 +38,7 @@ export class P2PTransport extends Transport {
     logger.log('connect')
     this._isConnected = TransportStatus.CONNECTING
 
-    const key = await this.getOrCreateKey()
-
-    this.client = new WalletCommunicationClient(this.name, key, 1, false)
+    this.client = new WalletCommunicationClient(this.name, this.keyPair, 1, false)
     await this.client.start()
 
     const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
@@ -158,28 +161,19 @@ export class P2PTransport extends Transport {
     return (await Promise.all(promises))[0]
   }
 
-  private async getOrCreateKey(): Promise<string> {
-    if (!this.storage) {
-      throw new Error('no storage')
-    }
-    const storageValue: unknown = await this.storage.get(StorageKey.TRANSPORT_P2P_SECRET_KEY)
-    if (storageValue && typeof storageValue === 'string') {
-      return storageValue
-    } else {
-      const key = generateGUID()
-      await this.storage.set(StorageKey.TRANSPORT_P2P_SECRET_KEY, key)
-
-      return key
-    }
-  }
-
   private async listen(pubKey: string): Promise<void> {
     if (!this.client) {
       throw new Error('client not ready')
     }
+
     await this.client
       .listenForEncryptedMessage(pubKey, (message) => {
-        this.notifyListeners(message, { pubKey }).catch((error) => {
+        const connectionContext: ConnectionContext = {
+          origin: Origin.P2P,
+          id: pubKey
+        }
+
+        this.notifyListeners(message, connectionContext).catch((error) => {
           throw error
         })
       })

@@ -16,7 +16,7 @@ export class LocalTransport extends Transport {
     logger.log('send', message)
 
     const transformedMessage = this.transformer ? this.transformer(message) : message
-    await this.notifyListeners(transformedMessage, {})
+    await this.notifyListeners(transformedMessage, {} as any)
 
     return
   }
