@@ -203,6 +203,10 @@ export class DAppClient extends BaseClient {
   }
 
   public async checkPermissions(type: BeaconMessageType): Promise<boolean> {
+    if (type === BeaconMessageType.PermissionRequest) {
+      return true
+    }
+
     const accountInfo = this.activeAccount
 
     if (!accountInfo) {
@@ -216,7 +220,6 @@ export class DAppClient extends BaseClient {
         )
       case BeaconMessageType.SignPayloadRequest:
         return accountInfo.scopes.some((permission) => permission === PermissionScope.SIGN)
-      case BeaconMessageType.PermissionRequest:
       case BeaconMessageType.BroadcastRequest:
         return true
       default:
