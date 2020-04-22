@@ -10,7 +10,9 @@ export enum InternalEvent {
   SIGN_REQUEST_ERROR = 'SIGN_REQUEST_ERROR',
   BROADCAST_REQUEST_SENT = 'BROADCAST_REQUEST_SENT',
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
-  LOCAL_RATE_LIMIT_REACHED = 'LOCAL_RATE_LIMIT_REACHED'
+  LOCAL_RATE_LIMIT_REACHED = 'LOCAL_RATE_LIMIT_REACHED',
+  NO_PERMISSIONS = 'NO_PERMISSIONS',
+  UNKNOWN = 'UNKNOWN'
 }
 
 const listenerFallback = async (data?: unknown): Promise<void> => {
@@ -63,6 +65,15 @@ export class InternalEventHandler {
           body: 'Rate limit reached. Please slow down',
           timer: 3000
         }).catch((toastError) => console.error(toastError))
+      },
+      [InternalEvent.NO_PERMISSIONS]: async (_data?: unknown): Promise<void> => {
+        openToast({
+          body: 'No permissions!',
+          timer: 3000
+        }).catch((toastError) => console.error(toastError))
+      },
+      [InternalEvent.UNKNOWN]: async (_data?: unknown): Promise<void> => {
+        /* Do nothing */
       }
     }
 
@@ -75,7 +86,9 @@ export class InternalEventHandler {
       [InternalEvent.SIGN_REQUEST_ERROR]: [],
       [InternalEvent.BROADCAST_REQUEST_SENT]: [],
       [InternalEvent.BROADCAST_REQUEST_ERROR]: [],
-      [InternalEvent.LOCAL_RATE_LIMIT_REACHED]: []
+      [InternalEvent.LOCAL_RATE_LIMIT_REACHED]: [],
+      [InternalEvent.NO_PERMISSIONS]: [],
+      [InternalEvent.UNKNOWN]: []
     }
   }
 
