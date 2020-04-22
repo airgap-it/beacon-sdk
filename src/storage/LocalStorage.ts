@@ -1,4 +1,4 @@
-import { defaultValues } from './Storage'
+import { defaultValues } from '../types/storage/StorageKeyReturnDefaults'
 import { Storage, StorageKey, StorageKeyReturnType } from '..'
 
 export class LocalStorage implements Storage {
