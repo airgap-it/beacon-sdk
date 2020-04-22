@@ -3,19 +3,20 @@ import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
 import { InternalEvent, InternalEventHandler } from '../events'
+import { SDK_VERSION } from '../constants'
+import { IgnoredInputProperties } from '../types/beacon/IgnoredInputProperties'
+import { getAddressFromPublicKey } from '../utils/crypto'
+import { ConnectionContext } from '../types/ConnectionContext'
 import {
   AccountInfo,
-  AccountIdentifier,
   BaseClient,
   TransportType,
   Transport,
   StorageKey,
-  BeaconBaseMessage,
   BeaconMessageType,
   PermissionScope,
   PermissionResponse,
   NetworkType,
-  Origin,
   SignPayloadResponse,
   SignPayloadRequest,
   OperationResponse,
@@ -27,34 +28,108 @@ import {
   RequestPermissionInput,
   RequestSignPayloadInput,
   RequestOperationInput,
-  RequestBroadcastInput
+  RequestBroadcastInput,
+  PermissionRequest,
+  AppMetadata,
+  BeaconBaseMessage
 } from '..'
 
 const logger = new Logger('DAppClient')
 
+export type PermissionRequestInput = Omit<PermissionRequest, IgnoredInputProperties>
+export type OperationRequestInput = Omit<OperationRequest, IgnoredInputProperties>
+export type SignPayloadRequestInput = Omit<SignPayloadRequest, IgnoredInputProperties>
+export type BroadcastRequestInput = Omit<BroadcastRequest, IgnoredInputProperties>
+
+export type BeaconMessagesInput =
+  | PermissionRequestInput
+  | OperationRequestInput
+  | SignPayloadRequestInput
+  | BroadcastRequestInput
+
+export type IgnoredOutputProperties = 'id' | 'version' | 'type'
+
+export type PermissionResponseOutput = Omit<
+  Omit<PermissionResponse, IgnoredOutputProperties>,
+  'accountIdentifier' | 'pubkey'
+> & { address?: string }
+export type OperationResponseOutput = Omit<OperationResponse, IgnoredOutputProperties>
+export type SignPayloadResponseOutput = Omit<SignPayloadResponse, IgnoredOutputProperties>
+export type BroadcastResponseOutput = Omit<BroadcastResponse, IgnoredOutputProperties>
+
+export type BeaconMessagesOutput =
+  | PermissionResponseOutput
+  | OperationResponseOutput
+  | SignPayloadResponseOutput
+  | BroadcastResponseOutput
+
+const messageEvents: {
+  [key in BeaconMessageType]: { success: InternalEvent; error: InternalEvent }
+} = {
+  [BeaconMessageType.PermissionRequest]: {
+    success: InternalEvent.PERMISSION_REQUEST_SENT,
+    error: InternalEvent.PERMISSION_REQUEST_ERROR
+  },
+  [BeaconMessageType.PermissionResponse]: {
+    success: InternalEvent.UNKNOWN,
+    error: InternalEvent.UNKNOWN
+  },
+  [BeaconMessageType.OperationRequest]: {
+    success: InternalEvent.OPERATION_REQUEST_SENT,
+    error: InternalEvent.OPERATION_REQUEST_ERROR
+  },
+  [BeaconMessageType.OperationResponse]: {
+    success: InternalEvent.UNKNOWN,
+    error: InternalEvent.UNKNOWN
+  },
+  [BeaconMessageType.SignPayloadRequest]: {
+    success: InternalEvent.SIGN_REQUEST_SENT,
+    error: InternalEvent.SIGN_REQUEST_ERROR
+  },
+  [BeaconMessageType.SignPayloadResponse]: {
+    success: InternalEvent.UNKNOWN,
+    error: InternalEvent.UNKNOWN
+  },
+  [BeaconMessageType.BroadcastRequest]: {
+    success: InternalEvent.BROADCAST_REQUEST_SENT,
+    error: InternalEvent.BROADCAST_REQUEST_ERROR
+  },
+  [BeaconMessageType.BroadcastResponse]: {
+    success: InternalEvent.UNKNOWN,
+    error: InternalEvent.UNKNOWN
+  }
+}
+
 export class DAppClient extends BaseClient {
   private readonly events: InternalEventHandler = new InternalEventHandler()
-  private readonly openRequests = new Map<string, ExposedPromise<BeaconMessages>>()
+  private readonly openRequests = new Map<
+    string,
+    ExposedPromise<
+      { message: BeaconMessages; connectionInfo: ConnectionContext },
+      BeaconErrorMessage
+    >
+  >()
+  private readonly iconUrl?: string
+
   private activeAccount: AccountInfo | undefined
 
   public get isConnected(): Promise<boolean> {
     return this._isConnected.promise
   }
 
-  constructor(name: string) {
+  constructor(name: string, iconUrl?: string) {
     super(name)
+    this.iconUrl = iconUrl
 
-    this.handleResponse = (event: BeaconBaseMessage): void => {
+    this.handleResponse = (event: BeaconMessages, connectionInfo: ConnectionContext): void => {
       const openRequest = this.openRequests.get(event.id)
       if (openRequest) {
         logger.log('handleResponse', 'found openRequest', event.id)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((event as any).error) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          openRequest.reject(event as any)
+        if (((event as any) as BeaconErrorMessage).errorType) {
+          openRequest.reject((event as any) as BeaconErrorMessage)
         } else {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          openRequest.resolve(event as any)
+          openRequest.resolve({ message: event, connectionInfo })
         }
         this.openRequests.delete(event.id)
       } else {
@@ -63,7 +138,13 @@ export class DAppClient extends BaseClient {
     }
   }
 
-  public addOpenRequest(id: string, promise: ExposedPromise<BeaconMessages>): void {
+  public addOpenRequest(
+    id: string,
+    promise: ExposedPromise<
+      { message: BeaconMessages; connectionInfo: ConnectionContext },
+      BeaconErrorMessage
+    >
+  ): void {
     logger.log('addOpenRequest', this.name, `adding request ${id} and waiting for answer`)
     this.openRequests.set(id, promise)
   }
@@ -92,37 +173,27 @@ export class DAppClient extends BaseClient {
     return this.activeAccount
   }
 
-  public async makeRequest<T extends BeaconMessages>(request: BeaconMessages): Promise<T> {
-    logger.log('makeRequest')
-    await this.init()
-    await this.connect()
-    logger.log('makeRequest', 'after connecting')
-
-    const payload = await this.serializer.serialize(request)
-
-    const exposed = exposedPromise<T>()
-    this.addOpenRequest(request.id, exposed)
-
-    if (!this.transport) {
-      throw new Error('No transport')
+  public async getAppMetadata(): Promise<AppMetadata> {
+    if (!this.beaconId) {
+      throw new Error('BeaconID not defined')
     }
-    await this.transport.send(payload, {})
 
-    return exposed.promise
+    return {
+      beaconId: this.beaconId,
+      name: this.name,
+      icon: this.iconUrl
+    }
   }
 
   public async connect(): Promise<boolean> {
     return super._connect()
   }
 
-  public async checkPermissions(
-    type: BeaconMessageType,
-    identifier: AccountIdentifier
-  ): Promise<boolean> {
-    const accountInfo = await this.getAccount(identifier)
+  public async checkPermissions(type: BeaconMessageType): Promise<boolean> {
+    const accountInfo = this.activeAccount
 
     if (!accountInfo) {
-      return false
+      throw new Error('No active account set!')
     }
 
     switch (type) {
@@ -132,6 +203,7 @@ export class DAppClient extends BaseClient {
         )
       case BeaconMessageType.SignPayloadRequest:
         return accountInfo.scopes.some((permission) => permission === PermissionScope.SIGN)
+      case BeaconMessageType.PermissionRequest:
       case BeaconMessageType.BroadcastRequest:
         return true
       default:
@@ -139,167 +211,152 @@ export class DAppClient extends BaseClient {
     }
   }
 
-  public async requestPermissions(request?: RequestPermissionInput): Promise<PermissionResponse> {
-    if (!this.beaconId) {
-      throw new Error('BeaconID not defined')
-    }
-
-    if (await this.addRequestAndCheckIfRateLimited()) {
-      this.events
-        .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
-        .catch((emitError) => console.warn(emitError))
-
-      throw new Error('rate limit reached')
-    }
-    this.events
-      .emit(InternalEvent.PERMISSION_REQUEST_SENT)
-      .catch((emitError) => console.warn(emitError))
-
-    return this.makeRequest<PermissionResponse>({
-      id: generateGUID(),
-      beaconId: this.beaconId,
-      appMetadata: {
-        name: this.name
-      },
+  public async requestPermissions(
+    input?: RequestPermissionInput
+  ): Promise<PermissionResponseOutput> {
+    const request: PermissionRequestInput = {
+      appMetadata: await this.getAppMetadata(),
       type: BeaconMessageType.PermissionRequest,
-      network: request && request.network ? request.network : { type: NetworkType.MAINNET },
+      network: input && input.network ? input.network : { type: NetworkType.MAINNET },
       scopes:
-        request && request.scopes
-          ? request.scopes
+        input && input.scopes
+          ? input.scopes
           : [PermissionScope.READ_ADDRESS, PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN]
-    })
-      .catch((error) => {
-        console.log('error', error)
-        throw new Error(error)
-      })
-      .then(async (response) => {
-        if (((response as any) as BeaconErrorMessage).errorType) {
-          console.log('error', ((response as any) as BeaconErrorMessage).errorType)
-          throw new Error(((response as any) as BeaconErrorMessage).errorType)
-        }
+    }
 
-        const accountInfo = {
-          accountIdentifier: response.accountIdentifier,
-          beaconId: response.beaconId,
-          origin: {
-            type: Origin.P2P, // TODO: Extension or BeaconP2P
-            id: response.beaconId
-          },
-          pubkey: response.pubkey,
-          network: response.network,
-          scopes: response.scopes,
-          connectedAt: new Date()
-        }
-        this.activeAccount = accountInfo
-        await this.addAccount(accountInfo)
-        console.log('permissions interception', response)
+    const response = await this.makeRequest<PermissionRequest, PermissionResponse>(request).catch(
+      async (requestError: Error) => {
+        throw this.handleRequestError(request, requestError)
+      }
+    )
 
-        return response
-      })
+    const { message, connectionInfo } = response
+    await this.handleBeaconError(message)
+
+    const address = message.pubkey ? await getAddressFromPublicKey(message.pubkey) : undefined
+
+    const accountInfo: AccountInfo = {
+      accountIdentifier: message.accountIdentifier,
+      beaconId: message.beaconId,
+      origin: {
+        type: connectionInfo.origin,
+        id: connectionInfo.id
+      },
+      address,
+      pubkey: message.pubkey,
+      network: message.network,
+      scopes: message.scopes,
+      connectedAt: new Date()
+    }
+
+    this.activeAccount = accountInfo
+    await this.addAccount(accountInfo)
+    console.log('permissions interception', response)
+
+    const { beaconId, network, scopes } = message
+
+    return { beaconId, address, network, scopes }
   }
 
-  public async requestSignPayload(request: RequestSignPayloadInput): Promise<SignPayloadResponse> {
-    if (!this.beaconId) {
-      throw new Error('BeaconID not defined')
-    }
-    if (!request.payload) {
+  public async requestSignPayload(
+    input: RequestSignPayloadInput
+  ): Promise<SignPayloadResponseOutput> {
+    if (!input.payload) {
       throw new Error('Payload must be provided')
     }
-    if (!this.activeAccount) {
-      throw new Error('No account is active')
-    }
-    if (await this.addRequestAndCheckIfRateLimited()) {
-      this.events
-        .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
-        .catch((emitError) => console.warn(emitError))
 
-      throw new Error('rate limit reached')
-    }
-
-    const req: SignPayloadRequest = {
-      id: generateGUID(),
-      beaconId: this.beaconId,
+    const request: SignPayloadRequestInput = {
       type: BeaconMessageType.SignPayloadRequest,
-      payload: request.payload,
-      sourceAddress: request.sourceAddress || ''
+      payload: input.payload,
+      sourceAddress: input.sourceAddress || ''
     }
 
-    if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
-      this.events
-        .emit(InternalEvent.SIGN_REQUEST_SENT)
-        .catch((emitError) => console.warn(emitError))
+    const response = await this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request).catch(
+      async (requestError: Error) => {
+        throw this.handleRequestError(request, requestError)
+      }
+    )
+    await this.handleBeaconError(response.message)
 
-      this.events
-        .emit(InternalEvent.OPERATION_REQUEST_SENT)
-        .catch((emitError) => console.warn(emitError))
+    const { beaconId, signature } = response.message
 
-      return this.makeRequest<SignPayloadResponse>(req).catch((error) => {
-        console.log('error', error)
-        throw new Error(error)
-      })
-    } else {
-      this.events
-        .emit(InternalEvent.SIGN_REQUEST_ERROR)
-        .catch((emitError) => console.warn(emitError))
-
-      throw new Error('No permissions to send this request to wallet!')
-    }
+    return { beaconId, signature }
   }
 
-  public async requestOperation(request: RequestOperationInput): Promise<OperationResponse> {
-    if (!this.beaconId) {
-      throw new Error('BeaconID not defined')
-    }
-    if (!request.operationDetails) {
+  public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
+    if (!input.operationDetails) {
       throw new Error('Operation details must be provided')
     }
-    if (!this.activeAccount) {
-      throw new Error('No account is active')
-    }
-    if (await this.addRequestAndCheckIfRateLimited()) {
-      this.events
-        .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
-        .catch((emitError) => console.warn(emitError))
 
-      throw new Error('rate limit reached')
-    }
-
-    const req: OperationRequest = {
-      id: generateGUID(),
-      beaconId: this.beaconId,
+    const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
-      network: request.network || { type: NetworkType.MAINNET },
-      operationDetails: request.operationDetails as any // TODO: Fix type
+      network: input.network || { type: NetworkType.MAINNET },
+      operationDetails: input.operationDetails as any // TODO: Fix type
     }
 
-    if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
-      this.events
-        .emit(InternalEvent.OPERATION_REQUEST_SENT)
-        .catch((emitError) => console.warn(emitError))
+    const response = await this.makeRequest<OperationRequest, OperationResponse>(request).catch(
+      async (requestError: Error) => {
+        throw this.handleRequestError(request, requestError)
+      }
+    )
+    await this.handleBeaconError(response.message)
 
-      return this.makeRequest<OperationResponse>(req).catch((error) => {
-        console.log('error', error)
-        throw new Error(error)
-      })
-    } else {
-      this.events
-        .emit(InternalEvent.OPERATION_REQUEST_ERROR)
-        .catch((emitError) => console.warn(emitError))
+    const { beaconId, transactionHash } = response.message
 
-      throw new Error('No permissions to send this request to wallet!')
+    return { beaconId, transactionHash }
+  }
+
+  public async requestBroadcast(input: RequestBroadcastInput): Promise<BroadcastResponseOutput> {
+    if (!input.signedTransaction) {
+      throw new Error('Signed transaction must be provided')
+    }
+
+    const request: BroadcastRequestInput = {
+      type: BeaconMessageType.BroadcastRequest,
+      network: input.network || { type: NetworkType.MAINNET },
+      signedTransaction: input.signedTransaction
+    }
+
+    const response = await this.makeRequest<BroadcastRequest, BroadcastResponse>(request).catch(
+      async (requestError: Error) => {
+        throw this.handleRequestError(request, requestError)
+      }
+    )
+
+    await this.handleBeaconError(response.message)
+
+    const { beaconId, transactionHash } = response.message
+
+    return { beaconId, transactionHash }
+  }
+
+  private async handleRequestError(request: BeaconMessagesInput, error: Error): Promise<void> {
+    console.error('requestError', error)
+    this.events
+      .emit(messageEvents[request.type].error)
+      .catch((emitError) => console.warn(emitError))
+    throw error
+  }
+
+  private async handleBeaconError(message: BeaconBaseMessage): Promise<void> {
+    const errorMessage = message as BeaconErrorMessage
+    if (errorMessage.errorType) {
+      console.log('error', errorMessage.errorType)
+      throw new Error(errorMessage.errorType)
     }
   }
 
-  public async requestBroadcast(request: RequestBroadcastInput): Promise<BroadcastResponse> {
-    if (!this.beaconId) {
-      throw new Error('BeaconID not defined')
-    }
-    if (!request.signedTransaction) {
-      throw new Error('Signed transaction must be provided')
-    }
-    if (!this.activeAccount) {
-      throw new Error('No account is active')
-    }
+  private async makeRequest<T extends BeaconMessagesInput, U extends BeaconMessages>(
+    requestInput: Omit<T, IgnoredInputProperties>
+  ): Promise<{
+    message: U
+    connectionInfo: ConnectionContext
+  }> {
+    logger.log('makeRequest')
+    await this.init()
+    await this.connect()
+    logger.log('makeRequest', 'after connecting')
+
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
@@ -308,30 +365,38 @@ export class DAppClient extends BaseClient {
       throw new Error('rate limit reached')
     }
 
-    const req: BroadcastRequest = {
-      id: generateGUID(),
-      beaconId: this.beaconId,
-      type: BeaconMessageType.BroadcastRequest,
-      network: request.network || { type: NetworkType.MAINNET },
-      signedTransaction: request.signedTransaction
-    }
-
-    if (await this.checkPermissions(req.type, this.activeAccount.accountIdentifier)) {
-      this.events
-        .emit(InternalEvent.BROADCAST_REQUEST_SENT)
-        .catch((emitError) => console.warn(emitError))
-
-      return this.makeRequest<BroadcastResponse>(req).catch((error) => {
-        console.log('error', error)
-        throw new Error(error)
-      })
-    } else {
-      this.events
-        .emit(InternalEvent.BROADCAST_REQUEST_ERROR)
-        .catch((emitError) => console.warn(emitError))
+    if (!(await this.checkPermissions(requestInput.type))) {
+      this.events.emit(InternalEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
 
       throw new Error('No permissions to send this request to wallet!')
     }
+
+    this.events
+      .emit(messageEvents[requestInput.type].success)
+      .catch((emitError) => console.warn(emitError))
+
+    const payload = await this.serializer.serialize(requestInput)
+
+    if (!this.beaconId) {
+      throw new Error('BeaconID not defined')
+    }
+
+    const request: Omit<T, IgnoredInputProperties> & Pick<U, IgnoredInputProperties> = {
+      id: generateGUID(),
+      version: SDK_VERSION,
+      beaconId: this.beaconId,
+      ...requestInput
+    }
+
+    const exposed = exposedPromise<{ message: U; connectionInfo: ConnectionContext }>()
+    this.addOpenRequest(request.id, exposed)
+
+    if (!this.transport) {
+      throw new Error('No transport')
+    }
+    await this.transport.send(payload)
+
+    return exposed.promise
   }
 
   private async setActiveAccount(account?: AccountInfo): Promise<void> {

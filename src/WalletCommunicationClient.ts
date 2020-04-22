@@ -4,7 +4,6 @@ import * as qrcode from 'qrcode-generator'
 
 import {
   getHexHash,
-  getKeypairFromSeed,
   toHex,
   sealCryptobox,
   recipientString,
@@ -15,7 +14,6 @@ import {
 import { MatrixClient, Member, MatrixEvent, Room } from './interfaces'
 
 export class WalletCommunicationClient {
-  private keyPair: sodium.KeyPair | undefined
   private readonly clients: MatrixClient[] = []
 
   private readonly KNOWN_RELAY_SERVERS = [
@@ -30,7 +28,7 @@ export class WalletCommunicationClient {
 
   constructor(
     private readonly name: string,
-    private readonly privateSeed: string,
+    private readonly keyPair: sodium.KeyPair,
     public readonly replicationCount: number,
     private readonly debug: boolean = false
   ) {}
@@ -106,8 +104,6 @@ export class WalletCommunicationClient {
   public async start(): Promise<void> {
     this.log('starting client')
     await sodium.ready
-    const keyPair: sodium.KeyPair = getKeypairFromSeed(this.privateSeed)
-    this.keyPair = keyPair
 
     const loginRawDigest = sodium.crypto_generichash(
       32,

@@ -1,6 +1,9 @@
+import * as sodium from 'libsodium-wrappers'
 import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
 // import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
+import { getKeypairFromSeed, toHex } from '../utils/crypto'
+import { ConnectionContext } from '../types/ConnectionContext'
 import {
   Serializer,
   PostMessageTransport,
@@ -13,7 +16,8 @@ import {
   StorageKey,
   AccountInfo,
   BeaconBaseMessage,
-  Network
+  Network,
+  BeaconMessages
 } from '..'
 
 // const logger = new Logger('BaseClient')
@@ -26,7 +30,12 @@ export class BaseClient {
   protected readonly name: string
   protected readonly serializer = new Serializer()
 
-  protected handleResponse: (_event: BeaconBaseMessage, connectionInfo: any) => void
+  protected handleResponse: (_event: BeaconMessages, connectionInfo: any) => void
+
+  protected _keyPair: ExposedPromise<sodium.KeyPair> = exposedPromise()
+  protected get keyPair(): Promise<sodium.KeyPair> {
+    return this._keyPair.promise
+  }
 
   protected storage: Storage | undefined
   protected transport: Transport | undefined
@@ -35,9 +44,19 @@ export class BaseClient {
 
   constructor(name: string) {
     this.name = name
-    this.handleResponse = (_event: BeaconBaseMessage) => {
+    this.handleResponse = (_event: BeaconBaseMessage, _connectionInfo: any) => {
       throw new Error('not overwritten')
     }
+    this.loadOrCreateBeaconSecret().catch(console.error)
+    this.keyPair
+      .then((keyPair) => {
+        this.beaconId = toHex(keyPair.publicKey)
+      })
+      .catch(console.error)
+  }
+
+  public static async getAccountIdentifier(pubkey: string, network: Network): Promise<string> {
+    return `${pubkey}-${network.type}-${network.name}`
   }
 
   public async addRequestAndCheckIfRateLimited(): Promise<boolean> {
@@ -60,14 +79,12 @@ export class BaseClient {
       this.storage = await getStorage()
     }
 
-    this.beaconId = await this.getOrCreateBeaconId()
-
     if (transport) {
       this.transport = transport // Let users define their own transport
     } else if (await PostMessageTransport.isAvailable()) {
       this.transport = new PostMessageTransport(name) // Talk to extension first and relay everything
     } else if (await P2PTransport.isAvailable()) {
-      this.transport = new P2PTransport(this.name, this.storage, isDapp) // Establish our own connection with the wallet
+      this.transport = new P2PTransport(this.name, await this.keyPair, this.storage, isDapp) // Establish our own connection with the wallet
     } else {
       throw new Error('no transport available for this platform!')
     }
@@ -169,11 +186,11 @@ export class BaseClient {
     if (this.transport && this.transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
       await this.transport.connect()
       this.transport
-        .addListener(async (message: unknown, connectionInfo: any) => {
+        .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
           if (typeof message === 'string') {
             const deserializedMessage = (await this.serializer.deserialize(
               message
-            )) as BeaconBaseMessage // TODO: Check type
+            )) as BeaconMessages
             this.handleResponse(deserializedMessage, connectionInfo)
           }
         })
@@ -186,22 +203,17 @@ export class BaseClient {
     return this._isConnected.promise
   }
 
-  protected async getAccountIdentifier(pubkey: string, network: Network): Promise<string> {
-    return `${pubkey}-${network.type}-${network.name}`
-  }
-
-  private async getOrCreateBeaconId(): Promise<string> {
+  private async loadOrCreateBeaconSecret(): Promise<void> {
     if (!this.storage) {
       throw new Error('no storage')
     }
-    const storageValue: unknown = await this.storage.get(StorageKey.BEACON_SDK_ID)
+    const storageValue: unknown = await this.storage.get(StorageKey.BEACON_SDK_SECRET_SEED)
     if (storageValue && typeof storageValue === 'string') {
-      return storageValue
+      this._keyPair.resolve(getKeypairFromSeed(storageValue))
     } else {
       const key = generateGUID()
-      await this.storage.set(StorageKey.BEACON_SDK_ID, key)
-
-      return key
+      await this.storage.set(StorageKey.BEACON_SDK_SECRET_SEED, key)
+      this._keyPair.resolve(getKeypairFromSeed(key))
     }
   }
 }

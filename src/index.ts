@@ -36,7 +36,13 @@ import { ExtensionMessageTarget } from './types/ExtensionMessageTarget'
 import { TezosOperations } from './types/tezos/TezosOperations'
 import { BaseClient } from './clients/Client'
 import { WalletClient } from './clients/WalletClient'
-import { DAppClient } from './clients/DAppClient'
+import {
+  DAppClient,
+  PermissionResponseOutput,
+  SignPayloadResponseOutput,
+  OperationResponseOutput,
+  BroadcastResponseOutput
+} from './clients/DAppClient'
 import { BeaconError } from './errors/BeaconError'
 import { BeaconErrorType } from './types/BeaconErrorType'
 import { BroadcastBeaconError } from './errors/BroadcastBeaconError'
@@ -128,7 +134,11 @@ export {
   RequestPermissionInput,
   RequestSignPayloadInput,
   RequestOperationInput,
-  RequestBroadcastInput
+  RequestBroadcastInput,
+  PermissionResponseOutput,
+  SignPayloadResponseOutput,
+  OperationResponseOutput,
+  BroadcastResponseOutput
 }
 
 // Errors
@@ -171,4 +181,4 @@ export {
 }
 
 // Others
-export { P2PPairInfo as ICommunicationPair, Serializer }
+export { P2PPairInfo, Serializer }
