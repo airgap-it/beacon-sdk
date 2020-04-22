@@ -10,6 +10,7 @@ import 'mocha'
 
 import { generateGUID } from '../../src/utils/generate-uuid'
 import { WalletCommunicationClient } from '../../src'
+import { getKeypairFromSeed } from '../../src/utils/crypto'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -17,17 +18,31 @@ chai.use(chaiAsPromised)
 
 describe(`client - Custom Tests`, () => {
   it('will connect to the p2p communication network', async () => {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       const intervals: NodeJS.Timeout[] = []
 
-      const aliceClient = new WalletCommunicationClient('Alice', 'alice1234', 1)
-      await aliceClient.start().catch(aliceClientError => console.log('aliceClientError', aliceClientError))
+      const aliceClient = new WalletCommunicationClient(
+        'Alice',
+        await getKeypairFromSeed('alice1234'),
+        1
+      )
+      await aliceClient
+        .start()
+        .catch((aliceClientError) => console.log('aliceClientError', aliceClientError))
 
-      const bobClient = new WalletCommunicationClient('Bob', 'bob1234', 1)
-      await bobClient.start().catch(bobClientError => console.log('bobClientError', bobClientError))
+      const bobClient = new WalletCommunicationClient('Bob', await getKeypairFromSeed('bob1234'), 1)
+      await bobClient
+        .start()
+        .catch((bobClientError) => console.log('bobClientError', bobClientError))
 
-      const charlieClient = new WalletCommunicationClient('Charlie', 'charlie1234', 1)
-      await charlieClient.start().catch(charlieClientError => console.log('charlieClientError', charlieClientError))
+      const charlieClient = new WalletCommunicationClient(
+        'Charlie',
+        await getKeypairFromSeed('charlie1234'),
+        1
+      )
+      await charlieClient
+        .start()
+        .catch((charlieClientError) => console.log('charlieClientError', charlieClientError))
 
       aliceClient.listenForEncryptedMessage(bobClient.getPublicKey(), (message: string) => {
         console.log('\n\nalice received from bob: ' + message)
@@ -63,19 +78,25 @@ describe(`client - Custom Tests`, () => {
       intervals.push(
         setInterval(() => {
           aliceClient.sendMessage(bobClient.getPublicKey(), `hey from alice ${generateGUID()}\n\n`)
-          aliceClient.sendMessage(charlieClient.getPublicKey(), `hey from alice ${generateGUID()}\n\n`)
+          aliceClient.sendMessage(
+            charlieClient.getPublicKey(),
+            `hey from alice ${generateGUID()}\n\n`
+          )
         }, 5000)
       )
 
       intervals.push(
         setInterval(() => {
           //charlieClient.sendMessage(bobClient.getPublicKey(), 'matrix.tez.ie', "hey from charlie")
-          charlieClient.sendMessage(aliceClient.getPublicKey(), `hey from charlie ${generateGUID()}\n\n`)
+          charlieClient.sendMessage(
+            aliceClient.getPublicKey(),
+            `hey from charlie ${generateGUID()}\n\n`
+          )
         }, 5000)
       )
 
       setTimeout(() => {
-        intervals.forEach(intervalId => {
+        intervals.forEach((intervalId) => {
           console.log('clearing interval', intervalId)
           clearInterval(intervalId)
         })
