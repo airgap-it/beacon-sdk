@@ -5,13 +5,13 @@ export enum ExposedPromiseStatus {
   REJECTED = 'rejected'
 }
 
-export interface ExposedPromise<T> {
+export interface ExposedPromise<T, U = unknown> {
   promise: Promise<T>
   status: ExposedPromiseStatus
   promiseResult: T | undefined
   promiseError: unknown
   resolve(value?: T | PromiseLike<T>): void
-  reject(reason?: unknown): void
+  reject(reason?: U): void
 }
 
 type Resolve<T> = (value?: T | PromiseLike<T>) => void
