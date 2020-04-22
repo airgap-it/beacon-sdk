@@ -195,6 +195,13 @@ export class DAppClient extends BaseClient {
     return super._connect()
   }
 
+  public async subscribeToEvent(
+    internalEvent: InternalEvent,
+    eventCallback: (data?: unknown) => void
+  ): Promise<void> {
+    await this.events.on(internalEvent, eventCallback)
+  }
+
   public async checkPermissions(type: BeaconMessageType): Promise<boolean> {
     const accountInfo = this.activeAccount
 
