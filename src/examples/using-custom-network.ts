@@ -1,13 +1,13 @@
 import {
   BeaconErrorMessage,
   DAppClient,
-  PermissionResponse,
   Network,
   NetworkType,
   PermissionScope,
   TezosTransactionOperation,
   TezosOperationType,
-  OperationResponse
+  OperationResponseOutput,
+  PermissionResponseOutput
 } from '..'
 
 const client = new DAppClient('My Sample DApp')
@@ -30,7 +30,7 @@ client
     network,
     scopes
   })
-  .then((permissionResponse: PermissionResponse) => {
+  .then((permissionResponse: PermissionResponseOutput) => {
     // Check if operation permissions were granted
     if (
       permissionResponse.scopes.some(
@@ -44,7 +44,7 @@ client
       }
       client
         .requestOperation({ network, operationDetails: [operation] })
-        .then((operationResponse: OperationResponse) => {
+        .then((operationResponse: OperationResponseOutput) => {
           console.log(
             'operation was successfully broadcast to the network with the hash: ',
             operationResponse

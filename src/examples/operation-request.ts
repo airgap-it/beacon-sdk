@@ -2,8 +2,8 @@ import {
   TezosOperationType,
   DAppClient,
   TezosTransactionOperation,
-  OperationResponse,
-  BeaconErrorMessage
+  BeaconErrorMessage,
+  OperationResponseOutput
 } from '..'
 
 const client = new DAppClient('My Sample DApp')
@@ -18,7 +18,7 @@ client
   .requestOperation({
     operationDetails: [operation]
   })
-  .then((response: OperationResponse) => {
+  .then((response: OperationResponseOutput) => {
     console.log('transaction hash', response.transactionHash)
   })
   .catch((operationError: BeaconErrorMessage) => console.error(operationError))
