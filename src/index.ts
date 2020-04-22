@@ -13,7 +13,7 @@ import { SignPayloadResponse } from './types/beacon/messages/SignPayloadResponse
 import { BroadcastRequest } from './types/beacon/messages/BroadcastRequest'
 import { BroadcastResponse } from './types/beacon/messages/BroadcastResponse'
 import { NetworkType } from './types/beacon/NetworkType'
-import { TezosOperation } from './types/tezos/TezosOperation'
+import { TezosBaseOperation } from './types/tezos/TezosOperation'
 import { TezosOperationType } from './types/tezos/OperationTypes'
 import { TezosActivateAccountOperation } from './types/tezos/operations/ActivateAccount'
 import { TezosBallotOperation } from './types/tezos/operations/Ballot'
@@ -35,13 +35,31 @@ import { ExtensionMessage } from './types/ExtensionMessage'
 import { ExtensionMessageTarget } from './types/ExtensionMessageTarget'
 import { TezosOperations } from './types/tezos/TezosOperations'
 import { BaseClient } from './clients/Client'
-import { WalletClient } from './clients/WalletClient'
+import {
+  WalletClient,
+  PermissionResponseInput,
+  SignPayloadResponseInput,
+  OperationResponseInput,
+  BroadcastResponseInput,
+  PermissionRequestOutput,
+  SignPayloadRequestOutput,
+  OperationRequestOutput,
+  BroadcastRequestOutput,
+  BeaconRequestOutputMessage,
+  BeaconResponseInputMessage
+} from './clients/WalletClient'
 import {
   DAppClient,
   PermissionResponseOutput,
   SignPayloadResponseOutput,
   OperationResponseOutput,
-  BroadcastResponseOutput
+  BroadcastResponseOutput,
+  PermissionRequestInput,
+  SignPayloadRequestInput,
+  OperationRequestInput,
+  BroadcastRequestInput,
+  BeaconRequestInputMessage,
+  BeaconResponseOutputMessage
 } from './clients/DAppClient'
 import { BeaconError } from './errors/BeaconError'
 import { BeaconErrorType } from './types/BeaconErrorType'
@@ -71,7 +89,7 @@ import { ChromeStorage } from './storage/ChromeStorage'
 import { FileStorage } from './storage/FileStorage'
 import { LocalStorage } from './storage/LocalStorage'
 import { getStorage } from './storage/getStorage'
-import { BeaconMessages } from './types/beacon/BeaconMessages'
+import { BeaconMessage } from './types/beacon/BeaconMessage'
 import { Serializer } from './Serializer'
 import { RequestPermissionInput } from './types/RequestPermissionInput'
 import { RequestSignPayloadInput } from './types/RequestSignPayloadInput'
@@ -83,7 +101,7 @@ export { WalletCommunicationClient }
 
 // Tezos
 export {
-  TezosOperation,
+  TezosBaseOperation,
   TezosOperationType,
   TezosBlockHeader,
   MichelsonPrimitives,
@@ -115,7 +133,7 @@ export {
   AppMetadata,
   Network,
   NetworkType,
-  BeaconMessages,
+  BeaconMessage,
   PermissionRequest,
   PermissionResponse,
   OperationRequest,
@@ -134,11 +152,30 @@ export {
   RequestPermissionInput,
   RequestSignPayloadInput,
   RequestOperationInput,
-  RequestBroadcastInput,
+  RequestBroadcastInput
+}
+
+export {
+  PermissionResponseInput,
+  SignPayloadResponseInput,
+  OperationResponseInput,
+  BroadcastResponseInput,
   PermissionResponseOutput,
   SignPayloadResponseOutput,
   OperationResponseOutput,
-  BroadcastResponseOutput
+  BroadcastResponseOutput,
+  PermissionRequestInput,
+  SignPayloadRequestInput,
+  OperationRequestInput,
+  BroadcastRequestInput,
+  PermissionRequestOutput,
+  SignPayloadRequestOutput,
+  OperationRequestOutput,
+  BroadcastRequestOutput,
+  BeaconRequestInputMessage,
+  BeaconRequestOutputMessage,
+  BeaconResponseInputMessage,
+  BeaconResponseOutputMessage
 }
 
 // Errors
