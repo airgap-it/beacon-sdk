@@ -1,6 +1,6 @@
 import { DAppClient, BeaconErrorMessage, BroadcastResponseOutput } from '..'
 
-const client = new DAppClient('My Sample DApp')
+const client = new DAppClient({ name: 'My Sample DApp' })
 
 client
   .requestBroadcast({

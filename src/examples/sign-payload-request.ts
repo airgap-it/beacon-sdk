@@ -1,7 +1,7 @@
 import { BeaconErrorMessage, DAppClient, SignPayloadResponseOutput } from '..'
 import {} from '../types/BeaconErrorMessage'
 
-const client = new DAppClient('My Sample DApp')
+const client = new DAppClient({ name: 'My Sample DApp' })
 
 client
   .requestSignPayload({
