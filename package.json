@@ -38,7 +38,7 @@
   "dependencies": {
     "bs58check": "2.1.2",
     "libsodium-wrappers": "0.7.6",
-    "matrix-js-sdk": "2.4.3",
+    "matrix-js-sdk": "5.2.0",
     "qrcode-generator": "1.4.4"
   },
   "devDependencies": {
