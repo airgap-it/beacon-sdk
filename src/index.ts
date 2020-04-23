@@ -35,32 +35,8 @@ import { ExtensionMessage } from './types/ExtensionMessage'
 import { ExtensionMessageTarget } from './types/ExtensionMessageTarget'
 import { TezosOperations } from './types/tezos/TezosOperations'
 import { BaseClient } from './clients/Client'
-import {
-  WalletClient,
-  PermissionResponseInput,
-  SignPayloadResponseInput,
-  OperationResponseInput,
-  BroadcastResponseInput,
-  PermissionRequestOutput,
-  SignPayloadRequestOutput,
-  OperationRequestOutput,
-  BroadcastRequestOutput,
-  BeaconRequestOutputMessage,
-  BeaconResponseInputMessage
-} from './clients/WalletClient'
-import {
-  DAppClient,
-  PermissionResponseOutput,
-  SignPayloadResponseOutput,
-  OperationResponseOutput,
-  BroadcastResponseOutput,
-  PermissionRequestInput,
-  SignPayloadRequestInput,
-  OperationRequestInput,
-  BroadcastRequestInput,
-  BeaconRequestInputMessage,
-  BeaconResponseOutputMessage
-} from './clients/DAppClient'
+import { WalletClient } from './clients/WalletClient'
+import { DAppClient } from './clients/DAppClient'
 import { BeaconError } from './errors/BeaconError'
 import { BeaconErrorType } from './types/BeaconErrorType'
 import { BroadcastBeaconError } from './errors/BroadcastBeaconError'
@@ -95,6 +71,34 @@ import { RequestPermissionInput } from './types/RequestPermissionInput'
 import { RequestSignPayloadInput } from './types/RequestSignPayloadInput'
 import { RequestOperationInput } from './types/RequestOperationInput'
 import { RequestBroadcastInput } from './types/RequestBroadcastInput'
+import {
+  PermissionResponseInput,
+  SignPayloadResponseInput,
+  OperationResponseInput,
+  BroadcastResponseInput,
+  BeaconResponseInputMessage
+} from './types/beacon/messages/BeaconResponseInputMessage'
+import {
+  PermissionResponseOutput,
+  SignPayloadResponseOutput,
+  OperationResponseOutput,
+  BroadcastResponseOutput,
+  BeaconResponseOutputMessage
+} from './types/beacon/messages/BeaconResponseOutputMessage'
+import {
+  PermissionRequestInput,
+  SignPayloadRequestInput,
+  OperationRequestInput,
+  BroadcastRequestInput,
+  BeaconRequestInputMessage
+} from './types/beacon/messages/BeaconRequestInputMessage'
+import {
+  PermissionRequestOutput,
+  SignPayloadRequestOutput,
+  OperationRequestOutput,
+  BroadcastRequestOutput,
+  BeaconRequestOutputMessage
+} from './types/beacon/messages/BeaconRequestOutputMessage'
 
 // Clients
 export { WalletCommunicationClient }

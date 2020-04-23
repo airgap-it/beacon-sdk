@@ -4,7 +4,6 @@ import { Logger } from '../utils/Logger'
 import { generateGUID } from '../utils/generate-uuid'
 import { InternalEvent, InternalEventHandler } from '../events'
 import { SDK_VERSION } from '../constants'
-import { IgnoredInputProperties } from '../types/beacon/IgnoredInputProperties'
 import { getAddressFromPublicKey } from '../utils/crypto'
 import { ConnectionContext } from '../types/ConnectionContext'
 import {
@@ -34,74 +33,21 @@ import {
   BeaconBaseMessage,
   Serializer,
   LocalStorage,
-  Storage
+  Storage,
+  PermissionResponseOutput,
+  PermissionRequestInput,
+  SignPayloadResponseOutput,
+  SignPayloadRequestInput,
+  OperationResponseOutput,
+  OperationRequestInput,
+  BroadcastResponseOutput,
+  BroadcastRequestInput,
+  BeaconRequestInputMessage
 } from '..'
+import { messageEvents } from '../beacon-message-events'
+import { IgnoredRequestInputProperties } from '../types/beacon/messages/BeaconRequestInputMessage'
 
 const logger = new Logger('DAppClient')
-
-export type PermissionRequestInput = Omit<PermissionRequest, IgnoredInputProperties>
-export type OperationRequestInput = Omit<OperationRequest, IgnoredInputProperties>
-export type SignPayloadRequestInput = Omit<SignPayloadRequest, IgnoredInputProperties>
-export type BroadcastRequestInput = Omit<BroadcastRequest, IgnoredInputProperties>
-
-export type BeaconRequestInputMessage =
-  | PermissionRequestInput
-  | OperationRequestInput
-  | SignPayloadRequestInput
-  | BroadcastRequestInput
-
-export type IgnoredOutputProperties = 'id' | 'version' | 'type'
-
-export type PermissionResponseOutput = Omit<
-  Omit<PermissionResponse, IgnoredOutputProperties>,
-  'accountIdentifier' | 'pubkey'
-> & { address?: string }
-export type OperationResponseOutput = Omit<OperationResponse, IgnoredOutputProperties>
-export type SignPayloadResponseOutput = Omit<SignPayloadResponse, IgnoredOutputProperties>
-export type BroadcastResponseOutput = Omit<BroadcastResponse, IgnoredOutputProperties>
-
-export type BeaconResponseOutputMessage =
-  | PermissionResponseOutput
-  | OperationResponseOutput
-  | SignPayloadResponseOutput
-  | BroadcastResponseOutput
-
-const messageEvents: {
-  [key in BeaconMessageType]: { success: InternalEvent; error: InternalEvent }
-} = {
-  [BeaconMessageType.PermissionRequest]: {
-    success: InternalEvent.PERMISSION_REQUEST_SENT,
-    error: InternalEvent.PERMISSION_REQUEST_ERROR
-  },
-  [BeaconMessageType.PermissionResponse]: {
-    success: InternalEvent.UNKNOWN,
-    error: InternalEvent.UNKNOWN
-  },
-  [BeaconMessageType.OperationRequest]: {
-    success: InternalEvent.OPERATION_REQUEST_SENT,
-    error: InternalEvent.OPERATION_REQUEST_ERROR
-  },
-  [BeaconMessageType.OperationResponse]: {
-    success: InternalEvent.UNKNOWN,
-    error: InternalEvent.UNKNOWN
-  },
-  [BeaconMessageType.SignPayloadRequest]: {
-    success: InternalEvent.SIGN_REQUEST_SENT,
-    error: InternalEvent.SIGN_REQUEST_ERROR
-  },
-  [BeaconMessageType.SignPayloadResponse]: {
-    success: InternalEvent.UNKNOWN,
-    error: InternalEvent.UNKNOWN
-  },
-  [BeaconMessageType.BroadcastRequest]: {
-    success: InternalEvent.BROADCAST_REQUEST_SENT,
-    error: InternalEvent.BROADCAST_REQUEST_ERROR
-  },
-  [BeaconMessageType.BroadcastResponse]: {
-    success: InternalEvent.UNKNOWN,
-    error: InternalEvent.UNKNOWN
-  }
-}
 
 export class DAppClient extends BaseClient {
   private readonly events: InternalEventHandler = new InternalEventHandler()
@@ -380,7 +326,7 @@ export class DAppClient extends BaseClient {
   }
 
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
-    requestInput: Omit<T, IgnoredInputProperties>
+    requestInput: Omit<T, IgnoredRequestInputProperties>
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -412,7 +358,8 @@ export class DAppClient extends BaseClient {
       throw new Error('BeaconID not defined')
     }
 
-    const request: Omit<T, IgnoredInputProperties> & Pick<U, IgnoredInputProperties> = {
+    const request: Omit<T, IgnoredRequestInputProperties> &
+      Pick<U, IgnoredRequestInputProperties> = {
       id: generateGUID(),
       version: SDK_VERSION,
       beaconId: this.beaconId,

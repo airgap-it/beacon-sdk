@@ -5,9 +5,6 @@ import {
   BeaconBaseMessage,
   TransportType,
   PermissionRequest,
-  OperationRequest,
-  SignPayloadRequest,
-  BroadcastRequest,
   PermissionResponse,
   OperationResponse,
   SignPayloadResponse,
@@ -18,42 +15,16 @@ import {
   Origin,
   PermissionScope,
   Serializer,
-  LocalStorage
+  LocalStorage,
+  BeaconResponseInputMessage
 } from '..'
-
-type IgnoredResponseOutputProperties = 'version'
-
-interface ExtraResponseOutputProperties {
-  appMetadata: AppMetadata
-}
-
-export type PermissionRequestOutput = Omit<PermissionRequest, IgnoredResponseOutputProperties> &
-  ExtraResponseOutputProperties
-export type OperationRequestOutput = Omit<OperationRequest, IgnoredResponseOutputProperties> &
-  ExtraResponseOutputProperties
-export type SignPayloadRequestOutput = Omit<SignPayloadRequest, IgnoredResponseOutputProperties> &
-  ExtraResponseOutputProperties
-export type BroadcastRequestOutput = Omit<BroadcastRequest, IgnoredResponseOutputProperties> &
-  ExtraResponseOutputProperties
-
-export type BeaconRequestOutputMessage =
-  | PermissionRequestOutput
-  | OperationRequestOutput
-  | SignPayloadRequestOutput
-  | BroadcastRequestOutput
-
-export type IgnoredResponseInputProperties = 'beaconId' | 'version'
-
-export type PermissionResponseInput = Omit<PermissionResponse, IgnoredResponseInputProperties>
-export type OperationResponseInput = Omit<OperationResponse, IgnoredResponseInputProperties>
-export type SignPayloadResponseInput = Omit<SignPayloadResponse, IgnoredResponseInputProperties>
-export type BroadcastResponseInput = Omit<BroadcastResponse, IgnoredResponseInputProperties>
-
-export type BeaconResponseInputMessage =
-  | PermissionResponseInput
-  | OperationResponseInput
-  | SignPayloadResponseInput
-  | BroadcastResponseInput
+import {
+  BeaconRequestOutputMessage,
+  PermissionRequestOutput,
+  OperationRequestOutput,
+  SignPayloadRequestOutput,
+  BroadcastRequestOutput
+} from '../types/beacon/messages/BeaconRequestOutputMessage'
 
 export class WalletClient extends BaseClient {
   private pendingRequests: BeaconBaseMessage[] = []
