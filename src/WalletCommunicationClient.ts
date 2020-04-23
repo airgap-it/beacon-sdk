@@ -115,7 +115,7 @@ export class WalletCommunicationClient {
 
     for (let i = 0; i < this.replicationCount; i++) {
       // TODO: Parallel
-      const client = matrixsdk.createClient({
+      const client = matrixsdk.default.createClient({
         baseUrl: `https://${this.getRelayServer(this.getPublicKeyHash(), i.toString())}`,
         deviceId: toHex(this.keyPair.publicKey),
         timelineSupport: false
