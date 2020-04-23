@@ -1,5 +1,5 @@
-export class WalletCommunicationClientSpec {
-  public client = WalletCommunicationClient
+export class P2PCommunicationClientSpec {
+  public client = P2PCommunicationClient
 }
 
 const MAX_TEST_RUNTIME_SECONDS = 10
@@ -9,7 +9,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 
 import { generateGUID } from '../../src/utils/generate-uuid'
-import { WalletCommunicationClient } from '../../src'
+import { P2PCommunicationClient } from '../../src'
 import { getKeypairFromSeed } from '../../src/utils/crypto'
 
 // use chai-as-promised plugin
@@ -21,7 +21,7 @@ describe(`client - Custom Tests`, () => {
     return new Promise(async (resolve) => {
       const intervals: NodeJS.Timeout[] = []
 
-      const aliceClient = new WalletCommunicationClient(
+      const aliceClient = new P2PCommunicationClient(
         'Alice',
         await getKeypairFromSeed('alice1234'),
         1
@@ -30,12 +30,12 @@ describe(`client - Custom Tests`, () => {
         .start()
         .catch((aliceClientError) => console.log('aliceClientError', aliceClientError))
 
-      const bobClient = new WalletCommunicationClient('Bob', await getKeypairFromSeed('bob1234'), 1)
+      const bobClient = new P2PCommunicationClient('Bob', await getKeypairFromSeed('bob1234'), 1)
       await bobClient
         .start()
         .catch((bobClientError) => console.log('bobClientError', bobClientError))
 
-      const charlieClient = new WalletCommunicationClient(
+      const charlieClient = new P2PCommunicationClient(
         'Charlie',
         await getKeypairFromSeed('charlie1234'),
         1

@@ -13,7 +13,7 @@ import {
 } from './utils/crypto'
 import { MatrixClient, Member, MatrixEvent, Room } from './interfaces'
 
-export class WalletCommunicationClient {
+export class P2PCommunicationClient {
   private readonly clients: MatrixClient[] = []
 
   private readonly KNOWN_RELAY_SERVERS = [

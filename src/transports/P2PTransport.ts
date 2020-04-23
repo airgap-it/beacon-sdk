@@ -8,7 +8,7 @@ import {
   TransportStatus,
   Transport,
   TransportType,
-  WalletCommunicationClient,
+  P2PCommunicationClient,
   Origin
 } from '..'
 
@@ -21,7 +21,7 @@ export class P2PTransport extends Transport {
   private readonly storage: Storage
   private readonly keyPair: sodium.KeyPair
 
-  private client: WalletCommunicationClient | undefined
+  private client: P2PCommunicationClient | undefined
 
   constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, isDapp: boolean) {
     super(name)
@@ -38,7 +38,7 @@ export class P2PTransport extends Transport {
     logger.log('connect')
     this._isConnected = TransportStatus.CONNECTING
 
-    this.client = new WalletCommunicationClient(this.name, this.keyPair, 1, false)
+    this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false)
     await this.client.start()
 
     const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)

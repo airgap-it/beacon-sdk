@@ -1,4 +1,4 @@
-import { WalletCommunicationClient } from './WalletCommunicationClient'
+import { P2PCommunicationClient } from './P2PCommunicationClient'
 import { AppMetadata } from './types/beacon/AppMetadata'
 import { PermissionRequest } from './types/beacon/messages/PermissionRequest'
 import { Network } from './types/beacon/Network'
@@ -104,7 +104,7 @@ import { DAppClientOptions } from './clients/dapp-client/DAppClientOptions'
 import { WalletClientOptions } from './clients/wallet-client/WalletClientOptions'
 
 // Clients
-export { WalletCommunicationClient }
+export { P2PCommunicationClient }
 
 // Tezos
 export {
