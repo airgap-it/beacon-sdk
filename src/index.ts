@@ -34,9 +34,9 @@ import { AccountInfo, AccountIdentifier } from './types/AccountInfo'
 import { ExtensionMessage } from './types/ExtensionMessage'
 import { ExtensionMessageTarget } from './types/ExtensionMessageTarget'
 import { TezosOperations } from './types/tezos/TezosOperations'
-import { BaseClient } from './clients/Client'
-import { WalletClient } from './clients/WalletClient'
-import { DAppClient } from './clients/DAppClient'
+import { Client } from './clients/client/Client'
+import { WalletClient } from './clients/wallet-client/WalletClient'
+import { DAppClient } from './clients/dapp-client/DAppClient'
 import { BeaconError } from './errors/BeaconError'
 import { BeaconErrorType } from './types/BeaconErrorType'
 import { BroadcastBeaconError } from './errors/BroadcastBeaconError'
@@ -99,6 +99,9 @@ import {
   BroadcastRequestOutput,
   BeaconRequestOutputMessage
 } from './types/beacon/messages/BeaconRequestOutputMessage'
+import { ClientOptions } from './clients/client/ClientOptions'
+import { DAppClientOptions } from './clients/dapp-client/DAppClientOptions'
+import { WalletClientOptions } from './clients/wallet-client/WalletClientOptions'
 
 // Clients
 export { WalletCommunicationClient }
@@ -129,7 +132,7 @@ export {
 }
 
 // Clients
-export { BaseClient, DAppClient, WalletClient }
+export { Client, ClientOptions, DAppClient, DAppClientOptions, WalletClient, WalletClientOptions }
 
 // Beacon
 export {

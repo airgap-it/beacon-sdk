@@ -1,9 +1,9 @@
 import * as sodium from 'libsodium-wrappers'
-import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
+import { ExposedPromise, exposedPromise } from '../../utils/exposed-promise'
 // import { Logger } from '../utils/Logger'
-import { generateGUID } from '../utils/generate-uuid'
-import { getKeypairFromSeed, toHex } from '../utils/crypto'
-import { ConnectionContext } from '../types/ConnectionContext'
+import { generateGUID } from '../../utils/generate-uuid'
+import { getKeypairFromSeed, toHex } from '../../utils/crypto'
+import { ConnectionContext } from '../../types/ConnectionContext'
 import {
   Serializer,
   PostMessageTransport,
@@ -17,11 +17,12 @@ import {
   BeaconBaseMessage,
   Network,
   BeaconMessage
-} from '..'
+} from '../..'
+import { ClientOptions } from './ClientOptions'
 
 // const logger = new Logger('BaseClient')
 
-export class BaseClient {
+export abstract class Client {
   protected requestCounter: number[] = []
   protected readonly rateLimit: number = 2
   protected readonly rateLimitWindowInSeconds: number = 5
@@ -40,7 +41,7 @@ export class BaseClient {
 
   protected readonly _isConnected: ExposedPromise<boolean> = exposedPromise()
 
-  constructor(config: { name: string; storage: Storage }) {
+  constructor(config: ClientOptions) {
     this.name = config.name
     this.storage = config.storage
     this.handleResponse = (_event: BeaconBaseMessage, _connectionInfo: ConnectionContext) => {

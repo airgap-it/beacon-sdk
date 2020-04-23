@@ -1,7 +1,7 @@
-import { ConnectionContext } from '../types/ConnectionContext'
-import { SDK_VERSION } from '../constants'
+import { ConnectionContext } from '../../types/ConnectionContext'
+import { SDK_VERSION } from '../../constants'
 import {
-  BaseClient,
+  Client,
   BeaconBaseMessage,
   TransportType,
   PermissionRequest,
@@ -17,19 +17,20 @@ import {
   Serializer,
   LocalStorage,
   BeaconResponseInputMessage
-} from '..'
+} from '../..'
 import {
   BeaconRequestOutputMessage,
   PermissionRequestOutput,
   OperationRequestOutput,
   SignPayloadRequestOutput,
   BroadcastRequestOutput
-} from '../types/beacon/messages/BeaconRequestOutputMessage'
+} from '../../types/beacon/messages/BeaconRequestOutputMessage'
+import { WalletClientOptions } from './WalletClientOptions'
 
-export class WalletClient extends BaseClient {
+export class WalletClient extends Client {
   private pendingRequests: BeaconBaseMessage[] = []
 
-  constructor(config: { name: string }) {
+  constructor(config: WalletClientOptions) {
     super({ name: config.name, storage: new LocalStorage() })
   }
 

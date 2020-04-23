@@ -1,14 +1,14 @@
-import { ExposedPromise, exposedPromise } from '../utils/exposed-promise'
+import { ExposedPromise, exposedPromise } from '../../utils/exposed-promise'
 
-import { Logger } from '../utils/Logger'
-import { generateGUID } from '../utils/generate-uuid'
-import { InternalEvent, InternalEventHandler } from '../events'
-import { SDK_VERSION } from '../constants'
-import { getAddressFromPublicKey } from '../utils/crypto'
-import { ConnectionContext } from '../types/ConnectionContext'
+import { Logger } from '../../utils/Logger'
+import { generateGUID } from '../../utils/generate-uuid'
+import { InternalEvent, InternalEventHandler } from '../../events'
+import { SDK_VERSION } from '../../constants'
+import { getAddressFromPublicKey } from '../../utils/crypto'
+import { ConnectionContext } from '../../types/ConnectionContext'
 import {
   AccountInfo,
-  BaseClient,
+  Client,
   TransportType,
   Transport,
   StorageKey,
@@ -33,7 +33,6 @@ import {
   BeaconBaseMessage,
   Serializer,
   LocalStorage,
-  Storage,
   PermissionResponseOutput,
   PermissionRequestInput,
   SignPayloadResponseOutput,
@@ -43,13 +42,14 @@ import {
   BroadcastResponseOutput,
   BroadcastRequestInput,
   BeaconRequestInputMessage
-} from '..'
-import { messageEvents } from '../beacon-message-events'
-import { IgnoredRequestInputProperties } from '../types/beacon/messages/BeaconRequestInputMessage'
+} from '../..'
+import { messageEvents } from '../../beacon-message-events'
+import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
+import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
 
-export class DAppClient extends BaseClient {
+export class DAppClient extends Client {
   private readonly events: InternalEventHandler = new InternalEventHandler()
   private readonly openRequests = new Map<
     string,
@@ -66,7 +66,7 @@ export class DAppClient extends BaseClient {
     return this._isConnected.promise
   }
 
-  constructor(config: { name: string; iconUrl?: string; storage?: Storage }) {
+  constructor(config: DAppClientOptions) {
     super({
       storage: config.storage ? config.storage : new LocalStorage(),
       ...config
