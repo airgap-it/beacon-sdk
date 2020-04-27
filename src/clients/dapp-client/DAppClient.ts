@@ -2,7 +2,7 @@ import { ExposedPromise, exposedPromise } from '../../utils/exposed-promise'
 
 import { Logger } from '../../utils/Logger'
 import { generateGUID } from '../../utils/generate-uuid'
-import { InternalEvent, InternalEventHandler, InternalEventHandlerFunction } from '../../events'
+import { BeaconEvents, BeaconEventHandler, BeaconEventHandlerFunction } from '../../events'
 import { SDK_VERSION } from '../../constants'
 import { getAddressFromPublicKey } from '../../utils/crypto'
 import { ConnectionContext } from '../../types/ConnectionContext'
@@ -50,7 +50,7 @@ import { DAppClientOptions } from './DAppClientOptions'
 const logger = new Logger('DAppClient')
 
 export class DAppClient extends Client {
-  private readonly events: InternalEventHandler = new InternalEventHandler()
+  private readonly events: BeaconEventHandler = new BeaconEventHandler()
   private readonly openRequests = new Map<
     string,
     ExposedPromise<
@@ -141,7 +141,7 @@ export class DAppClient extends Client {
 
     await this.storage.set(StorageKey.ACTIVE_ACCOUNT, account.accountIdentifier)
 
-    await this.events.emit(InternalEvent.ACTIVE_ACCOUNT_SET, account)
+    await this.events.emit(BeaconEvents.ACTIVE_ACCOUNT_SET, account)
 
     return
   }
@@ -163,8 +163,8 @@ export class DAppClient extends Client {
   }
 
   public async subscribeToEvent(
-    internalEvent: InternalEvent,
-    eventCallback: InternalEventHandlerFunction
+    internalEvent: BeaconEvents,
+    eventCallback: BeaconEventHandlerFunction
   ): Promise<void> {
     await this.events.on(internalEvent, eventCallback)
   }
@@ -346,14 +346,14 @@ export class DAppClient extends Client {
 
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
-        .emit(InternalEvent.LOCAL_RATE_LIMIT_REACHED)
+        .emit(BeaconEvents.LOCAL_RATE_LIMIT_REACHED)
         .catch((emitError) => console.warn(emitError))
 
       throw new Error('rate limit reached')
     }
 
     if (!(await this.checkPermissions(requestInput.type))) {
-      this.events.emit(InternalEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
+      this.events.emit(BeaconEvents.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
 
       throw new Error('No permissions to send this request to wallet!')
     }
