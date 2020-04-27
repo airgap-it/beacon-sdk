@@ -5,4 +5,5 @@ export interface OperationRequest extends BeaconBaseMessage {
   network: Network // Network on which the operation will be broadcast
   operationDetails: TezosBaseOperation[] // Partial TezosOperations that may lack certain information like counter and fee. Those will be added by the wallet.
   // TODO: OperationDetails has to be typed correctly
+  sourceAddress: string
 }
