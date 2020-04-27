@@ -2,7 +2,6 @@ import { ConnectionContext } from '../../types/ConnectionContext'
 import { SDK_VERSION } from '../../constants'
 import {
   Client,
-  BeaconBaseMessage,
   TransportType,
   PermissionRequest,
   PermissionResponse,
@@ -28,7 +27,7 @@ import {
 import { WalletClientOptions } from './WalletClientOptions'
 
 export class WalletClient extends Client {
-  private pendingRequests: BeaconBaseMessage[] = []
+  private pendingRequests: BeaconMessage[] = []
 
   constructor(config: WalletClientOptions) {
     super({ name: config.name, storage: new LocalStorage() })
