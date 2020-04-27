@@ -1,7 +1,10 @@
 import { openToast } from './alert/Toast'
 import { openAlert, AlertConfig } from './alert/Alert'
 import { getQrData } from './utils/qr'
+import { Logger } from './utils/Logger'
 import { P2PPairInfo, AccountInfo } from '.'
+
+const logger = new Logger('BeaconEvents')
 
 export enum BeaconEvent {
   PERMISSION_REQUEST_SENT = 'PERMISSION_REQUEST_SENT',
@@ -81,7 +84,7 @@ const showQrCode = async (
 }
 
 const emptyHandler = async (data?: unknown): Promise<void> => {
-  console.error(`no default listener for event ${event}`, data)
+  logger.warn('emptyHandler', `no default listener for event ${event}`, data)
 }
 
 export type BeaconEventHandlerFunction<T = unknown> = (data: T) => Promise<void>
