@@ -150,14 +150,17 @@ export class BeaconEventHandler {
 
   public async overrideDefaults(
     eventsToOverride: {
-      [key in BeaconEvent]: {
+      [key in BeaconEvent]?: {
         handler: BeaconEventHandlerFunction
       }
     }
   ): Promise<void> {
     Object.keys(eventsToOverride).forEach((untypedEvent: string) => {
-      const event: BeaconEvent = untypedEvent as BeaconEvent
-      this.callbackMap[event] = [eventsToOverride[event].handler]
+      const eventType: BeaconEvent = untypedEvent as BeaconEvent
+      const event = eventsToOverride[eventType]
+      if (event) {
+        this.callbackMap[eventType] = [event.handler]
+      }
     })
   }
 }
