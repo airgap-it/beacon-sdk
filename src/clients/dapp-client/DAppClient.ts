@@ -240,11 +240,14 @@ export class DAppClient extends Client {
     if (!input.payload) {
       throw new Error('Payload must be provided')
     }
+    if (!this.activeAccount) {
+      throw new Error('No active account!')
+    }
 
     const request: SignPayloadRequestInput = {
       type: BeaconMessageType.SignPayloadRequest,
       payload: input.payload,
-      sourceAddress: input.sourceAddress || this.activeAccount?.address || ''
+      sourceAddress: input.sourceAddress || this.activeAccount.address || ''
     }
 
     const response = await this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request).catch(
@@ -263,12 +266,15 @@ export class DAppClient extends Client {
     if (!input.operationDetails) {
       throw new Error('Operation details must be provided')
     }
+    if (!this.activeAccount) {
+      throw new Error('No active account!')
+    }
 
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
       network: input.network || { type: NetworkType.MAINNET },
       operationDetails: input.operationDetails as any, // TODO: Fix type,
-      sourceAddress: this.activeAccount?.address || ''
+      sourceAddress: this.activeAccount.address || ''
     }
 
     const response = await this.makeRequest<OperationRequest, OperationResponse>(request).catch(
