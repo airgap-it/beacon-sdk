@@ -1,6 +1,7 @@
 import { myWindow } from '../MockWindow'
-import { Transport } from './Transport'
 import { ExtensionMessage, ExtensionMessageTarget, TransportType } from '..'
+import { Origin } from '../types/Origin'
+import { Transport } from './Transport'
 
 export class PostMessageTransport extends Transport {
   public readonly type: TransportType = TransportType.POST_MESSAGE
@@ -41,9 +42,15 @@ export class PostMessageTransport extends Transport {
     myWindow.addEventListener('message', (message) => {
       if (typeof message === 'object' && message) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const data: ExtensionMessage<string> = (message as any).data
-        if (data.target === ExtensionMessageTarget.PAGE) {
-          this.notifyListeners(data.payload, {} as any).catch((error) => {
+        const data: {
+          message: ExtensionMessage<{ beaconMessage: string }>
+          sender: chrome.runtime.MessageSender
+        } = (message as any).data
+        if (data.message.target === ExtensionMessageTarget.PAGE) {
+          this.notifyListeners(data.message.payload, {
+            origin: Origin.EXTENSION,
+            id: data.sender.id || ''
+          }).catch((error) => {
             throw error
           })
         }

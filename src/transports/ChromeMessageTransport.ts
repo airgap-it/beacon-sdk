@@ -38,8 +38,8 @@ export class ChromeMessageTransport extends Transport {
       ) => {
         logger.log('init', 'receiving chrome message', message, sender)
         const connectionContext: ConnectionContext = {
-          origin: Origin.EXTENSION,
-          id: sender.id ? sender.id : '',
+          origin: Origin.WEBSITE,
+          id: sender.url ? sender.url : '',
           extras: { sender, sendResponse }
         }
         this.notifyListeners(message, connectionContext).catch((error) => logger.error(error))
