@@ -5,7 +5,7 @@ export interface ClientOptions {
   name: string
   storage: Storage
   eventHandlers?: {
-    [key in BeaconEvent]: {
+    [key in BeaconEvent]?: {
       handler: BeaconEventHandlerFunction
     }
   }

@@ -6,7 +6,7 @@ export interface DAppClientOptions {
   iconUrl?: string
   storage?: Storage
   eventHandlers?: {
-    [key in BeaconEvent]: {
+    [key in BeaconEvent]?: {
       handler: BeaconEventHandlerFunction
     }
   }
