@@ -75,7 +75,7 @@ const showQrCode = async (
   const alertConfig: AlertConfig = {
     title: 'Pairing Request',
     confirmButtonText: 'Ok!',
-    body: getQrData(JSON.stringify(data)),
+    body: getQrData(JSON.stringify(data), 'svg'),
     successCallback: () => {
       console.log('CALLBACK')
     }
