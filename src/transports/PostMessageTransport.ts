@@ -46,7 +46,7 @@ export class PostMessageTransport extends Transport {
           message: ExtensionMessage<{ beaconMessage: string }>
           sender: chrome.runtime.MessageSender
         } = (message as any).data
-        if (data.message.target === ExtensionMessageTarget.PAGE) {
+        if (data.message && data.message.target === ExtensionMessageTarget.PAGE) {
           this.notifyListeners(data.message.payload, {
             origin: Origin.EXTENSION,
             id: data.sender.id || ''
