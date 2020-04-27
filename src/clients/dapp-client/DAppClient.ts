@@ -2,7 +2,7 @@ import { ExposedPromise, exposedPromise } from '../../utils/exposed-promise'
 
 import { Logger } from '../../utils/Logger'
 import { generateGUID } from '../../utils/generate-uuid'
-import { BeaconEvent, BeaconEventHandlerFunction } from '../../events'
+import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../../events'
 import { SDK_VERSION } from '../../constants'
 import { getAddressFromPublicKey } from '../../utils/crypto'
 import { ConnectionContext } from '../../types/ConnectionContext'
@@ -155,9 +155,9 @@ export class DAppClient extends Client {
     return super._connect()
   }
 
-  public async subscribeToEvent(
-    internalEvent: BeaconEvent,
-    eventCallback: BeaconEventHandlerFunction
+  public async subscribeToEvent<K extends BeaconEvent>(
+    internalEvent: K,
+    eventCallback: BeaconEventHandlerFunction<BeaconEventType[K]>
   ): Promise<void> {
     await this.events.on(internalEvent, eventCallback)
   }
