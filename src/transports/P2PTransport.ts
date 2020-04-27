@@ -1,5 +1,4 @@
 import * as sodium from 'libsodium-wrappers'
-import { openAlert, closeAlert, AlertConfig } from '../alert/Alert'
 import { Logger } from '../utils/Logger'
 import { ConnectionContext } from '../types/ConnectionContext'
 import {
@@ -11,11 +10,13 @@ import {
   P2PCommunicationClient,
   Origin
 } from '..'
+import { BeaconEventHandler, BeaconEvent } from '../events'
 
 const logger = new Logger('Transport')
 
 export class P2PTransport extends Transport {
   public readonly type: TransportType = TransportType.P2P
+  private readonly events: BeaconEventHandler
 
   private readonly isDapp: boolean = true
   private readonly storage: Storage
@@ -23,10 +24,17 @@ export class P2PTransport extends Transport {
 
   private client: P2PCommunicationClient | undefined
 
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, isDapp: boolean) {
+  constructor(
+    name: string,
+    keyPair: sodium.KeyPair,
+    storage: Storage,
+    events: BeaconEventHandler,
+    isDapp: boolean
+  ) {
     super(name)
     this.keyPair = keyPair
     this.storage = storage
+    this.events = events
     this.isDapp = isDapp
   }
 
@@ -76,25 +84,16 @@ export class P2PTransport extends Transport {
           await this.listen(pubKey)
         }
 
-        closeAlert()
-        openAlert({
-          title: 'Success',
-          confirmButtonText: 'Ok!',
-          timer: 1500
-        })
+        this.events
+          .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS)
+          .catch((emitError) => console.warn(emitError))
 
         resolve()
       })
 
-      const alertConfig: AlertConfig = {
-        title: 'Pairing Request',
-        confirmButtonText: 'Ok!',
-        body: [this.client.getHandshakeQR('svg')].join(''),
-        successCallback: () => {
-          console.log('CALLBACK')
-        }
-      }
-      openAlert(alertConfig)
+      this.events
+        .emit(BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN, this.client.getHandshakeInfo())
+        .catch((emitError) => console.warn(emitError))
     })
   }
 

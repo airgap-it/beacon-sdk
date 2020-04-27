@@ -2,7 +2,7 @@ import { ExposedPromise, exposedPromise } from '../../utils/exposed-promise'
 
 import { Logger } from '../../utils/Logger'
 import { generateGUID } from '../../utils/generate-uuid'
-import { BeaconEvents, BeaconEventHandler, BeaconEventHandlerFunction } from '../../events'
+import { BeaconEvent, BeaconEventHandlerFunction } from '../../events'
 import { SDK_VERSION } from '../../constants'
 import { getAddressFromPublicKey } from '../../utils/crypto'
 import { ConnectionContext } from '../../types/ConnectionContext'
@@ -50,7 +50,6 @@ import { DAppClientOptions } from './DAppClientOptions'
 const logger = new Logger('DAppClient')
 
 export class DAppClient extends Client {
-  private readonly events: BeaconEventHandler = new BeaconEventHandler()
   private readonly openRequests = new Map<
     string,
     ExposedPromise<
@@ -72,12 +71,6 @@ export class DAppClient extends Client {
       ...config
     })
     this.iconUrl = config.iconUrl
-
-    if (config.eventHandlers) {
-      this.events.overrideDefaults(config.eventHandlers).catch((overrideError: Error) => {
-        logger.error('constructor', overrideError)
-      })
-    }
 
     this.handleResponse = (event: BeaconMessage, connectionInfo: ConnectionContext): void => {
       const openRequest = this.openRequests.get(event.id)
@@ -141,7 +134,7 @@ export class DAppClient extends Client {
 
     await this.storage.set(StorageKey.ACTIVE_ACCOUNT, account.accountIdentifier)
 
-    await this.events.emit(BeaconEvents.ACTIVE_ACCOUNT_SET, account)
+    await this.events.emit(BeaconEvent.ACTIVE_ACCOUNT_SET, account)
 
     return
   }
@@ -163,7 +156,7 @@ export class DAppClient extends Client {
   }
 
   public async subscribeToEvent(
-    internalEvent: BeaconEvents,
+    internalEvent: BeaconEvent,
     eventCallback: BeaconEventHandlerFunction
   ): Promise<void> {
     await this.events.on(internalEvent, eventCallback)
@@ -346,14 +339,14 @@ export class DAppClient extends Client {
 
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
-        .emit(BeaconEvents.LOCAL_RATE_LIMIT_REACHED)
+        .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
         .catch((emitError) => console.warn(emitError))
 
       throw new Error('rate limit reached')
     }
 
     if (!(await this.checkPermissions(requestInput.type))) {
-      this.events.emit(BeaconEvents.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
+      this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
 
       throw new Error('No permissions to send this request to wallet!')
     }

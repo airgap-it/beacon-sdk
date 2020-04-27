@@ -18,11 +18,15 @@ import {
   Network,
   BeaconMessage
 } from '../..'
+import { BeaconEventHandler } from '../../events'
+import { Logger } from '../../utils/Logger'
 import { ClientOptions } from './ClientOptions'
 
-// const logger = new Logger('BaseClient')
+const logger = new Logger('BaseClient')
 
 export abstract class Client {
+  protected readonly events: BeaconEventHandler = new BeaconEventHandler()
+
   protected requestCounter: number[] = []
   protected readonly rateLimit: number = 2
   protected readonly rateLimitWindowInSeconds: number = 5
@@ -44,6 +48,13 @@ export abstract class Client {
   constructor(config: ClientOptions) {
     this.name = config.name
     this.storage = config.storage
+
+    if (config.eventHandlers) {
+      this.events.overrideDefaults(config.eventHandlers).catch((overrideError: Error) => {
+        logger.error('constructor', overrideError)
+      })
+    }
+
     this.handleResponse = (_event: BeaconBaseMessage, _connectionInfo: ConnectionContext) => {
       throw new Error('not overwritten')
     }
@@ -80,7 +91,13 @@ export abstract class Client {
     } else if (await PostMessageTransport.isAvailable()) {
       this.transport = new PostMessageTransport(name) // Talk to extension first and relay everything
     } else if (await P2PTransport.isAvailable()) {
-      this.transport = new P2PTransport(this.name, await this.keyPair, this.storage, isDapp) // Establish our own connection with the wallet
+      this.transport = new P2PTransport(
+        this.name,
+        await this.keyPair,
+        this.storage,
+        this.events,
+        isDapp
+      ) // Establish our own connection with the wallet
     } else {
       throw new Error('no transport available for this platform!')
     }

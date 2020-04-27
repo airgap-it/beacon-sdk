@@ -1,39 +1,39 @@
-import { BeaconEvents } from './events'
+import { BeaconEvent } from './events'
 import { BeaconMessageType } from '.'
 
 export const messageEvents: {
-  [key in BeaconMessageType]: { success: BeaconEvents; error: BeaconEvents }
+  [key in BeaconMessageType]: { success: BeaconEvent; error: BeaconEvent }
 } = {
   [BeaconMessageType.PermissionRequest]: {
-    success: BeaconEvents.PERMISSION_REQUEST_SENT,
-    error: BeaconEvents.PERMISSION_REQUEST_ERROR
+    success: BeaconEvent.PERMISSION_REQUEST_SENT,
+    error: BeaconEvent.PERMISSION_REQUEST_ERROR
   },
   [BeaconMessageType.PermissionResponse]: {
-    success: BeaconEvents.UNKNOWN,
-    error: BeaconEvents.UNKNOWN
+    success: BeaconEvent.UNKNOWN,
+    error: BeaconEvent.UNKNOWN
   },
   [BeaconMessageType.OperationRequest]: {
-    success: BeaconEvents.OPERATION_REQUEST_SENT,
-    error: BeaconEvents.OPERATION_REQUEST_ERROR
+    success: BeaconEvent.OPERATION_REQUEST_SENT,
+    error: BeaconEvent.OPERATION_REQUEST_ERROR
   },
   [BeaconMessageType.OperationResponse]: {
-    success: BeaconEvents.UNKNOWN,
-    error: BeaconEvents.UNKNOWN
+    success: BeaconEvent.UNKNOWN,
+    error: BeaconEvent.UNKNOWN
   },
   [BeaconMessageType.SignPayloadRequest]: {
-    success: BeaconEvents.SIGN_REQUEST_SENT,
-    error: BeaconEvents.SIGN_REQUEST_ERROR
+    success: BeaconEvent.SIGN_REQUEST_SENT,
+    error: BeaconEvent.SIGN_REQUEST_ERROR
   },
   [BeaconMessageType.SignPayloadResponse]: {
-    success: BeaconEvents.UNKNOWN,
-    error: BeaconEvents.UNKNOWN
+    success: BeaconEvent.UNKNOWN,
+    error: BeaconEvent.UNKNOWN
   },
   [BeaconMessageType.BroadcastRequest]: {
-    success: BeaconEvents.BROADCAST_REQUEST_SENT,
-    error: BeaconEvents.BROADCAST_REQUEST_ERROR
+    success: BeaconEvent.BROADCAST_REQUEST_SENT,
+    error: BeaconEvent.BROADCAST_REQUEST_ERROR
   },
   [BeaconMessageType.BroadcastResponse]: {
-    success: BeaconEvents.UNKNOWN,
-    error: BeaconEvents.UNKNOWN
+    success: BeaconEvent.UNKNOWN,
+    error: BeaconEvent.UNKNOWN
   }
 }
