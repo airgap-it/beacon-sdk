@@ -2,7 +2,7 @@ import { ExposedPromise, exposedPromise } from '../../utils/exposed-promise'
 
 import { Logger } from '../../utils/Logger'
 import { generateGUID } from '../../utils/generate-uuid'
-import { InternalEvent, InternalEventHandler } from '../../events'
+import { InternalEvent, InternalEventHandler, InternalEventHandlerFunction } from '../../events'
 import { SDK_VERSION } from '../../constants'
 import { getAddressFromPublicKey } from '../../utils/crypto'
 import { ConnectionContext } from '../../types/ConnectionContext'
@@ -157,7 +157,7 @@ export class DAppClient extends Client {
 
   public async subscribeToEvent(
     internalEvent: InternalEvent,
-    eventCallback: (data?: unknown) => void
+    eventCallback: InternalEventHandlerFunction
   ): Promise<void> {
     await this.events.on(internalEvent, eventCallback)
   }
@@ -244,7 +244,7 @@ export class DAppClient extends Client {
     const request: SignPayloadRequestInput = {
       type: BeaconMessageType.SignPayloadRequest,
       payload: input.payload,
-      sourceAddress: input.sourceAddress || ''
+      sourceAddress: input.sourceAddress || this.activeAccount?.address || ''
     }
 
     const response = await this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request).catch(
@@ -267,7 +267,8 @@ export class DAppClient extends Client {
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
       network: input.network || { type: NetworkType.MAINNET },
-      operationDetails: input.operationDetails as any // TODO: Fix type
+      operationDetails: input.operationDetails as any, // TODO: Fix type,
+      sourceAddress: this.activeAccount?.address || ''
     }
 
     const response = await this.makeRequest<OperationRequest, OperationResponse>(request).catch(

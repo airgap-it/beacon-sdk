@@ -33,9 +33,11 @@ const showNoPermissionAlert = async (): Promise<void> => {
   })
 }
 
+export type InternalEventHandlerFunction = (data?: unknown) => Promise<void>
+
 export class InternalEventHandler {
-  private readonly defaultCallbacks: { [key in InternalEvent]: (data?: unknown) => Promise<void> }
-  private readonly callbackMap: { [key in InternalEvent]: ((data?: unknown) => void)[] }
+  private readonly defaultCallbacks: { [key in InternalEvent]: InternalEventHandlerFunction }
+  private readonly callbackMap: { [key in InternalEvent]: InternalEventHandlerFunction[] }
 
   constructor() {
     this.defaultCallbacks = {
@@ -99,7 +101,10 @@ export class InternalEventHandler {
     }
   }
 
-  public async on(event: InternalEvent, eventCallback: (data?: unknown) => void): Promise<void> {
+  public async on(
+    event: InternalEvent,
+    eventCallback: InternalEventHandlerFunction
+  ): Promise<void> {
     const listeners = this.callbackMap[event] || []
     listeners.push(eventCallback)
     this.callbackMap[event] = listeners
@@ -109,7 +114,9 @@ export class InternalEventHandler {
     const listeners = this.callbackMap[event]
     if (listeners && listeners.length > 0) {
       listeners.forEach((listener) => {
-        listener(data)
+        listener(data).catch((listenerError) =>
+          console.error(`error handling event ${event}`, listenerError)
+        )
       })
     } else {
       const listener = this.defaultCallbacks[event] || listenerFallback
