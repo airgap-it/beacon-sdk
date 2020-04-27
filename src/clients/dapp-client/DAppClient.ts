@@ -73,13 +73,20 @@ export class DAppClient extends Client {
     })
     this.iconUrl = config.iconUrl
 
+    if (config.eventHandlers) {
+      this.events.overrideDefaults(config.eventHandlers).catch((overrideError: Error) => {
+        logger.error('constructor', overrideError)
+      })
+    }
+
     this.handleResponse = (event: BeaconMessage, connectionInfo: ConnectionContext): void => {
       const openRequest = this.openRequests.get(event.id)
       if (openRequest) {
         logger.log('handleResponse', 'found openRequest', event.id)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (((event as any) as BeaconErrorMessage).errorType) {
-          openRequest.reject((event as any) as BeaconErrorMessage)
+        const errorMessage: BeaconErrorMessage = (event as any) as BeaconErrorMessage
+        if (errorMessage.errorType) {
+          openRequest.reject(errorMessage)
         } else {
           openRequest.resolve({ message: event, connectionInfo })
         }

@@ -22,7 +22,7 @@ const listenerFallback = async (data?: unknown): Promise<void> => {
   console.error(`no default listener for event ${event}`, data)
 }
 
-const showSentToast = () => {
+const showSentToast = async (): Promise<void> => {
   openToast({ body: 'Request sent', timer: 3000 }).catch((toastError) => console.error(toastError))
 }
 
@@ -33,72 +33,48 @@ const showNoPermissionAlert = async (): Promise<void> => {
   })
 }
 
+const showRateLimitReached = async (): Promise<void> => {
+  openToast({
+    body: 'Rate limit reached. Please slow down',
+    timer: 3000
+  }).catch((toastError) => console.error(toastError))
+}
+
+const emptyHandler = async (): Promise<void> => {
+  /* Do nothing */
+}
+
 export type InternalEventHandlerFunction = (data?: unknown) => Promise<void>
 
+export const defaultEventCallbacks: { [key in InternalEvent]: InternalEventHandlerFunction } = {
+  [InternalEvent.PERMISSION_REQUEST_SENT]: showSentToast,
+  [InternalEvent.PERMISSION_REQUEST_ERROR]: showNoPermissionAlert,
+  [InternalEvent.OPERATION_REQUEST_SENT]: showSentToast,
+  [InternalEvent.OPERATION_REQUEST_ERROR]: showNoPermissionAlert,
+  [InternalEvent.SIGN_REQUEST_SENT]: showSentToast,
+  [InternalEvent.SIGN_REQUEST_ERROR]: showNoPermissionAlert,
+  [InternalEvent.BROADCAST_REQUEST_SENT]: showSentToast,
+  [InternalEvent.BROADCAST_REQUEST_ERROR]: showNoPermissionAlert,
+  [InternalEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
+  [InternalEvent.NO_PERMISSIONS]: showNoPermissionAlert,
+  [InternalEvent.ACTIVE_ACCOUNT_SET]: emptyHandler,
+  [InternalEvent.UNKNOWN]: emptyHandler
+}
+
 export class InternalEventHandler {
-  private readonly defaultCallbacks: { [key in InternalEvent]: InternalEventHandlerFunction }
-  private readonly callbackMap: { [key in InternalEvent]: InternalEventHandlerFunction[] }
-
-  constructor() {
-    this.defaultCallbacks = {
-      [InternalEvent.PERMISSION_REQUEST_SENT]: async (_data?: unknown): Promise<void> => {
-        showSentToast()
-      },
-      [InternalEvent.PERMISSION_REQUEST_ERROR]: async (_data?: unknown): Promise<void> => {
-        await showNoPermissionAlert()
-      },
-      [InternalEvent.OPERATION_REQUEST_SENT]: async (_data?: unknown): Promise<void> => {
-        showSentToast()
-      },
-      [InternalEvent.OPERATION_REQUEST_ERROR]: async (_data?: unknown): Promise<void> => {
-        await showNoPermissionAlert()
-      },
-      [InternalEvent.SIGN_REQUEST_SENT]: async (_data?: unknown): Promise<void> => {
-        showSentToast()
-      },
-      [InternalEvent.SIGN_REQUEST_ERROR]: async (_data?: unknown): Promise<void> => {
-        await showNoPermissionAlert()
-      },
-      [InternalEvent.BROADCAST_REQUEST_SENT]: async (_data?: unknown): Promise<void> => {
-        showSentToast()
-      },
-      [InternalEvent.BROADCAST_REQUEST_ERROR]: async (_data?: unknown): Promise<void> => {
-        await showNoPermissionAlert()
-      },
-      [InternalEvent.LOCAL_RATE_LIMIT_REACHED]: async (_data?: unknown): Promise<void> => {
-        openToast({
-          body: 'Rate limit reached. Please slow down',
-          timer: 3000
-        }).catch((toastError) => console.error(toastError))
-      },
-      [InternalEvent.NO_PERMISSIONS]: async (_data?: unknown): Promise<void> => {
-        openToast({
-          body: 'No permissions!',
-          timer: 3000
-        }).catch((toastError) => console.error(toastError))
-      },
-      [InternalEvent.ACTIVE_ACCOUNT_SET]: async (data?: unknown): Promise<void> => {
-        console.log('internal event: active account set', data)
-      },
-      [InternalEvent.UNKNOWN]: async (_data?: unknown): Promise<void> => {
-        /* Do nothing */
-      }
-    }
-
-    this.callbackMap = {
-      [InternalEvent.PERMISSION_REQUEST_SENT]: [],
-      [InternalEvent.PERMISSION_REQUEST_ERROR]: [],
-      [InternalEvent.OPERATION_REQUEST_SENT]: [],
-      [InternalEvent.OPERATION_REQUEST_ERROR]: [],
-      [InternalEvent.SIGN_REQUEST_SENT]: [],
-      [InternalEvent.SIGN_REQUEST_ERROR]: [],
-      [InternalEvent.BROADCAST_REQUEST_SENT]: [],
-      [InternalEvent.BROADCAST_REQUEST_ERROR]: [],
-      [InternalEvent.LOCAL_RATE_LIMIT_REACHED]: [],
-      [InternalEvent.NO_PERMISSIONS]: [],
-      [InternalEvent.ACTIVE_ACCOUNT_SET]: [],
-      [InternalEvent.UNKNOWN]: []
-    }
+  private readonly callbackMap: { [key in InternalEvent]: InternalEventHandlerFunction[] } = {
+    [InternalEvent.PERMISSION_REQUEST_SENT]: [],
+    [InternalEvent.PERMISSION_REQUEST_ERROR]: [],
+    [InternalEvent.OPERATION_REQUEST_SENT]: [],
+    [InternalEvent.OPERATION_REQUEST_ERROR]: [],
+    [InternalEvent.SIGN_REQUEST_SENT]: [],
+    [InternalEvent.SIGN_REQUEST_ERROR]: [],
+    [InternalEvent.BROADCAST_REQUEST_SENT]: [],
+    [InternalEvent.BROADCAST_REQUEST_ERROR]: [],
+    [InternalEvent.LOCAL_RATE_LIMIT_REACHED]: [],
+    [InternalEvent.NO_PERMISSIONS]: [],
+    [InternalEvent.ACTIVE_ACCOUNT_SET]: [],
+    [InternalEvent.UNKNOWN]: []
   }
 
   public async on(
@@ -119,8 +95,21 @@ export class InternalEventHandler {
         )
       })
     } else {
-      const listener = this.defaultCallbacks[event] || listenerFallback
+      const listener = defaultEventCallbacks[event] || listenerFallback
       await listener(data)
     }
+  }
+
+  public async overrideDefaults(
+    eventsToOverride: {
+      [key in InternalEvent]: {
+        handler: InternalEventHandlerFunction
+      }
+    }
+  ): Promise<void> {
+    Object.keys(eventsToOverride).forEach((untypedEvent: string) => {
+      const event: InternalEvent = untypedEvent as InternalEvent
+      this.callbackMap[event].push(eventsToOverride[event].handler)
+    })
   }
 }
