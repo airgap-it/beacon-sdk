@@ -22,7 +22,7 @@ export class P2PTransport extends Transport {
   private readonly storage: Storage
   private readonly keyPair: sodium.KeyPair
 
-  private client: P2PCommunicationClient | undefined
+  private readonly client: P2PCommunicationClient
 
   constructor(
     name: string,
@@ -36,6 +36,7 @@ export class P2PTransport extends Transport {
     this.storage = storage
     this.events = events
     this.isDapp = isDapp
+    this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false)
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -46,7 +47,6 @@ export class P2PTransport extends Transport {
     logger.log('connect')
     this._isConnected = TransportStatus.CONNECTING
 
-    this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false)
     await this.client.start()
 
     const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
@@ -68,10 +68,6 @@ export class P2PTransport extends Transport {
     logger.log('connectNewPeer')
 
     return new Promise(async (resolve) => {
-      if (!this.client) {
-        throw new Error('client not ready')
-      }
-
       await this.client.listenForChannelOpening(async (pubKey) => {
         logger.log('connectNewPeer', `new pubkey ${pubKey}`)
 
@@ -117,10 +113,6 @@ export class P2PTransport extends Transport {
       await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
       logger.log('addPeer', `peer added, now ${peers.length} peers`)
 
-      if (!this.client) {
-        throw new Error('client not ready')
-      }
-
       await this.client.openChannel(newPeer.pubKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
       await this.listen(newPeer.pubKey) // TODO: Prevent channels from being opened multiple times
     }
@@ -141,19 +133,13 @@ export class P2PTransport extends Transport {
     logger.log('removeAllPeers')
     await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, [])
 
-    if (this.client) {
-      await this.client.unsubscribeFromEncryptedMessages()
-    }
+    await this.client.unsubscribeFromEncryptedMessages()
   }
 
   public async send(message: string): Promise<void> {
     const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
 
     const promises = knownPeers.map((peer) => {
-      if (!this.client) {
-        throw new Error('client not ready')
-      }
-
       return this.client.sendMessage(peer.pubKey, message)
     })
 
@@ -161,10 +147,6 @@ export class P2PTransport extends Transport {
   }
 
   private async listen(pubKey: string): Promise<void> {
-    if (!this.client) {
-      throw new Error('client not ready')
-    }
-
     await this.client
       .listenForEncryptedMessage(pubKey, (message) => {
         const connectionContext: ConnectionContext = {

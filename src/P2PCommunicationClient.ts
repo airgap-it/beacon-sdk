@@ -30,7 +30,7 @@ export class P2PCommunicationClient {
     private readonly keyPair: sodium.KeyPair,
     public readonly replicationCount: number,
     private readonly debug: boolean = false
-  ) {}
+  ) { }
 
   public getHandshakeInfo(): { name: string; pubKey: string; relayServer: string } {
     return {
@@ -94,11 +94,6 @@ export class P2PCommunicationClient {
       })
       await client.startClient({ initialSyncLimit: 0 })
 
-      // FIXME: See below
-      // TODO: This call `client.startClient({ initialSyncLimit: 0 });` doesn't properly await, so we don't know when the SDK is ready.
-      // TODO: We temporarily comment this out to try if it works without it
-      // Await new Promise(resolve => setTimeout(resolve, 1000))
-
       for (const room of client.getRooms()) {
         if (room.getMyMembership() === 'invite') {
           await client.joinRoom(room.roomId)
@@ -122,7 +117,7 @@ export class P2PCommunicationClient {
       return
     }
 
-    const callbackFunction = (event: MatrixEvent) => {
+    const callbackFunction = (event: MatrixEvent): void => {
       if (this.isRoomMessage(event) && this.isSender(event, senderPublicKey)) {
         const payload = Buffer.from(event.getContent().body, 'hex')
         if (
@@ -141,7 +136,7 @@ export class P2PCommunicationClient {
     }
   }
 
-  public async unsubscribeFromEncryptedMessage(senderPublicKey: string) {
+  public async unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void> {
     const listener = this.activeListeners.get(senderPublicKey)
     if (!listener) {
       return
@@ -154,7 +149,7 @@ export class P2PCommunicationClient {
     this.activeListeners.delete(senderPublicKey)
   }
 
-  public async unsubscribeFromEncryptedMessages() {
+  public async unsubscribeFromEncryptedMessages(): Promise<void> {
     for (const client of this.clients) {
       client.removeAllListeners('event')
     }
@@ -343,7 +338,7 @@ export class P2PCommunicationClient {
 
   private log(...args: unknown[]): void {
     if (this.debug) {
-      console.log(`--- [WalletCommunicationClient]:${this.name}: `, ...args)
+      console.log(`--- [P2PCommunicationClient]:${this.name}: `, ...args)
     }
   }
 }
