@@ -19,3 +19,7 @@
 ## Using custom network
 
 <<< @/src/examples/using-custom-network.ts
+
+## Overriding default events
+
+<<< @/src/examples/override-default-events.ts
