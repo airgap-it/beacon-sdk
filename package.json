@@ -32,7 +32,8 @@
     "prepare": "npm run build",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "docs:deploy": "./deploy-docs.sh"
+    "docs:deploy": "./deploy-docs.sh",
+    "check-version": "ts-node scripts/check-sdk-version.ts"
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
@@ -58,6 +59,7 @@
     "eslint-plugin-import": "2.20.2",
     "eslint-plugin-no-null": "1.0.2",
     "eslint-plugin-prefer-arrow": "1.2.0",
+    "husky": "^4.2.5",
     "mocha": "6.2.2",
     "nyc": "14.1.1",
     "prettier": "2.0.5",
@@ -95,7 +97,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "pretty-quick --staged"
+      "pre-commit": "npm run check-version && pretty-quick --staged"
     }
   }
 }
