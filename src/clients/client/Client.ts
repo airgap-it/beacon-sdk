@@ -1,5 +1,5 @@
 import * as sodium from 'libsodium-wrappers'
-import { ExposedPromise, exposedPromise, ExposedPromiseStatus } from '../../utils/exposed-promise'
+import { ExposedPromise, ExposedPromiseStatus } from '../../utils/exposed-promise'
 import { generateGUID } from '../../utils/generate-uuid'
 import { getKeypairFromSeed, toHex } from '../../utils/crypto'
 import { ConnectionContext } from '../../types/ConnectionContext'
@@ -38,17 +38,17 @@ export abstract class Client {
 
   protected storage: Storage
 
-  protected _keyPair: ExposedPromise<sodium.KeyPair> = exposedPromise()
+  protected _keyPair: ExposedPromise<sodium.KeyPair> = new ExposedPromise()
   protected get keyPair(): Promise<sodium.KeyPair> {
     return this._keyPair.promise
   }
 
-  protected _transport: ExposedPromise<Transport> = exposedPromise()
+  protected _transport: ExposedPromise<Transport> = new ExposedPromise()
   protected get transport(): Promise<Transport> {
     return this._transport.promise
   }
 
-  protected readonly _isConnected: ExposedPromise<boolean> = exposedPromise()
+  protected readonly _isConnected: ExposedPromise<boolean> = new ExposedPromise()
   public get isConnected(): Promise<boolean> {
     return this._isConnected.promise
   }
@@ -111,7 +111,7 @@ export abstract class Client {
 
       PostMessageTransport.isAvailable().then(async postMessageAvailable => {
         if (postMessageAvailable) {
-          this._transport = exposedPromise() // We know that the promise has already been resolved, so we need to create a new one
+          this._transport = new ExposedPromise() // We know that the promise has already been resolved, so we need to create a new one
           await this.setTransport(new PostMessageTransport(this.name))
         }
       }).catch((postMessageError: Error) => { logger.error('init', postMessageError) })

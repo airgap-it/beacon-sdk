@@ -1,4 +1,4 @@
-import { ExposedPromise, exposedPromise } from '../../utils/exposed-promise'
+import { ExposedPromise } from '../../utils/exposed-promise'
 
 import { Logger } from '../../utils/Logger'
 import { generateGUID } from '../../utils/generate-uuid'
@@ -362,13 +362,13 @@ export class DAppClient extends Client {
       ...requestInput
     }
 
-    const exposed = exposedPromise<{ message: U; connectionInfo: ConnectionContext }>()
+    const exposed = new ExposedPromise<{ message: BeaconMessage; connectionInfo: ConnectionContext }, BeaconErrorMessage>()
     this.addOpenRequest(request.id, exposed)
 
     const payload = await new Serializer().serialize(request)
 
     await (await this.transport).send(payload)
 
-    return exposed.promise
+    return exposed.promise as any // TODO: Type
   }
 }
