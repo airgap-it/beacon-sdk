@@ -186,7 +186,7 @@ export class DAppClient extends Client {
       scopes:
         input && input.scopes
           ? input.scopes
-          : [PermissionScope.READ_ADDRESS, PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN]
+          : [PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN]
     }
 
     const response = await this.makeRequest<PermissionRequest, PermissionResponse>(request).catch(
@@ -198,7 +198,7 @@ export class DAppClient extends Client {
     const { message, connectionInfo } = response
     await this.handleBeaconError(message)
 
-    const address = message.pubkey ? await getAddressFromPublicKey(message.pubkey) : undefined
+    const address = await getAddressFromPublicKey(message.pubkey)
 
     const accountInfo: AccountInfo = {
       accountIdentifier: message.accountIdentifier,

@@ -10,7 +10,7 @@ export type IgnoredResponseOutputProperties = 'id' | 'version' | 'type'
 export type PermissionResponseOutput = Omit<
   Omit<PermissionResponse, IgnoredResponseOutputProperties>,
   'accountIdentifier' | 'pubkey'
-> & { address?: string }
+> & { address: string }
 export type OperationResponseOutput = Omit<OperationResponse, IgnoredResponseOutputProperties>
 export type SignPayloadResponseOutput = Omit<SignPayloadResponse, IgnoredResponseOutputProperties>
 export type BroadcastResponseOutput = Omit<BroadcastResponse, IgnoredResponseOutputProperties>
