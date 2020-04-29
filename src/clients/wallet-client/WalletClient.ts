@@ -1,5 +1,5 @@
 import { ConnectionContext } from '../../types/ConnectionContext'
-import { SDK_VERSION } from '../../constants'
+import { BEACON_VERSION } from '../../constants'
 import {
   Client,
   TransportType,
@@ -152,12 +152,11 @@ export class WalletClient extends Client {
     )
 
     const beaconId = this.beaconId ? this.beaconId : ''
-    const version = SDK_VERSION
     switch (message.type) {
       case BeaconMessageType.PermissionResponse: {
         const response: PermissionResponse = {
           beaconId,
-          version,
+          version: BEACON_VERSION,
           ...message
         }
         // this.savePermission(response.)
@@ -168,7 +167,7 @@ export class WalletClient extends Client {
         {
           const response: OperationResponse = {
             beaconId,
-            version,
+            version: BEACON_VERSION,
             ...message
           }
           await this.respondToMessage(response)
@@ -178,7 +177,7 @@ export class WalletClient extends Client {
         {
           const response: SignPayloadResponse = {
             beaconId,
-            version,
+            version: BEACON_VERSION,
             ...message
           }
           await this.respondToMessage(response)
@@ -188,7 +187,7 @@ export class WalletClient extends Client {
         {
           const response: BroadcastResponse = {
             beaconId,
-            version,
+            version: BEACON_VERSION,
             ...message
           }
           await this.respondToMessage(response)

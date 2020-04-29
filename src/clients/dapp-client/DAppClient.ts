@@ -3,7 +3,7 @@ import { ExposedPromise, exposedPromise } from '../../utils/exposed-promise'
 import { Logger } from '../../utils/Logger'
 import { generateGUID } from '../../utils/generate-uuid'
 import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../../events'
-import { SDK_VERSION } from '../../constants'
+import { SDK_VERSION, BEACON_VERSION } from '../../constants'
 import { getAddressFromPublicKey } from '../../utils/crypto'
 import { ConnectionContext } from '../../types/ConnectionContext'
 import {
@@ -368,7 +368,7 @@ export class DAppClient extends Client {
     const request: Omit<T, IgnoredRequestInputProperties> &
       Pick<U, IgnoredRequestInputProperties> = {
       id: generateGUID(),
-      version: SDK_VERSION,
+      version: BEACON_VERSION,
       beaconId: this.beaconId,
       ...requestInput
     }
