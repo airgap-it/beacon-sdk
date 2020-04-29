@@ -45,8 +45,8 @@ import {
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
-import { DAppClientOptions } from './DAppClientOptions'
 import { checkPermissions } from '../../utils/check-permissions'
+import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
 
@@ -72,6 +72,17 @@ export class DAppClient extends Client {
       ...config
     })
     this.iconUrl = config.iconUrl
+
+    this.storage
+      .get(StorageKey.ACTIVE_ACCOUNT)
+      .then(async (activeAccount) => {
+        if (activeAccount) {
+          await this.setActiveAccount(await this.getAccount(activeAccount))
+        }
+      })
+      .catch((storageError) => {
+        console.error(storageError)
+      })
 
     this.handleResponse = (event: BeaconMessage, connectionInfo: ConnectionContext): void => {
       const openRequest = this.openRequests.get(event.id)
@@ -104,20 +115,6 @@ export class DAppClient extends Client {
 
   public async init(_isDapp?: boolean, transport?: Transport): Promise<TransportType> {
     const initResponse = await super.init(true, transport)
-    if (!this.storage) {
-      throw new Error('Storage not defined after init!')
-    }
-
-    this.storage
-      .get(StorageKey.ACTIVE_ACCOUNT)
-      .then(async (activeAccount) => {
-        if (activeAccount) {
-          await this.setActiveAccount(await this.getAccount(activeAccount))
-        }
-      })
-      .catch((storageError) => {
-        console.error(storageError)
-      })
 
     return initResponse
   }
