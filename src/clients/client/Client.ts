@@ -1,6 +1,5 @@
 import * as sodium from 'libsodium-wrappers'
-import { ExposedPromise, exposedPromise } from '../../utils/exposed-promise'
-// import { Logger } from '../utils/Logger'
+import { ExposedPromise, exposedPromise, ExposedPromiseStatus } from '../../utils/exposed-promise'
 import { generateGUID } from '../../utils/generate-uuid'
 import { getKeypairFromSeed, toHex } from '../../utils/crypto'
 import { ConnectionContext } from '../../types/ConnectionContext'
@@ -15,35 +14,48 @@ import {
   StorageKey,
   AccountInfo,
   BeaconBaseMessage,
-  Network,
   BeaconMessage
 } from '../..'
-import { BeaconEventHandler } from '../../events'
+import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { Logger } from '../../utils/Logger'
 import { ClientOptions } from './ClientOptions'
 
 const logger = new Logger('BaseClient')
 
 export abstract class Client {
-  protected readonly events: BeaconEventHandler = new BeaconEventHandler()
-
   protected requestCounter: number[] = []
-  protected readonly rateLimit: number = 2
-  protected readonly rateLimitWindowInSeconds: number = 5
-  protected beaconId: string | undefined
-  protected readonly name: string
 
   protected handleResponse: (_event: BeaconMessage, connectionInfo: ConnectionContext) => void
+
+  protected readonly name: string
+
+  protected readonly rateLimit: number = 2
+  protected readonly rateLimitWindowInSeconds: number = 5
+
+  protected readonly events: BeaconEventHandler = new BeaconEventHandler()
+
+  protected beaconId: string | undefined
+
+  protected storage: Storage
 
   protected _keyPair: ExposedPromise<sodium.KeyPair> = exposedPromise()
   protected get keyPair(): Promise<sodium.KeyPair> {
     return this._keyPair.promise
   }
 
-  protected storage: Storage
-  protected transport: Transport | undefined
+  protected _transport: ExposedPromise<Transport> = exposedPromise()
+  protected get transport(): Promise<Transport> {
+    return this._transport.promise
+  }
 
   protected readonly _isConnected: ExposedPromise<boolean> = exposedPromise()
+  public get isConnected(): Promise<boolean> {
+    return this._isConnected.promise
+  }
+
+  public get ready(): Promise<void> {
+    return this.transport.then(() => undefined)
+  }
 
   constructor(config: ClientOptions) {
     this.name = config.name
@@ -55,19 +67,16 @@ export abstract class Client {
       })
     }
 
-    this.handleResponse = (_event: BeaconBaseMessage, _connectionInfo: ConnectionContext) => {
-      throw new Error('not overwritten')
+    this.handleResponse = (message: BeaconBaseMessage, connectionInfo: ConnectionContext): void => {
+      throw new Error(`not overwritten${JSON.stringify(message)} - ${JSON.stringify(connectionInfo)}`)
     }
+
     this.loadOrCreateBeaconSecret().catch(console.error)
     this.keyPair
       .then((keyPair) => {
         this.beaconId = toHex(keyPair.publicKey)
       })
       .catch(console.error)
-  }
-
-  public static async getAccountIdentifier(pubkey: string, network: Network): Promise<string> {
-    return `${pubkey}-${network.type}-${network.name}`
   }
 
   public async addRequestAndCheckIfRateLimited(): Promise<boolean> {
@@ -82,63 +91,49 @@ export abstract class Client {
   }
 
   public async init(isDapp: boolean = true, transport?: Transport): Promise<TransportType> {
-    if (this.transport) {
-      return this.transport.type
+    if (this._transport.status === ExposedPromiseStatus.RESOLVED) {
+      return (await this.transport).type
     }
 
     if (transport) {
-      this.transport = transport // Let users define their own transport
-    } else if (await PostMessageTransport.isAvailable()) {
-      this.transport = new PostMessageTransport(name) // Talk to extension first and relay everything
-    } else if (await P2PTransport.isAvailable()) {
-      this.transport = new P2PTransport(
+      await this.setTransport(transport) // Let users define their own transport
+
+      return transport.type
+    } else {
+      const newTransport = new P2PTransport(
         this.name,
         await this.keyPair,
         this.storage,
         this.events,
         isDapp
-      ) // Establish our own connection with the wallet
-    } else {
-      throw new Error('no transport available for this platform!')
+      )
+      await this.setTransport(newTransport)
+
+      PostMessageTransport.isAvailable().then(async postMessageAvailable => {
+        if (postMessageAvailable) {
+          this._transport = exposedPromise() // We know that the promise has already been resolved, so we need to create a new one
+          await this.setTransport(new PostMessageTransport(this.name))
+        }
+      }).catch((postMessageError: Error) => { logger.error('init', postMessageError) })
+
+      return newTransport.type
     }
 
-    return this.transport.type
   }
-
-  public get isConnected(): Promise<boolean> {
-    return this._isConnected.promise
-  }
-
   public async getPeers(): Promise<string[]> {
-    if (!this.transport) {
-      throw new Error('no transport defined')
-    }
-
-    return this.transport.getPeers()
+    return (await this.transport).getPeers()
   }
 
   public async addPeer(id: string): Promise<void> {
-    if (!this.transport) {
-      throw new Error('no transport defined')
-    }
-
-    return this.transport.addPeer(id)
+    return (await this.transport).addPeer(id)
   }
 
   public async removePeer(id: string): Promise<void> {
-    if (!this.transport) {
-      throw new Error('no transport defined')
-    }
-
-    return this.transport.removePeer(id)
+    return (await this.transport).removePeer(id)
   }
 
   public async removeAllPeers(): Promise<void> {
-    if (!this.transport) {
-      throw new Error('no transport defined')
-    }
-
-    return this.transport.removeAllPeers()
+    return (await this.transport).removeAllPeers()
   }
 
   public async getAccounts(): Promise<AccountInfo[]> {
@@ -176,9 +171,10 @@ export abstract class Client {
   }
 
   protected async _connect(): Promise<boolean> {
-    if (this.transport && this.transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
-      await this.transport.connect()
-      this.transport
+    const transport: Transport = await this.transport
+    if (transport && transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
+      await transport.connect()
+      transport
         .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
           if (typeof message === 'string') {
             const deserializedMessage = (await new Serializer().deserialize(
@@ -194,6 +190,11 @@ export abstract class Client {
     }
 
     return this._isConnected.promise
+  }
+
+  private async setTransport(transport: Transport): Promise<void> {
+    this._transport.resolve(transport)
+    this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport).catch(eventError => { logger.error('setTransport', eventError) })
   }
 
   private async loadOrCreateBeaconSecret(): Promise<void> {

@@ -201,10 +201,7 @@ export class WalletClient extends Client {
   }
 
   private async respondToMessage(message: BeaconMessage): Promise<void> {
-    if (!this.transport) {
-      throw new Error('no transport defined')
-    }
     const serializedMessage: string = await new Serializer().serialize(message)
-    await this.transport.send(serializedMessage)
+    await (await this.transport).send(serializedMessage)
   }
 }

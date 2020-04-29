@@ -378,10 +378,7 @@ export class DAppClient extends Client {
 
     const payload = await new Serializer().serialize(request)
 
-    if (!this.transport) {
-      throw new Error('No transport')
-    }
-    await this.transport.send(payload)
+    await (await this.transport).send(payload)
 
     return exposed.promise
   }

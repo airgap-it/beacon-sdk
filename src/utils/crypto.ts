@@ -69,6 +69,13 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
   return bs58check.encode(Buffer.concat([tz1Prefix, Buffer.from(payload)]))
 }
 
+export async function getHash(message: string): Promise<string> {
+  await sodium.ready
+  const payload: Uint8Array = sodium.crypto_generichash(20, Buffer.from(message, 'hex'))
+
+  return bs58check.encode(Buffer.from(payload))
+}
+
 export function recipientString(recipientHash: string, relayServer: string): string {
   return `@${recipientHash}:${relayServer}`
 }

@@ -2,6 +2,7 @@ import { openToast } from './alert/Toast'
 import { openAlert, AlertConfig } from './alert/Alert'
 import { getQrData } from './utils/qr'
 import { Logger } from './utils/Logger'
+import { Transport } from './transports/Transport'
 import { P2PPairInfo, AccountInfo } from '.'
 
 const logger = new Logger('BeaconEvents')
@@ -15,10 +16,15 @@ export enum BeaconEvent {
   SIGN_REQUEST_ERROR = 'SIGN_REQUEST_ERROR',
   BROADCAST_REQUEST_SENT = 'BROADCAST_REQUEST_SENT',
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
+
   LOCAL_RATE_LIMIT_REACHED = 'LOCAL_RATE_LIMIT_REACHED',
+
   NO_PERMISSIONS = 'NO_PERMISSIONS',
 
   ACTIVE_ACCOUNT_SET = 'ACTIVE_ACCOUNT_SET',
+
+  ACTIVE_TRANSPORT_SET = 'ACTIVE_TRANSPORT_SET',
+
   P2P_CHANNEL_CONNECT_SUCCESS = 'P2P_CHANNEL_CONNECT_SUCCESS',
   P2P_LISTEN_FOR_CHANNEL_OPEN = 'P2P_LISTEN_FOR_CHANNEL_OPEN',
 
@@ -38,6 +44,7 @@ export interface BeaconEventType {
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: undefined
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
+  [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: undefined
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairInfo
   [BeaconEvent.UNKNOWN]: undefined
@@ -84,7 +91,7 @@ const showQrCode = async (
 }
 
 const emptyHandler = async (data?: unknown): Promise<void> => {
-  logger.warn('emptyHandler', `no default listener for event ${event}`, data)
+  logger.log('emptyHandler', `event ${event}`, data)
 }
 
 export type BeaconEventHandlerFunction<T = unknown> = (data: T) => Promise<void>
@@ -103,6 +110,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler,
+  [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler,
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showOkAlert,
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrCode,
   [BeaconEvent.UNKNOWN]: emptyHandler
@@ -112,21 +120,22 @@ export class BeaconEventHandler {
   private readonly callbackMap: {
     [key in BeaconEvent]: BeaconEventHandlerFunction<any>[]
   } = {
-    [BeaconEvent.PERMISSION_REQUEST_SENT]: [defaultEventCallbacks.PERMISSION_REQUEST_SENT],
-    [BeaconEvent.PERMISSION_REQUEST_ERROR]: [defaultEventCallbacks.PERMISSION_REQUEST_ERROR],
-    [BeaconEvent.OPERATION_REQUEST_SENT]: [defaultEventCallbacks.OPERATION_REQUEST_SENT],
-    [BeaconEvent.OPERATION_REQUEST_ERROR]: [defaultEventCallbacks.OPERATION_REQUEST_ERROR],
-    [BeaconEvent.SIGN_REQUEST_SENT]: [defaultEventCallbacks.SIGN_REQUEST_SENT],
-    [BeaconEvent.SIGN_REQUEST_ERROR]: [defaultEventCallbacks.SIGN_REQUEST_ERROR],
-    [BeaconEvent.BROADCAST_REQUEST_SENT]: [defaultEventCallbacks.BROADCAST_REQUEST_SENT],
-    [BeaconEvent.BROADCAST_REQUEST_ERROR]: [defaultEventCallbacks.BROADCAST_REQUEST_ERROR],
-    [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: [defaultEventCallbacks.LOCAL_RATE_LIMIT_REACHED],
-    [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
-    [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
-    [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: [defaultEventCallbacks.P2P_CHANNEL_CONNECT_SUCCESS],
-    [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: [defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN],
-    [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
-  }
+      [BeaconEvent.PERMISSION_REQUEST_SENT]: [defaultEventCallbacks.PERMISSION_REQUEST_SENT],
+      [BeaconEvent.PERMISSION_REQUEST_ERROR]: [defaultEventCallbacks.PERMISSION_REQUEST_ERROR],
+      [BeaconEvent.OPERATION_REQUEST_SENT]: [defaultEventCallbacks.OPERATION_REQUEST_SENT],
+      [BeaconEvent.OPERATION_REQUEST_ERROR]: [defaultEventCallbacks.OPERATION_REQUEST_ERROR],
+      [BeaconEvent.SIGN_REQUEST_SENT]: [defaultEventCallbacks.SIGN_REQUEST_SENT],
+      [BeaconEvent.SIGN_REQUEST_ERROR]: [defaultEventCallbacks.SIGN_REQUEST_ERROR],
+      [BeaconEvent.BROADCAST_REQUEST_SENT]: [defaultEventCallbacks.BROADCAST_REQUEST_SENT],
+      [BeaconEvent.BROADCAST_REQUEST_ERROR]: [defaultEventCallbacks.BROADCAST_REQUEST_ERROR],
+      [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: [defaultEventCallbacks.LOCAL_RATE_LIMIT_REACHED],
+      [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
+      [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
+      [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
+      [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: [defaultEventCallbacks.P2P_CHANNEL_CONNECT_SUCCESS],
+      [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: [defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN],
+      [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
+    }
 
   public async on<K extends BeaconEvent>(
     event: K,
