@@ -46,6 +46,7 @@ import {
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
 import { checkPermissions } from '../../utils/check-permissions'
+import { getAccountIdentifier } from '../../utils/get-account-identifier'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -201,7 +202,7 @@ export class DAppClient extends Client {
     const address = await getAddressFromPublicKey(message.pubkey)
 
     const accountInfo: AccountInfo = {
-      accountIdentifier: message.accountIdentifier,
+      accountIdentifier: await getAccountIdentifier(message.pubkey, message.network),
       beaconId: message.beaconId,
       origin: {
         type: connectionInfo.origin,
