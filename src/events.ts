@@ -91,7 +91,7 @@ const showQrCode = async (
 }
 
 const emptyHandler = async (data?: unknown): Promise<void> => {
-  logger.log('emptyHandler', `event ${event}`, data)
+  logger.log('emptyHandler', data)
 }
 
 export type BeaconEventHandlerFunction<T = unknown> = (data: T) => Promise<void>
