@@ -17,7 +17,7 @@ The `beacon-sdk` simplifies and abstracts the communication between dApps and wa
 ### Example
 
 ```ts
-const client = new DAppClient('My Sample DApp')
+const client = new DAppClient({ name: 'My Sample DApp'})
 
 client
   .requestPermissions()
