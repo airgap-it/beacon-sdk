@@ -21,7 +21,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npm run check-version && tsc",
     "prettier": "npx prettier --write 'src/**/*'",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",

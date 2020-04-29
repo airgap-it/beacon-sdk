@@ -7,6 +7,10 @@ const packageLockJson = './package-lock.json'
 const packageJsonContent = JSON.parse(readFileSync(packageJson, 'utf-8'))
 const packageLockJsonContent = JSON.parse(readFileSync(packageLockJson, 'utf-8'))
 
-if (SDK_VERSION !== packageJsonContent.version || SDK_VERSION === packageLockJsonContent.version) {
-  throw new Error('Beacon Version Mismatch!')
+if (packageJsonContent.version !== packageLockJsonContent.version) {
+  throw new Error(`Package (${packageJsonContent.version}) and Package Lock (${packageLockJsonContent.version}) version mismatch!`)
+}
+
+if (!packageJsonContent.version.startsWith(SDK_VERSION)) {
+  throw new Error(`Package version (${packageJsonContent.version}) does not match SDK Version (${SDK_VERSION})`)
 }
