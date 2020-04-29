@@ -30,11 +30,6 @@ export class PostMessageTransport extends Transport {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       myWindow.postMessage(message as any, '*')
-
-      setTimeout(() => {
-        resolve(false)
-        myWindow.removeEventListener('message', fn)
-      }, 100)
     })
   }
 
