@@ -90,11 +90,13 @@ const showQrCode = async (
   await openAlert(alertConfig)
 }
 
-const emptyHandler = async (data?: unknown): Promise<void> => {
-  logger.log('emptyHandler', data)
-}
+const emptyHandler = (eventType: BeaconEvent): BeaconEventHandlerFunction =>
+  async (data?: unknown): Promise<void> => {
+    logger.log('emptyHandler', eventType, data)
 
-export type BeaconEventHandlerFunction<T = unknown> = (data: T) => Promise<void>
+  }
+
+export type BeaconEventHandlerFunction<T = unknown> = (data: T) => void | Promise<void>
 
 export const defaultEventCallbacks: {
   [key in BeaconEvent]: BeaconEventHandlerFunction<BeaconEventType[key]>
@@ -109,11 +111,11 @@ export const defaultEventCallbacks: {
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: showNoPermissionAlert,
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
-  [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler,
-  [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler,
+  [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(BeaconEvent.ACTIVE_ACCOUNT_SET),
+  [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showOkAlert,
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrCode,
-  [BeaconEvent.UNKNOWN]: emptyHandler
+  [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)
 }
 
 export class BeaconEventHandler {
@@ -149,10 +151,12 @@ export class BeaconEventHandler {
   public async emit<K extends BeaconEvent>(event: K, data?: BeaconEventType[K]): Promise<void> {
     const listeners = this.callbackMap[event]
     if (listeners && listeners.length > 0) {
-      listeners.forEach((listener) => {
-        listener(data).catch((listenerError) =>
-          console.error(`error handling event ${event}`, listenerError)
-        )
+      listeners.forEach(async (listener: BeaconEventHandlerFunction) => {
+        try {
+          await listener(data)
+        } catch (listenerError) {
+          logger.error(`error handling event ${event}`, listenerError)
+        }
       })
     }
   }
