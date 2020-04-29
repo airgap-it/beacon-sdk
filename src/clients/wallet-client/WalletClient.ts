@@ -12,7 +12,6 @@ import {
   BeaconMessageType,
   BeaconMessage,
   Origin,
-  PermissionScope,
   Serializer,
   LocalStorage,
   BeaconResponseInputMessage
