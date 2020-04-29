@@ -23,7 +23,6 @@ const client = new DAppClient({
 })
 
 const scopes: PermissionScope[] = [
-  PermissionScope.READ_ADDRESS,
   PermissionScope.OPERATION_REQUEST,
   PermissionScope.SIGN,
   PermissionScope.THRESHOLD
