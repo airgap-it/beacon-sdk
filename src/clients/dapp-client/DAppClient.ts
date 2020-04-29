@@ -46,6 +46,7 @@ import {
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
 import { DAppClientOptions } from './DAppClientOptions'
+import { checkPermissions } from '../../utils/check-permissions'
 
 const logger = new Logger('DAppClient')
 
@@ -173,18 +174,9 @@ export class DAppClient extends Client {
       throw new Error('No active account set!')
     }
 
-    switch (type) {
-      case BeaconMessageType.OperationRequest:
-        return accountInfo.scopes.some(
-          (permission) => permission === PermissionScope.OPERATION_REQUEST
-        )
-      case BeaconMessageType.SignPayloadRequest:
-        return accountInfo.scopes.some((permission) => permission === PermissionScope.SIGN)
-      case BeaconMessageType.BroadcastRequest:
-        return true
-      default:
-        return false
-    }
+    const permissions = accountInfo.scopes
+
+    return checkPermissions(type, permissions)
   }
 
   public async requestPermissions(
