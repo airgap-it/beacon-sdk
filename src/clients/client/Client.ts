@@ -18,6 +18,7 @@ import {
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { Logger } from '../../utils/Logger'
+import { isChromeExtensionInstalled } from '../../utils/is-extension-installed'
 import { ClientOptions } from './ClientOptions'
 
 const logger = new Logger('BaseClient')
@@ -34,9 +35,12 @@ export abstract class Client {
 
   protected readonly events: BeaconEventHandler = new BeaconEventHandler()
 
-  protected beaconId: string | undefined
-
   protected storage: Storage
+
+  protected _beaconId: ExposedPromise<string> = new ExposedPromise()
+  protected get beaconId(): Promise<string> {
+    return this._beaconId.promise
+  }
 
   protected _keyPair: ExposedPromise<sodium.KeyPair> = new ExposedPromise()
   protected get keyPair(): Promise<sodium.KeyPair> {
@@ -74,7 +78,7 @@ export abstract class Client {
     this.loadOrCreateBeaconSecret().catch(console.error)
     this.keyPair
       .then((keyPair) => {
-        this.beaconId = toHex(keyPair.publicKey)
+        this._beaconId.resolve(toHex(keyPair.publicKey))
       })
       .catch(console.error)
   }
@@ -100,23 +104,38 @@ export abstract class Client {
 
       return transport.type
     } else {
-      const newTransport = new P2PTransport(
-        this.name,
-        await this.keyPair,
-        this.storage,
-        this.events,
-        isDapp
-      )
-      await this.setTransport(newTransport)
-
-      PostMessageTransport.isAvailable().then(async postMessageAvailable => {
-        if (postMessageAvailable) {
-          this._transport = new ExposedPromise() // We know that the promise has already been resolved, so we need to create a new one
-          await this.setTransport(new PostMessageTransport(this.name))
+      return new Promise((resolve) => {
+        const setTransport = async (newTransport: Transport): Promise<void> => {
+          await this.setTransport(newTransport)
+          resolve(newTransport.type)
         }
-      }).catch((postMessageError: Error) => { logger.error('init', postMessageError) })
 
-      return newTransport.type
+        const setBeaconTransport = async (): Promise<void> => {
+          const newTransport = new P2PTransport(
+            this.name,
+            await this.keyPair,
+            this.storage,
+            this.events,
+            isDapp
+          )
+
+          return setTransport(newTransport)
+        }
+
+        const setBeaconTransportTimeout = setTimeout(setBeaconTransport, 200)
+
+        return isChromeExtensionInstalled.then(async postMessageAvailable => {
+          if (postMessageAvailable) {
+            if (setBeaconTransportTimeout) {
+              clearTimeout(setBeaconTransportTimeout)
+            }
+            this._transport = new ExposedPromise() // We know that the promise has already been resolved, so we need to create a new one
+
+            return setTransport(new PostMessageTransport(this.name))
+          }
+        })
+
+      })
     }
 
   }

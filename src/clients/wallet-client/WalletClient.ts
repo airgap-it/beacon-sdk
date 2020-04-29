@@ -133,7 +133,7 @@ export class WalletClient extends Client {
       (pendingRequest) => pendingRequest.id !== message.id
     )
 
-    const beaconId = this.beaconId ? this.beaconId : ''
+    const beaconId: string = await this.beaconId
     switch (message.type) {
       case BeaconMessageType.PermissionResponse: {
         const response: PermissionResponse = {

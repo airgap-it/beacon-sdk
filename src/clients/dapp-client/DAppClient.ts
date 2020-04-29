@@ -139,12 +139,8 @@ export class DAppClient extends Client {
   }
 
   public async getAppMetadata(): Promise<AppMetadata> {
-    if (!this.beaconId) {
-      throw new Error('BeaconID not defined')
-    }
-
     return {
-      beaconId: this.beaconId,
+      beaconId: await this.beaconId,
       name: this.name,
       icon: this.iconUrl
     }
@@ -359,7 +355,7 @@ export class DAppClient extends Client {
       Pick<U, IgnoredRequestInputProperties> = {
       id: generateGUID(),
       version: BEACON_VERSION,
-      beaconId: this.beaconId,
+      beaconId: await this.beaconId,
       ...requestInput
     }
 
