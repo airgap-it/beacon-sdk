@@ -1,4 +1,4 @@
-import { BeaconMessageType, PermissionScope } from ".."
+import { BeaconMessageType, PermissionScope } from '..'
 
 export const checkPermissions = async (
   type: BeaconMessageType,

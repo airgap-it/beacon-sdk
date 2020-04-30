@@ -1,4 +1,4 @@
-import { Network } from ".."
+import { Network } from '..'
 
 export const getAccountIdentifier = async (pubkey: string, network: Network): Promise<string> => {
   const data: string[] = [pubkey, network.type]

@@ -139,9 +139,7 @@ export class P2PTransport extends Transport {
   public async send(message: string): Promise<void> {
     const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
 
-    const promises = knownPeers.map((peer) => {
-      return this.client.sendMessage(peer.pubKey, message)
-    })
+    const promises = knownPeers.map((peer) => this.client.sendMessage(peer.pubKey, message))
 
     return (await Promise.all(promises))[0]
   }

@@ -43,27 +43,25 @@ export class ExposedPromise<T, U = unknown> {
   }
 
   constructor() {
-    this._promise = new Promise<T>(
-      (innerResolve: Resolve<T>, innerReject: Reject<U>): void => {
-        this._resolve = async (value?: T | PromiseLike<T>): Promise<void> => {
-          this._status = ExposedPromiseStatus.PENDING
-          try {
-            this._promiseResult = await value
-          } catch (innerReason) {
-            return innerReject(innerReason)
-          }
-          this._status = ExposedPromiseStatus.RESOLVED
-
-          return innerResolve(value)
+    this._promise = new Promise<T>((innerResolve: Resolve<T>, innerReject: Reject<U>): void => {
+      this._resolve = async (value?: T | PromiseLike<T>): Promise<void> => {
+        this._status = ExposedPromiseStatus.PENDING
+        try {
+          this._promiseResult = await value
+        } catch (innerReason) {
+          return innerReject(innerReason)
         }
-        this._reject = async (reason?: U | PromiseLike<U>): Promise<void> => {
-          this._status = ExposedPromiseStatus.REJECTED
-          this._promiseError = await reason
+        this._status = ExposedPromiseStatus.RESOLVED
 
-          return innerReject(reason)
-        }
+        return innerResolve(value)
       }
-    )
+      this._reject = async (reason?: U | PromiseLike<U>): Promise<void> => {
+        this._status = ExposedPromiseStatus.REJECTED
+        this._promiseError = await reason
+
+        return innerReject(reason)
+      }
+    })
   }
 
   public isPending(): boolean {

@@ -359,7 +359,10 @@ export class DAppClient extends Client {
       ...requestInput
     }
 
-    const exposed = new ExposedPromise<{ message: BeaconMessage; connectionInfo: ConnectionContext }, BeaconErrorMessage>()
+    const exposed = new ExposedPromise<
+      { message: BeaconMessage; connectionInfo: ConnectionContext },
+      BeaconErrorMessage
+    >()
     this.addOpenRequest(request.id, exposed)
 
     const payload = await new Serializer().serialize(request)

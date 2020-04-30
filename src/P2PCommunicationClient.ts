@@ -30,7 +30,7 @@ export class P2PCommunicationClient {
     private readonly keyPair: sodium.KeyPair,
     public readonly replicationCount: number,
     private readonly debug: boolean = false
-  ) { }
+  ) {}
 
   public getHandshakeInfo(): { name: string; pubKey: string; relayServer: string } {
     return {
