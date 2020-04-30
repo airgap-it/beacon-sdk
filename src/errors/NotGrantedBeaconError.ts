@@ -2,6 +2,8 @@ import { BeaconError, BeaconErrorType } from '..'
 
 export class NotGrantedBeaconError extends BeaconError {
   public name: string = 'NotGrantedBeaconError'
+  public title: string = 'Permission Not Granted'
+
   constructor() {
     super(
       BeaconErrorType.NOT_GRANTED_ERROR,

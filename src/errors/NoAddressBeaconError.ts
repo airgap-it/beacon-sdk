@@ -2,6 +2,8 @@ import { BeaconError, BeaconErrorType } from '..'
 
 export class NoAddressBeaconError extends BeaconError {
   public name: string = 'NoAddressBeaconError'
+  public title: string = 'No Address'
+
   constructor() {
     super(
       BeaconErrorType.NO_ADDRESS_ERROR,

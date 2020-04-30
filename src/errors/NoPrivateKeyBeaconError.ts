@@ -2,6 +2,8 @@ import { BeaconError, BeaconErrorType } from '..'
 
 export class NoPrivateKeyBeaconError extends BeaconError {
   public name: string = 'NoPrivateKeyBeaconError'
+  public title: string = 'Account Not Found'
+
   constructor() {
     super(
       BeaconErrorType.NO_PRIVATE_KEY_FOUND_ERROR,

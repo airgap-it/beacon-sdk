@@ -2,6 +2,8 @@ import { BeaconError, BeaconErrorType } from '..'
 
 export class ParametersInvalidBeaconError extends BeaconError {
   public name: string = 'ParametersInvalidBeaconError'
+  public title: string = 'Parameters Invalid'
+
   constructor() {
     super(
       BeaconErrorType.PARAMETERS_INVALID_ERROR,

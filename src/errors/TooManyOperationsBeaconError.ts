@@ -2,6 +2,8 @@ import { BeaconError, BeaconErrorType } from '..'
 
 export class TooManyOperationsBeaconError extends BeaconError {
   public name: string = 'TooManyOperationsBeaconError'
+  public title: string = 'Too Many Operations'
+
   constructor() {
     super(
       BeaconErrorType.TOO_MANY_OPERATIONS,

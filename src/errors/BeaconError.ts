@@ -13,6 +13,7 @@ import {
 
 export abstract class BeaconError implements Error {
   public name: string = 'BeaconError'
+  public title: string = 'Error'
   public message: string
 
   constructor(errorType, message) {

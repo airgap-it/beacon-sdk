@@ -2,6 +2,8 @@ import { BeaconError, BeaconErrorType } from '..'
 
 export class TransactionInvalidBeaconError extends BeaconError {
   public name: string = 'TransactionInvalidBeaconError'
+  public title: string = 'Transaction Invalid'
+
   constructor() {
     super(
       BeaconErrorType.TRANSACTION_INVALID_ERROR,

@@ -2,6 +2,8 @@ import { BeaconError, BeaconErrorType } from '..'
 
 export class BroadcastBeaconError extends BeaconError {
   public name: string = 'BroadcastBeaconError'
+  public title: string = 'Broadcast Error'
+
   constructor() {
     super(
       BeaconErrorType.BROADCAST_ERROR,

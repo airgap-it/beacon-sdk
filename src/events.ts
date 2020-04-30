@@ -3,7 +3,8 @@ import { openAlert, AlertConfig } from './alert/Alert'
 import { getQrData } from './utils/qr'
 import { Logger } from './utils/Logger'
 import { Transport } from './transports/Transport'
-import { P2PPairInfo, AccountInfo } from '.'
+import { BeaconError } from './errors/BeaconError'
+import { P2PPairInfo, AccountInfo, BeaconErrorMessage, UnknownBeaconError } from '.'
 
 const logger = new Logger('BeaconEvents')
 
@@ -33,13 +34,13 @@ export enum BeaconEvent {
 
 export interface BeaconEventType {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
-  [BeaconEvent.PERMISSION_REQUEST_ERROR]: undefined
+  [BeaconEvent.PERMISSION_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.OPERATION_REQUEST_SENT]: undefined
-  [BeaconEvent.OPERATION_REQUEST_ERROR]: undefined
+  [BeaconEvent.OPERATION_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.SIGN_REQUEST_SENT]: undefined
-  [BeaconEvent.SIGN_REQUEST_ERROR]: undefined
+  [BeaconEvent.SIGN_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.BROADCAST_REQUEST_SENT]: undefined
-  [BeaconEvent.BROADCAST_REQUEST_ERROR]: undefined
+  [BeaconEvent.BROADCAST_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: undefined
   [BeaconEvent.NO_PERMISSIONS]: undefined
@@ -58,6 +59,17 @@ const showNoPermissionAlert = async (): Promise<void> => {
   await openAlert({
     title: 'No permissions',
     body: 'Please allow the wallet to handle this type of request.'
+  })
+}
+
+const showErrorAlert = async (beaconError: BeaconErrorMessage): Promise<void> => {
+  const error = beaconError.errorType
+    ? BeaconError.getError(beaconError.errorType)
+    : new UnknownBeaconError()
+
+  await openAlert({
+    title: error.title,
+    body: error.message
   })
 }
 
@@ -102,13 +114,13 @@ export const defaultEventCallbacks: {
   [key in BeaconEvent]: BeaconEventHandlerFunction<BeaconEventType[key]>
 } = {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: showSentToast,
-  [BeaconEvent.PERMISSION_REQUEST_ERROR]: showNoPermissionAlert,
+  [BeaconEvent.PERMISSION_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.OPERATION_REQUEST_SENT]: showSentToast,
-  [BeaconEvent.OPERATION_REQUEST_ERROR]: showNoPermissionAlert,
+  [BeaconEvent.OPERATION_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.SIGN_REQUEST_SENT]: showSentToast,
-  [BeaconEvent.SIGN_REQUEST_ERROR]: showNoPermissionAlert,
+  [BeaconEvent.SIGN_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.BROADCAST_REQUEST_SENT]: showSentToast,
-  [BeaconEvent.BROADCAST_REQUEST_ERROR]: showNoPermissionAlert,
+  [BeaconEvent.BROADCAST_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(BeaconEvent.ACTIVE_ACCOUNT_SET),

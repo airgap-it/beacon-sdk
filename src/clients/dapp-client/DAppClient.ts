@@ -287,7 +287,7 @@ export class DAppClient extends Client {
     }
 
     const response = await this.makeRequest<BroadcastRequest, BroadcastResponse>(request).catch(
-      async (requestError: Error) => {
+      async (requestError: BeaconErrorMessage) => {
         throw this.handleRequestError(request, requestError)
       }
     )
@@ -301,11 +301,11 @@ export class DAppClient extends Client {
 
   private async handleRequestError(
     request: BeaconRequestInputMessage,
-    error: Error
+    error: BeaconErrorMessage
   ): Promise<void> {
     console.error('requestError', error)
     this.events
-      .emit(messageEvents[request.type].error)
+      .emit(messageEvents[request.type].error, error)
       .catch((emitError) => console.warn(emitError))
     throw error
   }
