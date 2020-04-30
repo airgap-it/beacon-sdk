@@ -104,7 +104,9 @@ export abstract class Client {
 
       return transport.type
     } else {
-      return new Promise((resolve) => {
+      return new Promise(async (resolve) => {
+        const keyPair = await this.keyPair // We wait for keypair here so the P2P Transport creation is not delayed and causing issues
+
         const setTransport = async (newTransport: Transport): Promise<void> => {
           await this.setTransport(newTransport)
           resolve(newTransport.type)
@@ -113,7 +115,7 @@ export abstract class Client {
         const setBeaconTransport = async (): Promise<void> => {
           const newTransport = new P2PTransport(
             this.name,
-            await this.keyPair,
+            keyPair,
             this.storage,
             this.events,
             isDapp
@@ -129,7 +131,6 @@ export abstract class Client {
             if (setBeaconTransportTimeout) {
               clearTimeout(setBeaconTransportTimeout)
             }
-            this._transport = new ExposedPromise() // We know that the promise has already been resolved, so we need to create a new one
 
             return setTransport(new PostMessageTransport(this.name))
           }
@@ -212,6 +213,9 @@ export abstract class Client {
   }
 
   private async setTransport(transport: Transport): Promise<void> {
+    if (this._transport.isSettled()) {
+      this._transport = new ExposedPromise() // If the promise has already been resolved we need to create a new one.
+    }
     this._transport.resolve(transport)
     this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport).catch(eventError => { logger.error('setTransport', eventError) })
   }
