@@ -69,7 +69,7 @@ const showErrorAlert = async (beaconError: BeaconErrorMessage): Promise<void> =>
 
   await openAlert({
     title: error.title,
-    body: error.message
+    body: error.description
   })
 }
 
