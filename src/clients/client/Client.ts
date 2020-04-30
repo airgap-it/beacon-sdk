@@ -1,7 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
 import { ExposedPromise, ExposedPromiseStatus } from '../../utils/exposed-promise'
-import { generateGUID } from '../../utils/generate-uuid'
-import { getKeypairFromSeed, toHex } from '../../utils/crypto'
 import { ConnectionContext } from '../../types/ConnectionContext'
 import {
   Serializer,
@@ -10,7 +7,6 @@ import {
   Transport,
   TransportType,
   TransportStatus,
-  Storage,
   StorageKey,
   AccountInfo,
   BeaconBaseMessage,
@@ -19,33 +15,20 @@ import {
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { Logger } from '../../utils/Logger'
 import { isChromeExtensionInstalled } from '../../utils/is-extension-installed'
+import { BeaconClient } from '../beacon-client/BeaconClient'
 import { ClientOptions } from './ClientOptions'
 
 const logger = new Logger('BaseClient')
 
-export abstract class Client {
+export abstract class Client extends BeaconClient {
   protected requestCounter: number[] = []
 
   protected handleResponse: (_event: BeaconMessage, connectionInfo: ConnectionContext) => void
-
-  protected readonly name: string
 
   protected readonly rateLimit: number = 2
   protected readonly rateLimitWindowInSeconds: number = 5
 
   protected readonly events: BeaconEventHandler = new BeaconEventHandler()
-
-  protected storage: Storage
-
-  protected _beaconId: ExposedPromise<string> = new ExposedPromise()
-  protected get beaconId(): Promise<string> {
-    return this._beaconId.promise
-  }
-
-  protected _keyPair: ExposedPromise<sodium.KeyPair> = new ExposedPromise()
-  protected get keyPair(): Promise<sodium.KeyPair> {
-    return this._keyPair.promise
-  }
 
   protected _transport: ExposedPromise<Transport> = new ExposedPromise()
   protected get transport(): Promise<Transport> {
@@ -62,8 +45,7 @@ export abstract class Client {
   }
 
   constructor(config: ClientOptions) {
-    this.name = config.name
-    this.storage = config.storage
+    super({ name: config.name, storage: config.storage })
 
     if (config.eventHandlers) {
       this.events.overrideDefaults(config.eventHandlers).catch((overrideError: Error) => {
@@ -72,15 +54,10 @@ export abstract class Client {
     }
 
     this.handleResponse = (message: BeaconBaseMessage, connectionInfo: ConnectionContext): void => {
-      throw new Error(`not overwritten${JSON.stringify(message)} - ${JSON.stringify(connectionInfo)}`)
+      throw new Error(
+        `not overwritten${JSON.stringify(message)} - ${JSON.stringify(connectionInfo)}`
+      )
     }
-
-    this.loadOrCreateBeaconSecret().catch(console.error)
-    this.keyPair
-      .then((keyPair) => {
-        this._beaconId.resolve(toHex(keyPair.publicKey))
-      })
-      .catch(console.error)
   }
 
   public async addRequestAndCheckIfRateLimited(): Promise<boolean> {
@@ -126,7 +103,7 @@ export abstract class Client {
 
         const setBeaconTransportTimeout = setTimeout(setBeaconTransport, 200)
 
-        return isChromeExtensionInstalled.then(async postMessageAvailable => {
+        return isChromeExtensionInstalled.then(async (postMessageAvailable) => {
           if (postMessageAvailable) {
             if (setBeaconTransportTimeout) {
               clearTimeout(setBeaconTransportTimeout)
@@ -135,10 +112,8 @@ export abstract class Client {
             return setTransport(new PostMessageTransport(this.name))
           }
         })
-
       })
     }
-
   }
   public async getPeers(): Promise<string[]> {
     return (await this.transport).getPeers()
@@ -217,17 +192,8 @@ export abstract class Client {
       this._transport = new ExposedPromise() // If the promise has already been resolved we need to create a new one.
     }
     this._transport.resolve(transport)
-    this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport).catch(eventError => { logger.error('setTransport', eventError) })
-  }
-
-  private async loadOrCreateBeaconSecret(): Promise<void> {
-    const storageValue: unknown = await this.storage.get(StorageKey.BEACON_SDK_SECRET_SEED)
-    if (storageValue && typeof storageValue === 'string') {
-      this._keyPair.resolve(getKeypairFromSeed(storageValue))
-    } else {
-      const key = generateGUID()
-      await this.storage.set(StorageKey.BEACON_SDK_SECRET_SEED, key)
-      this._keyPair.resolve(getKeypairFromSeed(key))
-    }
+    this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport).catch((eventError) => {
+      logger.error('setTransport', eventError)
+    })
   }
 }
