@@ -7,16 +7,15 @@ import { BeaconEventHandler } from '../../events'
 import { BeaconClientOptions } from './BeaconClientOptions'
 
 export abstract class BeaconClient {
-  protected readonly name: string
+  public readonly name: string
+  protected _beaconId: ExposedPromise<string> = new ExposedPromise()
+  public get beaconId(): Promise<string> {
+    return this._beaconId.promise
+  }
 
   protected storage: Storage
 
   protected readonly events: BeaconEventHandler = new BeaconEventHandler()
-
-  protected _beaconId: ExposedPromise<string> = new ExposedPromise()
-  protected get beaconId(): Promise<string> {
-    return this._beaconId.promise
-  }
 
   protected _keyPair: ExposedPromise<sodium.KeyPair> = new ExposedPromise()
   protected get keyPair(): Promise<sodium.KeyPair> {
