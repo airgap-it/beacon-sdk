@@ -187,7 +187,7 @@ export class DAppClient extends Client {
     }
 
     const response = await this.makeRequest<PermissionRequest, PermissionResponse>(request).catch(
-      async (requestError: Error) => {
+      async (requestError: BeaconErrorMessage) => {
         throw this.handleRequestError(request, requestError)
       }
     )
@@ -237,7 +237,7 @@ export class DAppClient extends Client {
     }
 
     const response = await this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request).catch(
-      async (requestError: Error) => {
+      async (requestError: BeaconErrorMessage) => {
         throw this.handleRequestError(request, requestError)
       }
     )
@@ -264,7 +264,7 @@ export class DAppClient extends Client {
     }
 
     const response = await this.makeRequest<OperationRequest, OperationResponse>(request).catch(
-      async (requestError: Error) => {
+      async (requestError: BeaconErrorMessage) => {
         throw this.handleRequestError(request, requestError)
       }
     )
