@@ -9,8 +9,8 @@ export interface AccountInfo {
     type: Origin
     id: string
   }
-  address?: string
-  pubkey?: string
+  address: string
+  pubkey: string
   network: Network
   scopes: PermissionScope[]
   connectedAt: Date
