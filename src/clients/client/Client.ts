@@ -28,7 +28,7 @@ export abstract class Client extends BeaconClient {
   protected readonly rateLimit: number = 2
   protected readonly rateLimitWindowInSeconds: number = 5
 
-  protected readonly events: BeaconEventHandler = new BeaconEventHandler()
+  protected readonly events: BeaconEventHandler
 
   protected _transport: ExposedPromise<Transport> = new ExposedPromise()
   protected get transport(): Promise<Transport> {
@@ -47,11 +47,7 @@ export abstract class Client extends BeaconClient {
   constructor(config: ClientOptions) {
     super({ name: config.name, storage: config.storage })
 
-    if (config.eventHandlers) {
-      this.events.overrideDefaults(config.eventHandlers).catch((overrideError: Error) => {
-        logger.error('constructor', overrideError)
-      })
-    }
+    this.events = new BeaconEventHandler(config.eventHandlers)
 
     this.handleResponse = (message: BeaconBaseMessage, connectionInfo: ConnectionContext): void => {
       throw new Error(

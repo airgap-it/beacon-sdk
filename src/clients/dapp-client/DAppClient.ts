@@ -369,6 +369,14 @@ export class DAppClient extends Client {
 
     await (await this.transport).send(payload)
 
-    return exposed.promise as any // TODO: Type
+    exposed.promise
+      .then((promiseResult: { message: BeaconMessage; connectionInfo: ConnectionContext }) => {
+        this.events
+          .emit(messageEvents[requestInput.type].success, promiseResult)
+          .catch((emitError) => console.warn(emitError))
+      })
+      .catch(() => undefined)
+
+    return exposed.promise as any // TODO: fix type
   }
 }

@@ -4,18 +4,23 @@ import { getQrData } from './utils/qr'
 import { Logger } from './utils/Logger'
 import { Transport } from './transports/Transport'
 import { BeaconError } from './errors/BeaconError'
-import { P2PPairInfo, AccountInfo, BeaconErrorMessage, UnknownBeaconError } from '.'
+import { ConnectionContext } from './types/ConnectionContext'
+import { P2PPairInfo, AccountInfo, BeaconErrorMessage, UnknownBeaconError, BeaconMessage } from '.'
 
 const logger = new Logger('BeaconEvents')
 
 export enum BeaconEvent {
   PERMISSION_REQUEST_SENT = 'PERMISSION_REQUEST_SENT',
+  PERMISSION_REQUEST_SUCCESS = 'PERMISSION_REQUEST_SUCCESS',
   PERMISSION_REQUEST_ERROR = 'PERMISSION_REQUEST_ERROR',
   OPERATION_REQUEST_SENT = 'OPERATION_REQUEST_SENT',
+  OPERATION_REQUEST_SUCCESS = 'OPERATION_REQUEST_SUCCESS',
   OPERATION_REQUEST_ERROR = 'OPERATION_REQUEST_ERROR',
   SIGN_REQUEST_SENT = 'SIGN_REQUEST_SENT',
+  SIGN_REQUEST_SUCCESS = 'SIGN_REQUEST_SUCCESS',
   SIGN_REQUEST_ERROR = 'SIGN_REQUEST_ERROR',
   BROADCAST_REQUEST_SENT = 'BROADCAST_REQUEST_SENT',
+  BROADCAST_REQUEST_SUCCESS = 'BROADCAST_REQUEST_SUCCESS',
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
 
   LOCAL_RATE_LIMIT_REACHED = 'LOCAL_RATE_LIMIT_REACHED',
@@ -34,12 +39,25 @@ export enum BeaconEvent {
 
 export interface BeaconEventType {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
+  [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: {
+    message: BeaconMessage
+    connectionInfo: ConnectionContext
+  }
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.OPERATION_REQUEST_SENT]: undefined
+  [BeaconEvent.OPERATION_REQUEST_SUCCESS]: {
+    message: BeaconMessage
+    connectionInfo: ConnectionContext
+  }
   [BeaconEvent.OPERATION_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.SIGN_REQUEST_SENT]: undefined
+  [BeaconEvent.SIGN_REQUEST_SUCCESS]: { message: BeaconMessage; connectionInfo: ConnectionContext }
   [BeaconEvent.SIGN_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.BROADCAST_REQUEST_SENT]: undefined
+  [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
+    message: BeaconMessage
+    connectionInfo: ConnectionContext
+  }
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: undefined
@@ -114,12 +132,16 @@ export const defaultEventCallbacks: {
   [key in BeaconEvent]: BeaconEventHandlerFunction<BeaconEventType[key]>
 } = {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: showSentToast,
+  [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: emptyHandler(BeaconEvent.PERMISSION_REQUEST_SUCCESS),
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.OPERATION_REQUEST_SENT]: showSentToast,
+  [BeaconEvent.OPERATION_REQUEST_SUCCESS]: emptyHandler(BeaconEvent.OPERATION_REQUEST_SUCCESS),
   [BeaconEvent.OPERATION_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.SIGN_REQUEST_SENT]: showSentToast,
+  [BeaconEvent.SIGN_REQUEST_SUCCESS]: emptyHandler(BeaconEvent.SIGN_REQUEST_SUCCESS),
   [BeaconEvent.SIGN_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.BROADCAST_REQUEST_SENT]: showSentToast,
+  [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: emptyHandler(BeaconEvent.BROADCAST_REQUEST_SUCCESS),
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
@@ -135,12 +157,16 @@ export class BeaconEventHandler {
     [key in BeaconEvent]: BeaconEventHandlerFunction<any>[]
   } = {
     [BeaconEvent.PERMISSION_REQUEST_SENT]: [defaultEventCallbacks.PERMISSION_REQUEST_SENT],
+    [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: [defaultEventCallbacks.PERMISSION_REQUEST_SUCCESS],
     [BeaconEvent.PERMISSION_REQUEST_ERROR]: [defaultEventCallbacks.PERMISSION_REQUEST_ERROR],
     [BeaconEvent.OPERATION_REQUEST_SENT]: [defaultEventCallbacks.OPERATION_REQUEST_SENT],
+    [BeaconEvent.OPERATION_REQUEST_SUCCESS]: [defaultEventCallbacks.OPERATION_REQUEST_SUCCESS],
     [BeaconEvent.OPERATION_REQUEST_ERROR]: [defaultEventCallbacks.OPERATION_REQUEST_ERROR],
     [BeaconEvent.SIGN_REQUEST_SENT]: [defaultEventCallbacks.SIGN_REQUEST_SENT],
+    [BeaconEvent.SIGN_REQUEST_SUCCESS]: [defaultEventCallbacks.SIGN_REQUEST_SUCCESS],
     [BeaconEvent.SIGN_REQUEST_ERROR]: [defaultEventCallbacks.SIGN_REQUEST_ERROR],
     [BeaconEvent.BROADCAST_REQUEST_SENT]: [defaultEventCallbacks.BROADCAST_REQUEST_SENT],
+    [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: [defaultEventCallbacks.BROADCAST_REQUEST_SUCCESS],
     [BeaconEvent.BROADCAST_REQUEST_ERROR]: [defaultEventCallbacks.BROADCAST_REQUEST_ERROR],
     [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: [defaultEventCallbacks.LOCAL_RATE_LIMIT_REACHED],
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
@@ -149,6 +175,18 @@ export class BeaconEventHandler {
     [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: [defaultEventCallbacks.P2P_CHANNEL_CONNECT_SUCCESS],
     [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: [defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
+  }
+
+  constructor(
+    eventsToOverride?: {
+      [key in BeaconEvent]?: {
+        handler: BeaconEventHandlerFunction
+      }
+    }
+  ) {
+    this.overrideDefaults(eventsToOverride || {}).catch((overrideError: Error) => {
+      logger.error('constructor', overrideError)
+    })
   }
 
   public async on<K extends BeaconEvent>(
@@ -173,7 +211,7 @@ export class BeaconEventHandler {
     }
   }
 
-  public async overrideDefaults(
+  private async overrideDefaults(
     eventsToOverride: {
       [key in BeaconEvent]?: {
         handler: BeaconEventHandlerFunction
