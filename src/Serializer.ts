@@ -7,6 +7,10 @@ export class Serializer {
     return bs58check.encode(Buffer.from(str))
   }
   public async deserialize(encoded: string): Promise<unknown> {
+    if (typeof encoded !== 'string') {
+      throw new Error('Encoded payload needs to be a string')
+    }
+
     return JSON.parse(bs58check.decode(encoded))
   }
 }
