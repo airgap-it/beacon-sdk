@@ -1,15 +1,20 @@
 import axios, { AxiosResponse, Method as HttpMethod } from 'axios'
 
-import { MatrixAuthenticationResponse } from './MatrixHttpResponse'
+import { MatrixAuthenticationResponse } from './response/MatrixAuthenticationResponse'
+import { MatrixSyncResponse, MatrixSyncRoomResponse } from './response/MatrixSyncResponse'
 
 interface HttpOptions {
   requiresAuthorization?: boolean
+  params?: {
+    [key: string]: string | number
+  }
 }
 
 const CLIENT_API_R0 = '/_matrix/client/r0'
 
 export class MatrixHttpClient {
   private accessToken?: string
+  private syncToken?: string
 
   constructor(private readonly baseUrl: string) {}
 
@@ -33,6 +38,21 @@ export class MatrixHttpClient {
     return response
   }
 
+  public async sync(): Promise<MatrixSyncRoomResponse> {
+    const response = await this.get<MatrixSyncResponse>('/sync', {
+      requiresAuthorization: true,
+      params: this.syncToken ? { since: this.syncToken } : undefined
+    })
+
+    this.syncToken = response.next_batch
+
+    return response.rooms
+  }
+
+  private async get<T>(endpoint: string, options?: HttpOptions): Promise<T> {
+    return this.send('GET', endpoint, options)
+  }
+
   private async post<T>(endpoint: string, body: any, options?: HttpOptions): Promise<T> {
     return this.send('POST', endpoint, options, body)
   }
@@ -49,7 +69,8 @@ export class MatrixHttpClient {
       url: endpoint,
       baseURL: this.apiUrl(CLIENT_API_R0),
       headers,
-      data
+      data,
+      params: config ? config.params : undefined
     })
 
     return response.data

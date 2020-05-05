@@ -22,4 +22,11 @@ export class MatrixClient {
     this.userId = response.user_id
     this.deviceId = response.device_id
   }
+
+  public async sync(): Promise<void> {
+    const rooms = await this.httpClient.sync()
+
+    // TODO: save rooms
+    console.log(rooms)
+  }
 }
