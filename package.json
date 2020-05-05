@@ -37,6 +37,7 @@
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
+    "axios": "^0.19.2",
     "bs58check": "2.1.2",
     "libsodium-wrappers": "0.7.6",
     "matrix-js-sdk": "5.2.0",
