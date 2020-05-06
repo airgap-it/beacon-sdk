@@ -2,7 +2,7 @@ import {
   MatrixJoinedRoomResponse,
   MatrixInvitedRoomResponse,
   MatrixLeftRoomResponse
-} from '../http/response/MatrixSyncResponse'
+} from './api-response/MatrixSyncResponse'
 
 export enum MatrixRoomStatus {
   UNKNOWN,
@@ -12,10 +12,12 @@ export enum MatrixRoomStatus {
 }
 
 export class MatrixRoom {
-  public static from(roomOrId: string | MatrixRoom): MatrixRoom {
+  public static from(roomOrId: string | MatrixRoom, status?: MatrixRoomStatus): MatrixRoom {
     return roomOrId instanceof MatrixRoom
-      ? roomOrId
-      : new MatrixRoom(roomOrId, MatrixRoomStatus.UNKNOWN)
+      ? status
+        ? new MatrixRoom(roomOrId.id, status)
+        : roomOrId
+      : new MatrixRoom(roomOrId, status || MatrixRoomStatus.UNKNOWN)
   }
 
   public static fromJoined(id: string, _joined: MatrixJoinedRoomResponse): MatrixRoom {
