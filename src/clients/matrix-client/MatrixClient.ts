@@ -41,10 +41,9 @@ export class MatrixClient {
   public async sync(): Promise<void> {
     const { rooms } = await this.httpClient.sync()
 
-    this.rooms.clear()
-    this.saveRooms(rooms.join, MatrixRoom.fromJoined)
-    this.saveRooms(rooms.invite, MatrixRoom.fromInvited)
-    this.saveRooms(rooms.leave, MatrixRoom.fromLeft)
+    this.updateRooms(rooms.join, MatrixRoom.fromJoined)
+    this.updateRooms(rooms.invite, MatrixRoom.fromInvited)
+    this.updateRooms(rooms.leave, MatrixRoom.fromLeft)
   }
 
   public async createTrustedPrivateRoom(...members: string[]): Promise<string> {
@@ -96,7 +95,10 @@ export class MatrixClient {
     await this.httpClient.joinRoom(room.id)
   }
 
-  private saveRooms<T>(rooms: { [key: string]: T }, creator: (id: string, room: T) => MatrixRoom) {
+  private updateRooms<T>(
+    rooms: { [key: string]: T },
+    creator: (id: string, room: T) => MatrixRoom
+  ) {
     Object.entries(rooms).forEach(([id, room]) => {
       this.rooms.set(id, creator(id, room))
     })
