@@ -5,12 +5,19 @@ import {
 } from '../http/response/MatrixSyncResponse'
 
 export enum MatrixRoomStatus {
+  UNKNOWN,
   JOINED,
   INVITED,
   LEFT
 }
 
 export class MatrixRoom {
+  public static from(roomOrId: string | MatrixRoom): MatrixRoom {
+    return roomOrId instanceof MatrixRoom
+      ? roomOrId
+      : new MatrixRoom(roomOrId, MatrixRoomStatus.UNKNOWN)
+  }
+
   public static fromJoined(id: string, _joined: MatrixJoinedRoomResponse): MatrixRoom {
     return new MatrixRoom(id, MatrixRoomStatus.JOINED)
   }

@@ -49,6 +49,14 @@ export class MatrixHttpClient {
     return response.rooms
   }
 
+  public async joinRoom(roomId: string): Promise<string> {
+    return this.post<string>(`/rooms/${roomId}/join`, {}, { requiresAuthorization: true })
+  }
+
+  public async invite(userId: string, roomId: string): Promise<void> {
+    await this.post(`/rooms/${roomId}/invite`, { user_id: userId }, { requiresAuthorization: true })
+  }
+
   private async get<T>(endpoint: string, options?: HttpOptions): Promise<T> {
     return this.send('GET', endpoint, options)
   }

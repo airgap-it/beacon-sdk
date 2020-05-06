@@ -7,18 +7,20 @@ export class MatrixClient {
   public userId?: string
   public deviceId?: string
 
-  public rooms: MatrixRoom[] = []
+  public rooms: Map<string, MatrixRoom> = new Map()
 
   public get joinedRooms(): MatrixRoom[] {
-    return this.rooms.filter((room) => room.status === MatrixRoomStatus.JOINED)
+    return Array.from(this.rooms.values()).filter((room) => room.status === MatrixRoomStatus.JOINED)
   }
 
   public get invitedRooms(): MatrixRoom[] {
-    return this.rooms.filter((room) => room.status === MatrixRoomStatus.INVITED)
+    return Array.from(this.rooms.values()).filter(
+      (room) => room.status === MatrixRoomStatus.INVITED
+    )
   }
 
   public get leftRooms(): MatrixRoom[] {
-    return this.rooms.filter((room) => room.status === MatrixRoomStatus.LEFT)
+    return Array.from(this.rooms.values()).filter((room) => room.status === MatrixRoomStatus.LEFT)
   }
 
   public static create(config: MatrixClientOptions): MatrixClient {
@@ -41,13 +43,54 @@ export class MatrixClient {
   public async sync(): Promise<void> {
     const rooms = await this.httpClient.sync()
 
-    this.rooms = []
+    this.rooms.clear()
     this.saveRooms(rooms.join, MatrixRoom.fromJoined)
     this.saveRooms(rooms.invite, MatrixRoom.fromInvited)
     this.saveRooms(rooms.leave, MatrixRoom.fromLeft)
   }
 
+  public async inviteToRooms(user: string, ...roomIds: string[]): Promise<void>
+  public async inviteToRooms(user: string, ...rooms: MatrixRoom[]): Promise<void>
+  public async inviteToRooms(user: string, ...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
+    await Promise.all(
+      (roomsOrIds as any[]).map((roomOrId) =>
+        this.inviteToRoom(user, roomOrId).catch((error) => console.warn(error))
+      )
+    )
+  }
+
+  public async joinRooms(...roomIds: string[]): Promise<void>
+  public async joinRooms(...rooms: MatrixRoom[]): Promise<void>
+  public async joinRooms(...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
+    await Promise.all(
+      (roomsOrIds as any[]).map((roomOrId) =>
+        this.joinRoom(roomOrId).catch((error) => console.warn(error))
+      )
+    )
+    return this.sync()
+  }
+
+  private async inviteToRoom(user: string, roomOrId: string | MatrixRoom): Promise<void> {
+    const room = MatrixRoom.from(roomOrId)
+    if (!this.rooms.get(room.id) || this.rooms.get(room.id)?.status !== MatrixRoomStatus.JOINED) {
+      return Promise.reject(`User is not a member of room ${room.id}.`)
+    }
+
+    await this.httpClient.invite(user, room.id)
+  }
+
+  private async joinRoom(roomOrId: string | MatrixRoom): Promise<void> {
+    const room = MatrixRoom.from(roomOrId)
+    if (this.rooms.get(room.id)?.status === MatrixRoomStatus.JOINED) {
+      return Promise.resolve()
+    }
+
+    await this.httpClient.joinRoom(room.id)
+  }
+
   private saveRooms<T>(rooms: { [key: string]: T }, creator: (id: string, room: T) => MatrixRoom) {
-    this.rooms.push(...Object.entries(rooms).map(([id, room]) => creator(id, room)))
+    Object.entries(rooms).forEach(([id, room]) => {
+      this.rooms.set(id, creator(id, room))
+    })
   }
 }
