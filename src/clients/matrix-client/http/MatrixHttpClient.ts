@@ -1,7 +1,18 @@
 import axios, { AxiosResponse, Method as HttpMethod } from 'axios'
 
-import { MatrixAuthenticationResponse } from './response/MatrixAuthenticationResponse'
-import { MatrixSyncResponse, MatrixSyncRoomResponse } from './response/MatrixSyncResponse'
+import { MatrixRequest } from './request/MatrixRequest'
+import { MatrixResponse } from './response/MatrixResponse'
+
+import { MatrixLoginResponse } from './response/MatrixLoginResponse'
+import { MatrixLoginRequest } from './request/MatrixLoginRequest'
+
+import { MatrixSyncResponse } from './response/MatrixSyncResponse'
+
+import { MatrixRoomJoinRequest } from './request/MatrixRoomJoinRequest'
+import { MatrixRoomJoinResponse } from './response/MatrixRoomJoinResponse'
+
+import { MatrixRoomInviteRequest } from './request/MatrixRoomInviteRequest'
+import { MatrixRoomInviteResponse } from './response/MatrixRoomInviteResponse'
 
 interface HttpOptions {
   requiresAuthorization?: boolean
@@ -18,19 +29,19 @@ export class MatrixHttpClient {
 
   constructor(private readonly baseUrl: string) {}
 
-  public async authenticate(
+  public async login(
     user: string,
     password: string,
-    data: any = {}
-  ): Promise<MatrixAuthenticationResponse> {
-    const response = await this.post<MatrixAuthenticationResponse>('/login', {
+    deviceId: string
+  ): Promise<MatrixLoginResponse> {
+    const response = await this.post<MatrixLoginRequest, MatrixLoginResponse>('/login', {
       type: 'm.login.password',
       identifier: {
         type: 'm.id.user',
         user
       },
       password,
-      ...data
+      device_id: deviceId
     })
 
     this.accessToken = response.access_token
@@ -38,7 +49,7 @@ export class MatrixHttpClient {
     return response
   }
 
-  public async sync(): Promise<MatrixSyncRoomResponse> {
+  public async sync(): Promise<MatrixSyncResponse> {
     const response = await this.get<MatrixSyncResponse>('/sync', {
       requiresAuthorization: true,
       params: this.syncToken ? { since: this.syncToken } : undefined
@@ -46,33 +57,48 @@ export class MatrixHttpClient {
 
     this.syncToken = response.next_batch
 
-    return response.rooms
+    return response
   }
 
-  public async joinRoom(roomId: string): Promise<string> {
-    return this.post<string>(`/rooms/${roomId}/join`, {}, { requiresAuthorization: true })
+  public async invite(userId: string, roomId: string): Promise<MatrixRoomInviteResponse> {
+    return this.post<MatrixRoomInviteRequest, MatrixRoomInviteResponse>(
+      `/rooms/${roomId}/invite`,
+      { user_id: userId },
+      { requiresAuthorization: true }
+    )
   }
 
-  public async invite(userId: string, roomId: string): Promise<void> {
-    await this.post(`/rooms/${roomId}/invite`, { user_id: userId }, { requiresAuthorization: true })
+  public async joinRoom(roomId: string): Promise<MatrixRoomJoinRequest> {
+    return this.post<MatrixRoomJoinRequest, MatrixRoomJoinResponse>(
+      `/rooms/${roomId}/join`,
+      {},
+      { requiresAuthorization: true }
+    )
   }
 
-  private async get<T>(endpoint: string, options?: HttpOptions): Promise<T> {
+  private async get<T extends MatrixResponse<any>>(
+    endpoint: string,
+    options?: HttpOptions
+  ): Promise<T> {
     return this.send('GET', endpoint, options)
   }
 
-  private async post<T>(endpoint: string, body: any, options?: HttpOptions): Promise<T> {
+  private async post<T extends MatrixRequest, R extends MatrixResponse<T>>(
+    endpoint: string,
+    body: T,
+    options?: HttpOptions
+  ): Promise<R> {
     return this.send('POST', endpoint, options, body)
   }
 
-  private async send<T>(
+  private async send<T extends MatrixRequest, R extends MatrixResponse<T>>(
     method: HttpMethod,
     endpoint: string,
     config?: HttpOptions,
-    data?: any
-  ): Promise<T> {
+    data?: T
+  ): Promise<R> {
     const headers = config ? this.getHeaders(config) : undefined
-    const response: AxiosResponse<T> = await axios.request({
+    const response: AxiosResponse<R> = await axios.request({
       method,
       url: endpoint,
       baseURL: this.apiUrl(CLIENT_API_R0),

@@ -32,16 +32,14 @@ export class MatrixClient {
   constructor(private readonly httpClient: MatrixHttpClient) {}
 
   public async login(user: { id: string; password: string; deviceId: string }): Promise<void> {
-    const response = await this.httpClient.authenticate(user.id, user.password, {
-      device_id: user.deviceId
-    })
+    const response = await this.httpClient.login(user.id, user.password, user.deviceId)
 
     this.userId = response.user_id
     this.deviceId = response.device_id
   }
 
   public async sync(): Promise<void> {
-    const rooms = await this.httpClient.sync()
+    const { rooms } = await this.httpClient.sync()
 
     this.rooms.clear()
     this.saveRooms(rooms.join, MatrixRoom.fromJoined)

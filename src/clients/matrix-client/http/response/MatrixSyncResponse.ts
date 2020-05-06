@@ -1,3 +1,5 @@
+import { MatrixResponse } from './MatrixResponse'
+
 export interface MatrixJoinedRoomResponse {}
 
 export interface MatrixInvitedRoomResponse {}
@@ -16,7 +18,7 @@ export interface MatrixSyncRoomResponse {
   }
 }
 
-export interface MatrixSyncResponse {
+export interface MatrixSyncResponse extends MatrixResponse<any> {
   next_batch: string
   rooms: MatrixSyncRoomResponse
 }
