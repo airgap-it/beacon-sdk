@@ -63,7 +63,20 @@ export function openCryptobox(
 
 export async function getAddressFromPublicKey(publicKey: string): Promise<string> {
   await sodium.ready
-  const payload: Uint8Array = sodium.crypto_generichash(20, Buffer.from(publicKey, 'hex'))
+
+  let plainPublicKey: string
+  if (publicKey.length === 64) {
+    plainPublicKey = publicKey
+  } else if (publicKey.startsWith('edpk') && publicKey.length === 54) {
+    const edpkPrefixLength = 4
+    const decoded = bs58check.decode(publicKey)
+
+    plainPublicKey = decoded.slice(edpkPrefixLength, decoded.length).toString('hex')
+  } else {
+    throw new Error(`invalid publicKey: ${publicKey}`)
+  }
+
+  const payload: Uint8Array = sodium.crypto_generichash(20, Buffer.from(plainPublicKey, 'hex'))
   const tz1Prefix: Buffer = Buffer.from(new Uint8Array([6, 161, 159]))
 
   return bs58check.encode(Buffer.concat([tz1Prefix, Buffer.from(payload)]))
