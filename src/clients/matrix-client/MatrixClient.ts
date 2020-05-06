@@ -31,9 +31,9 @@ export class MatrixClient {
 
   constructor(private readonly httpClient: MatrixHttpClient) {}
 
-  public async login(data: { user: string; password: string; deviceId: string }): Promise<void> {
-    const response = await this.httpClient.authenticate(data.user, data.password, {
-      deviceId: data.deviceId
+  public async login(user: { id: string; password: string; deviceId: string }): Promise<void> {
+    const response = await this.httpClient.authenticate(user.id, user.password, {
+      device_id: user.deviceId
     })
 
     this.userId = response.user_id
