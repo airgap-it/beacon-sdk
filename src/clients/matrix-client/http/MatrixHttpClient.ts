@@ -14,6 +14,9 @@ import { MatrixRoomJoinResponse } from './response/MatrixRoomJoinResponse'
 import { MatrixRoomInviteRequest } from './request/MatrixRoomInviteRequest'
 import { MatrixRoomInviteResponse } from './response/MatrixRoomInviteResponse'
 
+import { MatrixRoomCreateResponse } from './response/MatrixRoomCreateResponse'
+import { MatrixRoomCreateRequest } from './request/MatrixRoomCreateRequest'
+
 interface HttpOptions {
   requiresAuthorization?: boolean
   params?: {
@@ -58,6 +61,12 @@ export class MatrixHttpClient {
     this.syncToken = response.next_batch
 
     return response
+  }
+
+  public async createRoom(config: MatrixRoomCreateRequest = {}): Promise<MatrixRoomCreateResponse> {
+    return this.post<MatrixRoomCreateRequest, MatrixRoomCreateResponse>('/createRoom', config, {
+      requiresAuthorization: true
+    })
   }
 
   public async invite(userId: string, roomId: string): Promise<MatrixRoomInviteResponse> {

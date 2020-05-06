@@ -47,6 +47,16 @@ export class MatrixClient {
     this.saveRooms(rooms.leave, MatrixRoom.fromLeft)
   }
 
+  public async createTrustedPrivateRoom(...members: string[]): Promise<string> {
+    const response = await this.httpClient.createRoom({
+      invite: members,
+      preset: 'trusted_private_chat',
+      is_direct: true
+    })
+
+    return response.room_id
+  }
+
   public async inviteToRooms(user: string, ...roomIds: string[]): Promise<void>
   public async inviteToRooms(user: string, ...rooms: MatrixRoom[]): Promise<void>
   public async inviteToRooms(user: string, ...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
