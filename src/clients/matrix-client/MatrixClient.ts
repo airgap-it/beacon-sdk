@@ -1,10 +1,25 @@
 import { MatrixClientOptions } from './MatrixClientOptions'
 import { MatrixHttpClient } from './http/MatrixHttpClient'
+import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
 
 export class MatrixClient {
   // TODO: make private when used
   public userId?: string
   public deviceId?: string
+
+  public rooms: MatrixRoom[] = []
+
+  public get joinedRooms(): MatrixRoom[] {
+    return this.rooms.filter((room) => room.status === MatrixRoomStatus.JOINED)
+  }
+
+  public get invitedRooms(): MatrixRoom[] {
+    return this.rooms.filter((room) => room.status === MatrixRoomStatus.INVITED)
+  }
+
+  public get leftRooms(): MatrixRoom[] {
+    return this.rooms.filter((room) => room.status === MatrixRoomStatus.LEFT)
+  }
 
   public static create(config: MatrixClientOptions): MatrixClient {
     const httpClient = new MatrixHttpClient(config.baseUrl)
@@ -26,7 +41,13 @@ export class MatrixClient {
   public async sync(): Promise<void> {
     const rooms = await this.httpClient.sync()
 
-    // TODO: save rooms
-    console.log(rooms)
+    this.rooms = []
+    this.saveRooms(rooms.join, MatrixRoom.fromJoined)
+    this.saveRooms(rooms.invite, MatrixRoom.fromInvited)
+    this.saveRooms(rooms.leave, MatrixRoom.fromLeft)
+  }
+
+  private saveRooms<T>(rooms: { [key: string]: T }, creator: (id: string, room: T) => MatrixRoom) {
+    this.rooms.push(...Object.entries(rooms).map(([id, room]) => creator(id, room)))
   }
 }

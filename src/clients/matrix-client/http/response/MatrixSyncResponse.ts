@@ -1,18 +1,18 @@
-interface MatrixJoinedRoom {}
+export interface MatrixJoinedRoomResponse {}
 
-interface MatrixInvitedRoom {}
+export interface MatrixInvitedRoomResponse {}
 
-interface MatrixLeftRoom {}
+export interface MatrixLeftRoomResponse {}
 
 export interface MatrixSyncRoomResponse {
   join: {
-    [key: string]: MatrixJoinedRoom
+    [key: string]: MatrixJoinedRoomResponse
   }
   invite: {
-    [key: string]: MatrixInvitedRoom
+    [key: string]: MatrixInvitedRoomResponse
   }
   leave: {
-    [key: string]: MatrixLeftRoom
+    [key: string]: MatrixLeftRoomResponse
   }
 }
 
