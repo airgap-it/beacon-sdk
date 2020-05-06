@@ -1,11 +1,22 @@
-import { MatrixClientOptions } from './MatrixClientOptions'
 import { MatrixHttpClient } from './MatrixHttpClient'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
 import { MatrixRoomService } from './services/MatrixRoomService'
 import { MatrixAccountService } from './services/MatrixUserService'
+import { MatrixEventService } from './services/MatrixEventService'
+
+interface MatrixClientOptions {
+  baseUrl: string
+}
+
+interface MatrixLoginConfig {
+  id: string
+  password: string
+  deviceId: string
+}
 
 export class MatrixClient {
   private accessToken?: string
+  private txnCounter: number = 0
 
   public get joinedRooms(): MatrixRoom[] {
     return Array.from(this.roomService.rooms.values()).filter(
@@ -30,19 +41,22 @@ export class MatrixClient {
 
     const accountService = new MatrixAccountService(httpClient)
     const roomService = new MatrixRoomService(httpClient)
+    const eventService = new MatrixEventService(httpClient)
 
-    return new MatrixClient(accountService, roomService)
+    return new MatrixClient(accountService, roomService, eventService)
   }
 
   constructor(
     private readonly accountService: MatrixAccountService,
-    private readonly roomService: MatrixRoomService
+    private readonly roomService: MatrixRoomService,
+    private readonly eventService: MatrixEventService
   ) {}
 
-  public async login(user: { id: string; password: string; deviceId: string }): Promise<void> {
+  public async login(user: MatrixLoginConfig): Promise<void> {
     const response = await this.accountService.login(user.id, user.password, user.deviceId)
 
     this.accessToken = response.access_token
+    this.txnCounter = 0
   }
 
   public async sync(): Promise<void> {
@@ -67,11 +81,12 @@ export class MatrixClient {
   public async inviteToRooms(user: string, ...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
     await this.requiresAuthorization('invite', (accessToken) => {
       return Promise.all(
-        (roomsOrIds as any[]).map((roomOrId) =>
+        (roomsOrIds as any[]).map((roomOrId) => {
+          const room = this.roomService.getRoom(roomOrId)
           this.roomService
-            .inviteToRoom(accessToken, user, roomOrId)
+            .inviteToRoom(accessToken, user, room)
             .catch((error) => console.warn(error))
-        )
+        })
       )
     })
   }
@@ -79,11 +94,28 @@ export class MatrixClient {
   public async joinRooms(...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
     return this.requiresAuthorization('join', async (accessToken) => {
       await Promise.all(
-        (roomsOrIds as any[]).map((roomOrId) =>
-          this.roomService.joinRoom(accessToken, roomOrId).catch((error) => console.warn(error))
-        )
+        (roomsOrIds as any[]).map((roomOrId) => {
+          const room = this.roomService.getRoom(roomOrId)
+          return this.roomService.joinRoom(accessToken, room).catch((error) => console.warn(error))
+        })
       )
       return this.sync()
+    })
+  }
+
+  public async sendTextMessage(roomOrId: string | MatrixRoom, message: string): Promise<void> {
+    await this.requiresAuthorization('send', async (accessToken) => {
+      const room = this.roomService.getRoom(roomOrId)
+      const txnId = this.createTxnId()
+      return this.eventService.sendMessage(
+        accessToken,
+        room,
+        {
+          msgtype: 'm.text',
+          body: message
+        },
+        txnId
+      )
     })
   }
 
@@ -96,5 +128,12 @@ export class MatrixClient {
     }
 
     return action(this.accessToken)
+  }
+
+  private createTxnId(): string {
+    const timestamp = new Date().getTime()
+    const counter = this.txnCounter++
+
+    return `m${timestamp}.${counter}`
   }
 }

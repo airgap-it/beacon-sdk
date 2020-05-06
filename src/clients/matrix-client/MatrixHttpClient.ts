@@ -13,8 +13,6 @@ interface HttpOptions {
 const CLIENT_API_R0 = '/_matrix/client/r0'
 
 export class MatrixHttpClient {
-  public accessToken?: string
-
   constructor(private readonly baseUrl: string) {}
 
   public async get<T extends MatrixResponse<any>>(
@@ -30,6 +28,14 @@ export class MatrixHttpClient {
     options?: HttpOptions
   ): Promise<R> {
     return this.send('POST', endpoint, options, body)
+  }
+
+  public async put<T extends MatrixRequest, R extends MatrixResponse<T>>(
+    endpoint: string,
+    body: T,
+    options?: HttpOptions
+  ): Promise<R> {
+    return this.send('PUT', endpoint, options, body)
   }
 
   private async send<T extends MatrixRequest, R extends MatrixResponse<T>>(

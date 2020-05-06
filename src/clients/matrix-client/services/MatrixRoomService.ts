@@ -23,6 +23,11 @@ export class MatrixRoomService {
     this.updateRooms(rooms.leave, MatrixRoom.fromLeft)
   }
 
+  public getRoom(roomOrId: string | MatrixRoom): MatrixRoom {
+    const room = MatrixRoom.from(roomOrId, MatrixRoomStatus.UNKNOWN)
+    return this.rooms.get(room.id) || room
+  }
+
   public async createRoom(
     accessToken: string,
     config: MatrixRoomCreateRequest = {}
@@ -34,12 +39,7 @@ export class MatrixRoomService {
     )
   }
 
-  public async inviteToRoom(
-    accessToken: string,
-    user: string,
-    roomOrId: string | MatrixRoom
-  ): Promise<void> {
-    const room = this.getRoom(roomOrId)
+  public async inviteToRoom(accessToken: string, user: string, room: MatrixRoom): Promise<void> {
     if (room.status !== MatrixRoomStatus.JOINED && room.status !== MatrixRoomStatus.UNKNOWN) {
       return Promise.reject(`User is not a member of room ${room.id}.`)
     }
@@ -51,11 +51,7 @@ export class MatrixRoomService {
     )
   }
 
-  public async joinRoom(
-    accessToken: string,
-    roomOrId: string | MatrixRoom
-  ): Promise<MatrixRoomJoinResponse> {
-    const room = this.getRoom(roomOrId)
+  public async joinRoom(accessToken: string, room: MatrixRoom): Promise<MatrixRoomJoinResponse> {
     if (room.status === MatrixRoomStatus.JOINED) {
       return Promise.resolve({ room_id: room.id })
     }
@@ -74,10 +70,5 @@ export class MatrixRoomService {
     Object.entries(rooms).forEach(([id, room]) => {
       this.rooms.set(id, creator(id, room))
     })
-  }
-
-  private getRoom(roomOrId: string | MatrixRoom): MatrixRoom {
-    const room = MatrixRoom.from(roomOrId, MatrixRoomStatus.UNKNOWN)
-    return this.rooms.get(room.id) || room
   }
 }
