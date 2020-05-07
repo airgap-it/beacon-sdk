@@ -32,10 +32,13 @@ export class MatrixAccountService {
     return response
   }
 
-  public async sync(accessToken: string): Promise<MatrixSyncResponse> {
+  public async sync(accessToken: string, fullState: boolean = false): Promise<MatrixSyncResponse> {
     const response = await this.httpClient.get<MatrixSyncResponse>('/sync', {
       accessToken,
-      params: this.syncToken ? { since: this.syncToken } : undefined
+      params: {
+        since: this.syncToken,
+        full_state: fullState
+      }
     })
 
     this.syncToken = response.next_batch

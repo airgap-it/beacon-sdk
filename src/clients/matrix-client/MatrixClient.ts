@@ -48,7 +48,7 @@ export class MatrixClient {
 
   constructor(
     private readonly accountService: MatrixAccountService,
-    private readonly roomService: MatrixRoomService,
+    readonly roomService: MatrixRoomService,
     private readonly eventService: MatrixEventService
   ) {}
 
@@ -57,6 +57,8 @@ export class MatrixClient {
 
     this.accessToken = response.access_token
     this.txnCounter = 0
+
+    return this.sync()
   }
 
   public async sync(): Promise<void> {
@@ -74,6 +76,7 @@ export class MatrixClient {
         is_direct: true
       })
 
+      await this.sync()
       return response.room_id
     })
   }

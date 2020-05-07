@@ -1,24 +1,46 @@
 import { MatrixResponse } from './MatrixResponse'
 
-export interface MatrixJoinedRoomResponse {}
+export interface MatrixSyncRoomStateEvent {
+  content: any
+  type: string
+  sender: string
+}
 
-export interface MatrixInvitedRoomResponse {}
+export interface MatrixSyncJoinedRoom {
+  state: {
+    events: MatrixSyncRoomStateEvent[]
+  }
+  timeline: {
+    events: MatrixSyncRoomStateEvent[]
+  }
+}
 
-export interface MatrixLeftRoomResponse {}
+export interface MatrixSyncInvitedRoom {
+  events: MatrixSyncRoomStateEvent[]
+}
 
-export interface MatrixSyncRoomResponse {
+export interface MatrixSyncLeftRoom {
+  state: {
+    events: MatrixSyncRoomStateEvent[]
+  }
+  timeline: {
+    events: MatrixSyncRoomStateEvent[]
+  }
+}
+
+export interface MatrixSyncRooms {
   join: {
-    [key: string]: MatrixJoinedRoomResponse
+    [key: string]: MatrixSyncJoinedRoom
   }
   invite: {
-    [key: string]: MatrixInvitedRoomResponse
+    [key: string]: MatrixSyncInvitedRoom
   }
   leave: {
-    [key: string]: MatrixLeftRoomResponse
+    [key: string]: MatrixSyncLeftRoom
   }
 }
 
 export interface MatrixSyncResponse extends MatrixResponse<any> {
   next_batch: string
-  rooms: MatrixSyncRoomResponse
+  rooms: MatrixSyncRooms
 }

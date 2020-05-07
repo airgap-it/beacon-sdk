@@ -6,7 +6,7 @@ import { MatrixResponse } from './models/api-response/MatrixResponse'
 interface HttpOptions {
   accessToken?: string
   params?: {
-    [key: string]: string | number
+    [key: string]: string | number | boolean | undefined
   }
 }
 
@@ -45,19 +45,21 @@ export class MatrixHttpClient {
     data?: T
   ): Promise<R> {
     const headers = config ? this.getHeaders(config) : undefined
+    const params = config ? this.getParams(config) : undefined
+
     const response: AxiosResponse<R> = await axios.request({
       method,
       url: endpoint,
       baseURL: this.apiUrl(CLIENT_API_R0),
       headers,
       data,
-      params: config ? config.params : undefined
+      params
     })
 
     return response.data
   }
 
-  private getHeaders(options: HttpOptions): { [key: string]: any } {
+  private getHeaders(options: HttpOptions): { [key: string]: any } | undefined {
     const headers = {}
     const entries: [string, any][] = []
 
@@ -65,11 +67,28 @@ export class MatrixHttpClient {
       entries.push(['Authorization', `Bearer ${options.accessToken}`])
     }
 
+    if (entries.length === 0) {
+      return undefined
+    }
+
     for (let [key, value] of entries) {
       headers[key] = value
     }
 
     return headers
+  }
+
+  private getParams(
+    options: HttpOptions
+  ): { [key: string]: string | number | boolean } | undefined {
+    if (!options.params) {
+      return undefined
+    }
+
+    const params = Object.assign(options.params, {})
+    Object.keys(params).forEach((key) => params[key] === undefined && delete params[key])
+
+    return params as { [key: string]: string | number | boolean }
   }
 
   private apiUrl(...parts: string[]): string {

@@ -10,14 +10,14 @@ import { MatrixRoomInviteResponse } from '../models/api-response/MatrixRoomInvit
 import { MatrixRoomCreateResponse } from '../models/api-response/MatrixRoomCreateResponse'
 import { MatrixRoomCreateRequest } from '../models/api-request/MatrixRoomCreateRequest'
 
-import { MatrixSyncRoomResponse } from '../models/api-response/MatrixSyncResponse'
+import { MatrixSyncRooms } from '../models/api-response/MatrixSyncResponse'
 
 export class MatrixRoomService {
   public rooms: Map<string, MatrixRoom> = new Map()
 
   constructor(private readonly httpClient: MatrixHttpClient) {}
 
-  public storeRooms(rooms: MatrixSyncRoomResponse) {
+  public storeRooms(rooms: MatrixSyncRooms) {
     this.updateRooms(rooms.join, MatrixRoom.fromJoined)
     this.updateRooms(rooms.invite, MatrixRoom.fromInvited)
     this.updateRooms(rooms.leave, MatrixRoom.fromLeft)
@@ -67,8 +67,15 @@ export class MatrixRoomService {
     rooms: { [key: string]: T },
     creator: (id: string, room: T) => MatrixRoom
   ) {
-    Object.entries(rooms).forEach(([id, room]) => {
-      this.rooms.set(id, creator(id, room))
+    Object.entries(rooms).forEach(([id, syncRoom]) => {
+      const savedRoom = this.rooms.get(id)
+      let newRoom = creator(id, syncRoom)
+
+      if (!!savedRoom) {
+        newRoom = MatrixRoom.update(savedRoom, newRoom)
+      }
+
+      this.rooms.set(id, newRoom)
     })
   }
 }
