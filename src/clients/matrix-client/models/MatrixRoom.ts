@@ -2,7 +2,8 @@ import {
   MatrixSyncJoinedRoom,
   MatrixSyncInvitedRoom,
   MatrixSyncLeftRoom,
-  MatrixSyncRoomStateEvent
+  MatrixSyncRoomStateEvent,
+  MatrixSyncRooms
 } from './api/MatrixSync'
 
 export enum MatrixRoomStatus {
@@ -13,6 +14,21 @@ export enum MatrixRoomStatus {
 }
 
 export class MatrixRoom {
+  public static fromSync(roomSync: MatrixSyncRooms): MatrixRoom[] {
+    function create<T>(
+      rooms: { [key: string]: T },
+      creator: (id: string, room: T) => MatrixRoom
+    ): MatrixRoom[] {
+      return Object.entries(rooms).map(([id, room]) => creator(id, room))
+    }
+
+    return [
+      ...create(roomSync.join, MatrixRoom.fromJoined),
+      ...create(roomSync.invite, MatrixRoom.fromInvited),
+      ...create(roomSync.leave, MatrixRoom.fromLeft)
+    ]
+  }
+
   public static from(roomOrId: string | MatrixRoom, status?: MatrixRoomStatus): MatrixRoom {
     return roomOrId instanceof MatrixRoom
       ? status
@@ -21,7 +37,7 @@ export class MatrixRoom {
       : new MatrixRoom(roomOrId, status || MatrixRoomStatus.UNKNOWN, [])
   }
 
-  public static fromJoined(id: string, joined: MatrixSyncJoinedRoom): MatrixRoom {
+  private static fromJoined(id: string, joined: MatrixSyncJoinedRoom): MatrixRoom {
     const members = MatrixRoom.getMembersFromEvents([
       ...joined.state.events,
       ...joined.timeline.events
@@ -30,26 +46,16 @@ export class MatrixRoom {
     return new MatrixRoom(id, MatrixRoomStatus.JOINED, members)
   }
 
-  public static fromInvited(id: string, invited: MatrixSyncInvitedRoom): MatrixRoom {
+  private static fromInvited(id: string, invited: MatrixSyncInvitedRoom): MatrixRoom {
     const members = MatrixRoom.getMembersFromEvents(invited.events)
 
     return new MatrixRoom(id, MatrixRoomStatus.INVITED, members)
   }
 
-  public static fromLeft(id: string, left: MatrixSyncLeftRoom): MatrixRoom {
+  private static fromLeft(id: string, left: MatrixSyncLeftRoom): MatrixRoom {
     const members = MatrixRoom.getMembersFromEvents([...left.state.events, ...left.timeline.events])
 
     return new MatrixRoom(id, MatrixRoomStatus.LEFT, members)
-  }
-
-  public static update(oldRoom: MatrixRoom, newRoom: MatrixRoom): MatrixRoom {
-    return new MatrixRoom(
-      newRoom.id,
-      newRoom.status,
-      [...oldRoom.members, ...newRoom.members].filter(
-        (member, index, array) => array.indexOf(member) === index
-      )
-    )
   }
 
   private static getMembersFromEvents(events: MatrixSyncRoomStateEvent[]): string[] {
