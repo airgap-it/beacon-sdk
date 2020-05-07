@@ -35,7 +35,10 @@ export class MatrixClientStore {
     rooms: new Map()
   }
 
-  private readonly onStateChangedListeners: OnStateChangedListener[] = []
+  private readonly onStateChangedListeners: Map<
+    keyof MatrixState | 'all',
+    OnStateChangedListener
+  > = new Map()
 
   public get<T extends keyof MatrixStateStore>(key: T): MatrixStateStore[T] {
     return this.state[key]
@@ -61,8 +64,14 @@ export class MatrixClientStore {
     this.notifyListeners(oldState, this.state, stateUpdate)
   }
 
-  public onStateChanged(listener: OnStateChangedListener) {
-    this.onStateChangedListeners.push(listener)
+  public onStateChanged(listener: OnStateChangedListener, ...subscribed: (keyof MatrixState)[]) {
+    if (subscribed.length > 0) {
+      subscribed.forEach((key) => {
+        this.onStateChangedListeners.set(key, listener)
+      })
+    } else {
+      this.onStateChangedListeners.set('all', listener)
+    }
   }
 
   private mergeRooms(
@@ -86,6 +95,18 @@ export class MatrixClientStore {
     newState: MatrixStateStore,
     stateChange: Partial<MatrixStateUpdate>
   ) {
-    this.onStateChangedListeners.forEach((listener) => listener(oldState, newState, stateChange))
+    const listenForAll = this.onStateChangedListeners.get('all')
+    if (listenForAll) {
+      listenForAll(oldState, newState, stateChange)
+    }
+
+    Object.keys(stateChange)
+      .filter((key) => stateChange[key] !== undefined)
+      .forEach((key) => {
+        const listener = this.onStateChangedListeners.get(key as keyof MatrixState)
+        if (listener) {
+          listener(oldState, newState, stateChange)
+        }
+      })
   }
 }

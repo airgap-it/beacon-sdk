@@ -58,7 +58,7 @@ export class MatrixClient {
   ) {
     this.store.onStateChanged((oldState, newState, stateChange) => {
       this.eventEmitter.onStateChanged(oldState, newState, stateChange)
-    })
+    }, 'rooms')
   }
 
   public async start(user: MatrixLoginConfig): Promise<void> {
