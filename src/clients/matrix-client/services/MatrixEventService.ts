@@ -1,11 +1,7 @@
 import { MatrixHttpClient } from '../MatrixHttpClient'
 import { MatrixRoom, MatrixRoomStatus } from '../models/MatrixRoom'
 
-import {
-  MatrixEventSendRequest,
-  MatrixEventMessageContent
-} from '../models/api-request/MatrixEventSendRequest'
-import { MatrixEventSendResponse } from '../models/api-response/MatrixEventSendResponse'
+import { MatrixEventMessageContent, MatrixEventSendResponse } from '../models/api/MatrixEventSend'
 
 type MatrixEventType = 'm.room.message'
 
@@ -32,7 +28,7 @@ export class MatrixEventService {
       return Promise.reject(`User is not a member of room ${room.id}.`)
     }
 
-    return this.httpClient.put<MatrixEventSendRequest<any>, MatrixEventSendResponse>(
+    return this.httpClient.put(
       `/rooms/${room.id}/send/${type}/${txnId}`,
       { content },
       { accessToken }

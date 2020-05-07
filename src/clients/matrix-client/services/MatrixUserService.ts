@@ -1,11 +1,9 @@
 import { MatrixHttpClient } from '../MatrixHttpClient'
 
-import { MatrixLoginResponse } from '../models/api-response/MatrixLoginResponse'
-import { MatrixLoginRequest } from '../models/api-request/MatrixLoginRequest'
+import { MatrixLoginResponse } from '../models/api/MatrixLogin'
+import { MatrixSyncResponse } from '../models/api/MatrixSync'
 
-import { MatrixSyncResponse } from '../models/api-response/MatrixSyncResponse'
-
-export class MatrixAccountService {
+export class MatrixUserService {
   // TODO: make private when used
   public userId?: string
   public deviceId?: string
@@ -19,7 +17,7 @@ export class MatrixAccountService {
     password: string,
     deviceId: string
   ): Promise<MatrixLoginResponse> {
-    const response = await this.httpClient.post<MatrixLoginRequest, MatrixLoginResponse>('/login', {
+    const response = await this.httpClient.post<MatrixLoginResponse>('/login', {
       type: 'm.login.password',
       identifier: {
         type: 'm.id.user',

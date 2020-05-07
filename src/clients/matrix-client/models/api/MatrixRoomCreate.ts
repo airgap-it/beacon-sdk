@@ -1,6 +1,4 @@
-import { MatrixRequest } from './MatrixRequest'
-
-export interface MatrixRoomCreateRequest extends MatrixRequest {
+export interface MatrixRoomCreateRequest {
   visibility?: 'public' | 'private'
   room_alias_name?: string
   name?: string
@@ -8,4 +6,9 @@ export interface MatrixRoomCreateRequest extends MatrixRequest {
   invite?: string[]
   preset?: 'private_chat' | 'public_chat' | 'trusted_private_chat'
   is_direct?: boolean
+}
+
+export interface MatrixRoomCreateResponse {
+  type?: 'room_create'
+  room_id: string
 }

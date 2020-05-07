@@ -1,7 +1,6 @@
 import axios, { AxiosResponse, Method as HttpMethod } from 'axios'
 
-import { MatrixRequest } from './models/api-request/MatrixRequest'
-import { MatrixResponse } from './models/api-response/MatrixResponse'
+import { MatrixRequest } from './models/api/MatrixRequest'
 
 interface HttpOptions {
   accessToken?: string
@@ -15,39 +14,32 @@ const CLIENT_API_R0 = '/_matrix/client/r0'
 export class MatrixHttpClient {
   constructor(private readonly baseUrl: string) {}
 
-  public async get<T extends MatrixResponse<any>>(
-    endpoint: string,
-    options?: HttpOptions
-  ): Promise<T> {
+  public async get<T>(endpoint: string, options?: HttpOptions): Promise<T> {
     return this.send('GET', endpoint, options)
   }
 
-  public async post<T extends MatrixRequest, R extends MatrixResponse<T>>(
+  public async post<T>(
     endpoint: string,
-    body: T,
+    body: MatrixRequest<T>,
     options?: HttpOptions
-  ): Promise<R> {
+  ): Promise<T> {
     return this.send('POST', endpoint, options, body)
   }
 
-  public async put<T extends MatrixRequest, R extends MatrixResponse<T>>(
-    endpoint: string,
-    body: T,
-    options?: HttpOptions
-  ): Promise<R> {
+  public async put<T>(endpoint: string, body: MatrixRequest<T>, options?: HttpOptions): Promise<T> {
     return this.send('PUT', endpoint, options, body)
   }
 
-  private async send<T extends MatrixRequest, R extends MatrixResponse<T>>(
+  private async send<T>(
     method: HttpMethod,
     endpoint: string,
     config?: HttpOptions,
-    data?: T
-  ): Promise<R> {
+    data?: MatrixRequest<T>
+  ): Promise<T> {
     const headers = config ? this.getHeaders(config) : undefined
     const params = config ? this.getParams(config) : undefined
 
-    const response: AxiosResponse<R> = await axios.request({
+    const response: AxiosResponse<T> = await axios.request({
       method,
       url: endpoint,
       baseURL: this.apiUrl(CLIENT_API_R0),

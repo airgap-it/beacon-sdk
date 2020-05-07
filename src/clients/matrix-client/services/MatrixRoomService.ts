@@ -1,16 +1,10 @@
 import { MatrixHttpClient } from '../MatrixHttpClient'
 import { MatrixRoom, MatrixRoomStatus } from '../models/MatrixRoom'
 
-import { MatrixRoomJoinRequest } from '../models/api-request/MatrixRoomJoinRequest'
-import { MatrixRoomJoinResponse } from '../models/api-response/MatrixRoomJoinResponse'
-
-import { MatrixRoomInviteRequest } from '../models/api-request/MatrixRoomInviteRequest'
-import { MatrixRoomInviteResponse } from '../models/api-response/MatrixRoomInviteResponse'
-
-import { MatrixRoomCreateResponse } from '../models/api-response/MatrixRoomCreateResponse'
-import { MatrixRoomCreateRequest } from '../models/api-request/MatrixRoomCreateRequest'
-
-import { MatrixSyncRooms } from '../models/api-response/MatrixSyncResponse'
+import { MatrixSyncRooms } from '../models/api/MatrixSync'
+import { MatrixRoomCreateRequest, MatrixRoomCreateResponse } from '../models/api/MatrixRoomCreate'
+import { MatrixRoomInviteResponse } from '../models/api/MatrixRoomInvite'
+import { MatrixRoomJoinResponse } from '../models/api/MatrixRoomJoin'
 
 export class MatrixRoomService {
   public rooms: Map<string, MatrixRoom> = new Map()
@@ -32,23 +26,19 @@ export class MatrixRoomService {
     accessToken: string,
     config: MatrixRoomCreateRequest = {}
   ): Promise<MatrixRoomCreateResponse> {
-    return this.httpClient.post<MatrixRoomCreateRequest, MatrixRoomCreateResponse>(
-      '/createRoom',
-      config,
-      { accessToken }
-    )
+    return this.httpClient.post('/createRoom', config, { accessToken })
   }
 
-  public async inviteToRoom(accessToken: string, user: string, room: MatrixRoom): Promise<void> {
+  public async inviteToRoom(
+    accessToken: string,
+    user: string,
+    room: MatrixRoom
+  ): Promise<MatrixRoomInviteResponse> {
     if (room.status !== MatrixRoomStatus.JOINED && room.status !== MatrixRoomStatus.UNKNOWN) {
       return Promise.reject(`User is not a member of room ${room.id}.`)
     }
 
-    await this.httpClient.post<MatrixRoomInviteRequest, MatrixRoomInviteResponse>(
-      `/rooms/${room.id}/invite`,
-      { user_id: user },
-      { accessToken }
-    )
+    return this.httpClient.post(`/rooms/${room.id}/invite`, { user_id: user }, { accessToken })
   }
 
   public async joinRoom(accessToken: string, room: MatrixRoom): Promise<MatrixRoomJoinResponse> {
@@ -56,11 +46,7 @@ export class MatrixRoomService {
       return Promise.resolve({ room_id: room.id })
     }
 
-    return this.httpClient.post<MatrixRoomJoinRequest, MatrixRoomJoinResponse>(
-      `/rooms/${room.id}/join`,
-      {},
-      { accessToken }
-    )
+    return this.httpClient.post(`/rooms/${room.id}/join`, {}, { accessToken })
   }
 
   private updateRooms<T>(

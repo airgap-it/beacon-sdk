@@ -1,5 +1,3 @@
-import { MatrixResponse } from './MatrixResponse'
-
 export interface MatrixSyncRoomStateEvent {
   content: any
   type: string
@@ -40,7 +38,8 @@ export interface MatrixSyncRooms {
   }
 }
 
-export interface MatrixSyncResponse extends MatrixResponse<any> {
+export interface MatrixSyncResponse {
+  type?: 'sync'
   next_batch: string
   rooms: MatrixSyncRooms
 }

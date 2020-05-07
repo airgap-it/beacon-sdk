@@ -3,7 +3,7 @@ import {
   MatrixSyncInvitedRoom,
   MatrixSyncLeftRoom,
   MatrixSyncRoomStateEvent
-} from './api-response/MatrixSyncResponse'
+} from './api/MatrixSync'
 
 export enum MatrixRoomStatus {
   UNKNOWN,

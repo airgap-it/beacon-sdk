@@ -1,7 +1,7 @@
 import { MatrixHttpClient } from './MatrixHttpClient'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
 import { MatrixRoomService } from './services/MatrixRoomService'
-import { MatrixAccountService } from './services/MatrixUserService'
+import { MatrixUserService } from './services/MatrixUserService'
 import { MatrixEventService } from './services/MatrixEventService'
 
 interface MatrixClientOptions {
@@ -39,7 +39,7 @@ export class MatrixClient {
   public static create(config: MatrixClientOptions): MatrixClient {
     const httpClient = new MatrixHttpClient(config.baseUrl)
 
-    const accountService = new MatrixAccountService(httpClient)
+    const accountService = new MatrixUserService(httpClient)
     const roomService = new MatrixRoomService(httpClient)
     const eventService = new MatrixEventService(httpClient)
 
@@ -47,13 +47,13 @@ export class MatrixClient {
   }
 
   constructor(
-    private readonly accountService: MatrixAccountService,
-    readonly roomService: MatrixRoomService,
+    private readonly userService: MatrixUserService,
+    private readonly roomService: MatrixRoomService,
     private readonly eventService: MatrixEventService
   ) {}
 
   public async login(user: MatrixLoginConfig): Promise<void> {
-    const response = await this.accountService.login(user.id, user.password, user.deviceId)
+    const response = await this.userService.login(user.id, user.password, user.deviceId)
 
     this.accessToken = response.access_token
     this.txnCounter = 0
@@ -63,7 +63,7 @@ export class MatrixClient {
 
   public async sync(): Promise<void> {
     await this.requiresAuthorization('sync', async (accessToken) => {
-      const response = await this.accountService.sync(accessToken)
+      const response = await this.userService.sync(accessToken)
       this.roomService.storeRooms(response.rooms)
     })
   }
