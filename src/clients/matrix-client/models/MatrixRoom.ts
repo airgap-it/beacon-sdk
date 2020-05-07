@@ -38,10 +38,8 @@ export class MatrixRoom {
   }
 
   private static fromJoined(id: string, joined: MatrixSyncJoinedRoom): MatrixRoom {
-    const members = MatrixRoom.getMembersFromEvents([
-      ...joined.state.events,
-      ...joined.timeline.events
-    ])
+    const events = [...joined.state.events, ...joined.timeline.events]
+    const members = MatrixRoom.getMembersFromEvents(events)
 
     return new MatrixRoom(id, MatrixRoomStatus.JOINED, members)
   }
@@ -53,7 +51,8 @@ export class MatrixRoom {
   }
 
   private static fromLeft(id: string, left: MatrixSyncLeftRoom): MatrixRoom {
-    const members = MatrixRoom.getMembersFromEvents([...left.state.events, ...left.timeline.events])
+    const events = [...left.state.events, ...left.timeline.events]
+    const members = MatrixRoom.getMembersFromEvents(events)
 
     return new MatrixRoom(id, MatrixRoomStatus.LEFT, members)
   }

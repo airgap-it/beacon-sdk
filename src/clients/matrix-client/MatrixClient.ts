@@ -5,6 +5,7 @@ import { MatrixRoomService } from './services/MatrixRoomService'
 import { MatrixUserService } from './services/MatrixUserService'
 import { MatrixEventService } from './services/MatrixEventService'
 import { MatrixSyncResponse } from './models/api/MatrixSync'
+import { MatrixClientEventEmitter, MatrixClientEvent } from './MatrixClientEventEmitter'
 
 interface MatrixClientOptions {
   baseUrl: string
@@ -37,21 +38,28 @@ export class MatrixClient {
 
   public static create(config: MatrixClientOptions): MatrixClient {
     const store = new MatrixClientStore()
+    const eventEmitter = new MatrixClientEventEmitter()
+
     const httpClient = new MatrixHttpClient(config.baseUrl)
 
     const accountService = new MatrixUserService(httpClient)
     const roomService = new MatrixRoomService(httpClient)
     const eventService = new MatrixEventService(httpClient)
 
-    return new MatrixClient(store, accountService, roomService, eventService)
+    return new MatrixClient(store, eventEmitter, accountService, roomService, eventService)
   }
 
   constructor(
-    private store: MatrixClientStore,
+    private readonly store: MatrixClientStore,
+    private readonly eventEmitter: MatrixClientEventEmitter,
     private readonly userService: MatrixUserService,
     private readonly roomService: MatrixRoomService,
     private readonly eventService: MatrixEventService
-  ) {}
+  ) {
+    this.store.onStateChanged((oldState, newState, stateChange) => {
+      this.eventEmitter.onStateChanged(oldState, newState, stateChange)
+    })
+  }
 
   public async start(user: MatrixLoginConfig): Promise<void> {
     const response = await this.userService.login(user.id, user.password, user.deviceId)
@@ -83,6 +91,20 @@ export class MatrixClient {
         }
       )
     })
+  }
+
+  public subscribeInvite(listener: (id: string) => void) {
+    this.eventEmitter.on(MatrixClientEvent.INVITE, listener)
+  }
+
+  // TODO: type
+  public subscribeMessage(listener: () => void) {
+    this.eventEmitter.on(MatrixClientEvent.MESSAGE, listener)
+  }
+
+  // TODO: type
+  public subscribeChannelOpening(listener: () => void) {
+    this.eventEmitter.on(MatrixClientEvent.CHANNEL_OPENING, listener)
   }
 
   public async createTrustedPrivateRoom(...members: string[]): Promise<string> {
