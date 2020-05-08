@@ -5,6 +5,16 @@ import { MatrixEventSendResponse } from '../models/api/MatrixEventSend'
 import { MatrixSyncResponse } from '../models/api/MatrixSync'
 import { MatrixStateEventMessageContent } from '../models/MatrixStateEvent'
 
+interface MatrixScheduledEvent<T> {
+  accessToken: string
+  room: MatrixRoom
+  type: MatrixEventType
+  content: any
+  txnId: string
+  onSuccess: (response: T) => void
+  onError: (error) => void
+}
+
 type MatrixEventType = 'm.room.message'
 
 export interface MatrixSyncOptions {
@@ -32,20 +42,40 @@ export class MatrixEventService {
     content: MatrixStateEventMessageContent,
     txnId: string
   ): Promise<MatrixEventSendResponse> {
-    return this.sendEvent(accessToken, room, 'm.room.message', content, txnId)
+    return new Promise((resolve, reject) => {
+      return this.scheduleEvent({
+        accessToken,
+        room,
+        type: 'm.room.message',
+        content,
+        txnId,
+        onSuccess: resolve,
+        onError: reject
+      })
+    })
   }
 
-  public async sendEvent(
-    accessToken: string,
-    room: MatrixRoom,
-    type: MatrixEventType,
-    content: any,
-    txnId: string
-  ): Promise<MatrixEventSendResponse> {
+  public scheduleEvent(event: MatrixScheduledEvent<any>) {
+    // TODO: actual scheduling
+    this.sendEvent(event)
+  }
+
+  public async sendEvent(scheduledEvent: MatrixScheduledEvent<any>): Promise<void> {
+    const { room, type, txnId, content, accessToken } = scheduledEvent
+
     if (room.status !== MatrixRoomStatus.JOINED && room.status !== MatrixRoomStatus.UNKNOWN) {
       return Promise.reject(`User is not a member of room ${room.id}.`)
     }
 
-    return this.httpClient.put(`/rooms/${room.id}/send/${type}/${txnId}`, content, { accessToken })
+    try {
+      const response = await this.httpClient.put<MatrixEventSendResponse>(
+        `/rooms/${room.id}/send/${type}/${txnId}`,
+        content,
+        { accessToken }
+      )
+      scheduledEvent.onSuccess(response)
+    } catch (error) {
+      scheduledEvent.onError(error)
+    }
   }
 }
