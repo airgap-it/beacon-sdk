@@ -1,4 +1,10 @@
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
+import { isArray } from 'util'
+
+interface MatrixStateStorage {
+  getItem(key: string): string
+  setItem(key: string, value: string)
+}
 
 interface MatrixState {
   isRunning: boolean
@@ -25,7 +31,15 @@ export interface MatrixStateUpdate extends MatrixState {
   rooms: MatrixRoom[]
 }
 
+const STORAGE_KEY = 'matrix_preserved_state'
+const PRESERVED_FIELDS: (keyof MatrixState)[] = ['syncToken', 'rooms']
+
 export class MatrixClientStore {
+  public static createLocal(): MatrixClientStore {
+    const localStorage = (global as any).localStorage
+    return new MatrixClientStore(localStorage)
+  }
+
   private state: MatrixStateStore = {
     isRunning: false,
     userId: undefined,
@@ -42,6 +56,10 @@ export class MatrixClientStore {
     OnStateChangedListener
   > = new Map()
 
+  constructor(private readonly storage?: MatrixStateStorage) {
+    this.initFromStorage()
+  }
+
   public get<T extends keyof MatrixStateStore>(key: T): MatrixStateStore[T] {
     return this.state[key]
   }
@@ -53,16 +71,8 @@ export class MatrixClientStore {
 
   public update(stateUpdate: Partial<MatrixStateUpdate>) {
     const oldState = Object.assign({}, this.state)
-    this.state = {
-      isRunning: stateUpdate.isRunning || this.state.isRunning,
-      userId: stateUpdate.userId || this.state.userId,
-      deviceId: stateUpdate.deviceId || this.state.deviceId,
-      txnNo: stateUpdate.txnNo || this.state.txnNo,
-      accessToken: stateUpdate.accessToken || this.state.accessToken,
-      syncToken: stateUpdate.syncToken || this.state.syncToken,
-      pollingTimeout: stateUpdate.pollingTimeout || this.state.pollingTimeout,
-      rooms: this.mergeRooms(this.state.rooms, stateUpdate.rooms)
-    }
+    this.setState(stateUpdate)
+    this.updateStorage(stateUpdate)
 
     this.notifyListeners(oldState, this.state, stateUpdate)
   }
@@ -77,15 +87,52 @@ export class MatrixClientStore {
     }
   }
 
+  private initFromStorage() {
+    if (this.storage) {
+      const cached = this.storage.getItem(STORAGE_KEY)
+      this.setState(JSON.parse(cached))
+    }
+  }
+
+  private updateStorage(stateUpdate: Partial<MatrixStateUpdate>) {
+    const updatedCachedFields = Object.entries(stateUpdate).filter(
+      ([key, value]) => PRESERVED_FIELDS.includes(key as keyof MatrixStateUpdate) && !!value
+    )
+
+    if (this.storage && updatedCachedFields.length > 0) {
+      const filteredState = {}
+      for (let key in PRESERVED_FIELDS) {
+        filteredState[key] = this.state[key]
+      }
+
+      this.storage.setItem(STORAGE_KEY, JSON.stringify(filteredState))
+    }
+  }
+
+  private setState(partialState: Partial<MatrixState>) {
+    this.state = {
+      isRunning: partialState.isRunning || this.state.isRunning,
+      userId: partialState.userId || this.state.userId,
+      deviceId: partialState.deviceId || this.state.deviceId,
+      txnNo: partialState.txnNo || this.state.txnNo,
+      accessToken: partialState.accessToken || this.state.accessToken,
+      syncToken: partialState.syncToken || this.state.syncToken,
+      pollingTimeout: partialState.pollingTimeout || this.state.pollingTimeout,
+      rooms: this.mergeRooms(this.state.rooms, partialState.rooms)
+    }
+  }
+
   private mergeRooms(
     oldRooms: Map<string, MatrixRoom>,
-    _newRooms?: MatrixRoom[]
+    _newRooms?: MatrixRoom[] | Map<string, MatrixRoom>
   ): Map<string, MatrixRoom> {
     if (!_newRooms) {
       return oldRooms
     }
 
-    const newRooms = new Map(_newRooms.map((room) => [room.id, room]))
+    const newRooms = isArray(_newRooms)
+      ? new Map(_newRooms.map((room) => [room.id, room]))
+      : _newRooms
 
     return new Map([
       ...Array.from(oldRooms.entries()).filter(([id, _]) => !newRooms.get(id)),

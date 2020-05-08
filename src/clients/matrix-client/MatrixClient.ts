@@ -19,6 +19,19 @@ interface MatrixLoginConfig {
 }
 
 export class MatrixClient {
+  public static create(config: MatrixClientOptions): MatrixClient {
+    const store = MatrixClientStore.createLocal()
+    const eventEmitter = new MatrixClientEventEmitter()
+
+    const httpClient = new MatrixHttpClient(config.baseUrl)
+
+    const accountService = new MatrixUserService(httpClient)
+    const roomService = new MatrixRoomService(httpClient)
+    const eventService = new MatrixEventService(httpClient)
+
+    return new MatrixClient(store, eventEmitter, accountService, roomService, eventService)
+  }
+
   public get joinedRooms(): MatrixRoom[] {
     return Array.from(this.store.get('rooms').values()).filter(
       (room) => room.status === MatrixRoomStatus.JOINED
@@ -35,19 +48,6 @@ export class MatrixClient {
     return Array.from(this.store.get('rooms').values()).filter(
       (room) => room.status === MatrixRoomStatus.LEFT
     )
-  }
-
-  public static create(config: MatrixClientOptions): MatrixClient {
-    const store = new MatrixClientStore()
-    const eventEmitter = new MatrixClientEventEmitter()
-
-    const httpClient = new MatrixHttpClient(config.baseUrl)
-
-    const accountService = new MatrixUserService(httpClient)
-    const roomService = new MatrixRoomService(httpClient)
-    const eventService = new MatrixEventService(httpClient)
-
-    return new MatrixClient(store, eventEmitter, accountService, roomService, eventService)
   }
 
   constructor(
