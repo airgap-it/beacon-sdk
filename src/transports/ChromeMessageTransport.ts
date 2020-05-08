@@ -26,7 +26,9 @@ export class ChromeMessageTransport extends Transport {
       target: ExtensionMessageTarget.PAGE,
       payload
     }
-    chrome.runtime.sendMessage(message)
+    chrome.runtime.sendMessage(message, (data?: unknown): void => {
+      logger.log('send', 'got response', data)
+    })
   }
 
   private async init(): Promise<void> {
