@@ -3,9 +3,11 @@
 export interface AlertConfig {
   title: string
   body?: string
-  confirmButtonText?: string
   timer?: number
-  successCallback?(): void
+  confirmButtonText?: string
+  actionButtonText?: string
+  confirmCallback?(): void
+  actionCallback?(): void
 }
 
 let document: Document
@@ -15,7 +17,7 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
 
 let timeout: NodeJS.Timeout | undefined
 
-const formatQRCodeImage = (dataString: string): string => {
+const formatBody = (dataString: string): string => {
   if (typeof dataString === 'string') {
     return dataString.replace('<svg', `<svg class="beacon-qrcode__image"`)
   }
@@ -23,12 +25,19 @@ const formatQRCodeImage = (dataString: string): string => {
   return dataString
 }
 
-const formatQRCodeModal = (
-  qrCodeImage: string,
+const formatAlert = (
+  body: string,
   title: string,
-  confirmButtonText: string = 'Ok'
+  confirmButtonText?: string,
+  actionButtonText?: string
 ): string => {
-  const callToAction = title
+  const callToAction: string = title
+  const confirmButton: string = confirmButtonText
+    ? `<button id="beacon-qrcode-button-ok">${confirmButtonText}</button>`
+    : ''
+  const actionButton: string = actionButtonText
+    ? `<button id="beacon-qrcode-button-action">${actionButtonText}</button>`
+    : ''
 
   return `
   <style>
@@ -188,10 +197,9 @@ const formatQRCodeModal = (
             <p id="beacon-qrcode-text" class="beacon-qrcode__text">
               ${callToAction}
             </p>
-            ${qrCodeImage}
-            <!-- 
-            <button id="beacon-qrcode-button-ok">${confirmButtonText}</button>
-            -->
+            ${body}
+            ${actionButton}
+            ${confirmButton}
           </div>
         </div>
       </div>
@@ -228,16 +236,19 @@ const openAlert = async (alertConfig: AlertConfig): Promise<void> => {
   const title = alertConfig.title
   const timer = alertConfig.timer
   const confirmButtonText = alertConfig.confirmButtonText
+  const actionButtonText = alertConfig.actionButtonText
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  const successCallback = alertConfig.successCallback
+  const confirmCallback = alertConfig.confirmCallback
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const actionCallback = alertConfig.actionCallback
 
   await closeAlert()
 
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', 'beacon-wrapper')
   if (body) {
-    const qrCodeImage = formatQRCodeImage(body)
-    wrapper.innerHTML = formatQRCodeModal(qrCodeImage, title, confirmButtonText)
+    const formattedBody = formatBody(body)
+    wrapper.innerHTML = formatAlert(formattedBody, title, confirmButtonText, actionButtonText)
   }
 
   if (timer) {
@@ -248,13 +259,23 @@ const openAlert = async (alertConfig: AlertConfig): Promise<void> => {
 
   document.body.appendChild(wrapper)
   const okButton = document.getElementById('beacon-qrcode-button-ok')
+  const actionButton = document.getElementById('beacon-qrcode-button-action')
   const closeButton = document.getElementById('beacon-qrcode-close')
 
   if (okButton) {
     okButton.addEventListener('click', async () => {
       await closeAlert()
-      if (successCallback) {
-        successCallback()
+      if (confirmCallback) {
+        confirmCallback()
+      }
+    })
+  }
+
+  if (actionButton) {
+    actionButton.addEventListener('click', async () => {
+      await closeAlert()
+      if (actionCallback) {
+        actionCallback()
       }
     })
   }
