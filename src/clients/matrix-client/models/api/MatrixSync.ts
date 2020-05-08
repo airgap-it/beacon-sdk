@@ -10,7 +10,9 @@ export interface MatrixSyncJoinedRoom {
 }
 
 export interface MatrixSyncInvitedRoom {
-  events: MatrixStateEvent[]
+  invite_state: {
+    events: MatrixStateEvent[]
+  }
 }
 
 export interface MatrixSyncLeftRoom {

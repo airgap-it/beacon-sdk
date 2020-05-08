@@ -21,5 +21,5 @@ export interface MatrixStateEvent {
   type: string
   sender: string
   content: unknown
-  event_id: string
+  event_id?: string
 }

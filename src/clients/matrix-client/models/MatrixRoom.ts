@@ -48,7 +48,7 @@ export class MatrixRoom {
   }
 
   private static fromInvited(id: string, invited: MatrixSyncInvitedRoom): MatrixRoom {
-    const members = MatrixRoom.getMembersFromEvents(invited.events)
+    const members = MatrixRoom.getMembersFromEvents(invited.invite_state.events)
 
     return new MatrixRoom(id, MatrixRoomStatus.INVITED, members)
   }
