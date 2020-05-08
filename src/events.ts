@@ -157,9 +157,7 @@ const showOperationSuccessAlert = async (
   const message = (data.message as any) as OperationResponseOutput
   const alertConfig: AlertConfig = {
     title: 'Operation Response',
-    body: `The transaction has successfully been broadcasted to the network with the following hash: ${message.transactionHash}
-    
-    ${message.scopes}`,
+    body: `The transaction has successfully been broadcasted to the network with the following hash: ${message.transactionHash}`,
     confirmButtonText: 'Close',
     confirmCallback: () => {
       console.log('CALLBACK')
