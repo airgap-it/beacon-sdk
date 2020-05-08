@@ -3,7 +3,7 @@ import { MatrixRoomCreateRequest, MatrixRoomCreateResponse } from './MatrixRoomC
 import { MatrixRoomInviteRequest, MatrixRoomInviteResponse } from './MatrixRoomInvite'
 import { MatrixRoomJoinRequest, MatrixRoomJoinResponse } from './MatrixRoomJoin'
 import { MatrixEventSendRequest, MatrixEventSendResponse } from './MatrixEventSend'
-import { MatrixSyncResponse } from './MatrixSync'
+import { MatrixSyncResponse, MatrixSyncRequestParams } from './MatrixSync'
 
 export type MatrixRequest<T> = T extends MatrixLoginResponse
   ? MatrixLoginRequest
@@ -15,6 +15,6 @@ export type MatrixRequest<T> = T extends MatrixLoginResponse
   ? MatrixRoomJoinRequest
   : T extends MatrixEventSendResponse
   ? MatrixEventSendRequest<any>
-  : T extends MatrixSyncResponse
-  ? never
   : never
+
+export type MatrixRequestParams<T> = T extends MatrixSyncResponse ? MatrixSyncRequestParams : never

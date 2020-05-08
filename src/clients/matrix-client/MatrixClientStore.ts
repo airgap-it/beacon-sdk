@@ -7,6 +7,7 @@ interface MatrixState {
   txnNo: number
   accessToken: string | undefined
   syncToken: string | undefined
+  pollingTimeout: number | undefined
   rooms: MatrixRoom[] | Map<string, MatrixRoom>
 }
 
@@ -32,6 +33,7 @@ export class MatrixClientStore {
     txnNo: 0,
     accessToken: undefined,
     syncToken: undefined,
+    pollingTimeout: undefined,
     rooms: new Map()
   }
 
@@ -58,6 +60,7 @@ export class MatrixClientStore {
       txnNo: stateUpdate.txnNo || this.state.txnNo,
       accessToken: stateUpdate.accessToken || this.state.accessToken,
       syncToken: stateUpdate.syncToken || this.state.syncToken,
+      pollingTimeout: stateUpdate.pollingTimeout || this.state.pollingTimeout,
       rooms: this.mergeRooms(this.state.rooms, stateUpdate.rooms)
     }
 

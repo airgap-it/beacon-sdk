@@ -6,16 +6,23 @@ import { MatrixSyncResponse } from '../models/api/MatrixSync'
 
 type MatrixEventType = 'm.room.message'
 
+export interface MatrixSyncOptions {
+  syncToken?: string
+  pollingTimeout?: number
+}
+
 export class MatrixEventService {
   constructor(private readonly httpClient: MatrixHttpClient) {}
 
-  public async sync(accessToken: string, syncToken?: string): Promise<MatrixSyncResponse> {
-    return this.httpClient.get<MatrixSyncResponse>('/sync', {
-      accessToken,
-      params: {
-        since: syncToken
-      }
-    })
+  public async sync(accessToken: string, options?: MatrixSyncOptions): Promise<MatrixSyncResponse> {
+    return this.httpClient.get<MatrixSyncResponse>(
+      '/sync',
+      {
+        timeout: options?.pollingTimeout,
+        since: options?.syncToken
+      },
+      { accessToken }
+    )
   }
 
   public async sendMessage(

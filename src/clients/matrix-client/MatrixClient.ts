@@ -69,7 +69,8 @@ export class MatrixClient {
     })
 
     return new Promise((resolve, reject) => {
-      this.startPolling(
+      this.poll(
+        0,
         (response: MatrixSyncResponse) => {
           if (!this.store.get('isRunning')) {
             resolve()
@@ -77,6 +78,7 @@ export class MatrixClient {
           this.store.update({
             isRunning: true,
             syncToken: response.next_batch,
+            pollingTimeout: 30000,
             rooms: MatrixRoom.fromSync(response.rooms)
           })
         },
@@ -159,19 +161,31 @@ export class MatrixClient {
     })
   }
 
-  private startPolling(
+  private poll(
+    interval: number,
     onSyncSuccess: (response: MatrixSyncResponse) => void,
     onSyncError: (error) => void
   ) {
-    // TODO: actual polling
-    this.sync()
-      .then((response) => onSyncSuccess(response))
-      .catch((error) => onSyncError(error))
+    const sync = this.sync.bind(this)
+    async function pollSync() {
+      try {
+        const response = await sync()
+        onSyncSuccess(response)
+
+        setTimeout(pollSync, interval)
+      } catch (error) {
+        onSyncError(error)
+      }
+    }
+    pollSync()
   }
 
   private async sync(): Promise<MatrixSyncResponse> {
     return this.requiresAuthorization('sync', async (accessToken) => {
-      return this.eventService.sync(accessToken)
+      return this.eventService.sync(accessToken, {
+        pollingTimeout: this.store.get('pollingTimeout'),
+        syncToken: this.store.get('syncToken')
+      })
     })
   }
 

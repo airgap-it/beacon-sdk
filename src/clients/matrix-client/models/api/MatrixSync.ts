@@ -38,6 +38,11 @@ export interface MatrixSyncRooms {
   }
 }
 
+export interface MatrixSyncRequestParams {
+  timeout?: number
+  since?: string
+}
+
 export interface MatrixSyncResponse {
   type?: 'sync'
   next_batch: string

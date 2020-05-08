@@ -1,12 +1,9 @@
 import axios, { AxiosResponse, Method as HttpMethod } from 'axios'
 
-import { MatrixRequest } from './models/api/MatrixRequest'
+import { MatrixRequest, MatrixRequestParams } from './models/api/MatrixRequest'
 
 interface HttpOptions {
   accessToken?: string
-  params?: {
-    [key: string]: string | number | boolean | undefined
-  }
 }
 
 const CLIENT_API_R0 = '/_matrix/client/r0'
@@ -14,30 +11,41 @@ const CLIENT_API_R0 = '/_matrix/client/r0'
 export class MatrixHttpClient {
   constructor(private readonly baseUrl: string) {}
 
-  public async get<T>(endpoint: string, options?: HttpOptions): Promise<T> {
-    return this.send('GET', endpoint, options)
+  public async get<T>(
+    endpoint: string,
+    params: MatrixRequestParams<T>,
+    options?: HttpOptions
+  ): Promise<T> {
+    return this.send('GET', endpoint, options, params)
   }
 
   public async post<T>(
     endpoint: string,
     body: MatrixRequest<T>,
-    options?: HttpOptions
+    options?: HttpOptions,
+    params?: MatrixRequestParams<T>
   ): Promise<T> {
-    return this.send('POST', endpoint, options, body)
+    return this.send('POST', endpoint, options, params, body)
   }
 
-  public async put<T>(endpoint: string, body: MatrixRequest<T>, options?: HttpOptions): Promise<T> {
-    return this.send('PUT', endpoint, options, body)
+  public async put<T>(
+    endpoint: string,
+    body: MatrixRequest<T>,
+    options?: HttpOptions,
+    params?: MatrixRequestParams<T>
+  ): Promise<T> {
+    return this.send('PUT', endpoint, options, params, body)
   }
 
   private async send<T>(
     method: HttpMethod,
     endpoint: string,
     config?: HttpOptions,
+    requestParams?: MatrixRequestParams<T>,
     data?: MatrixRequest<T>
   ): Promise<T> {
     const headers = config ? this.getHeaders(config) : undefined
-    const params = config ? this.getParams(config) : undefined
+    const params = requestParams ? this.getParams(requestParams) : undefined
 
     const response: AxiosResponse<T> = await axios.request({
       method,
@@ -71,13 +79,13 @@ export class MatrixHttpClient {
   }
 
   private getParams(
-    options: HttpOptions
+    _params: MatrixRequestParams<any>
   ): { [key: string]: string | number | boolean } | undefined {
-    if (!options.params) {
+    if (!_params) {
       return undefined
     }
 
-    const params = Object.assign(options.params, {})
+    const params = Object.assign(_params, {})
     Object.keys(params).forEach((key) => params[key] === undefined && delete params[key])
 
     return params as { [key: string]: string | number | boolean }
