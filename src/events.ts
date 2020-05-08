@@ -178,7 +178,7 @@ const showSignSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output as SignPayloadResponseOutput
   const alertConfig: AlertConfig = {
-    title: 'Operation Response',
+    title: 'Sign Response',
     body: `The transaction has successfully been signed. Signature: ${output.signature}`,
     confirmButtonText: 'Close',
     confirmCallback: () => {
@@ -193,7 +193,7 @@ const showBroadcastSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output as BroadcastResponseOutput
   const alertConfig: AlertConfig = {
-    title: 'Operation Response',
+    title: 'Broadcast Response',
     body: `The transaction has successfully been broadcasted to the network with the following hash: ${output.transactionHash}`,
     confirmButtonText: 'Close',
     confirmCallback: () => {
