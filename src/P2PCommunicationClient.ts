@@ -1,5 +1,4 @@
 import * as sodium from 'libsodium-wrappers'
-import * as matrixsdk from 'matrix-js-sdk'
 
 import {
   getHexHash,
@@ -10,7 +9,14 @@ import {
   encryptCryptoboxPayload,
   decryptCryptoboxPayload
 } from './utils/crypto'
-import { MatrixClient, Member, MatrixEvent, Room } from './interfaces'
+import { MatrixClient } from './clients/matrix-client/MatrixClient'
+import {
+  MatrixClientEvent,
+  MatrixClientEventType,
+  MatrixClientEventMessageContent
+} from './clients/matrix-client/models/MatrixClientEvent'
+import { MatrixMessageType } from './clients/matrix-client/models/MatrixMessage'
+import { MatrixRoom } from './clients/matrix-client/models/MatrixRoom'
 
 export class P2PCommunicationClient {
   private readonly clients: MatrixClient[] = []
@@ -23,7 +29,7 @@ export class P2PCommunicationClient {
     // "yadayada.cryptonomic-infra.tech"
   ]
 
-  private readonly activeListeners: Map<string, (event: MatrixEvent) => void> = new Map()
+  private readonly activeListeners: Map<string, (event: MatrixClientEvent<any>) => void> = new Map()
 
   constructor(
     private readonly name: string,
@@ -71,10 +77,12 @@ export class P2PCommunicationClient {
 
     for (let i = 0; i < this.replicationCount; i++) {
       // TODO: Parallel
-      const client = matrixsdk.default.createClient({
-        baseUrl: `https://${this.getRelayServer(this.getPublicKeyHash(), i.toString())}`,
-        deviceId: toHex(this.keyPair.publicKey),
-        timelineSupport: false
+      const client = MatrixClient.create({
+        baseUrl: `https://${this.getRelayServer(this.getPublicKeyHash(), i.toString())}`
+      })
+
+      client.subscribe(MatrixClientEventType.INVITE, async (event) => {
+        await client.joinRooms(event.content.roomId)
       })
 
       this.log(
@@ -83,22 +91,15 @@ export class P2PCommunicationClient {
         'on',
         this.getRelayServer(this.getPublicKeyHash(), i.toString())
       )
-      await client.login('m.login.password', {
-        user: this.getPublicKeyHash(),
-        password: `ed:${toHex(rawSignature)}:${this.getPublicKey()}`
-      })
-      client.on('RoomMember.membership', async (_event: unknown, member: Member) => {
-        if (member.membership === 'invite') {
-          await client.joinRoom(member.roomId)
-        }
-      })
-      await client.startClient({ initialSyncLimit: 0 })
 
-      for (const room of client.getRooms()) {
-        if (room.getMyMembership() === 'invite') {
-          await client.joinRoom(room.roomId)
-        }
-      }
+      await client.start({
+        id: this.getPublicKeyHash(),
+        password: `ed:${toHex(rawSignature)}:${this.getPublicKey()}`,
+        deviceId: toHex(this.keyPair.publicKey)
+      })
+
+      await client.joinRooms(...client.invitedRooms)
+
       this.clients.push(client)
     }
   }
@@ -117,9 +118,9 @@ export class P2PCommunicationClient {
       return
     }
 
-    const callbackFunction = (event: MatrixEvent): void => {
-      if (this.isRoomMessage(event) && this.isSender(event, senderPublicKey)) {
-        const payload = Buffer.from(event.getContent().body, 'hex')
+    const callbackFunction = (event: MatrixClientEvent<MatrixClientEventType.MESSAGE>): void => {
+      if (this.isTextMessage(event.content) && this.isSender(event, senderPublicKey)) {
+        const payload = Buffer.from(event.content.message.content, 'hex')
         if (
           payload.length >=
           sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
@@ -132,7 +133,7 @@ export class P2PCommunicationClient {
     this.activeListeners.set(senderPublicKey, callbackFunction)
 
     for (const client of this.clients) {
-      client.on('event', callbackFunction)
+      client.subscribe(MatrixClientEventType.MESSAGE, callbackFunction)
     }
   }
 
@@ -143,7 +144,7 @@ export class P2PCommunicationClient {
     }
 
     for (const client of this.clients) {
-      client.removeListener('event', listener)
+      client.unsubscribe(MatrixClientEventType.MESSAGE, listener)
     }
 
     this.activeListeners.delete(senderPublicKey)
@@ -151,7 +152,7 @@ export class P2PCommunicationClient {
 
   public async unsubscribeFromEncryptedMessages(): Promise<void> {
     for (const client of this.clients) {
-      client.removeAllListeners('event')
+      client.unsubscribe(MatrixClientEventType.MESSAGE)
     }
 
     this.activeListeners.clear()
@@ -176,24 +177,22 @@ export class P2PCommunicationClient {
       for (const client of this.clients) {
         const room = await this.getRelevantRoom(client, recipient)
 
-        client.sendMessage(room.roomId, {
-          msgtype: 'm.text',
-          body: encryptCryptoboxPayload(message, sharedTx)
-        })
+        client.sendTextMessage(room.id, encryptCryptoboxPayload(message, sharedTx))
       }
     }
   }
 
   public async listenForChannelOpening(messageCallback: (message: string) => void): Promise<void> {
     for (const client of this.clients) {
-      client.on('event', (event: MatrixEvent) => {
-        if (this.isRoomMessage(event) && this.isChannelOpenMessage(event)) {
+      client.subscribe(MatrixClientEventType.MESSAGE, (event) => {
+        console.log('channel opening', event)
+        if (this.isTextMessage(event.content) && this.isChannelOpenMessage(event.content)) {
           if (!this.keyPair) {
             throw new Error('KeyPair not available')
           }
           this.log('new channel open event!')
 
-          const splits = event.getContent().body.split(':')
+          const splits = event.content.message.content.split(':')
           const payload = Buffer.from(splits[splits.length - 1], 'hex')
 
           if (
@@ -220,25 +219,29 @@ export class P2PCommunicationClient {
         this.getPublicKey(),
         Buffer.from(recipientPublicKey, 'hex')
       )
-      client.sendMessage(room.roomId, {
-        msgtype: 'm.text',
-        body: ['@channel-open', recipient, encryptedMessage].join(':')
-      })
+      client.sendTextMessage(room.id, ['@channel-open', recipient, encryptedMessage].join(':'))
     }
   }
 
-  public isRoomMessage(event: MatrixEvent): boolean {
-    return event.getType() === 'm.room.message'
+  public isTextMessage(
+    content: MatrixClientEventMessageContent<any>
+  ): content is MatrixClientEventMessageContent<string> {
+    return content.message.type === MatrixMessageType.TEXT
   }
 
-  public isChannelOpenMessage(event: MatrixEvent): boolean {
-    return event
-      .getContent()
-      .body.startsWith(`@channel-open:@${getHexHash(Buffer.from(this.getPublicKey(), 'hex'))}`)
+  public isChannelOpenMessage(content: MatrixClientEventMessageContent<string>): boolean {
+    return content.message.content.startsWith(
+      `@channel-open:@${getHexHash(Buffer.from(this.getPublicKey(), 'hex'))}`
+    )
   }
 
-  public isSender(event: MatrixEvent, senderPublicKey: string): boolean {
-    return event.getSender().startsWith(`@${getHexHash(Buffer.from(senderPublicKey, 'hex'))}`)
+  public isSender(
+    event: MatrixClientEvent<MatrixClientEventType.MESSAGE>,
+    senderPublicKey: string
+  ): boolean {
+    return event.content.message.sender.startsWith(
+      `@${getHexHash(Buffer.from(senderPublicKey, 'hex'))}`
+    )
   }
 
   public getPublicKey(): string {
@@ -311,26 +314,21 @@ export class P2PCommunicationClient {
     return sodium.crypto_kx_client_session_keys(...keys)
   }
 
-  private async getRelevantRoom(client: MatrixClient, recipient: string): Promise<Room> {
-    const rooms = client.getRooms()
-    const relevantRooms = rooms.filter((roomElement: Room) =>
-      roomElement.currentState.getMembers().some((member: Member) => member.userId === recipient)
+  private async getRelevantRoom(client: MatrixClient, recipient: string): Promise<MatrixRoom> {
+    const joinedRooms = client.joinedRooms
+    const relevantRooms = joinedRooms.filter((room: MatrixRoom) =>
+      room.members.some((member: string) => member === recipient)
     )
 
-    let room: Room
+    let room: MatrixRoom
     if (relevantRooms.length === 0) {
       this.log(`no relevant rooms found`)
 
-      room = await client.createRoom({
-        invite: [recipient],
-        preset: 'trusted_private_chat',
-        // eslint-disable-next-line camelcase
-        is_direct: true
-      })
-      room = client.getRoom(room.room_id)
+      const roomId = await client.createTrustedPrivateRoom(recipient)
+      room = client.getRoomById(roomId)
     } else {
       room = relevantRooms[0]
-      this.log(`channel already open, reusing room ${room.roomId}`)
+      this.log(`channel already open, reusing room ${room.id}`)
     }
 
     return room

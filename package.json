@@ -40,7 +40,6 @@
     "axios": "^0.19.2",
     "bs58check": "2.1.2",
     "libsodium-wrappers": "0.7.6",
-    "matrix-js-sdk": "5.2.0",
     "qrcode-generator": "1.4.4"
   },
   "devDependencies": {
