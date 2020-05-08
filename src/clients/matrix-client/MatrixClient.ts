@@ -5,7 +5,8 @@ import { MatrixRoomService } from './services/MatrixRoomService'
 import { MatrixUserService } from './services/MatrixUserService'
 import { MatrixEventService } from './services/MatrixEventService'
 import { MatrixSyncResponse } from './models/api/MatrixSync'
-import { MatrixClientEventEmitter, MatrixClientEvent } from './MatrixClientEventEmitter'
+import { MatrixClientEventEmitter } from './MatrixClientEventEmitter'
+import { MatrixClientEventType, MatrixClientEvent } from './models/MatrixClientEvent'
 
 interface MatrixClientOptions {
   baseUrl: string
@@ -95,8 +96,23 @@ export class MatrixClient {
     })
   }
 
-  public subscribe(event: MatrixClientEvent, listener: (...args: any) => void) {
+  public subscribe<T extends MatrixClientEventType>(
+    event: T,
+    listener: (event: MatrixClientEvent<T>) => void
+  ) {
     this.eventEmitter.on(event, listener)
+  }
+
+  public unsubscribe(event: MatrixClientEventType, listener?: (...args) => void) {
+    if (listener) {
+      this.eventEmitter.removeListener(event, listener)
+    } else {
+      this.eventEmitter.removeAllListeners(event)
+    }
+  }
+
+  public getRoomById(id: string): MatrixRoom {
+    return this.store.getRoom(id)
   }
 
   public async createTrustedPrivateRoom(...members: string[]): Promise<string> {
@@ -136,19 +152,23 @@ export class MatrixClient {
   }
 
   public async sendTextMessage(roomOrId: string | MatrixRoom, message: string): Promise<void> {
-    await this.requiresAuthorization('send', async (accessToken) => {
-      const room = this.store.getRoom(roomOrId)
-      const txnId = this.createTxnId()
-      return this.eventService.sendMessage(
-        accessToken,
-        room,
-        {
-          msgtype: 'm.text',
-          body: message
-        },
-        txnId
-      )
-    })
+    try {
+      await this.requiresAuthorization('send', async (accessToken) => {
+        const room = this.store.getRoom(roomOrId)
+        const txnId = this.createTxnId()
+        return this.eventService.sendMessage(
+          accessToken,
+          room,
+          {
+            msgtype: 'm.text',
+            body: message
+          },
+          txnId
+        )
+      })
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   private poll(

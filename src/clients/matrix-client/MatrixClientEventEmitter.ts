@@ -2,22 +2,18 @@ import { EventEmitter } from 'events'
 import { MatrixStateStore, MatrixStateUpdate } from './MatrixClientStore'
 import { MatrixRoomStatus } from './models/MatrixRoom'
 import { MatrixMessage } from './models/MatrixMessage'
+import { MatrixClientEventType, MatrixClientEventContent } from './models/MatrixClientEvent'
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>
 type Predicate<T, R extends T> = (object: T) => object is R
-
-export enum MatrixClientEvent {
-  INVITE = 'invite',
-  MESSAGE = 'message'
-}
 
 export class MatrixClientEventEmitter extends EventEmitter {
   private readonly eventEmitProviders: Map<
     string,
     <T, R extends T>() => [Predicate<T, R>, (event: string, object: R) => void]
   > = new Map([
-    [MatrixClientEvent.INVITE, () => [this.isInvite, this.emitInvite]],
-    [MatrixClientEvent.MESSAGE, () => [this.isMessage, this.emitMessage]]
+    [MatrixClientEventType.INVITE, () => [this.isInvite, this.emitInvite.bind(this)]],
+    [MatrixClientEventType.MESSAGE, () => [this.isMessage, this.emitMessage.bind(this)]]
   ] as [string, <T, R extends T>() => [Predicate<T, R>, (event: string, object: R) => void]][])
 
   public onStateChanged(
@@ -25,19 +21,29 @@ export class MatrixClientEventEmitter extends EventEmitter {
     _newState: MatrixStateStore,
     stateChange: Partial<MatrixStateUpdate>
   ) {
-    for (let event in MatrixClientEvent) {
-      this.emitIfEvent(event, stateChange)
+    for (let event in MatrixClientEventType) {
+      this.emitIfEvent(MatrixClientEventType[event], stateChange)
     }
   }
 
-  private emitIfEvent<T>(event: string, object: T) {
-    const provider = this.eventEmitProviders.get(event)
+  private emitIfEvent<T>(eventType: string, object: T) {
+    const provider = this.eventEmitProviders.get(eventType)
     if (provider) {
       const [predicate, emitter] = provider()
       if (predicate(object)) {
-        emitter(event, object)
+        emitter(eventType, object)
       }
     }
+  }
+
+  private emitClientEvent<T extends MatrixClientEventType>(
+    eventType: T,
+    content: MatrixClientEventContent<T>
+  ) {
+    this.emit(eventType, {
+      type: eventType,
+      content
+    })
   }
 
   private isInvite(
@@ -46,12 +52,17 @@ export class MatrixClientEventEmitter extends EventEmitter {
     return stateChange.rooms?.some((room) => room.status === MatrixRoomStatus.INVITED) || false
   }
 
-  private emitInvite(event: string, stateChange: AtLeast<MatrixStateUpdate, 'rooms'>) {
+  private emitInvite(
+    eventType: MatrixClientEventType.INVITE,
+    stateChange: AtLeast<MatrixStateUpdate, 'rooms'>
+  ) {
     stateChange.rooms
       .filter((room) => room.status === MatrixRoomStatus.INVITED)
       .map((room) => room.id)
       .forEach((id) => {
-        this.emit(event, id)
+        this.emitClientEvent(eventType, {
+          roomId: id
+        })
       })
   }
 
@@ -61,7 +72,10 @@ export class MatrixClientEventEmitter extends EventEmitter {
     return stateChange.rooms?.some((room) => room.messages.length > 0) || false
   }
 
-  private emitMessage(event: string, stateChange: AtLeast<MatrixStateUpdate, 'rooms'>) {
+  private emitMessage(
+    eventType: MatrixClientEventType.MESSAGE,
+    stateChange: AtLeast<MatrixStateUpdate, 'rooms'>
+  ) {
     stateChange.rooms
       .filter((room) => room.messages.length > 0)
       .map((room) =>
@@ -69,7 +83,10 @@ export class MatrixClientEventEmitter extends EventEmitter {
       )
       .reduce((flatten, toFlatten) => flatten.concat(toFlatten), [])
       .forEach(([roomId, message]) => {
-        this.emit(event, roomId, message)
+        this.emitClientEvent(eventType, {
+          roomId,
+          message
+        })
       })
   }
 }

@@ -1,7 +1,9 @@
+import { MatrixMessageType } from './MatrixMessage'
+
 export interface MatrixStateEventMessageText extends MatrixStateEventMessage {
   type: 'm.room.message'
   content: {
-    msgtype: 'm.text'
+    msgtype: MatrixMessageType.TEXT
     body: string
   }
 }

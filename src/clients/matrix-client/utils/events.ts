@@ -1,4 +1,5 @@
 import { MatrixStateEvent, MatrixStateEventMessageText } from '../models/MatrixStateEvent'
+import { MatrixMessageType } from '../models/MatrixMessage'
 
 export function isCreateEvent(event: MatrixStateEvent): boolean {
   return (
@@ -24,6 +25,6 @@ export function isTextMessageEvent(event: MatrixStateEvent): event is MatrixStat
     isMessageEvent(event) &&
     event.content instanceof Object &&
     'msgtype' in event.content &&
-    event.content['msgtype'] === 'm.text'
+    event.content['msgtype'] === MatrixMessageType.TEXT
   )
 }

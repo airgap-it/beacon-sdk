@@ -1,6 +1,10 @@
 import { MatrixStateEvent } from './MatrixStateEvent'
 import { isTextMessageEvent } from '../utils/events'
 
+export enum MatrixMessageType {
+  TEXT = 'm.text'
+}
+
 export class MatrixMessage<T> {
   public static from(event: MatrixStateEvent): MatrixMessage<any> | undefined {
     if (isTextMessageEvent(event)) {
@@ -11,5 +15,5 @@ export class MatrixMessage<T> {
     return undefined
   }
 
-  constructor(readonly type: string, readonly sender: string, readonly content: T) {}
+  constructor(readonly type: MatrixMessageType, readonly sender: string, readonly content: T) {}
 }

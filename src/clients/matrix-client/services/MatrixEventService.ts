@@ -46,10 +46,6 @@ export class MatrixEventService {
       return Promise.reject(`User is not a member of room ${room.id}.`)
     }
 
-    return this.httpClient.put(
-      `/rooms/${room.id}/send/${type}/${txnId}`,
-      { content },
-      { accessToken }
-    )
+    return this.httpClient.put(`/rooms/${room.id}/send/${type}/${txnId}`, content, { accessToken })
   }
 }
