@@ -5,7 +5,17 @@ import { Logger } from './utils/Logger'
 import { Transport } from './transports/Transport'
 import { BeaconError } from './errors/BeaconError'
 import { ConnectionContext } from './types/ConnectionContext'
-import { P2PPairInfo, AccountInfo, BeaconErrorMessage, UnknownBeaconError, BeaconMessage } from '.'
+import {
+  P2PPairInfo,
+  AccountInfo,
+  BeaconErrorMessage,
+  UnknownBeaconError,
+  BeaconMessage,
+  PermissionResponseOutput,
+  OperationResponseOutput,
+  BroadcastResponseOutput,
+  SignPayloadResponseOutput
+} from '.'
 
 const logger = new Logger('BeaconEvents')
 
@@ -113,8 +123,84 @@ const showQrCode = async (
     title: 'Pairing Request',
     confirmButtonText: 'Ok!',
     body: getQrData(JSON.stringify(data), 'svg'),
-    successCallback: () => {
+    confirmCallback: () => {
       console.log('CALLBACK')
+    }
+  }
+  await openAlert(alertConfig)
+}
+
+const showPermissionSuccessAlert = async (
+  data: BeaconEventType[BeaconEvent.PERMISSION_REQUEST_SUCCESS]
+): Promise<void> => {
+  const message = (data.message as any) as PermissionResponseOutput
+  const alertConfig: AlertConfig = {
+    title: 'Permission Response',
+    body: `We received permissions for the address ${message.address} on the network ${message.network.type} with the following permissions:
+    
+    ${message.scopes}`,
+    confirmButtonText: 'Ok!',
+    confirmCallback: () => {
+      console.log('CALLBACK')
+    },
+    actionButtonText: 'Open Blockexplorer',
+    actionCallback: () => {
+      window.open(`https://tezblock.io/account/${message.address}`)
+    }
+  }
+  await openAlert(alertConfig)
+}
+
+const showOperationSuccessAlert = async (
+  data: BeaconEventType[BeaconEvent.OPERATION_REQUEST_SUCCESS]
+): Promise<void> => {
+  const message = (data.message as any) as OperationResponseOutput
+  const alertConfig: AlertConfig = {
+    title: 'Operation Response',
+    body: `The transaction has successfully been broadcasted to the network with the following hash: ${message.transactionHash}
+    
+    ${message.scopes}`,
+    confirmButtonText: 'Close',
+    confirmCallback: () => {
+      console.log('CALLBACK')
+    },
+    actionButtonText: 'Open Blockexplorer',
+    actionCallback: () => {
+      window.open(`https://tezblock.io/transaction/${message.transactionHash}`)
+    }
+  }
+  await openAlert(alertConfig)
+}
+
+const showSignSuccessAlert = async (
+  data: BeaconEventType[BeaconEvent.OPERATION_REQUEST_SUCCESS]
+): Promise<void> => {
+  const message = (data.message as any) as SignPayloadResponseOutput
+  const alertConfig: AlertConfig = {
+    title: 'Operation Response',
+    body: `The transaction has successfully been signed. Signature: ${message.signature}`,
+    confirmButtonText: 'Close',
+    confirmCallback: () => {
+      console.log('CALLBACK')
+    }
+  }
+  await openAlert(alertConfig)
+}
+
+const showBroadcastSuccessAlert = async (
+  data: BeaconEventType[BeaconEvent.OPERATION_REQUEST_SUCCESS]
+): Promise<void> => {
+  const message = (data.message as any) as BroadcastResponseOutput
+  const alertConfig: AlertConfig = {
+    title: 'Operation Response',
+    body: `The transaction has successfully been broadcasted to the network with the following hash: ${message.transactionHash}`,
+    confirmButtonText: 'Close',
+    confirmCallback: () => {
+      console.log('CALLBACK')
+    },
+    actionButtonText: 'Open Blockexplorer',
+    actionCallback: () => {
+      window.open(`https://tezblock.io/transaction/${message.transactionHash}`)
     }
   }
   await openAlert(alertConfig)
@@ -132,16 +218,16 @@ export const defaultEventCallbacks: {
   [key in BeaconEvent]: BeaconEventHandlerFunction<BeaconEventType[key]>
 } = {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: showSentToast,
-  [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: emptyHandler(BeaconEvent.PERMISSION_REQUEST_SUCCESS),
+  [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: showPermissionSuccessAlert,
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.OPERATION_REQUEST_SENT]: showSentToast,
-  [BeaconEvent.OPERATION_REQUEST_SUCCESS]: emptyHandler(BeaconEvent.OPERATION_REQUEST_SUCCESS),
+  [BeaconEvent.OPERATION_REQUEST_SUCCESS]: showOperationSuccessAlert,
   [BeaconEvent.OPERATION_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.SIGN_REQUEST_SENT]: showSentToast,
-  [BeaconEvent.SIGN_REQUEST_SUCCESS]: emptyHandler(BeaconEvent.SIGN_REQUEST_SUCCESS),
+  [BeaconEvent.SIGN_REQUEST_SUCCESS]: showSignSuccessAlert,
   [BeaconEvent.SIGN_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.BROADCAST_REQUEST_SENT]: showSentToast,
-  [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: emptyHandler(BeaconEvent.BROADCAST_REQUEST_SUCCESS),
+  [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: showBroadcastSuccessAlert,
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: showErrorAlert,
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
