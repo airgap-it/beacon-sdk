@@ -92,13 +92,15 @@ export class P2PCommunicationClient {
         this.getRelayServer(this.getPublicKeyHash(), i.toString())
       )
 
-      await client.start({
-        id: this.getPublicKeyHash(),
-        password: `ed:${toHex(rawSignature)}:${this.getPublicKey()}`,
-        deviceId: toHex(this.keyPair.publicKey)
-      })
+      await client
+        .start({
+          id: this.getPublicKeyHash(),
+          password: `ed:${toHex(rawSignature)}:${this.getPublicKey()}`,
+          deviceId: toHex(this.keyPair.publicKey)
+        })
+        .catch((error) => this.log(error))
 
-      await client.joinRooms(...client.invitedRooms)
+      await client.joinRooms(...client.invitedRooms).catch((error) => this.log(error))
 
       this.clients.push(client)
     }
@@ -177,7 +179,9 @@ export class P2PCommunicationClient {
       for (const client of this.clients) {
         const room = await this.getRelevantRoom(client, recipient)
 
-        client.sendTextMessage(room.id, encryptCryptoboxPayload(message, sharedTx))
+        client
+          .sendTextMessage(room.id, encryptCryptoboxPayload(message, sharedTx))
+          .catch((error) => this.log(error))
       }
     }
   }
@@ -219,7 +223,9 @@ export class P2PCommunicationClient {
         this.getPublicKey(),
         Buffer.from(recipientPublicKey, 'hex')
       )
-      client.sendTextMessage(room.id, ['@channel-open', recipient, encryptedMessage].join(':'))
+      client
+        .sendTextMessage(room.id, ['@channel-open', recipient, encryptedMessage].join(':'))
+        .catch((error) => this.log(error))
     }
   }
 

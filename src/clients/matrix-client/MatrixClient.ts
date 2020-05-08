@@ -18,6 +18,8 @@ interface MatrixLoginConfig {
   deviceId: string
 }
 
+const MAX_POLLING_RETRIES = 3
+
 export class MatrixClient {
   public static create(config: MatrixClientOptions): MatrixClient {
     const store = MatrixClientStore.createLocal()
@@ -80,6 +82,7 @@ export class MatrixClient {
             isRunning: true,
             syncToken: response.next_batch,
             pollingTimeout: 30000,
+            pollingRetries: 0,
             rooms: MatrixRoom.fromSync(response.rooms)
           })
         },
@@ -87,9 +90,9 @@ export class MatrixClient {
           if (!this.store.get('isRunning')) {
             reject(error)
           }
-          console.warn('Could not sync:', error)
           this.store.update({
-            isRunning: false
+            isRunning: false,
+            pollingRetries: this.store.get('pollingRetries') + 1
           })
         }
       )
@@ -176,17 +179,33 @@ export class MatrixClient {
     onSyncSuccess: (response: MatrixSyncResponse) => void,
     onSyncError: (error) => void
   ) {
+    const store = this.store
     const sync = this.sync.bind(this)
+
     async function pollSync() {
+      let continueSyncing: boolean = false
       try {
         const response = await sync()
         onSyncSuccess(response)
 
-        setTimeout(pollSync, interval)
+        continueSyncing = true
       } catch (error) {
         onSyncError(error)
+
+        continueSyncing = store.get('pollingRetries') < MAX_POLLING_RETRIES
+        console.warn('Could not sync:', error)
+        if (continueSyncing) {
+          console.log('Retry syncing...')
+        }
+      } finally {
+        if (continueSyncing) {
+          setTimeout(pollSync, interval)
+        } else {
+          throw new Error(`Max polling retries exeeded: ${MAX_POLLING_RETRIES}`)
+        }
       }
     }
+
     pollSync()
   }
 
