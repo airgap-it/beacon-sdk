@@ -49,7 +49,9 @@ export class MatrixClientEventEmitter extends EventEmitter {
   private isInvite(
     stateChange: Partial<MatrixStateUpdate>
   ): stateChange is AtLeast<MatrixStateUpdate, 'rooms'> {
-    return stateChange.rooms?.some((room) => room.status === MatrixRoomStatus.INVITED) || false
+    return stateChange.rooms
+      ? stateChange.rooms.some((room) => room.status === MatrixRoomStatus.INVITED)
+      : false
   }
 
   private emitInvite(
@@ -69,7 +71,7 @@ export class MatrixClientEventEmitter extends EventEmitter {
   private isMessage(
     stateChange: Partial<MatrixStateUpdate>
   ): stateChange is AtLeast<MatrixStateUpdate, 'rooms'> {
-    return stateChange.rooms?.some((room) => room.messages.length > 0) || false
+    return stateChange.rooms ? stateChange.rooms.some((room) => room.messages.length > 0) : false
   }
 
   private emitMessage(

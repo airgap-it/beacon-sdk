@@ -19,8 +19,8 @@ export class MatrixEventService {
     return this.httpClient.get<MatrixSyncResponse>(
       '/sync',
       {
-        timeout: options?.pollingTimeout,
-        since: options?.syncToken
+        timeout: options ? options.pollingTimeout : undefined,
+        since: options ? options.syncToken : undefined
       },
       { accessToken }
     )
