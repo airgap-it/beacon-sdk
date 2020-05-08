@@ -41,7 +41,8 @@ import {
   OperationRequestInput,
   BroadcastResponseOutput,
   BroadcastRequestInput,
-  BeaconRequestInputMessage
+  BeaconRequestInputMessage,
+  BeaconResponseOutputMessage
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -186,13 +187,13 @@ export class DAppClient extends Client {
           : [PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN]
     }
 
-    const response = await this.makeRequest<PermissionRequest, PermissionResponse>(request).catch(
-      async (requestError: BeaconErrorMessage) => {
-        throw this.handleRequestError(request, requestError)
-      }
-    )
+    const { message, connectionInfo } = await this.makeRequest<
+      PermissionRequest,
+      PermissionResponse
+    >(request).catch(async (requestError: BeaconErrorMessage) => {
+      throw this.handleRequestError(request, requestError)
+    })
 
-    const { message, connectionInfo } = response
     await this.handleBeaconError(message)
 
     const address = await getAddressFromPublicKey(message.pubkey)
@@ -213,11 +214,15 @@ export class DAppClient extends Client {
 
     await this.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)
-    console.log('permissions interception', response)
+    console.log('permissions interception', { message, connectionInfo })
 
     const { beaconId, network, scopes } = message
 
-    return { beaconId, address, network, scopes }
+    const output: PermissionResponseOutput = { beaconId, address, network, scopes }
+
+    await this.notifySuccess(request, { output, connectionContext: connectionInfo })
+
+    return output
   }
 
   public async requestSignPayload(
@@ -236,16 +241,21 @@ export class DAppClient extends Client {
       sourceAddress: input.sourceAddress || this.activeAccount.address || ''
     }
 
-    const response = await this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request).catch(
-      async (requestError: BeaconErrorMessage) => {
-        throw this.handleRequestError(request, requestError)
-      }
-    )
-    await this.handleBeaconError(response.message)
+    const { message, connectionInfo } = await this.makeRequest<
+      SignPayloadRequest,
+      SignPayloadResponse
+    >(request).catch(async (requestError: BeaconErrorMessage) => {
+      throw this.handleRequestError(request, requestError)
+    })
+    await this.handleBeaconError(message)
 
-    const { beaconId, signature } = response.message
+    const { beaconId, signature } = message
 
-    return { beaconId, signature }
+    const output: SignPayloadResponseOutput = { beaconId, signature }
+
+    await this.notifySuccess(request, { output, connectionContext: connectionInfo })
+
+    return output
   }
 
   public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
@@ -263,14 +273,18 @@ export class DAppClient extends Client {
       sourceAddress: this.activeAccount.address || ''
     }
 
-    const response = await this.makeRequest<OperationRequest, OperationResponse>(request).catch(
-      async (requestError: BeaconErrorMessage) => {
-        throw this.handleRequestError(request, requestError)
-      }
-    )
-    await this.handleBeaconError(response.message)
+    const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
+      request
+    ).catch(async (requestError: BeaconErrorMessage) => {
+      throw this.handleRequestError(request, requestError)
+    })
+    await this.handleBeaconError(message)
 
-    const { beaconId, transactionHash } = response.message
+    const { beaconId, transactionHash } = message
+
+    const output: OperationResponseOutput = { beaconId, transactionHash }
+
+    await this.notifySuccess(request, { output, connectionContext: connectionInfo })
 
     return { beaconId, transactionHash }
   }
@@ -286,15 +300,19 @@ export class DAppClient extends Client {
       signedTransaction: input.signedTransaction
     }
 
-    const response = await this.makeRequest<BroadcastRequest, BroadcastResponse>(request).catch(
-      async (requestError: BeaconErrorMessage) => {
-        throw this.handleRequestError(request, requestError)
-      }
-    )
+    const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
+      request
+    ).catch(async (requestError: BeaconErrorMessage) => {
+      throw this.handleRequestError(request, requestError)
+    })
 
-    await this.handleBeaconError(response.message)
+    await this.handleBeaconError(message)
 
-    const { beaconId, transactionHash } = response.message
+    const { beaconId, transactionHash } = message
+
+    const output: BroadcastResponseOutput = { beaconId, transactionHash }
+
+    await this.notifySuccess(request, { output, connectionContext: connectionInfo })
 
     return { beaconId, transactionHash }
   }
@@ -308,6 +326,15 @@ export class DAppClient extends Client {
       .emit(messageEvents[request.type].error, error)
       .catch((emitError) => console.warn(emitError))
     throw error
+  }
+
+  private async notifySuccess(
+    request: BeaconRequestInputMessage,
+    response: { output: BeaconResponseOutputMessage; connectionContext: ConnectionContext }
+  ): Promise<void> {
+    this.events
+      .emit(messageEvents[request.type].success, response)
+      .catch((emitError) => console.warn(emitError))
   }
 
   private async handleBeaconError(message: BeaconBaseMessage): Promise<void> {
@@ -344,7 +371,7 @@ export class DAppClient extends Client {
     }
 
     this.events
-      .emit(messageEvents[requestInput.type].success)
+      .emit(messageEvents[requestInput.type].sent)
       .catch((emitError) => console.warn(emitError))
 
     if (!this.beaconId) {
@@ -363,19 +390,12 @@ export class DAppClient extends Client {
       { message: BeaconMessage; connectionInfo: ConnectionContext },
       BeaconErrorMessage
     >()
+
     this.addOpenRequest(request.id, exposed)
 
     const payload = await new Serializer().serialize(request)
 
     await (await this.transport).send(payload)
-
-    exposed.promise
-      .then((promiseResult: { message: BeaconMessage; connectionInfo: ConnectionContext }) => {
-        this.events
-          .emit(messageEvents[requestInput.type].success, promiseResult)
-          .catch((emitError) => console.warn(emitError))
-      })
-      .catch(() => undefined)
 
     return exposed.promise as any // TODO: fix type
   }
