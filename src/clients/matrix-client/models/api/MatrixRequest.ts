@@ -14,7 +14,7 @@ export type MatrixRequest<T> = T extends MatrixLoginResponse
   : T extends MatrixRoomJoinResponse
   ? MatrixRoomJoinRequest
   : T extends MatrixEventSendResponse
-  ? MatrixEventSendRequest<any>
+  ? MatrixEventSendRequest
   : never
 
 export type MatrixRequestParams<T> = T extends MatrixSyncResponse ? MatrixSyncRequestParams : never

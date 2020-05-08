@@ -1,28 +1,24 @@
-export interface MatrixSyncRoomStateEvent {
-  content: any
-  type: string
-  sender: string
-}
+import { MatrixStateEvent } from '../MatrixStateEvent'
 
 export interface MatrixSyncJoinedRoom {
   state: {
-    events: MatrixSyncRoomStateEvent[]
+    events: MatrixStateEvent[]
   }
   timeline: {
-    events: MatrixSyncRoomStateEvent[]
+    events: MatrixStateEvent[]
   }
 }
 
 export interface MatrixSyncInvitedRoom {
-  events: MatrixSyncRoomStateEvent[]
+  events: MatrixStateEvent[]
 }
 
 export interface MatrixSyncLeftRoom {
   state: {
-    events: MatrixSyncRoomStateEvent[]
+    events: MatrixStateEvent[]
   }
   timeline: {
-    events: MatrixSyncRoomStateEvent[]
+    events: MatrixStateEvent[]
   }
 }
 

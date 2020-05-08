@@ -1,14 +1,14 @@
 import { EventEmitter } from 'events'
 import { MatrixStateStore, MatrixStateUpdate } from './MatrixClientStore'
 import { MatrixRoomStatus } from './models/MatrixRoom'
+import { MatrixMessage } from './models/MatrixMessage'
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>
 type Predicate<T, R extends T> = (object: T) => object is R
 
 export enum MatrixClientEvent {
   INVITE = 'invite',
-  MESSAGE = 'message',
-  CHANNEL_OPENING = 'channel_opening'
+  MESSAGE = 'message'
 }
 
 export class MatrixClientEventEmitter extends EventEmitter {
@@ -17,9 +17,8 @@ export class MatrixClientEventEmitter extends EventEmitter {
     <T, R extends T>() => [Predicate<T, R>, (event: string, object: R) => void]
   > = new Map([
     [MatrixClientEvent.INVITE, () => [this.isInvite, this.emitInvite]],
-    [MatrixClientEvent.MESSAGE, () => [this.isMessage, this.emitMessage]],
-    [MatrixClientEvent.CHANNEL_OPENING, () => [this.isChannelOpening, this.emitChannelOpening]]
-  ])
+    [MatrixClientEvent.MESSAGE, () => [this.isMessage, this.emitMessage]]
+  ] as [string, <T, R extends T>() => [Predicate<T, R>, (event: string, object: R) => void]][])
 
   public onStateChanged(
     _oldState: MatrixStateStore,
@@ -59,22 +58,18 @@ export class MatrixClientEventEmitter extends EventEmitter {
   private isMessage(
     stateChange: Partial<MatrixStateUpdate>
   ): stateChange is AtLeast<MatrixStateUpdate, 'rooms'> {
-    // TODO
-    return stateChange.rooms?.some((_room) => false) || false
+    return stateChange.rooms?.some((room) => room.messages.length > 0) || false
   }
 
   private emitMessage(event: string, stateChange: AtLeast<MatrixStateUpdate, 'rooms'>) {
-    // TODO
-    this.emit(event, stateChange)
-  }
-
-  private isChannelOpening(_stateChange: Partial<MatrixStateUpdate>): _stateChange is any {
-    // TOOD
-    return false
-  }
-
-  private emitChannelOpening(event: string, _stateChange: any) {
-    // TODO
-    this.emit(event)
+    stateChange.rooms
+      .filter((room) => room.messages.length > 0)
+      .map((room) =>
+        room.messages.map((message) => [room.id, message] as [string, MatrixMessage<any>])
+      )
+      .reduce((flatten, toFlatten) => flatten.concat(toFlatten), [])
+      .forEach(([roomId, message]) => {
+        this.emit(event, roomId, message)
+      })
   }
 }

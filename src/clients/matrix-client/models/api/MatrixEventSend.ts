@@ -1,12 +1,5 @@
-export interface MatrixEventMessageContent {
-  msgtype: 'm.text'
-  body: string
-  [key: string]: any
-}
-export interface MatrixEventMessageSendRequest extends MatrixEventSendRequest<any> {}
-
-export interface MatrixEventSendRequest<T> {
-  content: T
+export interface MatrixEventSendRequest {
+  content: any
 }
 
 export interface MatrixEventSendResponse {

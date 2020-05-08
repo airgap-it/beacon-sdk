@@ -95,18 +95,8 @@ export class MatrixClient {
     })
   }
 
-  public subscribeInvite(listener: (id: string) => void) {
-    this.eventEmitter.on(MatrixClientEvent.INVITE, listener)
-  }
-
-  // TODO: type
-  public subscribeMessage(listener: () => void) {
-    this.eventEmitter.on(MatrixClientEvent.MESSAGE, listener)
-  }
-
-  // TODO: type
-  public subscribeChannelOpening(listener: () => void) {
-    this.eventEmitter.on(MatrixClientEvent.CHANNEL_OPENING, listener)
+  public subscribe(event: MatrixClientEvent, listener: (...args: any) => void) {
+    this.eventEmitter.on(event, listener)
   }
 
   public async createTrustedPrivateRoom(...members: string[]): Promise<string> {
