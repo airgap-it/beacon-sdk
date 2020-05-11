@@ -2,7 +2,7 @@ import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
 import { isArray } from 'util'
 
 interface MatrixStateStorage {
-  getItem(key: string): string
+  getItem(key: string): string | null
   setItem(key: string, value: string)
 }
 
@@ -91,8 +91,8 @@ export class MatrixClientStore {
 
   private initFromStorage() {
     if (this.storage) {
-      const cached = this.storage.getItem(STORAGE_KEY)
-      this.setState(JSON.parse(cached))
+      const preserved = this.storage.getItem(STORAGE_KEY)
+      this.setState(preserved ? JSON.parse(preserved) : {})
     }
   }
 
