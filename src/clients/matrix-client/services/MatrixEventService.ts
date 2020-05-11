@@ -17,23 +17,29 @@ interface MatrixScheduledEvent<T> {
 
 type MatrixEventType = 'm.room.message'
 
+type CacheKeys = 'sync'
+
 export interface MatrixSyncOptions {
   syncToken?: string
   pollingTimeout?: number
 }
 
 export class MatrixEventService {
+  private readonly cachedPromises: Map<CacheKeys, Promise<any>> = new Map()
+
   constructor(private readonly httpClient: MatrixHttpClient) {}
 
   public async sync(accessToken: string, options?: MatrixSyncOptions): Promise<MatrixSyncResponse> {
-    return this.httpClient.get<MatrixSyncResponse>(
-      '/sync',
-      {
-        timeout: options ? options.pollingTimeout : undefined,
-        since: options ? options.syncToken : undefined
-      },
-      { accessToken }
-    )
+    return this.withCache('sync', () => {
+      return this.httpClient.get<MatrixSyncResponse>(
+        '/sync',
+        {
+          timeout: options ? options.pollingTimeout : undefined,
+          since: options ? options.syncToken : undefined
+        },
+        { accessToken }
+      )
+    })
   }
 
   public async sendMessage(
@@ -77,5 +83,18 @@ export class MatrixEventService {
     } catch (error) {
       scheduledEvent.onError(error)
     }
+  }
+
+  private withCache<T>(key: CacheKeys, promiseProvider: () => Promise<T>): Promise<T> {
+    let promise = this.cachedPromises.get(key)
+
+    if (!promise) {
+      promise = promiseProvider().finally(() => {
+        this.cachedPromises.delete(key)
+      })
+      this.cachedPromises.set(key, promise)
+    }
+
+    return promise
   }
 }
