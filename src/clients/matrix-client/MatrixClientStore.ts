@@ -32,7 +32,7 @@ export interface MatrixStateUpdate extends MatrixState {
   rooms: MatrixRoom[]
 }
 
-const STORAGE_KEY = 'matrix_preserved_state'
+const STORAGE_KEY = 'beacon:sdk-matrix-preserved-state'
 const PRESERVED_FIELDS: (keyof MatrixState)[] = ['syncToken', 'rooms']
 
 export class MatrixClientStore {
