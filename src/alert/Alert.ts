@@ -35,10 +35,10 @@ const formatAlert = (
 ): string => {
   const callToAction: string = title
   const confirmButton: string = confirmButtonText
-    ? `<button id="beacon-qrcode-button-ok">${confirmButtonText}</button>`
+    ? `<button id="beacon-qrcode-button-ok" class="beacon-modal__button">${confirmButtonText}</button>`
     : ''
   const actionButton: string = actionButtonText
-    ? `<button id="beacon-qrcode-button-action">${actionButtonText}</button>`
+    ? `<button id="beacon-qrcode-button-action" class="beacon-modal__button--outline">${actionButtonText}</button>`
     : ''
 
   return `
@@ -152,16 +152,57 @@ const formatAlert = (
     text-align: center;
   }
   
-  .beacon-qrcode__text {
-    color: #7c828b;
+  .beacon-qrcode__text, .beacon-qrcode__title {
     font-family: Roboto, sans-serif;
-    font-size: 18px;
     text-align: center;
     margin: 0 auto;
     padding: 0 0 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  }
+
+  .margin__bottom {
+    margin-bottom: 16px;
+  }
+
+  .beacon-qrcode__title {
+    color: #7c828b;
+    font-size: 18px;
+  }
+  
+  .beacon-qrcode__text {
+    color: #000;
+    font-size: 14px;
+  }
+
+  .beacon-modal__button, .beacon-modal__button--outline {
+    height: 36px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.84px;
+    margin-bottom: 4px;
+    margin-inline-end: 2px;
+    margin-inline-start: 2px;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: 4px;
+    padding-inline-end: 15.4px;
+    padding-inline-start: 15.4px;
+    padding-left: 15.4px;
+    padding-right: 15.4px;
+    overflow-wrap: break-word;
+    pointer-events: auto;
+    text-align: center;
+    border: 2px solid #3880ff;
+    border-radius: 4px;
+  }
+
+  .beacon-modal__button {
+    background: #3880ff;
+    color: #fff;
+  }
+
+  .beacon-modal__button--outline {
+    background: #fff;
+    color: #3880ff;
   }
   
   .beacon-qrcode__image {
@@ -175,6 +216,10 @@ const formatAlert = (
   .beacon-modal__content {
     padding: 24px;
   }
+
+  .beacon-action__container {
+    padding-top: 24px;
+  }
   
   </style>
     <div
@@ -183,7 +228,7 @@ const formatAlert = (
     >
       <div class="beacon-modal__base">
         <div class="beacon-modal__header">
-        ${beaconLogo}
+        <img src="assets/img/beacon_logoy_type_hor_padding.svg" />
           <div class="beacon-modal__close__wrapper">
             <div
               id="beacon-qrcode-close"
@@ -196,12 +241,16 @@ const formatAlert = (
         </div>
         <div class="beacon-modal__content">
           <div>
-            <p id="beacon-qrcode-text" class="beacon-qrcode__text">
+            <p class="beacon-qrcode__title">
               ${callToAction}
             </p>
+            <p class="beacon-qrcode__text">
             ${body}
+            </p>
+            <div class="beacon-action__container">
             ${actionButton}
             ${confirmButton}
+            </div>
           </div>
         </div>
       </div>
