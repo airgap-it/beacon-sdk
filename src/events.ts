@@ -88,7 +88,7 @@ const showSentToast = async (): Promise<void> => {
 
 const showNoPermissionAlert = async (): Promise<void> => {
   await openAlert({
-    title: 'No permissions',
+    title: 'No Permission',
     body: 'Please allow the wallet to handle this type of request.'
   })
 }
@@ -114,7 +114,7 @@ const showRateLimitReached = async (): Promise<void> => {
 const showOkAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Success',
-    confirmButtonText: 'Ok!',
+    confirmButtonText: 'Done',
     timer: 1500
   })
 }
@@ -124,7 +124,7 @@ const showQrCode = async (
 ): Promise<void> => {
   const alertConfig: AlertConfig = {
     title: 'Pairing Request',
-    confirmButtonText: 'Ok!',
+    confirmButtonText: 'Done',
     body: getQrData(JSON.stringify(data), 'svg'),
     confirmCallback: () => {
       console.log('CALLBACK')
@@ -138,11 +138,14 @@ const showPermissionSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output as PermissionResponseOutput
   const alertConfig: AlertConfig = {
-    title: 'Permission Response',
-    body: `We received permissions for the address ${output.address} on the network ${output.network.type} with the following permissions:
-    
-    ${output.scopes}`,
-    confirmButtonText: 'Ok!',
+    title: 'Permission Granted',
+    body: `We received permissions for the address <strong>${output.address}</strong>
+    <br>
+    <br>
+    Network: <strong>${output.network.type}</strong>
+    <br>
+    Permissions: <strong>${output.scopes}</strong>`,
+    confirmButtonText: 'Done',
     confirmCallback: () => {
       console.log('CALLBACK')
     },
@@ -159,9 +162,9 @@ const showOperationSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output as OperationResponseOutput
   const alertConfig: AlertConfig = {
-    title: 'Operation Response',
-    body: `The transaction has successfully been broadcasted to the network with the following hash: ${output.transactionHash}`,
-    confirmButtonText: 'Close',
+    title: 'Operation Broadcasted',
+    body: `The transaction has successfully been broadcasted to the network with the following hash. <strong>${output.transactionHash}</strong>`,
+    confirmButtonText: 'Done',
     confirmCallback: () => {
       console.log('CALLBACK')
     },
@@ -178,9 +181,11 @@ const showSignSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output as SignPayloadResponseOutput
   const alertConfig: AlertConfig = {
-    title: 'Sign Response',
-    body: `The transaction has successfully been signed. Signature: ${output.signature}`,
-    confirmButtonText: 'Close',
+    title: 'Transaction Signed',
+    body: `The transaction has successfully been signed.
+    <br>
+    Signature: <strong>${output.signature}</strong>`,
+    confirmButtonText: 'Done',
     confirmCallback: () => {
       console.log('CALLBACK')
     }
@@ -193,9 +198,9 @@ const showBroadcastSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output as BroadcastResponseOutput
   const alertConfig: AlertConfig = {
-    title: 'Broadcast Response',
-    body: `The transaction has successfully been broadcasted to the network with the following hash: ${output.transactionHash}`,
-    confirmButtonText: 'Close',
+    title: 'Broadcasted',
+    body: `The transaction has successfully been broadcasted to the network with the following hash. <strong>${output.transactionHash}</strong>`,
+    confirmButtonText: 'Done',
     confirmCallback: () => {
       console.log('CALLBACK')
     },
