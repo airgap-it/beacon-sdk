@@ -228,7 +228,7 @@ const formatAlert = (
     >
       <div class="beacon-modal__base">
         <div class="beacon-modal__header">
-        <img src="assets/img/beacon_logoy_type_hor_padding.svg" />
+        ${beaconLogo}
           <div class="beacon-modal__close__wrapper">
             <div
               id="beacon-qrcode-close"
