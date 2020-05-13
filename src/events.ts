@@ -6,6 +6,10 @@ import { Transport } from './transports/Transport'
 import { BeaconError } from './errors/BeaconError'
 import { ConnectionContext } from './types/ConnectionContext'
 import {
+  getAccountBlockExplorerLinkForNetwork,
+  getTransactionBlockExplorerLinkForNetwork
+} from './utils/block-explorer'
+import {
   P2PPairInfo,
   AccountInfo,
   BeaconErrorMessage,
@@ -14,7 +18,7 @@ import {
   OperationResponseOutput,
   BroadcastResponseOutput,
   SignPayloadResponseOutput,
-  BeaconResponseOutputMessage
+  Network
 } from '.'
 
 const logger = new Logger('BeaconEvents')
@@ -50,25 +54,28 @@ export enum BeaconEvent {
 export interface BeaconEventType {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
   [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: {
-    output: BeaconResponseOutputMessage
+    account: AccountInfo
+    output: PermissionResponseOutput
     connectionContext: ConnectionContext
   }
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.OPERATION_REQUEST_SENT]: undefined
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: {
-    output: BeaconResponseOutputMessage
+    account: AccountInfo
+    output: OperationResponseOutput
     connectionContext: ConnectionContext
   }
   [BeaconEvent.OPERATION_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.SIGN_REQUEST_SENT]: undefined
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: {
-    output: BeaconResponseOutputMessage
+    output: SignPayloadResponseOutput
     connectionContext: ConnectionContext
   }
   [BeaconEvent.SIGN_REQUEST_ERROR]: BeaconErrorMessage
   [BeaconEvent.BROADCAST_REQUEST_SENT]: undefined
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
-    output: BeaconResponseOutputMessage
+    network: Network
+    output: BroadcastResponseOutput
     connectionContext: ConnectionContext
   }
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: BeaconErrorMessage
@@ -136,7 +143,7 @@ const showQrCode = async (
 const showPermissionSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.PERMISSION_REQUEST_SUCCESS]
 ): Promise<void> => {
-  const output = data.output as PermissionResponseOutput
+  const { account, output } = data
   const alertConfig: AlertConfig = {
     title: 'Permission Granted',
     body: `We received permissions for the address <strong>${output.address}</strong>
@@ -146,12 +153,14 @@ const showPermissionSuccessAlert = async (
     <br>
     Permissions: <strong>${output.scopes}</strong>`,
     confirmButtonText: 'Done',
-    confirmCallback: () => {
-      console.log('CALLBACK')
-    },
+    confirmCallback: () => undefined,
     actionButtonText: 'Open Blockexplorer',
-    actionCallback: () => {
-      window.open(`https://tezblock.io/account/${output.address}`)
+    actionCallback: async () => {
+      const link: string = await getAccountBlockExplorerLinkForNetwork(
+        account.network,
+        output.address
+      )
+      window.open(link, '_blank')
     }
   }
   await openAlert(alertConfig)
@@ -160,53 +169,55 @@ const showPermissionSuccessAlert = async (
 const showOperationSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.OPERATION_REQUEST_SUCCESS]
 ): Promise<void> => {
-  const output = data.output as OperationResponseOutput
+  const { account, output } = data
   const alertConfig: AlertConfig = {
     title: 'Operation Broadcasted',
     body: `The transaction has successfully been broadcasted to the network with the following hash. <strong>${output.transactionHash}</strong>`,
     confirmButtonText: 'Done',
-    confirmCallback: () => {
-      console.log('CALLBACK')
-    },
+    confirmCallback: () => undefined,
     actionButtonText: 'Open Blockexplorer',
-    actionCallback: () => {
-      window.open(`https://tezblock.io/transaction/${output.transactionHash}`)
+    actionCallback: async () => {
+      const link: string = await getTransactionBlockExplorerLinkForNetwork(
+        account.network,
+        output.transactionHash
+      )
+      window.open(link, '_blank')
     }
   }
   await openAlert(alertConfig)
 }
 
 const showSignSuccessAlert = async (
-  data: BeaconEventType[BeaconEvent.OPERATION_REQUEST_SUCCESS]
+  data: BeaconEventType[BeaconEvent.SIGN_REQUEST_SUCCESS]
 ): Promise<void> => {
-  const output = data.output as SignPayloadResponseOutput
+  const output = data.output
   const alertConfig: AlertConfig = {
     title: 'Transaction Signed',
     body: `The transaction has successfully been signed.
     <br>
     Signature: <strong>${output.signature}</strong>`,
     confirmButtonText: 'Done',
-    confirmCallback: () => {
-      console.log('CALLBACK')
-    }
+    confirmCallback: () => undefined
   }
   await openAlert(alertConfig)
 }
 
 const showBroadcastSuccessAlert = async (
-  data: BeaconEventType[BeaconEvent.OPERATION_REQUEST_SUCCESS]
+  data: BeaconEventType[BeaconEvent.BROADCAST_REQUEST_SUCCESS]
 ): Promise<void> => {
-  const output = data.output as BroadcastResponseOutput
+  const { network, output } = data
   const alertConfig: AlertConfig = {
     title: 'Broadcasted',
     body: `The transaction has successfully been broadcasted to the network with the following hash. <strong>${output.transactionHash}</strong>`,
     confirmButtonText: 'Done',
-    confirmCallback: () => {
-      console.log('CALLBACK')
-    },
+    confirmCallback: () => undefined,
     actionButtonText: 'Open Blockexplorer',
-    actionCallback: () => {
-      window.open(`https://tezblock.io/transaction/${output.transactionHash}`)
+    actionCallback: async () => {
+      const link: string = await getTransactionBlockExplorerLinkForNetwork(
+        network,
+        output.transactionHash
+      )
+      window.open(link, '_blank')
     }
   }
   await openAlert(alertConfig)

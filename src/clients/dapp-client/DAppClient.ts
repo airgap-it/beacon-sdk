@@ -42,7 +42,7 @@ import {
   BroadcastResponseOutput,
   BroadcastRequestInput,
   BeaconRequestInputMessage,
-  BeaconResponseOutputMessage
+  Network
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -220,7 +220,11 @@ export class DAppClient extends Client {
 
     const output: PermissionResponseOutput = { beaconId, address, network, scopes }
 
-    await this.notifySuccess(request, { output, connectionContext: connectionInfo })
+    await this.notifySuccess(request, {
+      account: accountInfo,
+      output,
+      connectionContext: connectionInfo
+    })
 
     return output
   }
@@ -235,10 +239,12 @@ export class DAppClient extends Client {
       throw new Error('No active account!')
     }
 
+    const activeAccount = this.activeAccount
+
     const request: SignPayloadRequestInput = {
       type: BeaconMessageType.SignPayloadRequest,
       payload: input.payload,
-      sourceAddress: input.sourceAddress || this.activeAccount.address || ''
+      sourceAddress: input.sourceAddress || activeAccount.address || ''
     }
 
     const { message, connectionInfo } = await this.makeRequest<
@@ -253,7 +259,11 @@ export class DAppClient extends Client {
 
     const output: SignPayloadResponseOutput = { beaconId, signature }
 
-    await this.notifySuccess(request, { output, connectionContext: connectionInfo })
+    await this.notifySuccess(request, {
+      account: activeAccount,
+      output,
+      connectionContext: connectionInfo
+    })
 
     return output
   }
@@ -266,11 +276,13 @@ export class DAppClient extends Client {
       throw new Error('No active account!')
     }
 
+    const activeAccount = this.activeAccount
+
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
       network: input.network || { type: NetworkType.MAINNET },
       operationDetails: input.operationDetails as any, // TODO: Fix type,
-      sourceAddress: this.activeAccount.address || ''
+      sourceAddress: activeAccount.address || ''
     }
 
     const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
@@ -284,7 +296,11 @@ export class DAppClient extends Client {
 
     const output: OperationResponseOutput = { beaconId, transactionHash }
 
-    await this.notifySuccess(request, { output, connectionContext: connectionInfo })
+    await this.notifySuccess(request, {
+      account: activeAccount,
+      output,
+      connectionContext: connectionInfo
+    })
 
     return { beaconId, transactionHash }
   }
@@ -294,9 +310,11 @@ export class DAppClient extends Client {
       throw new Error('Signed transaction must be provided')
     }
 
+    const network = input.network || { type: NetworkType.MAINNET }
+
     const request: BroadcastRequestInput = {
       type: BeaconMessageType.BroadcastRequest,
-      network: input.network || { type: NetworkType.MAINNET },
+      network,
       signedTransaction: input.signedTransaction
     }
 
@@ -312,7 +330,7 @@ export class DAppClient extends Client {
 
     const output: BroadcastResponseOutput = { beaconId, transactionHash }
 
-    await this.notifySuccess(request, { output, connectionContext: connectionInfo })
+    await this.notifySuccess(request, { network, output, connectionContext: connectionInfo })
 
     return { beaconId, transactionHash }
   }
@@ -330,7 +348,26 @@ export class DAppClient extends Client {
 
   private async notifySuccess(
     request: BeaconRequestInputMessage,
-    response: { output: BeaconResponseOutputMessage; connectionContext: ConnectionContext }
+    response:
+      | {
+          account: AccountInfo
+          output: PermissionResponseOutput
+          connectionContext: ConnectionContext
+        }
+      | {
+          account: AccountInfo
+          output: OperationResponseOutput
+          connectionContext: ConnectionContext
+        }
+      | {
+          output: SignPayloadResponseOutput
+          connectionContext: ConnectionContext
+        }
+      | {
+          network: Network
+          output: BroadcastResponseOutput
+          connectionContext: ConnectionContext
+        }
   ): Promise<void> {
     this.events
       .emit(messageEvents[request.type].success, response)
