@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "The beacon-sdk is setup in a way to allow for p2p communication between wallets and dapps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -37,7 +37,7 @@
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "0.19.2",
     "bs58check": "2.1.2",
     "libsodium-wrappers": "0.7.6",
     "qrcode-generator": "1.4.4"
