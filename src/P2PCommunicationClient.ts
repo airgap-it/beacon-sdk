@@ -17,6 +17,7 @@ import {
 } from './clients/matrix-client/models/MatrixClientEvent'
 import { MatrixMessageType } from './clients/matrix-client/models/MatrixMessage'
 import { MatrixRoom } from './clients/matrix-client/models/MatrixRoom'
+import { P2PPairInfo } from '.'
 
 export class P2PCommunicationClient {
   private readonly clients: MatrixClient[] = []
@@ -38,33 +39,34 @@ export class P2PCommunicationClient {
     private readonly debug: boolean = false
   ) {}
 
-  public getHandshakeInfo(): { name: string; pubKey: string; relayServer: string } {
+  public async getHandshakeInfo(): Promise<P2PPairInfo> {
     return {
       name: this.name,
-      pubKey: this.getPublicKey(),
-      relayServer: this.getRelayServer()
+      pubKey: await this.getPublicKey(),
+      relayServer: await this.getRelayServer()
     }
   }
 
-  public getRelayServer(publicKeyHash?: string, nonce: string = ''): string {
+  public async getRelayServer(publicKeyHash?: string, nonce: string = ''): Promise<string> {
     if (!this.keyPair) {
       throw new Error('KeyPair not available')
     }
-    const hash: string = publicKeyHash || getHexHash(this.keyPair.publicKey)
+    const hash: string = publicKeyHash || (await getHexHash(this.keyPair.publicKey))
 
-    return this.KNOWN_RELAY_SERVERS.reduce((prev, curr) => {
-      const prevRelayServerHash = getHexHash(prev + nonce)
-      const currRelayServerHash = getHexHash(curr + nonce)
+    return this.KNOWN_RELAY_SERVERS.reduce(async (prevPromise: Promise<string>, curr: string) => {
+      const prev = await prevPromise
+      const prevRelayServerHash: string = await getHexHash(prev + nonce)
+      const currRelayServerHash: string = await getHexHash(curr + nonce)
 
-      return this.getAbsoluteBigIntDifference(hash, prevRelayServerHash) <
-        this.getAbsoluteBigIntDifference(hash, currRelayServerHash)
+      return (await this.getAbsoluteBigIntDifference(hash, prevRelayServerHash)) <
+        (await this.getAbsoluteBigIntDifference(hash, currRelayServerHash))
         ? prev
         : curr
-    })
+    }, Promise.resolve(this.KNOWN_RELAY_SERVERS[0]))
   }
 
   public async start(): Promise<void> {
-    this.log('starting client')
+    await this.log('starting client')
     await sodium.ready
 
     const loginRawDigest = sodium.crypto_generichash(
@@ -73,29 +75,29 @@ export class P2PCommunicationClient {
     )
     const rawSignature = sodium.crypto_sign_detached(loginRawDigest, this.keyPair.privateKey)
 
-    this.log(`connecting to ${this.replicationCount} servers`)
+    await this.log(`connecting to ${this.replicationCount} servers`)
 
     for (let i = 0; i < this.replicationCount; i++) {
       // TODO: Parallel
       const client = MatrixClient.create({
-        baseUrl: `https://${this.getRelayServer(this.getPublicKeyHash(), i.toString())}`
+        baseUrl: `https://${await this.getRelayServer(await this.getPublicKeyHash(), i.toString())}`
       })
 
       client.subscribe(MatrixClientEventType.INVITE, async (event) => {
         await client.joinRooms(event.content.roomId)
       })
 
-      this.log(
+      await this.log(
         'login',
-        this.getPublicKeyHash(),
+        await this.getPublicKeyHash(),
         'on',
-        this.getRelayServer(this.getPublicKeyHash(), i.toString())
+        await this.getRelayServer(await this.getPublicKeyHash(), i.toString())
       )
 
       await client
         .start({
-          id: this.getPublicKeyHash(),
-          password: `ed:${toHex(rawSignature)}:${this.getPublicKey()}`,
+          id: await this.getPublicKeyHash(),
+          password: `ed:${toHex(rawSignature)}:${await this.getPublicKey()}`,
           deviceId: toHex(this.keyPair.publicKey)
         })
         .catch((error) => this.log(error))
@@ -120,14 +122,20 @@ export class P2PCommunicationClient {
       return
     }
 
-    const callbackFunction = (event: MatrixClientEvent<MatrixClientEventType.MESSAGE>): void => {
+    const callbackFunction = async (
+      event: MatrixClientEvent<MatrixClientEventType.MESSAGE>
+    ): Promise<void> => {
       if (this.isTextMessage(event.content) && this.isSender(event, senderPublicKey)) {
         const payload = Buffer.from(event.content.message.content, 'hex')
         if (
           payload.length >=
           sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
         ) {
-          messageCallback(decryptCryptoboxPayload(payload, sharedRx))
+          try {
+            messageCallback(await decryptCryptoboxPayload(payload, sharedRx))
+          } catch (decryptionError) {
+            /**/
+          }
         }
       }
     }
@@ -170,17 +178,17 @@ export class P2PCommunicationClient {
     )
 
     for (let i = 0; i < this.replicationCount; i++) {
-      const recipientHash = getHexHash(Buffer.from(recipientPublicKey, 'hex'))
+      const recipientHash: string = await getHexHash(Buffer.from(recipientPublicKey, 'hex'))
       const recipient = recipientString(
         recipientHash,
-        this.getRelayServer(recipientHash, i.toString())
+        await this.getRelayServer(recipientHash, i.toString())
       )
 
       for (const client of this.clients) {
         const room = await this.getRelevantRoom(client, recipient)
 
         client
-          .sendTextMessage(room.id, encryptCryptoboxPayload(message, sharedTx))
+          .sendTextMessage(room.id, await encryptCryptoboxPayload(message, sharedTx))
           .catch((error) => this.log(error))
       }
     }
@@ -188,13 +196,13 @@ export class P2PCommunicationClient {
 
   public async listenForChannelOpening(messageCallback: (message: string) => void): Promise<void> {
     for (const client of this.clients) {
-      client.subscribe(MatrixClientEventType.MESSAGE, (event) => {
-        console.log('channel opening', event)
+      client.subscribe(MatrixClientEventType.MESSAGE, async (event) => {
+        await this.log('channel opening', event)
         if (this.isTextMessage(event.content) && this.isChannelOpenMessage(event.content)) {
           if (!this.keyPair) {
             throw new Error('KeyPair not available')
           }
-          this.log('new channel open event!')
+          await this.log('new channel open event!')
 
           const splits = event.content.message.content.split(':')
           const payload = Buffer.from(splits[splits.length - 1], 'hex')
@@ -203,7 +211,9 @@ export class P2PCommunicationClient {
             payload.length >=
             sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
           ) {
-            messageCallback(openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey))
+            messageCallback(
+              await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
+            )
           }
         }
       })
@@ -211,16 +221,16 @@ export class P2PCommunicationClient {
   }
 
   public async openChannel(recipientPublicKey: string, relayServer: string): Promise<void> {
-    this.log('open channel')
-    const recipientHash = getHexHash(Buffer.from(recipientPublicKey, 'hex'))
+    await this.log('open channel')
+    const recipientHash = await getHexHash(Buffer.from(recipientPublicKey, 'hex'))
     const recipient = recipientString(recipientHash, relayServer)
 
-    this.log(`currently there are ${this.clients.length} clients open`)
+    await this.log(`currently there are ${this.clients.length} clients open`)
     for (const client of this.clients) {
       const room = await this.getRelevantRoom(client, recipient)
 
-      const encryptedMessage = sealCryptobox(
-        this.getPublicKey(),
+      const encryptedMessage: string = await sealCryptobox(
+        await this.getPublicKey(),
         Buffer.from(recipientPublicKey, 'hex')
       )
       client
@@ -235,22 +245,24 @@ export class P2PCommunicationClient {
     return content.message.type === MatrixMessageType.TEXT
   }
 
-  public isChannelOpenMessage(content: MatrixClientEventMessageContent<string>): boolean {
+  public async isChannelOpenMessage(
+    content: MatrixClientEventMessageContent<string>
+  ): Promise<boolean> {
     return content.message.content.startsWith(
-      `@channel-open:@${getHexHash(Buffer.from(this.getPublicKey(), 'hex'))}`
+      `@channel-open:@${await getHexHash(Buffer.from(await this.getPublicKey(), 'hex'))}`
     )
   }
 
-  public isSender(
+  public async isSender(
     event: MatrixClientEvent<MatrixClientEventType.MESSAGE>,
     senderPublicKey: string
-  ): boolean {
+  ): Promise<boolean> {
     return event.content.message.sender.startsWith(
-      `@${getHexHash(Buffer.from(senderPublicKey, 'hex'))}`
+      `@${await getHexHash(Buffer.from(senderPublicKey, 'hex'))}`
     )
   }
 
-  public getPublicKey(): string {
+  public async getPublicKey(): Promise<string> {
     if (!this.keyPair) {
       throw new Error('KeyPair not available')
     }
@@ -258,7 +270,7 @@ export class P2PCommunicationClient {
     return toHex(this.keyPair.publicKey)
   }
 
-  public getPublicKeyHash(): string {
+  public async getPublicKeyHash(): Promise<string> {
     if (!this.keyPair) {
       throw new Error('KeyPair not available')
     }
@@ -266,7 +278,7 @@ export class P2PCommunicationClient {
     return getHexHash(this.keyPair.publicKey)
   }
 
-  private bigIntAbsolute(inputBigInt: bigint): bigint {
+  private async bigIntAbsolute(inputBigInt: bigint): Promise<bigint> {
     if (inputBigInt < BigInt(0)) {
       return inputBigInt * BigInt(-1)
     } else {
@@ -274,7 +286,10 @@ export class P2PCommunicationClient {
     }
   }
 
-  private getAbsoluteBigIntDifference(firstHash: string, secondHash: string): bigint {
+  private async getAbsoluteBigIntDifference(
+    firstHash: string,
+    secondHash: string
+  ): Promise<bigint> {
     const difference = BigInt(`0x${firstHash}`) - BigInt(`0x${secondHash}`)
 
     return this.bigIntAbsolute(difference)
@@ -322,25 +337,25 @@ export class P2PCommunicationClient {
 
   private async getRelevantRoom(client: MatrixClient, recipient: string): Promise<MatrixRoom> {
     const joinedRooms = client.joinedRooms
-    const relevantRooms = joinedRooms.filter((room: MatrixRoom) =>
-      room.members.some((member: string) => member === recipient)
+    const relevantRooms = joinedRooms.filter((roomElement: MatrixRoom) =>
+      roomElement.members.some((member: string) => member === recipient)
     )
 
     let room: MatrixRoom
     if (relevantRooms.length === 0) {
-      this.log(`no relevant rooms found`)
+      await this.log(`no relevant rooms found`)
 
       const roomId = await client.createTrustedPrivateRoom(recipient)
       room = client.getRoomById(roomId)
     } else {
       room = relevantRooms[0]
-      this.log(`channel already open, reusing room ${room.id}`)
+      await this.log(`channel already open, reusing room ${room.id}`)
     }
 
     return room
   }
 
-  private log(...args: unknown[]): void {
+  private async log(...args: unknown[]): Promise<void> {
     if (this.debug) {
       console.log(`--- [P2PCommunicationClient]:${this.name}: `, ...args)
     }

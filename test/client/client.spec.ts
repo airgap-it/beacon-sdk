@@ -44,52 +44,64 @@ describe(`client - Custom Tests`, () => {
         .start()
         .catch((charlieClientError) => console.log('charlieClientError', charlieClientError))
 
-      aliceClient.listenForEncryptedMessage(bobClient.getPublicKey(), (message: string) => {
-        console.log('\n\nalice received from bob: ' + message)
+      aliceClient.listenForEncryptedMessage(await bobClient.getPublicKey(), (message: string) => {
+        console.log('\n\nalice received from bob: "' + message + '"')
       })
 
-      aliceClient.listenForEncryptedMessage(charlieClient.getPublicKey(), (message: string) => {
-        console.log('\n\nalice received from charlie: ' + message)
+      aliceClient.listenForEncryptedMessage(
+        await charlieClient.getPublicKey(),
+        (message: string) => {
+          console.log('\n\nalice received from charlie: "' + message + '"')
+        }
+      )
+
+      bobClient.listenForEncryptedMessage(await aliceClient.getPublicKey(), (message: string) => {
+        console.log('\n\nbob received from alice: "' + message + '"')
       })
 
-      bobClient.listenForEncryptedMessage(aliceClient.getPublicKey(), (message: string) => {
-        console.log('\n\nbob received from alice: ' + message)
+      bobClient.listenForEncryptedMessage(await charlieClient.getPublicKey(), (message: string) => {
+        console.log('\n\nbob received from charlie: "' + message + '"')
       })
 
-      bobClient.listenForEncryptedMessage(charlieClient.getPublicKey(), (message: string) => {
-        console.log('\n\nbob received from charlie: ' + message)
-      })
+      charlieClient.listenForEncryptedMessage(
+        await aliceClient.getPublicKey(),
+        (message: string) => {
+          console.log('\n\ncharlie received from alice: "' + message + '"')
+        }
+      )
 
-      charlieClient.listenForEncryptedMessage(aliceClient.getPublicKey(), (message: string) => {
-        console.log('\n\ncharlie received from alice: ' + message)
-      })
-
-      charlieClient.listenForEncryptedMessage(bobClient.getPublicKey(), (message: string) => {
-        console.log('\n\ncharlie received from bob: ' + message)
+      charlieClient.listenForEncryptedMessage(await bobClient.getPublicKey(), (message: string) => {
+        console.log('\n\ncharlie received from bob: "' + message + '"')
       })
 
       intervals.push(
-        setInterval(() => {
-          bobClient.sendMessage(aliceClient.getPublicKey(), `hey from bob ${generateGUID()}\n\n`)
+        setInterval(async () => {
+          bobClient.sendMessage(
+            await aliceClient.getPublicKey(),
+            `hey from bob ${generateGUID()}\n\n`
+          )
           //bobClient.sendMessage(charlieClient.getPublicKey(), 'matrix-dev.papers.tech', "hey from bob")
         }, 5000)
       )
 
       intervals.push(
-        setInterval(() => {
-          aliceClient.sendMessage(bobClient.getPublicKey(), `hey from alice ${generateGUID()}\n\n`)
+        setInterval(async () => {
           aliceClient.sendMessage(
-            charlieClient.getPublicKey(),
+            await bobClient.getPublicKey(),
+            `hey from alice ${generateGUID()}\n\n`
+          )
+          aliceClient.sendMessage(
+            await charlieClient.getPublicKey(),
             `hey from alice ${generateGUID()}\n\n`
           )
         }, 5000)
       )
 
       intervals.push(
-        setInterval(() => {
+        setInterval(async () => {
           //charlieClient.sendMessage(bobClient.getPublicKey(), 'matrix.tez.ie', "hey from charlie")
           charlieClient.sendMessage(
-            aliceClient.getPublicKey(),
+            await aliceClient.getPublicKey(),
             `hey from charlie ${generateGUID()}\n\n`
           )
         }, 5000)

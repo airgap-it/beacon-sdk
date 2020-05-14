@@ -199,7 +199,7 @@ export class DAppClient extends Client {
     const address = await getAddressFromPublicKey(message.pubkey)
 
     const accountInfo: AccountInfo = {
-      accountIdentifier: await getAccountIdentifier(message.pubkey, message.network),
+      accountIdentifier: await getAccountIdentifier(address, message.network),
       beaconId: message.beaconId,
       origin: {
         type: connectionInfo.origin,

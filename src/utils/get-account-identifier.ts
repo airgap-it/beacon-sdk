@@ -1,13 +1,17 @@
+import * as sodium from 'libsodium-wrappers'
+import * as bs58check from 'bs58check'
 import { Network } from '..'
 
-export const getAccountIdentifier = async (pubkey: string, network: Network): Promise<string> => {
-  const data: string[] = [pubkey, network.type]
+export const getAccountIdentifier = async (address: string, network: Network): Promise<string> => {
+  const data: string[] = [address, network.type]
   if (network.name) {
-    data.push(network.name)
+    data.push(`name:${network.name}`)
   }
   if (network.rpcUrl) {
-    data.push(network.rpcUrl)
+    data.push(`rpc:${network.rpcUrl}`)
   }
 
-  return data.join('-')
+  await sodium.ready
+
+  return bs58check.encode(sodium.crypto_generichash(10, data.join('-')))
 }

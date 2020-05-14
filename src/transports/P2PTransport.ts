@@ -88,7 +88,7 @@ export class P2PTransport extends Transport {
       })
 
       this.events
-        .emit(BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN, this.client.getHandshakeInfo())
+        .emit(BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN, await this.client.getHandshakeInfo())
         .catch((emitError) => console.warn(emitError))
     })
   }
