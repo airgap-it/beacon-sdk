@@ -18,7 +18,7 @@ export abstract class BeaconError implements Error {
   public title: string = 'Error' // Visible in the UI
   public description: string // Visible in the UI
 
-  constructor(errorType, message) {
+  constructor(errorType: BeaconErrorType, message: string) {
     this.message = `[${errorType}]:${message}`
     this.description = message
   }

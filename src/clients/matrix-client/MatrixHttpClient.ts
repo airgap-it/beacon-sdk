@@ -71,7 +71,7 @@ export class MatrixHttpClient {
       return undefined
     }
 
-    for (let [key, value] of entries) {
+    for (const [key, value] of entries) {
       headers[key] = value
     }
 
@@ -97,6 +97,7 @@ export class MatrixHttpClient {
       : this.baseUrl
 
     const apiParts = parts.map((path) => (path.startsWith('/') ? path.substr(1) : path))
+
     return [apiBase, ...apiParts].join('/')
   }
 }

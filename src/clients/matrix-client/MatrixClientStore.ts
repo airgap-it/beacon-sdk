@@ -1,9 +1,8 @@
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
-import { isArray } from 'util'
 
 interface MatrixStateStorage {
   getItem(key: string): string | null
-  setItem(key: string, value: string)
+  setItem(key: string, value: string): void
 }
 
 interface MatrixState {
@@ -133,7 +132,7 @@ export class MatrixClientStore {
       return oldRooms
     }
 
-    const newRooms = isArray(_newRooms)
+    const newRooms = Array.isArray(_newRooms)
       ? new Map(_newRooms.map((room) => [room.id, room]))
       : _newRooms
 
@@ -147,7 +146,7 @@ export class MatrixClientStore {
     oldState: MatrixStateStore,
     newState: MatrixStateStore,
     stateChange: Partial<MatrixStateUpdate>
-  ) {
+  ): void {
     const listenForAll = this.onStateChangedListeners.get('all')
     if (listenForAll) {
       listenForAll(oldState, newState, stateChange)
