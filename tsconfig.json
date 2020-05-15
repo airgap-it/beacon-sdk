@@ -5,8 +5,7 @@
     "module": "commonjs",
     "declaration": true,
     "outDir": "./dist",
-    "typeRoots": ["./node_modules/@types"],
-    "types": ["node", "chrome"],
+    "typeRoots": ["./node_modules/@types", "./src/typings"],
     "sourceMap": true,
     /* Strict Type-Checking Options */
     "strict": true /* Enable all strict type-checking options. */,
