@@ -1,5 +1,6 @@
 import axios, { AxiosResponse, Method as HttpMethod } from 'axios'
 
+import { keys } from '../../utils/utils'
 import { MatrixRequest, MatrixRequestParams } from './models/api/MatrixRequest'
 
 interface HttpOptions {
@@ -60,7 +61,7 @@ export class MatrixHttpClient {
   }
 
   private getHeaders(options: HttpOptions): { [key: string]: any } | undefined {
-    const headers = {}
+    const headers: Record<string, any> = {}
     const entries: [string, any][] = []
 
     if (options.accessToken) {
@@ -86,7 +87,7 @@ export class MatrixHttpClient {
     }
 
     const params = Object.assign(_params, {})
-    Object.keys(params).forEach((key) => params[key] === undefined && delete params[key])
+    keys(params).forEach((key) => params[key] === undefined && delete params[key])
 
     return params as { [key: string]: string | number | boolean }
   }
