@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import { keys } from '../../utils/utils'
 import { MatrixStateStore, MatrixStateUpdate } from './MatrixClientStore'
 import { MatrixRoomStatus } from './models/MatrixRoom'
 import { MatrixMessage } from './models/MatrixMessage'
@@ -20,13 +21,13 @@ export class MatrixClientEventEmitter extends EventEmitter {
     _oldState: MatrixStateStore,
     _newState: MatrixStateStore,
     stateChange: Partial<MatrixStateUpdate>
-  ) {
-    for (let event in MatrixClientEventType) {
+  ): void {
+    for (const event of keys(MatrixClientEventType)) {
       this.emitIfEvent(MatrixClientEventType[event], stateChange)
     }
   }
 
-  private emitIfEvent<T>(eventType: string, object: T) {
+  private emitIfEvent<T>(eventType: string, object: T): void {
     const provider = this.eventEmitProviders.get(eventType)
     if (provider) {
       const [predicate, emitter] = provider()
@@ -39,7 +40,7 @@ export class MatrixClientEventEmitter extends EventEmitter {
   private emitClientEvent<T extends MatrixClientEventType>(
     eventType: T,
     content: MatrixClientEventContent<T>
-  ) {
+  ): void {
     this.emit(eventType, {
       type: eventType,
       content
@@ -57,7 +58,7 @@ export class MatrixClientEventEmitter extends EventEmitter {
   private emitInvite(
     eventType: MatrixClientEventType.INVITE,
     stateChange: AtLeast<MatrixStateUpdate, 'rooms'>
-  ) {
+  ): void {
     stateChange.rooms
       .filter((room) => room.status === MatrixRoomStatus.INVITED)
       .map((room) => room.id)
@@ -77,7 +78,7 @@ export class MatrixClientEventEmitter extends EventEmitter {
   private emitMessage(
     eventType: MatrixClientEventType.MESSAGE,
     stateChange: AtLeast<MatrixStateUpdate, 'rooms'>
-  ) {
+  ): void {
     stateChange.rooms
       .filter((room) => room.messages.length > 0)
       .map((room) =>

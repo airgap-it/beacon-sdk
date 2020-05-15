@@ -11,8 +11,8 @@ interface MatrixScheduledEvent<T> {
   type: MatrixEventType
   content: any
   txnId: string
-  onSuccess: (response: T) => void
-  onError: (error) => void
+  onSuccess(response: T): void
+  onError(error: unknown): void
 }
 
 type MatrixEventType = 'm.room.message'

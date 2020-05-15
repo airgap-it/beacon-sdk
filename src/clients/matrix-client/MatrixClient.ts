@@ -74,16 +74,16 @@ export class MatrixClient {
     return new Promise((resolve, reject) => {
       this.poll(
         0,
-        (response: MatrixSyncResponse) => {
+        (pollingResponse: MatrixSyncResponse) => {
           if (!this.store.get('isRunning')) {
             resolve()
           }
           this.store.update({
             isRunning: true,
-            syncToken: response.next_batch,
+            syncToken: pollingResponse.next_batch,
             pollingTimeout: 30000,
             pollingRetries: 0,
-            rooms: MatrixRoom.fromSync(response.rooms)
+            rooms: MatrixRoom.fromSync(pollingResponse.rooms)
           })
         },
         (error) => {
@@ -102,11 +102,14 @@ export class MatrixClient {
   public subscribe<T extends MatrixClientEventType>(
     event: T,
     listener: (event: MatrixClientEvent<T>) => void
-  ) {
+  ): void {
     this.eventEmitter.on(event, listener)
   }
 
-  public unsubscribe(event: MatrixClientEventType, listener?: (...args) => void) {
+  public unsubscribe(
+    event: MatrixClientEventType,
+    listener?: (event: MatrixClientEvent<any>) => void
+  ): void {
     if (listener) {
       this.eventEmitter.removeListener(event, listener)
     } else {
@@ -148,6 +151,7 @@ export class MatrixClient {
       return Promise.all(
         (roomsOrIds as any[]).map((roomOrId) => {
           const room = this.store.getRoom(roomOrId)
+
           return this.roomService.joinRoom(accessToken, room).catch((error) => console.warn(error))
         })
       )
@@ -159,6 +163,7 @@ export class MatrixClient {
       await this.requiresAuthorization('send', async (accessToken) => {
         const room = this.store.getRoom(roomOrId)
         const txnId = this.createTxnId()
+
         return this.eventService.sendMessage(
           accessToken,
           room,
@@ -177,12 +182,12 @@ export class MatrixClient {
   private poll(
     interval: number,
     onSyncSuccess: (response: MatrixSyncResponse) => void,
-    onSyncError: (error) => void
-  ) {
+    onSyncError: (error: unknown) => void
+  ): void {
     const store = this.store
     const sync = this.sync.bind(this)
 
-    async function pollSync() {
+    const pollSync = async (): Promise<void> => {
       let continueSyncing: boolean = false
       try {
         const response = await sync()

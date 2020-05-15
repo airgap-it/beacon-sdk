@@ -14,7 +14,7 @@ export class PostMessageTransport extends Transport {
   public static async isAvailable(): Promise<boolean> {
     return new Promise((resolve) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fn = (event): void => {
+      const fn = (event: any): void => {
         const data = event.data as ExtensionMessage<string>
         if (data && data.payload === 'pong') {
           resolve(true)

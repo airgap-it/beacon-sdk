@@ -1,9 +1,9 @@
+import { keys } from '../../utils/utils'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
-import { isArray } from 'util'
 
 interface MatrixStateStorage {
   getItem(key: string): string | null
-  setItem(key: string, value: string)
+  setItem(key: string, value: string): void
 }
 
 interface MatrixState {
@@ -71,7 +71,7 @@ export class MatrixClientStore {
     return this.state.rooms.get(room.id) || room
   }
 
-  public update(stateUpdate: Partial<MatrixStateUpdate>) {
+  public update(stateUpdate: Partial<MatrixStateUpdate>): void {
     const oldState = Object.assign({}, this.state)
     this.setState(stateUpdate)
     this.updateStorage(stateUpdate)
@@ -79,7 +79,10 @@ export class MatrixClientStore {
     this.notifyListeners(oldState, this.state, stateUpdate)
   }
 
-  public onStateChanged(listener: OnStateChangedListener, ...subscribed: (keyof MatrixState)[]) {
+  public onStateChanged(
+    listener: OnStateChangedListener,
+    ...subscribed: (keyof MatrixState)[]
+  ): void {
     if (subscribed.length > 0) {
       subscribed.forEach((key) => {
         this.onStateChangedListeners.set(key, listener)
@@ -89,29 +92,29 @@ export class MatrixClientStore {
     }
   }
 
-  private initFromStorage() {
+  private initFromStorage(): void {
     if (this.storage) {
       const preserved = this.storage.getItem(STORAGE_KEY)
       this.setState(preserved ? JSON.parse(preserved) : {})
     }
   }
 
-  private updateStorage(stateUpdate: Partial<MatrixStateUpdate>) {
+  private updateStorage(stateUpdate: Partial<MatrixStateUpdate>): void {
     const updatedCachedFields = Object.entries(stateUpdate).filter(
       ([key, value]) => PRESERVED_FIELDS.includes(key as keyof MatrixStateUpdate) && !!value
     )
 
     if (this.storage && updatedCachedFields.length > 0) {
-      const filteredState = {}
-      for (let key in PRESERVED_FIELDS) {
+      const filteredState: Record<string, any> = {}
+      PRESERVED_FIELDS.forEach((key) => {
         filteredState[key] = this.state[key]
-      }
+      })
 
       this.storage.setItem(STORAGE_KEY, JSON.stringify(filteredState))
     }
   }
 
-  private setState(partialState: Partial<MatrixState>) {
+  private setState(partialState: Partial<MatrixState>): void {
     this.state = {
       isRunning: partialState.isRunning || this.state.isRunning,
       userId: partialState.userId || this.state.userId,
@@ -133,7 +136,7 @@ export class MatrixClientStore {
       return oldRooms
     }
 
-    const newRooms = isArray(_newRooms)
+    const newRooms = Array.isArray(_newRooms)
       ? new Map(_newRooms.map((room) => [room.id, room]))
       : _newRooms
 
@@ -147,16 +150,16 @@ export class MatrixClientStore {
     oldState: MatrixStateStore,
     newState: MatrixStateStore,
     stateChange: Partial<MatrixStateUpdate>
-  ) {
+  ): void {
     const listenForAll = this.onStateChangedListeners.get('all')
     if (listenForAll) {
       listenForAll(oldState, newState, stateChange)
     }
 
-    Object.keys(stateChange)
+    keys(stateChange)
       .filter((key) => stateChange[key] !== undefined)
       .forEach((key) => {
-        const listener = this.onStateChangedListeners.get(key as keyof MatrixState)
+        const listener = this.onStateChangedListeners.get(key)
         if (listener) {
           listener(oldState, newState, stateChange)
         }
