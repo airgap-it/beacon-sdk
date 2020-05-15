@@ -13,5 +13,7 @@ export const getAccountIdentifier = async (address: string, network: Network): P
 
   await sodium.ready
 
-  return bs58check.encode(sodium.crypto_generichash(10, data.join('-')))
+  const buffer = Buffer.from(sodium.crypto_generichash(10, data.join('-')))
+
+  return bs58check.encode(buffer)
 }
