@@ -14,9 +14,9 @@
 
 The `beacon-sdk` simplifies and abstracts the communication between dApps and wallets over different transport layers.
 
-## Documentation
+### Documentation
 
-The documentation can be found [here](https://docs.walletbeacon.io/)
+The documentation can be found [here](https://docs.walletbeacon.io/).
 
 ### Example
 
