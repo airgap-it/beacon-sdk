@@ -1,4 +1,5 @@
 import * as sodium from 'libsodium-wrappers'
+import BigNumber from 'bignumber.js'
 
 import {
   getHexHash,
@@ -58,10 +59,10 @@ export class P2PCommunicationClient {
       const prevRelayServerHash: string = await getHexHash(prev + nonce)
       const currRelayServerHash: string = await getHexHash(curr + nonce)
 
-      return (await this.getAbsoluteBigIntDifference(hash, prevRelayServerHash)) <
-        (await this.getAbsoluteBigIntDifference(hash, currRelayServerHash))
-        ? prev
-        : curr
+      const prevBigInt = await this.getAbsoluteBigIntDifference(hash, prevRelayServerHash)
+      const currBigInt = await this.getAbsoluteBigIntDifference(hash, currRelayServerHash)
+
+      return prevBigInt.isLessThan(currBigInt) ? prev : curr
     }, Promise.resolve(this.KNOWN_RELAY_SERVERS[0]))
   }
 
@@ -278,21 +279,13 @@ export class P2PCommunicationClient {
     return getHexHash(this.keyPair.publicKey)
   }
 
-  private async bigIntAbsolute(inputBigInt: bigint): Promise<bigint> {
-    if (inputBigInt < BigInt(0)) {
-      return inputBigInt * BigInt(-1)
-    } else {
-      return inputBigInt
-    }
-  }
-
   private async getAbsoluteBigIntDifference(
     firstHash: string,
     secondHash: string
-  ): Promise<bigint> {
-    const difference = BigInt(`0x${firstHash}`) - BigInt(`0x${secondHash}`)
+  ): Promise<BigNumber> {
+    const difference: BigNumber = new BigNumber(`0x${firstHash}`).minus(`0x${secondHash}`)
 
-    return this.bigIntAbsolute(difference)
+    return difference.absoluteValue()
   }
 
   private async createCryptoBox(
