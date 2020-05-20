@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 (unreleased)
+
+#### Bug Fixes
+
+- **BigNumber:** use BigNumber instead of native BigInt to support Safari
+
 ## 0.5.0 (2020-05-15)
 
 #### Internals
