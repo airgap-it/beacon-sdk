@@ -135,7 +135,10 @@ const showQrCode = async (
   const alertConfig: AlertConfig = {
     title: 'Pair with Wallet',
     confirmButtonText: 'Done',
-    body: getQrData(dataString, 'svg'),
+    body: `${getQrData(
+      dataString,
+      'svg'
+    )}<br /><br />Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Click here</a> to learn more.`,
     confirmCallback: () => {
       console.log('CALLBACK')
     }
