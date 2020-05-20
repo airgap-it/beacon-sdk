@@ -133,7 +133,7 @@ const showQrCode = async (
   console.log(dataString)
 
   const alertConfig: AlertConfig = {
-    title: 'Pairing Request',
+    title: 'Pair with Wallet',
     confirmButtonText: 'Done',
     body: getQrData(dataString, 'svg'),
     confirmCallback: () => {
