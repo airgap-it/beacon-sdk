@@ -163,7 +163,7 @@ export abstract class Client extends BeaconClient {
 
   protected async _connect(): Promise<boolean> {
     const transport: Transport = await this.transport
-    if (transport && transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
+    if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
       await transport.connect()
       transport
         .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
@@ -177,7 +177,7 @@ export abstract class Client extends BeaconClient {
         .catch((error) => console.log(error))
       this._isConnected.resolve(true)
     } else {
-      this._isConnected.reject('no transport available')
+      await transport.reconnect()
     }
 
     return this._isConnected.promise

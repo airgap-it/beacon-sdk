@@ -24,6 +24,9 @@ export class P2PTransport extends Transport {
 
   private readonly client: P2PCommunicationClient
 
+  // Make sure we only listen once
+  private listeningForChannelOpenings: boolean = false
+
   constructor(
     name: string,
     keyPair: sodium.KeyPair,
@@ -51,41 +54,50 @@ export class P2PTransport extends Transport {
 
     const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
 
+    if (this.isDapp) {
+      return this.connectNewPeer()
+    }
+
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.pubKey))
       await Promise.all(connectionPromises)
-    } else {
-      if (this.isDapp) {
-        return this.connectNewPeer()
-      }
     }
 
     await super.connect()
+  }
+
+  public async reconnect(): Promise<void> {
+    if (this.isDapp) {
+      return this.connectNewPeer()
+    }
   }
 
   public async connectNewPeer(): Promise<void> {
     logger.log('connectNewPeer')
 
     return new Promise(async (resolve) => {
-      await this.client.listenForChannelOpening(async (pubKey) => {
-        logger.log('connectNewPeer', `new pubkey ${pubKey}`)
+      if (!this.listeningForChannelOpenings) {
+        await this.client.listenForChannelOpening(async (pubKey) => {
+          logger.log('connectNewPeer', `new pubkey ${pubKey}`)
 
-        const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-        if (!knownPeers.some((peer) => peer.pubKey === pubKey)) {
-          knownPeers.push({ name: '', pubKey, relayServer: '' })
-          this.storage
-            .set(StorageKey.TRANSPORT_P2P_PEERS, knownPeers)
-            .catch((storageError) => logger.error(storageError))
-          await this.listen(pubKey)
-        }
+          const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
+          if (!knownPeers.some((peer) => peer.pubKey === pubKey)) {
+            knownPeers.push({ name: '', pubKey, relayServer: '' })
+            this.storage
+              .set(StorageKey.TRANSPORT_P2P_PEERS, knownPeers)
+              .catch((storageError) => logger.error(storageError))
+            await this.listen(pubKey)
+          }
 
-        this.events
-          .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS)
-          .catch((emitError) => console.warn(emitError))
+          this.events
+            .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS)
+            .catch((emitError) => console.warn(emitError))
 
-        resolve()
-      })
+          resolve()
+        })
+        this.listeningForChannelOpenings = true
+      }
 
       this.events
         .emit(BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN, await this.client.getHandshakeInfo())

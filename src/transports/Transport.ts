@@ -55,6 +55,12 @@ export abstract class Transport {
     return
   }
 
+  public async reconnect(): Promise<void> {
+    logger.log('reconnect')
+
+    return
+  }
+
   public async send(message: string): Promise<void> {
     logger.log('send', message)
 
