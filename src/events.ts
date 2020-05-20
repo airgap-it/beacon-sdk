@@ -129,10 +129,13 @@ const showOkAlert = async (): Promise<void> => {
 const showQrCode = async (
   data: BeaconEventType[BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]
 ): Promise<void> => {
+  const dataString = JSON.stringify(data)
+  console.log(dataString)
+
   const alertConfig: AlertConfig = {
     title: 'Pairing Request',
     confirmButtonText: 'Done',
-    body: getQrData(JSON.stringify(data), 'svg'),
+    body: getQrData(dataString, 'svg'),
     confirmCallback: () => {
       console.log('CALLBACK')
     }
