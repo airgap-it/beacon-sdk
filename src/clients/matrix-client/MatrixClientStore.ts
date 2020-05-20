@@ -107,7 +107,7 @@ export class MatrixClientStore {
     if (this.storage && updatedCachedFields.length > 0) {
       const filteredState: Record<string, any> = {}
       PRESERVED_FIELDS.forEach((key) => {
-        filteredState[key] = this.state[key]
+        filteredState[key] = stateUpdate[key]
       })
 
       this.storage.setItem(STORAGE_KEY, JSON.stringify(filteredState))
