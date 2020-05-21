@@ -1,8 +1,8 @@
 image: docker:latest
 
 variables:
-  GOOGLE_TAG: eu.gcr.io/papers-kubernetes/$NAMESPACE:$CI_COMMIT_SHA
-  GOOGLE_TAG_LATEST: eu.gcr.io/papers-kubernetes/$NAMESPACE:latest
+  GOOGLE_TAG: eu.gcr.io/papers-kubernetes/beacon-sdk:$CI_COMMIT_SHA
+  GOOGLE_TAG_LATEST: eu.gcr.io/papers-kubernetes/beacon-sdk:latest
 
 stages:
   - build
