@@ -1,9 +1,16 @@
 # Changelog
 
-## 0.6.0 (unreleased)
+## 0.6.0 (2020-05-21)
+
+#### Breaking Changes
+
+- **QR:** fixed a bug where the QR data object was stringified 2 times, resulting in an escaped string
 
 #### Bug Fixes
 
+- **P2P:** show QR Alert again if no peer has connected
+- **P2P:** do not throw error when decryption fails, because this is expected to happen sometimes
+- **P2P:** fixed error when persisting matrix room, resulting in an error when trying to read rooms from local storage
 - **BigNumber:** use BigNumber instead of native BigInt to support Safari
 
 ## 0.5.0 (2020-05-15)
