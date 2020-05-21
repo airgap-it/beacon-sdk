@@ -135,7 +135,7 @@ export class P2PCommunicationClient {
           try {
             messageCallback(await decryptCryptoboxPayload(payload, sharedRx))
           } catch (decryptionError) {
-            /**/
+            /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
         }
       }
@@ -212,9 +212,13 @@ export class P2PCommunicationClient {
             payload.length >=
             sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
           ) {
-            messageCallback(
-              await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
-            )
+            try {
+              messageCallback(
+                await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
+              )
+            } catch (decryptionError) {
+              /* NO-OP. We try to decode every message, but some might not be addressed to us. */
+            }
           }
         }
       })
