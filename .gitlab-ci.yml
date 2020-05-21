@@ -1,8 +1,8 @@
 image: docker:latest
 
 variables:
-  IMAGE_TAG_LATEST: $CI_REGISTRY_IMAGE:latest
-  IMAGE_TAG_CURRENT: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  GOOGLE_TAG: eu.gcr.io/papers-kubernetes/beacon-sdk:$CI_COMMIT_SHA
+  GOOGLE_TAG_LATEST: eu.gcr.io/papers-kubernetes/beacon-sdk:latest
 
 stages:
   - build
@@ -12,30 +12,21 @@ stages:
 
 build:
   stage: build
-  before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - docker build --cache-from $IMAGE_TAG_LATEST -t $IMAGE_TAG_LATEST .
-    - docker tag $IMAGE_TAG_LATEST $IMAGE_TAG_CURRENT
-    - docker push $IMAGE_TAG_CURRENT
-    - docker push $IMAGE_TAG_LATEST
+    - docker build -t $GOOGLE_TAG .
   tags:
     - docker
 
 unit:
+  allow_failure: true
   stage: test
-  before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker rm -f unit-$CI_COMMIT_SHA || true
-    - docker rm -f unit-legacy-$CI_COMMIT_SHA || true
   script:
-    - docker run --name unit-$CI_COMMIT_SHA $IMAGE_TAG_CURRENT npm run test-ci
-    - docker run --name lint-$CI_COMMIT_SHA $IMAGE_TAG_CURRENT npm run lint-ci
+    - docker run --name unit-$CI_COMMIT_SHA $GOOGLE_TAG npm run test-ci
+    - docker run --name lint-$CI_COMMIT_SHA $GOOGLE_TAG npm run lint-ci
     - docker cp unit-$CI_COMMIT_SHA:/app/coverage/lcov.info lcov.info
     - docker cp lint-$CI_COMMIT_SHA:/app/lintReport.json lintReport.json
   after_script:
     - docker rm -f unit-$CI_COMMIT_SHA || true
-    - docker rm -f unit-legacy-$CI_COMMIT_SHA || true
     - docker rm -f lint-$CI_COMMIT_SHA || true
   tags:
     - docker
@@ -73,10 +64,8 @@ unit:
 publish_beta:
   stage: publish
   when: manual
-  before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - docker run --env NPM_AUTH_TOKEN --name unit-$CI_COMMIT_SHA $IMAGE_TAG_CURRENT ./npm-ci-publish-beta-only.sh
+    - docker run --env NPM_AUTH_TOKEN --name unit-$CI_COMMIT_SHA $GOOGLE_TAG ./npm-ci-publish-beta-only.sh
   tags:
     - docker
 
@@ -85,8 +74,6 @@ publish:
   only:
     - master
   when: manual
-  before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - docker run --env NPM_AUTH_TOKEN --name unit-$CI_COMMIT_SHA $IMAGE_TAG_CURRENT ./npm-ci-publish.sh
   tags:
