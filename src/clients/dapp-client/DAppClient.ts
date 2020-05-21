@@ -79,7 +79,7 @@ export class DAppClient extends Client {
       .get(StorageKey.ACTIVE_ACCOUNT)
       .then(async (activeAccount) => {
         if (activeAccount) {
-          await this.setActiveAccount(await this.getAccount(activeAccount))
+          await this.setActiveAccount(await this.accountManager.getAccount(activeAccount))
         }
       })
       .catch((storageError) => {
@@ -212,7 +212,7 @@ export class DAppClient extends Client {
       connectedAt: new Date()
     }
 
-    await this.addAccount(accountInfo)
+    await this.accountManager.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)
     console.log('permissions interception', { message, connectionInfo })
 

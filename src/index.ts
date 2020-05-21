@@ -101,9 +101,8 @@ import {
 import { ClientOptions } from './clients/client/ClientOptions'
 import { DAppClientOptions } from './clients/dapp-client/DAppClientOptions'
 import { WalletClientOptions } from './clients/wallet-client/WalletClientOptions'
-
-// Clients
-export { P2PCommunicationClient }
+import { PermissionInfo } from './types/PermissionInfo'
+import { SDK_VERSION, BEACON_VERSION } from './constants'
 
 // Tezos
 export {
@@ -131,7 +130,15 @@ export {
 }
 
 // Clients
-export { Client, ClientOptions, DAppClient, DAppClientOptions, WalletClient, WalletClientOptions }
+export {
+  Client,
+  ClientOptions,
+  DAppClient,
+  DAppClientOptions,
+  WalletClient,
+  WalletClientOptions,
+  P2PCommunicationClient
+}
 
 // Beacon
 export {
@@ -158,7 +165,8 @@ export {
   RequestPermissionInput,
   RequestSignPayloadInput,
   RequestOperationInput,
-  RequestBroadcastInput
+  RequestBroadcastInput,
+  PermissionInfo
 }
 
 export {
@@ -221,6 +229,9 @@ export {
   LocalStorage,
   getStorage
 }
+
+// Constants
+export { SDK_VERSION, BEACON_VERSION }
 
 // Others
 export { P2PPairInfo, Serializer }

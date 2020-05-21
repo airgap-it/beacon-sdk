@@ -7,8 +7,6 @@ import {
   Transport,
   TransportType,
   TransportStatus,
-  StorageKey,
-  AccountInfo,
   BeaconBaseMessage,
   BeaconMessage
 } from '../..'
@@ -16,11 +14,14 @@ import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { Logger } from '../../utils/Logger'
 import { isChromeExtensionInstalled } from '../../utils/is-extension-installed'
 import { BeaconClient } from '../beacon-client/BeaconClient'
+import { AccountManager } from '../../managers/AccountManager'
 import { ClientOptions } from './ClientOptions'
 
 const logger = new Logger('BaseClient')
 
 export abstract class Client extends BeaconClient {
+  public readonly accountManager: AccountManager
+
   protected requestCounter: number[] = []
 
   protected handleResponse: (_event: BeaconMessage, connectionInfo: ConnectionContext) => void
@@ -48,6 +49,7 @@ export abstract class Client extends BeaconClient {
     super({ name: config.name, storage: config.storage })
 
     this.events = new BeaconEventHandler(config.eventHandlers)
+    this.accountManager = new AccountManager(config.storage)
 
     this.handleResponse = (message: BeaconBaseMessage, connectionInfo: ConnectionContext): void => {
       throw new Error(
@@ -125,40 +127,6 @@ export abstract class Client extends BeaconClient {
 
   public async removeAllPeers(): Promise<void> {
     return (await this.transport).removeAllPeers()
-  }
-
-  public async getAccounts(): Promise<AccountInfo[]> {
-    return this.storage.get(StorageKey.ACCOUNTS)
-  }
-
-  public async getAccount(accountIdentifier: string): Promise<AccountInfo | undefined> {
-    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
-
-    return accounts.find((account) => account.accountIdentifier === accountIdentifier)
-  }
-
-  public async addAccount(accountInfo: AccountInfo): Promise<void> {
-    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
-
-    if (!accounts.some((element) => element.accountIdentifier === accountInfo.accountIdentifier)) {
-      accounts.push(accountInfo)
-    }
-
-    return this.storage.set(StorageKey.ACCOUNTS, accounts)
-  }
-
-  public async removeAccount(accountIdentifier: string): Promise<void> {
-    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
-
-    const filteredAccounts = accounts.filter(
-      (accountInfo) => accountInfo.accountIdentifier !== accountIdentifier
-    )
-
-    return this.storage.set(StorageKey.ACCOUNTS, filteredAccounts)
-  }
-
-  public async removeAllAccounts(): Promise<void> {
-    return this.storage.delete(StorageKey.ACCOUNTS)
   }
 
   protected async _connect(): Promise<boolean> {
