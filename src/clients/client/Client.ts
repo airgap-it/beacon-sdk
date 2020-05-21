@@ -176,8 +176,10 @@ export abstract class Client extends BeaconClient {
         })
         .catch((error) => console.log(error))
       this._isConnected.resolve(true)
-    } else {
+    } else if (transport.connectionStatus === TransportStatus.CONNECTING) {
       await transport.reconnect()
+    } else {
+      // NO-OP
     }
 
     return this._isConnected.promise

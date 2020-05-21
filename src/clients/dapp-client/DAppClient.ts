@@ -390,6 +390,7 @@ export class DAppClient extends Client {
   }> {
     logger.log('makeRequest')
     await this.init()
+    logger.log('makeRequest', 'after init')
     await this.connect()
     logger.log('makeRequest', 'after connecting')
 

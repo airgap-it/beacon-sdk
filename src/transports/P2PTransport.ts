@@ -54,14 +54,14 @@ export class P2PTransport extends Transport {
 
     const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
 
-    if (this.isDapp) {
-      return this.connectNewPeer()
-    }
-
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.pubKey))
       await Promise.all(connectionPromises)
+    } else {
+      if (this.isDapp) {
+        await this.connectNewPeer()
+      }
     }
 
     await super.connect()
@@ -69,7 +69,7 @@ export class P2PTransport extends Transport {
 
   public async reconnect(): Promise<void> {
     if (this.isDapp) {
-      return this.connectNewPeer()
+      await this.connectNewPeer()
     }
   }
 
