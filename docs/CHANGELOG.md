@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 (2020-05-22)
+
+#### Bug Fixes
+
+- **storage:** remove FileStorage because it references the "fs" module and can cause issues when used in the brower
+
 ## 0.6.0 (2020-05-21)
 
 #### Breaking Changes
