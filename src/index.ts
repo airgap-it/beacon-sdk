@@ -62,7 +62,6 @@ import { StorageKeyReturnDefaults } from './types/storage/StorageKeyReturnDefaul
 import { StorageKeyReturnType } from './types/storage/StorageKeyReturnType'
 import { P2PPairInfo } from './types/P2PPairInfo'
 import { ChromeStorage } from './storage/ChromeStorage'
-import { FileStorage } from './storage/FileStorage'
 import { LocalStorage } from './storage/LocalStorage'
 import { getStorage } from './storage/getStorage'
 import { BeaconMessage } from './types/beacon/BeaconMessage'
@@ -219,7 +218,6 @@ export {
   StorageKeyReturnDefaults,
   StorageKeyReturnType,
   ChromeStorage,
-  FileStorage,
   LocalStorage,
   getStorage
 }
