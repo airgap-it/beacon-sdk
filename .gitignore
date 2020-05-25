@@ -63,3 +63,5 @@ jspm_packages/
 dist/
 
 .history
+
+storage.json

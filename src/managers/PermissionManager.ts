@@ -46,6 +46,18 @@ export class PermissionManager {
     return this.storage.set(StorageKey.PERMISSION_LIST, filteredPermissions)
   }
 
+  public async removePermissions(accountIdentifiers: string[]): Promise<void> {
+    const permissions: PermissionInfo[] = await this.storage.get(StorageKey.PERMISSION_LIST)
+
+    const filteredPermissions = permissions.filter((permission) =>
+      accountIdentifiers.every(
+        (accountIdentifier) => permission.accountIdentifier !== accountIdentifier
+      )
+    )
+
+    return this.storage.set(StorageKey.PERMISSION_LIST, filteredPermissions)
+  }
+
   public async removeAllPermissions(): Promise<void> {
     return this.storage.delete(StorageKey.PERMISSION_LIST)
   }

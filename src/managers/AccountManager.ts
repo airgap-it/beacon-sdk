@@ -31,7 +31,19 @@ export class AccountManager {
     const accounts = await this.storage.get(StorageKey.ACCOUNTS)
 
     const filteredAccounts = accounts.filter(
-      (accountInfo) => accountInfo.accountIdentifier !== accountIdentifier
+      (account) => account.accountIdentifier !== accountIdentifier
+    )
+
+    return this.storage.set(StorageKey.ACCOUNTS, filteredAccounts)
+  }
+
+  public async removeAccounts(accountIdentifiers: string[]): Promise<void> {
+    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
+
+    const filteredAccounts = accounts.filter((account) =>
+      accountIdentifiers.every(
+        (accountIdentifier) => account.accountIdentifier !== accountIdentifier
+      )
     )
 
     return this.storage.set(StorageKey.ACCOUNTS, filteredAccounts)
