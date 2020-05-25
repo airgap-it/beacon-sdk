@@ -148,12 +148,21 @@ export class P2PTransport extends Transport {
     await this.client.unsubscribeFromEncryptedMessages()
   }
 
-  public async send(message: string): Promise<void> {
+  public async send(message: string, recipient?: string): Promise<void> {
     const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
 
-    const promises = knownPeers.map((peer) => this.client.sendMessage(peer.pubKey, message))
+    if (recipient) {
+      if (!knownPeers.some((peer) => peer.pubKey === recipient)) {
+        throw new Error('Recipient unknown')
+      }
 
-    return (await Promise.all(promises))[0]
+      return this.client.sendMessage(recipient, message)
+    } else {
+      // A broadcast request has to be sent everywhere.
+      const promises = knownPeers.map((peer) => this.client.sendMessage(peer.pubKey, message))
+
+      return (await Promise.all(promises))[0]
+    }
   }
 
   private async listen(pubKey: string): Promise<void> {

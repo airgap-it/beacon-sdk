@@ -53,7 +53,7 @@ export class PostMessageTransport extends Transport {
     })
   }
 
-  public async send(message: string): Promise<void> {
+  public async send(message: string, _recipient?: string): Promise<void> {
     const data: ExtensionMessage<string> = {
       target: ExtensionMessageTarget.EXTENSION,
       payload: message
