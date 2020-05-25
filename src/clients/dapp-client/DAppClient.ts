@@ -151,6 +151,14 @@ export class DAppClient extends Client {
     return super._connect()
   }
 
+  public async removeAccount(accountIdentifier: string): Promise<void> {
+    if (this.activeAccount && this.activeAccount.accountIdentifier === accountIdentifier) {
+      this.activeAccount = undefined
+    }
+
+    return super.removeAccount(accountIdentifier)
+  }
+
   public async subscribeToEvent<K extends BeaconEvent>(
     internalEvent: K,
     eventCallback: BeaconEventHandlerFunction<BeaconEventType[K]>
