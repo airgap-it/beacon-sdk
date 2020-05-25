@@ -383,7 +383,8 @@ export class DAppClient extends Client {
   }
 
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
-    requestInput: Omit<T, IgnoredRequestInputProperties>
+    requestInput: Omit<T, IgnoredRequestInputProperties>,
+    account?: AccountInfo
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -433,7 +434,7 @@ export class DAppClient extends Client {
 
     const payload = await new Serializer().serialize(request)
 
-    await (await this.transport).send(payload)
+    await (await this.transport).send(payload, account?.origin.id)
 
     return exposed.promise as any // TODO: fix type
   }
