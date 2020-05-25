@@ -6,7 +6,9 @@ import {
   LocalStorage,
   TransportType,
   BeaconRequestOutputMessage,
-  BeaconResponseInputMessage
+  BeaconResponseInputMessage,
+  AppMetadata,
+  PermissionInfo
 } from '../..'
 import { PermissionManager } from '../../managers/PermissionManager'
 import { AppMetadataManager } from '../../managers/AppMetadataManager'
@@ -15,8 +17,8 @@ import { IncomingBeaconMessageInterceptor } from '../../interceptors/IncomingBea
 import { OutgoingBeaconMessageInterceptor } from '../../interceptors/OutgoingBeaconMessageInterceptor'
 
 export class WalletClient extends Client {
-  public readonly permissionManager: PermissionManager
-  public readonly appMetadataManager: AppMetadataManager
+  private readonly permissionManager: PermissionManager
+  private readonly appMetadataManager: AppMetadataManager
 
   private pendingRequests: BeaconMessage[] = []
 
@@ -75,6 +77,38 @@ export class WalletClient extends Client {
         await this.respondToMessage(response)
       }
     })
+  }
+
+  public async getAppMetadataList(): Promise<AppMetadata[]> {
+    return this.appMetadataManager.getAppMetadataList()
+  }
+
+  public async getAppMetadata(beaconId: string): Promise<AppMetadata | undefined> {
+    return this.appMetadataManager.getAppMetadata(beaconId)
+  }
+
+  public async removeAppMetadata(beaconId: string): Promise<void> {
+    return this.appMetadataManager.removeAppMetadata(beaconId)
+  }
+
+  public async removeAllAppMetadata(): Promise<void> {
+    return this.appMetadataManager.removeAllAppMetadata()
+  }
+
+  public async getPermissions(): Promise<PermissionInfo[]> {
+    return this.permissionManager.getPermissions()
+  }
+
+  public async getPermission(accountIdentifier: string): Promise<PermissionInfo | undefined> {
+    return this.permissionManager.getPermission(accountIdentifier)
+  }
+
+  public async removePermission(accountIdentifier: string): Promise<void> {
+    return this.permissionManager.removePermission(accountIdentifier)
+  }
+
+  public async removeAllPermissions(): Promise<void> {
+    return this.permissionManager.removeAllPermissions()
   }
 
   private async respondToMessage(message: BeaconMessage): Promise<void> {

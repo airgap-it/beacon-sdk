@@ -8,7 +8,8 @@ import {
   TransportType,
   TransportStatus,
   BeaconBaseMessage,
-  BeaconMessage
+  BeaconMessage,
+  AccountInfo
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { Logger } from '../../utils/Logger'
@@ -20,7 +21,7 @@ import { ClientOptions } from './ClientOptions'
 const logger = new Logger('BaseClient')
 
 export abstract class Client extends BeaconClient {
-  public readonly accountManager: AccountManager
+  protected readonly accountManager: AccountManager
 
   protected requestCounter: number[] = []
 
@@ -56,6 +57,22 @@ export abstract class Client extends BeaconClient {
         `not overwritten${JSON.stringify(message)} - ${JSON.stringify(connectionInfo)}`
       )
     }
+  }
+
+  public async getAccounts(): Promise<AccountInfo[]> {
+    return this.accountManager.getAccounts()
+  }
+
+  public async getAccount(accountIdentifier: string): Promise<AccountInfo | undefined> {
+    return this.accountManager.getAccount(accountIdentifier)
+  }
+
+  public async removeAccount(accountIdentifier: string): Promise<void> {
+    return this.accountManager.removeAccount(accountIdentifier)
+  }
+
+  public async removeAllAccounts(): Promise<void> {
+    return this.accountManager.removeAllAccounts()
   }
 
   public async addRequestAndCheckIfRateLimited(): Promise<boolean> {
@@ -122,6 +139,8 @@ export abstract class Client extends BeaconClient {
   }
 
   public async removePeer(id: string): Promise<void> {
+    // remove accounts with peerID
+    // update activeAccount
     return (await this.transport).removePeer(id)
   }
 
