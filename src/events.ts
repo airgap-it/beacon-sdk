@@ -48,6 +48,7 @@ export enum BeaconEvent {
   P2P_CHANNEL_CONNECT_SUCCESS = 'P2P_CHANNEL_CONNECT_SUCCESS',
   P2P_LISTEN_FOR_CHANNEL_OPEN = 'P2P_LISTEN_FOR_CHANNEL_OPEN',
 
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
   UNKNOWN = 'UNKNOWN'
 }
 
@@ -86,6 +87,7 @@ export interface BeaconEventType {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: undefined
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairInfo
+  [BeaconEvent.INTERNAL_ERROR]: string
   [BeaconEvent.UNKNOWN]: undefined
 }
 
@@ -124,6 +126,20 @@ const showOkAlert = async (): Promise<void> => {
     confirmButtonText: 'Done',
     timer: 1500
   })
+}
+
+const showInternalErrorAlert = async (
+  data: BeaconEventType[BeaconEvent.INTERNAL_ERROR]
+): Promise<void> => {
+  const alertConfig: AlertConfig = {
+    title: 'Internal Error',
+    confirmButtonText: 'Done',
+    body: `${data}`,
+    confirmCallback: () => {
+      console.log('CALLBACK')
+    }
+  }
+  await openAlert(alertConfig)
 }
 
 const showQrCode = async (
@@ -258,6 +274,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showOkAlert,
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrCode,
+  [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
   [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)
 }
 
@@ -283,6 +300,7 @@ export class BeaconEventHandler {
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
     [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: [defaultEventCallbacks.P2P_CHANNEL_CONNECT_SUCCESS],
     [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: [defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN],
+    [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
   }
 

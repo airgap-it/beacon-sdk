@@ -191,7 +191,7 @@ export class DAppClient extends Client {
     const accountInfo = this.activeAccount
 
     if (!accountInfo) {
-      throw new Error('No active account set!')
+      throw this.sendInternalError('No active account set!')
     }
 
     const permissions = accountInfo.scopes
@@ -258,10 +258,10 @@ export class DAppClient extends Client {
     input: RequestSignPayloadInput
   ): Promise<SignPayloadResponseOutput> {
     if (!input.payload) {
-      throw new Error('Payload must be provided')
+      throw this.sendInternalError('Payload must be provided')
     }
     if (!this.activeAccount) {
-      throw new Error('No active account!')
+      throw this.sendInternalError('No active account!')
     }
 
     const activeAccount = this.activeAccount
@@ -295,10 +295,10 @@ export class DAppClient extends Client {
 
   public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
     if (!input.operationDetails) {
-      throw new Error('Operation details must be provided')
+      throw this.sendInternalError('Operation details must be provided')
     }
     if (!this.activeAccount) {
-      throw new Error('No active account!')
+      throw this.sendInternalError('No active account!')
     }
 
     const activeAccount = this.activeAccount
@@ -333,7 +333,7 @@ export class DAppClient extends Client {
 
   public async requestBroadcast(input: RequestBroadcastInput): Promise<BroadcastResponseOutput> {
     if (!input.signedTransaction) {
-      throw new Error('Signed transaction must be provided')
+      throw this.sendInternalError('Signed transaction must be provided')
     }
 
     const network = input.network || { type: NetworkType.MAINNET }
@@ -359,6 +359,11 @@ export class DAppClient extends Client {
     await this.notifySuccess(request, { network, output, connectionContext: connectionInfo })
 
     return { beaconId, transactionHash }
+  }
+
+  private async sendInternalError(errorMessage: string): Promise<void> {
+    await this.events.emit(BeaconEvent.INTERNAL_ERROR, errorMessage)
+    throw new Error(errorMessage)
   }
 
   private async removeAccountForPeers(peerIdsToRemove: string[]): Promise<void> {
@@ -447,13 +452,13 @@ export class DAppClient extends Client {
         .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
         .catch((emitError) => console.warn(emitError))
 
-      throw new Error('rate limit reached')
+      throw this.sendInternalError('rate limit reached')
     }
 
     if (!(await this.checkPermissions(requestInput.type))) {
       this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
 
-      throw new Error('No permissions to send this request to wallet!')
+      throw this.sendInternalError('No permissions to send this request to wallet!')
     }
 
     this.events
@@ -461,7 +466,7 @@ export class DAppClient extends Client {
       .catch((emitError) => console.warn(emitError))
 
     if (!this.beaconId) {
-      throw new Error('BeaconID not defined')
+      throw this.sendInternalError('BeaconID not defined')
     }
 
     const request: Omit<T, IgnoredRequestInputProperties> &
