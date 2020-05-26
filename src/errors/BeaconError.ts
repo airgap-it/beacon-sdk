@@ -46,7 +46,5 @@ export abstract class BeaconError implements Error {
       default:
         assertNever(errorType)
     }
-
-    return new UnknownBeaconError()
   }
 }
