@@ -138,16 +138,6 @@ export abstract class Client extends BeaconClient {
     return (await this.transport).addPeer(id)
   }
 
-  public async removePeer(id: string): Promise<void> {
-    // remove accounts with peerID
-    // update activeAccount
-    return (await this.transport).removePeer(id)
-  }
-
-  public async removeAllPeers(): Promise<void> {
-    return (await this.transport).removeAllPeers()
-  }
-
   protected async _connect(): Promise<boolean> {
     const transport: Transport = await this.transport
     if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {

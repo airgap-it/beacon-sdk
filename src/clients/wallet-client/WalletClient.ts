@@ -111,6 +111,36 @@ export class WalletClient extends Client {
     return this.permissionManager.removeAllPermissions()
   }
 
+  public async removePeer(id: string): Promise<void> {
+    const removePeerResult = (await this.transport).removePeer(id)
+
+    await this.removePermissionsForPeers([id])
+
+    return removePeerResult
+  }
+
+  public async removeAllPeers(): Promise<void> {
+    const peerIDs: string[] = await (await this.transport).getPeers()
+    const removePeerResult = (await this.transport).removeAllPeers()
+
+    await this.removePermissionsForPeers(peerIDs)
+
+    return removePeerResult
+  }
+
+  private async removePermissionsForPeers(peerIdsToRemove: string[]): Promise<void> {
+    const permissions = await this.permissionManager.getPermissions()
+
+    // Remove all permissions with origin of the specified peer
+    const permissionsToRemove = permissions.filter(
+      (permission) => !peerIdsToRemove.includes(permission.appMetadata.beaconId)
+    )
+    const permissionIdentifiersToRemove = permissionsToRemove.map(
+      (permissionInfo) => permissionInfo.accountIdentifier
+    )
+    await this.permissionManager.removePermissions(permissionIdentifiersToRemove)
+  }
+
   private async respondToMessage(message: BeaconMessage): Promise<void> {
     const serializedMessage: string = await new Serializer().serialize(message)
     await (await this.transport).send(serializedMessage)

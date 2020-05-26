@@ -126,13 +126,12 @@ export class DAppClient extends Client {
   }
 
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
-    if (!account) {
-      return
-    }
-
     this.activeAccount = account
 
-    await this.storage.set(StorageKey.ACTIVE_ACCOUNT, account.accountIdentifier)
+    await this.storage.set(
+      StorageKey.ACTIVE_ACCOUNT,
+      account ? account.accountIdentifier : undefined
+    )
 
     await this.events.emit(BeaconEvent.ACTIVE_ACCOUNT_SET, account)
 
@@ -152,11 +151,29 @@ export class DAppClient extends Client {
   }
 
   public async removeAccount(accountIdentifier: string): Promise<void> {
+    const removeAccountResult = super.removeAccount(accountIdentifier)
     if (this.activeAccount && this.activeAccount.accountIdentifier === accountIdentifier) {
-      this.activeAccount = undefined
+      await this.setActiveAccount(undefined)
     }
 
-    return super.removeAccount(accountIdentifier)
+    return removeAccountResult
+  }
+
+  public async removePeer(id: string): Promise<void> {
+    const removePeerResult = (await this.transport).removePeer(id)
+
+    await this.removeAccountForPeers([id])
+
+    return removePeerResult
+  }
+
+  public async removeAllPeers(): Promise<void> {
+    const peerIDs: string[] = await (await this.transport).getPeers()
+    const removePeerResult = (await this.transport).removeAllPeers()
+
+    await this.removeAccountForPeers(peerIDs)
+
+    return removePeerResult
   }
 
   public async subscribeToEvent<K extends BeaconEvent>(
@@ -204,7 +221,7 @@ export class DAppClient extends Client {
 
     await this.handleBeaconError(message)
 
-    const address = await getAddressFromPublicKey(message.pubkey)
+    const address = await getAddressFromPublicKey(message.pubKey)
 
     const accountInfo: AccountInfo = {
       accountIdentifier: await getAccountIdentifier(address, message.network),
@@ -214,7 +231,7 @@ export class DAppClient extends Client {
         id: connectionInfo.id
       },
       address,
-      pubkey: message.pubkey,
+      pubKey: message.pubKey,
       network: message.network,
       scopes: message.scopes,
       connectedAt: new Date()
@@ -289,6 +306,7 @@ export class DAppClient extends Client {
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
       network: input.network || { type: NetworkType.MAINNET },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       operationDetails: input.operationDetails as any, // TODO: Fix type,
       sourceAddress: activeAccount.address || ''
     }
@@ -341,6 +359,27 @@ export class DAppClient extends Client {
     await this.notifySuccess(request, { network, output, connectionContext: connectionInfo })
 
     return { beaconId, transactionHash }
+  }
+
+  private async removeAccountForPeers(peerIdsToRemove: string[]): Promise<void> {
+    const accounts = await this.accountManager.getAccounts()
+
+    // Remove all accounts with origin of the specified peer
+    const accountsToRemove = accounts.filter(
+      (account) => !peerIdsToRemove.includes(account.origin.id)
+    )
+    const accountIdentifiersToRemove = accountsToRemove.map(
+      (accountInfo) => accountInfo.accountIdentifier
+    )
+    await this.accountManager.removeAccounts(accountIdentifiersToRemove)
+
+    // Check if one of the accounts that was removed was the active account and if yes, set it to undefined
+    if (this.activeAccount) {
+      const activeAccount = this.activeAccount
+      if (accountIdentifiersToRemove.includes(activeAccount.accountIdentifier)) {
+        await this.setActiveAccount(undefined)
+      }
+    }
   }
 
   private async handleRequestError(
@@ -442,8 +481,13 @@ export class DAppClient extends Client {
 
     const payload = await new Serializer().serialize(request)
 
-    await (await this.transport).send(payload, account?.origin.id)
+    let origin: string | undefined
+    if (account) {
+      origin = account.origin.id
+    }
+    await (await this.transport).send(payload, origin)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed.promise as any // TODO: fix type
   }
 }
