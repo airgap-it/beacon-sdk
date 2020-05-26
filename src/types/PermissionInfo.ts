@@ -1,13 +1,11 @@
-import { AppMetadata, Network, PermissionScope } from '..'
+import { AppMetadata } from '..'
+import { PermissionEntity } from './PermissionEntity'
 
-export interface PermissionInfo {
+export interface PermissionInfo extends PermissionEntity {
   accountIdentifier: string
   beaconId: string
   appMetadata: AppMetadata
   website: string
-  address: string
   pubkey: string
-  network: Network
-  scopes: PermissionScope[]
   connectedAt: Date
 }

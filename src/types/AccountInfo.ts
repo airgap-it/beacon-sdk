@@ -1,17 +1,15 @@
-import { Origin, Network, PermissionScope } from '..'
+import { Origin } from '..'
+import { PermissionEntity } from './PermissionEntity'
 
 export type AccountIdentifier = string
 
-export interface AccountInfo {
+export interface AccountInfo extends PermissionEntity {
   accountIdentifier: AccountIdentifier
   beaconId: string
   origin: {
     type: Origin
     id: string
   }
-  address: string
   pubkey: string
-  network: Network
-  scopes: PermissionScope[]
   connectedAt: Date
 }
