@@ -9,7 +9,7 @@ export class LocalStorage implements Storage {
   public async get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {
     const value = localStorage.getItem(key)
     if (!value) {
-      return defaultValues[key]
+      return JSON.parse(JSON.stringify(defaultValues[key]))
     } else {
       try {
         return JSON.parse(value)

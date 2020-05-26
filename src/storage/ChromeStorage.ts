@@ -18,7 +18,7 @@ export class ChromeStorage implements Storage {
         if (storageContent[key]) {
           resolve(storageContent[key])
         } else {
-          resolve(defaultValues[key])
+          resolve(JSON.parse(JSON.stringify(defaultValues[key])))
         }
       })
     })
