@@ -79,7 +79,7 @@ export class P2PTransport extends Transport {
     return new Promise(async (resolve) => {
       if (!this.listeningForChannelOpenings) {
         await this.client.listenForChannelOpening(async (pubKey) => {
-          logger.log('connectNewPeer', `new pubkey ${pubKey}`)
+          logger.log('connectNewPeer', `new pubKey ${pubKey}`)
 
           const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
           if (!knownPeers.some((peer) => peer.pubKey === pubKey)) {

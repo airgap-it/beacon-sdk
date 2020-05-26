@@ -6,6 +6,6 @@ export interface PermissionInfo extends PermissionEntity {
   beaconId: string
   appMetadata: AppMetadata
   website: string
-  pubkey: string
+  pubKey: string
   connectedAt: Date
 }

@@ -7,9 +7,9 @@ sequenceDiagram
     Popup->>Background: Get QR Data
     Background->>Background: Start listening for new connections
     Background->>Popup: Return QR Data
-    Popup->>Wallet: Show QR Code (pubkey exchange)
+    Popup->>Wallet: Show QR Code (pubKey exchange)
     Wallet->>Wallet: User scans QR code
-    Wallet->>Background: Send own pubkey to dApp, connection established
+    Wallet->>Background: Send own pubKey to dApp, connection established
     Background->>Popup: Successful connection
 ```
 

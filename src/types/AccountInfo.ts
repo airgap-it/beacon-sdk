@@ -10,6 +10,6 @@ export interface AccountInfo extends PermissionEntity {
     type: Origin
     id: string
   }
-  pubkey: string
+  pubKey: string
   connectedAt: Date
 }
