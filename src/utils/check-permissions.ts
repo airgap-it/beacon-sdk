@@ -6,9 +6,9 @@ export const checkPermissions = async (
 ): Promise<boolean> => {
   switch (type) {
     case BeaconMessageType.OperationRequest:
-      return permissions.some((permission) => permission === PermissionScope.OPERATION_REQUEST)
+      return permissions.includes(PermissionScope.OPERATION_REQUEST)
     case BeaconMessageType.SignPayloadRequest:
-      return permissions.some((permission) => permission === PermissionScope.SIGN)
+      return permissions.includes(PermissionScope.SIGN)
     case BeaconMessageType.PermissionRequest:
     case BeaconMessageType.BroadcastRequest:
       return true
