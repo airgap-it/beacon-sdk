@@ -1,4 +1,4 @@
-import { keys } from '../../utils/utils'
+import { keys } from '../utils/utils'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
 
 interface MatrixStateStorage {

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { keys } from '../../utils/utils'
+import { keys } from '../utils/utils'
 import { MatrixStateStore, MatrixStateUpdate } from './MatrixClientStore'
 import { MatrixRoomStatus } from './models/MatrixRoom'
 import { MatrixMessage } from './models/MatrixMessage'
