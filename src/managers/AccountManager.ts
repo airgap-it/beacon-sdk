@@ -1,55 +1,48 @@
-import { Storage, StorageKey, AccountInfo } from '..'
+import { Storage, StorageKey, AccountInfo, BeaconMessage } from '..'
+import { StorageManager } from './StorageManager'
+import { PermissionValidator } from './PermissionValidator'
 
 export class AccountManager {
-  private readonly storage: Storage
+  private readonly storageManager: StorageManager<StorageKey.ACCOUNTS>
 
   constructor(storage: Storage) {
-    this.storage = storage
+    this.storageManager = new StorageManager(storage, StorageKey.ACCOUNTS)
   }
 
   public async getAccounts(): Promise<AccountInfo[]> {
-    return this.storage.get(StorageKey.ACCOUNTS)
+    return this.storageManager.getAll()
   }
 
   public async getAccount(accountIdentifier: string): Promise<AccountInfo | undefined> {
-    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
-
-    return accounts.find((account) => account.accountIdentifier === accountIdentifier)
+    return this.storageManager.getOne((account) => account.accountIdentifier === accountIdentifier)
   }
 
   public async addAccount(accountInfo: AccountInfo): Promise<void> {
-    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
-
-    if (!accounts.some((element) => element.accountIdentifier === accountInfo.accountIdentifier)) {
-      accounts.push(accountInfo)
-    }
-
-    return this.storage.set(StorageKey.ACCOUNTS, accounts)
+    return this.storageManager.addOne(
+      accountInfo,
+      (account) => account.accountIdentifier === accountInfo.accountIdentifier
+    )
   }
 
   public async removeAccount(accountIdentifier: string): Promise<void> {
-    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
-
-    const filteredAccounts = accounts.filter(
-      (account) => account.accountIdentifier !== accountIdentifier
-    )
-
-    return this.storage.set(StorageKey.ACCOUNTS, filteredAccounts)
+    return this.storageManager.remove((account) => account.accountIdentifier !== accountIdentifier)
   }
 
   public async removeAccounts(accountIdentifiers: string[]): Promise<void> {
-    const accounts = await this.storage.get(StorageKey.ACCOUNTS)
-
-    const filteredAccounts = accounts.filter((account) =>
-      accountIdentifiers.every(
-        (accountIdentifier) => account.accountIdentifier !== accountIdentifier
-      )
+    return this.storageManager.remove(
+      (account) => !accountIdentifiers.includes(account.accountIdentifier)
     )
-
-    return this.storage.set(StorageKey.ACCOUNTS, filteredAccounts)
   }
 
   public async removeAllAccounts(): Promise<void> {
-    return this.storage.delete(StorageKey.ACCOUNTS)
+    return this.storageManager.removeAll()
+  }
+
+  public async hasPermission(message: BeaconMessage): Promise<boolean> {
+    return PermissionValidator.hasPermission(
+      message,
+      this.getAccount.bind(this),
+      this.getAccounts.bind(this)
+    )
   }
 }

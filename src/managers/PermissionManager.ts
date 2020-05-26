@@ -1,112 +1,54 @@
-import { PermissionScope, BeaconMessage, BeaconMessageType, Storage, StorageKey } from '..'
-import { getAccountIdentifier } from '../utils/get-account-identifier'
+import { BeaconMessage, Storage, StorageKey } from '..'
 import { PermissionInfo } from '../types/PermissionInfo'
+import { StorageManager } from './StorageManager'
+import { PermissionValidator } from './PermissionValidator'
 
 export class PermissionManager {
-  private readonly storage: Storage
+  private readonly storageManager: StorageManager<StorageKey.PERMISSION_LIST>
 
   constructor(storage: Storage) {
-    this.storage = storage
+    this.storageManager = new StorageManager(storage, StorageKey.PERMISSION_LIST)
   }
 
   public async getPermissions(): Promise<PermissionInfo[]> {
-    return this.storage.get(StorageKey.PERMISSION_LIST)
+    return this.storageManager.getAll()
   }
 
   public async getPermission(accountIdentifier: string): Promise<PermissionInfo | undefined> {
-    const permissions: PermissionInfo[] = await this.storage.get(StorageKey.PERMISSION_LIST)
-
-    return permissions.find(
+    return this.storageManager.getOne(
       (permission: PermissionInfo) => permission.accountIdentifier === accountIdentifier
     )
   }
 
   public async addPermission(permissionInfo: PermissionInfo): Promise<void> {
-    const permissions: PermissionInfo[] = await this.storage.get(StorageKey.PERMISSION_LIST)
-
-    if (
-      !permissions.some(
-        (permission: PermissionInfo) =>
-          permission.accountIdentifier === permissionInfo.accountIdentifier
-      )
-    ) {
-      permissions.push(permissionInfo)
-    }
-
-    return this.storage.set(StorageKey.PERMISSION_LIST, permissions)
+    return this.storageManager.addOne(
+      permissionInfo,
+      (permission: PermissionInfo) =>
+        permission.accountIdentifier === permissionInfo.accountIdentifier
+    )
   }
 
   public async removePermission(accountIdentifier: string): Promise<void> {
-    const permissions: PermissionInfo[] = await this.storage.get(StorageKey.PERMISSION_LIST)
-
-    const filteredPermissions: PermissionInfo[] = permissions.filter(
+    return this.storageManager.remove(
       (permissionInfo: PermissionInfo) => permissionInfo.accountIdentifier !== accountIdentifier
     )
-
-    return this.storage.set(StorageKey.PERMISSION_LIST, filteredPermissions)
   }
 
   public async removePermissions(accountIdentifiers: string[]): Promise<void> {
-    const permissions: PermissionInfo[] = await this.storage.get(StorageKey.PERMISSION_LIST)
-
-    const filteredPermissions = permissions.filter((permission) =>
-      accountIdentifiers.every(
-        (accountIdentifier) => permission.accountIdentifier !== accountIdentifier
-      )
+    return this.storageManager.remove(
+      (permission) => !accountIdentifiers.includes(permission.accountIdentifier)
     )
-
-    return this.storage.set(StorageKey.PERMISSION_LIST, filteredPermissions)
   }
 
   public async removeAllPermissions(): Promise<void> {
-    return this.storage.delete(StorageKey.PERMISSION_LIST)
+    return this.storageManager.removeAll()
   }
 
-  /**
-   * Check if permissions were given for a certain message type.
-   *
-   * PermissionRequest and BroadcastRequest will always return true.
-   *
-   * @param message Beacon Message
-   */
   public async hasPermission(message: BeaconMessage): Promise<boolean> {
-    switch (message.type) {
-      case BeaconMessageType.PermissionRequest: {
-        return true
-      }
-      case BeaconMessageType.OperationRequest: {
-        const accountIdentifier: string = await getAccountIdentifier(
-          message.sourceAddress,
-          message.network
-        )
-
-        const permission: PermissionInfo | undefined = await this.getPermission(accountIdentifier)
-        if (!permission) {
-          return false
-        }
-
-        return permission.scopes.includes(PermissionScope.OPERATION_REQUEST)
-      }
-      case BeaconMessageType.SignPayloadRequest: {
-        const permissions: PermissionInfo[] = await this.getPermissions()
-        const filteredPermissions: PermissionInfo[] = permissions.filter(
-          (permission: PermissionInfo) => permission.address === message.sourceAddress
-        )
-
-        if (filteredPermissions.length === 0) {
-          return false
-        }
-
-        return filteredPermissions.some((permission: PermissionInfo) =>
-          permission.scopes.includes(PermissionScope.SIGN)
-        )
-      }
-      case BeaconMessageType.BroadcastRequest: {
-        return true
-      }
-
-      default:
-        throw new Error('Message not handled')
-    }
+    return PermissionValidator.hasPermission(
+      message,
+      this.getPermission.bind(this),
+      this.getPermissions.bind(this)
+    )
   }
 }
