@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.7.0 (unreleased)
+
+#### Breaking Changes
+
+- **all**: changed `pubkey` to `pubKey` everywhere
+- **events**: added new event type "INTERNAL_ERROR" that will be triggered when an important handled error occurs, for example if `requestOperation` is called but there is no `activeAccount`.
+
+#### Features
+
+- **DAppClient:** when removing peers, remove related accounts as well
+- **DAppClient:** when removing an account that happens to be the activeAccount, set activeAccount to null
+- **WalletClient:** persist appMetadata and permissions
+- **WalletClient:** when removing peers, remove related permissions as well
+
+#### Bug Fixes
+
+- **storage:** clone default values before returning to prevent them from being overwritten
+
 ## 0.6.1 (2020-05-22)
 
 #### Bug Fixes
