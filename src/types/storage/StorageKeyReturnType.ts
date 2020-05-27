@@ -14,4 +14,5 @@ export interface StorageKeyReturnType {
   [StorageKey.BEACON_SDK_SECRET_SEED]: string | undefined
   [StorageKey.APP_METADATA_LIST]: AppMetadata[]
   [StorageKey.PERMISSION_LIST]: PermissionInfo[]
+  [StorageKey.BEACON_SDK_VERSION]: string | undefined
 }
