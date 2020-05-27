@@ -60,7 +60,7 @@ export class OutgoingBeaconMessageInterceptor {
           publicKey,
           network: response.network,
           scopes: response.scopes,
-          connectedAt: new Date()
+          connectedAt: new Date().getTime()
         }
 
         permissionManager.addPermission(permission).catch(console.error)

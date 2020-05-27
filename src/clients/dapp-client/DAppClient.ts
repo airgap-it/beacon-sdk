@@ -236,7 +236,7 @@ export class DAppClient extends Client {
       publicKey,
       network: message.network,
       scopes: message.scopes,
-      connectedAt: new Date()
+      connectedAt: new Date().getTime()
     }
 
     await this.accountManager.addAccount(accountInfo)

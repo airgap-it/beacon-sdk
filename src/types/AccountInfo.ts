@@ -11,5 +11,5 @@ export interface AccountInfo extends PermissionEntity {
     id: string
   }
   publicKey: string
-  connectedAt: Date
+  connectedAt: number
 }

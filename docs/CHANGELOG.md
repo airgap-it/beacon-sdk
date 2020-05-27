@@ -6,6 +6,7 @@
 
 - **all**: changed `pubkey` and `pubKey` to `publicKey` everywhere
 - **events**: added new event type "INTERNAL_ERROR" that will be triggered when an important handled error occurs, for example if `requestOperation` is called but there is no `activeAccount`.
+- **account-info / permission-info**: Change `connectedAt` type from `Date` to `number`.
 
 #### Features
 
