@@ -103,6 +103,15 @@ import { DAppClientOptions } from './clients/dapp-client/DAppClientOptions'
 import { WalletClientOptions } from './clients/wallet-client/WalletClientOptions'
 import { PermissionInfo } from './types/PermissionInfo'
 import { SDK_VERSION, BEACON_VERSION } from './constants'
+import { AccountManager } from './managers/AccountManager'
+import { AppMetadataManager } from './managers/AppMetadataManager'
+import { PermissionManager } from './managers/PermissionManager'
+import { BeaconEvent } from './events'
+import { getAddressFromPublicKey } from './utils/crypto'
+import { BeaconClient } from './clients/beacon-client/BeaconClient'
+import { BeaconClientOptions } from './clients/beacon-client/BeaconClientOptions'
+import { getAccountIdentifier } from './utils/get-account-identifier'
+import { ConnectionContext } from './types/ConnectionContext'
 
 // Tezos
 export {
@@ -131,6 +140,8 @@ export {
 
 // Clients
 export {
+  BeaconClient,
+  BeaconClientOptions,
   Client,
   ClientOptions,
   DAppClient,
@@ -219,6 +230,9 @@ export {
   ChromeMessageTransport
 }
 
+// Events
+export { BeaconEvent }
+
 // Storage
 export {
   Storage,
@@ -230,8 +244,14 @@ export {
   getStorage
 }
 
+// Managers
+export { AccountManager, AppMetadataManager, PermissionManager }
+
 // Constants
 export { SDK_VERSION, BEACON_VERSION }
 
+// Utils
+export { getAccountIdentifier, getAddressFromPublicKey }
+
 // Others
-export { P2PPairInfo, Serializer }
+export { ConnectionContext, P2PPairInfo, Serializer }
