@@ -13,7 +13,7 @@ import { SignPayloadResponse } from './types/beacon/messages/SignPayloadResponse
 import { BroadcastRequest } from './types/beacon/messages/BroadcastRequest'
 import { BroadcastResponse } from './types/beacon/messages/BroadcastResponse'
 import { NetworkType } from './types/beacon/NetworkType'
-import { TezosBaseOperation } from './types/tezos/TezosOperation'
+import { TezosBaseOperation } from './types/tezos/TezosBaseOperation'
 import { TezosOperationType } from './types/tezos/OperationTypes'
 import { TezosActivateAccountOperation } from './types/tezos/operations/ActivateAccount'
 import { TezosBallotOperation } from './types/tezos/operations/Ballot'
@@ -33,7 +33,7 @@ import { Origin } from './types/Origin'
 import { AccountInfo, AccountIdentifier } from './types/AccountInfo'
 import { ExtensionMessage } from './types/ExtensionMessage'
 import { ExtensionMessageTarget } from './types/ExtensionMessageTarget'
-import { TezosOperations } from './types/tezos/TezosOperations'
+import { TezosOperation } from './types/tezos/TezosOperation'
 import { Client } from './clients/client/Client'
 import { WalletClient } from './clients/wallet-client/WalletClient'
 import { DAppClient } from './clients/dapp-client/DAppClient'
@@ -111,7 +111,7 @@ export {
   TezosBlockHeader,
   MichelsonPrimitives,
   TezosTransactionParameters,
-  TezosOperations
+  TezosOperation
 }
 
 // Tezos Operations
