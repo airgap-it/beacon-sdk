@@ -280,7 +280,7 @@ export const defaultEventCallbacks: {
 
 export class BeaconEventHandler {
   private readonly callbackMap: {
-    [key in BeaconEvent]: BeaconEventHandlerFunction<any>[]
+    [key in BeaconEvent]: BeaconEventHandlerFunction<any>[] // TODO: Fix type
   } = {
     [BeaconEvent.PERMISSION_REQUEST_SENT]: [defaultEventCallbacks.PERMISSION_REQUEST_SENT],
     [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: [defaultEventCallbacks.PERMISSION_REQUEST_SUCCESS],
@@ -305,13 +305,13 @@ export class BeaconEventHandler {
   }
 
   constructor(
-    eventsToOverride?: {
+    eventsToOverride: {
       [key in BeaconEvent]?: {
-        handler: BeaconEventHandlerFunction
+        handler: BeaconEventHandlerFunction<BeaconEventType[key]>
       }
-    }
+    } = {}
   ) {
-    this.overrideDefaults(eventsToOverride || {}).catch((overrideError: Error) => {
+    this.overrideDefaults(eventsToOverride).catch((overrideError: Error) => {
       logger.error('constructor', overrideError)
     })
   }
@@ -341,7 +341,7 @@ export class BeaconEventHandler {
   private async overrideDefaults(
     eventsToOverride: {
       [key in BeaconEvent]?: {
-        handler: BeaconEventHandlerFunction
+        handler: BeaconEventHandlerFunction<BeaconEventType[key]>
       }
     }
   ): Promise<void> {
