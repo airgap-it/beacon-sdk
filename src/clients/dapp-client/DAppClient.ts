@@ -308,8 +308,7 @@ export class DAppClient extends Client {
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
       network: input.network || { type: NetworkType.MAINNET },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      operationDetails: input.operationDetails as any, // TODO: Fix type,
+      operationDetails: input.operationDetails,
       sourceAddress: activeAccount.address || ''
     }
 
