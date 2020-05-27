@@ -30,14 +30,16 @@ export class MatrixEventService {
   constructor(private readonly httpClient: MatrixHttpClient) {}
 
   public async sync(accessToken: string, options?: MatrixSyncOptions): Promise<MatrixSyncResponse> {
-    return this.withCache('sync', () => this.httpClient.get<MatrixSyncResponse>(
+    return this.withCache('sync', () =>
+      this.httpClient.get<MatrixSyncResponse>(
         '/sync',
         {
           timeout: options ? options.pollingTimeout : undefined,
           since: options ? options.syncToken : undefined
         },
         { accessToken }
-      ))
+      )
+    )
   }
 
   public async sendMessage(
@@ -46,7 +48,8 @@ export class MatrixEventService {
     content: MatrixStateEventMessageContent,
     txnId: string
   ): Promise<MatrixEventSendResponse> {
-    return new Promise((resolve, reject) => this.scheduleEvent({
+    return new Promise((resolve, reject) =>
+      this.scheduleEvent({
         accessToken,
         room,
         type: 'm.room.message',
@@ -54,7 +57,8 @@ export class MatrixEventService {
         txnId,
         onSuccess: resolve,
         onError: reject
-      }))
+      })
+    )
   }
 
   public scheduleEvent(event: MatrixScheduledEvent<any>) {
