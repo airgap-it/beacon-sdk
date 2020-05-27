@@ -5,6 +5,7 @@ import { getKeypairFromSeed, toHex } from '../../utils/crypto'
 import { Storage, StorageKey } from '../..'
 import { BeaconEventHandler } from '../../events'
 import { BeaconClientOptions } from './BeaconClientOptions'
+import { SDK_VERSION } from '../../constants'
 
 export abstract class BeaconClient {
   public readonly name: string
@@ -25,6 +26,8 @@ export abstract class BeaconClient {
   constructor(config: BeaconClientOptions) {
     this.name = config.name
     this.storage = config.storage
+
+    this.storage.set(StorageKey.BEACON_SDK_VERSION, SDK_VERSION).catch(console.error)
 
     this.loadOrCreateBeaconSecret().catch(console.error)
     this.keyPair
