@@ -4,7 +4,7 @@
 
 #### Breaking Changes
 
-- **all**: changed `pubkey` to `pubKey` everywhere
+- **all**: changed `pubkey` and `pubKey` to `publicKey` everywhere
 - **events**: added new event type "INTERNAL_ERROR" that will be triggered when an important handled error occurs, for example if `requestOperation` is called but there is no `activeAccount`.
 
 #### Features

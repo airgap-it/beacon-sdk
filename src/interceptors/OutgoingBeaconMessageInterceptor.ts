@@ -42,7 +42,10 @@ export class OutgoingBeaconMessageInterceptor {
           ...message
         }
 
-        const address: string = await getAddressFromPublicKey(response.pubKey)
+        // TODO: Migration code. Remove before 1.0.0 release.
+        const publicKey = response.publicKey || (response as any).pubkey || (response as any).pubKey
+
+        const address: string = await getAddressFromPublicKey(publicKey)
         const appMetadata = await appMetadataManager.getAppMetadata(request.beaconId)
         if (!appMetadata) {
           throw new Error('AppMetadata not found')
@@ -54,7 +57,7 @@ export class OutgoingBeaconMessageInterceptor {
           appMetadata,
           website: '',
           address,
-          pubKey: response.pubKey,
+          publicKey,
           network: response.network,
           scopes: response.scopes,
           connectedAt: new Date()

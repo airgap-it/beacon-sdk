@@ -221,7 +221,9 @@ export class DAppClient extends Client {
 
     await this.handleBeaconError(message)
 
-    const address = await getAddressFromPublicKey(message.pubKey)
+    // TODO: Migration code. Remove before 1.0.0 release.
+    const publicKey = message.publicKey || (message as any).pubkey || (message as any).pubKey
+    const address = await getAddressFromPublicKey(publicKey)
 
     const accountInfo: AccountInfo = {
       accountIdentifier: await getAccountIdentifier(address, message.network),
@@ -231,7 +233,7 @@ export class DAppClient extends Client {
         id: connectionInfo.id
       },
       address,
-      pubKey: message.pubKey,
+      publicKey,
       network: message.network,
       scopes: message.scopes,
       connectedAt: new Date()

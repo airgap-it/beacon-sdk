@@ -43,7 +43,7 @@ export class P2PCommunicationClient {
   public async getHandshakeInfo(): Promise<P2PPairInfo> {
     return {
       name: this.name,
-      pubKey: await this.getPublicKey(),
+      publicKey: await this.getPublicKey(),
       relayServer: await this.getRelayServer()
     }
   }

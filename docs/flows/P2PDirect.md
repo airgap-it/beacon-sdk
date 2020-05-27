@@ -4,9 +4,9 @@
 
 ```mermaid
 sequenceDiagram
-    dApp->>Wallet: Show QR Code (pubKey exchange)
+    dApp->>Wallet: Show QR Code (publicKey exchange)
     Wallet->>Wallet: User scans QR code
-    Wallet->>dApp: Send own pubKey to dApp, connection established
+    Wallet->>dApp: Send own publicKey to dApp, connection established
 ```
 
 ## Permission Request

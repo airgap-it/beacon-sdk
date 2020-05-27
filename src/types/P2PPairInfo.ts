@@ -1,5 +1,5 @@
 export interface P2PPairInfo {
   name: string
-  pubKey: string
+  publicKey: string
   relayServer: string
 }
