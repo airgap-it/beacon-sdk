@@ -51,7 +51,11 @@ export class FileStorage implements Storage {
     if (json[key]) {
       return json[key] as StorageKeyReturnType[K]
     } else {
-      return JSON.parse(JSON.stringify(defaultValues[key]))
+      if (typeof defaultValues[key] === 'object') {
+        return JSON.parse(JSON.stringify(defaultValues[key]))
+      } else {
+        return defaultValues[key]
+      }
     }
   }
 
