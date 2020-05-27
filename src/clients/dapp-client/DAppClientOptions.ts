@@ -1,5 +1,5 @@
 import { Storage } from '../..'
-import { BeaconEvent, BeaconEventHandlerFunction } from '../../events'
+import { BeaconEvent, BeaconEventType, BeaconEventHandlerFunction } from '../../events'
 
 export interface DAppClientOptions {
   name: string
@@ -7,7 +7,7 @@ export interface DAppClientOptions {
   storage?: Storage
   eventHandlers?: {
     [key in BeaconEvent]?: {
-      handler: BeaconEventHandlerFunction
+      handler: BeaconEventHandlerFunction<BeaconEventType[key]>
     }
   }
 }

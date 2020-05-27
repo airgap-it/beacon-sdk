@@ -18,7 +18,7 @@ const client = new DAppClient({
         await defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN(syncInfo) // Add this if you want to keep the default behaviour.
         console.log('syncInfo', syncInfo)
       }
-    } as any // TODO: Fix type
+    }
   }
 })
 
