@@ -4,8 +4,8 @@ import { generateGUID } from '../../utils/generate-uuid'
 import { getKeypairFromSeed, toHex } from '../../utils/crypto'
 import { Storage, StorageKey } from '../..'
 import { BeaconEventHandler } from '../../events'
-import { BeaconClientOptions } from './BeaconClientOptions'
 import { SDK_VERSION } from '../../constants'
+import { BeaconClientOptions } from './BeaconClientOptions'
 
 export abstract class BeaconClient {
   public readonly name: string

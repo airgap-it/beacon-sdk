@@ -1,5 +1,5 @@
-import { MatrixStateEvent } from './MatrixStateEvent'
 import { isTextMessageEvent } from '../utils/events'
+import { MatrixStateEvent } from './MatrixStateEvent'
 
 export enum MatrixMessageType {
   TEXT = 'm.text'

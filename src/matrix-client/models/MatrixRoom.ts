@@ -1,3 +1,4 @@
+import { isCreateEvent, isJoinEvent, isMessageEvent } from '../utils/events'
 import {
   MatrixSyncJoinedRoom,
   MatrixSyncInvitedRoom,
@@ -5,7 +6,6 @@ import {
   MatrixSyncRooms
 } from './api/MatrixSync'
 import { MatrixMessage } from './MatrixMessage'
-import { isCreateEvent, isJoinEvent, isMessageEvent } from '../utils/events'
 import { MatrixStateEvent } from './MatrixStateEvent'
 
 export enum MatrixRoomStatus {
@@ -70,7 +70,7 @@ export class MatrixRoom {
 
   private static getMessagesFromEvents(events: MatrixStateEvent[]): MatrixMessage<any>[] {
     return events
-      .filter((event) => isMessageEvent(event))
+      .filter(isMessageEvent)
       .map((event) => MatrixMessage.from(event))
       .filter((message) => !!message) as MatrixMessage<any>[]
   }

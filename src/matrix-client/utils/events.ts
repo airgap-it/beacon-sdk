@@ -12,6 +12,7 @@ export function isJoinEvent(event: MatrixStateEvent): boolean {
     event.type === 'm.room.member' &&
     event.content instanceof Object &&
     'membership' in event.content &&
+    // eslint-disable-next-line dot-notation
     event.content['membership'] === 'join'
   )
 }
@@ -25,6 +26,7 @@ export function isTextMessageEvent(event: MatrixStateEvent): event is MatrixStat
     isMessageEvent(event) &&
     event.content instanceof Object &&
     'msgtype' in event.content &&
+    // eslint-disable-next-line dot-notation
     event.content['msgtype'] === MatrixMessageType.TEXT
   )
 }

@@ -134,28 +134,24 @@ export class MatrixClient {
   }
 
   public async inviteToRooms(user: string, ...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
-    await this.requiresAuthorization('invite', (accessToken) => {
-      return Promise.all(
+    await this.requiresAuthorization('invite', (accessToken) => Promise.all(
         (roomsOrIds as any[]).map((roomOrId) => {
           const room = this.store.getRoom(roomOrId)
           this.roomService
             .inviteToRoom(accessToken, user, room)
             .catch((error) => console.warn(error))
         })
-      )
-    })
+      ))
   }
 
   public async joinRooms(...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
-    await this.requiresAuthorization('join', (accessToken) => {
-      return Promise.all(
+    await this.requiresAuthorization('join', (accessToken) => Promise.all(
         (roomsOrIds as any[]).map((roomOrId) => {
           const room = this.store.getRoom(roomOrId)
 
           return this.roomService.joinRoom(accessToken, room).catch((error) => console.warn(error))
         })
-      )
-    })
+      ))
   }
 
   public async sendTextMessage(roomOrId: string | MatrixRoom, message: string): Promise<void> {
@@ -215,12 +211,10 @@ export class MatrixClient {
   }
 
   private async sync(): Promise<MatrixSyncResponse> {
-    return this.requiresAuthorization('sync', async (accessToken) => {
-      return this.eventService.sync(accessToken, {
+    return this.requiresAuthorization('sync', async (accessToken) => this.eventService.sync(accessToken, {
         pollingTimeout: this.store.get('pollingTimeout'),
         syncToken: this.store.get('syncToken')
-      })
-    })
+      }))
   }
 
   private async requiresAuthorization<T>(
