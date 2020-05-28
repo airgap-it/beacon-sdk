@@ -10,8 +10,7 @@ import { FileStorage, writeLocalFile } from '../test-utils/FileStorage'
 chai.use(chaiAsPromised)
 const expect = chai.expect
 
-// TODO: Use AccountInfo type
-const account1: any = {
+const account1: AccountInfo = {
   accountIdentifier: 'a1',
   beaconId: 'id1',
   origin: {
@@ -19,13 +18,13 @@ const account1: any = {
     id: 'o1'
   },
   address: 'tz1',
-  pubkey: 'pubkey1',
+  publicKey: 'pubkey1',
   network: { type: NetworkType.MAINNET },
   scopes: [],
   connectedAt: new Date().getTime()
 }
 
-const account2: any = {
+const account2: AccountInfo = {
   accountIdentifier: 'a2',
   beaconId: 'id2',
   origin: {
@@ -33,13 +32,13 @@ const account2: any = {
     id: 'o2'
   },
   address: 'tz2',
-  pubkey: 'pubkey2',
+  publicKey: 'pubkey2',
   network: { type: NetworkType.MAINNET },
   scopes: [],
   connectedAt: new Date().getTime()
 }
 
-const account3: any = {
+const account3: AccountInfo = {
   accountIdentifier: 'a3',
   beaconId: 'id3',
   origin: {
@@ -47,7 +46,7 @@ const account3: any = {
     id: 'o3'
   },
   address: 'tz3',
-  pubkey: 'pubkey3',
+  publicKey: 'pubkey3',
   network: { type: NetworkType.MAINNET },
   scopes: [],
   connectedAt: new Date().getTime()
