@@ -126,7 +126,7 @@ export class P2PCommunicationClient {
     const callbackFunction = async (
       event: MatrixClientEvent<MatrixClientEventType.MESSAGE>
     ): Promise<void> => {
-      if (this.isTextMessage(event.content) && this.isSender(event, senderPublicKey)) {
+      if (this.isTextMessage(event.content) && (await this.isSender(event, senderPublicKey))) {
         const payload = Buffer.from(event.content.message.content, 'hex')
         if (
           payload.length >=
@@ -199,7 +199,7 @@ export class P2PCommunicationClient {
     for (const client of this.clients) {
       client.subscribe(MatrixClientEventType.MESSAGE, async (event) => {
         await this.log('channel opening', event)
-        if (this.isTextMessage(event.content) && this.isChannelOpenMessage(event.content)) {
+        if (this.isTextMessage(event.content) && (await this.isChannelOpenMessage(event.content))) {
           if (!this.keyPair) {
             throw new Error('KeyPair not available')
           }
