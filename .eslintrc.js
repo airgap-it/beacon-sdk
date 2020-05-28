@@ -219,6 +219,7 @@ module.exports = {
           ]
         }
       }
-    ]
+    ],
+    'no-implicit-coercion': 'error'
   }
 }
