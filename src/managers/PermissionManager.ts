@@ -36,7 +36,7 @@ export class PermissionManager {
 
   public async removePermissions(accountIdentifiers: string[]): Promise<void> {
     return this.storageManager.remove(
-      (permission) => !accountIdentifiers.includes(permission.accountIdentifier)
+      (permission: PermissionInfo) => !accountIdentifiers.includes(permission.accountIdentifier)
     )
   }
 
