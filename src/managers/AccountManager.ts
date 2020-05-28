@@ -25,12 +25,12 @@ export class AccountManager {
   }
 
   public async removeAccount(accountIdentifier: string): Promise<void> {
-    return this.storageManager.remove((account) => account.accountIdentifier !== accountIdentifier)
+    return this.storageManager.remove((account) => account.accountIdentifier === accountIdentifier)
   }
 
   public async removeAccounts(accountIdentifiers: string[]): Promise<void> {
-    return this.storageManager.remove(
-      (account) => !accountIdentifiers.includes(account.accountIdentifier)
+    return this.storageManager.remove((account) =>
+      accountIdentifiers.includes(account.accountIdentifier)
     )
   }
 

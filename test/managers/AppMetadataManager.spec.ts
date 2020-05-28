@@ -56,7 +56,7 @@ describe(`AppMetadataManager`, () => {
     expect(appMetadataAfter.length, 'after').to.equal(2)
   })
 
-  it(`only adds an account once`, async () => {
+  it(`only adds an appMetadata once`, async () => {
     const appMetadataBefore: AppMetadata[] = await manager.getAppMetadataList()
     expect(appMetadataBefore.length, 'before').to.equal(0)
 
@@ -67,17 +67,17 @@ describe(`AppMetadataManager`, () => {
     expect(appMetadataAfter.length, 'after').to.equal(1)
   })
 
-  it(`reads one account`, async () => {
+  it(`reads one appMetadata`, async () => {
     const appMetadataBefore: AppMetadata[] = await manager.getAppMetadataList()
     expect(appMetadataBefore.length, 'before').to.equal(0)
 
     await manager.addAppMetadata(appMetadata1)
     await manager.addAppMetadata(appMetadata2)
-    const account = await manager.getAppMetadata(appMetadata1.beaconId)
-    expect(account, 'after').to.deep.include(appMetadata1)
+    const appMetadata = await manager.getAppMetadata(appMetadata1.beaconId)
+    expect(appMetadata, 'after').to.deep.include(appMetadata1)
   })
 
-  it(`removes one account`, async () => {
+  it(`removes one appMetadata`, async () => {
     const appMetadataBefore: AppMetadata[] = await manager.getAppMetadataList()
     expect(appMetadataBefore.length, 'before').to.equal(0)
 

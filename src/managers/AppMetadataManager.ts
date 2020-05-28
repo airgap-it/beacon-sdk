@@ -27,13 +27,13 @@ export class AppMetadataManager {
 
   public async removeAppMetadata(beaconId: string): Promise<void> {
     return this.storageManager.remove(
-      (appMetadata: AppMetadata) => appMetadata.beaconId !== beaconId
+      (appMetadata: AppMetadata) => appMetadata.beaconId === beaconId
     )
   }
 
   public async removeAppMetadatas(beaconIds: string[]): Promise<void> {
-    return this.storageManager.remove(
-      (appMetadata: AppMetadata) => !beaconIds.includes(appMetadata.beaconId)
+    return this.storageManager.remove((appMetadata: AppMetadata) =>
+      beaconIds.includes(appMetadata.beaconId)
     )
   }
 

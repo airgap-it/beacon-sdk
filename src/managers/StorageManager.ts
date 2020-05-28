@@ -51,7 +51,7 @@ export class StorageManager<
   ): Promise<void> {
     const entities = await this.storage.get(this.storageKey)
 
-    const filteredEntities = fixArrayType(entities).filter(predicate)
+    const filteredEntities = fixArrayType(entities).filter((entity) => !predicate(entity))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return this.storage.set(this.storageKey, filteredEntities as any)

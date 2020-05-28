@@ -74,7 +74,7 @@ describe(`PermissionManager`, () => {
     expect(permissionsAfter.length, 'after').to.equal(2)
   })
 
-  it(`only adds an account once`, async () => {
+  it(`only adds an permission once`, async () => {
     const permissionsBefore: PermissionInfo[] = await manager.getPermissions()
     expect(permissionsBefore.length, 'before').to.equal(0)
 
@@ -85,17 +85,17 @@ describe(`PermissionManager`, () => {
     expect(permissionsAfter.length, 'after').to.equal(1)
   })
 
-  it(`reads one account`, async () => {
+  it(`reads one permission`, async () => {
     const permissionsBefore: PermissionInfo[] = await manager.getPermissions()
     expect(permissionsBefore.length, 'before').to.equal(0)
 
     await manager.addPermission(permission1)
     await manager.addPermission(permission2)
-    const account = await manager.getPermission(permission1.accountIdentifier)
-    expect(account, 'after').to.deep.include(permission1)
+    const permission = await manager.getPermission(permission1.accountIdentifier)
+    expect(permission, 'after').to.deep.include(permission1)
   })
 
-  it(`removes one account`, async () => {
+  it(`removes one permission`, async () => {
     const permissionsBefore: PermissionInfo[] = await manager.getPermissions()
     expect(permissionsBefore.length, 'before').to.equal(0)
 
@@ -110,8 +110,8 @@ describe(`PermissionManager`, () => {
     const permissionsAfterRemove: PermissionInfo[] = await manager.getPermissions()
 
     expect(permissionsAfterRemove.length, 'after remove').to.equal(2)
-    expect(permissionsAfterRemove, 'after remove, account2').to.deep.include(permission2)
-    expect(permissionsAfterRemove, 'after remove, account3').to.deep.include(permission3)
+    expect(permissionsAfterRemove, 'after remove, permission2').to.deep.include(permission2)
+    expect(permissionsAfterRemove, 'after remove, permission3').to.deep.include(permission3)
   })
 
   it(`removes many permissions`, async () => {
