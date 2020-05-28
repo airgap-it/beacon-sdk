@@ -1,5 +1,24 @@
-import { TezosOperationType } from '../..'
+import {
+  TezosActivateAccountOperation,
+  TezosBallotOperation,
+  TezosDelegationOperation,
+  TezosDoubleBakingEvidenceOperation,
+  TezosEndorsementOperation,
+  TezosOriginationOperation,
+  TezosProposalOperation,
+  TezosRevealOperation,
+  TezosSeedNonceRevelationOperation,
+  TezosTransactionOperation
+} from '../..'
 
-export interface TezosBaseOperation {
-  kind: TezosOperationType
-}
+export type TezosOperation =
+  | TezosActivateAccountOperation
+  | TezosBallotOperation
+  | TezosDelegationOperation
+  | TezosDoubleBakingEvidenceOperation
+  | TezosEndorsementOperation
+  | TezosOriginationOperation
+  | TezosProposalOperation
+  | TezosRevealOperation
+  | TezosSeedNonceRevelationOperation
+  | TezosTransactionOperation

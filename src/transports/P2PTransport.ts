@@ -56,7 +56,7 @@ export class P2PTransport extends Transport {
 
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
-      const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.pubKey))
+      const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
       await Promise.all(connectionPromises)
     } else {
       if (this.isDapp) {
@@ -78,16 +78,16 @@ export class P2PTransport extends Transport {
 
     return new Promise(async (resolve) => {
       if (!this.listeningForChannelOpenings) {
-        await this.client.listenForChannelOpening(async (pubKey) => {
-          logger.log('connectNewPeer', `new pubkey ${pubKey}`)
+        await this.client.listenForChannelOpening(async (publicKey) => {
+          logger.log('connectNewPeer', `new publicKey ${publicKey}`)
 
           const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-          if (!knownPeers.some((peer) => peer.pubKey === pubKey)) {
-            knownPeers.push({ name: '', pubKey, relayServer: '' })
+          if (!knownPeers.some((peer) => peer.publicKey === publicKey)) {
+            knownPeers.push({ name: '', publicKey, relayServer: '' })
             this.storage
               .set(StorageKey.TRANSPORT_P2P_PEERS, knownPeers)
               .catch((storageError) => logger.error(storageError))
-            await this.listen(pubKey)
+            await this.listen(publicKey)
           }
 
           this.events
@@ -116,27 +116,27 @@ export class P2PTransport extends Transport {
   public async addPeer(newPeer: any): Promise<void> {
     logger.log('addPeer', newPeer)
     const peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-    if (!peers.some((peer) => peer.pubKey === newPeer.pubKey)) {
+    if (!peers.some((peer) => peer.publicKey === newPeer.publicKey)) {
       peers.push({
         name: newPeer.name,
-        pubKey: newPeer.pubKey,
+        publicKey: newPeer.publicKey,
         relayServer: newPeer.relayServer
       })
       await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
       logger.log('addPeer', `peer added, now ${peers.length} peers`)
 
-      await this.client.openChannel(newPeer.pubKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
-      await this.listen(newPeer.pubKey) // TODO: Prevent channels from being opened multiple times
+      await this.client.openChannel(newPeer.publicKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
+      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
     }
   }
 
   public async removePeer(peerToBeRemoved: any): Promise<void> {
     logger.log('removePeer', peerToBeRemoved)
     let peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-    peers = peers.filter((peer) => peer.pubKey !== peerToBeRemoved.pubKey)
+    peers = peers.filter((peer) => peer.publicKey !== peerToBeRemoved.publicKey)
     await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
     if (this.client) {
-      await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.pubKey)
+      await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
     }
     logger.log('removePeer', `${peers.length} peers left`)
   }
@@ -148,20 +148,29 @@ export class P2PTransport extends Transport {
     await this.client.unsubscribeFromEncryptedMessages()
   }
 
-  public async send(message: string): Promise<void> {
+  public async send(message: string, recipient?: string): Promise<void> {
     const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
 
-    const promises = knownPeers.map((peer) => this.client.sendMessage(peer.pubKey, message))
+    if (recipient) {
+      if (!knownPeers.some((peer) => peer.publicKey === recipient)) {
+        throw new Error('Recipient unknown')
+      }
 
-    return (await Promise.all(promises))[0]
+      return this.client.sendMessage(recipient, message)
+    } else {
+      // A broadcast request has to be sent everywhere.
+      const promises = knownPeers.map((peer) => this.client.sendMessage(peer.publicKey, message))
+
+      return (await Promise.all(promises))[0]
+    }
   }
 
-  private async listen(pubKey: string): Promise<void> {
+  private async listen(publicKey: string): Promise<void> {
     await this.client
-      .listenForEncryptedMessage(pubKey, (message) => {
+      .listenForEncryptedMessage(publicKey, (message) => {
         const connectionContext: ConnectionContext = {
           origin: Origin.P2P,
-          id: pubKey
+          id: publicKey
         }
 
         this.notifyListeners(message, connectionContext).catch((error) => {

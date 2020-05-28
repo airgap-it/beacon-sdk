@@ -79,7 +79,7 @@ export class DAppClient extends Client {
       .get(StorageKey.ACTIVE_ACCOUNT)
       .then(async (activeAccount) => {
         if (activeAccount) {
-          await this.setActiveAccount(await this.getAccount(activeAccount))
+          await this.setActiveAccount(await this.accountManager.getAccount(activeAccount))
         }
       })
       .catch((storageError) => {
@@ -126,13 +126,12 @@ export class DAppClient extends Client {
   }
 
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
-    if (!account) {
-      return
-    }
-
     this.activeAccount = account
 
-    await this.storage.set(StorageKey.ACTIVE_ACCOUNT, account.accountIdentifier)
+    await this.storage.set(
+      StorageKey.ACTIVE_ACCOUNT,
+      account ? account.accountIdentifier : undefined
+    )
 
     await this.events.emit(BeaconEvent.ACTIVE_ACCOUNT_SET, account)
 
@@ -151,6 +150,32 @@ export class DAppClient extends Client {
     return super._connect()
   }
 
+  public async removeAccount(accountIdentifier: string): Promise<void> {
+    const removeAccountResult = super.removeAccount(accountIdentifier)
+    if (this.activeAccount && this.activeAccount.accountIdentifier === accountIdentifier) {
+      await this.setActiveAccount(undefined)
+    }
+
+    return removeAccountResult
+  }
+
+  public async removePeer(id: string): Promise<void> {
+    const removePeerResult = (await this.transport).removePeer(id)
+
+    await this.removeAccountForPeers([id])
+
+    return removePeerResult
+  }
+
+  public async removeAllPeers(): Promise<void> {
+    const peerIDs: string[] = await (await this.transport).getPeers()
+    const removePeerResult = (await this.transport).removeAllPeers()
+
+    await this.removeAccountForPeers(peerIDs)
+
+    return removePeerResult
+  }
+
   public async subscribeToEvent<K extends BeaconEvent>(
     internalEvent: K,
     eventCallback: BeaconEventHandlerFunction<BeaconEventType[K]>
@@ -166,7 +191,7 @@ export class DAppClient extends Client {
     const accountInfo = this.activeAccount
 
     if (!accountInfo) {
-      throw new Error('No active account set!')
+      throw this.sendInternalError('No active account set!')
     }
 
     const permissions = accountInfo.scopes
@@ -196,7 +221,9 @@ export class DAppClient extends Client {
 
     await this.handleBeaconError(message)
 
-    const address = await getAddressFromPublicKey(message.pubkey)
+    // TODO: Migration code. Remove before 1.0.0 release.
+    const publicKey = message.publicKey || (message as any).pubkey || (message as any).pubKey
+    const address = await getAddressFromPublicKey(publicKey)
 
     const accountInfo: AccountInfo = {
       accountIdentifier: await getAccountIdentifier(address, message.network),
@@ -206,13 +233,13 @@ export class DAppClient extends Client {
         id: connectionInfo.id
       },
       address,
-      pubkey: message.pubkey,
+      publicKey,
       network: message.network,
       scopes: message.scopes,
-      connectedAt: new Date()
+      connectedAt: new Date().getTime()
     }
 
-    await this.addAccount(accountInfo)
+    await this.accountManager.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)
     console.log('permissions interception', { message, connectionInfo })
 
@@ -233,10 +260,10 @@ export class DAppClient extends Client {
     input: RequestSignPayloadInput
   ): Promise<SignPayloadResponseOutput> {
     if (!input.payload) {
-      throw new Error('Payload must be provided')
+      throw this.sendInternalError('Payload must be provided')
     }
     if (!this.activeAccount) {
-      throw new Error('No active account!')
+      throw this.sendInternalError('No active account!')
     }
 
     const activeAccount = this.activeAccount
@@ -270,10 +297,10 @@ export class DAppClient extends Client {
 
   public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
     if (!input.operationDetails) {
-      throw new Error('Operation details must be provided')
+      throw this.sendInternalError('Operation details must be provided')
     }
     if (!this.activeAccount) {
-      throw new Error('No active account!')
+      throw this.sendInternalError('No active account!')
     }
 
     const activeAccount = this.activeAccount
@@ -281,7 +308,7 @@ export class DAppClient extends Client {
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
       network: input.network || { type: NetworkType.MAINNET },
-      operationDetails: input.operationDetails as any, // TODO: Fix type,
+      operationDetails: input.operationDetails,
       sourceAddress: activeAccount.address || ''
     }
 
@@ -307,7 +334,7 @@ export class DAppClient extends Client {
 
   public async requestBroadcast(input: RequestBroadcastInput): Promise<BroadcastResponseOutput> {
     if (!input.signedTransaction) {
-      throw new Error('Signed transaction must be provided')
+      throw this.sendInternalError('Signed transaction must be provided')
     }
 
     const network = input.network || { type: NetworkType.MAINNET }
@@ -333,6 +360,32 @@ export class DAppClient extends Client {
     await this.notifySuccess(request, { network, output, connectionContext: connectionInfo })
 
     return { beaconId, transactionHash }
+  }
+
+  private async sendInternalError(errorMessage: string): Promise<void> {
+    await this.events.emit(BeaconEvent.INTERNAL_ERROR, errorMessage)
+    throw new Error(errorMessage)
+  }
+
+  private async removeAccountForPeers(peerIdsToRemove: string[]): Promise<void> {
+    const accounts = await this.accountManager.getAccounts()
+
+    // Remove all accounts with origin of the specified peer
+    const accountsToRemove = accounts.filter((account) =>
+      peerIdsToRemove.includes(account.origin.id)
+    )
+    const accountIdentifiersToRemove = accountsToRemove.map(
+      (accountInfo) => accountInfo.accountIdentifier
+    )
+    await this.accountManager.removeAccounts(accountIdentifiersToRemove)
+
+    // Check if one of the accounts that was removed was the active account and if yes, set it to undefined
+    if (this.activeAccount) {
+      const activeAccount = this.activeAccount
+      if (accountIdentifiersToRemove.includes(activeAccount.accountIdentifier)) {
+        await this.setActiveAccount(undefined)
+      }
+    }
   }
 
   private async handleRequestError(
@@ -383,7 +436,8 @@ export class DAppClient extends Client {
   }
 
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
-    requestInput: Omit<T, IgnoredRequestInputProperties>
+    requestInput: Omit<T, IgnoredRequestInputProperties>,
+    account?: AccountInfo
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -399,13 +453,13 @@ export class DAppClient extends Client {
         .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
         .catch((emitError) => console.warn(emitError))
 
-      throw new Error('rate limit reached')
+      throw this.sendInternalError('rate limit reached')
     }
 
     if (!(await this.checkPermissions(requestInput.type))) {
       this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
 
-      throw new Error('No permissions to send this request to wallet!')
+      throw this.sendInternalError('No permissions to send this request to wallet!')
     }
 
     this.events
@@ -413,7 +467,7 @@ export class DAppClient extends Client {
       .catch((emitError) => console.warn(emitError))
 
     if (!this.beaconId) {
-      throw new Error('BeaconID not defined')
+      throw this.sendInternalError('BeaconID not defined')
     }
 
     const request: Omit<T, IgnoredRequestInputProperties> &
@@ -433,8 +487,13 @@ export class DAppClient extends Client {
 
     const payload = await new Serializer().serialize(request)
 
-    await (await this.transport).send(payload)
+    let origin: string | undefined
+    if (account) {
+      origin = account.origin.id
+    }
+    await (await this.transport).send(payload, origin)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed.promise as any // TODO: fix type
   }
 }

@@ -48,6 +48,7 @@ export enum BeaconEvent {
   P2P_CHANNEL_CONNECT_SUCCESS = 'P2P_CHANNEL_CONNECT_SUCCESS',
   P2P_LISTEN_FOR_CHANNEL_OPEN = 'P2P_LISTEN_FOR_CHANNEL_OPEN',
 
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
   UNKNOWN = 'UNKNOWN'
 }
 
@@ -86,6 +87,7 @@ export interface BeaconEventType {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: undefined
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairInfo
+  [BeaconEvent.INTERNAL_ERROR]: string
   [BeaconEvent.UNKNOWN]: undefined
 }
 
@@ -126,6 +128,18 @@ const showOkAlert = async (): Promise<void> => {
   })
 }
 
+const showInternalErrorAlert = async (
+  data: BeaconEventType[BeaconEvent.INTERNAL_ERROR]
+): Promise<void> => {
+  const alertConfig: AlertConfig = {
+    title: 'Internal Error',
+    confirmButtonText: 'Done',
+    body: `${data}`,
+    confirmCallback: () => undefined
+  }
+  await openAlert(alertConfig)
+}
+
 const showQrCode = async (
   data: BeaconEventType[BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]
 ): Promise<void> => {
@@ -139,9 +153,7 @@ const showQrCode = async (
       dataString,
       'svg'
     )}<br /><br />Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Click here</a> to learn more.`,
-    confirmCallback: () => {
-      console.log('CALLBACK')
-    }
+    confirmCallback: () => undefined
   }
   await openAlert(alertConfig)
 }
@@ -258,12 +270,13 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showOkAlert,
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrCode,
+  [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
   [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)
 }
 
 export class BeaconEventHandler {
   private readonly callbackMap: {
-    [key in BeaconEvent]: BeaconEventHandlerFunction<any>[]
+    [key in BeaconEvent]: BeaconEventHandlerFunction<any>[] // TODO: Fix type
   } = {
     [BeaconEvent.PERMISSION_REQUEST_SENT]: [defaultEventCallbacks.PERMISSION_REQUEST_SENT],
     [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: [defaultEventCallbacks.PERMISSION_REQUEST_SUCCESS],
@@ -283,17 +296,18 @@ export class BeaconEventHandler {
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
     [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: [defaultEventCallbacks.P2P_CHANNEL_CONNECT_SUCCESS],
     [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: [defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN],
+    [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
   }
 
   constructor(
-    eventsToOverride?: {
+    eventsToOverride: {
       [key in BeaconEvent]?: {
-        handler: BeaconEventHandlerFunction
+        handler: BeaconEventHandlerFunction<BeaconEventType[key]>
       }
-    }
+    } = {}
   ) {
-    this.overrideDefaults(eventsToOverride || {}).catch((overrideError: Error) => {
+    this.overrideDefaults(eventsToOverride).catch((overrideError: Error) => {
       logger.error('constructor', overrideError)
     })
   }
@@ -323,7 +337,7 @@ export class BeaconEventHandler {
   private async overrideDefaults(
     eventsToOverride: {
       [key in BeaconEvent]?: {
-        handler: BeaconEventHandlerFunction
+        handler: BeaconEventHandlerFunction<BeaconEventType[key]>
       }
     }
   ): Promise<void> {

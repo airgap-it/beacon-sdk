@@ -13,7 +13,7 @@ import { SignPayloadResponse } from './types/beacon/messages/SignPayloadResponse
 import { BroadcastRequest } from './types/beacon/messages/BroadcastRequest'
 import { BroadcastResponse } from './types/beacon/messages/BroadcastResponse'
 import { NetworkType } from './types/beacon/NetworkType'
-import { TezosBaseOperation } from './types/tezos/TezosOperation'
+import { TezosBaseOperation } from './types/tezos/TezosBaseOperation'
 import { TezosOperationType } from './types/tezos/OperationTypes'
 import { TezosActivateAccountOperation } from './types/tezos/operations/ActivateAccount'
 import { TezosBallotOperation } from './types/tezos/operations/Ballot'
@@ -33,7 +33,7 @@ import { Origin } from './types/Origin'
 import { AccountInfo, AccountIdentifier } from './types/AccountInfo'
 import { ExtensionMessage } from './types/ExtensionMessage'
 import { ExtensionMessageTarget } from './types/ExtensionMessageTarget'
-import { TezosOperations } from './types/tezos/TezosOperations'
+import { TezosOperation } from './types/tezos/TezosOperation'
 import { Client } from './clients/client/Client'
 import { WalletClient } from './clients/wallet-client/WalletClient'
 import { DAppClient } from './clients/dapp-client/DAppClient'
@@ -101,9 +101,17 @@ import {
 import { ClientOptions } from './clients/client/ClientOptions'
 import { DAppClientOptions } from './clients/dapp-client/DAppClientOptions'
 import { WalletClientOptions } from './clients/wallet-client/WalletClientOptions'
-
-// Clients
-export { P2PCommunicationClient }
+import { PermissionInfo } from './types/PermissionInfo'
+import { SDK_VERSION, BEACON_VERSION } from './constants'
+import { AccountManager } from './managers/AccountManager'
+import { AppMetadataManager } from './managers/AppMetadataManager'
+import { PermissionManager } from './managers/PermissionManager'
+import { BeaconEvent } from './events'
+import { getAddressFromPublicKey } from './utils/crypto'
+import { BeaconClient } from './clients/beacon-client/BeaconClient'
+import { BeaconClientOptions } from './clients/beacon-client/BeaconClientOptions'
+import { getAccountIdentifier } from './utils/get-account-identifier'
+import { ConnectionContext } from './types/ConnectionContext'
 
 // Tezos
 export {
@@ -112,7 +120,7 @@ export {
   TezosBlockHeader,
   MichelsonPrimitives,
   TezosTransactionParameters,
-  TezosOperations
+  TezosOperation
 }
 
 // Tezos Operations
@@ -131,7 +139,17 @@ export {
 }
 
 // Clients
-export { Client, ClientOptions, DAppClient, DAppClientOptions, WalletClient, WalletClientOptions }
+export {
+  BeaconClient,
+  BeaconClientOptions,
+  Client,
+  ClientOptions,
+  DAppClient,
+  DAppClientOptions,
+  WalletClient,
+  WalletClientOptions,
+  P2PCommunicationClient
+}
 
 // Beacon
 export {
@@ -158,7 +176,8 @@ export {
   RequestPermissionInput,
   RequestSignPayloadInput,
   RequestOperationInput,
-  RequestBroadcastInput
+  RequestBroadcastInput,
+  PermissionInfo
 }
 
 export {
@@ -211,6 +230,9 @@ export {
   ChromeMessageTransport
 }
 
+// Events
+export { BeaconEvent }
+
 // Storage
 export {
   Storage,
@@ -222,5 +244,14 @@ export {
   getStorage
 }
 
+// Managers
+export { AccountManager, AppMetadataManager, PermissionManager }
+
+// Constants
+export { SDK_VERSION, BEACON_VERSION }
+
+// Utils
+export { getAccountIdentifier, getAddressFromPublicKey }
+
 // Others
-export { P2PPairInfo, Serializer }
+export { ConnectionContext, P2PPairInfo, Serializer }

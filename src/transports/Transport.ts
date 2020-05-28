@@ -61,8 +61,8 @@ export abstract class Transport {
     return
   }
 
-  public async send(message: string): Promise<void> {
-    logger.log('send', message)
+  public async send(message: string, recipient?: string): Promise<void> {
+    logger.log('send', message, recipient)
 
     return
   }

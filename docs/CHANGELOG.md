@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.7.0 (28-05-2020)
+
+#### Breaking Changes
+
+- **all**: changed `pubkey` and `pubKey` to `publicKey` everywhere
+- **events**: added new event type "INTERNAL_ERROR" that will be triggered when an important handled error occurs, for example if `requestOperation` is called but there is no `activeAccount`.
+- **account-info / permission-info**: Change `connectedAt` type from `Date` to `number`.
+- **all**: due to the changes in the interfaces, the storage of accounts and permissions will be invalid and has to be reset (eg. clearing application cache)
+
+#### Features
+
+- **DAppClient:** when removing peers, remove related accounts as well
+- **DAppClient:** when removing an account that happens to be the activeAccount, set activeAccount to null
+- **WalletClient:** persist appMetadata and permissions
+- **WalletClient:** when removing peers, remove related permissions as well
+
+#### Bug Fixes
+
+- **storage:** clone default values before returning to prevent them from being overwritten
+
 ## 0.6.1 (2020-05-22)
 
 #### Bug Fixes

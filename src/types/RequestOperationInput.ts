@@ -1,6 +1,6 @@
-import { Network, TezosOperations } from '..'
+import { Network, TezosOperation } from '..'
 
 export interface RequestOperationInput {
   network?: Network
-  operationDetails: Partial<TezosOperations>[]
+  operationDetails: Partial<TezosOperation>[]
 }

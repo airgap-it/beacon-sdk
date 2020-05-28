@@ -1,65 +1,36 @@
-import { ConnectionContext } from '../../types/ConnectionContext'
-import { BEACON_VERSION } from '../../constants'
 import {
-  Client,
-  TransportType,
-  PermissionRequest,
-  PermissionResponse,
-  OperationResponse,
-  SignPayloadResponse,
-  BroadcastResponse,
-  AppMetadata,
-  BeaconMessageType,
-  BeaconMessage,
-  Origin,
   Serializer,
+  Client,
+  BeaconMessage,
+  WalletClientOptions,
   LocalStorage,
-  BeaconResponseInputMessage
-} from '../..'
-import {
+  TransportType,
   BeaconRequestOutputMessage,
-  PermissionRequestOutput,
-  OperationRequestOutput,
-  SignPayloadRequestOutput,
-  BroadcastRequestOutput
-} from '../../types/beacon/messages/BeaconRequestOutputMessage'
-import { WalletClientOptions } from './WalletClientOptions'
+  BeaconResponseInputMessage,
+  AppMetadata,
+  PermissionInfo
+} from '../..'
+import { PermissionManager } from '../../managers/PermissionManager'
+import { AppMetadataManager } from '../../managers/AppMetadataManager'
+import { ConnectionContext } from '../../types/ConnectionContext'
+import { IncomingBeaconMessageInterceptor } from '../../interceptors/IncomingBeaconMessageInterceptor'
+import { OutgoingBeaconMessageInterceptor } from '../../interceptors/OutgoingBeaconMessageInterceptor'
 
 export class WalletClient extends Client {
+  private readonly permissionManager: PermissionManager
+  private readonly appMetadataManager: AppMetadataManager
+
   private pendingRequests: BeaconMessage[] = []
 
   constructor(config: WalletClientOptions) {
     super({ name: config.name, storage: new LocalStorage() })
+    this.permissionManager = new PermissionManager(new LocalStorage())
+    this.appMetadataManager = new AppMetadataManager(new LocalStorage())
   }
 
   public async init(): Promise<TransportType> {
     return super.init(false)
   }
-
-  public async getAppMetadata(
-    beaconId: string
-  ): Promise<{ appMetadata: AppMetadata; connectionContext: ConnectionContext }> {
-    console.log(beaconId)
-
-    return {
-      appMetadata: {
-        beaconId: 'placeholder_from_sdk',
-        name: 'placeholder_from_sdk'
-      },
-      connectionContext: { origin: Origin.EXTENSION, id: 'placeholder_from_sdk' }
-    }
-  }
-
-  public async saveAppMetadata(
-    message: PermissionRequest,
-    connectionInfo: ConnectionContext
-  ): Promise<void> {
-    console.log(message, connectionInfo)
-  }
-
-  // public async getPermission(_beaconId: string) {}
-
-  // public async savePermission() {}
 
   public async connect(
     newMessageCallback: (
@@ -73,49 +44,12 @@ export class WalletClient extends Client {
     ): Promise<void> => {
       if (!this.pendingRequests.some((request) => request.id === message.id)) {
         this.pendingRequests.push(message)
-        console.log('PUSHING NEW REQUEST', message, connectionInfo)
-        switch (message.type) {
-          case BeaconMessageType.PermissionRequest:
-            {
-              await this.saveAppMetadata(message, connectionInfo)
-              const request: PermissionRequestOutput = message
-              newMessageCallback(request, connectionInfo)
-            }
-            break
-          case BeaconMessageType.OperationRequest:
-            {
-              const appMetadata = await this.getAppMetadata(message.beaconId)
-              const request: OperationRequestOutput = {
-                appMetadata: appMetadata.appMetadata,
-                ...message
-              }
-              newMessageCallback(request, connectionInfo)
-            }
-            break
-          case BeaconMessageType.SignPayloadRequest:
-            {
-              const appMetadata = await this.getAppMetadata(message.beaconId)
-              const request: SignPayloadRequestOutput = {
-                appMetadata: appMetadata.appMetadata,
-                ...message
-              }
-              newMessageCallback(request, connectionInfo)
-            }
-            break
-          case BeaconMessageType.BroadcastRequest:
-            {
-              const appMetadata = await this.getAppMetadata(message.beaconId)
-              const request: BroadcastRequestOutput = {
-                appMetadata: appMetadata.appMetadata,
-                ...message
-              }
-              newMessageCallback(request, connectionInfo)
-            }
-            break
-
-          default:
-            console.log('Message not handled')
-        }
+        await IncomingBeaconMessageInterceptor.intercept({
+          message,
+          connectionInfo,
+          appMetadataManager: this.appMetadataManager,
+          interceptorCallback: newMessageCallback
+        })
       }
     }
 
@@ -133,52 +67,78 @@ export class WalletClient extends Client {
       (pendingRequest) => pendingRequest.id !== message.id
     )
 
-    const beaconId: string = await this.beaconId
-    switch (message.type) {
-      case BeaconMessageType.PermissionResponse: {
-        const response: PermissionResponse = {
-          beaconId,
-          version: BEACON_VERSION,
-          ...message
-        }
-        // this.savePermission(response.)
+    await OutgoingBeaconMessageInterceptor.intercept({
+      beaconId: await this.beaconId,
+      request,
+      message,
+      permissionManager: this.permissionManager,
+      appMetadataManager: this.appMetadataManager,
+      interceptorCallback: async (response: BeaconMessage): Promise<void> => {
         await this.respondToMessage(response)
-        break
       }
-      case BeaconMessageType.OperationResponse:
-        {
-          const response: OperationResponse = {
-            beaconId,
-            version: BEACON_VERSION,
-            ...message
-          }
-          await this.respondToMessage(response)
-        }
-        break
-      case BeaconMessageType.SignPayloadResponse:
-        {
-          const response: SignPayloadResponse = {
-            beaconId,
-            version: BEACON_VERSION,
-            ...message
-          }
-          await this.respondToMessage(response)
-        }
-        break
-      case BeaconMessageType.BroadcastResponse:
-        {
-          const response: BroadcastResponse = {
-            beaconId,
-            version: BEACON_VERSION,
-            ...message
-          }
-          await this.respondToMessage(response)
-        }
-        break
+    })
+  }
 
-      default:
-        console.log('Message not handled')
-    }
+  public async getAppMetadataList(): Promise<AppMetadata[]> {
+    return this.appMetadataManager.getAppMetadataList()
+  }
+
+  public async getAppMetadata(beaconId: string): Promise<AppMetadata | undefined> {
+    return this.appMetadataManager.getAppMetadata(beaconId)
+  }
+
+  public async removeAppMetadata(beaconId: string): Promise<void> {
+    return this.appMetadataManager.removeAppMetadata(beaconId)
+  }
+
+  public async removeAllAppMetadata(): Promise<void> {
+    return this.appMetadataManager.removeAllAppMetadata()
+  }
+
+  public async getPermissions(): Promise<PermissionInfo[]> {
+    return this.permissionManager.getPermissions()
+  }
+
+  public async getPermission(accountIdentifier: string): Promise<PermissionInfo | undefined> {
+    return this.permissionManager.getPermission(accountIdentifier)
+  }
+
+  public async removePermission(accountIdentifier: string): Promise<void> {
+    return this.permissionManager.removePermission(accountIdentifier)
+  }
+
+  public async removeAllPermissions(): Promise<void> {
+    return this.permissionManager.removeAllPermissions()
+  }
+
+  public async removePeer(id: string): Promise<void> {
+    const removePeerResult = (await this.transport).removePeer(id)
+
+    await this.removePermissionsForPeers([id])
+
+    return removePeerResult
+  }
+
+  public async removeAllPeers(): Promise<void> {
+    const peerIDs: string[] = await (await this.transport).getPeers()
+    const removePeerResult = (await this.transport).removeAllPeers()
+
+    await this.removePermissionsForPeers(peerIDs)
+
+    return removePeerResult
+  }
+
+  private async removePermissionsForPeers(peerIdsToRemove: string[]): Promise<void> {
+    const permissions = await this.permissionManager.getPermissions()
+
+    // Remove all permissions with origin of the specified peer
+    const permissionsToRemove = permissions.filter((permission) =>
+      peerIdsToRemove.includes(permission.appMetadata.beaconId)
+    )
+    const permissionIdentifiersToRemove = permissionsToRemove.map(
+      (permissionInfo) => permissionInfo.accountIdentifier
+    )
+    await this.permissionManager.removePermissions(permissionIdentifiersToRemove)
   }
 
   private async respondToMessage(message: BeaconMessage): Promise<void> {

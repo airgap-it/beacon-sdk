@@ -10,4 +10,4 @@ An example dapp can be found here: [WalletBeacon.io](https://walletbeacon.io) [S
 
 A chrome extension that can be used for development can be found here: [Beacon Extension](https://github.com/airgap-it/beacon-extension/releases)
 
-For more information, read our [Getting Started](/beacon/getting-started-dapp/)
+For more information, read our [Getting Started](/beacon/02.getting-started-dapp.html)

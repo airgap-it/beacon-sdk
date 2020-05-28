@@ -1,4 +1,4 @@
-import { keys } from '../../utils/utils'
+import { keys } from '../utils/utils'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
 
 interface MatrixStateStorage {
@@ -38,6 +38,7 @@ const PRESERVED_FIELDS: (keyof MatrixState)[] = ['syncToken', 'rooms']
 export class MatrixClientStore {
   public static createLocal(): MatrixClientStore {
     const localStorage = (global as any).localStorage
+
     return new MatrixClientStore(localStorage)
   }
 
@@ -68,6 +69,7 @@ export class MatrixClientStore {
 
   public getRoom(roomOrId: string | MatrixRoom): MatrixRoom {
     const room = MatrixRoom.from(roomOrId, MatrixRoomStatus.UNKNOWN)
+
     return this.state.rooms.get(room.id) || room
   }
 

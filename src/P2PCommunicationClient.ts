@@ -10,14 +10,14 @@ import {
   encryptCryptoboxPayload,
   decryptCryptoboxPayload
 } from './utils/crypto'
-import { MatrixClient } from './clients/matrix-client/MatrixClient'
+import { MatrixClient } from './matrix-client/MatrixClient'
 import {
   MatrixClientEvent,
   MatrixClientEventType,
   MatrixClientEventMessageContent
-} from './clients/matrix-client/models/MatrixClientEvent'
-import { MatrixMessageType } from './clients/matrix-client/models/MatrixMessage'
-import { MatrixRoom } from './clients/matrix-client/models/MatrixRoom'
+} from './matrix-client/models/MatrixClientEvent'
+import { MatrixMessageType } from './matrix-client/models/MatrixMessage'
+import { MatrixRoom } from './matrix-client/models/MatrixRoom'
 import { P2PPairInfo } from '.'
 
 export class P2PCommunicationClient {
@@ -43,7 +43,7 @@ export class P2PCommunicationClient {
   public async getHandshakeInfo(): Promise<P2PPairInfo> {
     return {
       name: this.name,
-      pubKey: await this.getPublicKey(),
+      publicKey: await this.getPublicKey(),
       relayServer: await this.getRelayServer()
     }
   }
