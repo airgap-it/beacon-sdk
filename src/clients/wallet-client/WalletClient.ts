@@ -132,8 +132,8 @@ export class WalletClient extends Client {
     const permissions = await this.permissionManager.getPermissions()
 
     // Remove all permissions with origin of the specified peer
-    const permissionsToRemove = permissions.filter(
-      (permission) => !peerIdsToRemove.includes(permission.appMetadata.beaconId)
+    const permissionsToRemove = permissions.filter((permission) =>
+      peerIdsToRemove.includes(permission.appMetadata.beaconId)
     )
     const permissionIdentifiersToRemove = permissionsToRemove.map(
       (permissionInfo) => permissionInfo.accountIdentifier

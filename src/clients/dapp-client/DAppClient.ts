@@ -371,8 +371,8 @@ export class DAppClient extends Client {
     const accounts = await this.accountManager.getAccounts()
 
     // Remove all accounts with origin of the specified peer
-    const accountsToRemove = accounts.filter(
-      (account) => !peerIdsToRemove.includes(account.origin.id)
+    const accountsToRemove = accounts.filter((account) =>
+      peerIdsToRemove.includes(account.origin.id)
     )
     const accountIdentifiersToRemove = accountsToRemove.map(
       (accountInfo) => accountInfo.accountIdentifier
