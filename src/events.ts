@@ -135,9 +135,7 @@ const showInternalErrorAlert = async (
     title: 'Internal Error',
     confirmButtonText: 'Done',
     body: `${data}`,
-    confirmCallback: () => {
-      console.log('CALLBACK')
-    }
+    confirmCallback: () => undefined
   }
   await openAlert(alertConfig)
 }
@@ -155,9 +153,7 @@ const showQrCode = async (
       dataString,
       'svg'
     )}<br /><br />Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Click here</a> to learn more.`,
-    confirmCallback: () => {
-      console.log('CALLBACK')
-    }
+    confirmCallback: () => undefined
   }
   await openAlert(alertConfig)
 }
