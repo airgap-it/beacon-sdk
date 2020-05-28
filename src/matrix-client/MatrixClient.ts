@@ -35,19 +35,19 @@ export class MatrixClient {
   }
 
   public get joinedRooms(): MatrixRoom[] {
-    return Array.from(this.store.get('rooms').values()).filter(
+    return Object.values(this.store.get('rooms')).filter(
       (room) => room.status === MatrixRoomStatus.JOINED
     )
   }
 
   public get invitedRooms(): MatrixRoom[] {
-    return Array.from(this.store.get('rooms').values()).filter(
+    return Object.values(this.store.get('rooms')).filter(
       (room) => room.status === MatrixRoomStatus.INVITED
     )
   }
 
   public get leftRooms(): MatrixRoom[] {
-    return Array.from(this.store.get('rooms').values()).filter(
+    return Object.values(this.store.get('rooms')).filter(
       (room) => room.status === MatrixRoomStatus.LEFT
     )
   }

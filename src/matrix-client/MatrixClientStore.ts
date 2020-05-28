@@ -15,7 +15,7 @@ interface MatrixState {
   syncToken: string | undefined
   pollingTimeout: number | undefined
   pollingRetries: number
-  rooms: MatrixRoom[] | Map<string, MatrixRoom>
+  rooms: MatrixRoom[] | { [key: string]: MatrixRoom }
 }
 
 type OnStateChangedListener = (
@@ -25,7 +25,7 @@ type OnStateChangedListener = (
 ) => void
 
 export interface MatrixStateStore extends MatrixState {
-  rooms: Map<string, MatrixRoom>
+  rooms: { [key: string]: MatrixRoom }
 }
 
 export interface MatrixStateUpdate extends MatrixState {
@@ -51,7 +51,7 @@ export class MatrixClientStore {
     syncToken: undefined,
     pollingTimeout: undefined,
     pollingRetries: 0,
-    rooms: new Map()
+    rooms: {}
   }
 
   private readonly onStateChangedListeners: Map<
@@ -69,8 +69,7 @@ export class MatrixClientStore {
 
   public getRoom(roomOrId: string | MatrixRoom): MatrixRoom {
     const room = MatrixRoom.from(roomOrId, MatrixRoomStatus.UNKNOWN)
-
-    return this.state.rooms.get(room.id) || room
+    return this.state.rooms[room.id] || room
   }
 
   public update(stateUpdate: Partial<MatrixStateUpdate>): void {
@@ -109,7 +108,7 @@ export class MatrixClientStore {
     if (this.storage && updatedCachedFields.length > 0) {
       const filteredState: Record<string, any> = {}
       PRESERVED_FIELDS.forEach((key) => {
-        filteredState[key] = stateUpdate[key]
+        filteredState[key] = this.state[key]
       })
 
       this.storage.setItem(STORAGE_KEY, JSON.stringify(filteredState))
@@ -131,21 +130,26 @@ export class MatrixClientStore {
   }
 
   private mergeRooms(
-    oldRooms: Map<string, MatrixRoom>,
-    _newRooms?: MatrixRoom[] | Map<string, MatrixRoom>
-  ): Map<string, MatrixRoom> {
+    oldRooms: { [key: string]: MatrixRoom },
+    _newRooms?: MatrixRoom[] | { [key: string]: MatrixRoom }
+  ): { [key: string]: MatrixRoom } {
     if (!_newRooms) {
       return oldRooms
     }
 
-    const newRooms = Array.isArray(_newRooms)
-      ? new Map(_newRooms.map((room) => [room.id, room]))
-      : _newRooms
+    let newRooms: { [key: string]: MatrixRoom } = {}
+    if (Array.isArray(_newRooms)) {
+      _newRooms.forEach((room: MatrixRoom) => {
+        newRooms[room.id] = room
+      })
+    } else {
+      newRooms = _newRooms
+    }
 
-    return new Map([
-      ...Array.from(oldRooms.entries()).filter(([id, _]) => !newRooms.get(id)),
-      ...Array.from(newRooms.entries())
-    ])
+    return {
+      ...oldRooms,
+      ...newRooms
+    }
   }
 
   private notifyListeners(
