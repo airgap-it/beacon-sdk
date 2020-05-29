@@ -8,7 +8,9 @@ import {
   BeaconRequestOutputMessage,
   BeaconResponseInputMessage,
   AppMetadata,
-  PermissionInfo
+  PermissionInfo,
+  P2PTransport,
+  P2PPairInfo
 } from '../..'
 import { PermissionManager } from '../../managers/PermissionManager'
 import { AppMetadataManager } from '../../managers/AppMetadataManager'
@@ -111,26 +113,31 @@ export class WalletClient extends Client {
     return this.permissionManager.removeAllPermissions()
   }
 
-  public async removePeer(id: string): Promise<void> {
-    const removePeerResult = (await this.transport).removePeer(id)
+  public async removePeer(id: P2PPairInfo): Promise<void> {
+    if ((await this.transport).type === TransportType.P2P) {
+      const removePeerResult = ((await this.transport) as P2PTransport).removePeer(id)
 
-    await this.removePermissionsForPeers([id])
+      await this.removePermissionsForPeers([id])
 
-    return removePeerResult
+      return removePeerResult
+    }
   }
 
   public async removeAllPeers(): Promise<void> {
-    const peerIDs: string[] = await (await this.transport).getPeers()
-    const removePeerResult = (await this.transport).removeAllPeers()
+    if ((await this.transport).type === TransportType.P2P) {
+      const peers: P2PPairInfo[] = await ((await this.transport) as P2PTransport).getPeers()
+      const removePeerResult = ((await this.transport) as P2PTransport).removeAllPeers()
 
-    await this.removePermissionsForPeers(peerIDs)
+      await this.removePermissionsForPeers(peers)
 
-    return removePeerResult
+      return removePeerResult
+    }
   }
 
-  private async removePermissionsForPeers(peerIdsToRemove: string[]): Promise<void> {
+  private async removePermissionsForPeers(peersToRemove: P2PPairInfo[]): Promise<void> {
     const permissions = await this.permissionManager.getPermissions()
 
+    const peerIdsToRemove = peersToRemove.map((peer) => peer.publicKey)
     // Remove all permissions with origin of the specified peer
     const permissionsToRemove = permissions.filter((permission) =>
       peerIdsToRemove.includes(permission.appMetadata.beaconId)

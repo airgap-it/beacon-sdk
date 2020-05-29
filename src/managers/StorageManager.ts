@@ -11,7 +11,11 @@ function fixArrayType<T>(array: T): ArrayElem<T>[] {
 /* eslint-enable prefer-arrow/prefer-arrow-functions */
 
 export class StorageManager<
-  T extends StorageKey.ACCOUNTS | StorageKey.APP_METADATA_LIST | StorageKey.PERMISSION_LIST
+  T extends
+    | StorageKey.ACCOUNTS
+    | StorageKey.APP_METADATA_LIST
+    | StorageKey.PERMISSION_LIST
+    | StorageKey.TRANSPORT_P2P_PEERS
 > {
   private readonly storage: Storage
   private readonly storageKey: T

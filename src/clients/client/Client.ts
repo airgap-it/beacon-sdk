@@ -9,7 +9,8 @@ import {
   TransportStatus,
   BeaconBaseMessage,
   BeaconMessage,
-  AccountInfo
+  AccountInfo,
+  P2PPairInfo
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { Logger } from '../../utils/Logger'
@@ -130,12 +131,18 @@ export abstract class Client extends BeaconClient {
       })
     }
   }
-  public async getPeers(): Promise<string[]> {
-    return (await this.transport).getPeers()
+  public async getPeers(): Promise<P2PPairInfo[]> {
+    if ((await this.transport).type === TransportType.P2P) {
+      return ((await this.transport) as P2PTransport).getPeers()
+    } else {
+      return []
+    }
   }
 
-  public async addPeer(id: string): Promise<void> {
-    return (await this.transport).addPeer(id)
+  public async addPeer(id: P2PPairInfo): Promise<void> {
+    if ((await this.transport).type === TransportType.P2P) {
+      return ((await this.transport) as P2PTransport).addPeer(id)
+    }
   }
 
   protected async _connect(): Promise<boolean> {
