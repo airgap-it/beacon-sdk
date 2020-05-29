@@ -86,7 +86,7 @@ export class P2PTransport extends Transport {
         await this.client.listenForChannelOpening(async (publicKey) => {
           logger.log('connectNewPeer', `new publicKey ${publicKey}`)
 
-          if (!this.peerManager.hasPeer(publicKey)) {
+          if (!(await this.peerManager.hasPeer(publicKey))) {
             await this.peerManager.addPeer({ name: '', publicKey, relayServer: '' })
             await this.listen(publicKey)
           }
@@ -111,7 +111,7 @@ export class P2PTransport extends Transport {
   }
 
   public async addPeer(newPeer: P2PPairInfo): Promise<void> {
-    if (!this.peerManager.hasPeer(newPeer.publicKey)) {
+    if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
       logger.log('addPeer', newPeer)
       await this.peerManager.addPeer({
         name: newPeer.name,
