@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0 (29-05-2020)
+
+#### Bug Fixes
+
+- **peer:** type of peer methods was `string` instead of `P2PPairInfo`
+
 ## 0.7.0 (28-05-2020)
 
 #### Breaking Changes
