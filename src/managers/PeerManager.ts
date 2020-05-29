@@ -9,7 +9,7 @@ export class PeerManager {
   }
 
   public async hasPeer(publicKey: string): Promise<boolean> {
-    return this.getPeer(publicKey) ? true : false
+    return (await this.getPeer(publicKey)) ? true : false
   }
 
   public async getPeers(): Promise<P2PPairInfo[]> {
