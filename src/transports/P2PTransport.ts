@@ -8,9 +8,11 @@ import {
   Transport,
   TransportType,
   P2PCommunicationClient,
-  Origin
+  Origin,
+  P2PPairInfo
 } from '..'
 import { BeaconEventHandler, BeaconEvent } from '../events'
+import { PeerManager } from '../managers/PeerManager'
 
 const logger = new Logger('Transport')
 
@@ -27,6 +29,8 @@ export class P2PTransport extends Transport {
   // Make sure we only listen once
   private listeningForChannelOpenings: boolean = false
 
+  private readonly peerManager: PeerManager
+
   constructor(
     name: string,
     keyPair: sodium.KeyPair,
@@ -40,6 +44,7 @@ export class P2PTransport extends Transport {
     this.events = events
     this.isDapp = isDapp
     this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false)
+    this.peerManager = new PeerManager(storage)
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -52,7 +57,7 @@ export class P2PTransport extends Transport {
 
     await this.client.start()
 
-    const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
+    const knownPeers = await this.peerManager.getPeers()
 
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
@@ -81,12 +86,8 @@ export class P2PTransport extends Transport {
         await this.client.listenForChannelOpening(async (publicKey) => {
           logger.log('connectNewPeer', `new publicKey ${publicKey}`)
 
-          const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-          if (!knownPeers.some((peer) => peer.publicKey === publicKey)) {
-            knownPeers.push({ name: '', publicKey, relayServer: '' })
-            this.storage
-              .set(StorageKey.TRANSPORT_P2P_PEERS, knownPeers)
-              .catch((storageError) => logger.error(storageError))
+          if (!this.peerManager.hasPeer(publicKey)) {
+            await this.peerManager.addPeer({ name: '', publicKey, relayServer: '' })
             await this.listen(publicKey)
           }
 
@@ -105,45 +106,37 @@ export class P2PTransport extends Transport {
     })
   }
 
-  public async getPeers(): Promise<any[]> {
-    logger.log('getPeers')
-    const peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-    logger.log('getPeers', `${peers.length} connected`)
-
-    return peers
+  public async getPeers(): Promise<P2PPairInfo[]> {
+    return this.peerManager.getPeers()
   }
 
-  public async addPeer(newPeer: any): Promise<void> {
-    logger.log('addPeer', newPeer)
-    const peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-    if (!peers.some((peer) => peer.publicKey === newPeer.publicKey)) {
-      peers.push({
+  public async addPeer(newPeer: P2PPairInfo): Promise<void> {
+    if (!this.peerManager.hasPeer(newPeer.publicKey)) {
+      logger.log('addPeer', newPeer)
+      await this.peerManager.addPeer({
         name: newPeer.name,
         publicKey: newPeer.publicKey,
         relayServer: newPeer.relayServer
       })
-      await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
-      logger.log('addPeer', `peer added, now ${peers.length} peers`)
 
       await this.client.openChannel(newPeer.publicKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
       await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
+    } else {
+      logger.log('addPeer', 'peer already added, skipping', newPeer)
     }
   }
 
-  public async removePeer(peerToBeRemoved: any): Promise<void> {
+  public async removePeer(peerToBeRemoved: P2PPairInfo): Promise<void> {
     logger.log('removePeer', peerToBeRemoved)
-    let peers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-    peers = peers.filter((peer) => peer.publicKey !== peerToBeRemoved.publicKey)
-    await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, peers)
+    await this.peerManager.removePeer(peerToBeRemoved.publicKey)
     if (this.client) {
       await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
     }
-    logger.log('removePeer', `${peers.length} peers left`)
   }
 
   public async removeAllPeers(): Promise<void> {
     logger.log('removeAllPeers')
-    await this.storage.set(StorageKey.TRANSPORT_P2P_PEERS, [])
+    await this.peerManager.removeAllPeers()
 
     await this.client.unsubscribeFromEncryptedMessages()
   }

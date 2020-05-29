@@ -42,7 +42,9 @@ import {
   BroadcastResponseOutput,
   BroadcastRequestInput,
   BeaconRequestInputMessage,
-  Network
+  Network,
+  P2PPairInfo,
+  P2PTransport
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -159,21 +161,25 @@ export class DAppClient extends Client {
     return removeAccountResult
   }
 
-  public async removePeer(id: string): Promise<void> {
-    const removePeerResult = (await this.transport).removePeer(id)
+  public async removePeer(id: P2PPairInfo): Promise<void> {
+    if ((await this.transport).type === TransportType.P2P) {
+      const removePeerResult = ((await this.transport) as P2PTransport).removePeer(id)
 
-    await this.removeAccountForPeers([id])
+      await this.removeAccountsForPeers([id])
 
-    return removePeerResult
+      return removePeerResult
+    }
   }
 
   public async removeAllPeers(): Promise<void> {
-    const peerIDs: string[] = await (await this.transport).getPeers()
-    const removePeerResult = (await this.transport).removeAllPeers()
+    if ((await this.transport).type === TransportType.P2P) {
+      const peers: P2PPairInfo[] = await ((await this.transport) as P2PTransport).getPeers()
+      const removePeerResult = ((await this.transport) as P2PTransport).removeAllPeers()
 
-    await this.removeAccountForPeers(peerIDs)
+      await this.removeAccountsForPeers(peers)
 
-    return removePeerResult
+      return removePeerResult
+    }
   }
 
   public async subscribeToEvent<K extends BeaconEvent>(
@@ -367,9 +373,10 @@ export class DAppClient extends Client {
     throw new Error(errorMessage)
   }
 
-  private async removeAccountForPeers(peerIdsToRemove: string[]): Promise<void> {
+  private async removeAccountsForPeers(peersToRemove: P2PPairInfo[]): Promise<void> {
     const accounts = await this.accountManager.getAccounts()
 
+    const peerIdsToRemove = peersToRemove.map((peer) => peer.publicKey)
     // Remove all accounts with origin of the specified peer
     const accountsToRemove = accounts.filter((account) =>
       peerIdsToRemove.includes(account.origin.id)
