@@ -285,7 +285,22 @@ const closeAlert = (id: string): Promise<void> =>
     }
   })
 
-const openAlert = async (alertConfig: AlertConfig): Promise<void> => {
+const closeAlerts = async (): Promise<void> =>
+  new Promise(async (resolve) => {
+    const openAlertElements = document.querySelectorAll('[id^="beacon-alert-wrapper-"]')
+    if (openAlertElements.length > 0) {
+      const alertIds: string[] = []
+      openAlertElements.forEach(async (element) => {
+        alertIds.push(element.id.split('-')[3])
+      })
+      await Promise.all(alertIds.map(closeAlert))
+      resolve()
+    } else {
+      resolve()
+    }
+  })
+
+const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const body = alertConfig.body
   const title = alertConfig.title
   const timer = alertConfig.timer
@@ -295,6 +310,8 @@ const openAlert = async (alertConfig: AlertConfig): Promise<void> => {
   const confirmCallback = alertConfig.confirmCallback
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const actionCallback = alertConfig.actionCallback
+
+  await closeAlerts()
 
   const id = generateGUID().split('-').join('')
 
@@ -338,6 +355,8 @@ const openAlert = async (alertConfig: AlertConfig): Promise<void> => {
       await closeAlert(id)
     })
   }
+
+  return id
 }
 
-export { closeAlert, openAlert }
+export { closeAlert, closeAlerts, openAlert }
