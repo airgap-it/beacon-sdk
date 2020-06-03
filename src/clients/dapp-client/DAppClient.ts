@@ -205,6 +205,9 @@ export class DAppClient extends Client {
     return checkPermissions(type, permissions)
   }
 
+  /**
+   * Permission request
+   */
   public async requestPermissions(
     input?: RequestPermissionInput
   ): Promise<PermissionResponseOutput> {
@@ -262,6 +265,9 @@ export class DAppClient extends Client {
     return output
   }
 
+  /**
+   * Sign request
+   */
   public async requestSignPayload(
     input: RequestSignPayloadInput
   ): Promise<SignPayloadResponseOutput> {
@@ -277,7 +283,7 @@ export class DAppClient extends Client {
     const request: SignPayloadRequestInput = {
       type: BeaconMessageType.SignPayloadRequest,
       payload: input.payload,
-      sourceAddress: input.sourceAddress || activeAccount.address || ''
+      sourceAddress: input.sourceAddress || activeAccount.address
     }
 
     const { message, connectionInfo } = await this.makeRequest<
@@ -301,6 +307,9 @@ export class DAppClient extends Client {
     return output
   }
 
+  /**
+   * Operation request
+   */
   public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
     if (!input.operationDetails) {
       throw this.sendInternalError('Operation details must be provided')
@@ -313,7 +322,7 @@ export class DAppClient extends Client {
 
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
-      network: input.network || { type: NetworkType.MAINNET },
+      network: input.network || activeAccount.network || { type: NetworkType.MAINNET },
       operationDetails: input.operationDetails,
       sourceAddress: activeAccount.address || ''
     }
@@ -338,6 +347,9 @@ export class DAppClient extends Client {
     return { beaconId, transactionHash }
   }
 
+  /**
+   * Broadcast request
+   */
   public async requestBroadcast(input: RequestBroadcastInput): Promise<BroadcastResponseOutput> {
     if (!input.signedTransaction) {
       throw this.sendInternalError('Signed transaction must be provided')
