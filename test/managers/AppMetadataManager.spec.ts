@@ -35,7 +35,7 @@ describe(`AppMetadataManager`, () => {
 
     manager = new AppMetadataManager(new FileStorage())
   })
-  it(`reads and adds appMetadatas`, async () => {
+  it(`reads and adds appMetadata`, async () => {
     const appMetadataBefore: AppMetadata[] = await manager.getAppMetadataList()
     expect(appMetadataBefore.length, 'before').to.equal(0)
 
@@ -45,7 +45,25 @@ describe(`AppMetadataManager`, () => {
     expect(appMetadataAfter.length, 'after').to.equal(1)
   })
 
-  it(`reads and adds multiple appMetadatas`, async () => {
+  it(`overwrites and existing appMetadata`, async () => {
+    const appMetadataBefore: AppMetadata[] = await manager.getAppMetadataList()
+    expect(appMetadataBefore.length, 'before').to.equal(0)
+
+    await manager.addAppMetadata(appMetadata1)
+    const appMetadataAfterAdding: AppMetadata[] = await manager.getAppMetadataList()
+
+    expect(appMetadataAfterAdding.length, 'after adding').to.equal(1)
+
+    const newAppMetadata1: AppMetadata = { ...appMetadata1, name: 'new name' }
+
+    await manager.addAppMetadata(newAppMetadata1)
+    const appMetadataAfterReplacing: AppMetadata[] = await manager.getAppMetadataList()
+
+    expect(appMetadataAfterReplacing.length, 'after replacing').to.equal(1)
+    expect(appMetadataAfterReplacing[0].name, 'after replacing').to.deep.equal(newAppMetadata1.name)
+  })
+
+  it(`reads and adds multiple appMetadata`, async () => {
     const appMetadataBefore: AppMetadata[] = await manager.getAppMetadataList()
     expect(appMetadataBefore.length, 'before').to.equal(0)
 
@@ -96,7 +114,7 @@ describe(`AppMetadataManager`, () => {
     expect(appMetadataAfterRemove, 'after remove, appMetadata3').to.deep.include(appMetadata3)
   })
 
-  it(`removes many appMetadatas`, async () => {
+  it(`removes many appMetadata items`, async () => {
     const appMetadataBefore: AppMetadata[] = await manager.getAppMetadataList()
     expect(appMetadataBefore.length, 'before').to.equal(0)
 
@@ -114,7 +132,7 @@ describe(`AppMetadataManager`, () => {
     expect(appMetadataAfterRemove, 'after remove').to.deep.include(appMetadata3)
   })
 
-  it(`removes all appMetadatas`, async () => {
+  it(`removes all appMetadata items`, async () => {
     const appMetadataBefore: AppMetadata[] = await manager.getAppMetadataList()
     expect(appMetadataBefore.length, 'before').to.equal(0)
 
