@@ -22,7 +22,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "prettier": "npx prettier --write 'src/**/*'",
+    "prettier": "npx prettier --write 'src/**/*' 'docs/**/*.md'",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "lint-ci": "eslint 'src/**/*.ts' -f json -o lintReport.json || true",
