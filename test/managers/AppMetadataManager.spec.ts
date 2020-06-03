@@ -45,7 +45,7 @@ describe(`AppMetadataManager`, () => {
     expect(appMetadataAfter.length, 'after').to.equal(1)
   })
 
-  it(`overwrites and existing appMetadata`, async () => {
+  it(`overwrites an existing appMetadata`, async () => {
     const appMetadataBefore: AppMetadata[] = await manager.getAppMetadataList()
     expect(appMetadataBefore.length, 'before').to.equal(0)
 

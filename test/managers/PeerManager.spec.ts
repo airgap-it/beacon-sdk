@@ -45,7 +45,7 @@ describe(`PeerManager`, () => {
     expect(peersAfter.length, 'after').to.equal(1)
   })
 
-  it(`overwrites and existing peers`, async () => {
+  it(`overwrites an existing peer`, async () => {
     const peersBefore: P2PPairInfo[] = await manager.getPeers()
     expect(peersBefore.length, 'before').to.equal(0)
 

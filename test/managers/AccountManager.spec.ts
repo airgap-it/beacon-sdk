@@ -69,7 +69,7 @@ describe(`AccountManager`, () => {
     expect(accountsAfter.length, 'after').to.equal(1)
   })
 
-  it(`overwrites and existing account`, async () => {
+  it(`overwrites an existing account`, async () => {
     const accountsBefore: AccountInfo[] = await manager.getAccounts()
     expect(accountsBefore.length, 'before').to.equal(0)
 

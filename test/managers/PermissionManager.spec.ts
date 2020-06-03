@@ -63,7 +63,7 @@ describe(`PermissionManager`, () => {
     expect(permissionsAfter.length, 'after').to.equal(1)
   })
 
-  it(`overwrites and existing permission`, async () => {
+  it(`overwrites an existing permission`, async () => {
     const permissionsBefore: PermissionInfo[] = await manager.getPermissions()
     expect(permissionsBefore.length, 'before').to.equal(0)
 
