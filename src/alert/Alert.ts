@@ -220,6 +220,10 @@ const formatAlert = (
   .beacon-action__container {
     padding-top: 24px;
   }
+
+  a {
+    text-decoration: none;
+  }
   
   </style>
     <div
