@@ -1,4 +1,5 @@
 import {
+  BeaconErrorMessage,
   BeaconMessage,
   BeaconResponseInputMessage,
   BeaconMessageType,
@@ -33,6 +34,20 @@ export class OutgoingBeaconMessageInterceptor {
       appMetadataManager,
       interceptorCallback
     }: OutgoingBeaconMessageInterceptorOptions = config
+
+    const errorMessage: BeaconErrorMessage = (message as any) as BeaconErrorMessage
+    if (errorMessage.errorType) {
+      const response: BeaconErrorMessage = {
+        type: message.type,
+        version: BEACON_VERSION,
+        beaconId,
+        id: message.id,
+        errorType: errorMessage.errorType
+      }
+      interceptorCallback(response as any)
+
+      return
+    }
 
     switch (message.type) {
       case BeaconMessageType.PermissionResponse: {
