@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { PermissionManager } from '../../src/managers/PermissionManager'
 
-import { NetworkType, PermissionInfo } from '../../src'
+import { NetworkType, PermissionInfo, PermissionScope } from '../../src'
 import { FileStorage, writeLocalFile } from '../test-utils/FileStorage'
 
 // use chai-as-promised plugin
@@ -18,7 +18,7 @@ const permission1: PermissionInfo = {
   address: 'tz1',
   publicKey: 'publicKey1',
   network: { type: NetworkType.MAINNET },
-  scopes: [],
+  scopes: [PermissionScope.SIGN],
   connectedAt: new Date().getTime()
 }
 
@@ -30,7 +30,7 @@ const permission2: PermissionInfo = {
   address: 'tz2',
   publicKey: 'publicKey2',
   network: { type: NetworkType.MAINNET },
-  scopes: [],
+  scopes: [PermissionScope.SIGN],
   connectedAt: new Date().getTime()
 }
 
@@ -42,7 +42,7 @@ const permission3: PermissionInfo = {
   address: 'tz3',
   publicKey: 'publicKey3',
   network: { type: NetworkType.MAINNET },
-  scopes: [],
+  scopes: [PermissionScope.SIGN],
   connectedAt: new Date().getTime()
 }
 
@@ -61,6 +61,29 @@ describe(`PermissionManager`, () => {
     const permissionsAfter: PermissionInfo[] = await manager.getPermissions()
 
     expect(permissionsAfter.length, 'after').to.equal(1)
+  })
+
+  it(`overwrites an existing permission`, async () => {
+    const permissionsBefore: PermissionInfo[] = await manager.getPermissions()
+    expect(permissionsBefore.length, 'before').to.equal(0)
+
+    await manager.addPermission(permission1)
+    const permissionsAfterAdding: PermissionInfo[] = await manager.getPermissions()
+
+    expect(permissionsAfterAdding.length, 'after adding').to.equal(1)
+
+    const newPermission1: PermissionInfo = {
+      ...permission1,
+      scopes: [PermissionScope.OPERATION_REQUEST]
+    }
+
+    await manager.addPermission(newPermission1)
+    const permissionsAfterReplacing: PermissionInfo[] = await manager.getPermissions()
+
+    expect(permissionsAfterReplacing.length, 'after replacing').to.equal(1)
+    expect(permissionsAfterReplacing[0].scopes, 'after replacing').to.deep.equal(
+      newPermission1.scopes
+    )
   })
 
   it(`reads and adds multiple permissions`, async () => {

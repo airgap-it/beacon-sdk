@@ -45,6 +45,24 @@ describe(`PeerManager`, () => {
     expect(peersAfter.length, 'after').to.equal(1)
   })
 
+  it(`overwrites an existing peer`, async () => {
+    const peersBefore: P2PPairInfo[] = await manager.getPeers()
+    expect(peersBefore.length, 'before').to.equal(0)
+
+    await manager.addPeer(peer1)
+    const peersAfterAdding: P2PPairInfo[] = await manager.getPeers()
+
+    expect(peersAfterAdding.length, 'after adding').to.equal(1)
+
+    const newPeer1: P2PPairInfo = { ...peer1, name: 'new name' }
+
+    await manager.addPeer(newPeer1)
+    const peersAfterReplacing: P2PPairInfo[] = await manager.getPeers()
+
+    expect(peersAfterReplacing.length, 'after replacing').to.equal(1)
+    expect(peersAfterReplacing[0].name, 'after replacing').to.deep.equal(newPeer1.name)
+  })
+
   it(`reads, adds and checks peers`, async () => {
     const peersBefore: P2PPairInfo[] = await manager.getPeers()
     expect(peersBefore.length, 'before').to.equal(0)

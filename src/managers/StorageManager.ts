@@ -39,12 +39,19 @@ export class StorageManager<
 
   public async addOne(
     element: ArrayElem<StorageKeyReturnType[T]>,
-    predicate: (element: ArrayElem<StorageKeyReturnType[T]>) => boolean
+    predicate: (element: ArrayElem<StorageKeyReturnType[T]>) => boolean,
+    overwrite: boolean = true
   ): Promise<void> {
     const entities = await this.storage.get(this.storageKey)
 
     if (!fixArrayType(entities).some(predicate)) {
       fixArrayType(entities).push(element)
+    } else if (overwrite) {
+      for (let i = 0; i < entities.length; i++) {
+        if (predicate(fixArrayType(entities)[i])) {
+          entities[i] = element
+        }
+      }
     }
 
     return this.storage.set(this.storageKey, entities)

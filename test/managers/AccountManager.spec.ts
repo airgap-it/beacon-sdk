@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { AccountManager } from '../../src/managers/AccountManager'
 
-import { AccountInfo, Origin, NetworkType } from '../../src'
+import { AccountInfo, Origin, NetworkType, PermissionScope } from '../../src'
 import { FileStorage, writeLocalFile } from '../test-utils/FileStorage'
 
 // use chai-as-promised plugin
@@ -20,7 +20,7 @@ const account1: AccountInfo = {
   address: 'tz1',
   publicKey: 'pubkey1',
   network: { type: NetworkType.MAINNET },
-  scopes: [],
+  scopes: [PermissionScope.SIGN],
   connectedAt: new Date().getTime()
 }
 
@@ -34,7 +34,7 @@ const account2: AccountInfo = {
   address: 'tz2',
   publicKey: 'pubkey2',
   network: { type: NetworkType.MAINNET },
-  scopes: [],
+  scopes: [PermissionScope.SIGN],
   connectedAt: new Date().getTime()
 }
 
@@ -48,7 +48,7 @@ const account3: AccountInfo = {
   address: 'tz3',
   publicKey: 'pubkey3',
   network: { type: NetworkType.MAINNET },
-  scopes: [],
+  scopes: [PermissionScope.SIGN],
   connectedAt: new Date().getTime()
 }
 
@@ -67,6 +67,24 @@ describe(`AccountManager`, () => {
     const accountsAfter: AccountInfo[] = await manager.getAccounts()
 
     expect(accountsAfter.length, 'after').to.equal(1)
+  })
+
+  it(`overwrites an existing account`, async () => {
+    const accountsBefore: AccountInfo[] = await manager.getAccounts()
+    expect(accountsBefore.length, 'before').to.equal(0)
+
+    await manager.addAccount(account1)
+    const accountsAfterAdding: AccountInfo[] = await manager.getAccounts()
+
+    expect(accountsAfterAdding.length, 'after adding').to.equal(1)
+
+    const newAccount1: AccountInfo = { ...account1, scopes: [PermissionScope.OPERATION_REQUEST] }
+
+    await manager.addAccount(newAccount1)
+    const accountsAfterReplacing: AccountInfo[] = await manager.getAccounts()
+
+    expect(accountsAfterReplacing.length, 'after replacing').to.equal(1)
+    expect(accountsAfterReplacing[0].scopes, 'after replacing').to.deep.equal(newAccount1.scopes)
   })
 
   it(`reads and adds multiple accounts`, async () => {
