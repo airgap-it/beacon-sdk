@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2 (2020-06-04)
+
+#### Bug Fixes
+
+- **error:** the alert for beacon errors was not displayed
+
 ## 1.0.1 (2020-06-04)
 
 #### Bug Fixes
