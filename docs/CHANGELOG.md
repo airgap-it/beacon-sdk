@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1 (2020-06-04)
+
+#### Bug Fixes
+
+- **operation-request:** use network settings of ActiveAccount by default
+- **alert:** multiple alerts can now all be closed independently
+- **storage:** update stored information if newer one is available (eg. AccountInfo after a second PermissionRequest)
+
 ## 1.0.0 (2020-05-29)
 
 #### Bug Fixes
