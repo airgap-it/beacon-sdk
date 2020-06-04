@@ -30,7 +30,6 @@ import {
   RequestBroadcastInput,
   PermissionRequest,
   AppMetadata,
-  BeaconBaseMessage,
   Serializer,
   LocalStorage,
   PermissionResponseOutput,
@@ -44,7 +43,8 @@ import {
   BeaconRequestInputMessage,
   Network,
   P2PPairInfo,
-  P2PTransport
+  P2PTransport,
+  BeaconError
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -228,8 +228,6 @@ export class DAppClient extends Client {
       throw this.handleRequestError(request, requestError)
     })
 
-    await this.handleBeaconError(message)
-
     // TODO: Migration code. Remove before 1.0.0 release.
     const publicKey = message.publicKey || (message as any).pubkey || (message as any).pubKey
     const address = await getAddressFromPublicKey(publicKey)
@@ -292,7 +290,6 @@ export class DAppClient extends Client {
     >(request).catch(async (requestError: BeaconErrorMessage) => {
       throw this.handleRequestError(request, requestError)
     })
-    await this.handleBeaconError(message)
 
     const { beaconId, signature } = message
 
@@ -332,7 +329,6 @@ export class DAppClient extends Client {
     ).catch(async (requestError: BeaconErrorMessage) => {
       throw this.handleRequestError(request, requestError)
     })
-    await this.handleBeaconError(message)
 
     const { beaconId, transactionHash } = message
 
@@ -368,8 +364,6 @@ export class DAppClient extends Client {
     ).catch(async (requestError: BeaconErrorMessage) => {
       throw this.handleRequestError(request, requestError)
     })
-
-    await this.handleBeaconError(message)
 
     const { beaconId, transactionHash } = message
 
@@ -408,15 +402,21 @@ export class DAppClient extends Client {
   }
 
   private async handleRequestError(
-    _request: BeaconRequestInputMessage,
-    error: BeaconErrorMessage
+    request: BeaconRequestInputMessage,
+    beaconError: BeaconErrorMessage
   ): Promise<void> {
-    console.error('requestError', error)
-    // Don't send event here, because it might have been handled before and would trigger multiple alerts
-    // this.events
-    //   .emit(messageEvents[request.type].error, error)
-    //   .catch((emitError) => console.warn(emitError))
-    throw error
+    if (beaconError.errorType) {
+      this.events
+        .emit(messageEvents[request.type].error, beaconError)
+        .catch((emitError) => console.warn(emitError))
+
+      console.log('beacon error', beaconError.errorType)
+      throw BeaconError.getError(beaconError.errorType)
+    }
+
+    console.error('requestError', beaconError)
+
+    throw beaconError
   }
 
   private async notifySuccess(
@@ -445,14 +445,6 @@ export class DAppClient extends Client {
     this.events
       .emit(messageEvents[request.type].success, response)
       .catch((emitError) => console.warn(emitError))
-  }
-
-  private async handleBeaconError(message: BeaconBaseMessage): Promise<void> {
-    const errorMessage = message as BeaconErrorMessage
-    if (errorMessage.errorType) {
-      console.log('error', errorMessage.errorType)
-      throw new Error(errorMessage.errorType)
-    }
   }
 
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
