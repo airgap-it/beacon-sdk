@@ -408,13 +408,14 @@ export class DAppClient extends Client {
   }
 
   private async handleRequestError(
-    request: BeaconRequestInputMessage,
+    _request: BeaconRequestInputMessage,
     error: BeaconErrorMessage
   ): Promise<void> {
     console.error('requestError', error)
-    this.events
-      .emit(messageEvents[request.type].error, error)
-      .catch((emitError) => console.warn(emitError))
+    // Don't send event here, because it might have been handled before and would trigger multiple alerts
+    // this.events
+    //   .emit(messageEvents[request.type].error, error)
+    //   .catch((emitError) => console.warn(emitError))
     throw error
   }
 
@@ -472,18 +473,14 @@ export class DAppClient extends Client {
         .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
         .catch((emitError) => console.warn(emitError))
 
-      throw this.sendInternalError('rate limit reached')
+      throw new Error('rate limit reached')
     }
 
     if (!(await this.checkPermissions(requestInput.type))) {
       this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
 
-      throw this.sendInternalError('No permissions to send this request to wallet!')
+      throw new Error('No permissions to send this request to wallet!')
     }
-
-    this.events
-      .emit(messageEvents[requestInput.type].sent)
-      .catch((emitError) => console.warn(emitError))
 
     if (!this.beaconId) {
       throw this.sendInternalError('BeaconID not defined')
@@ -511,6 +508,10 @@ export class DAppClient extends Client {
       origin = account.origin.id
     }
     await (await this.transport).send(payload, origin)
+
+    this.events
+      .emit(messageEvents[requestInput.type].sent)
+      .catch((emitError) => console.warn(emitError))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed.promise as any // TODO: fix type
