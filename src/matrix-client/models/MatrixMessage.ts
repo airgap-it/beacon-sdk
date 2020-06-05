@@ -15,5 +15,9 @@ export class MatrixMessage<T> {
     return undefined
   }
 
-  constructor(readonly type: MatrixMessageType, readonly sender: string, readonly content: T) {}
+  private constructor(
+    public readonly type: MatrixMessageType,
+    public readonly sender: string,
+    public readonly content: T
+  ) {}
 }

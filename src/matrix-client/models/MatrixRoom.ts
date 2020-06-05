@@ -64,7 +64,9 @@ export class MatrixRoom {
   private static getMembersFromEvents(events: MatrixStateEvent[]): string[] {
     return MatrixRoom.getUniqueEvents(
       events.filter((event) => isCreateEvent(event) || isJoinEvent(event))
-    ).map((event) => event.sender)
+    )
+      .map((event) => event.sender)
+      .filter((member, index, array) => array.indexOf(member) === index)
   }
 
   private static getMessagesFromEvents(events: MatrixStateEvent[]): MatrixMessage<any>[] {
@@ -91,10 +93,10 @@ export class MatrixRoom {
     return uniqueEvents
   }
 
-  constructor(
-    readonly id: string,
-    readonly status: MatrixRoomStatus = MatrixRoomStatus.UNKNOWN,
-    readonly members: string[] = [],
-    readonly messages: MatrixMessage<any>[] = []
+  private constructor(
+    public readonly id: string,
+    public readonly status: MatrixRoomStatus = MatrixRoomStatus.UNKNOWN,
+    public readonly members: string[] = [],
+    public messages: MatrixMessage<any>[] = []
   ) {}
 }

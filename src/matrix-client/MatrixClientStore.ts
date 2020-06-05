@@ -15,7 +15,7 @@ interface MatrixState {
   syncToken: string | undefined
   pollingTimeout: number | undefined
   pollingRetries: number
-  rooms: MatrixRoom[] | { [key: string]: MatrixRoom }
+  rooms: MatrixRoom[] | Record<string, MatrixRoom>
 }
 
 type OnStateChangedListener = (
@@ -25,7 +25,7 @@ type OnStateChangedListener = (
 ) => void
 
 export interface MatrixStateStore extends MatrixState {
-  rooms: { [key: string]: MatrixRoom }
+  rooms: Record<string, MatrixRoom>
 }
 
 export interface MatrixStateUpdate extends MatrixState {
@@ -101,6 +101,23 @@ export class MatrixClientStore {
   }
 
   private updateStorage(stateUpdate: Partial<MatrixStateUpdate>): void {
+    function prepareData(toStore: Partial<MatrixStateStore>): Partial<MatrixStateStore> {
+      const requiresPeparation: (keyof MatrixStateStore)[] = ['rooms']
+
+      const toStoreCopy: Partial<MatrixStateStore> = requiresPeparation.some(
+        (key: keyof MatrixStateStore) => toStore[key] !== undefined
+      )
+        ? JSON.parse(JSON.stringify(toStore))
+        : toStore
+
+      // there is no need for saving messages in a persistent storage
+      Object.values(toStoreCopy.rooms || {}).forEach((room: MatrixRoom) => {
+        room.messages = []
+      })
+
+      return toStoreCopy
+    }
+
     const updatedCachedFields = Object.entries(stateUpdate).filter(
       ([key, value]) => PRESERVED_FIELDS.includes(key as keyof MatrixStateUpdate) && !!value
     )
@@ -111,7 +128,7 @@ export class MatrixClientStore {
         filteredState[key] = this.state[key]
       })
 
-      this.storage.setItem(STORAGE_KEY, JSON.stringify(filteredState))
+      this.storage.setItem(STORAGE_KEY, JSON.stringify(prepareData(filteredState)))
     }
   }
 
@@ -130,14 +147,14 @@ export class MatrixClientStore {
   }
 
   private mergeRooms(
-    oldRooms: { [key: string]: MatrixRoom },
-    _newRooms?: MatrixRoom[] | { [key: string]: MatrixRoom }
-  ): { [key: string]: MatrixRoom } {
+    oldRooms: Record<string, MatrixRoom>,
+    _newRooms?: MatrixRoom[] | Record<string, MatrixRoom>
+  ): Record<string, MatrixRoom> {
     if (!_newRooms) {
       return oldRooms
     }
 
-    let newRooms: { [key: string]: MatrixRoom } = {}
+    let newRooms: Record<string, MatrixRoom> = {}
     if (Array.isArray(_newRooms)) {
       _newRooms.forEach((room: MatrixRoom) => {
         newRooms[room.id] = room
