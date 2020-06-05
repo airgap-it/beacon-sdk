@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3 (unreleased)
+
+#### Bug Fixes
+
+- **p2p:** ignore dupliacte messages
+
 ## 1.0.2 (2020-06-04)
 
 #### Bug Fixes
