@@ -48,7 +48,7 @@ import { ParametersInvalidBeaconError } from './errors/ParametersInvalidBeaconEr
 import { TooManyOperationsBeaconError } from './errors/TooManyOperationsBeaconError'
 import { TransactionInvalidBeaconError } from './errors/TransactionInvalidBeaconError'
 import { UnknownBeaconError } from './errors/UnknownBeaconError'
-import { BeaconErrorMessage } from './types/BeaconErrorMessage'
+import { ErrorResponse } from './types/beacon/messages/ErrorResponse'
 import { TransportStatus } from './types/transport/TransportStatus'
 import { TransportType } from './types/transport/TransportType'
 import { PostMessageTransport } from './transports/PostMessageTransport'
@@ -207,7 +207,7 @@ export {
 export {
   BeaconError,
   BeaconErrorType,
-  BeaconErrorMessage,
+  ErrorResponse as BeaconErrorMessage,
   BroadcastBeaconError,
   NetworkNotSupportedBeaconError,
   NoAddressBeaconError,

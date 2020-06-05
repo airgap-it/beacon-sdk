@@ -15,14 +15,15 @@ import {
 import { PermissionManager } from '../../managers/PermissionManager'
 import { AppMetadataManager } from '../../managers/AppMetadataManager'
 import { ConnectionContext } from '../../types/ConnectionContext'
-import { IncomingBeaconMessageInterceptor } from '../../interceptors/IncomingBeaconMessageInterceptor'
-import { OutgoingBeaconMessageInterceptor } from '../../interceptors/OutgoingBeaconMessageInterceptor'
+import { IncomingRequestInterceptor } from '../../interceptors/IncomingRequestInterceptor'
+import { OutgoingResponseInterceptor } from '../../interceptors/OutgoingResponseInterceptor'
+import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 
 export class WalletClient extends Client {
   private readonly permissionManager: PermissionManager
   private readonly appMetadataManager: AppMetadataManager
 
-  private pendingRequests: BeaconMessage[] = []
+  private pendingRequests: BeaconRequestMessage[] = []
 
   constructor(config: WalletClientOptions) {
     super({ name: config.name, storage: new LocalStorage() })
@@ -41,12 +42,12 @@ export class WalletClient extends Client {
     ) => void
   ): Promise<boolean> {
     this.handleResponse = async (
-      message: BeaconMessage,
+      message: BeaconRequestMessage,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
       if (!this.pendingRequests.some((request) => request.id === message.id)) {
         this.pendingRequests.push(message)
-        await IncomingBeaconMessageInterceptor.intercept({
+        await IncomingRequestInterceptor.intercept({
           message,
           connectionInfo,
           appMetadataManager: this.appMetadataManager,
@@ -69,7 +70,7 @@ export class WalletClient extends Client {
       (pendingRequest) => pendingRequest.id !== message.id
     )
 
-    await OutgoingBeaconMessageInterceptor.intercept({
+    await OutgoingResponseInterceptor.intercept({
       beaconId: await this.beaconId,
       request,
       message,
