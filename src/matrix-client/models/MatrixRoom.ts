@@ -62,17 +62,33 @@ export class MatrixRoom {
   }
 
   private static getMembersFromEvents(events: MatrixStateEvent[]): string[] {
-    return events
-      .filter((event) => isCreateEvent(event) || isJoinEvent(event))
-      .map((event) => event.sender)
-      .filter((member, index, array) => array.indexOf(member) === index)
+    return MatrixRoom.getUniqueEvents(
+      events.filter((event) => isCreateEvent(event) || isJoinEvent(event))
+    ).map((event) => event.sender)
   }
 
   private static getMessagesFromEvents(events: MatrixStateEvent[]): MatrixMessage<any>[] {
-    return events
-      .filter(isMessageEvent)
+    return MatrixRoom.getUniqueEvents(events.filter(isMessageEvent))
       .map((event) => MatrixMessage.from(event))
       .filter((message) => !!message) as MatrixMessage<any>[]
+  }
+
+  private static getUniqueEvents(events: MatrixStateEvent[]): MatrixStateEvent[] {
+    const eventIds: Record<string, number> = {}
+    const uniqueEvents: MatrixStateEvent[] = []
+
+    events.forEach((event: MatrixStateEvent, index: number) => {
+      const eventId = event.event_id
+      if (eventId === undefined || !(eventId in eventIds)) {
+        if (eventId !== undefined) {
+          eventIds[eventId] = index
+        }
+
+        uniqueEvents.push(event)
+      }
+    })
+
+    return uniqueEvents
   }
 
   constructor(
