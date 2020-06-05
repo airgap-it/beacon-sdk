@@ -39,6 +39,21 @@ export class MatrixRoom {
       : new MatrixRoom(roomOrId, status || MatrixRoomStatus.UNKNOWN)
   }
 
+  public static merge(newState: MatrixRoom, previousState?: MatrixRoom): MatrixRoom {
+    if (!previousState || previousState.id !== newState.id) {
+      return MatrixRoom.from(newState)
+    }
+
+    return new MatrixRoom(
+      newState.id,
+      newState.status,
+      [...previousState.members, ...newState.members].filter(
+        (member, index, array) => array.indexOf(member) === index
+      ),
+      [...previousState.messages, ...newState.messages]
+    )
+  }
+
   private static fromJoined(id: string, joined: MatrixSyncJoinedRoom): MatrixRoom {
     const events = [...joined.state.events, ...joined.timeline.events]
     const members = MatrixRoom.getMembersFromEvents(events)

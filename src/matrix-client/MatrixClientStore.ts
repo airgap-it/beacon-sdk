@@ -154,19 +154,14 @@ export class MatrixClientStore {
       return oldRooms
     }
 
-    let newRooms: Record<string, MatrixRoom> = {}
-    if (Array.isArray(_newRooms)) {
-      _newRooms.forEach((room: MatrixRoom) => {
-        newRooms[room.id] = room
-      })
-    } else {
-      newRooms = _newRooms
-    }
+    const newRooms: MatrixRoom[] = Array.isArray(_newRooms) ? _newRooms : Object.values(_newRooms)
 
-    return {
-      ...oldRooms,
-      ...newRooms
-    }
+    const merged: Record<string, MatrixRoom> = Object.assign({}, oldRooms)
+    newRooms.forEach((newRoom: MatrixRoom) => {
+      merged[newRoom.id] = MatrixRoom.merge(newRoom, oldRooms[newRoom.id])
+    })
+
+    return merged
   }
 
   private notifyListeners(
