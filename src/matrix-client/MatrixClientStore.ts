@@ -69,6 +69,7 @@ export class MatrixClientStore {
 
   public getRoom(roomOrId: string | MatrixRoom): MatrixRoom {
     const room = MatrixRoom.from(roomOrId, MatrixRoomStatus.UNKNOWN)
+
     return this.state.rooms[room.id] || room
   }
 
@@ -100,26 +101,26 @@ export class MatrixClientStore {
     }
   }
 
+  private prepareData(toStore: Partial<MatrixStateStore>): Partial<MatrixStateStore> {
+    const requiresPreparation: (keyof MatrixStateStore)[] = ['rooms']
+
+    const toStoreCopy: Partial<MatrixStateStore> = requiresPreparation.some(
+      (key: keyof MatrixStateStore) => toStore[key] !== undefined
+    )
+      ? JSON.parse(JSON.stringify(toStore))
+      : toStore
+
+    // there is no need for saving messages in a persistent storage
+    Object.values(toStoreCopy.rooms || {}).forEach((room: MatrixRoom) => {
+      room.messages = []
+    })
+
+    return toStoreCopy
+  }
+
   private updateStorage(stateUpdate: Partial<MatrixStateUpdate>): void {
-    function prepareData(toStore: Partial<MatrixStateStore>): Partial<MatrixStateStore> {
-      const requiresPeparation: (keyof MatrixStateStore)[] = ['rooms']
-
-      const toStoreCopy: Partial<MatrixStateStore> = requiresPeparation.some(
-        (key: keyof MatrixStateStore) => toStore[key] !== undefined
-      )
-        ? JSON.parse(JSON.stringify(toStore))
-        : toStore
-
-      // there is no need for saving messages in a persistent storage
-      Object.values(toStoreCopy.rooms || {}).forEach((room: MatrixRoom) => {
-        room.messages = []
-      })
-
-      return toStoreCopy
-    }
-
     const updatedCachedFields = Object.entries(stateUpdate).filter(
-      ([key, value]) => PRESERVED_FIELDS.includes(key as keyof MatrixStateUpdate) && !!value
+      ([key, value]) => PRESERVED_FIELDS.includes(key as keyof MatrixStateUpdate) && Boolean(value)
     )
 
     if (this.storage && updatedCachedFields.length > 0) {
@@ -128,7 +129,7 @@ export class MatrixClientStore {
         filteredState[key] = this.state[key]
       })
 
-      this.storage.setItem(STORAGE_KEY, JSON.stringify(prepareData(filteredState)))
+      this.storage.setItem(STORAGE_KEY, JSON.stringify(this.prepareData(filteredState)))
     }
   }
 
