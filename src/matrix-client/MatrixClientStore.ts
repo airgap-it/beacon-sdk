@@ -15,7 +15,7 @@ interface MatrixState {
   syncToken: string | undefined
   pollingTimeout: number | undefined
   pollingRetries: number
-  rooms: MatrixRoom[] | { [key: string]: MatrixRoom }
+  rooms: MatrixRoom[] | Record<string, MatrixRoom>
 }
 
 type OnStateChangedListener = (
@@ -25,7 +25,7 @@ type OnStateChangedListener = (
 ) => void
 
 export interface MatrixStateStore extends MatrixState {
-  rooms: { [key: string]: MatrixRoom }
+  rooms: Record<string, MatrixRoom>
 }
 
 export interface MatrixStateUpdate extends MatrixState {
@@ -69,6 +69,7 @@ export class MatrixClientStore {
 
   public getRoom(roomOrId: string | MatrixRoom): MatrixRoom {
     const room = MatrixRoom.from(roomOrId, MatrixRoomStatus.UNKNOWN)
+
     return this.state.rooms[room.id] || room
   }
 
@@ -100,9 +101,26 @@ export class MatrixClientStore {
     }
   }
 
+  private prepareData(toStore: Partial<MatrixStateStore>): Partial<MatrixStateStore> {
+    const requiresPreparation: (keyof MatrixStateStore)[] = ['rooms']
+
+    const toStoreCopy: Partial<MatrixStateStore> = requiresPreparation.some(
+      (key: keyof MatrixStateStore) => toStore[key] !== undefined
+    )
+      ? JSON.parse(JSON.stringify(toStore))
+      : toStore
+
+    // there is no need for saving messages in a persistent storage
+    Object.values(toStoreCopy.rooms || {}).forEach((room: MatrixRoom) => {
+      room.messages = []
+    })
+
+    return toStoreCopy
+  }
+
   private updateStorage(stateUpdate: Partial<MatrixStateUpdate>): void {
     const updatedCachedFields = Object.entries(stateUpdate).filter(
-      ([key, value]) => PRESERVED_FIELDS.includes(key as keyof MatrixStateUpdate) && !!value
+      ([key, value]) => PRESERVED_FIELDS.includes(key as keyof MatrixStateUpdate) && Boolean(value)
     )
 
     if (this.storage && updatedCachedFields.length > 0) {
@@ -111,7 +129,7 @@ export class MatrixClientStore {
         filteredState[key] = this.state[key]
       })
 
-      this.storage.setItem(STORAGE_KEY, JSON.stringify(filteredState))
+      this.storage.setItem(STORAGE_KEY, JSON.stringify(this.prepareData(filteredState)))
     }
   }
 
@@ -130,26 +148,21 @@ export class MatrixClientStore {
   }
 
   private mergeRooms(
-    oldRooms: { [key: string]: MatrixRoom },
-    _newRooms?: MatrixRoom[] | { [key: string]: MatrixRoom }
-  ): { [key: string]: MatrixRoom } {
+    oldRooms: Record<string, MatrixRoom>,
+    _newRooms?: MatrixRoom[] | Record<string, MatrixRoom>
+  ): Record<string, MatrixRoom> {
     if (!_newRooms) {
       return oldRooms
     }
 
-    let newRooms: { [key: string]: MatrixRoom } = {}
-    if (Array.isArray(_newRooms)) {
-      _newRooms.forEach((room: MatrixRoom) => {
-        newRooms[room.id] = room
-      })
-    } else {
-      newRooms = _newRooms
-    }
+    const newRooms: MatrixRoom[] = Array.isArray(_newRooms) ? _newRooms : Object.values(_newRooms)
 
-    return {
-      ...oldRooms,
-      ...newRooms
-    }
+    const merged: Record<string, MatrixRoom> = Object.assign({}, oldRooms)
+    newRooms.forEach((newRoom: MatrixRoom) => {
+      merged[newRoom.id] = MatrixRoom.merge(newRoom, oldRooms[newRoom.id])
+    })
+
+    return merged
   }
 
   private notifyListeners(

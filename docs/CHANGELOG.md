@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.3 (2020-06-05)
+
+#### Bug Fixes
+
+- **p2p:** ignore dupliacte messages
+- **alert:** fix timeout not working if multiple alerts are open
+
 ## 1.0.2 (2020-06-04)
 
 #### Bug Fixes

@@ -39,6 +39,21 @@ export class MatrixRoom {
       : new MatrixRoom(roomOrId, status || MatrixRoomStatus.UNKNOWN)
   }
 
+  public static merge(newState: MatrixRoom, previousState?: MatrixRoom): MatrixRoom {
+    if (!previousState || previousState.id !== newState.id) {
+      return MatrixRoom.from(newState)
+    }
+
+    return new MatrixRoom(
+      newState.id,
+      newState.status,
+      [...previousState.members, ...newState.members].filter(
+        (member, index, array) => array.indexOf(member) === index
+      ),
+      [...previousState.messages, ...newState.messages]
+    )
+  }
+
   private static fromJoined(id: string, joined: MatrixSyncJoinedRoom): MatrixRoom {
     const events = [...joined.state.events, ...joined.timeline.events]
     const members = MatrixRoom.getMembersFromEvents(events)
@@ -62,23 +77,41 @@ export class MatrixRoom {
   }
 
   private static getMembersFromEvents(events: MatrixStateEvent[]): string[] {
-    return events
-      .filter((event) => isCreateEvent(event) || isJoinEvent(event))
+    return MatrixRoom.getUniqueEvents(
+      events.filter((event) => isCreateEvent(event) || isJoinEvent(event))
+    )
       .map((event) => event.sender)
       .filter((member, index, array) => array.indexOf(member) === index)
   }
 
   private static getMessagesFromEvents(events: MatrixStateEvent[]): MatrixMessage<any>[] {
-    return events
-      .filter(isMessageEvent)
+    return MatrixRoom.getUniqueEvents(events.filter(isMessageEvent))
       .map((event) => MatrixMessage.from(event))
       .filter((message) => !!message) as MatrixMessage<any>[]
   }
 
-  constructor(
-    readonly id: string,
-    readonly status: MatrixRoomStatus = MatrixRoomStatus.UNKNOWN,
-    readonly members: string[] = [],
-    readonly messages: MatrixMessage<any>[] = []
+  private static getUniqueEvents(events: MatrixStateEvent[]): MatrixStateEvent[] {
+    const eventIds: Record<string, number> = {}
+    const uniqueEvents: MatrixStateEvent[] = []
+
+    events.forEach((event: MatrixStateEvent, index: number) => {
+      const eventId = event.event_id
+      if (eventId === undefined || !(eventId in eventIds)) {
+        if (eventId !== undefined) {
+          eventIds[eventId] = index
+        }
+
+        uniqueEvents.push(event)
+      }
+    })
+
+    return uniqueEvents
+  }
+
+  private constructor(
+    public readonly id: string,
+    public readonly status: MatrixRoomStatus = MatrixRoomStatus.UNKNOWN,
+    public readonly members: string[] = [],
+    public messages: MatrixMessage<any>[] = []
   ) {}
 }
