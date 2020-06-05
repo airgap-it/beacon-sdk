@@ -1,2 +1,2 @@
-export const SDK_VERSION: string = '1.0.3-beta.0'
+export const SDK_VERSION: string = '1.0.3'
 export const BEACON_VERSION: string = '1'
