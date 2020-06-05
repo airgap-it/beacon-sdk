@@ -7,7 +7,7 @@ export class NetworkNotSupportedBeaconError extends BeaconError {
   constructor() {
     super(
       BeaconErrorType.NETWORK_NOT_SUPPORTED,
-      'The wallet does not support this network. Please chose another one.'
+      'The wallet does not support this network. Please select another one.'
     )
   }
 }
