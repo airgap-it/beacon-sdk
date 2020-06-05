@@ -8,7 +8,6 @@ import {
   TransportType,
   TransportStatus,
   BeaconBaseMessage,
-  BeaconMessage,
   AccountInfo,
   P2PPairInfo
 } from '../..'
@@ -17,6 +16,7 @@ import { Logger } from '../../utils/Logger'
 import { isChromeExtensionInstalled } from '../../utils/is-extension-installed'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
+import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { ClientOptions } from './ClientOptions'
 
 const logger = new Logger('BaseClient')
@@ -26,7 +26,10 @@ export abstract class Client extends BeaconClient {
 
   protected requestCounter: number[] = []
 
-  protected handleResponse: (_event: BeaconMessage, connectionInfo: ConnectionContext) => void
+  protected handleResponse: (
+    _event: BeaconRequestMessage,
+    connectionInfo: ConnectionContext
+  ) => void
 
   protected readonly rateLimit: number = 2
   protected readonly rateLimitWindowInSeconds: number = 5
@@ -154,7 +157,7 @@ export abstract class Client extends BeaconClient {
           if (typeof message === 'string') {
             const deserializedMessage = (await new Serializer().deserialize(
               message
-            )) as BeaconMessage
+            )) as BeaconRequestMessage
             this.handleResponse(deserializedMessage, connectionInfo)
           }
         })

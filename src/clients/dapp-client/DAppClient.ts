@@ -88,20 +88,33 @@ export class DAppClient extends Client {
         console.error(storageError)
       })
 
-    this.handleResponse = (event: BeaconMessage, connectionInfo: ConnectionContext): void => {
-      const openRequest = this.openRequests.get(event.id)
+    this.handleResponse = async (
+      message: BeaconMessage,
+      connectionInfo: ConnectionContext
+    ): Promise<void> => {
+      const openRequest = this.openRequests.get(message.id)
       if (openRequest) {
-        logger.log('handleResponse', 'found openRequest', event.id)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const errorMessage: BeaconErrorMessage = (event as any) as BeaconErrorMessage
-        if (errorMessage.errorType) {
-          openRequest.reject(errorMessage)
+        logger.log('handleResponse', 'found openRequest', message.id)
+        if (message.type === BeaconMessageType.Error) {
+          openRequest.reject(message)
         } else {
-          openRequest.resolve({ message: event, connectionInfo })
+          openRequest.resolve({ message, connectionInfo })
         }
-        this.openRequests.delete(event.id)
+        this.openRequests.delete(message.id)
       } else {
-        logger.error('handleResponse', 'no request found for id ', event.id)
+        if (message.type === BeaconMessageType.Disconnect) {
+          const transport = await this.transport
+          if (transport.type === TransportType.P2P) {
+            await (transport as P2PTransport).removePeer({
+              name: '',
+              publicKey: message.beaconId,
+              relayServer: ''
+            })
+            await this.events.emit(BeaconEvent.P2P_CHANNEL_CLOSED)
+          }
+        } else {
+          logger.error('handleResponse', 'no request found for id ', message.id)
+        }
       }
     }
   }

@@ -14,18 +14,19 @@ import { AppMetadataManager } from '../managers/AppMetadataManager'
 import { BEACON_VERSION } from '../constants'
 import { getAddressFromPublicKey } from '../utils/crypto'
 import { getAccountIdentifier } from '../utils/get-account-identifier'
+import { BeaconRequestMessage } from '../types/beacon/BeaconRequestMessage'
 
-interface OutgoingBeaconMessageInterceptorOptions {
+interface OutgoingResponseInterceptorOptions {
   beaconId: string
-  request: BeaconMessage
+  request: BeaconRequestMessage
   message: BeaconResponseInputMessage
   permissionManager: PermissionManager
   appMetadataManager: AppMetadataManager
   interceptorCallback(message: BeaconMessage): void
 }
 
-export class OutgoingBeaconMessageInterceptor {
-  public static async intercept(config: OutgoingBeaconMessageInterceptorOptions): Promise<void> {
+export class OutgoingResponseInterceptor {
+  public static async intercept(config: OutgoingResponseInterceptorOptions): Promise<void> {
     const {
       beaconId,
       request,
@@ -33,23 +34,20 @@ export class OutgoingBeaconMessageInterceptor {
       permissionManager,
       appMetadataManager,
       interceptorCallback
-    }: OutgoingBeaconMessageInterceptorOptions = config
-
-    const errorMessage: BeaconErrorMessage = (message as any) as BeaconErrorMessage
-    if (errorMessage.errorType) {
-      const response: BeaconErrorMessage = {
-        type: message.type,
-        version: BEACON_VERSION,
-        beaconId,
-        id: message.id,
-        errorType: errorMessage.errorType
-      }
-      interceptorCallback(response as any)
-
-      return
-    }
+    }: OutgoingResponseInterceptorOptions = config
 
     switch (message.type) {
+      case BeaconMessageType.Error: {
+        const response: BeaconErrorMessage = {
+          type: message.type,
+          version: BEACON_VERSION,
+          beaconId,
+          id: message.id,
+          errorType: message.errorType
+        }
+        interceptorCallback(response)
+        break
+      }
       case BeaconMessageType.PermissionResponse: {
         const response: PermissionResponse = {
           beaconId,

@@ -47,6 +47,7 @@ export enum BeaconEvent {
 
   P2P_CHANNEL_CONNECT_SUCCESS = 'P2P_CHANNEL_CONNECT_SUCCESS',
   P2P_LISTEN_FOR_CHANNEL_OPEN = 'P2P_LISTEN_FOR_CHANNEL_OPEN',
+  P2P_CHANNEL_CLOSED = 'P2P_CHANNEL_CLOSED',
 
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   UNKNOWN = 'UNKNOWN'
@@ -87,6 +88,7 @@ export interface BeaconEventType {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: undefined
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairInfo
+  [BeaconEvent.P2P_CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: string
   [BeaconEvent.UNKNOWN]: undefined
 }
@@ -123,6 +125,15 @@ const showRateLimitReached = async (): Promise<void> => {
 const showOkAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Success',
+    confirmButtonText: 'Done',
+    timer: 1500
+  })
+}
+
+const showChannelClosedAlert = async (): Promise<void> => {
+  await openAlert({
+    title: 'Channel closed',
+    body: `Your peer has closed the connection.`,
     confirmButtonText: 'Done',
     timer: 1500
   })
@@ -270,6 +281,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showOkAlert,
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrCode,
+  [BeaconEvent.P2P_CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
   [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)
 }
@@ -296,6 +308,7 @@ export class BeaconEventHandler {
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
     [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: [defaultEventCallbacks.P2P_CHANNEL_CONNECT_SUCCESS],
     [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: [defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN],
+    [BeaconEvent.P2P_CHANNEL_CLOSED]: [defaultEventCallbacks.P2P_CHANNEL_CLOSED],
     [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
   }
