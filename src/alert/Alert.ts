@@ -19,7 +19,7 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document = window.document
 }
 
-let timeout: NodeJS.Timeout | undefined
+const timeout: Record<string, NodeJS.Timeout | undefined> = {}
 
 const formatBody = (dataString: string): string => {
   if (typeof dataString === 'string') {
@@ -271,9 +271,10 @@ const closeAlert = (id: string): Promise<void> =>
     if (elm) {
       const animationDuration = 300
 
-      if (timeout) {
-        clearTimeout(timeout)
-        timeout = undefined
+      const localTimeout = timeout[id]
+      if (localTimeout) {
+        clearTimeout(localTimeout)
+        timeout[id] = undefined
       }
 
       elm.className = elm.className.replace('fadeIn', 'fadeOut')
@@ -326,7 +327,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   wrapper.innerHTML = formatAlert(id, formattedBody, title, confirmButtonText, actionButtonText)
 
   if (timer) {
-    timeout = setTimeout(async () => {
+    timeout[id] = setTimeout(async () => {
       await closeAlert(id)
     }, timer)
   }
