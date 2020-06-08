@@ -13,13 +13,10 @@ import {
   P2PPairInfo
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
-import { Logger } from '../../utils/Logger'
 import { isChromeExtensionInstalled } from '../../utils/is-extension-installed'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { ClientOptions } from './ClientOptions'
-
-const logger = new Logger('BaseClient')
 
 export abstract class Client extends BeaconClient {
   protected readonly accountManager: AccountManager
