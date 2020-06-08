@@ -106,7 +106,7 @@ import { SDK_VERSION, BEACON_VERSION } from './constants'
 import { AccountManager } from './managers/AccountManager'
 import { AppMetadataManager } from './managers/AppMetadataManager'
 import { PermissionManager } from './managers/PermissionManager'
-import { BeaconEvent } from './events'
+import { BeaconEvent, defaultEventCallbacks } from './events'
 import { getAddressFromPublicKey } from './utils/crypto'
 import { BeaconClient } from './clients/beacon-client/BeaconClient'
 import { BeaconClientOptions } from './clients/beacon-client/BeaconClientOptions'
@@ -231,7 +231,7 @@ export {
 }
 
 // Events
-export { BeaconEvent }
+export { BeaconEvent, defaultEventCallbacks }
 
 // Storage
 export {

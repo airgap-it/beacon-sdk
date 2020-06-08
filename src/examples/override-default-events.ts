@@ -1,11 +1,12 @@
 import {
+  BeaconEvent,
   BeaconErrorMessage,
   DAppClient,
   PermissionScope,
   PermissionResponseOutput,
-  P2PPairInfo
-} from '..'
-import { BeaconEvent, defaultEventCallbacks } from '../events'
+  P2PPairInfo,
+  defaultEventCallbacks
+} from '..' // Replace '..' with '@airgap/beacon-sdk'
 
 const client = new DAppClient({
   name: 'My Sample DApp',
