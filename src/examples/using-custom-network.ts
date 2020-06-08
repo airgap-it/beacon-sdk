@@ -8,7 +8,7 @@ import {
   TezosOperationType,
   OperationResponseOutput,
   PermissionResponseOutput
-} from '..'
+} from '..' // Replace '..' with '@airgap/beacon-sdk'
 
 const client = new DAppClient({ name: 'My Sample DApp' })
 
@@ -29,8 +29,7 @@ client
     network,
     scopes
   })
-  .then((permissionResponse: PermissionResponseOutput) => {
-    // Check if operation permissions were granted
+  .then(async (permissionResponse: PermissionResponseOutput) => {
     if (
       permissionResponse.scopes.some(
         (permission: PermissionScope) => permission === PermissionScope.OPERATION_REQUEST
@@ -41,15 +40,14 @@ client
         amount: '1234567',
         destination: 'tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ'
       }
-      client
-        .requestOperation({ network, operationDetails: [operation] })
-        .then((operationResponse: OperationResponseOutput) => {
-          console.log(
-            'operation was successfully broadcast to the network with the hash: ',
-            operationResponse
-          )
-        })
-        .catch((operationError: BeaconErrorMessage) => console.error(operationError))
+      const operationResponse: OperationResponseOutput = await client.requestOperation({
+        operationDetails: [operation]
+      })
+
+      console.log(
+        'operation was successfully broadcast to the network with the hash: ',
+        operationResponse.transactionHash
+      )
     }
   })
   .catch((permissionError: BeaconErrorMessage) => console.error(permissionError))

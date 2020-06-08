@@ -4,7 +4,7 @@ import {
   TezosTransactionOperation,
   BeaconErrorMessage,
   OperationResponseOutput
-} from '..'
+} from '..' // Replace '..' with '@airgap/beacon-sdk'
 
 const client = new DAppClient({ name: 'My Sample DApp' })
 
