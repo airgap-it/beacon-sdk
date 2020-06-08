@@ -64,7 +64,7 @@ export class DAppClient extends Client {
   >()
   private readonly iconUrl?: string
 
-  private activeAccount: AccountInfo | undefined
+  private _activeAccount: ExposedPromise<AccountInfo | undefined> = new ExposedPromise()
 
   public get isConnected(): Promise<boolean> {
     return this._isConnected.promise
@@ -79,9 +79,9 @@ export class DAppClient extends Client {
 
     this.storage
       .get(StorageKey.ACTIVE_ACCOUNT)
-      .then(async (activeAccount) => {
-        if (activeAccount) {
-          await this.setActiveAccount(await this.accountManager.getAccount(activeAccount))
+      .then(async (activeAccountIdentifier) => {
+        if (activeAccountIdentifier) {
+          await this.setActiveAccount(await this.accountManager.getAccount(activeAccountIdentifier))
         }
       })
       .catch((storageError) => {
@@ -124,11 +124,14 @@ export class DAppClient extends Client {
   }
 
   public async getActiveAccount(): Promise<AccountInfo | undefined> {
-    return this.activeAccount
+    return this._activeAccount.promise
   }
 
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
-    this.activeAccount = account
+    if (this._activeAccount.isSettled()) {
+      // If the promise has already been resolved we need to create a new one.
+      this._activeAccount = new ExposedPromise<AccountInfo | undefined>({ result: account })
+    }
 
     await this.storage.set(
       StorageKey.ACTIVE_ACCOUNT,
@@ -154,7 +157,9 @@ export class DAppClient extends Client {
 
   public async removeAccount(accountIdentifier: string): Promise<void> {
     const removeAccountResult = super.removeAccount(accountIdentifier)
-    if (this.activeAccount && this.activeAccount.accountIdentifier === accountIdentifier) {
+    const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
+
+    if (activeAccount && activeAccount.accountIdentifier === accountIdentifier) {
       await this.setActiveAccount(undefined)
     }
 
@@ -194,13 +199,13 @@ export class DAppClient extends Client {
       return true
     }
 
-    const accountInfo = this.activeAccount
+    const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
 
-    if (!accountInfo) {
+    if (!activeAccount) {
       throw this.sendInternalError('No active account set!')
     }
 
-    const permissions = accountInfo.scopes
+    const permissions = activeAccount.scopes
 
     return checkPermissions(type, permissions)
   }
@@ -248,7 +253,6 @@ export class DAppClient extends Client {
 
     await this.accountManager.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)
-    console.log('permissions interception', { message, connectionInfo })
 
     const { beaconId, network, scopes } = message
 
@@ -272,11 +276,10 @@ export class DAppClient extends Client {
     if (!input.payload) {
       throw this.sendInternalError('Payload must be provided')
     }
-    if (!this.activeAccount) {
+    const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
+    if (!activeAccount) {
       throw this.sendInternalError('No active account!')
     }
-
-    const activeAccount = this.activeAccount
 
     const request: SignPayloadRequestInput = {
       type: BeaconMessageType.SignPayloadRequest,
@@ -311,11 +314,10 @@ export class DAppClient extends Client {
     if (!input.operationDetails) {
       throw this.sendInternalError('Operation details must be provided')
     }
-    if (!this.activeAccount) {
+    const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
+    if (!activeAccount) {
       throw this.sendInternalError('No active account!')
     }
-
-    const activeAccount = this.activeAccount
 
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
@@ -393,8 +395,9 @@ export class DAppClient extends Client {
     await this.accountManager.removeAccounts(accountIdentifiersToRemove)
 
     // Check if one of the accounts that was removed was the active account and if yes, set it to undefined
-    if (this.activeAccount) {
-      const activeAccount = this.activeAccount
+    const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
+
+    if (activeAccount) {
       if (accountIdentifiersToRemove.includes(activeAccount.accountIdentifier)) {
         await this.setActiveAccount(undefined)
       }
@@ -410,7 +413,6 @@ export class DAppClient extends Client {
         .emit(messageEvents[request.type].error, beaconError)
         .catch((emitError) => console.warn(emitError))
 
-      console.log('beacon error', beaconError.errorType)
       throw BeaconError.getError(beaconError.errorType)
     }
 
