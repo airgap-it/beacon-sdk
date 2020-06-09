@@ -82,9 +82,12 @@ export class DAppClient extends Client {
       .then(async (activeAccountIdentifier) => {
         if (activeAccountIdentifier) {
           await this.setActiveAccount(await this.accountManager.getAccount(activeAccountIdentifier))
+        } else {
+          await this.setActiveAccount(undefined)
         }
       })
-      .catch((storageError) => {
+      .catch(async (storageError) => {
+        await this.setActiveAccount(undefined)
         console.error(storageError)
       })
 
