@@ -40,11 +40,11 @@ export abstract class BeaconClient {
   private async loadOrCreateBeaconSecret(): Promise<void> {
     const storageValue: unknown = await this.storage.get(StorageKey.BEACON_SDK_SECRET_SEED)
     if (storageValue && typeof storageValue === 'string') {
-      this._keyPair.resolve(getKeypairFromSeed(storageValue))
+      this._keyPair.resolve(await getKeypairFromSeed(storageValue))
     } else {
       const key = generateGUID()
       await this.storage.set(StorageKey.BEACON_SDK_SECRET_SEED, key)
-      this._keyPair.resolve(getKeypairFromSeed(key))
+      this._keyPair.resolve(await getKeypairFromSeed(key))
     }
   }
 }

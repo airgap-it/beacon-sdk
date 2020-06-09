@@ -1,24 +1,22 @@
 export enum ExposedPromiseStatus {
-  INITIAL = 'initial',
   PENDING = 'pending',
   RESOLVED = 'resolved',
   REJECTED = 'rejected'
 }
 
-type Resolve<T> = (value?: T | PromiseLike<T>) => void
-type Reject<U> = (reason?: U | PromiseLike<U>) => void
+type Resolve<T> = (value?: T) => void
+type Reject<U> = (reason?: U) => void
 
-/* eslint-disable prefer-arrow/prefer-arrow-functions */
-
-function notInitialized(): never {
+const notInitialized = (): never => {
   throw new Error('ExposedPromise not initialized yet.')
 }
-export class ExposedPromise<T, U = unknown> {
+
+export class ExposedPromise<T = unknown, U = unknown> {
   private readonly _promise: Promise<T>
 
   private _resolve: Resolve<T> = notInitialized
   private _reject: Reject<U> = notInitialized
-  private _status: ExposedPromiseStatus = ExposedPromiseStatus.INITIAL
+  private _status: ExposedPromiseStatus = ExposedPromiseStatus.PENDING
   private _promiseResult: T | undefined
   private _promiseError: U | undefined
 
@@ -44,24 +42,47 @@ export class ExposedPromise<T, U = unknown> {
 
   constructor() {
     this._promise = new Promise<T>((innerResolve: Resolve<T>, innerReject: Reject<U>): void => {
-      this._resolve = async (value?: T | PromiseLike<T>): Promise<void> => {
-        this._status = ExposedPromiseStatus.PENDING
-        try {
-          this._promiseResult = await value
-        } catch (innerReason) {
-          return innerReject(innerReason)
+      this._resolve = (value?: T): void => {
+        if (this.isSettled()) {
+          return
         }
+
+        this._promiseResult = value
+
+        innerResolve(value)
+
         this._status = ExposedPromiseStatus.RESOLVED
 
-        return innerResolve(value)
+        return
       }
-      this._reject = async (reason?: U | PromiseLike<U>): Promise<void> => {
-        this._status = ExposedPromiseStatus.REJECTED
-        this._promiseError = await reason
+      this._reject = (reason?: U): void => {
+        if (this.isSettled()) {
+          return
+        }
 
-        return innerReject(reason)
+        this._promiseError = reason
+
+        innerReject(reason)
+
+        this._status = ExposedPromiseStatus.REJECTED
+
+        return
       }
     })
+  }
+
+  public static resolve<T>(value?: T): ExposedPromise<T> {
+    const promise = new ExposedPromise<T>()
+    promise.resolve(value)
+
+    return promise
+  }
+
+  public static reject<T = never, U = unknown>(reason?: U): ExposedPromise<T, U> {
+    const promise = new ExposedPromise<T, U>()
+    promise.reject(reason)
+
+    return promise
   }
 
   public isPending(): boolean {
@@ -77,8 +98,6 @@ export class ExposedPromise<T, U = unknown> {
   }
 
   public isSettled(): boolean {
-    return this.isPending() || this.isRejected()
+    return this.isResolved() || this.isRejected()
   }
 }
-
-/* eslint-enable prefer-arrow/prefer-arrow-functions */
