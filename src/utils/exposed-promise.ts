@@ -7,16 +7,11 @@ export enum ExposedPromiseStatus {
 type Resolve<T> = (value?: T) => void
 type Reject<U> = (reason?: U) => void
 
-interface ExposedPromiseOptions<T, U = unknown> {
-  result?: T
-  error?: U
-}
-
 const notInitialized = (): never => {
   throw new Error('ExposedPromise not initialized yet.')
 }
 
-export class ExposedPromise<T, U = unknown> {
+export class ExposedPromise<T = unknown, U = unknown> {
   private readonly _promise: Promise<T>
 
   private _resolve: Resolve<T> = notInitialized
@@ -45,7 +40,7 @@ export class ExposedPromise<T, U = unknown> {
     return this._promiseError
   }
 
-  constructor(options?: ExposedPromiseOptions<T, U>) {
+  constructor() {
     this._promise = new Promise<T>((innerResolve: Resolve<T>, innerReject: Reject<U>): void => {
       this._resolve = (value?: T): void => {
         if (this.isSettled()) {
@@ -74,15 +69,20 @@ export class ExposedPromise<T, U = unknown> {
         return
       }
     })
+  }
 
-    // Immediately resolve the promise if result or error have been passed
-    if (options && typeof options === 'object') {
-      if (options.hasOwnProperty('result')) {
-        this._resolve(options.result)
-      } else if (options.hasOwnProperty('error')) {
-        this._reject(options.error)
-      }
-    }
+  public static resolve<T>(value?: T): ExposedPromise<T> {
+    const promise = new ExposedPromise<T>()
+    promise.resolve(value)
+
+    return promise
+  }
+
+  public static reject<T = never, U = unknown>(reason?: U): ExposedPromise<T, U> {
+    const promise = new ExposedPromise<T, U>()
+    promise.reject(reason)
+
+    return promise
   }
 
   public isPending(): boolean {

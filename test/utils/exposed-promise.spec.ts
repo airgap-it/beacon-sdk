@@ -24,7 +24,7 @@ const cancelTimeoutAndSettle = (
 }
 
 const getExpectedPromiseOutcome = (
-  exposed: ExposedPromise<any>,
+  exposed: ExposedPromise<any, any>,
   expectedStatus: ExposedPromiseStatus
 ) => {
   const resolvePredicate = expectedStatus === ExposedPromiseStatus.RESOLVED
@@ -95,29 +95,49 @@ describe.only(`ExposedPromise`, () => {
     expect(await Promise.all(promises)).to.deep.equal([undefined, undefined, undefined])
   })
 
-  it(`should create an empty ExposedPromise when passing an empty object`, async () => {
-    const exposed = new ExposedPromise({})
+  it(`should correctly resolve an ExposedPromise`, async () => {
+    const exposed = new ExposedPromise()
+    const successMessage = 'success message!'
+    exposed.resolve(successMessage)
 
-    const promises = getExpectedPromiseOutcome(exposed, ExposedPromiseStatus.PENDING)
+    const promises = getExpectedPromiseOutcome(exposed, ExposedPromiseStatus.RESOLVED)
 
     expect(exposed instanceof ExposedPromise, 'is instanceof ExposedPromise').to.be.true
-    expect(exposed.isPending(), 'isPending').to.be.true
-    expect(exposed.isResolved(), 'isResolved').to.be.false
+    expect(exposed.isPending(), 'isPending').to.be.false
+    expect(exposed.isResolved(), 'isResolved').to.be.true
     expect(exposed.isRejected(), 'isRejected').to.be.false
-    expect(exposed.isSettled(), 'isSettled').to.be.false
+    expect(exposed.isSettled(), 'isSettled').to.be.true
+    expect(typeof exposed.promise, 'promise').to.equal('object')
+    expect(exposed.promiseResult, 'promiseResult').to.equal(successMessage)
+    expect(exposed.promiseError, 'promiseError').to.be.undefined
+    expect(exposed.status, 'status').to.equal(ExposedPromiseStatus.RESOLVED)
+    expect(typeof exposed.resolve, 'resolve').to.equal('function')
+    expect(typeof exposed.reject, 'reject').to.equal('function')
+    expect(await Promise.all(promises)).to.deep.equal(['success message!', undefined, undefined])
+  })
+
+  it(`should create a resolved ExposedPromise when calling the static resolve`, async () => {
+    const exposed = ExposedPromise.resolve()
+
+    const promises = getExpectedPromiseOutcome(exposed, ExposedPromiseStatus.RESOLVED)
+
+    expect(exposed instanceof ExposedPromise, 'is instanceof ExposedPromise').to.be.true
+    expect(exposed.isPending(), 'isPending').to.be.false
+    expect(exposed.isResolved(), 'isResolved').to.be.true
+    expect(exposed.isRejected(), 'isRejected').to.be.false
+    expect(exposed.isSettled(), 'isSettled').to.be.true
     expect(typeof exposed.promise, 'promise').to.equal('object')
     expect(exposed.promiseResult, 'promiseResult').to.be.undefined
     expect(exposed.promiseError, 'promiseError').to.be.undefined
-    expect(exposed.status, 'status').to.equal(ExposedPromiseStatus.PENDING)
+    expect(exposed.status, 'status').to.equal(ExposedPromiseStatus.RESOLVED)
     expect(typeof exposed.resolve, 'resolve').to.equal('function')
     expect(typeof exposed.reject, 'reject').to.equal('function')
     expect(await Promise.all(promises)).to.deep.equal([undefined, undefined, undefined])
   })
 
-  it(`should correctly resolve an ExposedPromise`, async () => {
-    const exposed = new ExposedPromise()
+  it(`should create a resolved ExposedPromise when calling the static resolve with data`, async () => {
     const successMessage = 'success message!'
-    exposed.resolve(successMessage)
+    const exposed = ExposedPromise.resolve(successMessage)
 
     const promises = getExpectedPromiseOutcome(exposed, ExposedPromiseStatus.RESOLVED)
 
@@ -181,7 +201,7 @@ describe.only(`ExposedPromise`, () => {
 
   it(`should resolve options.result immediately`, async () => {
     const successMessage = 'success message!'
-    const exposed = new ExposedPromise({ result: successMessage })
+    const exposed = ExposedPromise.resolve(successMessage)
 
     const promises = getExpectedPromiseOutcome(exposed, ExposedPromiseStatus.RESOLVED)
 
@@ -201,7 +221,7 @@ describe.only(`ExposedPromise`, () => {
 
   it(`should resolve options.result (undefined) immediately`, async () => {
     const successMessage = undefined
-    const exposed = new ExposedPromise({ result: successMessage })
+    const exposed = ExposedPromise.resolve(successMessage)
 
     const promises = getExpectedPromiseOutcome(exposed, ExposedPromiseStatus.RESOLVED)
 
@@ -270,7 +290,7 @@ describe.only(`ExposedPromise`, () => {
   it(`should reject options.reject immediately`, async () => {
     const failureMessage = 'failure message!'
 
-    const exposed = new ExposedPromise<string, unknown>({ error: failureMessage })
+    const exposed = ExposedPromise.reject<unknown>(failureMessage)
     exposed.promise.catch(() => undefined) // We need to add a catch here or it will trigger an unhandled rejection error
 
     const promises = getExpectedPromiseOutcome(exposed, ExposedPromiseStatus.REJECTED)
@@ -288,10 +308,11 @@ describe.only(`ExposedPromise`, () => {
     expect(typeof exposed.reject, 'reject').to.equal('function')
     expect(await Promise.all(promises)).to.deep.equal([undefined, 'failure message!', undefined])
   })
+
   it(`should reject options.reject (undefined) immediately`, async () => {
     const failureMessage = 'failure message!'
 
-    const exposed = new ExposedPromise<string, unknown>({ error: failureMessage })
+    const exposed = ExposedPromise.reject<unknown>(failureMessage)
     exposed.promise.catch(() => undefined) // We need to add a catch here or it will trigger an unhandled rejection error
 
     const promises = getExpectedPromiseOutcome(exposed, ExposedPromiseStatus.REJECTED)

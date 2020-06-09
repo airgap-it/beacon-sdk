@@ -130,7 +130,9 @@ export class DAppClient extends Client {
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
     if (this._activeAccount.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
-      this._activeAccount = new ExposedPromise<AccountInfo | undefined>({ result: account })
+      this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(account)
+    } else {
+      this._activeAccount.resolve(account)
     }
 
     await this.storage.set(

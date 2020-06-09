@@ -169,7 +169,9 @@ export abstract class Client extends BeaconClient {
   private async setTransport(transport: Transport): Promise<void> {
     if (this._transport.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
-      this._transport = new ExposedPromise({ result: transport })
+      this._transport = ExposedPromise.resolve(transport)
+    } else {
+      this._transport.resolve(transport)
     }
 
     await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport)
