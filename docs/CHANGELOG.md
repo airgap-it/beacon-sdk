@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.4 (2020-06-09)
+
+#### Bug Fixes
+
+- **active-account:** calling `await dappClient.getActiveAccount()` will now always wait for the storage to be read, so it will only be undefined if there was actually no active account set before.
+
 ## 1.0.3 (2020-06-05)
 
 #### Bug Fixes
