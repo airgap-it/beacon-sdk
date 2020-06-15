@@ -4,8 +4,6 @@
     "lib": ["es2015", "es2017.string", "dom"],
     "module": "commonjs",
     "declaration": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "outDir": "./dist",
     "typeRoots": ["./node_modules/@types", "./src/typings"],
     "sourceMap": true,
