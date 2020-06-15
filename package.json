@@ -2,7 +2,9 @@
   "name": "@airgap/beacon-sdk",
   "version": "1.0.5",
   "description": "The beacon-sdk allows you to easily connect DApps with Wallets through P2P communication or a chrome extension.",
-  "main": "dist/index.js",
+  "main": "dist/index.umd.js",
+  "unpkg": "dist/index.browser.min.js",
+  "module": "dist/index.es5.js",
   "types": "dist/index.d.ts",
   "keywords": [
     "airgap",
@@ -21,8 +23,9 @@
     "url": "https://github.com/airgap-it/beacon-sdk"
   },
   "scripts": {
-    "build": "tsc",
-    "prettier": "npx prettier --write 'src/**/*' 'docs/**/*.md'",
+    "build": "tsc -m commonjs && rollup -c rollup.config.ts && npm run browserify",
+    "browserify": "browserify ./dist/index.js -s beacon | uglifyjs > ./dist/index.browser.min.js",
+    "prettier": "prettier --write 'src/**/*' 'docs/**/*.md'",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "lint-ci": "eslint 'src/**/*.ts' -f json -o lintReport.json || true",
@@ -53,6 +56,7 @@
     "@typescript-eslint/eslint-plugin-tslint": "2.33.0",
     "@typescript-eslint/parser": "2.33.0",
     "@vuepress/plugin-back-to-top": "1.5.0",
+    "browserify": "16.5.1",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "eslint": "7.0.0",
@@ -65,17 +69,25 @@
     "nyc": "15.0.1",
     "prettier": "2.0.5",
     "pretty-quick": "2.0.1",
+    "rollup": "2.16.1",
+    "rollup-plugin-sourcemaps": "^0.6.2",
+    "rollup-plugin-typescript2": "0.27.1",
     "sonar-scanner": "3.1.0",
     "ts-node": "8.10.1",
     "tslint": "6.1.2",
     "typescript": "3.9.2",
+    "uglify-js": "3.9.4",
     "vuepress": "1.5.0",
     "vuepress-bar": "0.3.1",
     "vuepress-plugin-code-copy": "1.0.6",
     "vuepress-plugin-mermaidjs": "1.5.1"
   },
   "files": [
-    "/dist"
+    "/dist/index.es5.js",
+    "/dist/index.es5.js.map",
+    "/dist/index.umd.js",
+    "/dist/index.umd.js.map",
+    "/dist/index.browser.min.js"
   ],
   "nyc": {
     "include": [

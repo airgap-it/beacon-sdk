@@ -3,7 +3,7 @@ import * as qrcode from 'qrcode-generator'
 export const getQrData = (payload: string, type?: 'data' | 'svg' | 'ascii'): string => {
   const typeNumber: TypeNumber = 0
   const errorCorrectionLevel: ErrorCorrectionLevel = 'L'
-  const qr = qrcode(typeNumber, errorCorrectionLevel)
+  const qr = qrcode.default(typeNumber, errorCorrectionLevel)
   try {
     qr.addData(payload)
     qr.make()
