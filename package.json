@@ -82,11 +82,7 @@
     "vuepress-plugin-mermaidjs": "1.5.1"
   },
   "files": [
-    "/dist/index.es5.js",
-    "/dist/index.es5.js.map",
-    "/dist/index.umd.js",
-    "/dist/index.umd.js.map",
-    "/dist/index.browser.min.js"
+    "/dist"
   ],
   "nyc": {
     "include": [
