@@ -15,7 +15,7 @@ For more information on how to integrate the `beacon-sdk` in your DApp, read our
 
 ## Extensions
 
-- [Beacon Extension](https://github.com/airgap-it/beacon-extension/releases) is the official extension by the beacon team. It is the most feature complete way of interacting with Beacon DApps at the moment.
+- [Beacon Extension](https://chrome.google.com/webstore/detail/gpfndedineagiepkpinficbcbbgjoenn/) is the official extension by the beacon team. It is the most feature complete way of interacting with Beacon DApps at the moment.
 
 ## Mobile Wallets
 
