@@ -1,10 +1,7 @@
 import { keys } from '../utils/utils'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
-
-interface MatrixStateStorage {
-  getItem(key: string): string | null
-  setItem(key: string, value: string): void
-}
+import { Storage } from '../storage/Storage'
+import { StorageKey } from '..'
 
 interface MatrixState {
   isRunning: boolean
@@ -32,16 +29,9 @@ export interface MatrixStateUpdate extends MatrixState {
   rooms: MatrixRoom[]
 }
 
-const STORAGE_KEY = 'beacon:sdk-matrix-preserved-state'
 const PRESERVED_FIELDS: (keyof MatrixState)[] = ['syncToken', 'rooms']
 
 export class MatrixClientStore {
-  public static createLocal(): MatrixClientStore {
-    const localStorage = (global as any).localStorage
-
-    return new MatrixClientStore(localStorage)
-  }
-
   private state: MatrixStateStore = {
     isRunning: false,
     userId: undefined,
@@ -59,7 +49,7 @@ export class MatrixClientStore {
     OnStateChangedListener
   > = new Map()
 
-  constructor(private readonly storage?: MatrixStateStorage) {
+  constructor(private readonly storage?: Storage) {
     this.initFromStorage()
   }
 
@@ -94,9 +84,9 @@ export class MatrixClientStore {
     }
   }
 
-  private initFromStorage(): void {
+  private async initFromStorage(): Promise<void> {
     if (this.storage) {
-      const preserved = this.storage.getItem(STORAGE_KEY)
+      const preserved = await this.storage.get(StorageKey.MATRIX_PRESERVED_STATE)
       this.setState(preserved ? JSON.parse(preserved) : {})
     }
   }
@@ -129,7 +119,10 @@ export class MatrixClientStore {
         filteredState[key] = this.state[key]
       })
 
-      this.storage.setItem(STORAGE_KEY, JSON.stringify(this.prepareData(filteredState)))
+      this.storage.set(
+        StorageKey.MATRIX_PRESERVED_STATE,
+        JSON.stringify(this.prepareData(filteredState))
+      )
     }
   }
 

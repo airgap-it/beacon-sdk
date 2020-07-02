@@ -7,9 +7,11 @@ import { MatrixEventService } from './services/MatrixEventService'
 import { MatrixSyncResponse } from './models/api/MatrixSync'
 import { MatrixClientEventEmitter } from './MatrixClientEventEmitter'
 import { MatrixClientEventType, MatrixClientEvent } from './models/MatrixClientEvent'
+import { Storage } from '../storage/Storage'
 
 interface MatrixClientOptions {
   baseUrl: string
+  storage?: Storage
 }
 
 interface MatrixLoginConfig {
@@ -22,7 +24,7 @@ const MAX_POLLING_RETRIES = 3
 
 export class MatrixClient {
   public static create(config: MatrixClientOptions): MatrixClient {
-    const store = MatrixClientStore.createLocal()
+    const store = new MatrixClientStore(config.storage)
     const eventEmitter = new MatrixClientEventEmitter()
 
     const httpClient = new MatrixHttpClient(config.baseUrl)

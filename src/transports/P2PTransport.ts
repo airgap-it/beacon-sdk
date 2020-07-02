@@ -43,7 +43,7 @@ export class P2PTransport extends Transport {
     this.storage = storage
     this.events = events
     this.isDapp = isDapp
-    this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false)
+    this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false, storage)
     this.peerManager = new PeerManager(storage)
   }
 
