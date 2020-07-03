@@ -10,5 +10,5 @@ export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.APP_METADATA_LIST]: [],
   [StorageKey.PERMISSION_LIST]: [],
   [StorageKey.BEACON_SDK_VERSION]: undefined,
-  [StorageKey.MATRIX_PRESERVED_STATE]: undefined
+  [StorageKey.MATRIX_PRESERVED_STATE]: {}
 }

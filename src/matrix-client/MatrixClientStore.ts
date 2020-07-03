@@ -3,7 +3,13 @@ import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
 import { Storage } from '../storage/Storage'
 import { StorageKey } from '..'
 
-interface MatrixState {
+type OnStateChangedListener = (
+  oldState: MatrixStateStore,
+  newState: MatrixStateStore,
+  stateChange: Partial<MatrixStateUpdate>
+) => void
+
+export interface MatrixState {
   isRunning: boolean
   userId: string | undefined
   deviceId: string | undefined
@@ -14,12 +20,6 @@ interface MatrixState {
   pollingRetries: number
   rooms: MatrixRoom[] | Record<string, MatrixRoom>
 }
-
-type OnStateChangedListener = (
-  oldState: MatrixStateStore,
-  newState: MatrixStateStore,
-  stateChange: Partial<MatrixStateUpdate>
-) => void
 
 export interface MatrixStateStore extends MatrixState {
   rooms: Record<string, MatrixRoom>
@@ -99,7 +99,7 @@ export class MatrixClientStore {
 
   private async initFromStorage(): Promise<void> {
     const preserved = await this.storage.get(StorageKey.MATRIX_PRESERVED_STATE)
-    this.setState(preserved ? JSON.parse(preserved) : {})
+    this.setState(preserved)
   }
 
   private prepareData(toStore: Partial<MatrixStateStore>): Partial<MatrixStateStore> {
@@ -130,10 +130,7 @@ export class MatrixClientStore {
         filteredState[key] = this.state[key]
       })
 
-      this.storage.set(
-        StorageKey.MATRIX_PRESERVED_STATE,
-        JSON.stringify(this.prepareData(filteredState))
-      )
+      this.storage.set(StorageKey.MATRIX_PRESERVED_STATE, this.prepareData(filteredState))
     }
   }
 
