@@ -39,7 +39,7 @@ export class P2PCommunicationClient {
     private readonly keyPair: sodium.KeyPair,
     public readonly replicationCount: number,
     private readonly debug: boolean = false,
-    private readonly storage?: Storage
+    private readonly storage: Storage
   ) {}
 
   public async getHandshakeInfo(): Promise<P2PPairInfo> {
