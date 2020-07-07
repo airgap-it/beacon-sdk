@@ -4,11 +4,11 @@ import {
   Network,
   NetworkType,
   PermissionScope,
-  TezosTransactionOperation,
   TezosOperationType,
   OperationResponseOutput,
   PermissionResponseOutput
 } from '..' // Replace '..' with '@airgap/beacon-sdk'
+import { PartialTezosTransactionOperation } from '../types/tezos/PartialTezosOperation'
 
 const client = new DAppClient({ name: 'My Sample DApp' })
 
@@ -35,7 +35,7 @@ client
         (permission: PermissionScope) => permission === PermissionScope.OPERATION_REQUEST
       )
     ) {
-      const operation: Partial<TezosTransactionOperation> = {
+      const operation: PartialTezosTransactionOperation = {
         kind: TezosOperationType.TRANSACTION,
         amount: '1234567',
         destination: 'tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ'
