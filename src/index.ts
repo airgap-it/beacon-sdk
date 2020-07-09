@@ -112,6 +112,7 @@ import { BeaconClient } from './clients/beacon-client/BeaconClient'
 import { BeaconClientOptions } from './clients/beacon-client/BeaconClientOptions'
 import { getAccountIdentifier } from './utils/get-account-identifier'
 import { ConnectionContext } from './types/ConnectionContext'
+import { Threshold } from './types/beacon/Threshold'
 
 // Tezos
 export {
@@ -171,6 +172,7 @@ export {
   PermissionScope,
   Origin,
   AccountInfo,
+  Threshold,
   ExtensionMessageTarget,
   ExtensionMessage,
   RequestPermissionInput,

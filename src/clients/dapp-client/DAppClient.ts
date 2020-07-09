@@ -241,7 +241,7 @@ export class DAppClient extends Client {
       throw this.handleRequestError(request, requestError)
     })
 
-    // TODO: Migration code. Remove before 1.0.0 release.
+    // TODO: Migration code. Remove sometime after 1.0.0 release.
     const publicKey = message.publicKey || (message as any).pubkey || (message as any).pubKey
     const address = await getAddressFromPublicKey(publicKey)
 
@@ -256,6 +256,7 @@ export class DAppClient extends Client {
       publicKey,
       network: message.network,
       scopes: message.scopes,
+      threshold: message.threshold,
       connectedAt: new Date().getTime()
     }
 
@@ -263,9 +264,16 @@ export class DAppClient extends Client {
     await this.setActiveAccount(accountInfo)
     console.log('permissions interception', { message, connectionInfo })
 
-    const { beaconId, network, scopes } = message
+    const { beaconId, network, scopes, threshold } = message
 
-    const output: PermissionResponseOutput = { beaconId, address, network, scopes }
+    const output: PermissionResponseOutput = {
+      beaconId,
+      address,
+      network,
+      scopes,
+      publicKey,
+      threshold
+    }
 
     await this.notifySuccess(request, {
       account: accountInfo,
