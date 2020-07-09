@@ -17,7 +17,7 @@ import { getAccountIdentifier } from '../utils/get-account-identifier'
 import { BeaconRequestMessage } from '../types/beacon/BeaconRequestMessage'
 
 interface OutgoingResponseInterceptorOptions {
-  beaconId: string
+  senderId: string
   request: BeaconRequestMessage
   message: BeaconResponseInputMessage
   permissionManager: PermissionManager
@@ -28,7 +28,7 @@ interface OutgoingResponseInterceptorOptions {
 export class OutgoingResponseInterceptor {
   public static async intercept(config: OutgoingResponseInterceptorOptions): Promise<void> {
     const {
-      beaconId,
+      senderId,
       request,
       message,
       permissionManager,
@@ -41,7 +41,7 @@ export class OutgoingResponseInterceptor {
         const response: BeaconErrorMessage = {
           type: message.type,
           version: BEACON_VERSION,
-          beaconId,
+          senderId,
           id: message.id,
           errorType: message.errorType
         }
@@ -50,23 +50,23 @@ export class OutgoingResponseInterceptor {
       }
       case BeaconMessageType.PermissionResponse: {
         const response: PermissionResponse = {
-          beaconId,
+          senderId,
           version: BEACON_VERSION,
           ...message
         }
 
-        // TODO: Migration code. Remove before 1.0.0 release.
+        // TODO: Migration code. Remove sometime after 1.0.0 release.
         const publicKey = response.publicKey || (response as any).pubkey || (response as any).pubKey
 
         const address: string = await getAddressFromPublicKey(publicKey)
-        const appMetadata = await appMetadataManager.getAppMetadata(request.beaconId)
+        const appMetadata = await appMetadataManager.getAppMetadata(request.senderId)
         if (!appMetadata) {
           throw new Error('AppMetadata not found')
         }
 
         const permission: PermissionInfo = {
           accountIdentifier: await getAccountIdentifier(address, response.network),
-          beaconId: request.beaconId,
+          senderId: request.senderId,
           appMetadata,
           website: '',
           address,
@@ -84,7 +84,7 @@ export class OutgoingResponseInterceptor {
       case BeaconMessageType.OperationResponse:
         {
           const response: OperationResponse = {
-            beaconId,
+            senderId,
             version: BEACON_VERSION,
             ...message
           }
@@ -94,7 +94,7 @@ export class OutgoingResponseInterceptor {
       case BeaconMessageType.SignPayloadResponse:
         {
           const response: SignPayloadResponse = {
-            beaconId,
+            senderId,
             version: BEACON_VERSION,
             ...message
           }
@@ -104,7 +104,7 @@ export class OutgoingResponseInterceptor {
       case BeaconMessageType.BroadcastResponse:
         {
           const response: BroadcastResponse = {
-            beaconId,
+            senderId,
             version: BEACON_VERSION,
             ...message
           }

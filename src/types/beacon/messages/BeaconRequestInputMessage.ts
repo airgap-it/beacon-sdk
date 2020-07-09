@@ -1,6 +1,6 @@
 import { PermissionRequest, OperationRequest, SignPayloadRequest, BroadcastRequest } from '../../..'
 
-export type IgnoredRequestInputProperties = 'id' | 'beaconId' | 'version'
+export type IgnoredRequestInputProperties = 'id' | 'senderId' | 'version'
 
 export type PermissionRequestInput = Omit<PermissionRequest, IgnoredRequestInputProperties>
 export type OperationRequestInput = Omit<OperationRequest, IgnoredRequestInputProperties>

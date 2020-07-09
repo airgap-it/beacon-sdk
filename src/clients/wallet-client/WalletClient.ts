@@ -71,7 +71,7 @@ export class WalletClient extends Client {
     )
 
     await OutgoingResponseInterceptor.intercept({
-      beaconId: await this.beaconId,
+      senderId: await this.beaconId,
       request,
       message,
       permissionManager: this.permissionManager,
@@ -141,7 +141,7 @@ export class WalletClient extends Client {
     const peerIdsToRemove = peersToRemove.map((peer) => peer.publicKey)
     // Remove all permissions with origin of the specified peer
     const permissionsToRemove = permissions.filter((permission) =>
-      peerIdsToRemove.includes(permission.appMetadata.beaconId)
+      peerIdsToRemove.includes(permission.appMetadata.senderId)
     )
     const permissionIdentifiersToRemove = permissionsToRemove.map(
       (permissionInfo) => permissionInfo.accountIdentifier

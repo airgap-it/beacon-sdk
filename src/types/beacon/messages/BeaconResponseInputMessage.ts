@@ -6,7 +6,7 @@ import {
   BeaconErrorMessage
 } from '../../..'
 
-export type IgnoredResponseInputProperties = 'beaconId' | 'version'
+export type IgnoredResponseInputProperties = 'senderId' | 'version'
 
 export type PermissionResponseInput = Omit<PermissionResponse, IgnoredResponseInputProperties>
 export type OperationResponseInput = Omit<OperationResponse, IgnoredResponseInputProperties>
