@@ -39,7 +39,7 @@ export class IncomingRequestInterceptor {
         {
           const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
             appMetadataManager,
-            message.beaconId
+            message.senderId
           )
           const request: OperationRequestOutput = {
             appMetadata,
@@ -52,7 +52,7 @@ export class IncomingRequestInterceptor {
         {
           const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
             appMetadataManager,
-            message.beaconId
+            message.senderId
           )
           const request: SignPayloadRequestOutput = {
             appMetadata,
@@ -65,7 +65,7 @@ export class IncomingRequestInterceptor {
         {
           const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
             appMetadataManager,
-            message.beaconId
+            message.senderId
           )
           const request: BroadcastRequestOutput = {
             appMetadata,
@@ -82,9 +82,9 @@ export class IncomingRequestInterceptor {
 
   private static async getAppMetadata(
     appMetadataManager: AppMetadataManager,
-    beaconId: string
+    senderId: string
   ): Promise<AppMetadata> {
-    const appMetadata: AppMetadata | undefined = await appMetadataManager.getAppMetadata(beaconId)
+    const appMetadata: AppMetadata | undefined = await appMetadataManager.getAppMetadata(senderId)
     if (!appMetadata) {
       throw new Error('AppMetadata not found')
     }
