@@ -42,7 +42,7 @@ client
         destination: 'tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ'
       }
       client
-        .requestOperation({ network, operationDetails: [operation] })
+        .requestOperation({ operationDetails: [operation] })
         .then((operationResponse: OperationResponseOutput) => {
           console.log(
             'operation was successfully broadcast to the network with the hash: ',
