@@ -120,6 +120,7 @@ import {
   PartialTezosOriginationOperation,
   PartialTezosRevealOperation
 } from './types/tezos/PartialTezosOperation'
+import { AbortedBeaconError } from './errors/AbortedBeaconError'
 
 // Tezos
 export {
@@ -222,6 +223,7 @@ export {
   BeaconError,
   BeaconErrorType,
   ErrorResponse,
+  AbortedBeaconError,
   BroadcastBeaconError,
   NetworkNotSupportedBeaconError,
   NoAddressBeaconError,

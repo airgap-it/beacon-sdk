@@ -24,13 +24,21 @@ describe(`client - Custom Tests`, () => {
       const aliceClient = new P2PCommunicationClient(
         'Alice',
         await getKeypairFromSeed('alice1234'),
-        1
+        1,
+        false,
+        undefined as any
       )
       await aliceClient
         .start()
         .catch((aliceClientError) => console.log('aliceClientError', aliceClientError))
 
-      const bobClient = new P2PCommunicationClient('Bob', await getKeypairFromSeed('bob1234'), 1)
+      const bobClient = new P2PCommunicationClient(
+        'Bob',
+        await getKeypairFromSeed('bob1234'),
+        1,
+        false,
+        undefined as any
+      )
       await bobClient
         .start()
         .catch((bobClientError) => console.log('bobClientError', bobClientError))
@@ -38,7 +46,9 @@ describe(`client - Custom Tests`, () => {
       const charlieClient = new P2PCommunicationClient(
         'Charlie',
         await getKeypairFromSeed('charlie1234'),
-        1
+        1,
+        false,
+        undefined as any
       )
       await charlieClient
         .start()
