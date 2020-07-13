@@ -94,7 +94,6 @@ export class DAppClient extends Client {
     ): Promise<void> => {
       const openRequest = this.openRequests.get(message.id)
       if (openRequest) {
-        logger.log('handleResponse', 'found openRequest', message.id)
         if (message.type === BeaconMessageType.Error) {
           openRequest.reject(message)
         } else {
