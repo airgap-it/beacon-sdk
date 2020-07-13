@@ -11,19 +11,19 @@ chai.use(chaiAsPromised)
 const expect = chai.expect
 
 const appMetadata1: AppMetadata = {
-  beaconId: 'id1',
+  senderId: 'id1',
   name: 'name1',
   icon: 'icon1'
 }
 
 const appMetadata2: AppMetadata = {
-  beaconId: 'id2',
+  senderId: 'id2',
   name: 'name2',
   icon: 'icon2'
 }
 
 const appMetadata3: AppMetadata = {
-  beaconId: 'id3',
+  senderId: 'id3',
   name: 'name3',
   icon: 'icon3'
 }
@@ -91,7 +91,7 @@ describe(`AppMetadataManager`, () => {
 
     await manager.addAppMetadata(appMetadata1)
     await manager.addAppMetadata(appMetadata2)
-    const appMetadata = await manager.getAppMetadata(appMetadata1.beaconId)
+    const appMetadata = await manager.getAppMetadata(appMetadata1.senderId)
     expect(appMetadata, 'after').to.deep.include(appMetadata1)
   })
 
@@ -106,7 +106,7 @@ describe(`AppMetadataManager`, () => {
 
     expect(appMetadataAfter.length, 'after add').to.equal(3)
 
-    await manager.removeAppMetadata(appMetadata1.beaconId)
+    await manager.removeAppMetadata(appMetadata1.senderId)
     const appMetadataAfterRemove: AppMetadata[] = await manager.getAppMetadataList()
 
     expect(appMetadataAfterRemove.length, 'after remove').to.equal(2)
@@ -125,7 +125,7 @@ describe(`AppMetadataManager`, () => {
 
     expect(appMetadataAfter.length, 'after add').to.equal(3)
 
-    await manager.removeAppMetadatas([appMetadata1.beaconId, appMetadata2.beaconId])
+    await manager.removeAppMetadatas([appMetadata1.senderId, appMetadata2.senderId])
     const appMetadataAfterRemove: AppMetadata[] = await manager.getAppMetadataList()
 
     expect(appMetadataAfterRemove.length, 'after remove').to.equal(1)

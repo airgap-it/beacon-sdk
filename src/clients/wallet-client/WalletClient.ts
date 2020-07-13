@@ -86,12 +86,12 @@ export class WalletClient extends Client {
     return this.appMetadataManager.getAppMetadataList()
   }
 
-  public async getAppMetadata(beaconId: string): Promise<AppMetadata | undefined> {
-    return this.appMetadataManager.getAppMetadata(beaconId)
+  public async getAppMetadata(senderId: string): Promise<AppMetadata | undefined> {
+    return this.appMetadataManager.getAppMetadata(senderId)
   }
 
-  public async removeAppMetadata(beaconId: string): Promise<void> {
-    return this.appMetadataManager.removeAppMetadata(beaconId)
+  public async removeAppMetadata(senderId: string): Promise<void> {
+    return this.appMetadataManager.removeAppMetadata(senderId)
   }
 
   public async removeAllAppMetadata(): Promise<void> {

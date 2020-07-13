@@ -309,9 +309,9 @@ export class DAppClient extends Client {
       throw this.handleRequestError(request, requestError)
     })
 
-    const { senderId: beaconId, signature } = message
+    const { senderId, signature } = message
 
-    const output: SignPayloadResponseOutput = { senderId: beaconId, signature }
+    const output: SignPayloadResponseOutput = { senderId, signature }
 
     await this.notifySuccess(request, {
       account: activeAccount,
@@ -348,9 +348,9 @@ export class DAppClient extends Client {
       throw this.handleRequestError(request, requestError)
     })
 
-    const { senderId: beaconId, transactionHash } = message
+    const { senderId, transactionHash } = message
 
-    const output: OperationResponseOutput = { senderId: beaconId, transactionHash }
+    const output: OperationResponseOutput = { senderId, transactionHash }
 
     await this.notifySuccess(request, {
       account: activeAccount,
@@ -358,7 +358,7 @@ export class DAppClient extends Client {
       connectionContext: connectionInfo
     })
 
-    return { senderId: beaconId, transactionHash }
+    return { senderId, transactionHash }
   }
 
   /**
@@ -383,13 +383,13 @@ export class DAppClient extends Client {
       throw this.handleRequestError(request, requestError)
     })
 
-    const { senderId: beaconId, transactionHash } = message
+    const { senderId, transactionHash } = message
 
-    const output: BroadcastResponseOutput = { senderId: beaconId, transactionHash }
+    const output: BroadcastResponseOutput = { senderId, transactionHash }
 
     await this.notifySuccess(request, { network, output, connectionContext: connectionInfo })
 
-    return { senderId: beaconId, transactionHash }
+    return { senderId, transactionHash }
   }
 
   private async sendInternalError(errorMessage: string): Promise<void> {
