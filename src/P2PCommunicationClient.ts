@@ -18,6 +18,7 @@ import {
 } from './matrix-client/models/MatrixClientEvent'
 import { MatrixMessageType } from './matrix-client/models/MatrixMessage'
 import { MatrixRoom } from './matrix-client/models/MatrixRoom'
+import { Storage } from './storage/Storage'
 import { P2PPairingRequest } from '.'
 
 export class P2PCommunicationClient {
@@ -37,7 +38,8 @@ export class P2PCommunicationClient {
     private readonly name: string,
     private readonly keyPair: sodium.KeyPair,
     public readonly replicationCount: number,
-    private readonly debug: boolean = false
+    private readonly debug: boolean = false,
+    private readonly storage: Storage
   ) {}
 
   public async getHandshakeInfo(): Promise<P2PPairingRequest> {
@@ -81,7 +83,11 @@ export class P2PCommunicationClient {
     for (let i = 0; i < this.replicationCount; i++) {
       // TODO: Parallel
       const client = MatrixClient.create({
-        baseUrl: `https://${await this.getRelayServer(await this.getPublicKeyHash(), i.toString())}`
+        baseUrl: `https://${await this.getRelayServer(
+          await this.getPublicKeyHash(),
+          i.toString()
+        )}`,
+        storage: this.storage
       })
 
       client.subscribe(MatrixClientEventType.INVITE, async (event) => {

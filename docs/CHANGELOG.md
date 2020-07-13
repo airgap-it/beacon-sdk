@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.5 (2020-06-10)
+
+#### Bug Fixes
+
+- **events:** The `P2P_CHANNEL_CONNECT_SUCCESS` event will now return the `P2PPairInfo` of the newly connected peer.
+
+## 1.0.4 (2020-06-09)
+
+#### Bug Fixes
+
+- **active-account:** calling `await dappClient.getActiveAccount()` will now always wait for the storage to be read, so it will only be undefined if there was actually no active account set before.
+
 ## 1.0.3 (2020-06-05)
 
 #### Bug Fixes

@@ -1,4 +1,4 @@
-import { ErrorResponse, DAppClient, SignPayloadResponseOutput } from '..'
+import { ErrorResponse, DAppClient, SignPayloadResponseOutput } from '..' // Replace '..' with '@airgap/beacon-sdk'
 
 const client = new DAppClient({ name: 'My Sample DApp' })
 

@@ -9,7 +9,11 @@ module.exports = {
     repo: 'airgap-it/beacon-sdk',
     nav: [
       { text: 'Example dApp', link: 'https://www.walletbeacon.io/', target: '_blank' },
-      { text: 'Chrome Extension', link: 'https://github.com/airgap-it/beacon-extension/releases', target: '_blank' }
+      {
+        text: 'Chrome Extension',
+        link: 'https://chrome.google.com/webstore/detail/gpfndedineagiepkpinficbcbbgjoenn/',
+        target: '_blank'
+      }
     ],
     sidebar: barConfig.sidebar
   },

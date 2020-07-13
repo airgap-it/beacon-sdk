@@ -86,7 +86,7 @@ export interface BeaconEventType {
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
-  [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: undefined
+  [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: P2PPairingRequest
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairingRequest
   [BeaconEvent.P2P_CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: string
@@ -122,9 +122,10 @@ const showRateLimitReached = async (): Promise<void> => {
   }).catch((toastError) => console.error(toastError))
 }
 
-const showOkAlert = async (): Promise<void> => {
+const showBeaconConnectedAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Success',
+    body: 'A wallet has been paired over the beacon network.',
     confirmButtonText: 'Done',
     timer: 1500
   })
@@ -279,7 +280,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(BeaconEvent.ACTIVE_ACCOUNT_SET),
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
-  [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showOkAlert,
+  [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showBeaconConnectedAlert,
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrCode,
   [BeaconEvent.P2P_CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,

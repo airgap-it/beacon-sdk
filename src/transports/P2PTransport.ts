@@ -43,7 +43,7 @@ export class P2PTransport extends Transport {
     this.storage = storage
     this.events = events
     this.isDapp = isDapp
-    this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false)
+    this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false, storage)
     this.peerManager = new PeerManager(storage)
   }
 
@@ -86,13 +86,15 @@ export class P2PTransport extends Transport {
         await this.client.listenForChannelOpening(async (publicKey) => {
           logger.log('connectNewPeer', `new publicKey ${publicKey}`)
 
+          const newPeer = { name: '', publicKey, relayServer: '' }
+
           if (!(await this.peerManager.hasPeer(publicKey))) {
-            await this.peerManager.addPeer({ name: '', publicKey, relayServer: '' })
+            await this.peerManager.addPeer(newPeer)
             await this.listen(publicKey)
           }
 
           this.events
-            .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS)
+            .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS, newPeer)
             .catch((emitError) => console.warn(emitError))
 
           resolve()

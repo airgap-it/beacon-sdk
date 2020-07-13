@@ -12,14 +12,11 @@ import {
   P2PPairingRequest
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
-import { Logger } from '../../utils/Logger'
 import { isChromeExtensionInstalled } from '../../utils/is-extension-installed'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { ClientOptions } from './ClientOptions'
-
-const logger = new Logger('BaseClient')
 
 export abstract class Client extends BeaconClient {
   protected readonly accountManager: AccountManager
@@ -174,11 +171,12 @@ export abstract class Client extends BeaconClient {
 
   private async setTransport(transport: Transport): Promise<void> {
     if (this._transport.isSettled()) {
-      this._transport = new ExposedPromise() // If the promise has already been resolved we need to create a new one.
+      // If the promise has already been resolved we need to create a new one.
+      this._transport = ExposedPromise.resolve(transport)
+    } else {
+      this._transport.resolve(transport)
     }
-    this._transport.resolve(transport)
-    this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport).catch((eventError) => {
-      logger.error('setTransport', eventError)
-    })
+
+    await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport)
   }
 }
