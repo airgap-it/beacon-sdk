@@ -6,8 +6,10 @@ import {
   SignPayloadRequest,
   SignPayloadResponse,
   BroadcastRequest,
-  BroadcastResponse
+  BroadcastResponse,
+  ErrorResponse
 } from '../..'
+import { DisconnectMessage } from './messages/DisconnectMessage'
 
 export type BeaconMessage =
   | PermissionRequest
@@ -18,3 +20,5 @@ export type BeaconMessage =
   | SignPayloadResponse
   | BroadcastRequest
   | BroadcastResponse
+  | ErrorResponse
+  | DisconnectMessage

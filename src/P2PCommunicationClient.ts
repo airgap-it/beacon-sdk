@@ -18,8 +18,8 @@ import {
 } from './matrix-client/models/MatrixClientEvent'
 import { MatrixMessageType } from './matrix-client/models/MatrixMessage'
 import { MatrixRoom } from './matrix-client/models/MatrixRoom'
-import { P2PPairInfo } from '.'
 import { Storage } from './storage/Storage'
+import { P2PPairingRequest } from '.'
 
 export class P2PCommunicationClient {
   private readonly clients: MatrixClient[] = []
@@ -42,7 +42,7 @@ export class P2PCommunicationClient {
     private readonly storage: Storage
   ) {}
 
-  public async getHandshakeInfo(): Promise<P2PPairInfo> {
+  public async getHandshakeInfo(): Promise<P2PPairingRequest> {
     return {
       name: this.name,
       publicKey: await this.getPublicKey(),

@@ -1,4 +1,4 @@
-import { BeaconErrorMessage, DAppClient, SignPayloadResponseOutput } from '..' // Replace '..' with '@airgap/beacon-sdk'
+import { ErrorResponse, DAppClient, SignPayloadResponseOutput } from '..' // Replace '..' with '@airgap/beacon-sdk'
 
 const client = new DAppClient({ name: 'My Sample DApp' })
 
@@ -9,4 +9,4 @@ client
   .then((response: SignPayloadResponseOutput) => {
     console.log('signature', response.signature)
   })
-  .catch((signPayloadError: BeaconErrorMessage) => console.error(signPayloadError))
+  .catch((signPayloadError: ErrorResponse) => console.error(signPayloadError))

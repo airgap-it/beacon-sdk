@@ -1,5 +1,5 @@
 import {
-  BeaconErrorMessage,
+  ErrorResponse,
   BeaconMessage,
   BeaconResponseInputMessage,
   BeaconMessageType,
@@ -14,61 +14,59 @@ import { AppMetadataManager } from '../managers/AppMetadataManager'
 import { BEACON_VERSION } from '../constants'
 import { getAddressFromPublicKey } from '../utils/crypto'
 import { getAccountIdentifier } from '../utils/get-account-identifier'
+import { BeaconRequestMessage } from '../types/beacon/BeaconRequestMessage'
 
-interface OutgoingBeaconMessageInterceptorOptions {
-  beaconId: string
-  request: BeaconMessage
+interface OutgoingResponseInterceptorOptions {
+  senderId: string
+  request: BeaconRequestMessage
   message: BeaconResponseInputMessage
   permissionManager: PermissionManager
   appMetadataManager: AppMetadataManager
   interceptorCallback(message: BeaconMessage): void
 }
 
-export class OutgoingBeaconMessageInterceptor {
-  public static async intercept(config: OutgoingBeaconMessageInterceptorOptions): Promise<void> {
+export class OutgoingResponseInterceptor {
+  public static async intercept(config: OutgoingResponseInterceptorOptions): Promise<void> {
     const {
-      beaconId,
+      senderId,
       request,
       message,
       permissionManager,
       appMetadataManager,
       interceptorCallback
-    }: OutgoingBeaconMessageInterceptorOptions = config
-
-    const errorMessage: BeaconErrorMessage = (message as any) as BeaconErrorMessage
-    if (errorMessage.errorType) {
-      const response: BeaconErrorMessage = {
-        type: message.type,
-        version: BEACON_VERSION,
-        beaconId,
-        id: message.id,
-        errorType: errorMessage.errorType
-      }
-      interceptorCallback(response as any)
-
-      return
-    }
+    }: OutgoingResponseInterceptorOptions = config
 
     switch (message.type) {
+      case BeaconMessageType.Error: {
+        const response: ErrorResponse = {
+          type: message.type,
+          version: BEACON_VERSION,
+          senderId,
+          id: message.id,
+          errorType: message.errorType
+        }
+        interceptorCallback(response)
+        break
+      }
       case BeaconMessageType.PermissionResponse: {
         const response: PermissionResponse = {
-          beaconId,
+          senderId,
           version: BEACON_VERSION,
           ...message
         }
 
-        // TODO: Migration code. Remove before 1.0.0 release.
+        // TODO: Migration code. Remove sometime after 1.0.0 release.
         const publicKey = response.publicKey || (response as any).pubkey || (response as any).pubKey
 
         const address: string = await getAddressFromPublicKey(publicKey)
-        const appMetadata = await appMetadataManager.getAppMetadata(request.beaconId)
+        const appMetadata = await appMetadataManager.getAppMetadata(request.senderId)
         if (!appMetadata) {
           throw new Error('AppMetadata not found')
         }
 
         const permission: PermissionInfo = {
           accountIdentifier: await getAccountIdentifier(address, response.network),
-          beaconId: request.beaconId,
+          senderId: request.senderId,
           appMetadata,
           website: '',
           address,
@@ -86,7 +84,7 @@ export class OutgoingBeaconMessageInterceptor {
       case BeaconMessageType.OperationResponse:
         {
           const response: OperationResponse = {
-            beaconId,
+            senderId,
             version: BEACON_VERSION,
             ...message
           }
@@ -96,7 +94,7 @@ export class OutgoingBeaconMessageInterceptor {
       case BeaconMessageType.SignPayloadResponse:
         {
           const response: SignPayloadResponse = {
-            beaconId,
+            senderId,
             version: BEACON_VERSION,
             ...message
           }
@@ -106,7 +104,7 @@ export class OutgoingBeaconMessageInterceptor {
       case BeaconMessageType.BroadcastResponse:
         {
           const response: BroadcastResponse = {
-            beaconId,
+            senderId,
             version: BEACON_VERSION,
             ...message
           }

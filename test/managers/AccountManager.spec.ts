@@ -12,7 +12,7 @@ const expect = chai.expect
 
 const account1: AccountInfo = {
   accountIdentifier: 'a1',
-  beaconId: 'id1',
+  senderId: 'id1',
   origin: {
     type: Origin.P2P,
     id: 'o1'
@@ -26,7 +26,7 @@ const account1: AccountInfo = {
 
 const account2: AccountInfo = {
   accountIdentifier: 'a2',
-  beaconId: 'id2',
+  senderId: 'id2',
   origin: {
     type: Origin.P2P,
     id: 'o2'
@@ -40,7 +40,7 @@ const account2: AccountInfo = {
 
 const account3: AccountInfo = {
   accountIdentifier: 'a3',
-  beaconId: 'id3',
+  senderId: 'id3',
   origin: {
     type: Origin.P2P,
     id: 'o3'

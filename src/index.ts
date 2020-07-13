@@ -48,7 +48,7 @@ import { ParametersInvalidBeaconError } from './errors/ParametersInvalidBeaconEr
 import { TooManyOperationsBeaconError } from './errors/TooManyOperationsBeaconError'
 import { TransactionInvalidBeaconError } from './errors/TransactionInvalidBeaconError'
 import { UnknownBeaconError } from './errors/UnknownBeaconError'
-import { BeaconErrorMessage } from './types/BeaconErrorMessage'
+import { ErrorResponse } from './types/beacon/messages/ErrorResponse'
 import { TransportStatus } from './types/transport/TransportStatus'
 import { TransportType } from './types/transport/TransportType'
 import { PostMessageTransport } from './transports/PostMessageTransport'
@@ -60,7 +60,7 @@ import { Storage } from './storage/Storage'
 import { StorageKey } from './types/storage/StorageKey'
 import { StorageKeyReturnDefaults } from './types/storage/StorageKeyReturnDefaults'
 import { StorageKeyReturnType } from './types/storage/StorageKeyReturnType'
-import { P2PPairInfo } from './types/P2PPairInfo'
+import { P2PPairingRequest } from './types/P2PPairingRequest'
 import { ChromeStorage } from './storage/ChromeStorage'
 import { LocalStorage } from './storage/LocalStorage'
 import { getStorage } from './storage/getStorage'
@@ -112,6 +112,15 @@ import { BeaconClient } from './clients/beacon-client/BeaconClient'
 import { BeaconClientOptions } from './clients/beacon-client/BeaconClientOptions'
 import { getAccountIdentifier } from './utils/get-account-identifier'
 import { ConnectionContext } from './types/ConnectionContext'
+import { Threshold } from './types/beacon/Threshold'
+import {
+  PartialTezosTransactionOperation,
+  PartialTezosOperation,
+  PartialTezosDelegationOperation,
+  PartialTezosOriginationOperation,
+  PartialTezosRevealOperation
+} from './types/tezos/PartialTezosOperation'
+import { AbortedBeaconError } from './errors/AbortedBeaconError'
 
 // Tezos
 export {
@@ -135,7 +144,12 @@ export {
   TezosProposalOperation,
   TezosRevealOperation,
   TezosSeedNonceRevelationOperation,
-  TezosTransactionOperation
+  TezosTransactionOperation,
+  PartialTezosOperation,
+  PartialTezosTransactionOperation,
+  PartialTezosDelegationOperation,
+  PartialTezosOriginationOperation,
+  PartialTezosRevealOperation
 }
 
 // Clients
@@ -171,6 +185,7 @@ export {
   PermissionScope,
   Origin,
   AccountInfo,
+  Threshold,
   ExtensionMessageTarget,
   ExtensionMessage,
   RequestPermissionInput,
@@ -207,7 +222,8 @@ export {
 export {
   BeaconError,
   BeaconErrorType,
-  BeaconErrorMessage,
+  ErrorResponse,
+  AbortedBeaconError,
   BroadcastBeaconError,
   NetworkNotSupportedBeaconError,
   NoAddressBeaconError,
@@ -254,4 +270,4 @@ export { SDK_VERSION, BEACON_VERSION }
 export { getAccountIdentifier, getAddressFromPublicKey }
 
 // Others
-export { ConnectionContext, P2PPairInfo, Serializer }
+export { ConnectionContext, P2PPairingRequest, Serializer }

@@ -10,19 +10,20 @@ import {
   AppMetadata,
   PermissionInfo,
   P2PTransport,
-  P2PPairInfo
+  P2PPairingRequest
 } from '../..'
 import { PermissionManager } from '../../managers/PermissionManager'
 import { AppMetadataManager } from '../../managers/AppMetadataManager'
 import { ConnectionContext } from '../../types/ConnectionContext'
-import { IncomingBeaconMessageInterceptor } from '../../interceptors/IncomingBeaconMessageInterceptor'
-import { OutgoingBeaconMessageInterceptor } from '../../interceptors/OutgoingBeaconMessageInterceptor'
+import { IncomingRequestInterceptor } from '../../interceptors/IncomingRequestInterceptor'
+import { OutgoingResponseInterceptor } from '../../interceptors/OutgoingResponseInterceptor'
+import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 
 export class WalletClient extends Client {
   private readonly permissionManager: PermissionManager
   private readonly appMetadataManager: AppMetadataManager
 
-  private pendingRequests: BeaconMessage[] = []
+  private pendingRequests: BeaconRequestMessage[] = []
 
   constructor(config: WalletClientOptions) {
     super({ name: config.name, storage: new LocalStorage() })
@@ -41,12 +42,12 @@ export class WalletClient extends Client {
     ) => void
   ): Promise<boolean> {
     this.handleResponse = async (
-      message: BeaconMessage,
+      message: BeaconRequestMessage,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
       if (!this.pendingRequests.some((request) => request.id === message.id)) {
         this.pendingRequests.push(message)
-        await IncomingBeaconMessageInterceptor.intercept({
+        await IncomingRequestInterceptor.intercept({
           message,
           connectionInfo,
           appMetadataManager: this.appMetadataManager,
@@ -69,8 +70,8 @@ export class WalletClient extends Client {
       (pendingRequest) => pendingRequest.id !== message.id
     )
 
-    await OutgoingBeaconMessageInterceptor.intercept({
-      beaconId: await this.beaconId,
+    await OutgoingResponseInterceptor.intercept({
+      senderId: await this.beaconId,
       request,
       message,
       permissionManager: this.permissionManager,
@@ -85,12 +86,12 @@ export class WalletClient extends Client {
     return this.appMetadataManager.getAppMetadataList()
   }
 
-  public async getAppMetadata(beaconId: string): Promise<AppMetadata | undefined> {
-    return this.appMetadataManager.getAppMetadata(beaconId)
+  public async getAppMetadata(senderId: string): Promise<AppMetadata | undefined> {
+    return this.appMetadataManager.getAppMetadata(senderId)
   }
 
-  public async removeAppMetadata(beaconId: string): Promise<void> {
-    return this.appMetadataManager.removeAppMetadata(beaconId)
+  public async removeAppMetadata(senderId: string): Promise<void> {
+    return this.appMetadataManager.removeAppMetadata(senderId)
   }
 
   public async removeAllAppMetadata(): Promise<void> {
@@ -113,7 +114,7 @@ export class WalletClient extends Client {
     return this.permissionManager.removeAllPermissions()
   }
 
-  public async removePeer(id: P2PPairInfo): Promise<void> {
+  public async removePeer(id: P2PPairingRequest): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
       const removePeerResult = ((await this.transport) as P2PTransport).removePeer(id)
 
@@ -125,7 +126,7 @@ export class WalletClient extends Client {
 
   public async removeAllPeers(): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
-      const peers: P2PPairInfo[] = await ((await this.transport) as P2PTransport).getPeers()
+      const peers: P2PPairingRequest[] = await ((await this.transport) as P2PTransport).getPeers()
       const removePeerResult = ((await this.transport) as P2PTransport).removeAllPeers()
 
       await this.removePermissionsForPeers(peers)
@@ -134,13 +135,13 @@ export class WalletClient extends Client {
     }
   }
 
-  private async removePermissionsForPeers(peersToRemove: P2PPairInfo[]): Promise<void> {
+  private async removePermissionsForPeers(peersToRemove: P2PPairingRequest[]): Promise<void> {
     const permissions = await this.permissionManager.getPermissions()
 
     const peerIdsToRemove = peersToRemove.map((peer) => peer.publicKey)
     // Remove all permissions with origin of the specified peer
     const permissionsToRemove = permissions.filter((permission) =>
-      peerIdsToRemove.includes(permission.appMetadata.beaconId)
+      peerIdsToRemove.includes(permission.appMetadata.senderId)
     )
     const permissionIdentifiersToRemove = permissionsToRemove.map(
       (permissionInfo) => permissionInfo.accountIdentifier

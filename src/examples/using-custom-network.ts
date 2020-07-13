@@ -1,13 +1,13 @@
 import {
-  BeaconErrorMessage,
+  ErrorResponse,
   DAppClient,
   Network,
   NetworkType,
   PermissionScope,
-  TezosTransactionOperation,
   TezosOperationType,
   OperationResponseOutput,
-  PermissionResponseOutput
+  PermissionResponseOutput,
+  PartialTezosTransactionOperation
 } from '..' // Replace '..' with '@airgap/beacon-sdk'
 
 const client = new DAppClient({ name: 'My Sample DApp' })
@@ -35,7 +35,7 @@ client
         (permission: PermissionScope) => permission === PermissionScope.OPERATION_REQUEST
       )
     ) {
-      const operation: Partial<TezosTransactionOperation> = {
+      const operation: PartialTezosTransactionOperation = {
         kind: TezosOperationType.TRANSACTION,
         amount: '1234567',
         destination: 'tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ'
@@ -50,4 +50,4 @@ client
       )
     }
   })
-  .catch((permissionError: BeaconErrorMessage) => console.error(permissionError))
+  .catch((permissionError: ErrorResponse) => console.error(permissionError))

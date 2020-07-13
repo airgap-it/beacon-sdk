@@ -1,5 +1,4 @@
 import {
-  BeaconMessage,
   BeaconRequestOutputMessage,
   BeaconMessageType,
   PermissionRequestOutput,
@@ -10,22 +9,23 @@ import {
 } from '..'
 import { ConnectionContext } from '../types/ConnectionContext'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
+import { BeaconRequestMessage } from '../types/beacon/BeaconRequestMessage'
 
-interface IncomingBeaconMessageInterceptorOptions {
-  message: BeaconMessage
+interface IncomingRequestInterceptorOptions {
+  message: BeaconRequestMessage
   connectionInfo: ConnectionContext
   appMetadataManager: AppMetadataManager
   interceptorCallback(message: BeaconRequestOutputMessage, connectionInfo: ConnectionContext): void
 }
 
-export class IncomingBeaconMessageInterceptor {
-  public static async intercept(config: IncomingBeaconMessageInterceptorOptions): Promise<void> {
+export class IncomingRequestInterceptor {
+  public static async intercept(config: IncomingRequestInterceptorOptions): Promise<void> {
     const {
       message,
       connectionInfo,
       appMetadataManager,
       interceptorCallback
-    }: IncomingBeaconMessageInterceptorOptions = config
+    }: IncomingRequestInterceptorOptions = config
 
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
@@ -37,9 +37,9 @@ export class IncomingBeaconMessageInterceptor {
         break
       case BeaconMessageType.OperationRequest:
         {
-          const appMetadata: AppMetadata = await IncomingBeaconMessageInterceptor.getAppMetadata(
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
             appMetadataManager,
-            message.beaconId
+            message.senderId
           )
           const request: OperationRequestOutput = {
             appMetadata,
@@ -50,9 +50,9 @@ export class IncomingBeaconMessageInterceptor {
         break
       case BeaconMessageType.SignPayloadRequest:
         {
-          const appMetadata: AppMetadata = await IncomingBeaconMessageInterceptor.getAppMetadata(
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
             appMetadataManager,
-            message.beaconId
+            message.senderId
           )
           const request: SignPayloadRequestOutput = {
             appMetadata,
@@ -63,9 +63,9 @@ export class IncomingBeaconMessageInterceptor {
         break
       case BeaconMessageType.BroadcastRequest:
         {
-          const appMetadata: AppMetadata = await IncomingBeaconMessageInterceptor.getAppMetadata(
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
             appMetadataManager,
-            message.beaconId
+            message.senderId
           )
           const request: BroadcastRequestOutput = {
             appMetadata,
@@ -82,9 +82,9 @@ export class IncomingBeaconMessageInterceptor {
 
   private static async getAppMetadata(
     appMetadataManager: AppMetadataManager,
-    beaconId: string
+    senderId: string
   ): Promise<AppMetadata> {
-    const appMetadata: AppMetadata | undefined = await appMetadataManager.getAppMetadata(beaconId)
+    const appMetadata: AppMetadata | undefined = await appMetadataManager.getAppMetadata(senderId)
     if (!appMetadata) {
       throw new Error('AppMetadata not found')
     }

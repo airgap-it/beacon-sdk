@@ -10,9 +10,9 @@ import {
   getTransactionBlockExplorerLinkForNetwork
 } from './utils/block-explorer'
 import {
-  P2PPairInfo,
+  P2PPairingRequest,
   AccountInfo,
-  BeaconErrorMessage,
+  ErrorResponse,
   UnknownBeaconError,
   PermissionResponseOutput,
   OperationResponseOutput,
@@ -47,6 +47,7 @@ export enum BeaconEvent {
 
   P2P_CHANNEL_CONNECT_SUCCESS = 'P2P_CHANNEL_CONNECT_SUCCESS',
   P2P_LISTEN_FOR_CHANNEL_OPEN = 'P2P_LISTEN_FOR_CHANNEL_OPEN',
+  P2P_CHANNEL_CLOSED = 'P2P_CHANNEL_CLOSED',
 
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   UNKNOWN = 'UNKNOWN'
@@ -59,34 +60,35 @@ export interface BeaconEventType {
     output: PermissionResponseOutput
     connectionContext: ConnectionContext
   }
-  [BeaconEvent.PERMISSION_REQUEST_ERROR]: BeaconErrorMessage
+  [BeaconEvent.PERMISSION_REQUEST_ERROR]: ErrorResponse
   [BeaconEvent.OPERATION_REQUEST_SENT]: undefined
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: {
     account: AccountInfo
     output: OperationResponseOutput
     connectionContext: ConnectionContext
   }
-  [BeaconEvent.OPERATION_REQUEST_ERROR]: BeaconErrorMessage
+  [BeaconEvent.OPERATION_REQUEST_ERROR]: ErrorResponse
   [BeaconEvent.SIGN_REQUEST_SENT]: undefined
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: {
     output: SignPayloadResponseOutput
     connectionContext: ConnectionContext
   }
-  [BeaconEvent.SIGN_REQUEST_ERROR]: BeaconErrorMessage
+  [BeaconEvent.SIGN_REQUEST_ERROR]: ErrorResponse
   [BeaconEvent.BROADCAST_REQUEST_SENT]: undefined
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
     network: Network
     output: BroadcastResponseOutput
     connectionContext: ConnectionContext
   }
-  [BeaconEvent.BROADCAST_REQUEST_ERROR]: BeaconErrorMessage
+  [BeaconEvent.BROADCAST_REQUEST_ERROR]: ErrorResponse
   [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: undefined
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
-  [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: P2PPairInfo
-  [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairInfo
+  [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: P2PPairingRequest
+  [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairingRequest
+  [BeaconEvent.P2P_CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: string
   [BeaconEvent.UNKNOWN]: undefined
 }
@@ -102,7 +104,7 @@ const showNoPermissionAlert = async (): Promise<void> => {
   })
 }
 
-const showErrorAlert = async (beaconError: BeaconErrorMessage): Promise<void> => {
+const showErrorAlert = async (beaconError: ErrorResponse): Promise<void> => {
   const error = beaconError.errorType
     ? BeaconError.getError(beaconError.errorType)
     : new UnknownBeaconError()
@@ -124,6 +126,15 @@ const showBeaconConnectedAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Success',
     body: 'A wallet has been paired over the beacon network.',
+    confirmButtonText: 'Done',
+    timer: 1500
+  })
+}
+
+const showChannelClosedAlert = async (): Promise<void> => {
+  await openAlert({
+    title: 'Channel closed',
+    body: `Your peer has closed the connection.`,
     confirmButtonText: 'Done',
     timer: 1500
   })
@@ -271,6 +282,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showBeaconConnectedAlert,
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrCode,
+  [BeaconEvent.P2P_CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
   [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)
 }
@@ -297,6 +309,7 @@ export class BeaconEventHandler {
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
     [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: [defaultEventCallbacks.P2P_CHANNEL_CONNECT_SUCCESS],
     [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: [defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN],
+    [BeaconEvent.P2P_CHANNEL_CLOSED]: [defaultEventCallbacks.P2P_CHANNEL_CLOSED],
     [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
   }

@@ -22,7 +22,7 @@ import {
   OperationRequest,
   BroadcastResponse,
   BroadcastRequest,
-  BeaconErrorMessage,
+  ErrorResponse,
   BeaconMessage,
   RequestPermissionInput,
   RequestSignPayloadInput,
@@ -42,7 +42,7 @@ import {
   BroadcastRequestInput,
   BeaconRequestInputMessage,
   Network,
-  P2PPairInfo,
+  P2PPairingRequest,
   P2PTransport,
   BeaconError
 } from '../..'
@@ -57,10 +57,7 @@ const logger = new Logger('DAppClient')
 export class DAppClient extends Client {
   private readonly openRequests = new Map<
     string,
-    ExposedPromise<
-      { message: BeaconMessage; connectionInfo: ConnectionContext },
-      BeaconErrorMessage
-    >
+    ExposedPromise<{ message: BeaconMessage; connectionInfo: ConnectionContext }, ErrorResponse>
   >()
   private readonly iconUrl?: string
 
@@ -91,20 +88,32 @@ export class DAppClient extends Client {
         console.error(storageError)
       })
 
-    this.handleResponse = (event: BeaconMessage, connectionInfo: ConnectionContext): void => {
-      const openRequest = this.openRequests.get(event.id)
+    this.handleResponse = async (
+      message: BeaconMessage,
+      connectionInfo: ConnectionContext
+    ): Promise<void> => {
+      const openRequest = this.openRequests.get(message.id)
       if (openRequest) {
-        logger.log('handleResponse', 'found openRequest', event.id)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const errorMessage: BeaconErrorMessage = (event as any) as BeaconErrorMessage
-        if (errorMessage.errorType) {
-          openRequest.reject(errorMessage)
+        if (message.type === BeaconMessageType.Error) {
+          openRequest.reject(message)
         } else {
-          openRequest.resolve({ message: event, connectionInfo })
+          openRequest.resolve({ message, connectionInfo })
         }
-        this.openRequests.delete(event.id)
+        this.openRequests.delete(message.id)
       } else {
-        logger.error('handleResponse', 'no request found for id ', event.id)
+        if (message.type === BeaconMessageType.Disconnect) {
+          const transport = await this.transport
+          if (transport.type === TransportType.P2P) {
+            await (transport as P2PTransport).removePeer({
+              name: '',
+              publicKey: message.senderId,
+              relayServer: ''
+            })
+            await this.events.emit(BeaconEvent.P2P_CHANNEL_CLOSED)
+          }
+        } else {
+          logger.error('handleResponse', 'no request found for id ', message.id)
+        }
       }
     }
   }
@@ -113,7 +122,7 @@ export class DAppClient extends Client {
     id: string,
     promise: ExposedPromise<
       { message: BeaconMessage; connectionInfo: ConnectionContext },
-      BeaconErrorMessage
+      ErrorResponse
     >
   ): void {
     logger.log('addOpenRequest', this.name, `adding request ${id} and waiting for answer`)
@@ -150,7 +159,7 @@ export class DAppClient extends Client {
 
   public async getAppMetadata(): Promise<AppMetadata> {
     return {
-      beaconId: await this.beaconId,
+      senderId: await this.beaconId,
       name: this.name,
       icon: this.iconUrl
     }
@@ -171,7 +180,7 @@ export class DAppClient extends Client {
     return removeAccountResult
   }
 
-  public async removePeer(id: P2PPairInfo): Promise<void> {
+  public async removePeer(id: P2PPairingRequest): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
       const removePeerResult = ((await this.transport) as P2PTransport).removePeer(id)
 
@@ -183,7 +192,7 @@ export class DAppClient extends Client {
 
   public async removeAllPeers(): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
-      const peers: P2PPairInfo[] = await ((await this.transport) as P2PTransport).getPeers()
+      const peers: P2PPairingRequest[] = await ((await this.transport) as P2PTransport).getPeers()
       const removePeerResult = ((await this.transport) as P2PTransport).removeAllPeers()
 
       await this.removeAccountsForPeers(peers)
@@ -234,17 +243,17 @@ export class DAppClient extends Client {
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
       PermissionResponse
-    >(request).catch(async (requestError: BeaconErrorMessage) => {
+    >(request).catch(async (requestError: ErrorResponse) => {
       throw this.handleRequestError(request, requestError)
     })
 
-    // TODO: Migration code. Remove before 1.0.0 release.
+    // TODO: Migration code. Remove sometime after 1.0.0 release.
     const publicKey = message.publicKey || (message as any).pubkey || (message as any).pubKey
     const address = await getAddressFromPublicKey(publicKey)
 
     const accountInfo: AccountInfo = {
       accountIdentifier: await getAccountIdentifier(address, message.network),
-      beaconId: message.beaconId,
+      senderId: message.senderId,
       origin: {
         type: connectionInfo.origin,
         id: connectionInfo.id
@@ -253,15 +262,23 @@ export class DAppClient extends Client {
       publicKey,
       network: message.network,
       scopes: message.scopes,
+      threshold: message.threshold,
       connectedAt: new Date().getTime()
     }
 
     await this.accountManager.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)
 
-    const { beaconId, network, scopes } = message
+    const { senderId, network, scopes, threshold } = message
 
-    const output: PermissionResponseOutput = { beaconId, address, network, scopes }
+    const output: PermissionResponseOutput = {
+      senderId,
+      address,
+      network,
+      scopes,
+      publicKey,
+      threshold
+    }
 
     await this.notifySuccess(request, {
       account: accountInfo,
@@ -295,13 +312,13 @@ export class DAppClient extends Client {
     const { message, connectionInfo } = await this.makeRequest<
       SignPayloadRequest,
       SignPayloadResponse
-    >(request).catch(async (requestError: BeaconErrorMessage) => {
+    >(request).catch(async (requestError: ErrorResponse) => {
       throw this.handleRequestError(request, requestError)
     })
 
-    const { beaconId, signature } = message
+    const { senderId, signature } = message
 
-    const output: SignPayloadResponseOutput = { beaconId, signature }
+    const output: SignPayloadResponseOutput = { senderId, signature }
 
     await this.notifySuccess(request, {
       account: activeAccount,
@@ -326,20 +343,20 @@ export class DAppClient extends Client {
 
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
-      network: input.network || activeAccount.network || { type: NetworkType.MAINNET },
+      network: activeAccount.network || { type: NetworkType.MAINNET },
       operationDetails: input.operationDetails,
       sourceAddress: activeAccount.address || ''
     }
 
     const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
       request
-    ).catch(async (requestError: BeaconErrorMessage) => {
+    ).catch(async (requestError: ErrorResponse) => {
       throw this.handleRequestError(request, requestError)
     })
 
-    const { beaconId, transactionHash } = message
+    const { senderId, transactionHash } = message
 
-    const output: OperationResponseOutput = { beaconId, transactionHash }
+    const output: OperationResponseOutput = { senderId, transactionHash }
 
     await this.notifySuccess(request, {
       account: activeAccount,
@@ -347,7 +364,7 @@ export class DAppClient extends Client {
       connectionContext: connectionInfo
     })
 
-    return { beaconId, transactionHash }
+    return { senderId, transactionHash }
   }
 
   /**
@@ -368,17 +385,17 @@ export class DAppClient extends Client {
 
     const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
       request
-    ).catch(async (requestError: BeaconErrorMessage) => {
+    ).catch(async (requestError: ErrorResponse) => {
       throw this.handleRequestError(request, requestError)
     })
 
-    const { beaconId, transactionHash } = message
+    const { senderId, transactionHash } = message
 
-    const output: BroadcastResponseOutput = { beaconId, transactionHash }
+    const output: BroadcastResponseOutput = { senderId, transactionHash }
 
     await this.notifySuccess(request, { network, output, connectionContext: connectionInfo })
 
-    return { beaconId, transactionHash }
+    return { senderId, transactionHash }
   }
 
   private async sendInternalError(errorMessage: string): Promise<void> {
@@ -386,7 +403,7 @@ export class DAppClient extends Client {
     throw new Error(errorMessage)
   }
 
-  private async removeAccountsForPeers(peersToRemove: P2PPairInfo[]): Promise<void> {
+  private async removeAccountsForPeers(peersToRemove: P2PPairingRequest[]): Promise<void> {
     const accounts = await this.accountManager.getAccounts()
 
     const peerIdsToRemove = peersToRemove.map((peer) => peer.publicKey)
@@ -411,7 +428,7 @@ export class DAppClient extends Client {
 
   private async handleRequestError(
     request: BeaconRequestInputMessage,
-    beaconError: BeaconErrorMessage
+    beaconError: ErrorResponse
   ): Promise<void> {
     if (beaconError.errorType) {
       this.events
@@ -489,13 +506,13 @@ export class DAppClient extends Client {
       Pick<U, IgnoredRequestInputProperties> = {
       id: generateGUID(),
       version: BEACON_VERSION,
-      beaconId: await this.beaconId,
+      senderId: await this.beaconId,
       ...requestInput
     }
 
     const exposed = new ExposedPromise<
       { message: BeaconMessage; connectionInfo: ConnectionContext },
-      BeaconErrorMessage
+      ErrorResponse
     >()
 
     this.addOpenRequest(request.id, exposed)

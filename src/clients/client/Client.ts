@@ -8,14 +8,14 @@ import {
   TransportType,
   TransportStatus,
   BeaconBaseMessage,
-  BeaconMessage,
   AccountInfo,
-  P2PPairInfo
+  P2PPairingRequest
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { isChromeExtensionInstalled } from '../../utils/is-extension-installed'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
+import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { ClientOptions } from './ClientOptions'
 
 export abstract class Client extends BeaconClient {
@@ -23,7 +23,10 @@ export abstract class Client extends BeaconClient {
 
   protected requestCounter: number[] = []
 
-  protected handleResponse: (_event: BeaconMessage, connectionInfo: ConnectionContext) => void
+  protected handleResponse: (
+    _event: BeaconRequestMessage,
+    connectionInfo: ConnectionContext
+  ) => void
 
   protected readonly rateLimit: number = 2
   protected readonly rateLimitWindowInSeconds: number = 5
@@ -128,7 +131,7 @@ export abstract class Client extends BeaconClient {
       })
     }
   }
-  public async getPeers(): Promise<P2PPairInfo[]> {
+  public async getPeers(): Promise<P2PPairingRequest[]> {
     if ((await this.transport).type === TransportType.P2P) {
       return ((await this.transport) as P2PTransport).getPeers()
     } else {
@@ -136,7 +139,7 @@ export abstract class Client extends BeaconClient {
     }
   }
 
-  public async addPeer(id: P2PPairInfo): Promise<void> {
+  public async addPeer(id: P2PPairingRequest): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
       return ((await this.transport) as P2PTransport).addPeer(id)
     }
@@ -151,7 +154,7 @@ export abstract class Client extends BeaconClient {
           if (typeof message === 'string') {
             const deserializedMessage = (await new Serializer().deserialize(
               message
-            )) as BeaconMessage
+            )) as BeaconRequestMessage
             this.handleResponse(deserializedMessage, connectionInfo)
           }
         })

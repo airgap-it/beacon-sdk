@@ -9,7 +9,7 @@ import {
   TransportType,
   P2PCommunicationClient,
   Origin,
-  P2PPairInfo
+  P2PPairingRequest
 } from '..'
 import { BeaconEventHandler, BeaconEvent } from '../events'
 import { PeerManager } from '../managers/PeerManager'
@@ -108,11 +108,11 @@ export class P2PTransport extends Transport {
     })
   }
 
-  public async getPeers(): Promise<P2PPairInfo[]> {
+  public async getPeers(): Promise<P2PPairingRequest[]> {
     return this.peerManager.getPeers()
   }
 
-  public async addPeer(newPeer: P2PPairInfo): Promise<void> {
+  public async addPeer(newPeer: P2PPairingRequest): Promise<void> {
     if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
       logger.log('addPeer', newPeer)
       await this.peerManager.addPeer({
@@ -128,7 +128,7 @@ export class P2PTransport extends Transport {
     }
   }
 
-  public async removePeer(peerToBeRemoved: P2PPairInfo): Promise<void> {
+  public async removePeer(peerToBeRemoved: P2PPairingRequest): Promise<void> {
     logger.log('removePeer', peerToBeRemoved)
     await this.peerManager.removePeer(peerToBeRemoved.publicKey)
     if (this.client) {
