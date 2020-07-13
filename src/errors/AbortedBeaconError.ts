@@ -1,6 +1,6 @@
 import { BeaconError, BeaconErrorType } from '..'
 
-export class UnknownBeaconError extends BeaconError {
+export class AbortedBeaconError extends BeaconError {
   public name: string = 'UnknownBeaconError'
   public title: string = 'Error'
 
