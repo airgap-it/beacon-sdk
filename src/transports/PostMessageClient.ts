@@ -1,6 +1,6 @@
 import * as sodium from 'libsodium-wrappers'
 import { myWindow } from '../MockWindow'
-import { P2PPairInfo, ExtensionMessage, ExtensionMessageTarget, Origin } from '..'
+import { P2PPairingRequest, ExtensionMessage, ExtensionMessageTarget, Origin } from '..'
 import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 import {
@@ -34,7 +34,7 @@ export class PostMessageClient extends CommunicationClient {
     await sodium.ready
   }
 
-  public async getHandshakeInfo(): Promise<P2PPairInfo> {
+  public async getHandshakeInfo(): Promise<P2PPairingRequest> {
     return {
       name: this.name,
       publicKey: await this.getPublicKey(),
