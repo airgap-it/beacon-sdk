@@ -9,7 +9,6 @@ import {
   PermissionResponseOutput,
   PartialTezosTransactionOperation
 } from '..' // Replace '..' with '@airgap/beacon-sdk'
-import { PartialTezosTransactionOperation } from '../types/tezos/PartialTezosOperation'
 
 const client = new DAppClient({ name: 'My Sample DApp' })
 
