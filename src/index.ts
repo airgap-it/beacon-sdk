@@ -60,7 +60,7 @@ import { Storage } from './storage/Storage'
 import { StorageKey } from './types/storage/StorageKey'
 import { StorageKeyReturnDefaults } from './types/storage/StorageKeyReturnDefaults'
 import { StorageKeyReturnType } from './types/storage/StorageKeyReturnType'
-import { P2PPairInfo } from './types/P2PPairInfo'
+import { P2PPairingRequest } from './types/P2PPairingRequest'
 import { ChromeStorage } from './storage/ChromeStorage'
 import { LocalStorage } from './storage/LocalStorage'
 import { getStorage } from './storage/getStorage'
@@ -113,6 +113,14 @@ import { BeaconClientOptions } from './clients/beacon-client/BeaconClientOptions
 import { getAccountIdentifier } from './utils/get-account-identifier'
 import { ConnectionContext } from './types/ConnectionContext'
 import { Threshold } from './types/beacon/Threshold'
+import {
+  PartialTezosTransactionOperation,
+  PartialTezosOperation,
+  PartialTezosDelegationOperation,
+  PartialTezosOriginationOperation,
+  PartialTezosRevealOperation
+} from './types/tezos/PartialTezosOperation'
+import { AbortedBeaconError } from './errors/AbortedBeaconError'
 
 // Tezos
 export {
@@ -136,7 +144,12 @@ export {
   TezosProposalOperation,
   TezosRevealOperation,
   TezosSeedNonceRevelationOperation,
-  TezosTransactionOperation
+  TezosTransactionOperation,
+  PartialTezosOperation,
+  PartialTezosTransactionOperation,
+  PartialTezosDelegationOperation,
+  PartialTezosOriginationOperation,
+  PartialTezosRevealOperation
 }
 
 // Clients
@@ -209,7 +222,8 @@ export {
 export {
   BeaconError,
   BeaconErrorType,
-  ErrorResponse as BeaconErrorMessage,
+  ErrorResponse,
+  AbortedBeaconError,
   BroadcastBeaconError,
   NetworkNotSupportedBeaconError,
   NoAddressBeaconError,
@@ -256,4 +270,4 @@ export { SDK_VERSION, BEACON_VERSION }
 export { getAccountIdentifier, getAddressFromPublicKey }
 
 // Others
-export { ConnectionContext, P2PPairInfo, Serializer }
+export { ConnectionContext, P2PPairingRequest, Serializer }

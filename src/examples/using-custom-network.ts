@@ -1,12 +1,13 @@
 import {
-  BeaconErrorMessage,
+  ErrorResponse,
   DAppClient,
   Network,
   NetworkType,
   PermissionScope,
   TezosOperationType,
   OperationResponseOutput,
-  PermissionResponseOutput
+  PermissionResponseOutput,
+  PartialTezosTransactionOperation
 } from '..' // Replace '..' with '@airgap/beacon-sdk'
 import { PartialTezosTransactionOperation } from '../types/tezos/PartialTezosOperation'
 
@@ -50,4 +51,4 @@ client
       )
     }
   })
-  .catch((permissionError: BeaconErrorMessage) => console.error(permissionError))
+  .catch((permissionError: ErrorResponse) => console.error(permissionError))

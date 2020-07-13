@@ -1,5 +1,6 @@
 import { assertNever } from '../utils/assert-never'
 import {
+  AbortedBeaconError,
   BeaconErrorType,
   UnknownBeaconError,
   NetworkNotSupportedBeaconError,
@@ -41,6 +42,8 @@ export abstract class BeaconError implements Error {
         return new TooManyOperationsBeaconError()
       case BeaconErrorType.TRANSACTION_INVALID_ERROR:
         return new TransactionInvalidBeaconError()
+      case BeaconErrorType.ABORTED_ERROR:
+        return new AbortedBeaconError()
       case BeaconErrorType.UNKNOWN_ERROR:
         return new UnknownBeaconError()
       default:

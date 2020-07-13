@@ -3,7 +3,7 @@ import {
   AccountIdentifier,
   Origin,
   Network,
-  P2PPairInfo,
+  P2PPairingRequest,
   StorageKey,
   AccountInfo
 } from '..'
@@ -22,7 +22,7 @@ export interface AccountInfoOld {
   connectedAt: Date
 }
 
-export interface P2PPairInfoOld {
+export interface P2PPairingRequestOld {
   name: string
   pubKey: string
   relayServer: string
@@ -46,17 +46,17 @@ export const migrate_0_7_0 = async (storage: Storage): Promise<void> => {
   await storage.set(StorageKey.ACCOUNTS, accountInfos)
 
   // Migrate P2PPeers
-  const p2pPairInfos: P2PPairInfo[] = await storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-  p2pPairInfos.forEach((p2pPairInfo) => {
+  const P2PPairingRequests: P2PPairingRequest[] = await storage.get(StorageKey.TRANSPORT_P2P_PEERS)
+  P2PPairingRequests.forEach((p2pPairInfo) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const p2pPairInfoOld: P2PPairInfoOld = p2pPairInfo as any
+    const P2PPairingRequestOld: P2PPairingRequestOld = p2pPairInfo as any
     // pubKey is now publicKey
-    if (p2pPairInfoOld.pubKey) {
-      p2pPairInfo.publicKey = p2pPairInfoOld.pubKey
-      delete p2pPairInfoOld.pubKey
+    if (P2PPairingRequestOld.pubKey) {
+      p2pPairInfo.publicKey = P2PPairingRequestOld.pubKey
+      delete P2PPairingRequestOld.pubKey
     }
   })
-  await storage.set(StorageKey.TRANSPORT_P2P_PEERS, p2pPairInfos)
+  await storage.set(StorageKey.TRANSPORT_P2P_PEERS, P2PPairingRequests)
 
   await storage.set(StorageKey.BEACON_SDK_VERSION, '0.7.0')
 }

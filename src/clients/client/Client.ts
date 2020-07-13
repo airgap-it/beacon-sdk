@@ -9,7 +9,7 @@ import {
   TransportStatus,
   BeaconBaseMessage,
   AccountInfo,
-  P2PPairInfo
+  P2PPairingRequest
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { isChromeExtensionInstalled } from '../../utils/is-extension-installed'
@@ -131,7 +131,7 @@ export abstract class Client extends BeaconClient {
       })
     }
   }
-  public async getPeers(): Promise<P2PPairInfo[]> {
+  public async getPeers(): Promise<P2PPairingRequest[]> {
     if ((await this.transport).type === TransportType.P2P) {
       return ((await this.transport) as P2PTransport).getPeers()
     } else {
@@ -139,7 +139,7 @@ export abstract class Client extends BeaconClient {
     }
   }
 
-  public async addPeer(id: P2PPairInfo): Promise<void> {
+  public async addPeer(id: P2PPairingRequest): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
       return ((await this.transport) as P2PTransport).addPeer(id)
     }
