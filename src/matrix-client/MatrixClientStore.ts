@@ -1,12 +1,15 @@
 import { keys } from '../utils/utils'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
+import { Storage } from '../storage/Storage'
+import { StorageKey } from '..'
 
-interface MatrixStateStorage {
-  getItem(key: string): string | null
-  setItem(key: string, value: string): void
-}
+type OnStateChangedListener = (
+  oldState: MatrixStateStore,
+  newState: MatrixStateStore,
+  stateChange: Partial<MatrixStateUpdate>
+) => void
 
-interface MatrixState {
+export interface MatrixState {
   isRunning: boolean
   userId: string | undefined
   deviceId: string | undefined
@@ -18,12 +21,6 @@ interface MatrixState {
   rooms: MatrixRoom[] | Record<string, MatrixRoom>
 }
 
-type OnStateChangedListener = (
-  oldState: MatrixStateStore,
-  newState: MatrixStateStore,
-  stateChange: Partial<MatrixStateUpdate>
-) => void
-
 export interface MatrixStateStore extends MatrixState {
   rooms: Record<string, MatrixRoom>
 }
@@ -32,16 +29,9 @@ export interface MatrixStateUpdate extends MatrixState {
   rooms: MatrixRoom[]
 }
 
-const STORAGE_KEY = 'beacon:sdk-matrix-preserved-state'
 const PRESERVED_FIELDS: (keyof MatrixState)[] = ['syncToken', 'rooms']
 
 export class MatrixClientStore {
-  public static createLocal(): MatrixClientStore {
-    const localStorage = (global as any).localStorage
-
-    return new MatrixClientStore(localStorage)
-  }
-
   private state: MatrixStateStore = {
     isRunning: false,
     userId: undefined,
@@ -59,9 +49,16 @@ export class MatrixClientStore {
     OnStateChangedListener
   > = new Map()
 
-  constructor(private readonly storage?: MatrixStateStorage) {
-    this.initFromStorage()
-  }
+  private waitReadyPromise: Promise<void> = new Promise<void>(async (resolve, reject) => {
+    try {
+      await this.initFromStorage()
+      resolve()
+    } catch (error) {
+      reject(error)
+    }
+  })
+
+  constructor(private readonly storage: Storage) {}
 
   public get<T extends keyof MatrixStateStore>(key: T): MatrixStateStore[T] {
     return this.state[key]
@@ -73,7 +70,9 @@ export class MatrixClientStore {
     return this.state.rooms[room.id] || room
   }
 
-  public update(stateUpdate: Partial<MatrixStateUpdate>): void {
+  public async update(stateUpdate: Partial<MatrixStateUpdate>): Promise<void> {
+    await this.waitReady()
+
     const oldState = Object.assign({}, this.state)
     this.setState(stateUpdate)
     this.updateStorage(stateUpdate)
@@ -94,11 +93,13 @@ export class MatrixClientStore {
     }
   }
 
-  private initFromStorage(): void {
-    if (this.storage) {
-      const preserved = this.storage.getItem(STORAGE_KEY)
-      this.setState(preserved ? JSON.parse(preserved) : {})
-    }
+  private async waitReady(): Promise<void> {
+    return this.waitReadyPromise
+  }
+
+  private async initFromStorage(): Promise<void> {
+    const preserved = await this.storage.get(StorageKey.MATRIX_PRESERVED_STATE)
+    this.setState(preserved)
   }
 
   private prepareData(toStore: Partial<MatrixStateStore>): Partial<MatrixStateStore> {
@@ -123,13 +124,13 @@ export class MatrixClientStore {
       ([key, value]) => PRESERVED_FIELDS.includes(key as keyof MatrixStateUpdate) && Boolean(value)
     )
 
-    if (this.storage && updatedCachedFields.length > 0) {
+    if (updatedCachedFields.length > 0) {
       const filteredState: Record<string, any> = {}
       PRESERVED_FIELDS.forEach((key) => {
         filteredState[key] = this.state[key]
       })
 
-      this.storage.setItem(STORAGE_KEY, JSON.stringify(this.prepareData(filteredState)))
+      this.storage.set(StorageKey.MATRIX_PRESERVED_STATE, this.prepareData(filteredState))
     }
   }
 

@@ -7,9 +7,11 @@ import { MatrixEventService } from './services/MatrixEventService'
 import { MatrixSyncResponse } from './models/api/MatrixSync'
 import { MatrixClientEventEmitter } from './MatrixClientEventEmitter'
 import { MatrixClientEventType, MatrixClientEvent } from './models/MatrixClientEvent'
+import { Storage } from '../storage/Storage'
 
 interface MatrixClientOptions {
   baseUrl: string
+  storage: Storage
 }
 
 interface MatrixLoginConfig {
@@ -22,7 +24,7 @@ const MAX_POLLING_RETRIES = 3
 
 export class MatrixClient {
   public static create(config: MatrixClientOptions): MatrixClient {
-    const store = MatrixClientStore.createLocal()
+    const store = new MatrixClientStore(config.storage)
     const eventEmitter = new MatrixClientEventEmitter()
 
     const httpClient = new MatrixHttpClient(config.baseUrl)
@@ -67,18 +69,18 @@ export class MatrixClient {
   public async start(user: MatrixLoginConfig): Promise<void> {
     const response = await this.userService.login(user.id, user.password, user.deviceId)
 
-    this.store.update({
+    await this.store.update({
       accessToken: response.access_token
     })
 
     return new Promise((resolve, reject) => {
       this.poll(
         0,
-        (pollingResponse: MatrixSyncResponse) => {
+        async (pollingResponse: MatrixSyncResponse) => {
           if (!this.store.get('isRunning')) {
             resolve()
           }
-          this.store.update({
+          await this.store.update({
             isRunning: true,
             syncToken: pollingResponse.next_batch,
             pollingTimeout: 30000,
@@ -86,11 +88,11 @@ export class MatrixClient {
             rooms: MatrixRoom.fromSync(pollingResponse.rooms)
           })
         },
-        (error) => {
+        async (error) => {
           if (!this.store.get('isRunning')) {
             reject(error)
           }
-          this.store.update({
+          await this.store.update({
             isRunning: false,
             pollingRetries: this.store.get('pollingRetries') + 1
           })
@@ -162,7 +164,7 @@ export class MatrixClient {
     try {
       await this.requiresAuthorization('send', async (accessToken) => {
         const room = this.store.getRoom(roomOrId)
-        const txnId = this.createTxnId()
+        const txnId = await this.createTxnId()
 
         return this.eventService.sendMessage(
           accessToken,
@@ -234,11 +236,11 @@ export class MatrixClient {
     return action(this.store.get('accessToken')!)
   }
 
-  private createTxnId(): string {
+  private async createTxnId(): Promise<string> {
     const timestamp = new Date().getTime()
     const counter = this.store.get('txnNo')
 
-    this.store.update({
+    await this.store.update({
       txnNo: counter + 1
     })
 
