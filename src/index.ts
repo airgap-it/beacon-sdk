@@ -113,6 +113,13 @@ import { BeaconClientOptions } from './clients/beacon-client/BeaconClientOptions
 import { getAccountIdentifier } from './utils/get-account-identifier'
 import { ConnectionContext } from './types/ConnectionContext'
 import { Threshold } from './types/beacon/Threshold'
+import {
+  PartialTezosTransactionOperation,
+  PartialTezosOperation,
+  PartialTezosDelegationOperation,
+  PartialTezosOriginationOperation,
+  PartialTezosRevealOperation
+} from './types/tezos/PartialTezosOperation'
 
 // Tezos
 export {
@@ -136,7 +143,12 @@ export {
   TezosProposalOperation,
   TezosRevealOperation,
   TezosSeedNonceRevelationOperation,
-  TezosTransactionOperation
+  TezosTransactionOperation,
+  PartialTezosOperation,
+  PartialTezosTransactionOperation,
+  PartialTezosDelegationOperation,
+  PartialTezosOriginationOperation,
+  PartialTezosRevealOperation
 }
 
 // Clients
