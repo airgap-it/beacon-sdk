@@ -22,7 +22,7 @@ import {
   OperationRequest,
   BroadcastResponse,
   BroadcastRequest,
-  BeaconErrorMessage,
+  ErrorResponse,
   BeaconMessage,
   RequestPermissionInput,
   RequestSignPayloadInput,
@@ -42,7 +42,7 @@ import {
   BroadcastRequestInput,
   BeaconRequestInputMessage,
   Network,
-  P2PPairInfo,
+  P2PPairingRequest,
   P2PTransport,
   BeaconError
 } from '../..'
@@ -57,10 +57,7 @@ const logger = new Logger('DAppClient')
 export class DAppClient extends Client {
   private readonly openRequests = new Map<
     string,
-    ExposedPromise<
-      { message: BeaconMessage; connectionInfo: ConnectionContext },
-      BeaconErrorMessage
-    >
+    ExposedPromise<{ message: BeaconMessage; connectionInfo: ConnectionContext }, ErrorResponse>
   >()
   private readonly iconUrl?: string
 
@@ -123,7 +120,7 @@ export class DAppClient extends Client {
     id: string,
     promise: ExposedPromise<
       { message: BeaconMessage; connectionInfo: ConnectionContext },
-      BeaconErrorMessage
+      ErrorResponse
     >
   ): void {
     logger.log('addOpenRequest', this.name, `adding request ${id} and waiting for answer`)
@@ -174,7 +171,7 @@ export class DAppClient extends Client {
     return removeAccountResult
   }
 
-  public async removePeer(id: P2PPairInfo): Promise<void> {
+  public async removePeer(id: P2PPairingRequest): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
       const removePeerResult = ((await this.transport) as P2PTransport).removePeer(id)
 
@@ -186,7 +183,7 @@ export class DAppClient extends Client {
 
   public async removeAllPeers(): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
-      const peers: P2PPairInfo[] = await ((await this.transport) as P2PTransport).getPeers()
+      const peers: P2PPairingRequest[] = await ((await this.transport) as P2PTransport).getPeers()
       const removePeerResult = ((await this.transport) as P2PTransport).removeAllPeers()
 
       await this.removeAccountsForPeers(peers)
@@ -237,7 +234,7 @@ export class DAppClient extends Client {
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
       PermissionResponse
-    >(request).catch(async (requestError: BeaconErrorMessage) => {
+    >(request).catch(async (requestError: ErrorResponse) => {
       throw this.handleRequestError(request, requestError)
     })
 
@@ -308,7 +305,7 @@ export class DAppClient extends Client {
     const { message, connectionInfo } = await this.makeRequest<
       SignPayloadRequest,
       SignPayloadResponse
-    >(request).catch(async (requestError: BeaconErrorMessage) => {
+    >(request).catch(async (requestError: ErrorResponse) => {
       throw this.handleRequestError(request, requestError)
     })
 
@@ -347,7 +344,7 @@ export class DAppClient extends Client {
 
     const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
       request
-    ).catch(async (requestError: BeaconErrorMessage) => {
+    ).catch(async (requestError: ErrorResponse) => {
       throw this.handleRequestError(request, requestError)
     })
 
@@ -382,7 +379,7 @@ export class DAppClient extends Client {
 
     const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
       request
-    ).catch(async (requestError: BeaconErrorMessage) => {
+    ).catch(async (requestError: ErrorResponse) => {
       throw this.handleRequestError(request, requestError)
     })
 
@@ -400,7 +397,7 @@ export class DAppClient extends Client {
     throw new Error(errorMessage)
   }
 
-  private async removeAccountsForPeers(peersToRemove: P2PPairInfo[]): Promise<void> {
+  private async removeAccountsForPeers(peersToRemove: P2PPairingRequest[]): Promise<void> {
     const accounts = await this.accountManager.getAccounts()
 
     const peerIdsToRemove = peersToRemove.map((peer) => peer.publicKey)
@@ -424,7 +421,7 @@ export class DAppClient extends Client {
 
   private async handleRequestError(
     request: BeaconRequestInputMessage,
-    beaconError: BeaconErrorMessage
+    beaconError: ErrorResponse
   ): Promise<void> {
     if (beaconError.errorType) {
       this.events
@@ -509,7 +506,7 @@ export class DAppClient extends Client {
 
     const exposed = new ExposedPromise<
       { message: BeaconMessage; connectionInfo: ConnectionContext },
-      BeaconErrorMessage
+      ErrorResponse
     >()
 
     this.addOpenRequest(request.id, exposed)

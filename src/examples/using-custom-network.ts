@@ -1,5 +1,5 @@
 import {
-  BeaconErrorMessage,
+  ErrorResponse,
   DAppClient,
   Network,
   NetworkType,
@@ -49,7 +49,7 @@ client
             operationResponse
           )
         })
-        .catch((operationError: BeaconErrorMessage) => console.error(operationError))
+        .catch((operationError: ErrorResponse) => console.error(operationError))
     }
   })
-  .catch((permissionError: BeaconErrorMessage) => console.error(permissionError))
+  .catch((permissionError: ErrorResponse) => console.error(permissionError))

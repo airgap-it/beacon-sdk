@@ -1,4 +1,4 @@
-import { Storage, StorageKey, P2PPairInfo } from '..'
+import { Storage, StorageKey, P2PPairingRequest } from '..'
 import { StorageManager } from './StorageManager'
 
 export class PeerManager {
@@ -12,15 +12,15 @@ export class PeerManager {
     return (await this.getPeer(publicKey)) ? true : false
   }
 
-  public async getPeers(): Promise<P2PPairInfo[]> {
+  public async getPeers(): Promise<P2PPairingRequest[]> {
     return this.storageManager.getAll()
   }
 
-  public async getPeer(publicKey: string): Promise<P2PPairInfo | undefined> {
+  public async getPeer(publicKey: string): Promise<P2PPairingRequest | undefined> {
     return this.storageManager.getOne((peer) => peer.publicKey === publicKey)
   }
 
-  public async addPeer(peerInfo: P2PPairInfo): Promise<void> {
+  public async addPeer(peerInfo: P2PPairingRequest): Promise<void> {
     return this.storageManager.addOne(peerInfo, (peer) => peer.publicKey === peerInfo.publicKey)
   }
 

@@ -10,7 +10,7 @@ import {
   AppMetadata,
   PermissionInfo,
   P2PTransport,
-  P2PPairInfo
+  P2PPairingRequest
 } from '../..'
 import { PermissionManager } from '../../managers/PermissionManager'
 import { AppMetadataManager } from '../../managers/AppMetadataManager'
@@ -114,7 +114,7 @@ export class WalletClient extends Client {
     return this.permissionManager.removeAllPermissions()
   }
 
-  public async removePeer(id: P2PPairInfo): Promise<void> {
+  public async removePeer(id: P2PPairingRequest): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
       const removePeerResult = ((await this.transport) as P2PTransport).removePeer(id)
 
@@ -126,7 +126,7 @@ export class WalletClient extends Client {
 
   public async removeAllPeers(): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
-      const peers: P2PPairInfo[] = await ((await this.transport) as P2PTransport).getPeers()
+      const peers: P2PPairingRequest[] = await ((await this.transport) as P2PTransport).getPeers()
       const removePeerResult = ((await this.transport) as P2PTransport).removeAllPeers()
 
       await this.removePermissionsForPeers(peers)
@@ -135,7 +135,7 @@ export class WalletClient extends Client {
     }
   }
 
-  private async removePermissionsForPeers(peersToRemove: P2PPairInfo[]): Promise<void> {
+  private async removePermissionsForPeers(peersToRemove: P2PPairingRequest[]): Promise<void> {
     const permissions = await this.permissionManager.getPermissions()
 
     const peerIdsToRemove = peersToRemove.map((peer) => peer.publicKey)

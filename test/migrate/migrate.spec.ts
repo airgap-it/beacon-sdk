@@ -5,7 +5,7 @@ import 'mocha'
 import { FileStorage, writeLocalFile } from '../test-utils/FileStorage'
 import { NetworkType, Origin, Storage, StorageKey, SDK_VERSION } from '../../src'
 import { migrate } from '../../src/migrations/migrations'
-import { AccountInfoOld, P2PPairInfoOld } from '../../src/migrations/migrate-0.7.0'
+import { AccountInfoOld, P2PPairingRequestOld } from '../../src/migrations/migrate-0.7.0'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -62,13 +62,13 @@ describe(`Migrations`, () => {
       connectedAt: new Date()
     }
 
-    const p2pInfo1: P2PPairInfoOld = {
+    const p2pInfo1: P2PPairingRequestOld = {
       name: 'name1',
       pubKey: 'pubkey1',
       relayServer: 'relayServer1'
     }
 
-    const p2pInfo2: P2PPairInfoOld = {
+    const p2pInfo2: P2PPairingRequestOld = {
       name: 'name2',
       pubKey: 'pubkey2',
       relayServer: 'relayServer2'

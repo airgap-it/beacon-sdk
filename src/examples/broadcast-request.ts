@@ -1,4 +1,4 @@
-import { DAppClient, BeaconErrorMessage, BroadcastResponseOutput } from '..'
+import { DAppClient, ErrorResponse, BroadcastResponseOutput } from '..'
 
 const client = new DAppClient({ name: 'My Sample DApp' })
 
@@ -11,4 +11,4 @@ client
   .then((response: BroadcastResponseOutput) => {
     console.log('transaction hash', response.transactionHash)
   })
-  .catch((broadcastError: BeaconErrorMessage) => console.log(broadcastError))
+  .catch((broadcastError: ErrorResponse) => console.log(broadcastError))

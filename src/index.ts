@@ -60,7 +60,7 @@ import { Storage } from './storage/Storage'
 import { StorageKey } from './types/storage/StorageKey'
 import { StorageKeyReturnDefaults } from './types/storage/StorageKeyReturnDefaults'
 import { StorageKeyReturnType } from './types/storage/StorageKeyReturnType'
-import { P2PPairInfo } from './types/P2PPairInfo'
+import { P2PPairingRequest } from './types/P2PPairingRequest'
 import { ChromeStorage } from './storage/ChromeStorage'
 import { LocalStorage } from './storage/LocalStorage'
 import { getStorage } from './storage/getStorage'
@@ -209,7 +209,7 @@ export {
 export {
   BeaconError,
   BeaconErrorType,
-  ErrorResponse as BeaconErrorMessage,
+  ErrorResponse,
   BroadcastBeaconError,
   NetworkNotSupportedBeaconError,
   NoAddressBeaconError,
@@ -256,4 +256,4 @@ export { SDK_VERSION, BEACON_VERSION }
 export { getAccountIdentifier, getAddressFromPublicKey }
 
 // Others
-export { ConnectionContext, P2PPairInfo, Serializer }
+export { ConnectionContext, P2PPairingRequest, Serializer }

@@ -1,5 +1,5 @@
 import {
-  BeaconErrorMessage,
+  ErrorResponse,
   BeaconMessage,
   BeaconResponseInputMessage,
   BeaconMessageType,
@@ -38,7 +38,7 @@ export class OutgoingResponseInterceptor {
 
     switch (message.type) {
       case BeaconMessageType.Error: {
-        const response: BeaconErrorMessage = {
+        const response: ErrorResponse = {
           type: message.type,
           version: BEACON_VERSION,
           senderId,

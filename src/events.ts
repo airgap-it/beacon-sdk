@@ -10,9 +10,9 @@ import {
   getTransactionBlockExplorerLinkForNetwork
 } from './utils/block-explorer'
 import {
-  P2PPairInfo,
+  P2PPairingRequest,
   AccountInfo,
-  BeaconErrorMessage,
+  ErrorResponse,
   UnknownBeaconError,
   PermissionResponseOutput,
   OperationResponseOutput,
@@ -60,34 +60,34 @@ export interface BeaconEventType {
     output: PermissionResponseOutput
     connectionContext: ConnectionContext
   }
-  [BeaconEvent.PERMISSION_REQUEST_ERROR]: BeaconErrorMessage
+  [BeaconEvent.PERMISSION_REQUEST_ERROR]: ErrorResponse
   [BeaconEvent.OPERATION_REQUEST_SENT]: undefined
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: {
     account: AccountInfo
     output: OperationResponseOutput
     connectionContext: ConnectionContext
   }
-  [BeaconEvent.OPERATION_REQUEST_ERROR]: BeaconErrorMessage
+  [BeaconEvent.OPERATION_REQUEST_ERROR]: ErrorResponse
   [BeaconEvent.SIGN_REQUEST_SENT]: undefined
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: {
     output: SignPayloadResponseOutput
     connectionContext: ConnectionContext
   }
-  [BeaconEvent.SIGN_REQUEST_ERROR]: BeaconErrorMessage
+  [BeaconEvent.SIGN_REQUEST_ERROR]: ErrorResponse
   [BeaconEvent.BROADCAST_REQUEST_SENT]: undefined
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
     network: Network
     output: BroadcastResponseOutput
     connectionContext: ConnectionContext
   }
-  [BeaconEvent.BROADCAST_REQUEST_ERROR]: BeaconErrorMessage
+  [BeaconEvent.BROADCAST_REQUEST_ERROR]: ErrorResponse
   [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: undefined
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: undefined
-  [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairInfo
+  [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairingRequest
   [BeaconEvent.P2P_CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: string
   [BeaconEvent.UNKNOWN]: undefined
@@ -104,7 +104,7 @@ const showNoPermissionAlert = async (): Promise<void> => {
   })
 }
 
-const showErrorAlert = async (beaconError: BeaconErrorMessage): Promise<void> => {
+const showErrorAlert = async (beaconError: ErrorResponse): Promise<void> => {
   const error = beaconError.errorType
     ? BeaconError.getError(beaconError.errorType)
     : new UnknownBeaconError()

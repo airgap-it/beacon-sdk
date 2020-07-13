@@ -1,4 +1,4 @@
-import { BeaconErrorMessage, DAppClient, PermissionResponseOutput } from '..'
+import { ErrorResponse, DAppClient, PermissionResponseOutput } from '..'
 
 const client = new DAppClient({ name: 'My Sample DApp' })
 
@@ -7,4 +7,4 @@ client
   .then((response: PermissionResponseOutput) => {
     console.log('permissions', response)
   })
-  .catch((permissionError: BeaconErrorMessage) => console.error(permissionError))
+  .catch((permissionError: ErrorResponse) => console.error(permissionError))
