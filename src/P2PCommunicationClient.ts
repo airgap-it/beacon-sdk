@@ -18,10 +18,11 @@ import {
 } from './matrix-client/models/MatrixClientEvent'
 import { MatrixMessageType } from './matrix-client/models/MatrixMessage'
 import { MatrixRoom } from './matrix-client/models/MatrixRoom'
+import { CommunicationClient } from './transports/CommunicationClient'
 import { P2PPairInfo } from '.'
 import { Storage } from './storage/Storage'
 
-export class P2PCommunicationClient {
+export class P2PCommunicationClient extends CommunicationClient {
   private readonly clients: MatrixClient[] = []
 
   private readonly KNOWN_RELAY_SERVERS = [
@@ -36,11 +37,13 @@ export class P2PCommunicationClient {
 
   constructor(
     private readonly name: string,
-    private readonly keyPair: sodium.KeyPair,
+    keyPair: sodium.KeyPair,
     public readonly replicationCount: number,
     private readonly debug: boolean = false,
     private readonly storage: Storage
-  ) {}
+  ) {
+    super(keyPair)
+  }
 
   public async getHandshakeInfo(): Promise<P2PPairInfo> {
     return {
@@ -273,22 +276,6 @@ export class P2PCommunicationClient {
     )
   }
 
-  public async getPublicKey(): Promise<string> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
-
-    return toHex(this.keyPair.publicKey)
-  }
-
-  public async getPublicKeyHash(): Promise<string> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
-
-    return getHexHash(this.keyPair.publicKey)
-  }
-
   private async getAbsoluteBigIntDifference(
     firstHash: string,
     secondHash: string
@@ -296,46 +283,6 @@ export class P2PCommunicationClient {
     const difference: BigNumber = new BigNumber(`0x${firstHash}`).minus(`0x${secondHash}`)
 
     return difference.absoluteValue()
-  }
-
-  private async createCryptoBox(
-    otherPublicKey: string,
-    selfPrivateKey: Uint8Array
-  ): Promise<[Uint8Array, Uint8Array, Uint8Array]> {
-    // TODO: Don't calculate it every time?
-    const kxSelfPrivateKey = sodium.crypto_sign_ed25519_sk_to_curve25519(
-      Buffer.from(selfPrivateKey)
-    ) // Secret bytes to scalar bytes
-    const kxSelfPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(
-      Buffer.from(selfPrivateKey).slice(32, 64)
-    ) // Secret bytes to scalar bytes
-    const kxOtherPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(
-      Buffer.from(otherPublicKey, 'hex')
-    ) // Secret bytes to scalar bytes
-
-    return [
-      Buffer.from(kxSelfPublicKey),
-      Buffer.from(kxSelfPrivateKey),
-      Buffer.from(kxOtherPublicKey)
-    ]
-  }
-
-  private async createCryptoBoxServer(
-    otherPublicKey: string,
-    selfPrivateKey: Uint8Array
-  ): Promise<sodium.CryptoKX> {
-    const keys = await this.createCryptoBox(otherPublicKey, selfPrivateKey)
-
-    return sodium.crypto_kx_server_session_keys(...keys)
-  }
-
-  private async createCryptoBoxClient(
-    otherPublicKey: string,
-    selfPrivateKey: Uint8Array
-  ): Promise<sodium.CryptoKX> {
-    const keys = await this.createCryptoBox(otherPublicKey, selfPrivateKey)
-
-    return sodium.crypto_kx_client_session_keys(...keys)
   }
 
   private async getRelevantRoom(client: MatrixClient, recipient: string): Promise<MatrixRoom> {

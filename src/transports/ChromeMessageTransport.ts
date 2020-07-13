@@ -16,7 +16,7 @@ export class ChromeMessageTransport extends Transport {
   }
 
   public static async isAvailable(): Promise<boolean> {
-    const isAvailable: boolean = !!(window.chrome && chrome.runtime && chrome.runtime.id)
+    const isAvailable: boolean = Boolean(window.chrome && chrome.runtime && chrome.runtime.id)
 
     return Promise.resolve(isAvailable)
   }

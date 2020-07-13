@@ -14,7 +14,7 @@ import {
 import { BeaconEventHandler, BeaconEvent } from '../events'
 import { PeerManager } from '../managers/PeerManager'
 
-const logger = new Logger('Transport')
+const logger = new Logger('P2PTransport')
 
 export class P2PTransport extends Transport {
   public readonly type: TransportType = TransportType.P2P

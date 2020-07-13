@@ -125,7 +125,7 @@ export abstract class Client extends BeaconClient {
               clearTimeout(setBeaconTransportTimeout)
             }
 
-            return setTransport(new PostMessageTransport(this.name))
+            return setTransport(new PostMessageTransport(this.name, keyPair, this.storage, isDapp))
           }
         })
       })
