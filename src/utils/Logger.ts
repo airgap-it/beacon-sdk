@@ -14,9 +14,9 @@ export class Logger {
     if (args.length === 0) {
       console.log(origin, css)
     } else if (args.every((arg) => typeof arg === 'string')) {
-      console.log(`${origin}:`, css, args.join(' '))
+      console.log(`${origin}:`, css, ...args)
     } else {
-      console.log(`${origin}:`, css, args)
+      console.log(`${origin}:`, css, ...args)
     }
   }
 

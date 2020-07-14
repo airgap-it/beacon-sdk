@@ -121,6 +121,7 @@ import {
   PartialTezosRevealOperation
 } from './types/tezos/PartialTezosOperation'
 import { AbortedBeaconError } from './errors/AbortedBeaconError'
+import { PeerInfo } from './types/PeerInfo'
 
 // Tezos
 export {
@@ -270,4 +271,4 @@ export { SDK_VERSION, BEACON_VERSION }
 export { getAccountIdentifier, getAddressFromPublicKey }
 
 // Others
-export { ConnectionContext, P2PPairingRequest, Serializer }
+export { ConnectionContext, P2PPairingRequest, PeerInfo, Serializer }

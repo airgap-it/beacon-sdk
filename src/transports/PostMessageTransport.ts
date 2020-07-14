@@ -5,14 +5,15 @@ import {
   ExtensionMessageTarget,
   TransportType,
   TransportStatus,
-  P2PPairingRequest,
-  ConnectionContext
+  ConnectionContext,
+  StorageKey
 } from '..'
 import { Origin } from '../types/Origin'
 import { PeerManager } from '../managers/PeerManager'
 import { Logger } from '../utils/Logger'
 import { Storage } from '../storage/Storage'
 import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
+import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 import { Transport } from './Transport'
 import { PostMessageClient } from './PostMessageClient'
 
@@ -36,7 +37,7 @@ export class PostMessageTransport extends Transport {
     this.keyPair = keyPair
     this.isDapp = isDapp
     this.client = new PostMessageClient(this.name, this.keyPair, false)
-    this.peerManager = new PeerManager(storage)
+    this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_POSTMESSAGE_PEERS)
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -93,7 +94,7 @@ export class PostMessageTransport extends Transport {
       if (!this.listeningForChannelOpenings) {
         await this.client.listenForChannelOpening(
           async (pairingResponse: PostMessagePairingResponse) => {
-            logger.log('connectNewPeer', `new publicKey ${pairingResponse}`)
+            logger.log('connectNewPeer', `new publicKey`, pairingResponse)
 
             if (!(await this.peerManager.hasPeer(pairingResponse.publicKey))) {
               await this.peerManager.addPeer(pairingResponse as any) // TODO: Type
@@ -110,18 +111,14 @@ export class PostMessageTransport extends Transport {
     })
   }
 
-  public async getPeers(): Promise<P2PPairingRequest[]> {
+  public async getPeers(): Promise<PostMessagePairingRequest[]> {
     return this.peerManager.getPeers()
   }
 
-  public async addPeer(newPeer: P2PPairingRequest): Promise<void> {
+  public async addPeer(newPeer: PostMessagePairingRequest): Promise<void> {
     if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
       logger.log('addPeer', newPeer)
-      await this.peerManager.addPeer({
-        name: newPeer.name,
-        publicKey: newPeer.publicKey,
-        relayServer: newPeer.relayServer
-      })
+      await this.peerManager.addPeer(newPeer)
 
       await this.client.openChannel(newPeer.publicKey) // TODO: Should we have a confirmation here?
       await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
@@ -130,7 +127,7 @@ export class PostMessageTransport extends Transport {
     }
   }
 
-  public async removePeer(peerToBeRemoved: P2PPairingRequest): Promise<void> {
+  public async removePeer(peerToBeRemoved: PostMessagePairingRequest): Promise<void> {
     logger.log('removePeer', peerToBeRemoved)
     await this.peerManager.removePeer(peerToBeRemoved.publicKey)
     if (this.client) {
@@ -150,14 +147,11 @@ export class PostMessageTransport extends Transport {
       console.log('SENDING ENCRYPTED', recipient, message)
       await this.client.sendMessage(recipient, message)
     } else {
-      console.log('SENDING UNENCRYPTED', message)
-      const data: ExtensionMessage<string> = {
-        target: ExtensionMessageTarget.EXTENSION,
-        payload: message
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      myWindow.postMessage(data as any, '*')
+      const peers = await this.peerManager.getPeers()
+      peers.forEach((peer) => {
+        console.log('SENDING ENCRYPTED', recipient, message)
+        this.client.sendMessage(peer.publicKey, message).catch(console.error)
+      })
     }
   }
 

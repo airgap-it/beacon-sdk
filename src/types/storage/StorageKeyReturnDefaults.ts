@@ -4,6 +4,7 @@ export type StorageKeyReturnDefaults = { [key in StorageKey]: StorageKeyReturnTy
 
 export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.TRANSPORT_P2P_PEERS]: [],
+  [StorageKey.TRANSPORT_POSTMESSAGE_PEERS]: [],
   [StorageKey.ACCOUNTS]: [],
   [StorageKey.ACTIVE_ACCOUNT]: undefined,
   [StorageKey.BEACON_SDK_SECRET_SEED]: undefined,

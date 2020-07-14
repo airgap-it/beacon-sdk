@@ -1,8 +1,9 @@
 import * as sodium from 'libsodium-wrappers'
 import { myWindow } from '../MockWindow'
-import { ExtensionMessage, ExtensionMessageTarget, Origin, Serializer } from '..'
+import { ExtensionMessage, ExtensionMessageTarget, Serializer } from '..'
 import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
+import { EncryptedExtensionMessage } from '../types/ExtensionMessage'
 import {
   decryptCryptoboxPayload,
   sealCryptobox,
@@ -11,14 +12,15 @@ import {
 } from './../utils/crypto'
 import { CommunicationClient } from './CommunicationClient'
 
-export interface EncryptedExtensionMessage<T, U = unknown> {
-  target: ExtensionMessageTarget
-  sender?: U
-  encryptedPayload: T
-}
-
-export class PostMessageClient extends CommunicationClient {
-  private readonly activeListeners: Map<string, (message: any) => void> = new Map()
+export class ChromeMessageClient extends CommunicationClient {
+  private readonly activeListeners: Map<
+    string,
+    (
+      message: ExtensionMessage<string> | EncryptedExtensionMessage,
+      sender: chrome.runtime.MessageSender,
+      sendResponse: (response?: unknown) => void
+    ) => void
+  > = new Map()
 
   constructor(
     private readonly name: string,
@@ -41,7 +43,11 @@ export class PostMessageClient extends CommunicationClient {
 
   public async listenForEncryptedMessage(
     senderPublicKey: string,
-    messageCallback: (message: string) => void
+    messageCallback: (
+      message: ExtensionMessage<string>,
+      sender: chrome.runtime.MessageSender,
+      sendResponse: (response?: unknown) => void
+    ) => void
   ): Promise<void> {
     if (!this.keyPair) {
       throw new Error('KeyPair not available')
@@ -49,16 +55,37 @@ export class PostMessageClient extends CommunicationClient {
 
     const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
 
-    const callbackFunction = async (message: string): Promise<void> => {
-      console.log('listenForEncryptedMessage callback', message)
-      const payload = Buffer.from(message, 'hex')
-      if (payload.length >= sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES) {
-        try {
-          messageCallback(await decryptCryptoboxPayload(payload, sharedRx))
-        } catch (decryptionError) {
-          console.log('PostMessage decryption failed!', message)
-          /* NO-OP. We try to decode every message, but some might not be addressed to us. */
+    const callbackFunction = async (
+      message: ExtensionMessage<string> | EncryptedExtensionMessage,
+      sender: chrome.runtime.MessageSender,
+      sendResponse: (response?: unknown) => void
+    ): Promise<void> => {
+      if (message.hasOwnProperty('encryptedPayload')) {
+        const msg: EncryptedExtensionMessage = message as EncryptedExtensionMessage
+        console.log('listenForEncryptedMessage callback', msg)
+        const payload = Buffer.from(msg.encryptedPayload, 'hex')
+        if (
+          payload.length >=
+          sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
+        ) {
+          try {
+            const decrypted = await decryptCryptoboxPayload(payload, sharedRx)
+            const pld: ExtensionMessage<string> = {
+              payload: decrypted,
+              target: msg.target,
+              sender: msg.sender
+            }
+            messageCallback(pld, sender, sendResponse)
+          } catch (decryptionError) {
+            console.log('PostMessage decryption failed!', message)
+            /* NO-OP. We try to decode every message, but some might not be addressed to us. */
+          }
         }
+      } else {
+        const msg: ExtensionMessage<string> = message as ExtensionMessage<string>
+        messageCallback(msg, sender, sendResponse)
+
+        return
       }
     }
 
@@ -181,24 +208,30 @@ export class PostMessageClient extends CommunicationClient {
     return typeof message === 'object' && message.hasOwnProperty('payload')
   }
 
-  private async subscribeToRawMessage(callback: Function) {
+  private async subscribeToRawMessage(
+    callback: (
+      message: ExtensionMessage<string> | EncryptedExtensionMessage,
+      sender: chrome.runtime.MessageSender,
+      sendResponse: (response?: unknown) => void
+    ) => void
+  ): Promise<void> {
     console.log('subscribing to messages')
 
-    myWindow.addEventListener('message', (message) => {
-      if (typeof message === 'object' && message) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const data: {
-          message: ExtensionMessage<{ beaconMessage: string }>
-          sender: chrome.runtime.MessageSender
-        } = (message as any).data
-        if (data.message && data.message.target === ExtensionMessageTarget.PAGE) {
-          callback(data.message.payload, {
-            origin: Origin.EXTENSION,
-            id: data.sender.id || ''
-          })
-        }
+    chrome.runtime.onMessage.addListener(
+      (
+        message: ExtensionMessage<string> | EncryptedExtensionMessage,
+        sender: chrome.runtime.MessageSender,
+        sendResponse: (response?: unknown) => void
+      ) => {
+        console.log('listen', 'receiving chrome message', message)
+
+        callback(message, sender, sendResponse)
+
+        // return true from the event listener to indicate you wish to send a response asynchronously
+        // (this will keep the message channel open to the other end until sendResponse is called).
+        return true
       }
-    })
+    )
   }
 
   private async log(...args: unknown[]): Promise<void> {

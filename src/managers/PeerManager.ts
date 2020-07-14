@@ -1,26 +1,31 @@
-import { Storage, StorageKey, P2PPairingRequest } from '..'
+import { Storage, StorageKey, PeerInfo } from '..'
 import { StorageManager } from './StorageManager'
 
 export class PeerManager {
-  private readonly storageManager: StorageManager<StorageKey.TRANSPORT_P2P_PEERS>
+  private readonly storageManager: StorageManager<
+    StorageKey.TRANSPORT_P2P_PEERS | StorageKey.TRANSPORT_POSTMESSAGE_PEERS
+  >
 
-  constructor(storage: Storage) {
-    this.storageManager = new StorageManager(storage, StorageKey.TRANSPORT_P2P_PEERS)
+  constructor(
+    storage: Storage,
+    key: StorageKey.TRANSPORT_P2P_PEERS | StorageKey.TRANSPORT_POSTMESSAGE_PEERS
+  ) {
+    this.storageManager = new StorageManager(storage, key)
   }
 
   public async hasPeer(publicKey: string): Promise<boolean> {
     return (await this.getPeer(publicKey)) ? true : false
   }
 
-  public async getPeers(): Promise<P2PPairingRequest[]> {
+  public async getPeers(): Promise<PeerInfo[]> {
     return this.storageManager.getAll()
   }
 
-  public async getPeer(publicKey: string): Promise<P2PPairingRequest | undefined> {
+  public async getPeer(publicKey: string): Promise<PeerInfo | undefined> {
     return this.storageManager.getOne((peer) => peer.publicKey === publicKey)
   }
 
-  public async addPeer(peerInfo: P2PPairingRequest): Promise<void> {
+  public async addPeer(peerInfo: PeerInfo): Promise<void> {
     return this.storageManager.addOne(peerInfo, (peer) => peer.publicKey === peerInfo.publicKey)
   }
 

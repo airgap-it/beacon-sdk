@@ -44,7 +44,7 @@ export class P2PTransport extends Transport {
     this.events = events
     this.isDapp = isDapp
     this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false, storage)
-    this.peerManager = new PeerManager(storage)
+    this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_P2P_PEERS)
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -109,17 +109,13 @@ export class P2PTransport extends Transport {
   }
 
   public async getPeers(): Promise<P2PPairingRequest[]> {
-    return this.peerManager.getPeers()
+    return (await this.peerManager.getPeers()) as P2PPairingRequest[]
   }
 
   public async addPeer(newPeer: P2PPairingRequest): Promise<void> {
     if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
       logger.log('addPeer', newPeer)
-      await this.peerManager.addPeer({
-        name: newPeer.name,
-        publicKey: newPeer.publicKey,
-        relayServer: newPeer.relayServer
-      })
+      await this.peerManager.addPeer(newPeer)
 
       await this.client.openChannel(newPeer.publicKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
       await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
