@@ -83,18 +83,13 @@ export class P2PTransport extends Transport {
 
     return new Promise(async (resolve) => {
       if (!this.listeningForChannelOpenings) {
-        await this.client.listenForChannelOpening(async (publicKey) => {
-          logger.log('connectNewPeer', `new publicKey ${publicKey}`)
+        await this.client.listenForChannelOpening(async (peer) => {
+          logger.log('connectNewPeer', `new publicKey`, peer.publicKey)
 
-          const newPeer = { name: '', publicKey, relayServer: '' }
-
-          if (!(await this.peerManager.hasPeer(publicKey))) {
-            await this.peerManager.addPeer(newPeer)
-            await this.listen(publicKey)
-          }
+          await this.addPeer(peer)
 
           this.events
-            .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS, newPeer)
+            .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS, peer)
             .catch((emitError) => console.warn(emitError))
 
           resolve()

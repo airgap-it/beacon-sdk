@@ -204,7 +204,9 @@ export class P2PCommunicationClient extends CommunicationClient {
     }
   }
 
-  public async listenForChannelOpening(messageCallback: (message: string) => void): Promise<void> {
+  public async listenForChannelOpening(
+    messageCallback: (pairingResponse: P2PPairingRequest) => void
+  ): Promise<void> {
     for (const client of this.clients) {
       client.subscribe(MatrixClientEventType.MESSAGE, async (event) => {
         await this.log('channel opening', event)
@@ -223,7 +225,9 @@ export class P2PCommunicationClient extends CommunicationClient {
           ) {
             try {
               messageCallback(
-                await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
+                JSON.parse(
+                  await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
+                )
               )
             } catch (decryptionError) {
               /* NO-OP. We try to decode every message, but some might not be addressed to us. */
@@ -244,7 +248,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       const room = await this.getRelevantRoom(client, recipient)
 
       const encryptedMessage: string = await sealCryptobox(
-        await this.getPublicKey(),
+        JSON.stringify(await this.getHandshakeInfo()),
         Buffer.from(recipientPublicKey, 'hex')
       )
       client
