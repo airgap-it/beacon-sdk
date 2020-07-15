@@ -515,22 +515,16 @@ export class DAppClient extends Client {
       ErrorResponse
     >()
 
-    console.log('before add request')
     this.addOpenRequest(request.id, exposed)
-    console.log('after add request')
 
-    console.log('before serialize', request)
     const payload = await new Serializer().serialize(request)
-    console.log('after serialize', payload)
 
     let origin: string | undefined
     if (account) {
       origin = account.senderId
     }
 
-    console.log('before send')
     await (await this.transport).send(payload, origin)
-    console.log('after send')
 
     this.events
       .emit(messageEvents[requestInput.type].sent)
