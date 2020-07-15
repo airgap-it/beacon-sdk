@@ -70,7 +70,7 @@ export class ChromeMessageClient extends MessageBasedClient {
     })
   }
 
-  public async openChannel(recipientPublicKey: string): Promise<void> {
+  public async sendPairingResponse(recipientPublicKey: string): Promise<void> {
     await this.log('open channel')
 
     const encryptedMessage: string = await sealCryptobox(

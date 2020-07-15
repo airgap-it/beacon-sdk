@@ -102,7 +102,7 @@ export class PostMessageClient extends MessageBasedClient {
     myWindow.postMessage(message as any, '*')
   }
 
-  // public async openChannel(recipientPublicKey: string): Promise<void> {
+  // public async sendPairingResponse(recipientPublicKey: string): Promise<void> {
   //   await this.log('open channel')
 
   //   const encryptedMessage: string = await sealCryptobox(

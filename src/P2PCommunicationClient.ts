@@ -225,7 +225,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     }
   }
 
-  public async openChannel(recipientPublicKey: string, relayServer: string): Promise<void> {
+  public async sendPairingResponse(recipientPublicKey: string, relayServer: string): Promise<void> {
     await this.log('open channel')
     const recipientHash = await getHexHash(Buffer.from(recipientPublicKey, 'hex'))
     const recipient = recipientString(recipientHash, relayServer)
