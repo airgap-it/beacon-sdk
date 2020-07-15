@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { PeerManager } from '../../src/managers/PeerManager'
 
-import { P2PPairingRequest } from '../../src'
+import { P2PPairingRequest, StorageKey } from '../../src'
 import { FileStorage, writeLocalFile } from '../test-utils/FileStorage'
 
 // use chai-as-promised plugin
@@ -29,11 +29,11 @@ const peer3: P2PPairingRequest = {
 }
 
 describe(`PeerManager`, () => {
-  let manager: PeerManager
+  let manager: PeerManager<StorageKey.TRANSPORT_P2P_PEERS>
   beforeEach(async () => {
     await writeLocalFile({})
 
-    manager = new PeerManager(new FileStorage())
+    manager = new PeerManager(new FileStorage(), StorageKey.TRANSPORT_P2P_PEERS)
   })
   it(`reads and adds peers`, async () => {
     const peersBefore: P2PPairingRequest[] = await manager.getPeers()

@@ -1,7 +1,7 @@
 import { StorageKey, Storage, StorageKeyReturnType } from '..'
 
 /** Type workaround for https://github.com/Microsoft/TypeScript/issues/7294#issuecomment-465794460 */
-type ArrayElem<A> = A extends (infer Elem)[] ? Elem : never
+export type ArrayElem<A> = A extends (infer Elem)[] ? Elem : never
 
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 function fixArrayType<T>(array: T): ArrayElem<T>[] {

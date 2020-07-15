@@ -29,7 +29,7 @@ export class P2PTransport extends Transport {
   // Make sure we only listen once
   private listeningForChannelOpenings: boolean = false
 
-  private readonly peerManager: PeerManager
+  private readonly peerManager: PeerManager<StorageKey.TRANSPORT_P2P_PEERS>
 
   constructor(
     name: string,

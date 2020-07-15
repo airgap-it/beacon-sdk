@@ -30,7 +30,7 @@ export class ChromeMessageTransport extends Transport {
 
   private readonly client: ChromeMessageClient
 
-  private readonly peerManager: PeerManager
+  private readonly peerManager: PeerManager<StorageKey.TRANSPORT_POSTMESSAGE_PEERS>
 
   constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, isDapp: boolean) {
     super(name)
