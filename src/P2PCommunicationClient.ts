@@ -54,9 +54,6 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async getRelayServer(publicKeyHash?: string, nonce: string = ''): Promise<string> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
     const hash: string = publicKeyHash || (await getHexHash(this.keyPair.publicKey))
 
     return this.KNOWN_RELAY_SERVERS.reduce(async (prevPromise: Promise<string>, curr: string) => {
@@ -122,10 +119,6 @@ export class P2PCommunicationClient extends CommunicationClient {
     senderPublicKey: string,
     messageCallback: (message: string) => void
   ): Promise<void> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
-
     const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
 
     if (this.activeListeners.has(senderPublicKey)) {
@@ -179,9 +172,6 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async sendMessage(recipientPublicKey: string, message: string): Promise<void> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
     const { sharedTx } = await this.createCryptoBoxClient(
       recipientPublicKey,
       this.keyPair.privateKey
@@ -211,9 +201,6 @@ export class P2PCommunicationClient extends CommunicationClient {
       client.subscribe(MatrixClientEventType.MESSAGE, async (event) => {
         await this.log('channel opening', event)
         if (this.isTextMessage(event.content) && (await this.isChannelOpenMessage(event.content))) {
-          if (!this.keyPair) {
-            throw new Error('KeyPair not available')
-          }
           await this.log('new channel open event!')
 
           const splits = event.content.message.content.split(':')

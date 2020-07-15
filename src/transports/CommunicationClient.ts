@@ -5,18 +5,10 @@ export abstract class CommunicationClient {
   constructor(protected readonly keyPair: sodium.KeyPair) {}
 
   public async getPublicKey(): Promise<string> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
-
     return toHex(this.keyPair.publicKey)
   }
 
   public async getPublicKeyHash(): Promise<string> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
-
     return getHexHash(this.keyPair.publicKey)
   }
 

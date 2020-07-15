@@ -104,7 +104,7 @@ export class P2PTransport extends Transport {
   }
 
   public async getPeers(): Promise<P2PPairingRequest[]> {
-    return (await this.peerManager.getPeers()) as P2PPairingRequest[]
+    return this.peerManager.getPeers()
   }
 
   public async addPeer(newPeer: P2PPairingRequest): Promise<void> {
