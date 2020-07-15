@@ -96,12 +96,7 @@ export class PostMessageTransport extends Transport {
           async (pairingResponse: PostMessagePairingResponse) => {
             logger.log('connectNewPeer', `new publicKey`, pairingResponse)
 
-            if (!(await this.peerManager.hasPeer(pairingResponse.publicKey))) {
-              await this.peerManager.addPeer(pairingResponse as any) // TODO: Type
-              await this.client.listenForEncryptedMessage(pairingResponse.publicKey, (message) => {
-                console.log('decrypted message', message)
-              })
-            }
+            await this.addPeer(pairingResponse)
 
             resolve()
           }
@@ -119,12 +114,11 @@ export class PostMessageTransport extends Transport {
     if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
       logger.log('addPeer', newPeer)
       await this.peerManager.addPeer(newPeer)
-
-      await this.client.openChannel(newPeer.publicKey) // TODO: Should we have a confirmation here?
       await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
     } else {
       logger.log('addPeer', 'peer already added, skipping', newPeer)
     }
+    // await this.client.openChannel(newPeer.publicKey) // TODO: Should we have a confirmation here?
   }
 
   public async removePeer(peerToBeRemoved: PostMessagePairingRequest): Promise<void> {
@@ -158,10 +152,10 @@ export class PostMessageTransport extends Transport {
   private async listen(publicKey: string): Promise<void> {
     console.log('listening to ', publicKey)
     await this.client
-      .listenForEncryptedMessage(publicKey, (message) => {
+      .listenForEncryptedMessage(publicKey, (message: string, context: ConnectionContext) => {
         const connectionContext: ConnectionContext = {
           origin: Origin.EXTENSION,
-          id: publicKey // TODO: Chrome ExtensionId and senderId
+          id: context.id
         }
 
         console.log('NOTIFYING LISTENERS')

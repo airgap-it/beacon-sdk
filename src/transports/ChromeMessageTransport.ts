@@ -77,8 +77,8 @@ export class ChromeMessageTransport extends Transport {
     })
   }
 
-  public async sendToTabs(payload: string | Record<string, unknown>) {
-    console.log(payload)
+  public async sendToTabs(publicKey: string, payload: string): Promise<void> {
+    return this.client.sendMessage(publicKey, payload)
   }
 
   public async getPeers(): Promise<PostMessagePairingRequest[]> {
@@ -89,12 +89,12 @@ export class ChromeMessageTransport extends Transport {
     if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
       logger.log('addPeer', newPeer)
       await this.peerManager.addPeer(newPeer)
-
-      await this.client.openChannel(newPeer.publicKey) // TODO: Should we have a confirmation here?
       await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
     } else {
       logger.log('addPeer', 'peer already added, skipping', newPeer)
     }
+    console.log('OPENING CHANNEL')
+    await this.client.openChannel(newPeer.publicKey) // TODO: Should we have a confirmation here?
   }
 
   public async removePeer(peerToBeRemoved: PostMessagePairingRequest): Promise<void> {
@@ -144,8 +144,8 @@ export class ChromeMessageTransport extends Transport {
     chrome.runtime.onMessage.addListener(
       (
         message: ExtensionMessage<string>,
-        sender: chrome.runtime.MessageSender
-        // sendResponse: (response?: unknown) => void
+        sender: chrome.runtime.MessageSender,
+        sendResponse: (response?: unknown) => void
       ) => {
         logger.log('init', 'receiving chrome message', message, sender)
         // const connectionContext: ConnectionContext = {
@@ -155,6 +155,7 @@ export class ChromeMessageTransport extends Transport {
         // }
 
         if (message && message.payload && typeof message.payload === 'string') {
+          console.log('TEST: popup base58 message')
           new Serializer()
             .deserialize(message.payload)
             .then((deserialized) => {
@@ -162,6 +163,19 @@ export class ChromeMessageTransport extends Transport {
               this.addPeer(deserialized as any).catch(console.error)
             })
             .catch(undefined)
+        } else if (message && message.payload) {
+          console.log('TEST: popup message')
+          const connectionContext: ConnectionContext = {
+            origin: Origin.WEBSITE,
+            id: sender.url ? sender.url : '',
+            extras: { sender, sendResponse }
+          }
+
+          this.notifyListeners(message, connectionContext).catch((error) => {
+            throw error
+          })
+        } else {
+          console.log('TEST: possibly encrypted message')
         }
 
         // this.notifyListeners(message, connectionContext).catch((error) => logger.error(error))

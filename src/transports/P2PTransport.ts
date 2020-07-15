@@ -116,12 +116,11 @@ export class P2PTransport extends Transport {
     if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
       logger.log('addPeer', newPeer)
       await this.peerManager.addPeer(newPeer)
-
-      await this.client.openChannel(newPeer.publicKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
       await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
     } else {
       logger.log('addPeer', 'peer already added, skipping', newPeer)
     }
+    await this.client.openChannel(newPeer.publicKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
   }
 
   public async removePeer(peerToBeRemoved: P2PPairingRequest): Promise<void> {
