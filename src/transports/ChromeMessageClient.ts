@@ -25,25 +25,30 @@ export class ChromeMessageClient extends MessageBasedClient {
       sendResponse: (response?: unknown) => void
     ) => void
   ): Promise<void> {
+    if (this.activeListeners.has(senderPublicKey)) {
+      return
+    }
+
     const callbackFunction = async (
       message: ExtensionMessage<string> | EncryptedExtensionMessage,
       sender: chrome.runtime.MessageSender,
       sendResponse: (response?: unknown) => void
     ): Promise<void> => {
       if (message.hasOwnProperty('encryptedPayload')) {
-        const msg: EncryptedExtensionMessage = message as EncryptedExtensionMessage
-        console.log('listenForEncryptedMessage callback', msg)
+        const encryptedMessage: EncryptedExtensionMessage = message as EncryptedExtensionMessage
 
         try {
-          const decrypted = await this.decryptMessage(senderPublicKey, msg.encryptedPayload)
-          const pld: ExtensionMessage<string> = {
+          const decrypted = await this.decryptMessage(
+            senderPublicKey,
+            encryptedMessage.encryptedPayload
+          )
+          const decryptedMessage: ExtensionMessage<string> = {
             payload: decrypted,
-            target: msg.target,
-            sender: msg.sender
+            target: encryptedMessage.target,
+            sender: encryptedMessage.sender
           }
-          messageCallback(pld, sender, sendResponse)
+          messageCallback(decryptedMessage, sender, sendResponse)
         } catch (decryptionError) {
-          console.log('PostMessage decryption failed!', message)
           /* NO-OP. We try to decode every message, but some might not be addressed to us. */
         }
       }
@@ -71,14 +76,10 @@ export class ChromeMessageClient extends MessageBasedClient {
   }
 
   public async sendPairingResponse(recipientPublicKey: string): Promise<void> {
-    await this.log('open channel')
-
     const encryptedMessage: string = await sealCryptobox(
       JSON.stringify(await this.getHandshakeInfo()),
       Buffer.from(recipientPublicKey, 'hex')
     )
-
-    console.log('open channel encrypted message', encryptedMessage)
 
     const message: ExtensionMessage<string> = {
       target: ExtensionMessageTarget.PAGE,
@@ -95,16 +96,12 @@ export class ChromeMessageClient extends MessageBasedClient {
   }
 
   private async subscribeToMessages(): Promise<void> {
-    console.log('subscribing to messages')
-
     chrome.runtime.onMessage.addListener(
       (
         message: ExtensionMessage<string> | EncryptedExtensionMessage,
         sender: chrome.runtime.MessageSender,
         sendResponse: (response?: unknown) => void
       ) => {
-        console.log('listen', 'receiving chrome message', message)
-
         this.activeListeners.forEach((listener) => {
           listener(message, sender, sendResponse)
         })
@@ -114,11 +111,5 @@ export class ChromeMessageClient extends MessageBasedClient {
         return true
       }
     )
-  }
-
-  private async log(...args: unknown[]): Promise<void> {
-    if (this.debug || true) {
-      console.log(`--- [PostMessageCommunicationClient]:${this.name}: `, ...args)
-    }
   }
 }

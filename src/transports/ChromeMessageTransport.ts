@@ -25,17 +25,15 @@ const logger = new Logger('ChromeMessageTransport')
 export class ChromeMessageTransport extends Transport {
   public readonly type: TransportType = TransportType.CHROME_MESSAGE
 
-  private readonly isDapp: boolean = false
   private readonly keyPair: sodium.KeyPair
 
   private readonly client: ChromeMessageClient
 
   private readonly peerManager: PeerManager<StorageKey.TRANSPORT_POSTMESSAGE_PEERS>
 
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, isDapp: boolean) {
+  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage) {
     super(name)
     this.keyPair = keyPair
-    this.isDapp = isDapp
     this.client = new ChromeMessageClient(this.name, this.keyPair, false)
     this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_POSTMESSAGE_PEERS)
     this.init().catch((error) => console.error(error))
@@ -58,10 +56,6 @@ export class ChromeMessageTransport extends Transport {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
       await Promise.all(connectionPromises)
-    } else {
-      if (this.isDapp) {
-        // await this.connectNewPeer()
-      }
     }
 
     await super.connect()
@@ -89,12 +83,11 @@ export class ChromeMessageTransport extends Transport {
     if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
       logger.log('addPeer', newPeer)
       await this.peerManager.addPeer(newPeer)
-      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
+      await this.listen(newPeer.publicKey)
     } else {
       logger.log('addPeer', 'peer already added, skipping', newPeer)
     }
-    console.log('OPENING CHANNEL')
-    await this.client.sendPairingResponse(newPeer.publicKey) // TODO: Should we have a confirmation here?
+    await this.client.sendPairingResponse(newPeer.publicKey)
   }
 
   public async removePeer(peerToBeRemoved: PostMessagePairingRequest): Promise<void> {
@@ -113,7 +106,6 @@ export class ChromeMessageTransport extends Transport {
   }
 
   private async listen(publicKey: string): Promise<void> {
-    console.log('listening to ', publicKey)
     await this.client
       .listenForEncryptedMessage(
         publicKey,
@@ -127,8 +119,6 @@ export class ChromeMessageTransport extends Transport {
             id: sender.url ? sender.url : '',
             extras: { sender, sendResponse }
           }
-
-          console.log('NOTIFYING LISTENERS', message)
 
           this.notifyListeners(message, connectionContext).catch((error) => {
             throw error
@@ -148,23 +138,18 @@ export class ChromeMessageTransport extends Transport {
         sendResponse: (response?: unknown) => void
       ) => {
         logger.log('init', 'receiving chrome message', message, sender)
-        // const connectionContext: ConnectionContext = {
-        //   origin: Origin.WEBSITE,
-        //   id: sender.url ? sender.url : '',
-        //   extras: { sender, sendResponse }
-        // }
 
         if (message && message.payload && typeof message.payload === 'string') {
-          console.log('TEST: popup base58 message')
+          // Handling PairingRequest and connect peer
           new Serializer()
             .deserialize(message.payload)
             .then((deserialized) => {
-              console.log('got message that we could deserialize', deserialized)
+              // TODO: Add check if it's a peer
               this.addPeer(deserialized as any).catch(console.error)
             })
             .catch(undefined)
         } else if (message && message.payload) {
-          console.log('TEST: popup message')
+          // Most likely an internal, unencrypted message
           const connectionContext: ConnectionContext = {
             origin: Origin.WEBSITE,
             id: sender.url ? sender.url : '',
@@ -174,11 +159,8 @@ export class ChromeMessageTransport extends Transport {
           this.notifyListeners(message, connectionContext).catch((error) => {
             throw error
           })
-        } else {
-          console.log('TEST: possibly encrypted message')
         }
 
-        // this.notifyListeners(message, connectionContext).catch((error) => logger.error(error))
         // return true from the event listener to indicate you wish to send a response asynchronously
         // (this will keep the message channel open to the other end until sendResponse is called).
 

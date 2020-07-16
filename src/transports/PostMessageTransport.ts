@@ -94,7 +94,7 @@ export class PostMessageTransport extends Transport {
       if (!this.listeningForChannelOpenings) {
         await this.client.listenForChannelOpening(
           async (pairingResponse: PostMessagePairingResponse) => {
-            logger.log('connectNewPeer', `new publicKey`, pairingResponse)
+            logger.log('connectNewPeer', `received PairingResponse`, pairingResponse)
 
             await this.addPeer(pairingResponse)
 
@@ -114,11 +114,10 @@ export class PostMessageTransport extends Transport {
     if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
       logger.log('addPeer', newPeer)
       await this.peerManager.addPeer(newPeer)
-      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
+      await this.listen(newPeer.publicKey)
     } else {
       logger.log('addPeer', 'peer already added, skipping', newPeer)
     }
-    // await this.client.sendPairingResponse(newPeer.publicKey) // TODO: Should we have a confirmation here?
   }
 
   public async removePeer(peerToBeRemoved: PostMessagePairingRequest): Promise<void> {
@@ -137,28 +136,27 @@ export class PostMessageTransport extends Transport {
   }
 
   public async send(message: string, recipient?: string): Promise<void> {
+    logger.log('send', recipient, message)
+
     if (recipient) {
-      console.log('SENDING ENCRYPTED', recipient, message)
       await this.client.sendMessage(recipient, message)
     } else {
       const peers = await this.peerManager.getPeers()
       peers.forEach((peer) => {
-        console.log('SENDING ENCRYPTED', recipient, message)
         this.client.sendMessage(peer.publicKey, message).catch(console.error)
       })
     }
   }
 
   private async listen(publicKey: string): Promise<void> {
-    console.log('listening to ', publicKey)
+    logger.log('listen', publicKey)
+
     await this.client
       .listenForEncryptedMessage(publicKey, (message: string, context: ConnectionContext) => {
         const connectionContext: ConnectionContext = {
           origin: Origin.EXTENSION,
           id: context.id
         }
-
-        console.log('NOTIFYING LISTENERS')
 
         this.notifyListeners(message, connectionContext).catch((error) => {
           throw error

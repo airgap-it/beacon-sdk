@@ -1,13 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { DEBUG } from '../constants'
+
 export class Logger {
   private readonly name: string
+  private readonly debug: boolean
 
-  constructor(service: string) {
+  constructor(service: string, debug: boolean = DEBUG) {
     this.name = service
+    this.debug = debug
   }
 
   public _log(color: string, method: string, args: any[]): void {
+    if (!this.debug) {
+      return
+    }
+
     const origin = `%c[${this.name}](${method})`
     const css = `background: #${color}`
 

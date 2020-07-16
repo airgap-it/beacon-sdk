@@ -26,12 +26,6 @@ export abstract class MessageBasedClient extends CommunicationClient {
     }
   }
 
-  public async isListeningToPublicKey(publicKey: string): Promise<boolean> {
-    const listener = this.activeListeners.get(publicKey)
-
-    return Boolean(listener)
-  }
-
   public async unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void> {
     const listener = this.activeListeners.get(senderPublicKey)
     if (!listener) {

@@ -9,18 +9,18 @@ import {
   openCryptobox,
   encryptCryptoboxPayload,
   decryptCryptoboxPayload
-} from './utils/crypto'
-import { MatrixClient } from './matrix-client/MatrixClient'
+} from '../utils/crypto'
+import { MatrixClient } from '../matrix-client/MatrixClient'
 import {
   MatrixClientEvent,
   MatrixClientEventType,
   MatrixClientEventMessageContent
-} from './matrix-client/models/MatrixClientEvent'
-import { MatrixMessageType } from './matrix-client/models/MatrixMessage'
-import { MatrixRoom } from './matrix-client/models/MatrixRoom'
-import { CommunicationClient } from './transports/CommunicationClient'
-import { Storage } from './storage/Storage'
-import { P2PPairingRequest } from '.'
+} from '../matrix-client/models/MatrixClientEvent'
+import { MatrixMessageType } from '../matrix-client/models/MatrixMessage'
+import { MatrixRoom } from '../matrix-client/models/MatrixRoom'
+import { Storage } from '../storage/Storage'
+import { P2PPairingRequest } from '..'
+import { CommunicationClient } from './CommunicationClient'
 
 export class P2PCommunicationClient extends CommunicationClient {
   private readonly clients: MatrixClient[] = []
@@ -119,11 +119,11 @@ export class P2PCommunicationClient extends CommunicationClient {
     senderPublicKey: string,
     messageCallback: (message: string) => void
   ): Promise<void> {
-    const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
-
     if (this.activeListeners.has(senderPublicKey)) {
       return
     }
+
+    const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
 
     const callbackFunction = async (
       event: MatrixClientEvent<MatrixClientEventType.MESSAGE>
