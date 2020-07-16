@@ -14,7 +14,7 @@ import {
 import { BeaconEventHandler, BeaconEvent } from '../events'
 import { PeerManager } from '../managers/PeerManager'
 
-const logger = new Logger('Transport')
+const logger = new Logger('P2PTransport')
 
 export class P2PTransport extends Transport {
   public readonly type: TransportType = TransportType.P2P
@@ -29,7 +29,7 @@ export class P2PTransport extends Transport {
   // Make sure we only listen once
   private listeningForChannelOpenings: boolean = false
 
-  private readonly peerManager: PeerManager
+  private readonly peerManager: PeerManager<StorageKey.TRANSPORT_P2P_PEERS>
 
   constructor(
     name: string,
@@ -44,7 +44,7 @@ export class P2PTransport extends Transport {
     this.events = events
     this.isDapp = isDapp
     this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false, storage)
-    this.peerManager = new PeerManager(storage)
+    this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_P2P_PEERS)
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -83,18 +83,13 @@ export class P2PTransport extends Transport {
 
     return new Promise(async (resolve) => {
       if (!this.listeningForChannelOpenings) {
-        await this.client.listenForChannelOpening(async (publicKey) => {
-          logger.log('connectNewPeer', `new publicKey ${publicKey}`)
+        await this.client.listenForChannelOpening(async (peer) => {
+          logger.log('connectNewPeer', `new publicKey`, peer.publicKey)
 
-          const newPeer = { name: '', publicKey, relayServer: '' }
-
-          if (!(await this.peerManager.hasPeer(publicKey))) {
-            await this.peerManager.addPeer(newPeer)
-            await this.listen(publicKey)
-          }
+          await this.addPeer(peer)
 
           this.events
-            .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS, newPeer)
+            .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS, peer)
             .catch((emitError) => console.warn(emitError))
 
           resolve()
@@ -115,17 +110,12 @@ export class P2PTransport extends Transport {
   public async addPeer(newPeer: P2PPairingRequest): Promise<void> {
     if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
       logger.log('addPeer', newPeer)
-      await this.peerManager.addPeer({
-        name: newPeer.name,
-        publicKey: newPeer.publicKey,
-        relayServer: newPeer.relayServer
-      })
-
-      await this.client.openChannel(newPeer.publicKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
+      await this.peerManager.addPeer(newPeer)
       await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
     } else {
       logger.log('addPeer', 'peer already added, skipping', newPeer)
     }
+    await this.client.sendPairingResponse(newPeer.publicKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
   }
 
   public async removePeer(peerToBeRemoved: P2PPairingRequest): Promise<void> {

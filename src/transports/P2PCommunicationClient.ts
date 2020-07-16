@@ -9,19 +9,20 @@ import {
   openCryptobox,
   encryptCryptoboxPayload,
   decryptCryptoboxPayload
-} from './utils/crypto'
-import { MatrixClient } from './matrix-client/MatrixClient'
+} from '../utils/crypto'
+import { MatrixClient } from '../matrix-client/MatrixClient'
 import {
   MatrixClientEvent,
   MatrixClientEventType,
   MatrixClientEventMessageContent
-} from './matrix-client/models/MatrixClientEvent'
-import { MatrixMessageType } from './matrix-client/models/MatrixMessage'
-import { MatrixRoom } from './matrix-client/models/MatrixRoom'
-import { Storage } from './storage/Storage'
-import { P2PPairingRequest } from '.'
+} from '../matrix-client/models/MatrixClientEvent'
+import { MatrixMessageType } from '../matrix-client/models/MatrixMessage'
+import { MatrixRoom } from '../matrix-client/models/MatrixRoom'
+import { Storage } from '../storage/Storage'
+import { P2PPairingRequest } from '..'
+import { CommunicationClient } from './CommunicationClient'
 
-export class P2PCommunicationClient {
+export class P2PCommunicationClient extends CommunicationClient {
   private readonly clients: MatrixClient[] = []
 
   private readonly KNOWN_RELAY_SERVERS = [
@@ -36,11 +37,13 @@ export class P2PCommunicationClient {
 
   constructor(
     private readonly name: string,
-    private readonly keyPair: sodium.KeyPair,
+    keyPair: sodium.KeyPair,
     public readonly replicationCount: number,
     private readonly debug: boolean = false,
     private readonly storage: Storage
-  ) {}
+  ) {
+    super(keyPair)
+  }
 
   public async getHandshakeInfo(): Promise<P2PPairingRequest> {
     return {
@@ -51,9 +54,6 @@ export class P2PCommunicationClient {
   }
 
   public async getRelayServer(publicKeyHash?: string, nonce: string = ''): Promise<string> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
     const hash: string = publicKeyHash || (await getHexHash(this.keyPair.publicKey))
 
     return this.KNOWN_RELAY_SERVERS.reduce(async (prevPromise: Promise<string>, curr: string) => {
@@ -119,15 +119,11 @@ export class P2PCommunicationClient {
     senderPublicKey: string,
     messageCallback: (message: string) => void
   ): Promise<void> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
-
-    const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
-
     if (this.activeListeners.has(senderPublicKey)) {
       return
     }
+
+    const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
 
     const callbackFunction = async (
       event: MatrixClientEvent<MatrixClientEventType.MESSAGE>
@@ -176,9 +172,6 @@ export class P2PCommunicationClient {
   }
 
   public async sendMessage(recipientPublicKey: string, message: string): Promise<void> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
     const { sharedTx } = await this.createCryptoBoxClient(
       recipientPublicKey,
       this.keyPair.privateKey
@@ -201,14 +194,13 @@ export class P2PCommunicationClient {
     }
   }
 
-  public async listenForChannelOpening(messageCallback: (message: string) => void): Promise<void> {
+  public async listenForChannelOpening(
+    messageCallback: (pairingResponse: P2PPairingRequest) => void
+  ): Promise<void> {
     for (const client of this.clients) {
       client.subscribe(MatrixClientEventType.MESSAGE, async (event) => {
         await this.log('channel opening', event)
         if (this.isTextMessage(event.content) && (await this.isChannelOpenMessage(event.content))) {
-          if (!this.keyPair) {
-            throw new Error('KeyPair not available')
-          }
           await this.log('new channel open event!')
 
           const splits = event.content.message.content.split(':')
@@ -220,7 +212,9 @@ export class P2PCommunicationClient {
           ) {
             try {
               messageCallback(
-                await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
+                JSON.parse(
+                  await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
+                )
               )
             } catch (decryptionError) {
               /* NO-OP. We try to decode every message, but some might not be addressed to us. */
@@ -231,7 +225,7 @@ export class P2PCommunicationClient {
     }
   }
 
-  public async openChannel(recipientPublicKey: string, relayServer: string): Promise<void> {
+  public async sendPairingResponse(recipientPublicKey: string, relayServer: string): Promise<void> {
     await this.log('open channel')
     const recipientHash = await getHexHash(Buffer.from(recipientPublicKey, 'hex'))
     const recipient = recipientString(recipientHash, relayServer)
@@ -241,7 +235,7 @@ export class P2PCommunicationClient {
       const room = await this.getRelevantRoom(client, recipient)
 
       const encryptedMessage: string = await sealCryptobox(
-        await this.getPublicKey(),
+        JSON.stringify(await this.getHandshakeInfo()),
         Buffer.from(recipientPublicKey, 'hex')
       )
       client
@@ -273,22 +267,6 @@ export class P2PCommunicationClient {
     )
   }
 
-  public async getPublicKey(): Promise<string> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
-
-    return toHex(this.keyPair.publicKey)
-  }
-
-  public async getPublicKeyHash(): Promise<string> {
-    if (!this.keyPair) {
-      throw new Error('KeyPair not available')
-    }
-
-    return getHexHash(this.keyPair.publicKey)
-  }
-
   private async getAbsoluteBigIntDifference(
     firstHash: string,
     secondHash: string
@@ -296,46 +274,6 @@ export class P2PCommunicationClient {
     const difference: BigNumber = new BigNumber(`0x${firstHash}`).minus(`0x${secondHash}`)
 
     return difference.absoluteValue()
-  }
-
-  private async createCryptoBox(
-    otherPublicKey: string,
-    selfPrivateKey: Uint8Array
-  ): Promise<[Uint8Array, Uint8Array, Uint8Array]> {
-    // TODO: Don't calculate it every time?
-    const kxSelfPrivateKey = sodium.crypto_sign_ed25519_sk_to_curve25519(
-      Buffer.from(selfPrivateKey)
-    ) // Secret bytes to scalar bytes
-    const kxSelfPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(
-      Buffer.from(selfPrivateKey).slice(32, 64)
-    ) // Secret bytes to scalar bytes
-    const kxOtherPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(
-      Buffer.from(otherPublicKey, 'hex')
-    ) // Secret bytes to scalar bytes
-
-    return [
-      Buffer.from(kxSelfPublicKey),
-      Buffer.from(kxSelfPrivateKey),
-      Buffer.from(kxOtherPublicKey)
-    ]
-  }
-
-  private async createCryptoBoxServer(
-    otherPublicKey: string,
-    selfPrivateKey: Uint8Array
-  ): Promise<sodium.CryptoKX> {
-    const keys = await this.createCryptoBox(otherPublicKey, selfPrivateKey)
-
-    return sodium.crypto_kx_server_session_keys(...keys)
-  }
-
-  private async createCryptoBoxClient(
-    otherPublicKey: string,
-    selfPrivateKey: Uint8Array
-  ): Promise<sodium.CryptoKX> {
-    const keys = await this.createCryptoBox(otherPublicKey, selfPrivateKey)
-
-    return sodium.crypto_kx_client_session_keys(...keys)
   }
 
   private async getRelevantRoom(client: MatrixClient, recipient: string): Promise<MatrixRoom> {

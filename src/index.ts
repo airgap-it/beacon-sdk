@@ -1,4 +1,4 @@
-import { P2PCommunicationClient } from './P2PCommunicationClient'
+import { P2PCommunicationClient } from './transports/P2PCommunicationClient'
 import { AppMetadata } from './types/beacon/AppMetadata'
 import { PermissionRequest } from './types/beacon/messages/PermissionRequest'
 import { Network } from './types/beacon/Network'
@@ -54,7 +54,6 @@ import { TransportType } from './types/transport/TransportType'
 import { PostMessageTransport } from './transports/PostMessageTransport'
 import { Transport } from './transports/Transport'
 import { P2PTransport } from './transports/P2PTransport'
-import { LocalTransport } from './transports/LocalTransport'
 import { ChromeMessageTransport } from './transports/ChromeMessageTransport'
 import { Storage } from './storage/Storage'
 import { StorageKey } from './types/storage/StorageKey'
@@ -121,6 +120,7 @@ import {
   PartialTezosRevealOperation
 } from './types/tezos/PartialTezosOperation'
 import { AbortedBeaconError } from './errors/AbortedBeaconError'
+import { PeerInfo } from './types/PeerInfo'
 
 // Tezos
 export {
@@ -242,7 +242,6 @@ export {
   Transport,
   PostMessageTransport,
   P2PTransport,
-  LocalTransport,
   ChromeMessageTransport
 }
 
@@ -270,4 +269,4 @@ export { SDK_VERSION, BEACON_VERSION }
 export { getAccountIdentifier, getAddressFromPublicKey }
 
 // Others
-export { ConnectionContext, P2PPairingRequest, Serializer }
+export { ConnectionContext, P2PPairingRequest, PeerInfo, Serializer }

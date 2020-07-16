@@ -1,22 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { DEBUG } from '../constants'
+
 export class Logger {
   private readonly name: string
+  private readonly debug: boolean
 
-  constructor(service: string) {
+  constructor(service: string, debug: boolean = DEBUG) {
     this.name = service
+    this.debug = debug
   }
 
   public _log(color: string, method: string, args: any[]): void {
+    if (!this.debug) {
+      return
+    }
+
     const origin = `%c[${this.name}](${method})`
     const css = `background: #${color}`
 
     if (args.length === 0) {
       console.log(origin, css)
     } else if (args.every((arg) => typeof arg === 'string')) {
-      console.log(`${origin}:`, css, args.join(' '))
+      console.log(`${origin}:`, css, ...args)
     } else {
-      console.log(`${origin}:`, css, args)
+      console.log(`${origin}:`, css, ...args)
     }
   }
 

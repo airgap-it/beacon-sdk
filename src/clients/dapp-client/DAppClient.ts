@@ -521,8 +521,9 @@ export class DAppClient extends Client {
 
     let origin: string | undefined
     if (account) {
-      origin = account.origin.id
+      origin = account.senderId
     }
+
     await (await this.transport).send(payload, origin)
 
     this.events
