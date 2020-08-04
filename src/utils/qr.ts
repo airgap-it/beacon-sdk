@@ -1,4 +1,4 @@
-import * as qrcode from 'qrcode-generator'
+import qrcode from 'qrcode-generator'
 
 export const getQrData = (payload: string, type?: 'data' | 'svg' | 'ascii'): string => {
   const typeNumber: TypeNumber = 0
