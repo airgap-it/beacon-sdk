@@ -39,6 +39,7 @@ sequenceDiagram
 
     Background->>Background: Forge Operation
     Background->>Background: Sign Operation
+    Background->>Background: Broadcast
 
     Background->>dApp: Response
 ```

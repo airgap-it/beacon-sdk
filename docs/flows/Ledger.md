@@ -37,6 +37,7 @@ sequenceDiagram
     Background->>Ledger: Operation Request
     Ledger->>Ledger: User confirmation
     Ledger->>Background: Signed Operation
+    Background->>Background: Broadcast
 
     Background->>dApp: Response
 ```

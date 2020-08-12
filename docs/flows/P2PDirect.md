@@ -30,6 +30,7 @@ sequenceDiagram
 
     Wallet->>Wallet: Forge Operation
     Wallet->>Wallet: Sign
+    Wallet->>Wallet: Broadcast
 
     Wallet->>dApp: Response
 ```

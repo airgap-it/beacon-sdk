@@ -38,6 +38,7 @@ sequenceDiagram
     end
     Wallet->>Wallet: Forge Operation
     Wallet->>Wallet: Sign
+    Wallet->>Wallet: Broadcast
 
     Wallet->>Background: Operation Response
     Background->>dApp: Response
