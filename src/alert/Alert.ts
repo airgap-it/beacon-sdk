@@ -318,7 +318,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
 
   await closeAlerts()
 
-  const id = generateGUID().split('-').join('')
+  const id = (await generateGUID()).split('-').join('')
 
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', `beacon-alert-wrapper-${id}`)
