@@ -9,4 +9,5 @@ export interface ClientOptions {
       handler: BeaconEventHandlerFunction<BeaconEventType[key]>
     }
   }
+  matrixNodes?: []
 }

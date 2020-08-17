@@ -10,4 +10,5 @@ export interface DAppClientOptions {
       handler: BeaconEventHandlerFunction<BeaconEventType[key]>
     }
   }
+  matrixNodes?: []
 }
