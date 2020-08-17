@@ -25,8 +25,9 @@ describe(`client - Custom Tests`, () => {
         'Alice',
         await getKeypairFromSeed('alice1234'),
         1,
-        false,
-        undefined as any
+        undefined as any,
+        [],
+        false
       )
       await aliceClient
         .start()
@@ -36,8 +37,9 @@ describe(`client - Custom Tests`, () => {
         'Bob',
         await getKeypairFromSeed('bob1234'),
         1,
-        false,
-        undefined as any
+        undefined as any,
+        [],
+        false
       )
       await bobClient
         .start()
@@ -47,8 +49,9 @@ describe(`client - Custom Tests`, () => {
         'Charlie',
         await getKeypairFromSeed('charlie1234'),
         1,
-        false,
-        undefined as any
+        undefined as any,
+        [],
+        false
       )
       await charlieClient
         .start()
