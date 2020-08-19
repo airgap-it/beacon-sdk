@@ -504,7 +504,7 @@ export class DAppClient extends Client {
 
     const request: Omit<T, IgnoredRequestInputProperties> &
       Pick<U, IgnoredRequestInputProperties> = {
-      id: generateGUID(),
+      id: await generateGUID(),
       version: BEACON_VERSION,
       senderId: await this.beaconId,
       ...requestInput
