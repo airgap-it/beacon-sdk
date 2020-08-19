@@ -22,16 +22,18 @@ import { Storage } from '../storage/Storage'
 import { P2PPairingRequest } from '..'
 import { CommunicationClient } from './CommunicationClient'
 
+const KNOWN_RELAY_SERVERS = [
+  'matrix.papers.tech'
+  // 'matrix.tez.ie',
+  // 'matrix-dev.papers.tech',
+  // "matrix.stove-labs.com",
+  // "yadayada.cryptonomic-infra.tech"
+]
+
 export class P2PCommunicationClient extends CommunicationClient {
   private readonly clients: MatrixClient[] = []
 
-  private readonly KNOWN_RELAY_SERVERS = [
-    'matrix.papers.tech'
-    // 'matrix.tez.ie',
-    // 'matrix-dev.papers.tech',
-    // "matrix.stove-labs.com",
-    // "yadayada.cryptonomic-infra.tech"
-  ]
+  private readonly KNOWN_RELAY_SERVERS: string[]
 
   private readonly activeListeners: Map<string, (event: MatrixClientEvent<any>) => void> = new Map()
 
@@ -39,10 +41,13 @@ export class P2PCommunicationClient extends CommunicationClient {
     private readonly name: string,
     keyPair: sodium.KeyPair,
     public readonly replicationCount: number,
-    private readonly debug: boolean = false,
-    private readonly storage: Storage
+    private readonly storage: Storage,
+    matrixNodes: string[],
+    private readonly debug: boolean = false
   ) {
     super(keyPair)
+
+    this.KNOWN_RELAY_SERVERS = matrixNodes.length > 0 ? matrixNodes : KNOWN_RELAY_SERVERS
   }
 
   public async getHandshakeInfo(): Promise<P2PPairingRequest> {

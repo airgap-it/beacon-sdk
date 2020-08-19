@@ -26,7 +26,7 @@ export class WalletClient extends Client {
   private pendingRequests: BeaconRequestMessage[] = []
 
   constructor(config: WalletClientOptions) {
-    super({ name: config.name, storage: new LocalStorage() })
+    super({ storage: new LocalStorage(), ...config })
     this.permissionManager = new PermissionManager(new LocalStorage())
     this.appMetadataManager = new AppMetadataManager(new LocalStorage())
   }

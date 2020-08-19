@@ -33,6 +33,8 @@ export abstract class Client extends BeaconClient {
 
   protected readonly events: BeaconEventHandler
 
+  protected readonly matrixNodes: string[]
+
   protected _transport: ExposedPromise<Transport> = new ExposedPromise()
   protected get transport(): Promise<Transport> {
     return this._transport.promise
@@ -52,6 +54,7 @@ export abstract class Client extends BeaconClient {
 
     this.events = new BeaconEventHandler(config.eventHandlers)
     this.accountManager = new AccountManager(config.storage)
+    this.matrixNodes = config.matrixNodes ?? []
 
     this.handleResponse = (message: BeaconBaseMessage, connectionInfo: ConnectionContext): void => {
       throw new Error(
@@ -111,6 +114,7 @@ export abstract class Client extends BeaconClient {
             keyPair,
             this.storage,
             this.events,
+            this.matrixNodes,
             isDapp
           )
 

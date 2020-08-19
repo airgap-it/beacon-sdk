@@ -36,6 +36,7 @@ export class P2PTransport extends Transport {
     keyPair: sodium.KeyPair,
     storage: Storage,
     events: BeaconEventHandler,
+    matrixNodes: string[],
     isDapp: boolean
   ) {
     super(name)
@@ -43,7 +44,14 @@ export class P2PTransport extends Transport {
     this.storage = storage
     this.events = events
     this.isDapp = isDapp
-    this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false, storage)
+    this.client = new P2PCommunicationClient(
+      this.name,
+      this.keyPair,
+      1,
+      storage,
+      matrixNodes,
+      false
+    )
     this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_P2P_PEERS)
   }
 
