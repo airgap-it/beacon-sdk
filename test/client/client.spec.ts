@@ -1,16 +1,12 @@
-export class P2PCommunicationClientSpec {
-  public client = P2PCommunicationClient
-}
-
-const MAX_TEST_RUNTIME_SECONDS = 10
-
-import * as chai from 'chai'
-import * as chaiAsPromised from 'chai-as-promised'
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 
 import { generateGUID } from '../../src/utils/generate-uuid'
 import { P2PCommunicationClient } from '../../src'
 import { getKeypairFromSeed } from '../../src/utils/crypto'
+
+const MAX_TEST_RUNTIME_SECONDS = 10
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
