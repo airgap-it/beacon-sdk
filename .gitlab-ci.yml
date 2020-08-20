@@ -18,7 +18,6 @@ build:
     - docker
 
 unit:
-  allow_failure: true
   stage: test
   script:
     - docker run --name unit-$CI_COMMIT_SHA $GOOGLE_TAG npm run test-ci

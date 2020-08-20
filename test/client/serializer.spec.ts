@@ -1,5 +1,5 @@
-import * as chai from 'chai'
-import * as chaiAsPromised from 'chai-as-promised'
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 
 import { Serializer } from '../../src/Serializer'
@@ -79,7 +79,7 @@ const testCases = [
 
 describe(`serializer - Custom Tests`, () => {
   const serializer = new Serializer()
-  testCases.forEach(testCase => {
+  testCases.forEach((testCase) => {
     it(`should serialize "${testCase.output}"`, async () => {
       const output = await serializer.serialize(testCase.input)
       expect(output).to.deep.equal(testCase.output)
