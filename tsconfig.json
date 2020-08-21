@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES2015",
     "lib": ["es2015", "es2017.string", "dom"],
-    "module": "commonjs",
+    "module": "ES2020",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "declaration": true,
-    "outDir": "./dist",
+    "outDir": "./dist/esm",
     "typeRoots": ["./node_modules/@types", "./src/typings"],
     "sourceMap": true,
     /* Strict Type-Checking Options */
