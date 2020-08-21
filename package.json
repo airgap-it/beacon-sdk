@@ -2,9 +2,10 @@
   "name": "@airgap/beacon-sdk",
   "version": "2.0.0-beta.0",
   "description": "The beacon-sdk allows you to easily connect DApps with Wallets through P2P communication or a chrome extension.",
-  "main": "dist/index.js",
-  "unpkg": "dist/beacon.min.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "unpkg": "dist/walletbeacon.min.js",
+  "types": "dist/cjs/index.d.ts",
   "keywords": [
     "airgap",
     "beacon",
@@ -21,8 +22,8 @@
     "url": "https://github.com/airgap-it/beacon-sdk"
   },
   "scripts": {
-    "build": "tsc && npm run browserify",
-    "browserify": "browserify ./dist/index.js -s beacon | uglifyjs > ./dist/beacon.min.js",
+    "build": "tsc -p tsconfig.json && tsc -p ./tsconfig-cjs.json && npm run browserify",
+    "browserify": "browserify ./dist/cjs/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js",
     "prettier": "prettier --write 'src/**/*' 'docs/**/*.md'",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
@@ -34,7 +35,7 @@
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:deploy": "./deploy-docs.sh",
-    "check-version": "ts-node scripts/check-sdk-version.ts"
+    "check-version": "ts-node --project tsconfig-cjs.json scripts/check-sdk-version.ts"
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
@@ -43,7 +44,7 @@
     "axios": "0.19.2",
     "bignumber.js": "9.0.0",
     "bs58check": "2.1.2",
-    "libsodium-wrappers": "0.7.6",
+    "libsodium-wrappers": "0.7.8",
     "qrcode-generator": "1.4.4"
   },
   "devDependencies": {
