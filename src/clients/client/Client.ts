@@ -18,18 +18,31 @@ import { AccountManager } from '../../managers/AccountManager'
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { ClientOptions } from './ClientOptions'
 
+/**
+ * This abstract class handles the a big part of the logic that is shared between the dapp and wallet client.
+ * For example, it selects and manages the transport and accounts.
+ */
 export abstract class Client extends BeaconClient {
   protected readonly accountManager: AccountManager
-
-  protected requestCounter: number[] = []
 
   protected handleResponse: (
     _event: BeaconRequestMessage,
     connectionInfo: ConnectionContext
   ) => void
 
+  /**
+   * How many requests can be sent after another
+   */
   protected readonly rateLimit: number = 2
+  /**
+   * The time window in seconds in which the "rateLimit" is checked
+   */
   protected readonly rateLimitWindowInSeconds: number = 5
+
+  /**
+   * Stores the times when requests have been made to determine if the rate limit has been reached
+   */
+  protected requestCounter: number[] = []
 
   protected readonly events: BeaconEventHandler
 
@@ -40,11 +53,17 @@ export abstract class Client extends BeaconClient {
     return this._transport.promise
   }
 
+  /**
+   * Returns whether or not the transport is successfully connected
+   */
   protected readonly _isConnected: ExposedPromise<boolean> = new ExposedPromise()
   public get isConnected(): Promise<boolean> {
     return this._isConnected.promise
   }
 
+  /**
+   * Returns whether or not the transaport is ready
+   */
   public get ready(): Promise<void> {
     return this.transport.then(() => undefined)
   }
@@ -63,22 +82,39 @@ export abstract class Client extends BeaconClient {
     }
   }
 
+  /**
+   * Return all locally known accounts
+   */
   public async getAccounts(): Promise<AccountInfo[]> {
     return this.accountManager.getAccounts()
   }
 
+  /**
+   * Return the account by ID
+   * @param accountIdentifier The ID of an account
+   */
   public async getAccount(accountIdentifier: string): Promise<AccountInfo | undefined> {
     return this.accountManager.getAccount(accountIdentifier)
   }
 
+  /**
+   * Remove the account by ID
+   * @param accountIdentifier The ID of an account
+   */
   public async removeAccount(accountIdentifier: string): Promise<void> {
     return this.accountManager.removeAccount(accountIdentifier)
   }
 
+  /**
+   * Remove all locally stored accounts
+   */
   public async removeAllAccounts(): Promise<void> {
     return this.accountManager.removeAllAccounts()
   }
 
+  /**
+   * Add a new request (current timestamp) to the pending requests, remove old ones and check if we are above the limit
+   */
   public async addRequestAndCheckIfRateLimited(): Promise<boolean> {
     const now: number = new Date().getTime()
     this.requestCounter = this.requestCounter.filter(
@@ -90,6 +126,13 @@ export abstract class Client extends BeaconClient {
     return this.requestCounter.length > this.rateLimit
   }
 
+  /**
+   * This method initializes the client. It will check if the connection should be established to a
+   * browser extension or if the P2P transport should be used.
+   *
+   * @param isDapp A boolean flag indicating if this is the DAppClient or WalletClient
+   * @param transport An optional transport that can be provided by the user
+   */
   public async init(isDapp: boolean = true, transport?: Transport): Promise<TransportType> {
     if (this._transport.status === ExposedPromiseStatus.RESOLVED) {
       return (await this.transport).type
@@ -135,20 +178,33 @@ export abstract class Client extends BeaconClient {
       })
     }
   }
+
+  /**
+   * Return all known peers
+   */
   public async getPeers(): Promise<P2PPairingRequest[]> {
     if ((await this.transport).type === TransportType.P2P) {
-      return ((await this.transport) as P2PTransport).getPeers()
+      return ((await this.transport) as P2PTransport).getPeers() // TODO: Also support other transports?
     } else {
       return []
     }
   }
 
-  public async addPeer(id: P2PPairingRequest): Promise<void> {
+  /**
+   * Add a new peer to the known peers
+   * @param peer The new peer to add
+   */
+  public async addPeer(peer: P2PPairingRequest): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
-      return ((await this.transport) as P2PTransport).addPeer(id)
+      return ((await this.transport) as P2PTransport).addPeer(peer) // TODO: Also support other transports?
     }
   }
 
+  /**
+   * The method will attempt to initiate a connection using the active transport method.
+   * If the method is called multiple times while it is connecting (meaning the initial connect didn't finish),
+   * the transport will try to reconnect.
+   */
   protected async _connect(): Promise<boolean> {
     const transport: Transport = await this.transport
     if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
@@ -173,6 +229,9 @@ export abstract class Client extends BeaconClient {
     return this._isConnected.promise
   }
 
+  /**
+   * A "setter" for when the transport needs to be changed.
+   */
   private async setTransport(transport: Transport): Promise<void> {
     if (this._transport.isSettled()) {
       // If the promise has already been resolved we need to create a new one.

@@ -54,15 +54,32 @@ import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
 
+/**
+ * The DAppClient in decentralized applications. It handles all the logic related to connecting to beacon-compatible
+ * wallets and sending requests.
+ */
 export class DAppClient extends Client {
+  /**
+   * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
+   */
   private readonly openRequests = new Map<
     string,
     ExposedPromise<{ message: BeaconMessage; connectionInfo: ConnectionContext }, ErrorResponse>
   >()
+  /**
+   * The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet
+   */
   private readonly iconUrl?: string
 
+  /**
+   * The currently active account. For all requests that are associated to a specific request (operation request, signing request),
+   * the active account is used to determine the network and destination wallet
+   */
   private _activeAccount: ExposedPromise<AccountInfo | undefined> = new ExposedPromise()
 
+  /**
+   * Returns the status if the transport is connected
+   */
   public get isConnected(): Promise<boolean> {
     return this._isConnected.promise
   }
@@ -118,7 +135,12 @@ export class DAppClient extends Client {
     }
   }
 
-  public addOpenRequest(
+  /**
+   * Adds a requests to the "openRequests" set so we know what messages have already been answered/handled.
+   * @param id The ID of the message
+   * @param promise A promise that resolves once the response for that specific message is received
+   */
+  private addOpenRequest(
     id: string,
     promise: ExposedPromise<
       { message: BeaconMessage; connectionInfo: ConnectionContext },
@@ -135,10 +157,18 @@ export class DAppClient extends Client {
     return initResponse
   }
 
+  /**
+   * Returns the active account
+   */
   public async getActiveAccount(): Promise<AccountInfo | undefined> {
     return this._activeAccount.promise
   }
 
+  /**
+   * Sets the active account
+   *
+   * @param account The account that will be set as the active account
+   */
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
     if (this._activeAccount.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
@@ -157,6 +187,9 @@ export class DAppClient extends Client {
     return
   }
 
+  /**
+   * Returns the metadata of this DApp
+   */
   public async getAppMetadata(): Promise<AppMetadata> {
     return {
       senderId: await this.beaconId,
@@ -165,10 +198,20 @@ export class DAppClient extends Client {
     }
   }
 
+  /**
+   * The method will attempt to initiate a connection using the active transport method.
+   * If the method is called multiple times while it is connecting (meaning the initial connect didn't finish),
+   * the transport will try to reconnect.
+   */
   public async connect(): Promise<boolean> {
     return super._connect()
   }
 
+  /**
+   * Will remove the account from the local storage and set a new active account if necessary.
+   *
+   * @param accountIdentifier ID of the account
+   */
   public async removeAccount(accountIdentifier: string): Promise<void> {
     const removeAccountResult = super.removeAccount(accountIdentifier)
     const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
@@ -180,18 +223,28 @@ export class DAppClient extends Client {
     return removeAccountResult
   }
 
-  public async removePeer(id: P2PPairingRequest): Promise<void> {
+  /**
+   * Removes a peer and all the accounts that have been connected through that peer
+   *
+   * @param peer Peer to be removed
+   */
+  public async removePeer(peer: P2PPairingRequest): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
-      const removePeerResult = ((await this.transport) as P2PTransport).removePeer(id)
+      // TODO: Allow for other transport types?
+      const removePeerResult = ((await this.transport) as P2PTransport).removePeer(peer)
 
-      await this.removeAccountsForPeers([id])
+      await this.removeAccountsForPeers([peer])
 
       return removePeerResult
     }
   }
 
+  /**
+   * Remove all peers and all accounts that have been connected through those peers
+   */
   public async removeAllPeers(): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
+      // TODO: Allow for other transport types?
       const peers: P2PPairingRequest[] = await ((await this.transport) as P2PTransport).getPeers()
       const removePeerResult = ((await this.transport) as P2PTransport).removeAllPeers()
 
@@ -201,6 +254,12 @@ export class DAppClient extends Client {
     }
   }
 
+  /**
+   * Allows the user to subscribe to specific events that are fired in the SDK
+   *
+   * @param internalEvent The event to subscribe to
+   * @param eventCallback The callback that will be called when the event occurs
+   */
   public async subscribeToEvent<K extends BeaconEvent>(
     internalEvent: K,
     eventCallback: BeaconEventHandlerFunction<BeaconEventType[K]>
@@ -208,6 +267,12 @@ export class DAppClient extends Client {
     await this.events.on(internalEvent, eventCallback)
   }
 
+  /**
+   * Check if we have permissions to send the specific message type to the active account.
+   * If no active account is set, only permission requests are allowed.
+   *
+   * @param type The type of the message
+   */
   public async checkPermissions(type: BeaconMessageType): Promise<boolean> {
     if (type === BeaconMessageType.PermissionRequest) {
       return true
