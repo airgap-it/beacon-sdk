@@ -55,7 +55,7 @@ import { DAppClientOptions } from './DAppClientOptions'
 const logger = new Logger('DAppClient')
 
 /**
- * The DAppClient in decentralized applications. It handles all the logic related to connecting to beacon-compatible
+ * The DAppClient has to be used in decentralized applications. It handles all the logic related to connecting to beacon-compatible
  * wallets and sending requests.
  */
 export class DAppClient extends Client {
@@ -133,22 +133,6 @@ export class DAppClient extends Client {
         }
       }
     }
-  }
-
-  /**
-   * Adds a requests to the "openRequests" set so we know what messages have already been answered/handled.
-   * @param id The ID of the message
-   * @param promise A promise that resolves once the response for that specific message is received
-   */
-  private addOpenRequest(
-    id: string,
-    promise: ExposedPromise<
-      { message: BeaconMessage; connectionInfo: ConnectionContext },
-      ErrorResponse
-    >
-  ): void {
-    logger.log('addOpenRequest', this.name, `adding request ${id} and waiting for answer`)
-    this.openRequests.set(id, promise)
   }
 
   public async init(_isDapp?: boolean, transport?: Transport): Promise<TransportType> {
@@ -290,7 +274,11 @@ export class DAppClient extends Client {
   }
 
   /**
-   * Permission request
+   * Send a permission request to the DApp. This should be done as the first step. The wallet will respond
+   * with an publicKey and permissions that were given. The account returned will be set as the "activeAccount"
+   * and will be used for the following requests.
+   *
+   * @param input The message details we need to prepare the PermissionRequest message.
    */
   public async requestPermissions(
     input?: RequestPermissionInput
@@ -355,7 +343,10 @@ export class DAppClient extends Client {
   }
 
   /**
-   * Sign request
+   * This method will send a "SignPayloadRequest" to the wallet. This method is meant to be used to sign
+   * arbitrary data (eg. a string). It will return the signature in the format of "edsig..."
+   *
+   * @param input The message details we need to prepare the SignPayloadRequest message.
    */
   public async requestSignPayload(
     input: RequestSignPayloadInput
@@ -395,7 +386,11 @@ export class DAppClient extends Client {
   }
 
   /**
-   * Operation request
+   * This method sends an OperationRequest to the wallet. This method should be used for all kinds of operations,
+   * eg. transaction or delegation. Not all properties have to be provided. Data like "counter" and fees will be
+   * fetched and calculated by the wallet (but they can still be provided if required).
+   *
+   * @param input The message details we need to prepare the OperationRequest message.
    */
   public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
     if (!input.operationDetails) {
@@ -433,7 +428,10 @@ export class DAppClient extends Client {
   }
 
   /**
-   * Broadcast request
+   * Sends a "BroadcastRequest" to the wallet. This method can be used to inject an already signed transaction
+   * to the network.
+   *
+   * @param input The message details we need to prepare the BroadcastRequest message.
    */
   public async requestBroadcast(input: RequestBroadcastInput): Promise<BroadcastResponseOutput> {
     if (!input.signedTransaction) {
@@ -463,11 +461,21 @@ export class DAppClient extends Client {
     return { senderId, transactionHash }
   }
 
+  /**
+   * This method will emit an internal error message.
+   *
+   * @param errorMessage The error message to send.
+   */
   private async sendInternalError(errorMessage: string): Promise<void> {
     await this.events.emit(BeaconEvent.INTERNAL_ERROR, errorMessage)
     throw new Error(errorMessage)
   }
 
+  /**
+   * This method will remove all accounts associated with a specific peer.
+   *
+   * @param peersToRemove An array of peers for which accounts should be removed
+   */
   private async removeAccountsForPeers(peersToRemove: P2PPairingRequest[]): Promise<void> {
     const accounts = await this.accountManager.getAccounts()
 
@@ -491,6 +499,12 @@ export class DAppClient extends Client {
     }
   }
 
+  /**
+   * This message handles errors that we receive from the wallet.
+   *
+   * @param request The request we sent
+   * @param beaconError The error we received
+   */
   private async handleRequestError(
     request: BeaconRequestInputMessage,
     beaconError: ErrorResponse
@@ -508,6 +522,12 @@ export class DAppClient extends Client {
     throw beaconError
   }
 
+  /**
+   * This message will send an event when we receive a successful response to one of the requests we sent.
+   *
+   * @param request The request we sent
+   * @param response The response we received
+   */
   private async notifySuccess(
     request: BeaconRequestInputMessage,
     response:
@@ -536,6 +556,14 @@ export class DAppClient extends Client {
       .catch((emitError) => console.warn(emitError))
   }
 
+  /**
+   * This method handles sending of requests to the DApp. It makes sure that the DAppClient is initialized and connected
+   * to the transport. After that rate limits and permissions will be checked, an ID is attached and the request is sent
+   * to the DApp over the transport.
+   *
+   * @param requestInput The BeaconMessage to be sent to the wallet
+   * @param account The account that the message will be sent to
+   */
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Omit<T, IgnoredRequestInputProperties>,
     account?: AccountInfo
@@ -597,5 +625,22 @@ export class DAppClient extends Client {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed.promise as any // TODO: fix type
+  }
+
+  /**
+   * Adds a requests to the "openRequests" set so we know what messages have already been answered/handled.
+   *
+   * @param id The ID of the message
+   * @param promise A promise that resolves once the response for that specific message is received
+   */
+  private addOpenRequest(
+    id: string,
+    promise: ExposedPromise<
+      { message: BeaconMessage; connectionInfo: ConnectionContext },
+      ErrorResponse
+    >
+  ): void {
+    logger.log('addOpenRequest', this.name, `adding request ${id} and waiting for answer`)
+    this.openRequests.set(id, promise)
   }
 }
