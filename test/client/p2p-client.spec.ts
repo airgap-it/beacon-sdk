@@ -84,7 +84,7 @@ describe.skip(`client - Custom Tests`, () => {
       })
 
       intervals.push(
-        setInterval(async () => {
+        global.setInterval(async () => {
           bobClient.sendMessage(
             await aliceClient.getPublicKey(),
             `hey from bob ${await generateGUID()}\n\n`
@@ -94,7 +94,7 @@ describe.skip(`client - Custom Tests`, () => {
       )
 
       intervals.push(
-        setInterval(async () => {
+        global.setInterval(async () => {
           aliceClient.sendMessage(
             await bobClient.getPublicKey(),
             `hey from alice ${await generateGUID()}\n\n`
@@ -107,7 +107,7 @@ describe.skip(`client - Custom Tests`, () => {
       )
 
       intervals.push(
-        setInterval(async () => {
+        global.setInterval(async () => {
           //charlieClient.sendMessage(bobClient.getPublicKey(), 'matrix.tez.ie', "hey from charlie")
           charlieClient.sendMessage(
             await aliceClient.getPublicKey(),
@@ -116,14 +116,14 @@ describe.skip(`client - Custom Tests`, () => {
         }, 5000)
       )
 
-      setTimeout(() => {
+      global.setTimeout(() => {
         intervals.forEach((intervalId) => {
           console.log('clearing interval', intervalId)
           clearInterval(intervalId)
         })
         resolve()
 
-        setTimeout(() => {
+        global.setTimeout(() => {
           process.exit(0)
         }, MAX_TEST_RUNTIME_SECONDS * 1000)
       }, MAX_TEST_RUNTIME_SECONDS * 1000)
