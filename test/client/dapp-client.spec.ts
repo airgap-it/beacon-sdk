@@ -3,10 +3,9 @@ import chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 // import sinon from 'sinon'
 
-import { DAppClient } from '../../src/clients/dapp-client/DAppClient'
+import { DAppClient, LocalStorage } from '../../src'
 
 import { MockLocalStorage } from '../test-utils/MockLocalStorage'
-import { LocalStorage } from '../../src'
 import { MockTransport } from '../test-utils/MockTransport'
 ;(global as any).localStorage = new MockLocalStorage()
 ;(global as any).temp = {
