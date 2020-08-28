@@ -164,7 +164,7 @@ export abstract class Client extends BeaconClient {
           return setTransport(newTransport)
         }
 
-        const setBeaconTransportTimeout = setTimeout(setBeaconTransport, 200)
+        const setBeaconTransportTimeout = window.setTimeout(setBeaconTransport, 200)
 
         return isChromeExtensionInstalled.then(async (postMessageAvailable) => {
           if (postMessageAvailable) {
