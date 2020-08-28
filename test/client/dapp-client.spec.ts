@@ -1,16 +1,12 @@
-import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
+import * as chai from 'chai'
+import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 // import sinon from 'sinon'
 
 import { DAppClient, LocalStorage } from '../../src'
 
-import { MockLocalStorage } from '../test-utils/MockLocalStorage'
 import { MockTransport } from '../test-utils/MockTransport'
-;(global as any).localStorage = new MockLocalStorage()
-;(global as any).temp = {
-  yolo: () => undefined
-}
+
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
 const expect = chai.expect
@@ -36,14 +32,14 @@ describe(`DAppClient`, () => {
       dAppClient.beaconId
       expect(typeof (await dAppClient.beaconId)).to.equal('string')
 
-      await dAppClient.init()
-      console.log((dAppClient as any).transport)
+      // await dAppClient.init()
+      // console.log((dAppClient as any).transport)
       await dAppClient.init(true, new MockTransport('TestTransport'))
       console.log('init')
-      await dAppClient.connect()
-      console.log('init')
-      await dAppClient.ready
-      const timeout = setTimeout(() => {
+      // await dAppClient.connect()
+      // console.log('init')
+      // await dAppClient.ready
+      const timeout = global.setTimeout(() => {
         resolve()
         clearTimeout(timeout)
       }, 1000)
