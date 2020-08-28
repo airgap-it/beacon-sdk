@@ -92,4 +92,13 @@ describe(`serializer - Custom Tests`, () => {
       }
     })
   })
+
+  it(`should fail if invalid input is passed`, async () => {
+    try {
+      const deserialized = await serializer.deserialize({} as any)
+      expect(deserialized).to.be.undefined
+    } catch (e) {
+      expect(e.message).to.equal(`Encoded payload needs to be a string`)
+    }
+  })
 })

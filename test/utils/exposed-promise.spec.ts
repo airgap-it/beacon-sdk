@@ -75,7 +75,7 @@ const getExpectedPromiseOutcome = (
   return promises
 }
 
-describe.only(`ExposedPromise`, () => {
+describe(`ExposedPromise`, () => {
   it(`should create an empty ExposedPromise`, async () => {
     const exposed = new ExposedPromise()
 
