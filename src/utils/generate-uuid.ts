@@ -1,6 +1,9 @@
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 import * as sodium from 'libsodium-wrappers'
 
+/**
+ * Generate a random GUID
+ */
 export async function generateGUID(): Promise<string> {
   await sodium.ready
   const buf = sodium.randombytes_buf(16)

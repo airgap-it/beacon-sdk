@@ -18,7 +18,7 @@ import { PeerManager } from '../managers/PeerManager'
 import { Storage } from '../storage/Storage'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 import { TransportStatus } from '../types/transport/TransportStatus'
-import { ChromeMessageClient } from './ChromeMessageClient'
+import { ChromeMessageClient } from './clients/ChromeMessageClient'
 
 const logger = new Logger('ChromeMessageTransport')
 
@@ -27,6 +27,9 @@ export class ChromeMessageTransport extends Transport {
 
   private readonly keyPair: sodium.KeyPair
 
+  /**
+   * The client handling the encryption/decryption of messages
+   */
   private readonly client: ChromeMessageClient
 
   private readonly peerManager: PeerManager<StorageKey.TRANSPORT_POSTMESSAGE_PEERS>

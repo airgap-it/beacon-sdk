@@ -9,17 +9,17 @@ import {
   openCryptobox,
   encryptCryptoboxPayload,
   decryptCryptoboxPayload
-} from '../utils/crypto'
-import { MatrixClient } from '../matrix-client/MatrixClient'
+} from '../../utils/crypto'
+import { MatrixClient } from '../../matrix-client/MatrixClient'
 import {
   MatrixClientEvent,
   MatrixClientEventType,
   MatrixClientEventMessageContent
-} from '../matrix-client/models/MatrixClientEvent'
-import { MatrixMessageType } from '../matrix-client/models/MatrixMessage'
-import { MatrixRoom } from '../matrix-client/models/MatrixRoom'
-import { Storage } from '../storage/Storage'
-import { P2PPairingRequest } from '..'
+} from '../../matrix-client/models/MatrixClientEvent'
+import { MatrixMessageType } from '../../matrix-client/models/MatrixMessage'
+import { MatrixRoom } from '../../matrix-client/models/MatrixRoom'
+import { Storage } from '../../storage/Storage'
+import { P2PPairingRequest } from '../..'
 import { CommunicationClient } from './CommunicationClient'
 
 const KNOWN_RELAY_SERVERS = [

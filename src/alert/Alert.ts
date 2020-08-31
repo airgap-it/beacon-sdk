@@ -265,6 +265,11 @@ const formatAlert = (
 `
 }
 
+/**
+ * Close an alert by ID
+ *
+ * @param id ID of alert
+ */
 const closeAlert = (id: string): Promise<void> =>
   new Promise((resolve) => {
     const elm = document.getElementById(`beacon-alert-modal-${id}`)
@@ -290,6 +295,9 @@ const closeAlert = (id: string): Promise<void> =>
     }
   })
 
+/**
+ * Close all alerts
+ */
 const closeAlerts = async (): Promise<void> =>
   new Promise(async (resolve) => {
     const openAlertElements = document.querySelectorAll('[id^="beacon-alert-wrapper-"]')
@@ -305,6 +313,11 @@ const closeAlerts = async (): Promise<void> =>
     }
   })
 
+/**
+ * Show an alert
+ *
+ * @param alertConfig The configuration of the alert
+ */
 const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const body = alertConfig.body
   const title = alertConfig.title

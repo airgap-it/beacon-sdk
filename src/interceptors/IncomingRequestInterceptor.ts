@@ -18,7 +18,15 @@ interface IncomingRequestInterceptorOptions {
   interceptorCallback(message: BeaconRequestOutputMessage, connectionInfo: ConnectionContext): void
 }
 
+/**
+ * The IncomingRequestInterceptor is used in the WalletClient to intercept an incoming request and enrich it with data, like app metadata.
+ */
 export class IncomingRequestInterceptor {
+  /**
+   * The method that is called during the interception
+   *
+   * @param config
+   */
   public static async intercept(config: IncomingRequestInterceptorOptions): Promise<void> {
     const {
       message,

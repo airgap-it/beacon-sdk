@@ -125,6 +125,9 @@ const getToastHTML = (config: ToastConfig): string => {
 `
 }
 
+/**
+ * Close a toast
+ */
 const closeToast = (): Promise<void> =>
   new Promise((resolve) => {
     const elm = document.getElementById('beacon-toast')
@@ -149,6 +152,11 @@ const closeToast = (): Promise<void> =>
     }
   })
 
+/**
+ * Create a new toast
+ *
+ * @param toastConfig Configuration of the toast
+ */
 const openToast = async (toastConfig: ToastConfig): Promise<void> => {
   const timer = toastConfig.timer
 

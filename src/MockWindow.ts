@@ -2,6 +2,9 @@ type Callback = (message: unknown) => void
 
 const cbs: Callback[] = [(_: unknown): void => undefined]
 
+/**
+ * A mock for postmessage if run in node.js environment
+ */
 let myWindow = {
   postMessage: (message: string | Record<string, unknown>, _target?: string): void => {
     console.log('GOT POST MESSAGE', message)

@@ -1,5 +1,5 @@
 import * as sodium from 'libsodium-wrappers'
-import { toHex, getHexHash } from '../utils/crypto'
+import { toHex, getHexHash } from '../../utils/crypto'
 
 export abstract class CommunicationClient {
   constructor(protected readonly keyPair: sodium.KeyPair) {}

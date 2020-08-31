@@ -1,6 +1,6 @@
 import * as sodium from 'libsodium-wrappers'
-import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
-import { decryptCryptoboxPayload, encryptCryptoboxPayload } from '../utils/crypto'
+import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
+import { decryptCryptoboxPayload, encryptCryptoboxPayload } from '../../utils/crypto'
 import { CommunicationClient } from './CommunicationClient'
 
 export abstract class MessageBasedClient extends CommunicationClient {

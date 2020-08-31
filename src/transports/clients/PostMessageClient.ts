@@ -1,9 +1,15 @@
 import * as sodium from 'libsodium-wrappers'
-import { myWindow } from '../MockWindow'
-import { ExtensionMessage, ExtensionMessageTarget, Origin, Serializer, ConnectionContext } from '..'
-import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
-import { EncryptedExtensionMessage } from '../types/ExtensionMessage'
-import { openCryptobox } from './../utils/crypto'
+import { myWindow } from '../../MockWindow'
+import {
+  ExtensionMessage,
+  ExtensionMessageTarget,
+  Origin,
+  Serializer,
+  ConnectionContext
+} from '../..'
+import { PostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
+import { EncryptedExtensionMessage } from '../../types/ExtensionMessage'
+import { openCryptobox } from '../../utils/crypto'
 import { MessageBasedClient } from './MessageBasedClient'
 
 export class PostMessageClient extends MessageBasedClient {

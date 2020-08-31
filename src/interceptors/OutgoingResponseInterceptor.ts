@@ -25,6 +25,9 @@ interface OutgoingResponseInterceptorOptions {
   interceptorCallback(message: BeaconMessage): void
 }
 
+/**
+ * The OutgoingResponseInterceptor is used in the WalletClient to intercept an outgoing response and enrich it with data.
+ */
 export class OutgoingResponseInterceptor {
   public static async intercept(config: OutgoingResponseInterceptorOptions): Promise<void> {
     const {
