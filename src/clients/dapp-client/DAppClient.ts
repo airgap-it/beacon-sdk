@@ -171,6 +171,11 @@ export class DAppClient extends Client {
     return removeAccountResult
   }
 
+  public async removeAllAccounts(): Promise<void> {
+    await super.removeAllAccounts()
+    await this.setActiveAccount(undefined)
+  }
+
   public async removePeer(id: P2PPairInfo): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
       const removePeerResult = ((await this.transport) as P2PTransport).removePeer(id)
