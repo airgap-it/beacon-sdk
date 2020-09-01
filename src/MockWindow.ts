@@ -4,17 +4,15 @@ const cbs: Callback[] = [(_: unknown): void => undefined]
 
 let myWindow = {
   postMessage: (message: string | Record<string, unknown>, _target?: string): void => {
-    console.log('GOT POST MESSAGE', message)
+    console.log('GOT MOCK POST MESSAGE', message)
     cbs.forEach((callbackElement: Callback) => {
       callbackElement({ data: message })
     })
   },
-  addEventListener: (name: string, eventCallback: Callback): void => {
-    console.log('addEventListener', name)
+  addEventListener: (_name: string, eventCallback: Callback): void => {
     cbs.push(eventCallback)
   },
-  removeEventListener: (name: string, eventCallback: Callback): void => {
-    console.log('addEventListener', name)
+  removeEventListener: (_name: string, eventCallback: Callback): void => {
     cbs.splice(
       cbs.indexOf((element) => element === eventCallback),
       1
@@ -31,4 +29,8 @@ try {
   console.log(`not defined: ${windowError}`)
 }
 
-export { myWindow }
+const clearMockWindowState: () => void = (): void => {
+  cbs.length = 0
+}
+
+export { myWindow, clearMockWindowState }
