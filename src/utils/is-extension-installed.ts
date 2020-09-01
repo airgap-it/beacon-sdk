@@ -1,3 +1,3 @@
 import { PostMessageTransport } from '../transports/PostMessageTransport'
 
-export const isChromeExtensionInstalled = PostMessageTransport.isAvailable()
+export const availableTransports = { extension: PostMessageTransport.isAvailable() }

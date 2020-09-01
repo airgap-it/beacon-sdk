@@ -12,7 +12,7 @@ import {
   P2PPairingRequest
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
-import { isChromeExtensionInstalled } from '../../utils/is-extension-installed'
+import { availableTransports } from '../../utils/is-extension-installed'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
@@ -166,10 +166,10 @@ export abstract class Client extends BeaconClient {
 
         const setBeaconTransportTimeout = window.setTimeout(setBeaconTransport, 200)
 
-        return isChromeExtensionInstalled.then(async (postMessageAvailable) => {
+        return availableTransports.extension.then(async (postMessageAvailable) => {
           if (postMessageAvailable) {
             if (setBeaconTransportTimeout) {
-              clearTimeout(setBeaconTransportTimeout)
+              window.clearTimeout(setBeaconTransportTimeout)
             }
 
             return setTransport(new PostMessageTransport(this.name, keyPair, this.storage, isDapp))
