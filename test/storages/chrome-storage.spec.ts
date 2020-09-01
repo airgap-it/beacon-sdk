@@ -43,16 +43,32 @@ describe(`ChromeStorage`, () => {
     expect(isSupported).to.be.false
   })
 
-  // it(`should be supported`, async () => {
-  //   globalThis.chrome = {
-  //     runtime: {
-  //       id: 'some-id'
-  //     } as any
-  //   } as any
+  it(`should be supported`, async () => {
+    const windowRef = globalThis.window
+    const chromeRef = globalThis.chrome
 
-  //   const isSupported = await ChromeStorage.isSupported()
-  //   expect(isSupported).to.be.true
-  // })
+    globalThis.window = {
+      ...globalThis.window,
+      chrome: {
+        runtime: {
+          id: 'some-id'
+        } as any
+      } as any
+    } as any
+
+    globalThis.chrome = {
+      runtime: {
+        id: 'some-id'
+      } as any
+    } as any
+
+    const isSupported = await ChromeStorage.isSupported()
+
+    globalThis.window = windowRef
+    globalThis.chrome = chromeRef
+
+    expect(isSupported).to.be.true
+  })
 
   it(`should write a value to the storage`, async () => {
     const storage = new ChromeStorage()

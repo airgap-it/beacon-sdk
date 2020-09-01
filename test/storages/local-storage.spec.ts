@@ -26,10 +26,19 @@ describe(`LocalStorage`, () => {
     expect(isSupported).to.be.false
   })
 
-  // it(`should be supported`, async () => {
-  //   const isSupported = await LocalStorage.isSupported()
-  //   expect(isSupported).to.be.true
-  // })
+  it(`should be supported`, async () => {
+    const windowRef = globalThis.window
+
+    globalThis.window = {
+      localStorage: {} as any
+    } as any
+
+    const isSupported = await LocalStorage.isSupported()
+
+    globalThis.window = windowRef
+
+    expect(isSupported).to.be.true
+  })
 
   it(`should write a value to the storage`, async () => {
     const storage = new LocalStorage()
