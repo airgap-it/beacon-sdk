@@ -14,6 +14,22 @@ chai.use(chaiAsPromised)
 const expect = chai.expect
 
 describe(`DAppClient`, () => {
+  before(function () {
+    /**
+     * This is used to mock the window object
+     *
+     * We cannot do it globally because it fails in the storage tests because of security policies
+     */
+    this.jsdom = require('jsdom-global')()
+  })
+
+  after(function () {
+    /**
+     * Remove jsdom again because it's only needed in this test
+     */
+    this.jsdom()
+  })
+
   it(`should throw an error if initialized with an empty object`, async () => {
     try {
       const dAppClient = new DAppClient({} as any)
