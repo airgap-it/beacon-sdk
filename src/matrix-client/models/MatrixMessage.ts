@@ -6,6 +6,11 @@ export enum MatrixMessageType {
 }
 
 export class MatrixMessage<T> {
+  /**
+   * Construct a message from a message event
+   *
+   * @param event
+   */
   public static from(event: MatrixStateEvent): MatrixMessage<any> | undefined {
     if (isTextMessageEvent(event)) {
       return new MatrixMessage(event.content.msgtype, event.sender, event.content.body)

@@ -5,6 +5,13 @@ import { MatrixLoginResponse } from '../models/api/MatrixLogin'
 export class MatrixUserService {
   constructor(private readonly httpClient: MatrixHttpClient) {}
 
+  /**
+   * Log in to the matrix node with username and password
+   *
+   * @param user
+   * @param password
+   * @param deviceId
+   */
   public async login(
     user: string,
     password: string,

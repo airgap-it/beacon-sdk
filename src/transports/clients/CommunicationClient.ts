@@ -4,14 +4,26 @@ import { toHex, getHexHash } from '../../utils/crypto'
 export abstract class CommunicationClient {
   constructor(protected readonly keyPair: sodium.KeyPair) {}
 
+  /**
+   * Get the public key
+   */
   public async getPublicKey(): Promise<string> {
     return toHex(this.keyPair.publicKey)
   }
 
+  /**
+   * get the public key hash
+   */
   public async getPublicKeyHash(): Promise<string> {
     return getHexHash(this.keyPair.publicKey)
   }
 
+  /**
+   * Create a cryptobox shared key
+   *
+   * @param otherPublicKey
+   * @param selfPrivateKey
+   */
   protected async createCryptoBox(
     otherPublicKey: string,
     selfPrivateKey: Uint8Array
@@ -34,6 +46,12 @@ export abstract class CommunicationClient {
     ]
   }
 
+  /**
+   * Create a cryptobox server
+   *
+   * @param otherPublicKey
+   * @param selfPrivateKey
+   */
   protected async createCryptoBoxServer(
     otherPublicKey: string,
     selfPrivateKey: Uint8Array
@@ -43,6 +61,12 @@ export abstract class CommunicationClient {
     return sodium.crypto_kx_server_session_keys(...keys)
   }
 
+  /**
+   * Create a cryptobox client
+   *
+   * @param otherPublicKey
+   * @param selfPrivateKey
+   */
   protected async createCryptoBoxClient(
     otherPublicKey: string,
     selfPrivateKey: Uint8Array

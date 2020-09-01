@@ -124,6 +124,7 @@ export class DAppClient extends Client {
             await (transport as P2PTransport).removePeer({
               name: '',
               publicKey: message.senderId,
+              version: BEACON_VERSION,
               relayServer: ''
             })
             await this.events.emit(BeaconEvent.P2P_CHANNEL_CLOSED)

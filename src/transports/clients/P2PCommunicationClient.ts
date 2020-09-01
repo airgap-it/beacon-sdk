@@ -20,6 +20,7 @@ import { MatrixMessageType } from '../../matrix-client/models/MatrixMessage'
 import { MatrixRoom } from '../../matrix-client/models/MatrixRoom'
 import { Storage } from '../../storage/Storage'
 import { P2PPairingRequest } from '../..'
+import { BEACON_VERSION } from '../../constants'
 import { CommunicationClient } from './CommunicationClient'
 
 const KNOWN_RELAY_SERVERS = [
@@ -53,6 +54,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   public async getHandshakeInfo(): Promise<P2PPairingRequest> {
     return {
       name: this.name,
+      version: BEACON_VERSION,
       publicKey: await this.getPublicKey(),
       relayServer: await this.getRelayServer()
     }
