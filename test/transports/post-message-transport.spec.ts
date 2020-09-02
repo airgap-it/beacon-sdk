@@ -84,10 +84,6 @@ describe(`PostMessageTransport`, () => {
 
     sinon.stub(PeerManager.prototype, 'getPeers').resolves([pairingResponse, pairingResponse])
 
-    sinon
-      .stub(PostMessageClient.prototype, 'listenForChannelOpening')
-      .callsArgWithAsync(0, pairingResponse)
-
     const listenStub = sinon.stub(transport, <any>'listen').resolves()
 
     expect(transport.connectionStatus).to.equal(TransportStatus.NOT_CONNECTED)
