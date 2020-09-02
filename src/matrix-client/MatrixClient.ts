@@ -1,3 +1,4 @@
+import { Storage } from '../storage/Storage'
 import { MatrixClientStore } from './MatrixClientStore'
 import { MatrixHttpClient } from './MatrixHttpClient'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
@@ -7,7 +8,6 @@ import { MatrixEventService } from './services/MatrixEventService'
 import { MatrixSyncResponse } from './models/api/MatrixSync'
 import { MatrixClientEventEmitter } from './MatrixClientEventEmitter'
 import { MatrixClientEventType, MatrixClientEvent } from './models/MatrixClientEvent'
-import { Storage } from '../storage/Storage'
 
 interface MatrixClientOptions {
   baseUrl: string
@@ -229,11 +229,13 @@ export class MatrixClient {
     name: string,
     action: (accessToken: string) => Promise<T>
   ): Promise<T> {
-    if (!this.store.get('accessToken')) {
+    const storedToken: string | undefined = this.store.get('accessToken')
+
+    if (!storedToken) {
       return Promise.reject(`${name} requires authorization but no access token has been provided.`)
     }
 
-    return action(this.store.get('accessToken')!)
+    return action(storedToken)
   }
 
   private async createTxnId(): Promise<string> {
