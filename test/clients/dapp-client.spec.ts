@@ -104,4 +104,92 @@ describe(`DAppClient`, () => {
       resolve()
     })
   })
+
+  it.skip(`should get active account`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should set active account`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should get app metadata`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should connect`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should remove an account and unset active account`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should remove an account and not unset active account`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should remove peer and all its accounts`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should remove all peers and all their accounts`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should subscribe to an event`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should check permissions`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should prepare a permission request`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should prepare a sign payload request`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should prepare an operation request`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should prepare a broadcast request`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should send an internal error`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should remove all accounts for peers`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should handle request errors`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should send notifications on success`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should create a request`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should store an open request`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should store an open request and handle a response`, async () => {
+    expect(true).to.be.false
+  })
+
+  it.skip(`should not handle a response if the id is unknown`, async () => {
+    expect(true).to.be.false
+  })
 })
