@@ -6,7 +6,7 @@ import { MatrixRoomInviteResponse } from '../models/api/MatrixRoomInvite'
 import { MatrixRoomJoinResponse } from '../models/api/MatrixRoomJoin'
 
 /**
- * A serive to help with matrix room management
+ * A service to help with matrix room management
  */
 export class MatrixRoomService {
   constructor(private readonly httpClient: MatrixHttpClient) {}

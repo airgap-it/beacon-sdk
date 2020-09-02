@@ -72,7 +72,7 @@ export class MatrixRoom {
   }
 
   /**
-   * Create a room a join
+   * Create a room from a join
    *
    * @param id
    * @param joined

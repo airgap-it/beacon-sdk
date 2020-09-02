@@ -24,6 +24,9 @@ export interface MatrixSyncOptions {
   pollingTimeout?: number
 }
 
+/**
+ * A service to help with matrix event management
+ */
 export class MatrixEventService {
   private readonly cachedPromises: Map<CacheKeys, Promise<any>> = new Map()
 
@@ -49,7 +52,7 @@ export class MatrixEventService {
   }
 
   /**
-   * Send a message a room
+   * Send a message to a room
    *
    * @param accessToken
    * @param room
@@ -110,7 +113,7 @@ export class MatrixEventService {
   }
 
   /**
-   * Check the cache when syncing to not re-sync everything but rather only the new data since the last sync
+   * Check the cache when interacting with the Matrix node, if there is an already ongoing call for the specified key, return its promise instead of duplicating the call.
    *
    * @param key
    * @param promiseProvider
