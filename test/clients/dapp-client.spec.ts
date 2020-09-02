@@ -55,6 +55,7 @@ describe(`DAppClient`, () => {
      * Remove jsdom again because it's only needed in this test
      */
     this.jsdom()
+    sinon.restore()
   })
 
   beforeEach(() => {
