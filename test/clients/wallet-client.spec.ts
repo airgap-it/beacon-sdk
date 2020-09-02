@@ -55,7 +55,7 @@ const initClientWithMock = async (client: WalletClient) => {
   availableTransports.extension = extensionRef
 }
 
-describe.only(`WalletClient`, () => {
+describe(`WalletClient`, () => {
   before(function () {
     /**
      * This is used to mock the window object
@@ -70,6 +70,7 @@ describe.only(`WalletClient`, () => {
      * Remove jsdom again because it's only needed in this test
      */
     this.jsdom()
+    sinon.restore()
   })
 
   beforeEach(() => {
