@@ -60,16 +60,17 @@ const logger = new Logger('DAppClient')
  */
 export class DAppClient extends Client {
   /**
+   * The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet
+   */
+  public readonly iconUrl?: string
+
+  /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
    */
   private readonly openRequests = new Map<
     string,
     ExposedPromise<{ message: BeaconMessage; connectionInfo: ConnectionContext }, ErrorResponse>
   >()
-  /**
-   * The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet
-   */
-  private readonly iconUrl?: string
 
   /**
    * The currently active account. For all requests that are associated to a specific request (operation request, signing request),
