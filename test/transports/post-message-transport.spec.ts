@@ -3,10 +3,10 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import * as sinon from 'sinon'
 
-import { LocalStorage, PostMessageTransport, TransportStatus } from '../../src'
+import { BEACON_VERSION, LocalStorage, PostMessageTransport, TransportStatus } from '../../src'
 import { PeerManager } from '../../src/managers/PeerManager'
 import { myWindow, clearMockWindowState } from '../../src/MockWindow'
-import { PostMessageClient } from '../../src/transports/PostMessageClient'
+import { PostMessageClient } from '../../src/transports/clients/PostMessageClient'
 import { PostMessagePairingResponse } from '../../src/types/PostMessagePairingResponse'
 import { getKeypairFromSeed } from '../../src/utils/crypto'
 
@@ -16,6 +16,7 @@ const expect = chai.expect
 
 const pairingResponse: PostMessagePairingResponse = {
   name: 'test-wallet',
+  version: BEACON_VERSION,
   publicKey: 'asdf'
 }
 

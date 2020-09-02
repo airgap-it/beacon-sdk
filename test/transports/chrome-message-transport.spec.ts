@@ -7,10 +7,11 @@ import {
   LocalStorage,
   ChromeMessageTransport,
   TransportStatus,
-  ExtensionMessageTarget
+  ExtensionMessageTarget,
+  BEACON_VERSION
 } from '../../src'
 import { PeerManager } from '../../src/managers/PeerManager'
-import { ChromeMessageClient } from '../../src/transports/ChromeMessageClient'
+import { ChromeMessageClient } from '../../src/transports/clients/ChromeMessageClient'
 import { PostMessagePairingResponse } from '../../src/types/PostMessagePairingResponse'
 import { getKeypairFromSeed } from '../../src/utils/crypto'
 
@@ -20,6 +21,7 @@ const expect = chai.expect
 
 const pairingResponse: PostMessagePairingResponse = {
   name: 'test-wallet',
+  version: BEACON_VERSION,
   publicKey: 'asdf'
 }
 

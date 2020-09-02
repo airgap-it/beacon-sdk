@@ -4,6 +4,7 @@ import 'mocha'
 import * as sinon from 'sinon'
 
 import {
+  BEACON_VERSION,
   LocalStorage,
   P2PCommunicationClient,
   P2PPairingRequest,
@@ -20,6 +21,7 @@ const expect = chai.expect
 
 const pairingResponse: P2PPairingRequest = {
   name: 'test-wallet',
+  version: BEACON_VERSION,
   publicKey: 'asdf',
   relayServer: 'myserver.com'
 }
