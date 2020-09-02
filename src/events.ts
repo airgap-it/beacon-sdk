@@ -23,6 +23,9 @@ import {
 
 const logger = new Logger('BeaconEvents')
 
+/**
+ * The different events that can be emitted by the beacon-sdk
+ */
 export enum BeaconEvent {
   PERMISSION_REQUEST_SENT = 'PERMISSION_REQUEST_SENT',
   PERMISSION_REQUEST_SUCCESS = 'PERMISSION_REQUEST_SUCCESS',
@@ -53,6 +56,9 @@ export enum BeaconEvent {
   UNKNOWN = 'UNKNOWN'
 }
 
+/**
+ * The type of the payload of the different BeaconEvents
+ */
 export interface BeaconEventType {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
   [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: {
@@ -93,10 +99,16 @@ export interface BeaconEventType {
   [BeaconEvent.UNKNOWN]: undefined
 }
 
+/**
+ * Show a "Request sent" toast
+ */
 const showSentToast = async (): Promise<void> => {
   openToast({ body: 'Request sent', timer: 3000 }).catch((toastError) => console.error(toastError))
 }
 
+/**
+ * Show a "No Permission" alert
+ */
 const showNoPermissionAlert = async (): Promise<void> => {
   await openAlert({
     title: 'No Permission',
@@ -104,6 +116,11 @@ const showNoPermissionAlert = async (): Promise<void> => {
   })
 }
 
+/**
+ * Show an error alert
+ *
+ * @param beaconError The beacon error
+ */
 const showErrorAlert = async (beaconError: ErrorResponse): Promise<void> => {
   const error = beaconError.errorType
     ? BeaconError.getError(beaconError.errorType)
@@ -115,6 +132,9 @@ const showErrorAlert = async (beaconError: ErrorResponse): Promise<void> => {
   })
 }
 
+/**
+ * Show a rate limit reached toast
+ */
 const showRateLimitReached = async (): Promise<void> => {
   openToast({
     body: 'Rate limit reached. Please slow down',
@@ -122,6 +142,9 @@ const showRateLimitReached = async (): Promise<void> => {
   }).catch((toastError) => console.error(toastError))
 }
 
+/**
+ * Show a "connection successful" alert for 1.5 seconds
+ */
 const showBeaconConnectedAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Success',
@@ -131,6 +154,9 @@ const showBeaconConnectedAlert = async (): Promise<void> => {
   })
 }
 
+/**
+ * Show a "channel closed" alert for 1.5 seconds
+ */
 const showChannelClosedAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Channel closed',
@@ -152,6 +178,11 @@ const showInternalErrorAlert = async (
   await openAlert(alertConfig)
 }
 
+/**
+ * Show a connect alert with QR code
+ *
+ * @param data The data that is emitted by the P2P_LISTEN_FOR_CHANNEL_OPEN event
+ */
 const showQrCode = async (
   data: BeaconEventType[BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]
 ): Promise<void> => {
@@ -170,6 +201,11 @@ const showQrCode = async (
   await openAlert(alertConfig)
 }
 
+/**
+ * Show a "Permission Granted" alert
+ *
+ * @param data The data that is emitted by the PERMISSION_REQUEST_SUCCESS event
+ */
 const showPermissionSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.PERMISSION_REQUEST_SUCCESS]
 ): Promise<void> => {
@@ -196,6 +232,11 @@ const showPermissionSuccessAlert = async (
   await openAlert(alertConfig)
 }
 
+/**
+ * Show an "Operation Broadcasted" alert
+ *
+ * @param data The data that is emitted by the OPERATION_REQUEST_SUCCESS event
+ */
 const showOperationSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.OPERATION_REQUEST_SUCCESS]
 ): Promise<void> => {
@@ -217,6 +258,11 @@ const showOperationSuccessAlert = async (
   await openAlert(alertConfig)
 }
 
+/**
+ * Show a "Transaction Signed" alert
+ *
+ * @param data The data that is emitted by the SIGN_REQUEST_SUCCESS event
+ */
 const showSignSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.SIGN_REQUEST_SUCCESS]
 ): Promise<void> => {
@@ -232,6 +278,11 @@ const showSignSuccessAlert = async (
   await openAlert(alertConfig)
 }
 
+/**
+ * Show a "Broadcasted" alert
+ *
+ * @param data The data that is emitted by the BROADCAST_REQUEST_SUCCESS event
+ */
 const showBroadcastSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.BROADCAST_REQUEST_SUCCESS]
 ): Promise<void> => {
@@ -261,6 +312,9 @@ const emptyHandler = (eventType: BeaconEvent): BeaconEventHandlerFunction => asy
 
 export type BeaconEventHandlerFunction<T = unknown> = (data: T) => void | Promise<void>
 
+/**
+ * The default event handlers
+ */
 export const defaultEventCallbacks: {
   [key in BeaconEvent]: BeaconEventHandlerFunction<BeaconEventType[key]>
 } = {
@@ -287,6 +341,9 @@ export const defaultEventCallbacks: {
   [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)
 }
 
+/**
+ * Handles beacon events
+ */
 export class BeaconEventHandler {
   private readonly callbackMap: {
     [key in BeaconEvent]: BeaconEventHandlerFunction<any>[] // TODO: Fix type
@@ -326,6 +383,12 @@ export class BeaconEventHandler {
     })
   }
 
+  /**
+   * A method to subscribe to a specific beacon event and register a callback
+   *
+   * @param event The event being emitted
+   * @param eventCallback The callback that will be invoked
+   */
   public async on<K extends BeaconEvent>(
     event: K,
     eventCallback: BeaconEventHandlerFunction<BeaconEventType[K]>
@@ -335,6 +398,12 @@ export class BeaconEventHandler {
     this.callbackMap[event] = listeners
   }
 
+  /**
+   * Emit a beacon event
+   *
+   * @param event The event being emitted
+   * @param data The data to be emit
+   */
   public async emit<K extends BeaconEvent>(event: K, data?: BeaconEventType[K]): Promise<void> {
     const listeners = this.callbackMap[event]
     if (listeners && listeners.length > 0) {
@@ -348,6 +417,11 @@ export class BeaconEventHandler {
     }
   }
 
+  /**
+   * Override beacon event default callbacks. This can be used to disable default alert/toast behaviour
+   *
+   * @param eventsToOverride An object with the events to override
+   */
   private async overrideDefaults(
     eventsToOverride: {
       [key in BeaconEvent]?: {

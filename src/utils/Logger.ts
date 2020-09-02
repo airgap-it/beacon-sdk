@@ -2,6 +2,9 @@
 
 import { DEBUG } from '../constants'
 
+/**
+ * The logger that is used internally
+ */
 export class Logger {
   private readonly name: string
   private readonly debug: boolean

@@ -1,5 +1,11 @@
 import { Network, NetworkType } from '..'
 
+/**
+ * Return a blockexplorer link for an address
+ *
+ * @param network The network that was used
+ * @param address The address to be opened
+ */
 export const getAccountBlockExplorerLinkForNetwork = async (
   network: Network,
   address: string
@@ -14,6 +20,12 @@ export const getAccountBlockExplorerLinkForNetwork = async (
   return `${url}${address}`
 }
 
+/**
+ * Return a blockexplorer link for a transaction hash
+ *
+ * @param network The network that was used
+ * @param transactionHash The hash of the transaction
+ */
 export const getTransactionBlockExplorerLinkForNetwork = async (
   network: Network,
   transactionHash: string

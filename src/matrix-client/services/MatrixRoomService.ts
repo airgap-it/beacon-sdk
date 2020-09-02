@@ -5,9 +5,18 @@ import { MatrixRoomCreateRequest, MatrixRoomCreateResponse } from '../models/api
 import { MatrixRoomInviteResponse } from '../models/api/MatrixRoomInvite'
 import { MatrixRoomJoinResponse } from '../models/api/MatrixRoomJoin'
 
+/**
+ * A service to help with matrix room management
+ */
 export class MatrixRoomService {
   constructor(private readonly httpClient: MatrixHttpClient) {}
 
+  /**
+   * Create a room
+   *
+   * @param accessToken
+   * @param config
+   */
   public async createRoom(
     accessToken: string,
     config: MatrixRoomCreateRequest = {}
@@ -15,6 +24,13 @@ export class MatrixRoomService {
     return this.httpClient.post('/createRoom', config, { accessToken })
   }
 
+  /**
+   * Invite a user to a room
+   *
+   * @param accessToken
+   * @param user
+   * @param room
+   */
   public async inviteToRoom(
     accessToken: string,
     user: string,
@@ -27,6 +43,12 @@ export class MatrixRoomService {
     return this.httpClient.post(`/rooms/${room.id}/invite`, { user_id: user }, { accessToken })
   }
 
+  /**
+   * Join a specific room
+   *
+   * @param accessToken
+   * @param room
+   */
   public async joinRoom(accessToken: string, room: MatrixRoom): Promise<MatrixRoomJoinResponse> {
     if (room.status === MatrixRoomStatus.JOINED) {
       return Promise.resolve({ room_id: room.id })

@@ -1,4 +1,4 @@
-import { P2PCommunicationClient } from './transports/P2PCommunicationClient'
+import { P2PCommunicationClient } from './transports/clients/P2PCommunicationClient'
 import { AppMetadata } from './types/beacon/AppMetadata'
 import { PermissionRequest } from './types/beacon/messages/PermissionRequest'
 import { Network } from './types/beacon/Network'
@@ -121,6 +121,7 @@ import {
 } from './types/tezos/PartialTezosOperation'
 import { AbortedBeaconError } from './errors/AbortedBeaconError'
 import { PeerInfo } from './types/PeerInfo'
+import { isExtensionInstalled } from './utils/is-extension-installed'
 
 // Tezos
 export {
@@ -269,4 +270,4 @@ export { SDK_VERSION, BEACON_VERSION }
 export { getAccountIdentifier, getAddressFromPublicKey }
 
 // Others
-export { ConnectionContext, P2PPairingRequest, PeerInfo, Serializer }
+export { ConnectionContext, P2PPairingRequest, PeerInfo, Serializer, isExtensionInstalled }

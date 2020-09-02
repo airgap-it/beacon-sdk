@@ -1,6 +1,6 @@
-import { ExtensionMessage, ExtensionMessageTarget } from '..'
-import { EncryptedExtensionMessage } from '../types/ExtensionMessage'
-import { sealCryptobox } from './../utils/crypto'
+import { ExtensionMessage, ExtensionMessageTarget } from '../..'
+import { EncryptedExtensionMessage } from '../../types/ExtensionMessage'
+import { sealCryptobox } from '../../utils/crypto'
 import { MessageBasedClient } from './MessageBasedClient'
 
 export class ChromeMessageClient extends MessageBasedClient {

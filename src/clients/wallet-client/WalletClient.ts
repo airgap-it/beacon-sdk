@@ -19,10 +19,17 @@ import { IncomingRequestInterceptor } from '../../interceptors/IncomingRequestIn
 import { OutgoingResponseInterceptor } from '../../interceptors/OutgoingResponseInterceptor'
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 
+/**
+ * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible
+ * dapps and handling/responding to requests.
+ */
 export class WalletClient extends Client {
   private readonly permissionManager: PermissionManager
   private readonly appMetadataManager: AppMetadataManager
 
+  /**
+   * This array stores pending requests, meaning requests we received and have not yet handled / sent a response.
+   */
   private pendingRequests: BeaconRequestMessage[] = []
 
   constructor(config: WalletClientOptions) {
@@ -35,6 +42,12 @@ export class WalletClient extends Client {
     return super.init(false)
   }
 
+  /**
+   * This method initiates a connection to the P2P network and registers a callback that will be called
+   * whenever a message is received.
+   *
+   * @param newMessageCallback The callback that will be invoked for every message the transport receives.
+   */
   public async connect(
     newMessageCallback: (
       message: BeaconRequestOutputMessage,
@@ -59,6 +72,11 @@ export class WalletClient extends Client {
     return super._connect()
   }
 
+  /**
+   * This method sends a response for a specific request back to the DApp
+   *
+   * @param message The BeaconResponseMessage that will be sent back to the DApp
+   */
   public async respond(message: BeaconResponseInputMessage): Promise<void> {
     console.log('responding to message', message)
     const request = this.pendingRequests.find((pendingRequest) => pendingRequest.id === message.id)
@@ -149,6 +167,11 @@ export class WalletClient extends Client {
     await this.permissionManager.removePermissions(permissionIdentifiersToRemove)
   }
 
+  /**
+   * An internal method to send a BeaconMessage to the DApp
+   *
+   * @param message Send a message back to the DApp
+   */
   private async respondToMessage(message: BeaconMessage): Promise<void> {
     const serializedMessage: string = await new Serializer().serialize(message)
     await (await this.transport).send(serializedMessage)

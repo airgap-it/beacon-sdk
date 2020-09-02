@@ -16,6 +16,11 @@ export enum MatrixRoomStatus {
 }
 
 export class MatrixRoom {
+  /**
+   * Reconstruct rooms from a sync response
+   *
+   * @param roomSync
+   */
   public static fromSync(roomSync: MatrixSyncRooms): MatrixRoom[] {
     function create<T>(
       rooms: { [key: string]: T },
@@ -31,6 +36,12 @@ export class MatrixRoom {
     ]
   }
 
+  /**
+   * Reconstruct a room from an ID or object
+   *
+   * @param roomOrId
+   * @param status
+   */
   public static from(roomOrId: string | MatrixRoom, status?: MatrixRoomStatus): MatrixRoom {
     return roomOrId instanceof MatrixRoom
       ? status
@@ -39,6 +50,12 @@ export class MatrixRoom {
       : new MatrixRoom(roomOrId, status || MatrixRoomStatus.UNKNOWN)
   }
 
+  /**
+   * Merge new and old state and remove duplicates
+   *
+   * @param newState
+   * @param previousState
+   */
   public static merge(newState: MatrixRoom, previousState?: MatrixRoom): MatrixRoom {
     if (!previousState || previousState.id !== newState.id) {
       return MatrixRoom.from(newState)
@@ -54,6 +71,12 @@ export class MatrixRoom {
     )
   }
 
+  /**
+   * Create a room from a join
+   *
+   * @param id
+   * @param joined
+   */
   private static fromJoined(id: string, joined: MatrixSyncJoinedRoom): MatrixRoom {
     const events = [...joined.state.events, ...joined.timeline.events]
     const members = MatrixRoom.getMembersFromEvents(events)
@@ -62,12 +85,24 @@ export class MatrixRoom {
     return new MatrixRoom(id, MatrixRoomStatus.JOINED, members, messages)
   }
 
+  /**
+   * Create a room from an invite
+   *
+   * @param id
+   * @param invited
+   */
   private static fromInvited(id: string, invited: MatrixSyncInvitedRoom): MatrixRoom {
     const members = MatrixRoom.getMembersFromEvents(invited.invite_state.events)
 
     return new MatrixRoom(id, MatrixRoomStatus.INVITED, members)
   }
 
+  /**
+   * Create a room from a leave
+   *
+   * @param id
+   * @param left
+   */
   private static fromLeft(id: string, left: MatrixSyncLeftRoom): MatrixRoom {
     const events = [...left.state.events, ...left.timeline.events]
     const members = MatrixRoom.getMembersFromEvents(events)
@@ -76,6 +111,11 @@ export class MatrixRoom {
     return new MatrixRoom(id, MatrixRoomStatus.LEFT, members, messages)
   }
 
+  /**
+   * Extract members from an event
+   *
+   * @param events
+   */
   private static getMembersFromEvents(events: MatrixStateEvent[]): string[] {
     return MatrixRoom.getUniqueEvents(
       events.filter((event) => isCreateEvent(event) || isJoinEvent(event))
@@ -84,12 +124,22 @@ export class MatrixRoom {
       .filter((member, index, array) => array.indexOf(member) === index)
   }
 
+  /**
+   * Extract messages from an event
+   *
+   * @param events
+   */
   private static getMessagesFromEvents(events: MatrixStateEvent[]): MatrixMessage<any>[] {
     return MatrixRoom.getUniqueEvents(events.filter(isMessageEvent))
       .map((event) => MatrixMessage.from(event))
-      .filter((message) => !!message) as MatrixMessage<any>[]
+      .filter(Boolean) as MatrixMessage<any>[]
   }
 
+  /**
+   * Get unique events and remove duplicates
+   *
+   * @param events
+   */
   private static getUniqueEvents(events: MatrixStateEvent[]): MatrixStateEvent[] {
     const eventIds: Record<string, number> = {}
     const uniqueEvents: MatrixStateEvent[] = []

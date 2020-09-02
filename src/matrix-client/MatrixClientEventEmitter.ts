@@ -17,6 +17,13 @@ export class MatrixClientEventEmitter extends EventEmitter {
     [MatrixClientEventType.MESSAGE, () => [this.isMessage, this.emitMessage.bind(this)]]
   ] as [string, <T, R extends T>() => [Predicate<T, R>, (event: string, object: R) => void]][])
 
+  /**
+   * This method is called every time the state is changed
+   *
+   * @param _oldState
+   * @param _newState
+   * @param stateChange
+   */
   public onStateChanged(
     _oldState: MatrixStateStore,
     _newState: MatrixStateStore,
@@ -27,6 +34,12 @@ export class MatrixClientEventEmitter extends EventEmitter {
     }
   }
 
+  /**
+   * Emit the message if we have listeners registered for that type
+   *
+   * @param eventType
+   * @param object
+   */
   private emitIfEvent<T>(eventType: string, object: T): void {
     const provider = this.eventEmitProviders.get(eventType)
     if (provider) {
@@ -37,6 +50,12 @@ export class MatrixClientEventEmitter extends EventEmitter {
     }
   }
 
+  /**
+   * Emit a client event
+   *
+   * @param eventType
+   * @param content
+   */
   private emitClientEvent<T extends MatrixClientEventType>(
     eventType: T,
     content: MatrixClientEventContent<T>
@@ -47,6 +66,11 @@ export class MatrixClientEventEmitter extends EventEmitter {
     })
   }
 
+  /**
+   * Check if event is an invite
+   *
+   * @param stateChange
+   */
   private isInvite(
     stateChange: Partial<MatrixStateUpdate>
   ): stateChange is AtLeast<MatrixStateUpdate, 'rooms'> {
@@ -55,6 +79,12 @@ export class MatrixClientEventEmitter extends EventEmitter {
       : false
   }
 
+  /**
+   * Emit an invite
+   *
+   * @param eventType
+   * @param stateChange
+   */
   private emitInvite(
     eventType: MatrixClientEventType.INVITE,
     stateChange: AtLeast<MatrixStateUpdate, 'rooms'>
@@ -69,12 +99,23 @@ export class MatrixClientEventEmitter extends EventEmitter {
       })
   }
 
+  /**
+   * Check if event is a message
+   *
+   * @param stateChange
+   */
   private isMessage(
     stateChange: Partial<MatrixStateUpdate>
   ): stateChange is AtLeast<MatrixStateUpdate, 'rooms'> {
     return stateChange.rooms ? stateChange.rooms.some((room) => room.messages.length > 0) : false
   }
 
+  /**
+   * Emit an event to all rooms
+   *
+   * @param eventType
+   * @param stateChange
+   */
   private emitMessage(
     eventType: MatrixClientEventType.MESSAGE,
     stateChange: AtLeast<MatrixStateUpdate, 'rooms'>
