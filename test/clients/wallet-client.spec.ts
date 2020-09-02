@@ -1,8 +1,25 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
-import { LocalStorage } from '../../src'
-// import sinon from 'sinon'
+import {
+  PermissionRequest,
+  BeaconMessageType,
+  ConnectionContext,
+  LocalStorage,
+  NetworkType,
+  P2PTransport,
+  BEACON_VERSION,
+  Origin,
+  PermissionResponseInput,
+  AppMetadataManager,
+  P2PPairingRequest,
+  availableTransports,
+  PermissionManager,
+  PermissionInfo,
+  PermissionScope,
+  Serializer
+} from '../../src'
+import * as sinon from 'sinon'
 
 import { WalletClient } from '../../src/clients/wallet-client/WalletClient'
 
@@ -10,7 +27,55 @@ import { WalletClient } from '../../src/clients/wallet-client/WalletClient'
 chai.use(chaiAsPromised)
 const expect = chai.expect
 
-describe(`WalletClient`, () => {
+const peer1: P2PPairingRequest = {
+  name: 'test',
+  version: BEACON_VERSION,
+  publicKey: 'my-public-key',
+  relayServer: 'test-relay.walletbeacon.io'
+}
+
+const peer2: P2PPairingRequest = {
+  name: 'test',
+  version: BEACON_VERSION,
+  publicKey: 'my-public-key-2',
+  relayServer: 'test-relay.walletbeacon.io'
+}
+
+/**
+ * This mocks the response of PostMessageTransport.isAvailable. Usually it would wait 200ms making the tests slower
+ *
+ * @param client WalletClient
+ */
+const initClientWithMock = async (client: WalletClient) => {
+  const extensionRef = availableTransports.extension
+  availableTransports.extension = Promise.resolve(false)
+
+  await client.init()
+
+  availableTransports.extension = extensionRef
+}
+
+describe.only(`WalletClient`, () => {
+  before(function () {
+    /**
+     * This is used to mock the window object
+     *
+     * We cannot do it globally because it fails in the storage tests because of security policies
+     */
+    this.jsdom = require('jsdom-global')()
+  })
+
+  after(function () {
+    /**
+     * Remove jsdom again because it's only needed in this test
+     */
+    this.jsdom()
+  })
+
+  beforeEach(() => {
+    sinon.restore()
+  })
+
   it(`should throw an error if initialized with an empty object`, async () => {
     try {
       const walletClient = new WalletClient({} as any)
@@ -30,38 +95,209 @@ describe(`WalletClient`, () => {
     expect(typeof (await walletClient.beaconId)).to.equal('string')
   })
 
-  it(`should connect and be ready`, async () => {
-    // return new Promise(async (resolve, reject) => {
-    //   const timeout = global.setTimeout(() => {
-    //     reject(new Error('TIMEOUT: Not connected'))
-    //   }, 1000)
-    //   const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
-    //   await dAppClient.init(true, new MockTransport('TestTransport'))
-    //   await dAppClient.connect()
-    //   await dAppClient.ready
-    //   clearTimeout(timeout)
-    //   expect(await dAppClient.isConnected).to.be.true
-    //   resolve()
-    // })
+  it(`should connect and register the callback and receive a callback`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+
+    const connectStub = sinon.stub(P2PTransport.prototype, 'connect').resolves()
+    const addListenerStub = sinon.stub(P2PTransport.prototype, 'addListener').resolves()
+
+    const callback = sinon.fake()
+
+    await walletClient.init()
+    const connected = await walletClient.connect(callback)
+
+    expect(typeof (<any>walletClient).handleResponse).to.equal('function')
+    expect(connectStub.callCount).to.equal(1)
+    expect(addListenerStub.callCount).to.equal(1)
+    expect(connected).to.equal(true)
+    expect(callback.callCount).to.equal(0)
+
+    const message: PermissionRequest = {
+      id: 'some-id',
+      version: BEACON_VERSION,
+      senderId: 'sender-id',
+      type: BeaconMessageType.PermissionRequest,
+      appMetadata: { name: 'test', senderId: 'sender-id-2' },
+      network: { type: NetworkType.MAINNET },
+      scopes: []
+    }
+    const contextInfo: ConnectionContext = {
+      origin: Origin.P2P,
+      id: 'some-id'
+    }
+
+    await (<any>walletClient).handleResponse(message, contextInfo)
+
+    expect(callback.callCount).to.equal(1)
+    expect(callback.firstCall.args[0]).to.equal(message)
+    expect(callback.firstCall.args[1]).to.equal(contextInfo)
   })
 
-  it.skip(`should respond to a message`, async () => {
-    expect(true).to.be.false
+  it(`should not respond to a message if matching request is not found`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+
+    const id = 'some-id'
+    const message: PermissionResponseInput = {
+      id,
+      type: BeaconMessageType.PermissionResponse,
+      network: { type: NetworkType.MAINNET },
+      scopes: [],
+      publicKey: 'public-key'
+    }
+
+    try {
+      await walletClient.respond(message)
+      throw new Error('Should not work!')
+    } catch (error) {
+      expect(error.message).to.equal('No matching request found!')
+    }
   })
 
-  it.skip(`should remove a peer and all its permissions`, async () => {
-    expect(true).to.be.false
+  it(`should respond to a message if matching request is found`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+
+    const id = 'some-id'
+    const message: PermissionResponseInput = {
+      id,
+      type: BeaconMessageType.PermissionResponse,
+      network: { type: NetworkType.MAINNET },
+      scopes: [],
+      publicKey: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3'
+    }
+
+    ;(<any>walletClient).pendingRequests = [{ id }]
+    const respondStub = sinon.stub(walletClient, <any>'respondToMessage').resolves()
+    const appMetadataManagerStub = sinon
+      .stub(AppMetadataManager.prototype, 'getAppMetadata')
+      .resolves({ name: 'my-test', senderId: 'my-sender-id' })
+
+    await walletClient.respond(message)
+
+    expect(appMetadataManagerStub.callCount).to.equal(1)
+    expect(respondStub.callCount).to.equal(1)
+    expect(respondStub.firstCall.args[0]).to.include(message)
   })
 
-  it.skip(`should remove all peers and all their permissions`, async () => {
-    expect(true).to.be.false
+  it(`should remove a peer and all its permissions`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+    const transportRemovePeerStub = sinon.stub(P2PTransport.prototype, 'removePeer').resolves()
+    const removePermissionsForPeersStub = sinon
+      .stub(walletClient, <any>'removePermissionsForPeers')
+      .resolves()
+
+    await initClientWithMock(walletClient)
+    await walletClient.removePeer(peer1)
+
+    expect(transportRemovePeerStub.callCount).to.equal(1)
+    expect(removePermissionsForPeersStub.callCount).to.equal(1)
   })
 
-  it.skip(`should remove all permissions for peers`, async () => {
-    expect(true).to.be.false
+  it(`should remove all peers and all their permissions`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+    const transportGetPeerStub = sinon.stub(P2PTransport.prototype, 'getPeers').resolves([])
+    const transportRemoveAllPeersStub = sinon
+      .stub(P2PTransport.prototype, 'removeAllPeers')
+      .resolves()
+    const removePermissionsForPeersStub = sinon
+      .stub(walletClient, <any>'removePermissionsForPeers')
+      .resolves()
+
+    await initClientWithMock(walletClient)
+    await walletClient.removeAllPeers()
+
+    expect(transportGetPeerStub.callCount, 'transportGetPeerStub').to.equal(1)
+    expect(transportRemoveAllPeersStub.callCount, 'transportRemoveAllPeersStub').to.equal(1)
+    expect(removePermissionsForPeersStub.callCount, 'removePermissionsForPeersStub').to.equal(1)
   })
 
-  it.skip(`should respond to a message`, async () => {
-    expect(true).to.be.false
+  it(`should remove all permissions for peers (empty storage)`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+
+    const permissionManagerGetPermissionsSpy = sinon.spy(
+      PermissionManager.prototype,
+      'getPermissions'
+    )
+    const permissionManagerRemovePermissionsSpy = sinon.spy(
+      PermissionManager.prototype,
+      'removePermissions'
+    )
+
+    await initClientWithMock(walletClient)
+    await (<any>walletClient).removePermissionsForPeers([peer1, peer2])
+
+    expect(
+      permissionManagerGetPermissionsSpy.callCount,
+      'permissionManagerGetPermissionsSpy'
+    ).to.equal(1)
+    expect(
+      permissionManagerRemovePermissionsSpy.callCount,
+      'permissionManagerRemovePermissionsSpy'
+    ).to.equal(1)
+    expect(permissionManagerRemovePermissionsSpy.firstCall.args[0].length).to.equal(0)
+  })
+
+  it(`should remove all permissions for peers (two accounts for 1 peer)`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+
+    const permission1: PermissionInfo = {
+      accountIdentifier: 'a1',
+      senderId: 'id1',
+      appMetadata: { senderId: peer1.publicKey, name: 'name1' },
+      website: 'website1',
+      address: 'tz1',
+      publicKey: 'publicKey1',
+      network: { type: NetworkType.MAINNET },
+      scopes: [PermissionScope.SIGN],
+      connectedAt: new Date().getTime()
+    }
+    const permission2: PermissionInfo = {
+      accountIdentifier: 'a2',
+      senderId: 'id2',
+      appMetadata: { senderId: peer1.publicKey, name: 'name2' },
+      website: 'website2',
+      address: 'tz1',
+      publicKey: 'publicKey2',
+      network: { type: NetworkType.MAINNET },
+      scopes: [PermissionScope.SIGN],
+      connectedAt: new Date().getTime()
+    }
+
+    const permissionManagerGetPermissionsStub = sinon
+      .stub(PermissionManager.prototype, 'getPermissions')
+      .resolves([permission1, permission2])
+    const permissionManagerRemovePermissionsStub = sinon.stub(
+      PermissionManager.prototype,
+      'removePermissions'
+    )
+
+    await initClientWithMock(walletClient)
+    await (<any>walletClient).removePermissionsForPeers([peer1, peer2])
+
+    expect(
+      permissionManagerGetPermissionsStub.callCount,
+      'permissionManagerGetPermissionsStub'
+    ).to.equal(1)
+    expect(
+      permissionManagerRemovePermissionsStub.callCount,
+      'permissionManagerRemovePermissionsStub'
+    ).to.equal(1)
+    expect(permissionManagerRemovePermissionsStub.firstCall.args[0].length).to.equal(2)
+    expect(permissionManagerRemovePermissionsStub.firstCall.args[0][0]).to.equal('a1')
+    expect(permissionManagerRemovePermissionsStub.firstCall.args[0][1]).to.equal('a2')
+  })
+
+  it(`should respond to a message`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+
+    const serializerStub = sinon.stub(Serializer.prototype, 'serialize').resolves()
+    // const sendStub = sinon.stub(P2PTransport.prototype, 'send').resolves()
+
+    await initClientWithMock(walletClient)
+    ;(<any>walletClient).respondToMessage({ test: 'message' })
+
+    expect(serializerStub.callCount).to.equal(1)
+    expect(serializerStub.firstCall.args[0]).to.deep.equal({ test: 'message' })
+    // expect(sendStub.callCount).to.equal(1)
+    // expect(sendStub.firstCall.args[0]).to.equal('aRNACa2rFgw2dfAugetVZpzSbMdahH')
   })
 })

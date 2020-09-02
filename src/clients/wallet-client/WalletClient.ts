@@ -78,7 +78,6 @@ export class WalletClient extends Client {
    * @param message The BeaconResponseMessage that will be sent back to the DApp
    */
   public async respond(message: BeaconResponseInputMessage): Promise<void> {
-    console.log('responding to message', message)
     const request = this.pendingRequests.find((pendingRequest) => pendingRequest.id === message.id)
     if (!request) {
       throw new Error('No matching request found!')
@@ -132,11 +131,11 @@ export class WalletClient extends Client {
     return this.permissionManager.removeAllPermissions()
   }
 
-  public async removePeer(id: P2PPairingRequest): Promise<void> {
+  public async removePeer(peer: P2PPairingRequest): Promise<void> {
     if ((await this.transport).type === TransportType.P2P) {
-      const removePeerResult = ((await this.transport) as P2PTransport).removePeer(id)
+      const removePeerResult = ((await this.transport) as P2PTransport).removePeer(peer)
 
-      await this.removePermissionsForPeers([id])
+      await this.removePermissionsForPeers([peer])
 
       return removePeerResult
     }

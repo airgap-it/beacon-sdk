@@ -167,12 +167,14 @@ export abstract class Client extends BeaconClient {
         const setBeaconTransportTimeout = window.setTimeout(setBeaconTransport, 200)
 
         return availableTransports.extension.then(async (postMessageAvailable) => {
-          if (postMessageAvailable) {
-            if (setBeaconTransportTimeout) {
-              window.clearTimeout(setBeaconTransportTimeout)
-            }
+          if (setBeaconTransportTimeout) {
+            window.clearTimeout(setBeaconTransportTimeout)
+          }
 
+          if (postMessageAvailable) {
             return setTransport(new PostMessageTransport(this.name, keyPair, this.storage, isDapp))
+          } else {
+            return setBeaconTransport()
           }
         })
       })
