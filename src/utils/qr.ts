@@ -1,5 +1,11 @@
 import qrcode from 'qrcode-generator'
 
+/**
+ * Convert data to a QR code
+ *
+ * @param payload The data to be encoded as a QR code
+ * @param type How the QR code will be encoded
+ */
 export const getQrData = (payload: string, type?: 'data' | 'svg' | 'ascii'): string => {
   const typeNumber: TypeNumber = 0
   const errorCorrectionLevel: ErrorCorrectionLevel = 'L'

@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { PeerManager } from '../../src/managers/PeerManager'
 
-import { P2PPairingRequest, StorageKey } from '../../src'
+import { BEACON_VERSION, P2PPairingRequest, StorageKey } from '../../src'
 import { FileStorage, writeLocalFile } from '../test-utils/FileStorage'
 
 // use chai-as-promised plugin
@@ -12,18 +12,21 @@ const expect = chai.expect
 
 const peer1: P2PPairingRequest = {
   name: 'p1',
+  version: BEACON_VERSION,
   publicKey: 'pubkey1',
   relayServer: 'relay1'
 }
 
 const peer2: P2PPairingRequest = {
   name: 'p2',
+  version: BEACON_VERSION,
   publicKey: 'pubkey2',
   relayServer: 'relay2'
 }
 
 const peer3: P2PPairingRequest = {
   name: 'p3',
+  version: BEACON_VERSION,
   publicKey: 'pubkey3',
   relayServer: 'relay3'
 }

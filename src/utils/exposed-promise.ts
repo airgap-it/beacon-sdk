@@ -11,6 +11,9 @@ const notInitialized = (): never => {
   throw new Error('ExposedPromise not initialized yet.')
 }
 
+/**
+ * Exposed promise allow you to create a promise and then resolve it later, from the outside
+ */
 export class ExposedPromise<T = unknown, U = unknown> {
   private readonly _promise: Promise<T>
 

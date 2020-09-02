@@ -1,5 +1,11 @@
 import { BeaconMessageType, PermissionScope } from '..'
 
+/**
+ * Check if permissions are given for a specific message type
+ *
+ * @param type Beacon message type
+ * @param permissions The permission array to check
+ */
 export const checkPermissions = async (
   type: BeaconMessageType,
   permissions: PermissionScope[]

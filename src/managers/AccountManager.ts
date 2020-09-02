@@ -2,6 +2,9 @@ import { Storage, StorageKey, AccountInfo, BeaconMessage } from '..'
 import { StorageManager } from './StorageManager'
 import { PermissionValidator } from './PermissionValidator'
 
+/**
+ * The AccountManager provides CRUD functionality for account entities and persists them to the provided storage.
+ */
 export class AccountManager {
   private readonly storageManager: StorageManager<StorageKey.ACCOUNTS>
 

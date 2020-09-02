@@ -15,16 +15,21 @@ import { Storage } from '../storage/Storage'
 import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 import { Transport } from './Transport'
-import { PostMessageClient } from './PostMessageClient'
+import { PostMessageClient } from './clients/PostMessageClient'
 
 const logger = new Logger('PostMessageTransport')
 
 export class PostMessageTransport extends Transport {
   public readonly type: TransportType = TransportType.POST_MESSAGE
 
+  /**
+   * A flag indicating whether
+   */
   private readonly isDapp: boolean = true
-  private readonly keyPair: sodium.KeyPair
 
+  /**
+   * The client handling the encryption/decryption of messages
+   */
   private readonly client: PostMessageClient
 
   // Make sure we only listen once
@@ -34,9 +39,8 @@ export class PostMessageTransport extends Transport {
 
   constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, isDapp: boolean) {
     super(name)
-    this.keyPair = keyPair
     this.isDapp = isDapp
-    this.client = new PostMessageClient(this.name, this.keyPair, false)
+    this.client = new PostMessageClient(this.name, keyPair, false)
     this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_POSTMESSAGE_PEERS)
   }
 
