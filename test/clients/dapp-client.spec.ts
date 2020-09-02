@@ -6,7 +6,7 @@ import 'mocha'
 import { DAppClient, LocalStorage, TransportType } from '../../src'
 
 import { MockTransport } from '../test-utils/MockTransport'
-import { availableTransports } from '../../src/utils/is-extension-installed'
+import { availableTransports } from '../../src/utils/available-transports'
 // import { myWindow } from '../../src/MockWindow'
 
 // use chai-as-promised plugin
