@@ -12,7 +12,7 @@ import {
   P2PPairingRequest
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
-import { availableTransports } from '../../utils/is-extension-installed'
+import { availableTransports } from '../../utils/available-transports'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
