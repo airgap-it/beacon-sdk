@@ -14,6 +14,6 @@ export class MockLocalStorage {
     this.storage.delete(key)
   }
   clear() {
-    this.constructor()
+    this.storage.clear()
   }
 }
