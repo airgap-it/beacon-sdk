@@ -5,6 +5,7 @@ import * as sinon from 'sinon'
 
 import {
   AccountInfo,
+  BeaconEvent,
   BeaconMessageType,
   BEACON_VERSION,
   ConnectionContext,
@@ -254,8 +255,17 @@ describe(`DAppClient`, () => {
     expect(true).to.be.false
   })
 
-  it.skip(`should subscribe to an event`, async () => {
-    expect(true).to.be.false
+  it.only(`should subscribe to an event`, async () => {
+    const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+
+    const eventsStub = sinon.stub((<any>dAppClient).events, 'on').resolves()
+
+    const cb = () => {}
+    dAppClient.subscribeToEvent(BeaconEvent.ACTIVE_ACCOUNT_SET, cb)
+
+    expect(eventsStub.callCount).to.equal(1)
+    expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET)
+    expect(eventsStub.firstCall.args[1]).to.equal(cb)
   })
 
   it.skip(`should check permissions`, async () => {
