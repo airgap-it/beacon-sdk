@@ -80,7 +80,6 @@ describe(`PostMessageTransport`, () => {
       }, 10)
 
       const isAvailable = await PostMessageTransport.isAvailable()
-      console.log('fdsa', isAvailable)
       expect(isAvailable).to.be.true
       clearTimeout(timeout)
       resolve()
