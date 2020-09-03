@@ -341,7 +341,7 @@ export class DAppClient extends Client {
       scopes,
       publicKey,
       threshold
-    }
+    } // TODO: Should we return the account info here?
 
     await this.notifySuccess(request, {
       account: accountInfo,

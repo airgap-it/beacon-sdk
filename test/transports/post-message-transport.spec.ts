@@ -23,6 +23,23 @@ const pairingResponse: PostMessagePairingResponse = {
 describe(`PostMessageTransport`, () => {
   let transport: PostMessageTransport
 
+  before(function () {
+    /**
+     * This is used to mock the window object
+     *
+     * We cannot do it globally because it fails in the storage tests because of security policies
+     */
+    this.jsdom = require('jsdom-global')()
+  })
+
+  after(function () {
+    /**
+     * Remove jsdom again because it's only needed in this test
+     */
+    this.jsdom()
+    sinon.restore()
+  })
+
   beforeEach(async () => {
     sinon.restore()
 
@@ -36,14 +53,19 @@ describe(`PostMessageTransport`, () => {
 
   it(`should not be supported`, async () => {
     return new Promise(async (resolve, reject) => {
+      let hasCompleted = false // We need this flag, otherwise once this test stops, the next one starts and then resolves our "isAvailable" promise.
       const timeout = setTimeout(() => {
+        hasCompleted = true
         resolve()
-      }, 500)
+      }, 300)
 
-      const isAvailable = await PostMessageTransport.isAvailable()
-      expect(isAvailable).to.be.undefined
-      clearTimeout(timeout)
-      reject()
+      await PostMessageTransport.isAvailable()
+      if (!hasCompleted) {
+        // We should never come here
+        expect(true).to.be.false
+        clearTimeout(timeout)
+        reject()
+      }
     })
   })
 
@@ -58,6 +80,7 @@ describe(`PostMessageTransport`, () => {
       }, 10)
 
       const isAvailable = await PostMessageTransport.isAvailable()
+      console.log('fdsa', isAvailable)
       expect(isAvailable).to.be.true
       clearTimeout(timeout)
       resolve()
