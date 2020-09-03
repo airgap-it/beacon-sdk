@@ -121,6 +121,7 @@ export class DAppClient extends Client {
         if (message.type === BeaconMessageType.Disconnect) {
           const transport = await this.transport
           if (transport.type === TransportType.P2P) {
+            // TODO: Also handle postmessage transport
             await (transport as P2PTransport).removePeer({
               name: '',
               publicKey: message.senderId,
