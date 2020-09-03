@@ -255,7 +255,7 @@ describe(`DAppClient`, () => {
     expect(true).to.be.false
   })
 
-  it.only(`should subscribe to an event`, async () => {
+  it(`should subscribe to an event`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
     const eventsStub = sinon.stub((<any>dAppClient).events, 'on').resolves()
@@ -268,8 +268,78 @@ describe(`DAppClient`, () => {
     expect(eventsStub.firstCall.args[1]).to.equal(cb)
   })
 
-  it.skip(`should check permissions`, async () => {
-    expect(true).to.be.false
+  it(`should throw an error when checking for permissions and no active account is set`, async () => {
+    const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+
+    const eventsStub = sinon.stub((<any>dAppClient).events, 'emit').resolves()
+
+    try {
+      await dAppClient.checkPermissions(BeaconMessageType.OperationRequest)
+      throw new Error('Should have failed')
+    } catch (e) {
+      expect(eventsStub.callCount).to.equal(2)
+      expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET) // This is called in the constructor
+      expect(eventsStub.firstCall.args[1]).to.equal(undefined)
+      expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.INTERNAL_ERROR)
+      expect(eventsStub.secondCall.args[1]).to.equal('No active account set!')
+      expect(e.message).to.equal('No active account set!')
+    }
+  })
+
+  it(`should check permissions for a PermissionRequest`, async () => {
+    const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+
+    const hasPermission = await dAppClient.checkPermissions(BeaconMessageType.PermissionRequest)
+
+    expect(hasPermission).to.be.true
+  })
+
+  it(`should check permissions for an OperationRequest`, async () => {
+    const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+
+    const getActiveAccountStub = sinon.stub(dAppClient, 'getActiveAccount')
+
+    getActiveAccountStub.resolves({
+      scopes: [PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN]
+    } as any)
+
+    expect(await dAppClient.checkPermissions(BeaconMessageType.OperationRequest)).to.be.true
+
+    getActiveAccountStub.resolves({
+      scopes: [PermissionScope.SIGN]
+    } as any)
+
+    expect(await dAppClient.checkPermissions(BeaconMessageType.OperationRequest)).to.be.false
+  })
+
+  it(`should check permissions for a SignPayloadRequest`, async () => {
+    const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+
+    const getActiveAccountStub = sinon.stub(dAppClient, 'getActiveAccount')
+
+    getActiveAccountStub.resolves({
+      scopes: [PermissionScope.SIGN]
+    } as any)
+
+    expect(await dAppClient.checkPermissions(BeaconMessageType.SignPayloadRequest)).to.be.true
+
+    getActiveAccountStub.resolves({
+      scopes: [PermissionScope.OPERATION_REQUEST]
+    } as any)
+
+    expect(await dAppClient.checkPermissions(BeaconMessageType.SignPayloadRequest)).to.be.false
+  })
+
+  it(`should check permissions for a BroadcastRequest`, async () => {
+    const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+
+    const getActiveAccountStub = sinon.stub(dAppClient, 'getActiveAccount')
+
+    getActiveAccountStub.resolves({
+      scopes: []
+    } as any)
+
+    expect(await dAppClient.checkPermissions(BeaconMessageType.BroadcastRequest)).to.be.true
   })
 
   it.skip(`should prepare a permission request`, async () => {
