@@ -41,14 +41,26 @@ export abstract class BeaconClient {
     this.name = config.name
     this.storage = config.storage
 
+    this.initSDK().catch(console.error)
+  }
+
+  public async resetSDK(): Promise<void> {
+    await this.removeBeaconEntriesFromStorage()
+  }
+
+  private async initSDK(): Promise<void> {
     this.storage.set(StorageKey.BEACON_SDK_VERSION, SDK_VERSION).catch(console.error)
 
     this.loadOrCreateBeaconSecret().catch(console.error)
-    this.keyPair
-      .then((keyPair) => {
-        this._beaconId.resolve(toHex(keyPair.publicKey))
-      })
-      .catch(console.error)
+
+    return this.keyPair.then((keyPair) => {
+      this._beaconId.resolve(toHex(keyPair.publicKey))
+    })
+  }
+
+  private async removeBeaconEntriesFromStorage(): Promise<void> {
+    const allKeys: StorageKey[] = Object.values(StorageKey)
+    await Promise.all(allKeys.map((key) => this.storage.delete(key)))
   }
 
   /**
