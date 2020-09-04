@@ -22,7 +22,7 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', {
 // This sets the mock adapter on the default instance
 const mock = new MockAdapter(Axios)
 
-mock.onAny().replyOnce((config) => {
+mock.onAny().reply((config) => {
   console.log('UNMOCKED URL, RETURNING ERROR 500', config.url)
 
   return [500, {}]
