@@ -210,6 +210,14 @@ export class DAppClient extends Client {
   }
 
   /**
+   * Remove all accounts and set active account to undefined
+   */
+  public async removeAllAccounts(): Promise<void> {
+    await super.removeAllAccounts()
+    await this.setActiveAccount(undefined)
+  }
+
+  /**
    * Removes a peer and all the accounts that have been connected through that peer
    *
    * @param peer Peer to be removed
