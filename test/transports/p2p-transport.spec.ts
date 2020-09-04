@@ -6,6 +6,7 @@ import * as sinon from 'sinon'
 import {
   BEACON_VERSION,
   LocalStorage,
+  Origin,
   P2PCommunicationClient,
   P2PPairingRequest,
   P2PTransport,
@@ -202,22 +203,28 @@ describe(`P2PTransport`, () => {
   })
 
   it(`should listen`, async () => {
-    const message = 'my-message'
-    const id = 'my-id'
-    const listenStub = sinon
-      .stub(P2PCommunicationClient.prototype, 'listenForEncryptedMessage')
-      .callsArgWithAsync(1, message, { id: id })
-      .resolves()
-    sinon.stub(<any>transport, 'notifyListeners').resolves()
+    return new Promise(async (resolve, _reject) => {
+      const message = 'my-message'
+      const id = 'my-id'
+      const listenStub = sinon
+        .stub(P2PCommunicationClient.prototype, 'listenForEncryptedMessage')
+        .callsArgWithAsync(1, message, { id: id })
+        .resolves()
+      const notifyStub = sinon.stub(<any>transport, 'notifyListeners').resolves()
 
-    const pubKey = 'test'
-    await (<any>transport).listen(pubKey)
+      const pubKey = 'test'
+      await (<any>transport).listen(pubKey)
 
-    expect(listenStub.callCount, 'listenStub').to.equal(1)
-    expect(listenStub.firstCall.args[0], 'listenStub').to.equal(pubKey)
-    // expect(notifyStub.callCount, 'notifyStub').to.equal(3)
-    // expect(notifyStub.firstCall.args[0], 'notifyStub').to.equal(message)
-    // expect(notifyStub.firstCall.args[1].origin, 'notifyStub').to.equal(Origin.EXTENSION)
-    // expect(notifyStub.firstCall.args[1].id, 'notifyStub').to.equal(id)
+      expect(listenStub.callCount, 'listenStub').to.equal(1)
+      expect(listenStub.firstCall.args[0], 'listenStub').to.equal(pubKey)
+      setTimeout(() => {
+        expect(notifyStub.callCount, 'notifyStub').to.equal(1)
+        expect(notifyStub.firstCall.args[0], 'notifyStub').to.equal(message)
+        expect(notifyStub.firstCall.args[1].origin, 'notifyStub').to.equal(Origin.P2P)
+        expect(notifyStub.firstCall.args[1].id, 'notifyStub').to.equal(pubKey)
+
+        resolve()
+      })
+    })
   })
 })
