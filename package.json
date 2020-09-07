@@ -32,6 +32,7 @@
     "test": "npm run check-version && TS_NODE_PROJECT='tsconfig.test.json' nyc mocha --require ts-node/register --require source-map-support/register --full-trace --timeout 40000 ./test/**/**.spec.ts",
     "posttest": " ts-node --project tsconfig.test.json scripts/change-files-after-tests.ts",
     "test-ci": "nyc --reporter=lcov npm test",
+    "audit-ci": "npm audit --json > audit.json && node scripts/dependency-scanning.js",
     "sonar-scanner": "sonar-scanner",
     "prepare": "npm run build",
     "docs:dev": "vuepress dev docs",

@@ -65,3 +65,5 @@ dist/
 .history
 
 storage.json
+audit.json
+gl-dependency-scanning-report.json
