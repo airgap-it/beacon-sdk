@@ -8,6 +8,10 @@ The `beacon-sdk` should allow developers to integrate this functionality with mi
 
 For more information on how to integrate the `beacon-sdk` in your DApp, read our [Getting Started](/beacon/02.getting-started-dapp.html) guide.
 
+To get started, install the beacon-sdk from NPM:
+
+`npm install --save @airgap/beacon-sdk`
+
 ## DApps
 
 - [WalletBeacon.io](https://walletbeacon.io) [Source Code](https://github.com/airgap-it/beacon-example-dapp) is the high-level explanation of beacon and is itself a DApp.
