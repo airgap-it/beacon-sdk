@@ -165,38 +165,68 @@ describe(`MatrixClient`, () => {
     expect(getRoomStub.firstCall.args[0]).to.equal(id)
   })
 
-  it.skip(`should create a trusted private room`, async () => {
-    expect(true).to.be.false
+  it(`should create a trusted private room`, async () => {
+    const getAccessTokenStub = sinon
+      .stub((<any>client).store, 'get')
+      .withArgs('accessToken')
+      .resolves('my-token')
+    const eventSyncSpy = sinon.spy((<any>client).roomService, 'createRoom')
+    const sendStub = sinon.stub(MatrixHttpClient.prototype, <any>'send')
+    sendStub.resolves({
+      room_id: 'my-id'
+    })
+
+    const syncSpy = sinon.spy(client, <any>'requiresAuthorization')
+
+    const roomId = await client.createTrustedPrivateRoom('1', '2', '3')
+
+    expect(getAccessTokenStub.callCount).to.equal(1)
+    expect(syncSpy.callCount).to.equal(1)
+    expect(eventSyncSpy.callCount).to.equal(1)
+    expect(roomId).to.equal('my-id')
   })
 
   it(`should invite a user to a room`, async () => {
-    const getRoomStub = sinon.stub((<any>client).store, 'getRoom').returns('room')
-    // const eventSyncStub = sinon.stub((<any>client).roomService, 'inviteToRoom').resolves()
+    const getAccessTokenStub = sinon
+      .stub((<any>client).store, 'get')
+      .withArgs('accessToken')
+      .resolves('my-token')
+    const sendStub = sinon.stub(MatrixHttpClient.prototype, <any>'send')
+    sendStub.withArgs('POST', '/rooms/my-id/invite').resolves({
+      type: 'room_invite'
+    })
 
-    const syncStub = sinon
-      .stub(client, <any>'requiresAuthorization')
-      .callsArgWithAsync(1, 'myToken')
-      .resolves()
+    const getRoomStub = sinon
+      .stub((<any>client).store, 'getRoom')
+      .returns({ id: 'my-id', status: MatrixRoomStatus.JOINED })
+
+    const eventSyncSpy = sinon.spy((<any>client).roomService, 'inviteToRoom')
+
+    const syncSpy = sinon.spy(client, <any>'requiresAuthorization')
 
     await client.inviteToRooms('user', '1', '2', '3')
 
-    expect(syncStub.callCount).to.equal(1)
+    expect(getAccessTokenStub.callCount).to.equal(1)
+    expect(syncSpy.callCount).to.equal(1)
     expect(getRoomStub.callCount).to.equal(3)
-    // expect(eventSyncStub.callCount).to.equal(3)
+    expect(eventSyncSpy.callCount).to.equal(3)
   })
 
   it(`should join rooms`, async () => {
+    const getAccessTokenStub = sinon
+      .stub((<any>client).store, 'get')
+      .withArgs('accessToken')
+      .resolves('my-token')
+
     const getRoomStub = sinon.stub((<any>client).store, 'getRoom').returns('room')
     const eventSyncStub = sinon.stub((<any>client).roomService, 'joinRoom').resolves()
 
-    const syncStub = sinon
-      .stub(client, <any>'requiresAuthorization')
-      .callsArgWithAsync(1, 'myToken')
-      .resolves()
+    const syncSpy = sinon.spy(client, <any>'requiresAuthorization')
 
     await client.joinRooms('1', '2', '3')
 
-    expect(syncStub.callCount).to.equal(1)
+    expect(getAccessTokenStub.callCount).to.equal(1)
+    expect(syncSpy.callCount).to.equal(1)
     expect(getRoomStub.callCount).to.equal(3)
     expect(eventSyncStub.callCount).to.equal(3)
   })
@@ -220,10 +250,21 @@ describe(`MatrixClient`, () => {
     expect(eventSyncStub.callCount).to.equal(1)
   })
 
-  // TODO: Add failed send
+  it(`should poll the server for updates`, async () => {
+    const getStub = sinon.stub((<any>client).store, 'get').returns('something')
 
-  it.skip(`should poll the server for updates`, async () => {
-    expect(true).to.be.false
+    const eventSyncStub = sinon.stub((<any>client).eventService, 'sync').resolves()
+
+    const syncStub = sinon
+      .stub(client, <any>'requiresAuthorization')
+      .callsArgWithAsync(1, 'myToken')
+      .resolves()
+
+    await (<any>client).sync()
+
+    expect(getStub.callCount).to.equal(2)
+    expect(syncStub.callCount).to.equal(1)
+    expect(eventSyncStub.callCount).to.equal(1)
   })
 
   it(`should send a sync request to the server`, async () => {
