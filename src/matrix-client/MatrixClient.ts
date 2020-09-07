@@ -96,7 +96,7 @@ export class MatrixClient {
     })
 
     return new Promise(async (resolve, reject) => {
-      await this.poll(
+      this.poll(
         0,
         async (pollingResponse: MatrixSyncResponse) => {
           if (!this.store.get('isRunning')) {
@@ -244,11 +244,11 @@ export class MatrixClient {
    * @param onSyncSuccess
    * @param onSyncError
    */
-  private async poll(
+  private poll(
     interval: number,
     onSyncSuccess: (response: MatrixSyncResponse) => void,
     onSyncError: (error: unknown) => void
-  ): Promise<void> {
+  ): void {
     const store = this.store
     const sync = this.sync.bind(this)
 
@@ -275,7 +275,7 @@ export class MatrixClient {
       }
     }
 
-    return pollSync()
+    pollSync().catch((e) => console.log('caught error', e))
   }
 
   /**

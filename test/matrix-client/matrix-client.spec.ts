@@ -66,15 +66,20 @@ describe(`MatrixClient`, () => {
     expect(storeStub.firstCall.args[0]).to.equal('rooms')
   })
 
-  it.skip(`should start`, async () => {
+  it(`should start`, async () => {
     const sendStub = sinon.stub(MatrixHttpClient.prototype, <any>'send')
+    const storeStub = sinon
+      .stub((<any>client).store, 'get')
+      .withArgs('isRunning')
+      .returns(false)
     sendStub.withArgs('POST', '/login').resolves({
       user_id: '@pubkey:url',
       access_token: 'access-token',
       home_server: 'url',
       device_id: 'my-id'
     })
-    sendStub.withArgs('GET', '/sync').resolves({
+
+    const syncResponse = {
       account_data: { events: [] },
       to_device: { events: [] },
       device_lists: { changed: [], left: [] },
@@ -83,7 +88,10 @@ describe(`MatrixClient`, () => {
       groups: { join: {}, invite: {}, leave: {} },
       device_one_time_keys_count: {},
       next_batch: 's793973_746830_0_1_1_1_1_17384_1'
-    })
+    }
+
+    const pollStub = sinon.stub(client, <any>'poll').resolves()
+    pollStub.callsArgWithAsync(1, syncResponse).resolves()
 
     await client.start({
       id: 'random-id',
@@ -91,32 +99,40 @@ describe(`MatrixClient`, () => {
       deviceId: 'pubkey'
     })
 
-    expect(sendStub.callCount).to.equal(2)
+    expect(storeStub.callCount).to.equal(1)
+    expect(sendStub.callCount).to.equal(1)
+    expect(pollStub.callCount).to.equal(1)
   })
 
-  it.skip(`should retry on start`, async () => {
+  it(`should fail start if isRunning is false`, async () => {
     const sendStub = sinon.stub(MatrixHttpClient.prototype, <any>'send')
+    const storeStub = sinon
+      .stub((<any>client).store, 'get')
+      .withArgs('isRunning')
+      .returns(false)
+    const storeUpdateStub = sinon.stub((<any>client).store, 'update').resolves()
     sendStub.withArgs('POST', '/login').resolves({
       user_id: '@pubkey:url',
       access_token: 'access-token',
       home_server: 'url',
       device_id: 'my-id'
     })
-    sendStub.withArgs('GET', '/sync').throws('my-error')
+
+    const pollStub = sinon.stub(client, <any>'poll').resolves()
+    pollStub.callsArgWithAsync(2, new Error('expected error')).resolves()
 
     try {
-      await client
-        .start({
-          id: 'random-id',
-          password: `ed:sig:pubkey`,
-          deviceId: 'pubkey'
-        })
-        .catch((err) => {
-          console.log('my-err', err)
-        })
+      await client.start({
+        id: 'random-id',
+        password: `ed:sig:pubkey`,
+        deviceId: 'pubkey'
+      })
     } catch (e) {
-      console.log(e)
-      expect(sendStub.callCount).to.equal(4)
+      expect(e.message).to.equal('expected error')
+      expect(storeStub.callCount).to.equal(1)
+      expect(sendStub.callCount).to.equal(1)
+      expect(pollStub.callCount).to.equal(1)
+      expect(storeUpdateStub.callCount).to.equal(2)
     }
   })
 
@@ -251,6 +267,27 @@ describe(`MatrixClient`, () => {
   })
 
   it(`should poll the server for updates`, async () => {
+    return new Promise(async (resolve) => {
+      const sendStub = sinon.stub(MatrixHttpClient.prototype, <any>'send')
+      sendStub.withArgs('GET', '/sync').resolves()
+
+      const successResponse = 'my-response'
+      const getStub = sinon.stub((<any>client).store, 'get').returns(3)
+      const syncStub = sinon.stub(client, <any>'sync').returns(successResponse)
+      ;(<any>client).poll(
+        0,
+        (response: any) => {
+          expect(response).to.equal(successResponse)
+          expect(getStub.callCount).to.equal(0)
+          expect(syncStub.callCount).to.equal(1) // The second time polling is done, this will fail and invoke the error callback
+          setTimeout(resolve, 50) // Because there is no stop method on the client, we need to wait for the retries to fail before we start the next test
+        },
+        async () => {}
+      )
+    })
+  })
+
+  it(`should sync with the server`, async () => {
     const getStub = sinon.stub((<any>client).store, 'get').returns('something')
 
     const eventSyncStub = sinon.stub((<any>client).eventService, 'sync').resolves()
