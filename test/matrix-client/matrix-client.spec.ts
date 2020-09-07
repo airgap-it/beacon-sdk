@@ -274,16 +274,19 @@ describe(`MatrixClient`, () => {
       const successResponse = 'my-response'
       const getStub = sinon.stub((<any>client).store, 'get').returns(3)
       const syncStub = sinon.stub(client, <any>'sync').returns(successResponse)
-      ;(<any>client).poll(
-        0,
-        (response: any) => {
-          expect(response).to.equal(successResponse)
-          expect(getStub.callCount).to.equal(0)
-          expect(syncStub.callCount).to.equal(1) // The second time polling is done, this will fail and invoke the error callback
-          setTimeout(resolve, 50) // Because there is no stop method on the client, we need to wait for the retries to fail before we start the next test
-        },
-        async () => {}
-      )
+      ;(<any>client)
+        .poll(
+          0,
+          (response: any) => {
+            expect(response).to.equal(successResponse)
+            expect(getStub.callCount).to.equal(0)
+            expect(syncStub.callCount).to.equal(1) // The second time polling is done, this will fail and invoke the error callback
+          },
+          async () => {}
+        )
+        .catch(() => {
+          resolve()
+        })
     })
   })
 
