@@ -1,3 +1,4 @@
+import { Storage } from '../storage/Storage'
 import { MatrixClientStore } from './MatrixClientStore'
 import { MatrixHttpClient } from './MatrixHttpClient'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
@@ -7,7 +8,6 @@ import { MatrixEventService } from './services/MatrixEventService'
 import { MatrixSyncResponse } from './models/api/MatrixSync'
 import { MatrixClientEventEmitter } from './MatrixClientEventEmitter'
 import { MatrixClientEventType, MatrixClientEvent } from './models/MatrixClientEvent'
-import { Storage } from '../storage/Storage'
 
 interface MatrixClientOptions {
   baseUrl: string
@@ -95,8 +95,8 @@ export class MatrixClient {
       accessToken: response.access_token
     })
 
-    return new Promise((resolve, reject) => {
-      this.poll(
+    return new Promise(async (resolve, reject) => {
+      await this.poll(
         0,
         async (pollingResponse: MatrixSyncResponse) => {
           if (!this.store.get('isRunning')) {
@@ -244,15 +244,18 @@ export class MatrixClient {
    * @param onSyncSuccess
    * @param onSyncError
    */
-  private poll(
+  private async poll(
     interval: number,
     onSyncSuccess: (response: MatrixSyncResponse) => void,
     onSyncError: (error: unknown) => void
-  ): void {
+  ): Promise<void> {
     const store = this.store
     const sync = this.sync.bind(this)
 
-    const pollSync = async (): Promise<void> => {
+    const pollSync = async (
+      resolve: (value?: void | PromiseLike<void> | undefined) => void,
+      reject: (reason?: any) => void
+    ): Promise<void> => {
       let continueSyncing: boolean = false
       try {
         const response = await sync()
@@ -263,20 +266,22 @@ export class MatrixClient {
         onSyncError(error)
 
         continueSyncing = store.get('pollingRetries') < MAX_POLLING_RETRIES
-        console.warn('Could not sync:', error)
+        // console.warn('Could not sync:', error)
         if (continueSyncing) {
           console.log('Retry syncing...')
         }
       } finally {
         if (continueSyncing) {
-          setTimeout(pollSync, interval)
+          setTimeout(async () => {
+            await pollSync(resolve, reject)
+          }, interval)
         } else {
-          throw new Error(`Max polling retries exeeded: ${MAX_POLLING_RETRIES}`)
+          reject(new Error(`Max polling retries exeeded: ${MAX_POLLING_RETRIES}`))
         }
       }
     }
 
-    pollSync()
+    return new Promise(pollSync)
   }
 
   /**
@@ -301,11 +306,13 @@ export class MatrixClient {
     name: string,
     action: (accessToken: string) => Promise<T>
   ): Promise<T> {
-    if (!this.store.get('accessToken')) {
+    const storedToken: string | undefined = this.store.get('accessToken')
+
+    if (!storedToken) {
       return Promise.reject(`${name} requires authorization but no access token has been provided.`)
     }
 
-    return action(this.store.get('accessToken')!)
+    return action(storedToken)
   }
 
   /**

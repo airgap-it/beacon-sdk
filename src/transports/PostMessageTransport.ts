@@ -127,15 +127,12 @@ export class PostMessageTransport extends Transport {
   public async removePeer(peerToBeRemoved: PostMessagePairingRequest): Promise<void> {
     logger.log('removePeer', peerToBeRemoved)
     await this.peerManager.removePeer(peerToBeRemoved.publicKey)
-    if (this.client) {
-      await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
-    }
+    await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
   }
 
   public async removeAllPeers(): Promise<void> {
     logger.log('removeAllPeers')
     await this.peerManager.removeAllPeers()
-
     await this.client.unsubscribeFromEncryptedMessages()
   }
 
@@ -146,9 +143,9 @@ export class PostMessageTransport extends Transport {
       await this.client.sendMessage(recipient, message)
     } else {
       const peers = await this.peerManager.getPeers()
-      peers.forEach((peer) => {
-        this.client.sendMessage(peer.publicKey, message).catch(console.error)
-      })
+      await Promise.all(
+        peers.map((peer) => this.client.sendMessage(peer.publicKey, message).catch(console.error))
+      )
     }
   }
 

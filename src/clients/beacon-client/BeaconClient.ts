@@ -38,6 +38,12 @@ export abstract class BeaconClient {
   }
 
   constructor(config: BeaconClientOptions) {
+    if (!config.name) {
+      throw new Error('Name not set')
+    }
+    if (!config.storage) {
+      throw new Error('Storage not set')
+    }
     this.name = config.name
     this.storage = config.storage
 

@@ -1,5 +1,5 @@
 import * as chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
+import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { ExposedPromise, ExposedPromiseStatus } from '../../src/utils/exposed-promise'
 
@@ -75,7 +75,7 @@ const getExpectedPromiseOutcome = (
   return promises
 }
 
-describe.only(`ExposedPromise`, () => {
+describe(`ExposedPromise`, () => {
   it(`should create an empty ExposedPromise`, async () => {
     const exposed = new ExposedPromise()
 

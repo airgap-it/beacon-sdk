@@ -3,7 +3,7 @@ import { Storage, StorageKey, StorageKeyReturnType } from '..'
 
 export class LocalStorage implements Storage {
   public static async isSupported(): Promise<boolean> {
-    return Promise.resolve(typeof window !== 'undefined' && !!window.localStorage)
+    return Promise.resolve(Boolean(typeof window !== 'undefined') && Boolean(window.localStorage))
   }
 
   public async get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {

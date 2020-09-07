@@ -1,5 +1,5 @@
-import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
+import * as chai from 'chai'
+import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 
 import { Serializer } from '../../src/Serializer'
@@ -91,5 +91,14 @@ describe(`serializer - Custom Tests`, () => {
         expect(reconstructed).to.deep.equal(testCase.reconstructed)
       }
     })
+  })
+
+  it(`should fail if invalid input is passed`, async () => {
+    try {
+      const deserialized = await serializer.deserialize({} as any)
+      expect(deserialized).to.be.undefined
+    } catch (e) {
+      expect(e.message).to.equal(`Encoded payload needs to be a string`)
+    }
   })
 })

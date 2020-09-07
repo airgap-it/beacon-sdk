@@ -1,7 +1,8 @@
 import * as chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
+import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { getAddressFromPublicKey } from '../../src/utils/crypto'
+import { generateGUID } from '../../src/utils/generate-uuid'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -32,6 +33,14 @@ describe(`Crypto`, () => {
       } catch (error) {
         expect(error.message).to.deep.equal('invalid publicKey: test')
       }
+    })
+  })
+
+  describe('generateGUID', () => {
+    it(`should create a GUID`, async () => {
+      const GUID = await generateGUID()
+
+      expect(typeof GUID).to.deep.equal('string')
     })
   })
 })

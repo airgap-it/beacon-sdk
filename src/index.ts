@@ -121,7 +121,7 @@ import {
 } from './types/tezos/PartialTezosOperation'
 import { AbortedBeaconError } from './errors/AbortedBeaconError'
 import { PeerInfo } from './types/PeerInfo'
-import { isExtensionInstalled } from './utils/is-extension-installed'
+import { availableTransports } from './utils/available-transports'
 
 // Tezos
 export {
@@ -270,4 +270,4 @@ export { SDK_VERSION, BEACON_VERSION }
 export { getAccountIdentifier, getAddressFromPublicKey }
 
 // Others
-export { ConnectionContext, P2PPairingRequest, PeerInfo, Serializer, isExtensionInstalled }
+export { ConnectionContext, P2PPairingRequest, PeerInfo, Serializer, availableTransports }

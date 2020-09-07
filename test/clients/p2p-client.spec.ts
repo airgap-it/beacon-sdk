@@ -1,9 +1,9 @@
-import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
+import * as chai from 'chai'
+import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 
 import { generateGUID } from '../../src/utils/generate-uuid'
-import { P2PCommunicationClient } from '../../src'
+import { P2PCommunicationClient, LocalStorage } from '../../src'
 import { getKeypairFromSeed } from '../../src/utils/crypto'
 
 const MAX_TEST_RUNTIME_SECONDS = 10
@@ -12,7 +12,7 @@ const MAX_TEST_RUNTIME_SECONDS = 10
 chai.use(chaiAsPromised)
 //const expect = chai.expect
 
-describe(`client - Custom Tests`, () => {
+describe.skip(`client - Custom Tests`, () => {
   it('will connect to the p2p communication network', async () => {
     return new Promise(async (resolve) => {
       const intervals: NodeJS.Timeout[] = []
@@ -21,7 +21,7 @@ describe(`client - Custom Tests`, () => {
         'Alice',
         await getKeypairFromSeed('alice1234'),
         1,
-        undefined as any,
+        new LocalStorage(),
         [],
         false
       )
@@ -33,7 +33,7 @@ describe(`client - Custom Tests`, () => {
         'Bob',
         await getKeypairFromSeed('bob1234'),
         1,
-        undefined as any,
+        new LocalStorage(),
         [],
         false
       )
@@ -45,7 +45,7 @@ describe(`client - Custom Tests`, () => {
         'Charlie',
         await getKeypairFromSeed('charlie1234'),
         1,
-        undefined as any,
+        new LocalStorage(),
         [],
         false
       )
@@ -84,7 +84,7 @@ describe(`client - Custom Tests`, () => {
       })
 
       intervals.push(
-        setInterval(async () => {
+        global.setInterval(async () => {
           bobClient.sendMessage(
             await aliceClient.getPublicKey(),
             `hey from bob ${await generateGUID()}\n\n`
@@ -94,7 +94,7 @@ describe(`client - Custom Tests`, () => {
       )
 
       intervals.push(
-        setInterval(async () => {
+        global.setInterval(async () => {
           aliceClient.sendMessage(
             await bobClient.getPublicKey(),
             `hey from alice ${await generateGUID()}\n\n`
@@ -107,7 +107,7 @@ describe(`client - Custom Tests`, () => {
       )
 
       intervals.push(
-        setInterval(async () => {
+        global.setInterval(async () => {
           //charlieClient.sendMessage(bobClient.getPublicKey(), 'matrix.tez.ie', "hey from charlie")
           charlieClient.sendMessage(
             await aliceClient.getPublicKey(),
@@ -116,14 +116,14 @@ describe(`client - Custom Tests`, () => {
         }, 5000)
       )
 
-      setTimeout(() => {
+      global.setTimeout(() => {
         intervals.forEach((intervalId) => {
           console.log('clearing interval', intervalId)
           clearInterval(intervalId)
         })
         resolve()
 
-        setTimeout(() => {
+        global.setTimeout(() => {
           process.exit(0)
         }, MAX_TEST_RUNTIME_SECONDS * 1000)
       }, MAX_TEST_RUNTIME_SECONDS * 1000)

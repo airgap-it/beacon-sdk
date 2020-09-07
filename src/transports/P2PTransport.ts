@@ -21,7 +21,6 @@ export class P2PTransport extends Transport {
   private readonly events: BeaconEventHandler
 
   private readonly isDapp: boolean = true
-  private readonly storage: Storage
 
   /**
    * The client handling the encryption/decryption of messages
@@ -42,7 +41,6 @@ export class P2PTransport extends Transport {
     isDapp: boolean
   ) {
     super(name)
-    this.storage = storage
     this.events = events
     this.isDapp = isDapp
     this.client = new P2PCommunicationClient(this.name, keyPair, 1, storage, matrixNodes, false)
@@ -136,7 +134,7 @@ export class P2PTransport extends Transport {
   }
 
   public async send(message: string, recipient?: string): Promise<void> {
-    const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
+    const knownPeers = await this.peerManager.getPeers()
 
     if (recipient) {
       if (!knownPeers.some((peer) => peer.publicKey === recipient)) {

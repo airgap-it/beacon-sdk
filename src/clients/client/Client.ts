@@ -12,7 +12,7 @@ import {
   P2PPairingRequest
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
-import { isExtensionInstalled } from '../../utils/is-extension-installed'
+import { availableTransports } from '../../utils/available-transports'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
@@ -164,15 +164,17 @@ export abstract class Client extends BeaconClient {
           return setTransport(newTransport)
         }
 
-        const setBeaconTransportTimeout = setTimeout(setBeaconTransport, 200)
+        const setBeaconTransportTimeout = window.setTimeout(setBeaconTransport, 200)
 
-        return isExtensionInstalled.then(async (postMessageAvailable) => {
+        return availableTransports.extension.then(async (postMessageAvailable) => {
+          if (setBeaconTransportTimeout) {
+            window.clearTimeout(setBeaconTransportTimeout)
+          }
+
           if (postMessageAvailable) {
-            if (setBeaconTransportTimeout) {
-              clearTimeout(setBeaconTransportTimeout)
-            }
-
             return setTransport(new PostMessageTransport(this.name, keyPair, this.storage, isDapp))
+          } else {
+            return setBeaconTransport()
           }
         })
       })

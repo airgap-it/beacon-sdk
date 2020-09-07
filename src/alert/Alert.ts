@@ -19,7 +19,7 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document = window.document
 }
 
-const timeout: Record<string, NodeJS.Timeout | undefined> = {}
+const timeout: Record<string, number | undefined> = {}
 
 const formatBody = (dataString: string): string => {
   if (typeof dataString === 'string') {
@@ -283,7 +283,7 @@ const closeAlert = (id: string): Promise<void> =>
       }
 
       elm.className = elm.className.replace('fadeIn', 'fadeOut')
-      setTimeout(() => {
+      window.setTimeout(() => {
         const wrapper = document.getElementById(`beacon-alert-wrapper-${id}`)
         if (wrapper) {
           document.body.removeChild(wrapper)
@@ -340,7 +340,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   wrapper.innerHTML = formatAlert(id, formattedBody, title, confirmButtonText, actionButtonText)
 
   if (timer) {
-    timeout[id] = setTimeout(async () => {
+    timeout[id] = window.setTimeout(async () => {
       await closeAlert(id)
     }, timer)
   }

@@ -48,7 +48,6 @@ import {
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
-import { checkPermissions } from '../../utils/check-permissions'
 import { getAccountIdentifier } from '../../utils/get-account-identifier'
 import { DAppClientOptions } from './DAppClientOptions'
 
@@ -60,16 +59,17 @@ const logger = new Logger('DAppClient')
  */
 export class DAppClient extends Client {
   /**
+   * The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet
+   */
+  public readonly iconUrl?: string
+
+  /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
    */
   private readonly openRequests = new Map<
     string,
     ExposedPromise<{ message: BeaconMessage; connectionInfo: ConnectionContext }, ErrorResponse>
   >()
-  /**
-   * The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet
-   */
-  private readonly iconUrl?: string
 
   /**
    * The currently active account. For all requests that are associated to a specific request (operation request, signing request),
@@ -121,6 +121,7 @@ export class DAppClient extends Client {
         if (message.type === BeaconMessageType.Disconnect) {
           const transport = await this.transport
           if (transport.type === TransportType.P2P) {
+            // TODO: Also handle postmessage transport
             await (transport as P2PTransport).removePeer({
               name: '',
               publicKey: message.senderId,
@@ -274,12 +275,21 @@ export class DAppClient extends Client {
     const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
 
     if (!activeAccount) {
-      throw this.sendInternalError('No active account set!')
+      throw await this.sendInternalError('No active account set!')
     }
 
     const permissions = activeAccount.scopes
 
-    return checkPermissions(type, permissions)
+    switch (type) {
+      case BeaconMessageType.OperationRequest:
+        return permissions.includes(PermissionScope.OPERATION_REQUEST)
+      case BeaconMessageType.SignPayloadRequest:
+        return permissions.includes(PermissionScope.SIGN)
+      case BeaconMessageType.BroadcastRequest:
+        return true
+      default:
+        return false
+    }
   }
 
   /**
@@ -340,7 +350,7 @@ export class DAppClient extends Client {
       scopes,
       publicKey,
       threshold
-    }
+    } // TODO: Should we return the account info here?
 
     await this.notifySuccess(request, {
       account: accountInfo,
@@ -361,11 +371,11 @@ export class DAppClient extends Client {
     input: RequestSignPayloadInput
   ): Promise<SignPayloadResponseOutput> {
     if (!input.payload) {
-      throw this.sendInternalError('Payload must be provided')
+      throw await this.sendInternalError('Payload must be provided')
     }
     const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
     if (!activeAccount) {
-      throw this.sendInternalError('No active account!')
+      throw await this.sendInternalError('No active account!')
     }
 
     const request: SignPayloadRequestInput = {
@@ -403,11 +413,11 @@ export class DAppClient extends Client {
    */
   public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
     if (!input.operationDetails) {
-      throw this.sendInternalError('Operation details must be provided')
+      throw await this.sendInternalError('Operation details must be provided')
     }
     const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
     if (!activeAccount) {
-      throw this.sendInternalError('No active account!')
+      throw await this.sendInternalError('No active account!')
     }
 
     const request: OperationRequestInput = {
@@ -444,7 +454,7 @@ export class DAppClient extends Client {
    */
   public async requestBroadcast(input: RequestBroadcastInput): Promise<BroadcastResponseOutput> {
     if (!input.signedTransaction) {
-      throw this.sendInternalError('Signed transaction must be provided')
+      throw await this.sendInternalError('Signed transaction must be provided')
     }
 
     const network = input.network || { type: NetworkType.MAINNET }
@@ -601,7 +611,7 @@ export class DAppClient extends Client {
     }
 
     if (!this.beaconId) {
-      throw this.sendInternalError('BeaconID not defined')
+      throw await this.sendInternalError('BeaconID not defined')
     }
 
     const request: Omit<T, IgnoredRequestInputProperties> &
