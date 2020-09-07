@@ -95,7 +95,7 @@ export class MatrixClient {
       accessToken: response.access_token
     })
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.poll(
         0,
         async (pollingResponse: MatrixSyncResponse) => {
@@ -257,6 +257,7 @@ export class MatrixClient {
       try {
         const response = await sync()
         onSyncSuccess(response)
+
         continueSyncing = true
       } catch (error) {
         onSyncError(error)
@@ -275,7 +276,7 @@ export class MatrixClient {
       }
     }
 
-    pollSync().catch((e) => console.log('caught error', e))
+    pollSync()
   }
 
   /**
