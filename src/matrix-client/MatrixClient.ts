@@ -95,8 +95,8 @@ export class MatrixClient {
       accessToken: response.access_token
     })
 
-    return new Promise((resolve, reject) => {
-      this.poll(
+    return new Promise(async (resolve, reject) => {
+      await this.poll(
         0,
         async (pollingResponse: MatrixSyncResponse) => {
           if (!this.store.get('isRunning')) {
@@ -244,11 +244,11 @@ export class MatrixClient {
    * @param onSyncSuccess
    * @param onSyncError
    */
-  private poll(
+  private async poll(
     interval: number,
     onSyncSuccess: (response: MatrixSyncResponse) => void,
     onSyncError: (error: unknown) => void
-  ): void {
+  ): Promise<void> {
     const store = this.store
     const sync = this.sync.bind(this)
 
@@ -257,13 +257,12 @@ export class MatrixClient {
       try {
         const response = await sync()
         onSyncSuccess(response)
-
         continueSyncing = true
       } catch (error) {
         onSyncError(error)
 
         continueSyncing = store.get('pollingRetries') < MAX_POLLING_RETRIES
-        console.warn('Could not sync:', error)
+        // console.warn('Could not sync:', error)
         if (continueSyncing) {
           console.log('Retry syncing...')
         }
@@ -276,7 +275,7 @@ export class MatrixClient {
       }
     }
 
-    pollSync()
+    return pollSync()
   }
 
   /**
