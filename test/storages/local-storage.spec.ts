@@ -90,4 +90,33 @@ describe(`LocalStorage`, () => {
     expect(getSpy.firstCall.args[0]).to.equal(StorageKey.BEACON_SDK_VERSION)
     expect(getSpy.callCount).to.equal(1)
   })
+
+  it(`should create a storage with a prefix`, async () => {
+    const prefix1 = 'prefix1'
+    const prefix2 = 'prefix2'
+
+    const storage1 = new LocalStorage(prefix1)
+    const storage2 = new LocalStorage(prefix2)
+    const storageNoPrefix = new LocalStorage()
+
+    const testValue1 = 'test-version1'
+    const testValue2 = 'test-version2'
+    const testValueNoPrefix = 'test-version3'
+
+    localStorage.setItem(prefix1 + '-' + StorageKey.BEACON_SDK_VERSION, testValue1)
+    localStorage.setItem(prefix2 + '-' + StorageKey.BEACON_SDK_VERSION, testValue2)
+    localStorage.setItem(StorageKey.BEACON_SDK_VERSION, testValueNoPrefix)
+
+    const value1 = await storage1.get(StorageKey.BEACON_SDK_VERSION)
+    const value2 = await storage2.get(StorageKey.BEACON_SDK_VERSION)
+    const valueNoPrefix = await storageNoPrefix.get(StorageKey.BEACON_SDK_VERSION)
+
+    expect(value1).to.equal(testValue1)
+    expect(value2).to.equal(testValue2)
+    expect(valueNoPrefix).to.equal(testValueNoPrefix)
+    expect(getSpy.firstCall.args[0]).to.equal(prefix1 + '-' + StorageKey.BEACON_SDK_VERSION)
+    expect(getSpy.secondCall.args[0]).to.equal(prefix2 + '-' + StorageKey.BEACON_SDK_VERSION)
+    expect(getSpy.thirdCall.args[0]).to.equal(StorageKey.BEACON_SDK_VERSION)
+    expect(getSpy.callCount).to.equal(3)
+  })
 })
