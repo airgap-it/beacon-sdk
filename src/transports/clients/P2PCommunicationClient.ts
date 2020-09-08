@@ -24,9 +24,9 @@ import { BEACON_VERSION } from '../../constants'
 import { CommunicationClient } from './CommunicationClient'
 
 const KNOWN_RELAY_SERVERS = [
-  'matrix.papers.tech'
+  'matrix.papers.tech',
+  'matrix-dev.papers.tech'
   // 'matrix.tez.ie',
-  // 'matrix-dev.papers.tech',
   // "matrix.stove-labs.com",
   // "yadayada.cryptonomic-infra.tech"
 ]
@@ -89,33 +89,32 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     for (let i = 0; i < this.replicationCount; i++) {
       // TODO: Parallel
+      const relayServer = await this.getRelayServer(await this.getPublicKeyHash(), i.toString())
+
       const client = MatrixClient.create({
-        baseUrl: `https://${await this.getRelayServer(
-          await this.getPublicKeyHash(),
-          i.toString()
-        )}`,
+        baseUrl: `https://${relayServer}`,
         storage: this.storage
       })
 
       client.subscribe(MatrixClientEventType.INVITE, async (event) => {
+        await this.log('received an invite to room', event.content.roomId)
         await client.joinRooms(event.content.roomId)
       })
 
-      await this.log(
-        'login',
-        await this.getPublicKeyHash(),
-        'on',
-        await this.getRelayServer(await this.getPublicKeyHash(), i.toString())
-      )
+      await this.log('login', await this.getPublicKeyHash(), 'on', relayServer)
+
+      await this.log('pubkey', await this.getPublicKey())
+      await this.log('pubkeyHash', await this.getPublicKeyHash())
 
       await client
         .start({
-          id: await this.getPublicKeyHash(),
+          id: `${await this.getPublicKeyHash()}:${relayServer}`,
           password: `ed:${toHex(rawSignature)}:${await this.getPublicKey()}`,
           deviceId: toHex(this.keyPair.publicKey)
         })
         .catch((error) => this.log(error))
 
+      await this.log(`Invited to ${client.invitedRooms.length} rooms. Attempting to join`)
       await client.joinRooms(...client.invitedRooms).catch((error) => this.log(error))
 
       this.clients.push(client)
@@ -135,7 +134,9 @@ export class P2PCommunicationClient extends CommunicationClient {
     const callbackFunction = async (
       event: MatrixClientEvent<MatrixClientEventType.MESSAGE>
     ): Promise<void> => {
+      await this.log('got encrypted message', event.content.message.content)
       if (this.isTextMessage(event.content) && (await this.isSender(event, senderPublicKey))) {
+        await this.log('matching')
         const payload = Buffer.from(event.content.message.content, 'hex')
         if (
           payload.length >=
@@ -147,6 +148,8 @@ export class P2PCommunicationClient extends CommunicationClient {
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
         }
+      } else {
+        await this.log('NOT matching')
       }
     }
 
@@ -188,15 +191,18 @@ export class P2PCommunicationClient extends CommunicationClient {
       const recipientHash: string = await getHexHash(Buffer.from(recipientPublicKey, 'hex'))
       const recipient = recipientString(
         recipientHash,
-        await this.getRelayServer(recipientHash, i.toString())
+        this.name === 'Alice' ? 'matrix-dev.papers.tech' : 'matrix.papers.tech'
       )
+
+      await this.log(`sending from ${this.name} to:`, recipient)
 
       for (const client of this.clients) {
         const room = await this.getRelevantRoom(client, recipient)
+        await this.log(`found relevant room for ${this.name} to:`, room)
 
-        client
-          .sendTextMessage(room.id, await encryptCryptoboxPayload(message, sharedTx))
-          .catch((error) => this.log(error))
+        const encryptedMessage = await encryptCryptoboxPayload(message, sharedTx)
+        await this.log('sending', encryptedMessage)
+        client.sendTextMessage(room.id, encryptedMessage).catch((error) => this.log(error))
       }
     }
   }
@@ -285,6 +291,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
   private async getRelevantRoom(client: MatrixClient, recipient: string): Promise<MatrixRoom> {
     const joinedRooms = client.joinedRooms
+    await this.log('joined rooms', joinedRooms)
     const relevantRooms = joinedRooms.filter((roomElement: MatrixRoom) =>
       roomElement.members.some((member: string) => member === recipient)
     )
