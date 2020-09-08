@@ -2,12 +2,13 @@ import { defaultValues } from '../types/storage/StorageKeyReturnDefaults'
 import { Storage, StorageKey, StorageKeyReturnType } from '..'
 
 export class LocalStorage implements Storage {
+  constructor(private readonly prefix?: string) {}
   public static async isSupported(): Promise<boolean> {
     return Promise.resolve(Boolean(typeof window !== 'undefined') && Boolean(window.localStorage))
   }
 
   public async get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {
-    const value = localStorage.getItem(key)
+    const value = localStorage.getItem(this.getPrefixedKey(key))
     if (!value) {
       if (typeof defaultValues[key] === 'object') {
         return JSON.parse(JSON.stringify(defaultValues[key]))
@@ -25,13 +26,17 @@ export class LocalStorage implements Storage {
 
   public async set<K extends StorageKey>(key: K, value: StorageKeyReturnType[K]): Promise<void> {
     if (typeof value === 'string') {
-      return localStorage.setItem(key, value)
+      return localStorage.setItem(this.getPrefixedKey(key), value)
     } else {
-      return localStorage.setItem(key, JSON.stringify(value))
+      return localStorage.setItem(this.getPrefixedKey(key), JSON.stringify(value))
     }
   }
 
   public async delete<K extends StorageKey>(key: K): Promise<void> {
-    return Promise.resolve(localStorage.removeItem(key))
+    return Promise.resolve(localStorage.removeItem(this.getPrefixedKey(key)))
+  }
+
+  private getPrefixedKey(key: string): string {
+    return this.prefix ? `${this.prefix}-${key}` : key
   }
 }
