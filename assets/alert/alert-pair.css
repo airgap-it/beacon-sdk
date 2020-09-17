@@ -1,0 +1,12 @@
+#beacon-main-text {
+  display: initial;
+}
+#beacon-ios-list {
+  display: none;
+}
+#beacon-android-list {
+  display: none;
+}
+#beacon-desktop-list {
+  display: none;
+}

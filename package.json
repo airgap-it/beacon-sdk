@@ -22,7 +22,8 @@
     "url": "https://github.com/airgap-it/beacon-sdk"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc -p ./tsconfig-cjs.json && npm run browserify",
+    "prebuild": "ts-node --project tsconfig-cjs.json scripts/convert-images.ts",
+    "build": "npm run pretest && tsc -p tsconfig.json && tsc -p ./tsconfig.test.json && npm run browserify && npm run posttest",
     "browserify": "browserify ./dist/cjs/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js",
     "prettier": "prettier --write 'src/**/*' 'docs/**/*.md'",
     "lint": "eslint 'src/**/*.ts'",
