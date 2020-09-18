@@ -1,6 +1,6 @@
 name: Deploy Docs
 
-on: [workflow_dispatch]
+on: push
 
 jobs:
   deploy_github_pages:
