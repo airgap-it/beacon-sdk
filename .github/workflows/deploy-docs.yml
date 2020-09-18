@@ -31,6 +31,8 @@ jobs:
           npm run docs:build
           cd docs/.vuepress/dist
           echo 'docs.walletbeacon.io' > CNAME
+          git config --global user.email "support+actions@github.com"
+          git config --global user.name "github-actions-bot"
           git init
           git add -A
           git commit -m 'chore(docs): including latest changes'
