@@ -1,0 +1,38 @@
+name: Deploy Docs
+
+on: [workflow_dispatch]
+
+jobs:
+  deploy_github_pages:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache node modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Node 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Prepare
+        run: npm ci
+
+      - name: Deploy Github Pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm run docs:build
+          cd docs/.vuepress/dist
+          echo 'docs.walletbeacon.io' > CNAME
+          git init
+          git add -A
+          git commit -m 'chore(docs): including latest changes'
+          git push -f https://git:${GITHUB_TOKEN}@github.com/airgap-it/beacon-sdk.git master:gh-pages
