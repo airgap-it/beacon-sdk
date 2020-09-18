@@ -4,6 +4,7 @@ on: [workflow_dispatch]
 
 jobs:
   deploy_github_pages:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
 
     steps:
