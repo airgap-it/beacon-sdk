@@ -64,6 +64,14 @@
   height: 100%;
 }
 
+.beacon-alert__text,
+.beacon-alert__title,
+.beacon-selection__name,
+p,
+button {
+  font-family: Roboto, Helvetica, sans-serif;
+}
+
 .beacon-modal__close__wrapper {
   position: absolute;
   top: 16px;
@@ -109,7 +117,6 @@
 
 .beacon-alert__text,
 .beacon-alert__title {
-  font-family: Roboto, sans-serif;
   text-align: center;
   margin: 0 auto;
   padding: 0 0 16px;

@@ -92,9 +92,13 @@ const convert = (list: any[]): Promise<string[]> => {
       const altTag = `Open in ${entry.name}`
       const logo = `data:image/${ext};base64,${buffer.toString('base64')}`
       return `
-<a alt="${altTag}" href="${entry.link}">
-	<img src="${logo}" width="64px" height="64px" />
-</a>`
+      <a alt="${altTag}" href="${entry.link}" class="beacon-selection__list">
+        <div class="beacon-selection__name">${entry.name}</div>
+        <div>
+          <img class="beacon-selection__img" src="${logo}"/>
+        </div>
+      </a>
+      `
     })
   )
 }
