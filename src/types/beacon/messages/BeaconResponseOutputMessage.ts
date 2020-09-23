@@ -7,10 +7,9 @@ import {
 
 export type IgnoredResponseOutputProperties = 'id' | 'version' | 'type'
 
-export type PermissionResponseOutput = Omit<
-  Omit<PermissionResponse, IgnoredResponseOutputProperties>,
-  'publicKey'
-> & { address: string }
+export type PermissionResponseOutput = Omit<PermissionResponse, IgnoredResponseOutputProperties> & {
+  address: string
+}
 export type OperationResponseOutput = Omit<OperationResponse, IgnoredResponseOutputProperties>
 export type SignPayloadResponseOutput = Omit<SignPayloadResponse, IgnoredResponseOutputProperties>
 export type BroadcastResponseOutput = Omit<BroadcastResponse, IgnoredResponseOutputProperties>

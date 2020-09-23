@@ -266,7 +266,7 @@ export class DAppClient extends Client {
 
     const { beaconId, network, scopes } = message
 
-    const output: PermissionResponseOutput = { beaconId, address, network, scopes }
+    const output: PermissionResponseOutput = { beaconId, publicKey, address, network, scopes }
 
     await this.notifySuccess(request, {
       account: accountInfo,
