@@ -211,8 +211,8 @@ const showSignSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output
   const alertConfig: AlertConfig = {
-    title: 'Transaction Signed',
-    body: `The transaction has successfully been signed.
+    title: 'Payload signed',
+    body: `The payload has successfully been signed.
     <br>
     Signature: <strong>${output.signature}</strong>`,
     confirmButtonText: 'Done',
