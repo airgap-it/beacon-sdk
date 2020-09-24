@@ -1,8 +1,8 @@
 import { MockLocalStorage } from '../test-utils/MockLocalStorage'
 ;(global as any).localStorage = new MockLocalStorage()
 
-import Axios from 'axios'
-const MockAdapter = require('axios-mock-adapter')
+// import Axios from 'axios'
+// const MockAdapter = require('axios-mock-adapter')
 
 beforeEach(() => {
   ;(global as any).localStorage.clear()
@@ -20,10 +20,10 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', {
 ;(global as any).document = dom.window.document
 
 // This sets the mock adapter on the default instance
-const mock = new MockAdapter(Axios)
+// const mock = new MockAdapter(Axios)
 
-mock.onAny().reply((config) => {
-  console.log('UNMOCKED URL, RETURNING ERROR 500', config.url)
+// mock.onAny().reply((config) => {
+//   console.log('UNMOCKED URL, RETURNING ERROR 500', config.url)
 
-  return [500, {}]
-})
+//   return [500, {}]
+// })
