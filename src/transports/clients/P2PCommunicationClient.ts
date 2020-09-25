@@ -34,6 +34,8 @@ const KNOWN_RELAY_SERVERS = [
 export class P2PCommunicationClient extends CommunicationClient {
   private client: MatrixClient | undefined
 
+  private relayServerIndex: number = 0
+
   private readonly KNOWN_RELAY_SERVERS: string[]
 
   private readonly activeListeners: Map<string, (event: MatrixClientEvent<any>) => void> = new Map()
@@ -60,22 +62,31 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async getRelayServer(_publicKeyHash?: string, _nonce: string = ''): Promise<string> {
-    return this.KNOWN_RELAY_SERVERS[0]
+    return this.KNOWN_RELAY_SERVERS[this.relayServerIndex]
   }
 
   public async start(): Promise<void> {
     await this.log('starting client')
     await sodium.ready
 
+    await this.connectClient()
+  }
+
+  // TODO: Make private
+  public async connectClient(): Promise<void> {
+    this.relayServerIndex = this.relayServerIndex % this.KNOWN_RELAY_SERVERS.length
     const loginRawDigest = sodium.crypto_generichash(
       32,
       sodium.from_string(`login:${Math.floor(Date.now() / 1000 / (5 * 60))}`)
     )
     const rawSignature = sodium.crypto_sign_detached(loginRawDigest, this.keyPair.privateKey)
 
-    await this.log(`connecting to first server`)
+    await this.log(`connecting to server. Relay server index ${this.relayServerIndex}`)
 
-    const relayServer = await this.getRelayServer(await this.getPublicKeyHash(), '0')
+    const relayServer = await this.getRelayServer(
+      await this.getPublicKeyHash(),
+      this.relayServerIndex.toString()
+    )
 
     const client = MatrixClient.create({
       baseUrl: `https://${relayServer}`,
@@ -100,14 +111,25 @@ export class P2PCommunicationClient extends CommunicationClient {
         password: `ed:${toHex(rawSignature)}:${await this.getPublicKey()}`,
         deviceId: toHex(this.keyPair.publicKey)
       })
-      .catch((error) => this.log(error))
+      .catch(async (error) => {
+        await this.log(error.message)
+
+        this.relayServerIndex++
+
+        // return new Promise((resolve) =>
+        //   setTimeout(async () => {
+        //     await this.connectClient()
+        //     resolve()
+        //   }, 2000)
+        // )
+      })
 
     await this.log(`Invited to ${client.invitedRooms.length} rooms. Attempting to join`)
     await client.joinRooms(...client.invitedRooms).catch((error) => this.log(error))
-  }
 
-  // TODO: Make private
-  public async connectClient() {}
+    // Make sure we are part of all rooms that we know of
+    await this.joinRoomsIfNotJoined(client, ['test'])
+  }
 
   public async listenForEncryptedMessage(
     senderPublicKey: string,
@@ -190,7 +212,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     }
 
     const room = await this.getRelevantRoom(this.client, recipient)
-    await this.log(`found relevant room for ${this.name} to:`, room)
+    // await this.log(`found relevant room for ${this.name} to:`, room)
 
     const encryptedMessage = await encryptCryptoboxPayload(message, sharedTx)
     await this.log('sending', encryptedMessage)
@@ -280,9 +302,27 @@ export class P2PCommunicationClient extends CommunicationClient {
     )
   }
 
+  private async joinRoomsIfNotJoined(client: MatrixClient, roomIds: string[]): Promise<void> {
+    await this.log(`checking ${roomIds.length} rooms if we need to join`)
+
+    const joinedRooms = client.joinedRooms
+    const roomsToJoin: string[] = []
+    roomIds.forEach((roomId) => {
+      if (joinedRooms.some((room) => room.id === roomId)) {
+        roomsToJoin.push(roomId)
+      }
+    })
+
+    await this.log(`need to join ${roomsToJoin.length} rooms`)
+
+    if (roomsToJoin.length > 0) {
+      await client.joinRooms(...roomsToJoin)
+    }
+  }
+
   private async getRelevantRoom(client: MatrixClient, recipient: string): Promise<MatrixRoom> {
     const joinedRooms = client.joinedRooms
-    await this.log('joined rooms', joinedRooms)
+    // await this.log('joined rooms', joinedRooms)
     const relevantRooms = joinedRooms.filter((roomElement: MatrixRoom) =>
       roomElement.members.some((member: string) => member === recipient)
     )
@@ -291,7 +331,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     if (relevantRooms.length === 0) {
       await this.log(`no relevant rooms found`)
 
-      throw new Error('no relevant room found')
+      throw new Error('no relevant rooms found')
     } else {
       // Prefer rooms with more participants, because that could mean we talk to more "backup" clients
       room = relevantRooms.reduce((previousRoom, currentRoom) =>
