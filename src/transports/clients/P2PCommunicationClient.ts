@@ -108,7 +108,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
       await client
         .start({
-          id: `${await this.getPublicKeyHash()}:${relayServer}`,
+          id: await this.getPublicKeyHash(),
           password: `ed:${toHex(rawSignature)}:${await this.getPublicKey()}`,
           deviceId: toHex(this.keyPair.publicKey)
         })

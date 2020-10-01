@@ -169,99 +169,99 @@ describe.only(`client - Custom Tests`, () => {
   //   })
   // })
 
-  // it('will send messages to users logged in on other servers', async () => {
-  //   const randomIDsUsed: string[] = []
-  //   const messagesReceived: string[] = []
+  it('will send messages to users logged in on other servers', async () => {
+    const randomIDsUsed: string[] = []
+    const messagesReceived: string[] = []
 
-  //   const getNextRandomId = async () => {
-  //     const id = await generateGUID()
-  //     randomIDsUsed.push(id)
+    const getNextRandomId = async () => {
+      const id = await generateGUID()
+      randomIDsUsed.push(id)
 
-  //     return id
-  //   }
+      return id
+    }
 
-  //   return new Promise(async (resolve) => {
-  //     const intervals: NodeJS.Timeout[] = []
+    return new Promise(async (resolve) => {
+      const intervals: NodeJS.Timeout[] = []
 
-  //     const aliceClient = new P2PCommunicationClient(
-  //       'Alice',
-  //       await getKeypairFromSeed('alice1234'),
-  //       1,
-  //       new LocalStorage('alice1234'),
-  //       ['matrix.papers.tech'],
-  //       debug
-  //     )
-  //     await aliceClient
-  //       .start()
-  //       .catch((aliceClientError) => console.log('aliceClientError', aliceClientError))
+      const aliceClient = new P2PCommunicationClient(
+        'Alice',
+        await getKeypairFromSeed('alice1234'),
+        1,
+        new LocalStorage('alice1234'),
+        ['matrix.papers.tech'],
+        debug
+      )
+      await aliceClient
+        .start()
+        .catch((aliceClientError) => console.log('aliceClientError', aliceClientError))
 
-  //     const bobClient = new P2PCommunicationClient(
-  //       'Bob',
-  //       await getKeypairFromSeed('bob1234'),
-  //       1,
-  //       new LocalStorage('bob1234'),
-  //       ['matrix-dev.papers.tech'],
-  //       debug
-  //     )
-  //     await bobClient
-  //       .start()
-  //       .catch((bobClientError) => console.log('bobClientError', bobClientError))
+      const bobClient = new P2PCommunicationClient(
+        'Bob',
+        await getKeypairFromSeed('bob1234'),
+        1,
+        new LocalStorage('bob1234'),
+        ['matrix-dev.papers.tech'],
+        debug
+      )
+      await bobClient
+        .start()
+        .catch((bobClientError) => console.log('bobClientError', bobClientError))
 
-  //     aliceClient.listenForEncryptedMessage(await bobClient.getPublicKey(), (message: string) => {
-  //       const logMessage = `alice received from bob: "${message}"`
-  //       messagesReceived.push(logMessage)
-  //       console.log(`\n${logMessage}`)
-  //     })
+      aliceClient.listenForEncryptedMessage(await bobClient.getPublicKey(), (message: string) => {
+        const logMessage = `alice received from bob: "${message}"`
+        messagesReceived.push(logMessage)
+        console.log(`\n${logMessage}`)
+      })
 
-  //     bobClient.listenForEncryptedMessage(await aliceClient.getPublicKey(), (message: string) => {
-  //       const logMessage = `bob received from alice: "${message}"`
-  //       messagesReceived.push(logMessage)
-  //       console.log(`\n${logMessage}`)
-  //     })
+      bobClient.listenForEncryptedMessage(await aliceClient.getPublicKey(), (message: string) => {
+        const logMessage = `bob received from alice: "${message}"`
+        messagesReceived.push(logMessage)
+        console.log(`\n${logMessage}`)
+      })
 
-  //     intervals.push(
-  //       global.setInterval(async () => {
-  //         bobClient.sendMessage(
-  //           await aliceClient.getPublicKey(),
-  //           `hey from bob ${await getNextRandomId()}`
-  //         )
-  //         //bobClient.sendMessage(charlieClient.getPublicKey(), 'matrix-dev.papers.tech', "hey from bob")
-  //       }, 5000)
-  //     )
+      intervals.push(
+        global.setInterval(async () => {
+          bobClient.sendMessage(
+            await aliceClient.getPublicKey(),
+            `hey from bob ${await getNextRandomId()}`
+          )
+          //bobClient.sendMessage(charlieClient.getPublicKey(), 'matrix-dev.papers.tech', "hey from bob")
+        }, 5000)
+      )
 
-  //     intervals.push(
-  //       global.setInterval(async () => {
-  //         aliceClient.sendMessage(
-  //           await bobClient.getPublicKey(),
-  //           `hey from alice ${await getNextRandomId()}`
-  //         )
-  //         // aliceClient.sendMessage(
-  //         //   await charlieClient.getPublicKey(),
-  //         //   `hey from alice ${await getNextRandomId()}`
-  //         // )
-  //       }, 5000)
-  //     )
+      intervals.push(
+        global.setInterval(async () => {
+          aliceClient.sendMessage(
+            await bobClient.getPublicKey(),
+            `hey from alice ${await getNextRandomId()}`
+          )
+          // aliceClient.sendMessage(
+          //   await charlieClient.getPublicKey(),
+          //   `hey from alice ${await getNextRandomId()}`
+          // )
+        }, 5000)
+      )
 
-  //     global.setTimeout(() => {
-  //       intervals.forEach((intervalId) => {
-  //         clearInterval(intervalId)
-  //       })
+      global.setTimeout(() => {
+        intervals.forEach((intervalId) => {
+          clearInterval(intervalId)
+        })
 
-  //       console.log('randomIDs', randomIDsUsed)
+        console.log('randomIDs', randomIDsUsed)
 
-  //       expect(messagesReceived.length, 'received all messages we send').to.equal(
-  //         randomIDsUsed.length
-  //       )
-  //       const receivedEveryMessageOnce = randomIDsUsed.every((id) => {
-  //         return messagesReceived.filter((message) => message.includes(id)).length === 1
-  //       })
+        expect(messagesReceived.length, 'received all messages we send').to.equal(
+          randomIDsUsed.length
+        )
+        const receivedEveryMessageOnce = randomIDsUsed.every((id) => {
+          return messagesReceived.filter((message) => message.includes(id)).length === 1
+        })
 
-  //       expect(receivedEveryMessageOnce, 'received exact number of messages').to.be.true
+        expect(receivedEveryMessageOnce, 'received exact number of messages').to.be.true
 
-  //       resolve()
-  //     }, MAX_TEST_RUNTIME_SECONDS * 1000)
-  //   })
-  // })
+        resolve()
+      }, MAX_TEST_RUNTIME_SECONDS * 1000)
+    })
+  })
 
   it('should have the same rooms', async () => {
     const aliceClient1 = new P2PCommunicationClient(
