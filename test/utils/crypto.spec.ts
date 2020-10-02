@@ -1,5 +1,5 @@
 import * as chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
+import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { getAddressFromPublicKey } from '../../src/utils/crypto'
 
