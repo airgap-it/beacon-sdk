@@ -161,9 +161,10 @@ const showQrCode = async (
     actionCallback: async () => {
       const base58encoded = await serializer.serialize(data)
       const uri = `web+tezos://?type=tzip10&data=${base58encoded}`
-      let childWindow = window.open() as Window
+      const childWindow = window.open() as Window
       childWindow.opener = null
-      childWindow.location = <any>uri
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      childWindow.location = uri as any
     }
   }
   await openAlert(alertConfig)
