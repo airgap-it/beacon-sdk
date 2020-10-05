@@ -54,6 +54,11 @@ export enum BeaconEvent {
   UNKNOWN = 'UNKNOWN'
 }
 
+export interface AlertButton {
+  name: ''
+  actionCallback(): Promise<void>
+}
+
 export interface BeaconEventType {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
   [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: {
@@ -104,10 +109,18 @@ const showNoPermissionAlert = async (): Promise<void> => {
   })
 }
 
-const showErrorAlert = async (beaconError: BeaconErrorMessage): Promise<void> => {
+const showErrorAlert = async (
+  beaconError: BeaconErrorMessage,
+  buttons?: () => void
+): Promise<void> => {
   const error = beaconError.errorType
     ? BeaconError.getError(beaconError.errorType)
     : new UnknownBeaconError()
+
+  console.log('showing error alert type ', beaconError.errorType)
+  if (buttons) {
+    // eslint-disable-next-line @typescript-eslint/tslint/config
+  }
 
   await openAlert({
     title: error.title,
@@ -259,7 +272,10 @@ const emptyHandler = (eventType: BeaconEvent): BeaconEventHandlerFunction => asy
   logger.log('emptyHandler', eventType, data)
 }
 
-export type BeaconEventHandlerFunction<T = unknown> = (data: T) => void | Promise<void>
+export type BeaconEventHandlerFunction<T = unknown> = (
+  data: T,
+  eventCallback?: () => void
+) => void | Promise<void>
 
 export const defaultEventCallbacks: {
   [key in BeaconEvent]: BeaconEventHandlerFunction<BeaconEventType[key]>
@@ -333,12 +349,16 @@ export class BeaconEventHandler {
     this.callbackMap[event] = listeners
   }
 
-  public async emit<K extends BeaconEvent>(event: K, data?: BeaconEventType[K]): Promise<void> {
+  public async emit<K extends BeaconEvent>(
+    event: K,
+    data?: BeaconEventType[K],
+    eventCallback?: () => void
+  ): Promise<void> {
     const listeners = this.callbackMap[event]
     if (listeners && listeners.length > 0) {
       listeners.forEach(async (listener: BeaconEventHandlerFunction) => {
         try {
-          await listener(data)
+          await listener(data, eventCallback)
         } catch (listenerError) {
           logger.error(`error handling event ${event}`, listenerError)
         }

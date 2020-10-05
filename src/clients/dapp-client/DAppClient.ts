@@ -50,6 +50,7 @@ import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
 import { checkPermissions } from '../../utils/check-permissions'
 import { getAccountIdentifier } from '../../utils/get-account-identifier'
+import { BeaconErrorType } from '../../types/BeaconErrorType'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -419,8 +420,41 @@ export class DAppClient extends Client {
     beaconError: BeaconErrorMessage
   ): Promise<void> {
     if (beaconError.errorType) {
+      let errorCallback = (): Promise<void> => Promise.resolve()
+      if (beaconError.errorType === BeaconErrorType.NO_PRIVATE_KEY_FOUND_ERROR) {
+        errorCallback = async (): Promise<void> => {
+          const operationRequest: OperationRequestInput = request as OperationRequestInput
+          // if the account we requested is not available, we remove it locally
+          let accountInfo: AccountInfo | undefined
+          if (operationRequest.sourceAddress && operationRequest.network) {
+            const accountIdentifier = await getAccountIdentifier(
+              operationRequest.sourceAddress,
+              operationRequest.network
+            )
+            accountInfo = await this.getAccount(accountIdentifier)
+
+            if (accountInfo) {
+              await this.removeAccount(accountInfo.accountIdentifier)
+            }
+          }
+
+          // // Check if we currently have an active account. This shouldn't be the case because it has been removed above.
+          // // But because there could be a huge delay between request/response, it's possible that it has been set to a different account.
+          // const activeAccount = await this.getActiveAccount()
+
+          // if (!activeAccount) {
+          //   // send new permission request
+          //   await this.requestPermissions({
+          //     network: accountInfo?.network,
+          //     scopes: accountInfo?.scopes
+          //   })
+          // }
+          // // send operation again
+          // await this.requestOperation({ operationDetails: operationRequest.operationDetails })
+        }
+      }
       this.events
-        .emit(messageEvents[request.type].error, beaconError)
+        .emit(messageEvents[request.type].error, beaconError, errorCallback)
         .catch((emitError) => console.warn(emitError))
 
       throw BeaconError.getError(beaconError.errorType)
