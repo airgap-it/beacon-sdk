@@ -90,7 +90,7 @@ export class ChromeMessageTransport extends Transport {
     } else {
       logger.log('addPeer', 'peer already added, skipping', newPeer)
     }
-    await this.client.sendPairingResponse(newPeer.publicKey)
+    await this.client.sendPairingResponse(newPeer)
   }
 
   public async removePeer(peerToBeRemoved: PostMessagePairingRequest): Promise<void> {
