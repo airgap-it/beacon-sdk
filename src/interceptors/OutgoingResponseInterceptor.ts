@@ -39,6 +39,12 @@ export class OutgoingResponseInterceptor {
       interceptorCallback
     }: OutgoingResponseInterceptorOptions = config
 
+    // TODO: Remove v1 compatibility in later version
+    const interceptorCallbackWrapper = (msg: BeaconMessage): void => {
+      ;(msg as any).beaconId = msg.senderId
+      interceptorCallback(msg)
+    }
+
     switch (message.type) {
       case BeaconMessageType.Error: {
         const response: ErrorResponse = {
@@ -48,7 +54,7 @@ export class OutgoingResponseInterceptor {
           id: message.id,
           errorType: message.errorType
         }
-        interceptorCallback(response)
+        interceptorCallbackWrapper(response)
         break
       }
       case BeaconMessageType.PermissionResponse: {
@@ -81,7 +87,7 @@ export class OutgoingResponseInterceptor {
 
         permissionManager.addPermission(permission).catch(console.error)
 
-        interceptorCallback(response)
+        interceptorCallbackWrapper(response)
         break
       }
       case BeaconMessageType.OperationResponse:
@@ -91,7 +97,7 @@ export class OutgoingResponseInterceptor {
             version: BEACON_VERSION,
             ...message
           }
-          interceptorCallback(response)
+          interceptorCallbackWrapper(response)
         }
         break
       case BeaconMessageType.SignPayloadResponse:
@@ -101,7 +107,7 @@ export class OutgoingResponseInterceptor {
             version: BEACON_VERSION,
             ...message
           }
-          interceptorCallback(response)
+          interceptorCallbackWrapper(response)
         }
         break
       case BeaconMessageType.BroadcastResponse:
@@ -111,7 +117,7 @@ export class OutgoingResponseInterceptor {
             version: BEACON_VERSION,
             ...message
           }
-          interceptorCallback(response)
+          interceptorCallbackWrapper(response)
         }
         break
 
