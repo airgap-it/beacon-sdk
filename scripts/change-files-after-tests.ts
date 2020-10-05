@@ -11,7 +11,7 @@ const replaceInFile: (file: string, src: string, dest: string) => void = (
 }
 
 /**
- * Because of issues with the module system and tests, the following import doesn't work in the tests and we have to overwrite it.
+ * Because of issues with the module system and tests, the following import doesn't work in the tests (and the browserified version) and we have to overwrite it.
  */
 
 replaceInFile(
