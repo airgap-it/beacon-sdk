@@ -74,7 +74,7 @@ export class ChromeMessageTransport extends Transport {
     })
   }
 
-  public async sendToTabs(publicKey: string, payload: string): Promise<void> {
+  public async sendToTabs(publicKey: string | undefined, payload: string): Promise<void> {
     return this.client.sendMessage(publicKey, payload)
   }
 
@@ -148,18 +148,21 @@ export class ChromeMessageTransport extends Transport {
             .deserialize(message.payload)
             .then((deserialized) => {
               // TODO: Add check if it's a peer
-              this.addPeer(deserialized as any).catch(console.error)
+              if ((deserialized as any).publicKey) {
+                this.addPeer(deserialized as any).catch(console.error)
+              } else {
+                // V1 does not support encryption, so we handle the message directly
+                if ((deserialized as any).version === '1') {
+                  this.notify(message, sender, sendResponse).catch((error) => {
+                    throw error
+                  })
+                }
+              }
             })
             .catch(undefined)
         } else if (message && message.payload) {
           // Most likely an internal, unencrypted message
-          const connectionContext: ConnectionContext = {
-            origin: Origin.WEBSITE,
-            id: sender.url ? sender.url : '',
-            extras: { sender, sendResponse }
-          }
-
-          this.notifyListeners(message, connectionContext).catch((error) => {
+          this.notify(message, sender, sendResponse).catch((error) => {
             throw error
           })
         }
@@ -170,5 +173,21 @@ export class ChromeMessageTransport extends Transport {
         // return true
       }
     )
+  }
+
+  private async notify(
+    message: ExtensionMessage<string>,
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response?: unknown) => void
+  ): Promise<void> {
+    const connectionContext: ConnectionContext = {
+      origin: Origin.WEBSITE,
+      id: sender.url ? sender.url : '',
+      extras: { sender, sendResponse }
+    }
+
+    this.notifyListeners(message, connectionContext).catch((error) => {
+      throw error
+    })
   }
 }

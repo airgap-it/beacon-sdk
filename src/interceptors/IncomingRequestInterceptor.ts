@@ -38,6 +38,7 @@ export class IncomingRequestInterceptor {
     // TODO: Remove v1 compatibility in later version
     if ((message as any).beaconId && !message.senderId) {
       message.senderId = (message as any).beaconId
+      delete (message as any).beaconId
     }
 
     switch (message.type) {
