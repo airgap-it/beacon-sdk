@@ -191,17 +191,19 @@ const showQrCode = async (
   const dataString = JSON.stringify(data)
   console.log(dataString)
 
+  const base58encoded = await serializer.serialize(data)
+  console.log('base58encoded pair code', base58encoded)
+
   const alertConfig: AlertConfig = {
     title: 'Pair with Wallet',
     confirmButtonText: 'Done',
     actionButtonText: 'Connect Wallet',
     body: `${getQrData(
-      dataString,
+      `tezos://?type=tzip10&data=${base58encoded}`,
       'svg'
     )}<p>Connect wallet by scanning the QR code or clicking the link button <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn&nbsp;more</a></p>`,
     confirmCallback: () => undefined,
     actionCallback: async () => {
-      const base58encoded = await serializer.serialize(data)
       const uri = `web+tezos://?type=tzip10&data=${base58encoded}`
       const childWindow = window.open() as Window
       childWindow.opener = null
