@@ -14,6 +14,7 @@ import { Logger } from '../utils/Logger'
 import { Storage } from '../storage/Storage'
 import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
+import { Extension } from '../utils/available-transports'
 import { Transport } from './Transport'
 import { PostMessageClient } from './clients/PostMessageClient'
 
@@ -56,6 +57,37 @@ export class PostMessageTransport extends Transport {
       }
 
       myWindow.addEventListener('message', fn)
+
+      const message: ExtensionMessage<string> = {
+        target: ExtensionMessageTarget.EXTENSION,
+        payload: 'ping'
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      myWindow.postMessage(message as any, '*')
+    })
+  }
+
+  public static async getAvailableExtensions(): Promise<Extension[]> {
+    const extensions: Extension[] = []
+
+    return new Promise((resolve) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fn = (event: any): void => {
+        const data = event.data as ExtensionMessage<
+          string,
+          { id: string; name: string; iconURL: string }
+        >
+        if (data && data.payload === 'pong' && data.sender) {
+          extensions.push(data.sender)
+        }
+      }
+
+      myWindow.addEventListener('message', fn)
+
+      setTimeout(() => {
+        myWindow.removeEventListener('message', fn)
+        resolve(extensions)
+      }, 1000)
 
       const message: ExtensionMessage<string> = {
         target: ExtensionMessageTarget.EXTENSION,
