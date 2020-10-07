@@ -44,6 +44,12 @@ export class IncomingRequestInterceptor {
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
         {
+          // TODO: Remove v1 compatibility in later version
+          if ((message.appMetadata as any).beaconId && !message.appMetadata.senderId) {
+            message.appMetadata.senderId = (message.appMetadata as any).beaconId
+            delete (message.appMetadata as any).beaconId
+          }
+
           await appMetadataManager.addAppMetadata(message.appMetadata)
           const request: PermissionRequestOutput = message
           interceptorCallback(request, connectionInfo)
