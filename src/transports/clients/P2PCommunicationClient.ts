@@ -232,18 +232,24 @@ export class P2PCommunicationClient extends CommunicationClient {
     }
   }
 
-  public async sendPairingResponse(recipientPublicKey: string, relayServer: string): Promise<void> {
+  public async sendPairingResponse(pairingRequest: P2PPairingRequest): Promise<void> {
     await this.log('open channel')
-    const recipientHash = await getHexHash(Buffer.from(recipientPublicKey, 'hex'))
-    const recipient = recipientString(recipientHash, relayServer)
+    const recipientHash = await getHexHash(Buffer.from(pairingRequest.publicKey, 'hex'))
+    const recipient = recipientString(recipientHash, pairingRequest.relayServer)
 
     await this.log(`currently there are ${this.clients.length} clients open`)
     for (const client of this.clients) {
       const room = await this.getRelevantRoom(client, recipient)
 
+      // TODO: remove v1 backwards-compatibility
+      const message: string =
+        typeof pairingRequest.version === 'undefined'
+          ? await this.getPublicKey() // v1
+          : JSON.stringify(await this.getHandshakeInfo()) // v2
+
       const encryptedMessage: string = await sealCryptobox(
-        JSON.stringify(await this.getHandshakeInfo()),
-        Buffer.from(recipientPublicKey, 'hex')
+        message,
+        Buffer.from(pairingRequest.publicKey, 'hex')
       )
       client
         .sendTextMessage(room.id, ['@channel-open', recipient, encryptedMessage].join(':'))

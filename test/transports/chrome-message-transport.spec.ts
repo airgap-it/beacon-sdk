@@ -123,9 +123,7 @@ describe(`ChromeMessageTransport`, () => {
     expect(listenStub.callCount, 'listenStub').to.equal(1)
     expect(listenStub.firstCall.args[0], 'listenStub').to.equal(pairingResponse.publicKey)
     expect(sendResponseStub.callCount, 'sendResponseStub').to.equal(1)
-    expect(sendResponseStub.firstCall.args[0], 'sendResponseStub').to.equal(
-      pairingResponse.publicKey
-    )
+    expect(sendResponseStub.firstCall.args[0], 'sendResponseStub').to.deep.equal(pairingResponse)
   })
 
   it(`should remove peer and unsubscribe`, async () => {
