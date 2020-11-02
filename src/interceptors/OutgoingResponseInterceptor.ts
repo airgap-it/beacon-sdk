@@ -41,7 +41,8 @@ export class OutgoingResponseInterceptor {
 
     // TODO: Remove v1 compatibility in later version
     const interceptorCallbackWrapper = (msg: BeaconMessage): void => {
-      ;(msg as any).beaconId = msg.senderId
+      const untypedMessage: any = msg
+      untypedMessage.beaconId = msg.senderId
       interceptorCallback(msg)
     }
 
