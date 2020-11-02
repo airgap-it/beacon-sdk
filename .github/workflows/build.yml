@@ -30,7 +30,7 @@ jobs:
       - name: Test
         run: npm run test
 
-			- name: Analyze with SonarCloud
+      - name: Analyze with SonarCloud
         uses: sonarsource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
