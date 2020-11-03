@@ -1,4 +1,4 @@
-name: Build
+name: Build, Test and Analyze
 
 on: push
 
@@ -8,6 +8,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Cache node modules
         uses: actions/cache@v1
@@ -26,3 +28,12 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Test
+        run: npm run test
+
+      - name: Analyze with SonarCloud
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
