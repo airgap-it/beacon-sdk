@@ -100,7 +100,9 @@ describe(`DAppClient`, () => {
      *
      * We cannot do it globally because it fails in the storage tests because of security policies
      */
-    this.jsdom = require('jsdom-global')()
+    this.jsdom = require('jsdom-global')('<!doctype html><html><body></body></html>', {
+      url: 'http://localhost/'
+    })
   })
 
   after(function () {
