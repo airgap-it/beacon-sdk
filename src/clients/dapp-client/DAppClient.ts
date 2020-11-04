@@ -49,6 +49,8 @@ import {
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
 import { getAccountIdentifier } from '../../utils/get-account-identifier'
+import { BlockExplorer } from '../../utils/block-explorer'
+import { TezblockBlockExplorer } from '../../utils/tezos-block-explorer'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -62,6 +64,11 @@ export class DAppClient extends Client {
    * The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet
    */
   public readonly iconUrl?: string
+
+  /**
+   * The block explorer used by the SDK
+   */
+  public readonly blockExplorer: BlockExplorer
 
   /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
@@ -90,6 +97,7 @@ export class DAppClient extends Client {
       ...config
     })
     this.iconUrl = config.iconUrl
+    this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
 
     this.storage
       .get(StorageKey.ACTIVE_ACCOUNT)
@@ -355,6 +363,7 @@ export class DAppClient extends Client {
     await this.notifySuccess(request, {
       account: accountInfo,
       output,
+      blockExplorer: this.blockExplorer,
       connectionContext: connectionInfo
     })
 
@@ -440,6 +449,7 @@ export class DAppClient extends Client {
     await this.notifySuccess(request, {
       account: activeAccount,
       output,
+      blockExplorer: this.blockExplorer,
       connectionContext: connectionInfo
     })
 
@@ -475,7 +485,12 @@ export class DAppClient extends Client {
 
     const output: BroadcastResponseOutput = { senderId, transactionHash }
 
-    await this.notifySuccess(request, { network, output, connectionContext: connectionInfo })
+    await this.notifySuccess(request, {
+      network,
+      output,
+      blockExplorer: this.blockExplorer,
+      connectionContext: connectionInfo
+    })
 
     return { senderId, transactionHash }
   }
@@ -553,11 +568,13 @@ export class DAppClient extends Client {
       | {
           account: AccountInfo
           output: PermissionResponseOutput
+          blockExplorer: BlockExplorer
           connectionContext: ConnectionContext
         }
       | {
           account: AccountInfo
           output: OperationResponseOutput
+          blockExplorer: BlockExplorer
           connectionContext: ConnectionContext
         }
       | {
@@ -567,6 +584,7 @@ export class DAppClient extends Client {
       | {
           network: Network
           output: BroadcastResponseOutput
+          blockExplorer: BlockExplorer
           connectionContext: ConnectionContext
         }
   ): Promise<void> {
