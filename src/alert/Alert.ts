@@ -4,15 +4,22 @@ import { generateGUID } from '../utils/generate-uuid'
 import { isAndroid, isIOS } from '../utils/platform'
 import { replaceInTemplate } from '../utils/replace-in-template'
 import { alertTemplates } from './alert-templates'
+export interface AlertButton {
+  text: string
+  style: 'solid' | 'outline'
+  actionCallback(): Promise<void>
+}
 
 export interface AlertConfig {
   title: string
   body?: string
   timer?: number
-  confirmButtonText?: string
-  actionButtonText?: string
-  confirmCallback?(): void
-  actionCallback?(): void
+  buttons?: AlertButton[]
+  pairingPayload?: string
+  confirmButtonText?: string // TODO: Remove before v2
+  actionButtonText?: string // TODO: Remove before v2
+  confirmCallback?(): void // TODO: Remove before v2
+  actionCallback?(): void // TODO: Remove before v2
 }
 
 let document: Document
@@ -35,16 +42,16 @@ const formatAlert = (
   body: string,
   title: string,
   type: 'default' | 'pair',
-  confirmButtonText?: string,
-  actionButtonText?: string
+  buttons: AlertButton[],
+  pairingPayload?: string
 ): string => {
   const callToAction: string = title
-  const confirmButton: string = confirmButtonText
-    ? `<button id="beacon-alert-${id}-button-ok" class="beacon-modal__button">${confirmButtonText}</button>`
-    : ''
-  const actionButton: string = actionButtonText
-    ? `<button id="beacon-alert-${id}-button-action" class="beacon-modal__button--outline">${actionButtonText}</button>`
-    : ''
+  const buttonsHtml = buttons.map(
+    (button, index: number) =>
+      `<button id="beacon-alert-${id}-${index}" class="beacon-modal__button${
+        button.style === 'outline' ? '--outline' : ''
+      }">${button.text}</button>`
+  )
 
   let allStyles = alertTemplates.default.css
 
@@ -61,17 +68,17 @@ const formatAlert = (
   )
 
   alertContainer = replaceInTemplate(alertContainer, 'callToAction', callToAction)
-  alertContainer = replaceInTemplate(alertContainer, 'actionButton', actionButton)
-  alertContainer = replaceInTemplate(alertContainer, 'confirmButton', confirmButton)
+  alertContainer = replaceInTemplate(alertContainer, 'buttons', buttonsHtml.join(' '))
 
   alertContainer = replaceInTemplate(alertContainer, 'body', body)
   alertContainer = replaceInTemplate(alertContainer, 'id', id)
 
+  alertContainer = replaceInTemplate(alertContainer, 'payload', pairingPayload ?? '')
+
   if (alertContainer.indexOf('{{') >= 0) {
-    console.error(
-      'Not all placeholders replaced!',
-      alertContainer.substr(alertContainer.indexOf('{{'), 20)
-    )
+    const start = alertContainer.indexOf('{{')
+    const end = alertContainer.indexOf('}}')
+    console.error('Not all placeholders replaced!', alertContainer.substr(start, end - start))
     throw new Error('Not all placeholders replaced!')
   }
 
@@ -131,10 +138,12 @@ const closeAlerts = async (): Promise<void> =>
  *
  * @param alertConfig The configuration of the alert
  */
+// eslint-disable-next-line complexity
 const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const body = alertConfig.body
   const title = alertConfig.title
   const timer = alertConfig.timer
+  const pairingPayload = alertConfig.pairingPayload
   const confirmButtonText = alertConfig.confirmButtonText
   const actionButtonText = alertConfig.actionButtonText
   // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -149,15 +158,26 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', `beacon-alert-wrapper-${id}`)
 
+  const buttons: AlertButton[] = [...(alertConfig.buttons ?? [])]
+
+  if (actionButtonText || actionCallback) {
+    buttons.push({
+      text: actionButtonText ?? 'click',
+      actionCallback: (actionCallback as any) ?? (() => Promise.resolve()),
+      style: 'outline'
+    })
+  }
+
+  if (confirmButtonText || confirmCallback) {
+    buttons.push({
+      text: confirmButtonText ?? 'click',
+      actionCallback: (confirmCallback as any) ?? (() => Promise.resolve()),
+      style: 'solid'
+    })
+  }
+
   const formattedBody = body ? formatBody(body) : ''
-  wrapper.innerHTML = formatAlert(
-    id,
-    formattedBody,
-    title,
-    'pair',
-    confirmButtonText,
-    actionButtonText
-  )
+  wrapper.innerHTML = formatAlert(id, formattedBody, title, 'pair', buttons, pairingPayload)
 
   if (timer) {
     timeout[id] = window.setTimeout(async () => {
@@ -166,27 +186,20 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   }
 
   document.body.appendChild(wrapper)
-  const okButton = document.getElementById(`beacon-alert-${id}-button-ok`)
-  const actionButton = document.getElementById(`beacon-alert-${id}-button-action`)
+
+  buttons.forEach((button: AlertButton, index) => {
+    const buttonElement = document.getElementById(`beacon-alert-${id}-${index}`)
+    if (buttonElement) {
+      buttonElement.addEventListener('click', async () => {
+        await closeAlert(id)
+        if (button.actionCallback) {
+          await button.actionCallback()
+        }
+      })
+    }
+  })
+
   const closeButton = document.getElementById(`beacon-alert-${id}-close`)
-
-  if (okButton) {
-    okButton.addEventListener('click', async () => {
-      await closeAlert(id)
-      if (confirmCallback) {
-        confirmCallback()
-      }
-    })
-  }
-
-  if (actionButton) {
-    actionButton.addEventListener('click', async () => {
-      await closeAlert(id)
-      if (actionCallback) {
-        actionCallback()
-      }
-    })
-  }
 
   if (closeButton) {
     closeButton.addEventListener('click', async () => {
@@ -200,13 +213,21 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const iosList: HTMLElement | null = document.getElementById(`beacon-ios-list`)
   const androidList: HTMLElement | null = document.getElementById(`beacon-android-list`)
   const desktopList: HTMLElement | null = document.getElementById(`beacon-desktop-list`)
+  const webList: HTMLElement | null = document.getElementById(`beacon-web-list`)
 
-  if (mainText && iosList && androidList && desktopList) {
+  if (mainText && iosList && androidList && desktopList && webList) {
     const showPlatform = (type: 'ios' | 'android' | 'desktop' | 'none'): void => {
+      const platformSwitch: HTMLElement | null = document.getElementById(`beacon-switch`)
+      if (platformSwitch) {
+        platformSwitch.innerHTML =
+          type === 'none' ? 'Pair Wallet on same device' : 'Pair Wallet on different device'
+      }
+
       mainText.style.display = 'none'
       iosList.style.display = 'none'
       androidList.style.display = 'none'
       desktopList.style.display = 'none'
+      webList.style.display = 'none'
 
       switch (type) {
         case 'ios':
@@ -217,6 +238,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
           break
         case 'desktop':
           desktopList.style.display = 'initial'
+          webList.style.display = 'initial'
           break
         default:
           mainText.style.display = 'initial'
@@ -232,9 +254,11 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
 
     switchPlatform()
 
-    const platformSwitch: HTMLElement | null = document.getElementById(`beacon-switch`)
-    if (platformSwitch) {
-      platformSwitch.addEventListener('click', switchPlatform)
+    {
+      const platformSwitch: HTMLElement | null = document.getElementById(`beacon-switch`)
+      if (platformSwitch) {
+        platformSwitch.addEventListener('click', switchPlatform)
+      }
     }
   }
 

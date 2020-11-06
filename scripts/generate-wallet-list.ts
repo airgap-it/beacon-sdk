@@ -1,61 +1,62 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import { replaceInTemplate } from '../src/utils/replace-in-template'
+import { getTzip10Link } from '../src/utils/get-tzip10-link'
 
-export interface DesktopApp {
+export interface App {
   name: string
   shortName: string
   color: string
   logo: string
   universalLink: string
-  deepLink: string
+  deepLink?: string
 }
 
-export const desktopList: DesktopApp[] = [
+export const webList: App[] = [
   {
-    name: 'Galleon',
-    shortName: 'Galleon',
+    name: 'Kukai',
+    shortName: 'Kukai',
     color: '',
-    logo: 'desktop-galleon.png',
-    universalLink: 'https://cryptonomic.tech',
-    deepLink: 'galleon:'
+    logo: 'web-kukai.png',
+    universalLink: 'https://wallet.kukai.app'
   }
 ]
 
-export interface IosApp {
-  name: string
-  shortName: string
-  color: string
-  logo: string
-  universalLink: string
-  deepLink: string
-}
+export const desktopList: App[] = [
+  // {
+  //   name: 'Galleon',
+  //   shortName: 'Galleon',
+  //   color: '',
+  //   logo: 'desktop-galleon.png',
+  //   universalLink: 'https://cryptonomic.tech'
+  // }
+]
 
-export const iosList: IosApp[] = [
+export const iosList: App[] = [
   {
     name: 'AirGap Wallet',
     shortName: 'AirGap',
     color: 'rgb(4, 235, 204)',
     logo: 'ios-airgap.png',
-    universalLink: 'https://vault.airgap.it',
-    deepLink: 'airgap-wallet:'
-  },
-  {
-    name: 'Magma',
-    shortName: 'Magma',
-    color: '',
-    logo: 'ios-magma.png',
-    universalLink: 'https://magmawallet.io',
-    deepLink: 'magma:'
-  },
-  {
-    name: 'Galleon',
-    shortName: 'Galleon',
-    color: '',
-    logo: 'ios-galleon.png',
-    universalLink: 'https://cryptonomic.tech',
-    deepLink: 'galleon:'
+    universalLink: 'https://wallet.airgap.it',
+    deepLink: 'airgap-wallet://'
   }
+  // {
+  //   name: 'Magma',
+  //   shortName: 'Magma',
+  //   color: '',
+  //   logo: 'ios-magma.png',
+  //   universalLink: 'https://magmawallet.io',
+  //   deepLink: 'magma://'
+  // },
+  // {
+  //   name: 'Galleon',
+  //   shortName: 'Galleon',
+  //   color: '',
+  //   logo: 'ios-galleon.png',
+  //   universalLink: 'https://cryptonomic.tech',
+  //   deepLink: 'galleon://'
+  // }
 ]
 
 const readFile = (path: string): Promise<Buffer> => {
@@ -82,19 +83,29 @@ function writeFile(path: string, data: any) {
 
 const PKG_DIR = path.join(__dirname, '../')
 const REGISTRY_DIR = path.join(PKG_DIR, 'assets', 'logos')
-// const DESTINATION_DIR = path.join(PKG_DIR, 'src', 'deeplink')
 
-const convert = (list: any[]): Promise<string[]> => {
+const resizeImg = require('resize-img')
+
+const convert = (list: App[]): Promise<string[]> => {
   return Promise.all(
     list.map(async (entry) => {
-      const buffer = await readFile(path.join(REGISTRY_DIR, entry.logo))
+      const image = await resizeImg(await readFile(path.join(REGISTRY_DIR, entry.logo)), {
+        width: 64,
+        height: 64
+      })
+
       const ext = path.extname(entry.logo).replace('.', '')
       const altTag = `Open in ${entry.name}`
-      const logo = `data:image/${ext};base64,${buffer.toString('base64')}`
+      const logo = `data:image/${ext};base64,${image.toString('base64')}`
+      const link = getTzip10Link(entry.deepLink ?? entry.universalLink, '{{payload}}')
       return `
-<a alt="${altTag}" href="${entry.link}">
-	<img src="${logo}" width="64px" height="64px" />
-</a>`
+      <a alt="${altTag}" href="${link}" class="beacon-selection__list">
+        <div class="beacon-selection__name">${entry.name}</div>
+        <div>
+          <img class="beacon-selection__img" src="${logo}"/>
+        </div>
+      </a>
+      `
     })
   )
 }
@@ -117,8 +128,16 @@ const createAlert = async () => {
    * Replace the lists of the devices
    */
   pairHtml = replaceInTemplate(pairHtml, 'ios', (await convert(iosList)).join(''))
-  pairHtml = replaceInTemplate(pairHtml, 'android', JSON.stringify([]))
+  pairHtml = replaceInTemplate(
+    pairHtml,
+    'android',
+    `<a href="${getTzip10Link(
+      'tezos://',
+      '{{payload}}'
+    )}"><button class="beacon-modal__button">Connect Wallet</button></a>`
+  )
   pairHtml = replaceInTemplate(pairHtml, 'desktop', (await convert(desktopList)).join(''))
+  pairHtml = replaceInTemplate(pairHtml, 'web', (await convert(webList)).join(''))
 
   const x = {
     container: containerHtml,

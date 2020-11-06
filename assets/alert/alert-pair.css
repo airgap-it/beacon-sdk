@@ -1,12 +1,25 @@
 #beacon-main-text {
   display: initial;
 }
-#beacon-ios-list {
-  display: none;
+.beacon-selection__container {
+  padding: 16px 16px 0;
 }
-#beacon-android-list {
-  display: none;
+.beacon-selection__list {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  text-decoration: none;
+  padding-bottom: 24px;
+  align-items: center;
 }
-#beacon-desktop-list {
-  display: none;
+.beacon-selection__name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #3b3d40;
+}
+.beacon-selection__img {
+  width: 48px;
+  height: 48px;
+  box-shadow: 0 4px 12px 0 rgba(17, 17, 17, 0.24);
+  border-radius: 16px;
 }

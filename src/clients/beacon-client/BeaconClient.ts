@@ -50,7 +50,7 @@ export abstract class BeaconClient {
     this.initSDK().catch(console.error)
   }
 
-  public async resetSDK(): Promise<void> {
+  public async destroy(): Promise<void> {
     await this.removeBeaconEntriesFromStorage()
   }
 

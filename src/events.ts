@@ -1,3 +1,4 @@
+import { getTzip10Link } from './utils/get-tzip10-link'
 import { openToast } from './alert/Toast'
 import { openAlert, AlertConfig } from './alert/Alert'
 import { getQrData } from './utils/qr'
@@ -5,6 +6,7 @@ import { Logger } from './utils/Logger'
 import { Transport } from './transports/Transport'
 import { BeaconError } from './errors/BeaconError'
 import { ConnectionContext } from './types/ConnectionContext'
+import { Serializer } from './Serializer'
 import {
   getAccountBlockExplorerLinkForNetwork,
   getTransactionBlockExplorerLinkForNetwork
@@ -22,6 +24,8 @@ import {
 } from '.'
 
 const logger = new Logger('BeaconEvents')
+
+const serializer = new Serializer()
 
 /**
  * The different events that can be emitted by the beacon-sdk
@@ -121,10 +125,15 @@ const showNoPermissionAlert = async (): Promise<void> => {
  *
  * @param beaconError The beacon error
  */
-const showErrorAlert = async (beaconError: ErrorResponse): Promise<void> => {
+const showErrorAlert = async (beaconError: ErrorResponse, buttons?: () => void): Promise<void> => {
   const error = beaconError.errorType
     ? BeaconError.getError(beaconError.errorType)
     : new UnknownBeaconError()
+
+  console.log('showing error alert type ', beaconError.errorType)
+  if (buttons) {
+    // eslint-disable-next-line @typescript-eslint/tslint/config
+  }
 
   await openAlert({
     title: error.title,
@@ -189,14 +198,20 @@ const showQrCode = async (
   const dataString = JSON.stringify(data)
   console.log(dataString)
 
+  const base58encoded = await serializer.serialize(data)
+  const uri = getTzip10Link('tezos://', base58encoded)
+  // const childWindow = window.open() as Window
+  // childWindow.opener = null
+  // // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // childWindow.location = uri as any
+
   const alertConfig: AlertConfig = {
     title: 'Pair with Wallet',
-    confirmButtonText: 'Done',
     body: `${getQrData(
-      dataString,
+      uri,
       'svg'
     )}<p>Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn more</a>.</p>`,
-    confirmCallback: () => undefined
+    pairingPayload: base58encoded
   }
   await openAlert(alertConfig)
 }
@@ -310,7 +325,10 @@ const emptyHandler = (eventType: BeaconEvent): BeaconEventHandlerFunction => asy
   logger.log('emptyHandler', eventType, data)
 }
 
-export type BeaconEventHandlerFunction<T = unknown> = (data: T) => void | Promise<void>
+export type BeaconEventHandlerFunction<T = unknown> = (
+  data: T,
+  eventCallback?: () => void
+) => void | Promise<void>
 
 /**
  * The default event handlers
@@ -404,12 +422,16 @@ export class BeaconEventHandler {
    * @param event The event being emitted
    * @param data The data to be emit
    */
-  public async emit<K extends BeaconEvent>(event: K, data?: BeaconEventType[K]): Promise<void> {
+  public async emit<K extends BeaconEvent>(
+    event: K,
+    data?: BeaconEventType[K],
+    eventCallback?: () => void
+  ): Promise<void> {
     const listeners = this.callbackMap[event]
     if (listeners && listeners.length > 0) {
       listeners.forEach(async (listener: BeaconEventHandlerFunction) => {
         try {
-          await listener(data)
+          await listener(data, eventCallback)
         } catch (listenerError) {
           logger.error(`error handling event ${event}`, listenerError)
         }

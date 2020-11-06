@@ -2,8 +2,13 @@
   {{body}}
 </div>
 
-<span id="beacon-ios-list">iOS<br />{{ios}}</span>
-<span id="beacon-android-list">Android<br />{{android}}</span>
-<span id="beacon-desktop-list">Desktop<br />{{desktop}}</span>
+<div id="beacon-ios-list">
+  <div class="beacon-selection__container">{{ios}}</div>
+</div>
+<div id="beacon-android-list">{{android}}</div>
+<div id="beacon-desktop-list">{{desktop}}</div>
+<div id="beacon-web-list">{{web}}</div>
 
-<div id="beacon-switch">Switch Platform</div>
+<div>
+  <button id="beacon-switch" class="beacon-modal__button--outline"></button>
+</div>

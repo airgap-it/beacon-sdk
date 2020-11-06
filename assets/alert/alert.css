@@ -33,28 +33,35 @@
   animation-name: fadeOut;
 }
 
-.beacon-modal__base {
+.beacon-modal__wrapper {
   position: relative;
+  transform: translateY(-50%);
   top: 50%;
   display: inline-block;
   z-index: 2147483000;
-  background: #fff;
-  transform: translateY(-50%);
-  margin: 0 auto;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.1);
-  width: 100%;
   max-width: 500px;
+  width: 100%;
+}
+
+.beacon-modal__base,
+.beacon-modal__close__wrapper {
+  background: #fff;
+  box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.1);
+}
+
+.beacon-modal__base {
+  margin: 0 auto;
+  border-radius: 32px;
+  overflow: hidden;
 }
 
 .beacon-modal__header {
-  padding-top: 16px;
-  position: relative;
+  padding: 16px 0;
   width: 100%;
   display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
 }
 
 .beacon-modal__headerLogo {
@@ -64,17 +71,26 @@
   height: 100%;
 }
 
+.beacon-alert__text,
+.beacon-alert__title,
+.beacon-selection__name,
+p,
+button {
+  font-family: Roboto, Helvetica, sans-serif;
+}
+
 .beacon-modal__close__wrapper {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 20px;
+  right: 0;
   z-index: 10000;
   cursor: pointer;
+  border-radius: 100%;
 }
 
 .beacon-modal__close__icon {
-  width: 24px;
-  height: 24px;
+  width: 16px;
+  height: 16px;
   position: relative;
   top: 0;
   right: 0;
@@ -82,18 +98,19 @@
   align-items: center;
   justify-content: center;
   transform: rotate(45deg);
+  margin: 8px;
 }
 
 .beacon-modal__close__line1 {
   position: absolute;
   width: 90%;
-  border: 1px solid #7c828b;
+  border: 1px solid #000;
 }
 
 .beacon-modal__close__line2 {
   position: absolute;
   width: 90%;
-  border: 1px solid #7c828b;
+  border: 1px solid #000;
   transform: rotate(90deg);
 }
 
@@ -103,13 +120,12 @@
   width: 100%;
   height: 100%;
   z-index: 2147482999;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgb(17 17 17 / 0.84);
   text-align: center;
 }
 
 .beacon-alert__text,
 .beacon-alert__title {
-  font-family: Roboto, sans-serif;
   text-align: center;
   margin: 0 auto;
   padding: 0 0 16px;
@@ -133,7 +149,6 @@
 .beacon-modal__button--outline {
   height: 36px;
   font-size: 14px;
-  font-weight: 500;
   letter-spacing: 0.84px;
   margin-bottom: 4px;
   margin-inline-end: 2px;
@@ -166,8 +181,9 @@
   width: 300px;
   height: 300px;
   box-sizing: border-box;
-  box-shadow: 0 10px 20px 0 rgba(49, 27, 88, 0.12);
-  border: 1px solid rgba(0, 232, 204, 0.08);
+  box-shadow: 0 10px 20px 0 rgba(17, 17, 17, 0.12);
+  border: 1px solid rgba(17, 17, 17, 0.04);
+  border-radius: 16px;
 }
 
 .beacon-modal__content {
