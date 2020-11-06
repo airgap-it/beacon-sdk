@@ -98,6 +98,7 @@ const convert = (list: App[]): Promise<string[]> => {
       const altTag = `Open in ${entry.name}`
       const logo = `data:image/${ext};base64,${image.toString('base64')}`
       const link = getTzip10Link(entry.deepLink ?? entry.universalLink, '{{payload}}')
+
       return `
       <a alt="${altTag}" href="${link}" class="beacon-selection__list">
         <div class="beacon-selection__name">${entry.name}</div>
