@@ -100,7 +100,7 @@ const convert = (list: App[]): Promise<string[]> => {
       const link = getTzip10Link(entry.deepLink ?? entry.universalLink, '{{payload}}')
 
       return `
-      <a alt="${altTag}" href="${link}" class="beacon-selection__list">
+      <a alt="${altTag}" href="${link}" target="_blank" class="beacon-selection__list">
         <div class="beacon-selection__name">${entry.name}</div>
         <div>
           <img class="beacon-selection__img" src="${logo}"/>
@@ -135,7 +135,7 @@ const createAlert = async () => {
     `<a href="${getTzip10Link(
       'tezos://',
       '{{payload}}'
-    )}"><button class="beacon-modal__button">Connect Wallet</button></a>`
+    )}" target="_blank"><button class="beacon-modal__button">Connect Wallet</button></a>`
   )
   pairHtml = replaceInTemplate(pairHtml, 'desktop', (await convert(desktopList)).join(''))
   pairHtml = replaceInTemplate(pairHtml, 'web', (await convert(webList)).join(''))
