@@ -115,7 +115,7 @@ export class P2PTransport extends Transport {
     } else {
       logger.log('addPeer', 'peer already added, skipping', newPeer)
     }
-    await this.client.sendPairingResponse(newPeer.publicKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
+    await this.client.sendPairingResponse(newPeer) // TODO: Should we have a confirmation here?
   }
 
   public async removePeer(peerToBeRemoved: P2PPairingRequest): Promise<void> {

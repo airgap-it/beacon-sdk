@@ -24,7 +24,6 @@ import {
 } from '.'
 
 const logger = new Logger('BeaconEvents')
-
 const serializer = new Serializer()
 
 /**
@@ -199,6 +198,7 @@ const showQrCode = async (
   console.log(dataString)
 
   const base58encoded = await serializer.serialize(data)
+  console.log(base58encoded)
   const uri = getTzip10Link('tezos://', base58encoded)
   // const childWindow = window.open() as Window
   // childWindow.opener = null
@@ -283,8 +283,8 @@ const showSignSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output
   const alertConfig: AlertConfig = {
-    title: 'Transaction Signed',
-    body: `The transaction has successfully been signed.
+    title: 'Payload signed',
+    body: `The payload has successfully been signed.
     <br>
     Signature: <strong>${output.signature}</strong>`,
     confirmButtonText: 'Done',

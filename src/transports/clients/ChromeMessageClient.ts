@@ -1,5 +1,6 @@
 import { ExtensionMessage, ExtensionMessageTarget } from '../..'
 import { EncryptedExtensionMessage } from '../../types/ExtensionMessage'
+import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
 import { sealCryptobox } from '../../utils/crypto'
 import { MessageBasedClient } from './MessageBasedClient'
 
@@ -57,12 +58,20 @@ export class ChromeMessageClient extends MessageBasedClient {
     this.activeListeners.set(senderPublicKey, callbackFunction)
   }
 
-  public async sendMessage(recipientPublicKey: string, message: string): Promise<void> {
-    const payload = await this.encryptMessage(recipientPublicKey, message)
-
-    const msg: EncryptedExtensionMessage = {
+  public async sendMessage(recipientPublicKey: string | undefined, message: string): Promise<void> {
+    let msg: EncryptedExtensionMessage | ExtensionMessage<string> = {
       target: ExtensionMessageTarget.PAGE,
-      encryptedPayload: payload
+      payload: message
+    }
+
+    // If no recipient public key is provided, we respond with an unencrypted message
+    if (recipientPublicKey) {
+      const payload = await this.encryptMessage(recipientPublicKey, message)
+
+      msg = {
+        target: ExtensionMessageTarget.PAGE,
+        encryptedPayload: payload
+      }
     }
 
     chrome.tabs.query({}, (tabs: chrome.tabs.Tab[]) => {
@@ -75,10 +84,10 @@ export class ChromeMessageClient extends MessageBasedClient {
     })
   }
 
-  public async sendPairingResponse(recipientPublicKey: string): Promise<void> {
+  public async sendPairingResponse(pairingRequest: PostMessagePairingRequest): Promise<void> {
     const encryptedMessage: string = await sealCryptobox(
       JSON.stringify(await this.getHandshakeInfo()),
-      Buffer.from(recipientPublicKey, 'hex')
+      Buffer.from(pairingRequest.publicKey, 'hex')
     )
 
     const message: ExtensionMessage<string> = {

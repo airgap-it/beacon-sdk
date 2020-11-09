@@ -74,7 +74,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
       sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
     ) {
       try {
-        return decryptCryptoboxPayload(hexPayload, sharedRx)
+        return await decryptCryptoboxPayload(hexPayload, sharedRx)
       } catch (decryptionError) {
         /* NO-OP. We try to decode every message, but some might not be addressed to us. */
       }
