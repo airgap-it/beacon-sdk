@@ -177,7 +177,14 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   }
 
   const formattedBody = body ? formatBody(body) : ''
-  wrapper.innerHTML = formatAlert(id, formattedBody, title, 'pair', buttons, pairingPayload)
+  wrapper.innerHTML = formatAlert(
+    id,
+    formattedBody,
+    title,
+    pairingPayload ? 'pair' : 'default',
+    buttons,
+    pairingPayload
+  )
 
   if (timer) {
     timeout[id] = window.setTimeout(async () => {
