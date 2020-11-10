@@ -8,8 +8,7 @@ import {
   recipientString,
   openCryptobox,
   encryptCryptoboxPayload,
-  decryptCryptoboxPayload,
-  isHex
+  decryptCryptoboxPayload
 } from '../../utils/crypto'
 import { MatrixClient } from '../../matrix-client/MatrixClient'
 import {
@@ -137,14 +136,17 @@ export class P2PCommunicationClient extends CommunicationClient {
       event: MatrixClientEvent<MatrixClientEventType.MESSAGE>
     ): Promise<void> => {
       if (this.isTextMessage(event.content) && (await this.isSender(event, senderPublicKey))) {
-        if (!isHex(event.content.message.content)) {
-          return
-        }
+        let payload
 
-        const payload = Buffer.from(event.content.message.content, 'hex')
+        try {
+          payload = Buffer.from(event.content.message.content, 'hex')
+          // content can be non-hex if it's a connection open request
+        } catch {
+          /* */
+        }
         if (
-          payload.length >=
-          sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
+          payload &&
+          payload.length >= sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
         ) {
           try {
             messageCallback(await decryptCryptoboxPayload(payload, sharedRx))

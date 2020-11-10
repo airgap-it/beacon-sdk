@@ -4,17 +4,6 @@ import * as sodium from 'libsodium-wrappers'
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 
 /**
- * Check if a string is hex
- *
- * @param h
- */
-export function isHex(h: string): boolean {
-  const a = parseInt(h, 16)
-
-  return a.toString(16) === h.toLowerCase()
-}
-
-/**
  * Convert a value to hex
  *
  * @param value
