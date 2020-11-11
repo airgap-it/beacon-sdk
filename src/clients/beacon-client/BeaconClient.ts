@@ -50,10 +50,16 @@ export abstract class BeaconClient {
     this.initSDK().catch(console.error)
   }
 
+  /**
+   * This resets the SDK. After using this method, this instance is no longer usable. You will have to instanciate a new client.
+   */
   public async destroy(): Promise<void> {
     await this.removeBeaconEntriesFromStorage()
   }
 
+  /**
+   * This method initializes the SDK by setting some values in the storage and generating a keypair.
+   */
   private async initSDK(): Promise<void> {
     this.storage.set(StorageKey.BEACON_SDK_VERSION, SDK_VERSION).catch(console.error)
 
@@ -64,6 +70,9 @@ export abstract class BeaconClient {
     })
   }
 
+  /**
+   * Removes all beacon values from the storage.
+   */
   private async removeBeaconEntriesFromStorage(): Promise<void> {
     const allKeys: StorageKey[] = Object.values(StorageKey)
     await Promise.all(allKeys.map((key) => this.storage.delete(key)))
