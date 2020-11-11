@@ -122,6 +122,7 @@ button {
   z-index: 2147482999;
   background-color: rgb(17 17 17 / 0.84);
   text-align: center;
+  padding: 24px;
 }
 
 .beacon-alert__text,
