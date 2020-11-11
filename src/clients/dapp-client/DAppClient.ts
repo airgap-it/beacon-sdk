@@ -547,20 +547,6 @@ export class DAppClient extends Client {
               await this.removeAccount(accountInfo.accountIdentifier)
             }
           }
-
-          // // Check if we currently have an active account. This shouldn't be the case because it has been removed above.
-          // // But because there could be a huge delay between request/response, it's possible that it has been set to a different account.
-          // const activeAccount = await this.getActiveAccount()
-
-          // if (!activeAccount) {
-          //   // send new permission request
-          //   await this.requestPermissions({
-          //     network: accountInfo?.network,
-          //     scopes: accountInfo?.scopes
-          //   })
-          // }
-          // // send operation again
-          // await this.requestOperation({ operationDetails: operationRequest.operationDetails })
         }
       }
 

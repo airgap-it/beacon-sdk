@@ -132,8 +132,6 @@ const showErrorAlert = async (
     ? BeaconError.getError(beaconError.errorType)
     : new UnknownBeaconError()
 
-  console.log('showing error alert type ', beaconError.errorType)
-
   await openAlert({
     title: error.title,
     body: error.description,
@@ -195,15 +193,12 @@ const showQrCode = async (
   data: BeaconEventType[BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]
 ): Promise<void> => {
   const dataString = JSON.stringify(data)
-  console.log(dataString)
+  console.log(dataString) // TODO: Remove after "copy to clipboard" has been added.
 
   const base58encoded = await serializer.serialize(data)
-  console.log(base58encoded)
+  console.log(base58encoded) // TODO: Remove after "copy to clipboard" has been added.
+
   const uri = getTzip10Link('tezos://', base58encoded)
-  // const childWindow = window.open() as Window
-  // childWindow.opener = null
-  // // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // childWindow.location = uri as any
 
   const alertConfig: AlertConfig = {
     title: 'Pair with Wallet',
