@@ -4,10 +4,11 @@ import { generateGUID } from '../utils/generate-uuid'
 import { isAndroid, isIOS } from '../utils/platform'
 import { replaceInTemplate } from '../utils/replace-in-template'
 import { alertTemplates } from './alert-templates'
+
 export interface AlertButton {
   text: string
-  style: 'solid' | 'outline'
-  actionCallback(): Promise<void>
+  style?: 'solid' | 'outline'
+  actionCallback?(): Promise<void>
 }
 
 export interface AlertConfig {
@@ -16,10 +17,6 @@ export interface AlertConfig {
   timer?: number
   buttons?: AlertButton[]
   pairingPayload?: string
-  confirmButtonText?: string // TODO: Remove before v2
-  actionButtonText?: string // TODO: Remove before v2
-  confirmCallback?(): void // TODO: Remove before v2
-  actionCallback?(): void // TODO: Remove before v2
 }
 
 let document: Document
@@ -144,12 +141,6 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const title = alertConfig.title
   const timer = alertConfig.timer
   const pairingPayload = alertConfig.pairingPayload
-  const confirmButtonText = alertConfig.confirmButtonText
-  const actionButtonText = alertConfig.actionButtonText
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  const confirmCallback = alertConfig.confirmCallback
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  const actionCallback = alertConfig.actionCallback
 
   await closeAlerts()
 
@@ -158,23 +149,14 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', `beacon-alert-wrapper-${id}`)
 
-  const buttons: AlertButton[] = [...(alertConfig.buttons ?? [])]
-
-  if (actionButtonText || actionCallback) {
-    buttons.push({
-      text: actionButtonText ?? 'click',
-      actionCallback: (actionCallback as any) ?? (() => Promise.resolve()),
-      style: 'outline'
-    })
-  }
-
-  if (confirmButtonText || confirmCallback) {
-    buttons.push({
-      text: confirmButtonText ?? 'click',
-      actionCallback: (confirmCallback as any) ?? (() => Promise.resolve()),
-      style: 'solid'
-    })
-  }
+  const buttons: AlertButton[] = [
+    ...(alertConfig.buttons?.map((button) => ({
+      text: button.text,
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      actionCallback: button.actionCallback ?? (() => Promise.resolve()),
+      style: button.style ?? 'outline'
+    })) ?? [])
+  ]
 
   const formattedBody = body ? formatBody(body) : ''
   wrapper.innerHTML = formatAlert(

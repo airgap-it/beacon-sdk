@@ -565,7 +565,9 @@ export class DAppClient extends Client {
       }
 
       this.events
-        .emit(messageEvents[request.type].error, beaconError, errorCallback)
+        .emit(messageEvents[request.type].error, beaconError, [
+          { text: 'Remove account', actionCallback: errorCallback }
+        ])
         .catch((emitError) => console.warn(emitError))
 
       throw BeaconError.getError(beaconError.errorType)
