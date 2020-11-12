@@ -55,7 +55,8 @@ export class PostMessageClient extends MessageBasedClient {
       encryptedPayload: payload
     }
 
-    myWindow.postMessage(msg as any, '*')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    myWindow.postMessage(msg as any, window.location.origin)
   }
 
   public async listenForChannelOpening(
@@ -99,7 +100,7 @@ export class PostMessageClient extends MessageBasedClient {
       payload: await new Serializer().serialize(await this.getHandshakeInfo())
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    myWindow.postMessage(message as any, '*')
+    myWindow.postMessage(message as any, window.location.origin)
   }
 
   public async isChannelOpenMessage(message: any): Promise<boolean> {
