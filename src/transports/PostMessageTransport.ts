@@ -77,8 +77,11 @@ export class PostMessageTransport extends Transport {
           string,
           { id: string; name: string; iconURL: string }
         >
-        if (data && data.payload === 'pong' && data.sender) {
-          extensions.push(data.sender)
+        const sender = data.sender
+        if (data && data.payload === 'pong' && sender) {
+          if (!extensions.some((ext) => ext.id === sender.id)) {
+            extensions.push(sender)
+          }
         }
       }
 
