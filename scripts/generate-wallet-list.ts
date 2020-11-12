@@ -12,6 +12,23 @@ export interface App {
   deepLink?: string
 }
 
+export const extensionList: App[] = [
+  {
+    name: 'Thanos Wallet',
+    shortName: 'Thanos',
+    color: '',
+    logo: 'extension-thanos.png',
+    universalLink: 'https://thanoswallet.com/'
+  },
+  {
+    name: 'Beacon Extension',
+    shortName: 'Beacon',
+    color: '',
+    logo: 'extension-beacon.png',
+    universalLink: 'https://walletbeacon.io/'
+  }
+]
+
 export const webList: App[] = [
   {
     name: 'Kukai',
@@ -138,6 +155,7 @@ const createAlert = async () => {
       '{{payload}}'
     )}" target="_blank"><button class="beacon-modal__button">Connect Wallet</button></a>`
   )
+  pairHtml = replaceInTemplate(pairHtml, 'extension', (await convert(extensionList)).join(''))
   pairHtml = replaceInTemplate(pairHtml, 'desktop', (await convert(desktopList)).join(''))
   pairHtml = replaceInTemplate(pairHtml, 'web', (await convert(webList)).join(''))
 

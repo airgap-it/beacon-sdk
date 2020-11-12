@@ -1,13 +1,18 @@
-<div id="beacon-main-text" class="beacon-alert__text">
-  {{body}}
-</div>
-
 <div id="beacon-ios-list">
   <div class="beacon-selection__container">{{ios}}</div>
 </div>
 <div id="beacon-android-list">{{android}}</div>
-<div id="beacon-desktop-list">{{desktop}}</div>
+<div id="beacon-desktop-list">
+  <h2>Extensions</h2>
+  <div>{{extension}}</div>
+  <h2>Desktop</h2>
+  <div>{{desktop}}</div>
+</div>
 <div id="beacon-web-list">{{web}}</div>
+
+<div id="beacon-main-text" class="beacon-alert__text">
+  {{body}}
+</div>
 
 <div>
   <button id="beacon-switch" class="beacon-modal__button--outline"></button>

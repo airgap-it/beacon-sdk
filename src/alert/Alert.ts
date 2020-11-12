@@ -228,6 +228,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
         case 'desktop':
           desktopList.style.display = 'initial'
           webList.style.display = 'initial'
+          mainText.style.display = 'initial'
           break
         default:
           mainText.style.display = 'initial'

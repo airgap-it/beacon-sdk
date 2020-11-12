@@ -20,6 +20,10 @@
     <button id="requestPermission">Request Permission</button>
     <br /><br />
     <button id="connect">Connect and Delegate</button>
+    <br /><br />
+    <button id="test">Test</button>
+    <br /><br />
+    <button id="reset">Reset and Refresh</button>
 
     <script>
       // Initiate DAppClient
@@ -81,6 +85,18 @@
       // Add event listener to the button
       document.getElementById('requestPermission').addEventListener('click', () => {
         requestPermission()
+      })
+
+      // Add event listener to the button
+      document.getElementById('reset').addEventListener('click', () => {
+        client.destroy().then(() => {
+          window.location.reload()
+        })
+      })
+
+      // Add event listener to the button
+      document.getElementById('test').addEventListener('click', () => {
+        console.log(beacon.availableTransports.availableExtensions.then(console.log))
       })
     </script>
   </body>
