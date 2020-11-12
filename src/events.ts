@@ -1,5 +1,6 @@
+import { getTzip10Link } from './utils/get-tzip10-link'
 import { openToast } from './alert/Toast'
-import { openAlert, AlertConfig } from './alert/Alert'
+import { openAlert, AlertConfig, AlertButton } from './alert/Alert'
 import { getQrData } from './utils/qr'
 import { Logger } from './utils/Logger'
 import { Transport } from './transports/Transport'
@@ -123,14 +124,18 @@ const showNoPermissionAlert = async (): Promise<void> => {
  *
  * @param beaconError The beacon error
  */
-const showErrorAlert = async (beaconError: ErrorResponse): Promise<void> => {
+const showErrorAlert = async (
+  beaconError: ErrorResponse,
+  buttons?: AlertButton[]
+): Promise<void> => {
   const error = beaconError.errorType
     ? BeaconError.getError(beaconError.errorType)
     : new UnknownBeaconError()
 
   await openAlert({
     title: error.title,
-    body: error.description
+    body: error.description,
+    buttons
   })
 }
 
@@ -151,7 +156,7 @@ const showBeaconConnectedAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Success',
     body: 'A wallet has been paired over the beacon network.',
-    confirmButtonText: 'Done',
+    buttons: [{ text: 'Done', style: 'outline' }],
     timer: 1500
   })
 }
@@ -163,7 +168,7 @@ const showChannelClosedAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Channel closed',
     body: `Your peer has closed the connection.`,
-    confirmButtonText: 'Done',
+    buttons: [{ text: 'Done', style: 'outline' }],
     timer: 1500
   })
 }
@@ -173,9 +178,8 @@ const showInternalErrorAlert = async (
 ): Promise<void> => {
   const alertConfig: AlertConfig = {
     title: 'Internal Error',
-    confirmButtonText: 'Done',
     body: `${data}`,
-    confirmCallback: () => undefined
+    buttons: [{ text: 'Done', style: 'outline' }]
   }
   await openAlert(alertConfig)
 }
@@ -189,27 +193,20 @@ const showQrCode = async (
   data: BeaconEventType[BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]
 ): Promise<void> => {
   const dataString = JSON.stringify(data)
-  console.log(dataString)
+  console.log(dataString) // TODO: Remove after "copy to clipboard" has been added.
 
   const base58encoded = await serializer.serialize(data)
-  console.log('base58encoded pair code', base58encoded)
+  console.log(base58encoded) // TODO: Remove after "copy to clipboard" has been added.
+
+  const uri = getTzip10Link('tezos://', base58encoded)
 
   const alertConfig: AlertConfig = {
     title: 'Pair with Wallet',
-    confirmButtonText: 'Done',
-    actionButtonText: 'Connect Wallet',
     body: `${getQrData(
-      `tezos://?type=tzip10&data=${base58encoded}`,
+      uri,
       'svg'
-    )}<p>Connect wallet by scanning the QR code or clicking the link button <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn&nbsp;more</a></p>`,
-    confirmCallback: () => undefined,
-    actionCallback: async () => {
-      const uri = `web+tezos://?type=tzip10&data=${base58encoded}`
-      const childWindow = window.open() as Window
-      childWindow.opener = null
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      childWindow.location = uri as any
-    }
+    )}<p>Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn more</a>.</p>`,
+    pairingPayload: base58encoded
   }
   await openAlert(alertConfig)
 }
@@ -231,16 +228,19 @@ const showPermissionSuccessAlert = async (
     Network: <strong>${output.network.type}</strong>
     <br>
     Permissions: <strong>${output.scopes}</strong>`,
-    confirmButtonText: 'Done',
-    confirmCallback: () => undefined,
-    actionButtonText: 'Open Blockexplorer',
-    actionCallback: async () => {
-      const link: string = await getAccountBlockExplorerLinkForNetwork(
-        account.network,
-        output.address
-      )
-      window.open(link, '_blank')
-    }
+    buttons: [
+      {
+        text: 'Open Blockexplorer',
+        actionCallback: async (): Promise<void> => {
+          const link: string = await getAccountBlockExplorerLinkForNetwork(
+            account.network,
+            output.address
+          )
+          window.open(link, '_blank')
+        }
+      },
+      { text: 'Done', style: 'solid' }
+    ]
   }
   await openAlert(alertConfig)
 }
@@ -257,16 +257,19 @@ const showOperationSuccessAlert = async (
   const alertConfig: AlertConfig = {
     title: 'Operation Broadcasted',
     body: `The transaction has successfully been broadcasted to the network with the following hash. <strong>${output.transactionHash}</strong>`,
-    confirmButtonText: 'Done',
-    confirmCallback: () => undefined,
-    actionButtonText: 'Open Blockexplorer',
-    actionCallback: async () => {
-      const link: string = await getTransactionBlockExplorerLinkForNetwork(
-        account.network,
-        output.transactionHash
-      )
-      window.open(link, '_blank')
-    }
+    buttons: [
+      {
+        text: 'Open Blockexplorer',
+        actionCallback: async (): Promise<void> => {
+          const link: string = await getTransactionBlockExplorerLinkForNetwork(
+            account.network,
+            output.transactionHash
+          )
+          window.open(link, '_blank')
+        }
+      },
+      { text: 'Done', style: 'solid' }
+    ]
   }
   await openAlert(alertConfig)
 }
@@ -285,8 +288,7 @@ const showSignSuccessAlert = async (
     body: `The payload has successfully been signed.
     <br>
     Signature: <strong>${output.signature}</strong>`,
-    confirmButtonText: 'Done',
-    confirmCallback: () => undefined
+    buttons: [{ text: 'Done', style: 'solid' }]
   }
   await openAlert(alertConfig)
 }
@@ -303,16 +305,19 @@ const showBroadcastSuccessAlert = async (
   const alertConfig: AlertConfig = {
     title: 'Broadcasted',
     body: `The transaction has successfully been broadcasted to the network with the following hash. <strong>${output.transactionHash}</strong>`,
-    confirmButtonText: 'Done',
-    confirmCallback: () => undefined,
-    actionButtonText: 'Open Blockexplorer',
-    actionCallback: async () => {
-      const link: string = await getTransactionBlockExplorerLinkForNetwork(
-        network,
-        output.transactionHash
-      )
-      window.open(link, '_blank')
-    }
+    buttons: [
+      {
+        text: 'Open Blockexplorer',
+        actionCallback: async (): Promise<void> => {
+          const link: string = await getTransactionBlockExplorerLinkForNetwork(
+            network,
+            output.transactionHash
+          )
+          window.open(link, '_blank')
+        }
+      },
+      { text: 'Done', style: 'solid' }
+    ]
   }
   await openAlert(alertConfig)
 }
@@ -323,7 +328,10 @@ const emptyHandler = (eventType: BeaconEvent): BeaconEventHandlerFunction => asy
   logger.log('emptyHandler', eventType, data)
 }
 
-export type BeaconEventHandlerFunction<T = unknown> = (data: T) => void | Promise<void>
+export type BeaconEventHandlerFunction<T = unknown> = (
+  data: T,
+  eventCallback?: AlertButton[]
+) => void | Promise<void>
 
 /**
  * The default event handlers
@@ -417,12 +425,16 @@ export class BeaconEventHandler {
    * @param event The event being emitted
    * @param data The data to be emit
    */
-  public async emit<K extends BeaconEvent>(event: K, data?: BeaconEventType[K]): Promise<void> {
+  public async emit<K extends BeaconEvent>(
+    event: K,
+    data?: BeaconEventType[K],
+    eventCallback?: AlertButton[]
+  ): Promise<void> {
     const listeners = this.callbackMap[event]
     if (listeners && listeners.length > 0) {
       listeners.forEach(async (listener: BeaconEventHandlerFunction) => {
         try {
-          await listener(data)
+          await listener(data, eventCallback)
         } catch (listenerError) {
           logger.error(`error handling event ${event}`, listenerError)
         }
