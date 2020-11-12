@@ -41,6 +41,7 @@
   z-index: 2147483000;
   max-width: 500px;
   width: 100%;
+  padding: 24px;
 }
 
 .beacon-modal__base,
@@ -81,8 +82,8 @@ button {
 
 .beacon-modal__close__wrapper {
   position: absolute;
-  top: 20px;
-  right: 0;
+  top: 44px;
+  right: 24px;
   z-index: 10000;
   cursor: pointer;
   border-radius: 100%;
@@ -122,7 +123,6 @@ button {
   z-index: 2147482999;
   background-color: rgb(17 17 17 / 0.84);
   text-align: center;
-  padding: 24px;
 }
 
 .beacon-alert__text,
@@ -179,8 +179,8 @@ button {
 }
 
 .beacon-alert__image {
-  width: 300px;
-  height: 300px;
+  width: 200px;
+  height: 200px;
   box-sizing: border-box;
   box-shadow: 0 10px 20px 0 rgba(17, 17, 17, 0.12);
   border: 1px solid rgba(17, 17, 17, 0.04);

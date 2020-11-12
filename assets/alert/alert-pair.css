@@ -9,11 +9,17 @@
   flex-direction: row;
   justify-content: space-between;
   text-decoration: none;
-  padding-bottom: 24px;
+  padding-bottom: 12px;
   align-items: center;
 }
+
+.beacon-list__title {
+  text-align: left;
+  color: #7c828b;
+  font-size: 12px;
+}
 .beacon-selection__name {
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #3b3d40;
 }

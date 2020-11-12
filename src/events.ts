@@ -201,7 +201,7 @@ const showQrCode = async (
   const uri = getTzip10Link('tezos://', base58encoded)
 
   const alertConfig: AlertConfig = {
-    title: 'Pair with Wallet',
+    title: 'Choose your preferred wallet',
     body: `${getQrData(
       uri,
       'svg'
