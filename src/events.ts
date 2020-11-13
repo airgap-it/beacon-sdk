@@ -1,7 +1,5 @@
-import { getTzip10Link } from './utils/get-tzip10-link'
 import { openToast } from './alert/Toast'
 import { openAlert, AlertConfig, AlertButton } from './alert/Alert'
-import { getQrData } from './utils/qr'
 import { Logger } from './utils/Logger'
 import { Transport } from './transports/Transport'
 import { BeaconError } from './errors/BeaconError'
@@ -189,7 +187,7 @@ const showInternalErrorAlert = async (
  *
  * @param data The data that is emitted by the P2P_LISTEN_FOR_CHANNEL_OPEN event
  */
-const showQrCode = async (
+const showPairAlert = async (
   data: BeaconEventType[BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]
 ): Promise<void> => {
   const dataString = JSON.stringify(data)
@@ -198,14 +196,9 @@ const showQrCode = async (
   const base58encoded = await serializer.serialize(data)
   console.log(base58encoded) // TODO: Remove after "copy to clipboard" has been added.
 
-  const uri = getTzip10Link('tezos://', base58encoded)
-
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
-    body: `${getQrData(
-      uri,
-      'svg'
-    )}<p>Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn more</a>.</p>`,
+    body: `<p>Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn more</a>.</p>`,
     pairingPayload: base58encoded
   }
   await openAlert(alertConfig)
@@ -356,7 +349,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(BeaconEvent.ACTIVE_ACCOUNT_SET),
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showBeaconConnectedAlert,
-  [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrCode,
+  [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showPairAlert,
   [BeaconEvent.P2P_CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
   [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)

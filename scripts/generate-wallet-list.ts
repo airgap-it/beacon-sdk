@@ -3,29 +3,39 @@ import * as fs from 'fs'
 import { replaceInTemplate } from '../src/utils/replace-in-template'
 import { getTzip10Link } from '../src/utils/get-tzip10-link'
 
-export interface App {
+export interface AppBase {
   name: string
   shortName: string
   color: string
   logo: string
+}
+
+export interface ExtensionApp extends AppBase {
+  id: string
+  link: string
+}
+
+export interface App extends AppBase {
   universalLink: string
   deepLink?: string
 }
 
-export const extensionList: App[] = [
+export const extensionList: ExtensionApp[] = [
   {
+    id: 'ookjlbkiijinhpmnjffcofjonbfbgaoc',
     name: 'Thanos Wallet',
     shortName: 'Thanos',
     color: '',
     logo: 'extension-thanos.png',
-    universalLink: 'https://thanoswallet.com/'
+    link: 'https://thanoswallet.com/'
   },
   {
+    id: 'gpfndedineagiepkpinficbcbbgjoenn',
     name: 'Beacon Extension',
     shortName: 'Beacon',
     color: '',
     logo: 'extension-beacon.png',
-    universalLink: 'https://walletbeacon.io/'
+    link: 'https://walletbeacon.io/'
   }
 ]
 
@@ -104,7 +114,7 @@ const REGISTRY_DIR = path.join(PKG_DIR, 'assets', 'logos')
 
 const resizeImg = require('resize-img')
 
-const convert = (list: App[]): Promise<string[]> => {
+const convert = (list: (ExtensionApp | App)[]): Promise<string[]> => {
   return Promise.all(
     list.map(async (entry) => {
       const image = await resizeImg(await readFile(path.join(REGISTRY_DIR, entry.logo)), {
@@ -115,10 +125,15 @@ const convert = (list: App[]): Promise<string[]> => {
       const ext = path.extname(entry.logo).replace('.', '')
       const altTag = `Open in ${entry.name}`
       const logo = `data:image/${ext};base64,${image.toString('base64')}`
-      const link = getTzip10Link(entry.deepLink ?? entry.universalLink, '{{payload}}')
+
+      const id: string | undefined = (entry as ExtensionApp).id
+      const deepLink: string | undefined = (entry as App).deepLink
+      const universalLink: string | undefined = (entry as App).universalLink
 
       return `
-      <a alt="${altTag}" href="${link}" target="_blank" class="beacon-selection__list">
+      <a alt="${altTag}" ${
+        id ? `id="ext_${id}"` : `href="${getTzip10Link(deepLink ?? universalLink, '{{payload}}')}"`
+      } target="_blank" class="beacon-selection__list">
         <div class="beacon-selection__name">${entry.name}</div>
         <div>
           <img class="beacon-selection__img" src="${logo}"/>

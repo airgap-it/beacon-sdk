@@ -78,6 +78,10 @@ export class P2PTransport extends Transport {
     }
   }
 
+  public async getHandshakeInfo(): Promise<P2PPairingRequest> {
+    return this.client.getHandshakeInfo()
+  }
+
   public async connectNewPeer(): Promise<void> {
     logger.log('connectNewPeer')
 
@@ -96,10 +100,6 @@ export class P2PTransport extends Transport {
         })
         this.listeningForChannelOpenings = true
       }
-
-      this.events
-        .emit(BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN, await this.client.getHandshakeInfo())
-        .catch((emitError) => console.warn(emitError))
     })
   }
 

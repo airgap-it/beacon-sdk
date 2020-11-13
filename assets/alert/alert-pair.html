@@ -1,7 +1,9 @@
 <div id="beacon-ios-list">
   <div class="beacon-selection__container">{{ios}}</div>
 </div>
-<div id="beacon-android-list">{{android}}</div>
+<div id="beacon-android-list">
+  {{android}}
+</div>
 <div id="beacon-desktop-list">
   <p class="beacon-list__title">Browser Extensions</p>
   <div>{{extension}}</div>
@@ -10,11 +12,15 @@
 </div>
 <div id="beacon-web-list">{{web}}</div>
 
-<p class="beacon-list__title">Scan QR code with Beacon-compatible wallet</p>
+<p id="beacon-title" class="beacon-list__title">Scan QR code with Beacon-compatible wallet</p>
 <div id="beacon-main-text" class="beacon-alert__text">
   {{body}}
 </div>
 
-<div>
+<div id="beacon--qr__code">
+  <button class="beacon-modal__button--outline">Copy</button>
+</div>
+
+<div id="beacon--switch__container">
   <button id="beacon-switch" class="beacon-modal__button--outline"></button>
 </div>

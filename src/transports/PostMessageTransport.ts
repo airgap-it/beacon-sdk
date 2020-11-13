@@ -6,7 +6,9 @@ import {
   TransportType,
   TransportStatus,
   ConnectionContext,
-  StorageKey
+  StorageKey,
+  BeaconEventHandler,
+  BeaconEvent
 } from '..'
 import { Origin } from '../types/Origin'
 import { PeerManager } from '../managers/PeerManager'
@@ -22,6 +24,7 @@ const logger = new Logger('PostMessageTransport')
 
 export class PostMessageTransport extends Transport {
   public readonly type: TransportType = TransportType.POST_MESSAGE
+  private readonly events: BeaconEventHandler
 
   /**
    * A flag indicating whether
@@ -38,8 +41,15 @@ export class PostMessageTransport extends Transport {
 
   private readonly peerManager: PeerManager<StorageKey.TRANSPORT_POSTMESSAGE_PEERS>
 
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, isDapp: boolean) {
+  constructor(
+    name: string,
+    keyPair: sodium.KeyPair,
+    storage: Storage,
+    events: BeaconEventHandler,
+    isDapp: boolean
+  ) {
     super(name)
+    this.events = events
     this.isDapp = isDapp
     this.client = new PostMessageClient(this.name, keyPair, false)
     this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_POSTMESSAGE_PEERS)
@@ -142,6 +152,14 @@ export class PostMessageTransport extends Transport {
         )
         this.listeningForChannelOpenings = true
       }
+
+      // console.log(this.events)
+      this.events
+        .emit(
+          BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN,
+          (await this.client.getHandshakeInfo()) as any
+        )
+        .catch((emitError) => console.warn(emitError))
     })
   }
 

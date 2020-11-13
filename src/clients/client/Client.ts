@@ -172,7 +172,9 @@ export abstract class Client extends BeaconClient {
           }
 
           if (postMessageAvailable) {
-            return setTransport(new PostMessageTransport(this.name, keyPair, this.storage, isDapp))
+            return setTransport(
+              new PostMessageTransport(this.name, keyPair, this.storage, this.events, isDapp)
+            )
           } else {
             return setBeaconTransport()
           }
