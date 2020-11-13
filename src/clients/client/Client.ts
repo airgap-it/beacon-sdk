@@ -12,7 +12,6 @@ import {
   P2PPairingRequest
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
-import { availableTransports } from '../../utils/available-transports'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
@@ -151,34 +150,74 @@ export abstract class Client extends BeaconClient {
           resolve(newTransport.type)
         }
 
-        const setBeaconTransport = async (): Promise<void> => {
-          const newTransport = new P2PTransport(
-            this.name,
-            keyPair,
-            this.storage,
-            this.events,
-            this.matrixNodes,
-            isDapp
-          )
+        const p2pTransport = new P2PTransport(
+          this.name,
+          keyPair,
+          this.storage,
+          this.matrixNodes,
+          isDapp
+        )
+        const postMessageTransport = new PostMessageTransport(
+          this.name,
+          keyPair,
+          this.storage,
+          isDapp
+        )
 
-          return setTransport(newTransport)
-        }
+        p2pTransport
+          .connectNewPeer()
+          .then((peer) => {
+            console.log('p2p transport peer connected')
+            this.events
+              .emit(BeaconEvent.PAIR_SUCCESS, peer as any)
+              .catch((emitError) => console.warn(emitError))
+            setTransport(p2pTransport).catch(console.error)
+          })
+          .catch(console.error)
 
-        const setBeaconTransportTimeout = window.setTimeout(setBeaconTransport, 200)
+        postMessageTransport
+          .connectNewPeer()
+          .then((peer) => {
+            console.log('postmessage transport peer connected')
+            this.events
+              .emit(BeaconEvent.PAIR_SUCCESS, peer as any)
+              .catch((emitError) => console.warn(emitError))
+            setTransport(postMessageTransport).catch(console.error)
+          })
+          .catch(console.error)
 
-        return availableTransports.extension.then(async (postMessageAvailable) => {
-          if (setBeaconTransportTimeout) {
-            window.clearTimeout(setBeaconTransportTimeout)
-          }
+        PostMessageTransport.getAvailableExtensions()
+          .then(async () => {
+            this.events
+              .emit(BeaconEvent.PAIR_INIT, {
+                p2pPeerInfo: await p2pTransport.getHandshakeInfo(),
+                postmessagePeerInfo: await postMessageTransport.getHandshakeInfo()
+              })
+              .catch((emitError) => console.warn(emitError))
+          })
+          .catch(console.error)
 
-          if (postMessageAvailable) {
-            return setTransport(
-              new PostMessageTransport(this.name, keyPair, this.storage, this.events, isDapp)
-            )
-          } else {
-            return setBeaconTransport()
-          }
-        })
+        resolve()
+
+        // const setBeaconTransport = async (): Promise<void> => {
+        //   const newTransport
+
+        //   return setTransport(newTransport)
+        // }
+
+        // const setBeaconTransportTimeout = window.setTimeout(setBeaconTransport, 200)
+
+        // return availableTransports.extension.then(async (postMessageAvailable) => {
+        //   if (setBeaconTransportTimeout) {
+        //     window.clearTimeout(setBeaconTransportTimeout)
+        //   }
+
+        //   if (postMessageAvailable) {
+        //     return setTransport()
+        //   } else {
+        //     return setBeaconTransport()
+        //   }
+        // })
       })
     }
   }

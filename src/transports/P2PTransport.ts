@@ -11,14 +11,12 @@ import {
   Origin,
   P2PPairingRequest
 } from '..'
-import { BeaconEventHandler, BeaconEvent } from '../events'
 import { PeerManager } from '../managers/PeerManager'
 
 const logger = new Logger('P2PTransport')
 
 export class P2PTransport extends Transport {
   public readonly type: TransportType = TransportType.P2P
-  private readonly events: BeaconEventHandler
 
   private readonly isDapp: boolean = true
 
@@ -36,12 +34,10 @@ export class P2PTransport extends Transport {
     name: string,
     keyPair: sodium.KeyPair,
     storage: Storage,
-    events: BeaconEventHandler,
     matrixNodes: string[],
     isDapp: boolean
   ) {
     super(name)
-    this.events = events
     this.isDapp = isDapp
     this.client = new P2PCommunicationClient(this.name, keyPair, 1, storage, matrixNodes, false)
     this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_P2P_PEERS)
@@ -82,7 +78,7 @@ export class P2PTransport extends Transport {
     return this.client.getHandshakeInfo()
   }
 
-  public async connectNewPeer(): Promise<void> {
+  public async connectNewPeer(): Promise<P2PPairingRequest> {
     logger.log('connectNewPeer')
 
     return new Promise(async (resolve) => {
@@ -92,11 +88,7 @@ export class P2PTransport extends Transport {
 
           await this.addPeer(peer)
 
-          this.events
-            .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS, peer)
-            .catch((emitError) => console.warn(emitError))
-
-          resolve()
+          resolve(peer)
         })
         this.listeningForChannelOpenings = true
       }

@@ -9,6 +9,7 @@ import {
   getAccountBlockExplorerLinkForNetwork,
   getTransactionBlockExplorerLinkForNetwork
 } from './utils/block-explorer'
+import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
 import {
   P2PPairingRequest,
   AccountInfo,
@@ -48,6 +49,9 @@ export enum BeaconEvent {
   ACTIVE_ACCOUNT_SET = 'ACTIVE_ACCOUNT_SET',
 
   ACTIVE_TRANSPORT_SET = 'ACTIVE_TRANSPORT_SET',
+
+  PAIR_INIT = 'PAIR_INIT',
+  PAIR_SUCCESS = 'PAIR_SUCCESS',
 
   P2P_CHANNEL_CONNECT_SUCCESS = 'P2P_CHANNEL_CONNECT_SUCCESS',
   P2P_LISTEN_FOR_CHANNEL_OPEN = 'P2P_LISTEN_FOR_CHANNEL_OPEN',
@@ -93,6 +97,11 @@ export interface BeaconEventType {
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
+  [BeaconEvent.PAIR_INIT]: {
+    p2pPeerInfo: P2PPairingRequest
+    postmessagePeerInfo: PostMessagePairingRequest
+  }
+  [BeaconEvent.PAIR_SUCCESS]: undefined
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: P2PPairingRequest
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairingRequest
   [BeaconEvent.P2P_CHANNEL_CLOSED]: string
@@ -187,7 +196,7 @@ const showInternalErrorAlert = async (
  *
  * @param data The data that is emitted by the P2P_LISTEN_FOR_CHANNEL_OPEN event
  */
-const showPairAlert = async (
+const showQrAlert = async (
   data: BeaconEventType[BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]
 ): Promise<void> => {
   const dataString = JSON.stringify(data)
@@ -199,7 +208,24 @@ const showPairAlert = async (
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
     body: `<p>Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn more</a>.</p>`,
-    pairingPayload: base58encoded
+    pairingPayload: { p2pSyncCode: base58encoded, postmessageSyncCode: base58encoded }
+  }
+  await openAlert(alertConfig)
+}
+
+/**
+ * Show a connect alert with QR code
+ *
+ * @param data The data that is emitted by the PAIR_INIT event
+ */
+const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Promise<void> => {
+  const p2pBase58encoded = await serializer.serialize(data.p2pPeerInfo)
+  const postmessageBase58encoded = await serializer.serialize(data.postmessagePeerInfo)
+
+  const alertConfig: AlertConfig = {
+    title: 'Choose your preferred wallet',
+    body: `<p>Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn more</a>.</p>`,
+    pairingPayload: { p2pSyncCode: p2pBase58encoded, postmessageSyncCode: postmessageBase58encoded }
   }
   await openAlert(alertConfig)
 }
@@ -348,8 +374,10 @@ export const defaultEventCallbacks: {
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(BeaconEvent.ACTIVE_ACCOUNT_SET),
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
+  [BeaconEvent.PAIR_INIT]: showPairAlert,
+  [BeaconEvent.PAIR_SUCCESS]: showChannelClosedAlert,
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showBeaconConnectedAlert,
-  [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showPairAlert,
+  [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrAlert,
   [BeaconEvent.P2P_CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
   [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)
@@ -378,6 +406,8 @@ export class BeaconEventHandler {
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
     [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
+    [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
+    [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
     [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: [defaultEventCallbacks.P2P_CHANNEL_CONNECT_SUCCESS],
     [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: [defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN],
     [BeaconEvent.P2P_CHANNEL_CLOSED]: [defaultEventCallbacks.P2P_CHANNEL_CLOSED],

@@ -1,5 +1,8 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
+import { ExtensionMessage, ExtensionMessageTarget } from '..'
+import { myWindow } from '../MockWindow'
+import { availableTransports } from '../utils/available-transports'
 import { generateGUID } from '../utils/generate-uuid'
 import { getTzip10Link } from '../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../utils/platform'
@@ -18,7 +21,7 @@ export interface AlertConfig {
   body?: string
   timer?: number
   buttons?: AlertButton[]
-  pairingPayload?: string
+  pairingPayload?: { p2pSyncCode: string; postmessageSyncCode: string }
 }
 
 let document: Document
@@ -163,8 +166,9 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     })) ?? [])
   ]
 
-  const formattedBody = body && pairingPayload ? formatQR(body, pairingPayload) : body ?? ''
-  wrapper.innerHTML = formatAlert(id, formattedBody, title, buttons, pairingPayload)
+  const formattedBody =
+    body && pairingPayload ? formatQR(body, pairingPayload?.p2pSyncCode) : body ?? ''
+  wrapper.innerHTML = formatAlert(id, formattedBody, title, buttons, pairingPayload?.p2pSyncCode)
 
   if (timer) {
     timeout[id] = window.setTimeout(async () => {
@@ -183,6 +187,69 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
           await button.actionCallback()
         }
       })
+    }
+  })
+
+  const extensions = await availableTransports.availableExtensions
+
+  const defaultExtensions = [
+    'ookjlbkiijinhpmnjffcofjonbfbgaoc', // Thanos
+    'gpfndedineagiepkpinficbcbbgjoenn' // Beacon
+  ]
+
+  defaultExtensions.map((extId) => {
+    if (!extensions.some((ext) => ext.id === extId)) {
+      const extEl = document.getElementById(`ext_${extId}`)
+      if (extEl) {
+        extEl.classList.add('disabled')
+      }
+    }
+  })
+
+  const extensionList = document.getElementById(`beacon-extension-list`)
+  extensions.map((extension) => {
+    let extEl = document.getElementById(`ext_${extension.id}`)
+    if (!extEl) {
+      const altTag = `Open in ${extension.name}`
+      const x = `
+      <a alt="${altTag}" id="ext_${extension.id}"
+       target="_blank" class="beacon-selection__list">
+       <div class="beacon-selection__name">${extension.name}</div>
+       ${
+         extension.iconURL
+           ? `<div>
+       <img class="beacon-selection__img" src="${extension.iconURL}"/>
+       </div>`
+           : ''
+       }
+      </a>
+       `
+
+      const el = document.createElement('span')
+      el.innerHTML = x
+
+      if (extensionList) {
+        extensionList.prepend(el)
+      }
+    }
+
+    extEl = document.getElementById(`ext_${extension.id}`)
+
+    if (extEl) {
+      extEl.addEventListener('click', async () => {
+        const postmessageSyncCode = pairingPayload?.postmessageSyncCode
+        if (postmessageSyncCode) {
+          const message: ExtensionMessage<string> = {
+            target: ExtensionMessageTarget.EXTENSION,
+            payload: postmessageSyncCode,
+            targetId: extension.id
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          myWindow.postMessage(message as any, window.location.origin)
+        }
+      })
+    } else {
+      console.log('not adding listener', extension)
     }
   })
 
@@ -220,7 +287,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     titleEl
   ) {
     const fn = () => {
-      navigator.clipboard.writeText(pairingPayload ? pairingPayload : '').then(
+      navigator.clipboard.writeText(pairingPayload ? pairingPayload.p2pSyncCode : '').then(
         () => {
           console.log('Copying to clipboard was successful!')
         },

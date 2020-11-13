@@ -6,9 +6,7 @@ import {
   TransportType,
   TransportStatus,
   ConnectionContext,
-  StorageKey,
-  BeaconEventHandler,
-  BeaconEvent
+  StorageKey
 } from '..'
 import { Origin } from '../types/Origin'
 import { PeerManager } from '../managers/PeerManager'
@@ -17,14 +15,16 @@ import { Storage } from '../storage/Storage'
 import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 import { Extension } from '../utils/available-transports'
+import { ExposedPromise } from '../utils/exposed-promise'
 import { Transport } from './Transport'
 import { PostMessageClient } from './clients/PostMessageClient'
 
 const logger = new Logger('PostMessageTransport')
 
+let extensions: ExposedPromise<Extension[]> | undefined
+
 export class PostMessageTransport extends Transport {
   public readonly type: TransportType = TransportType.POST_MESSAGE
-  private readonly events: BeaconEventHandler
 
   /**
    * A flag indicating whether
@@ -41,15 +41,8 @@ export class PostMessageTransport extends Transport {
 
   private readonly peerManager: PeerManager<StorageKey.TRANSPORT_POSTMESSAGE_PEERS>
 
-  constructor(
-    name: string,
-    keyPair: sodium.KeyPair,
-    storage: Storage,
-    events: BeaconEventHandler,
-    isDapp: boolean
-  ) {
+  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, isDapp: boolean) {
     super(name)
-    this.events = events
     this.isDapp = isDapp
     this.client = new PostMessageClient(this.name, keyPair, false)
     this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_POSTMESSAGE_PEERS)
@@ -78,7 +71,12 @@ export class PostMessageTransport extends Transport {
   }
 
   public static async getAvailableExtensions(): Promise<Extension[]> {
-    const extensions: Extension[] = []
+    if (extensions) {
+      return extensions.promise
+    }
+
+    extensions = new ExposedPromise()
+    const localExtensions: Extension[] = []
 
     return new Promise((resolve) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,8 +87,8 @@ export class PostMessageTransport extends Transport {
         >
         const sender = data.sender
         if (data && data.payload === 'pong' && sender) {
-          if (!extensions.some((ext) => ext.id === sender.id)) {
-            extensions.push(sender)
+          if (!localExtensions.some((ext) => ext.id === sender.id)) {
+            localExtensions.push(sender)
           }
         }
       }
@@ -99,7 +97,10 @@ export class PostMessageTransport extends Transport {
 
       setTimeout(() => {
         myWindow.removeEventListener('message', fn)
-        resolve(extensions)
+        if (extensions) {
+          extensions.resolve(localExtensions)
+        }
+        resolve(localExtensions)
       }, 1000)
 
       const message: ExtensionMessage<string> = {
@@ -136,7 +137,11 @@ export class PostMessageTransport extends Transport {
     }
   }
 
-  public async connectNewPeer(): Promise<void> {
+  public async getHandshakeInfo(): Promise<PostMessagePairingRequest> {
+    return this.client.getHandshakeInfo()
+  }
+
+  public async connectNewPeer(): Promise<PostMessagePairingResponse> {
     logger.log('connectNewPeer')
 
     return new Promise(async (resolve) => {
@@ -147,19 +152,11 @@ export class PostMessageTransport extends Transport {
 
             await this.addPeer(pairingResponse)
 
-            resolve()
+            resolve(pairingResponse)
           }
         )
         this.listeningForChannelOpenings = true
       }
-
-      // console.log(this.events)
-      this.events
-        .emit(
-          BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN,
-          (await this.client.getHandshakeInfo()) as any
-        )
-        .catch((emitError) => console.warn(emitError))
     })
   }
 
