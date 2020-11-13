@@ -50,7 +50,7 @@ import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
 import { getAccountIdentifier } from '../../utils/get-account-identifier'
 import { BlockExplorer } from '../../utils/block-explorer'
-import { TezblockBlockExplorer } from '../../utils/tezos-block-explorer'
+import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
 import { BeaconErrorType } from '../../types/BeaconErrorType'
 import { DAppClientOptions } from './DAppClientOptions'
 
