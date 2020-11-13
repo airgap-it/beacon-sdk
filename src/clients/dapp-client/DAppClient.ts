@@ -51,6 +51,7 @@ import { IgnoredRequestInputProperties } from '../../types/beacon/messages/Beaco
 import { getAccountIdentifier } from '../../utils/get-account-identifier'
 import { BlockExplorer } from '../../utils/block-explorer'
 import { TezblockBlockExplorer } from '../../utils/tezos-block-explorer'
+import { BeaconErrorType } from '../../types/BeaconErrorType'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -544,8 +545,30 @@ export class DAppClient extends Client {
     beaconError: ErrorResponse
   ): Promise<void> {
     if (beaconError.errorType) {
+      let errorCallback = (): Promise<void> => Promise.resolve()
+      if (beaconError.errorType === BeaconErrorType.NO_PRIVATE_KEY_FOUND_ERROR) {
+        errorCallback = async (): Promise<void> => {
+          const operationRequest: OperationRequestInput = request as OperationRequestInput
+          // if the account we requested is not available, we remove it locally
+          let accountInfo: AccountInfo | undefined
+          if (operationRequest.sourceAddress && operationRequest.network) {
+            const accountIdentifier = await getAccountIdentifier(
+              operationRequest.sourceAddress,
+              operationRequest.network
+            )
+            accountInfo = await this.getAccount(accountIdentifier)
+
+            if (accountInfo) {
+              await this.removeAccount(accountInfo.accountIdentifier)
+            }
+          }
+        }
+      }
+
       this.events
-        .emit(messageEvents[request.type].error, beaconError)
+        .emit(messageEvents[request.type].error, beaconError, [
+          { text: 'Remove account', actionCallback: errorCallback }
+        ])
         .catch((emitError) => console.warn(emitError))
 
       throw BeaconError.getError(beaconError.errorType)

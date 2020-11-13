@@ -136,10 +136,17 @@ export class P2PCommunicationClient extends CommunicationClient {
       event: MatrixClientEvent<MatrixClientEventType.MESSAGE>
     ): Promise<void> => {
       if (this.isTextMessage(event.content) && (await this.isSender(event, senderPublicKey))) {
-        const payload = Buffer.from(event.content.message.content, 'hex')
+        let payload
+
+        try {
+          payload = Buffer.from(event.content.message.content, 'hex')
+          // content can be non-hex if it's a connection open request
+        } catch {
+          /* */
+        }
         if (
-          payload.length >=
-          sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
+          payload &&
+          payload.length >= sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
         ) {
           try {
             messageCallback(await decryptCryptoboxPayload(payload, sharedRx))

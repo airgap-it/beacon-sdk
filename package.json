@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "2.0.0-beta.8",
+  "version": "2.0.0-beta.11",
   "description": "The beacon-sdk allows you to easily connect DApps with Wallets through P2P communication or a chrome extension.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -22,7 +22,8 @@
     "url": "https://github.com/airgap-it/beacon-sdk"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc -p ./tsconfig-cjs.json && npm run browserify",
+    "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
+    "build": "npm run pretest && tsc -p tsconfig.json && tsc -p ./tsconfig-cjs.json && npm run browserify && npm run posttest",
     "browserify": "npm run pretest && tsc -p ./tsconfig-browserify.json && npm run posttest && browserify ./dist/browserify/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js && rm -rf dist/browserify",
     "prettier": "prettier --write 'src/**/*' 'docs/**/*.md'",
     "lint": "eslint 'src/**/*.ts'",
@@ -59,7 +60,7 @@
     "@typescript-eslint/eslint-plugin-tslint": "2.33.0",
     "@typescript-eslint/parser": "2.33.0",
     "@vuepress/plugin-back-to-top": "1.5.0",
-    "axios-mock-adapter": "^1.18.2",
+    "axios-mock-adapter": "1.18.2",
     "browserify": "16.5.1",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
@@ -75,6 +76,7 @@
     "nyc": "15.0.1",
     "prettier": "2.0.5",
     "pretty-quick": "2.0.1",
+    "resize-img": "2.0.0",
     "sinon": "9.0.3",
     "sonar-scanner": "3.1.0",
     "ts-node": "8.10.1",

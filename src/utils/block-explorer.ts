@@ -4,6 +4,7 @@ export abstract class BlockExplorer {
   constructor(
     public readonly mainnetUrl: string,
     public readonly carthagenetUrl: string,
+    public readonly delphinetUrl: string,
     public readonly customUrl: string
   ) {}
 
@@ -12,6 +13,8 @@ export abstract class BlockExplorer {
       ? this.mainnetUrl
       : network.type === NetworkType.CARTHAGENET
       ? this.carthagenetUrl
+      : network.type === NetworkType.DELPHINET
+      ? this.delphinetUrl
       : this.customUrl
   }
 
