@@ -5,7 +5,6 @@ import { Logger } from './utils/Logger'
 import { Transport } from './transports/Transport'
 import { BeaconError } from './errors/BeaconError'
 import { ConnectionContext } from './types/ConnectionContext'
-import { Serializer } from './Serializer'
 import {
   getAccountBlockExplorerLinkForNetwork,
   getTransactionBlockExplorerLinkForNetwork
@@ -23,7 +22,6 @@ import {
 } from '.'
 
 const logger = new Logger('BeaconEvents')
-const serializer = new Serializer()
 
 export enum BeaconEvent {
   PERMISSION_REQUEST_SENT = 'PERMISSION_REQUEST_SENT',
@@ -152,20 +150,11 @@ const showQrCode = async (
   const alertConfig: AlertConfig = {
     title: 'Pair with Wallet',
     confirmButtonText: 'Done',
-    actionButtonText: 'Connect Wallet',
     body: `${getQrData(
       dataString,
       'svg'
     )}<p>Connect wallet by scanning the QR code or clicking the link button <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn&nbsp;more</a></p>`,
-    confirmCallback: () => undefined,
-    actionCallback: async () => {
-      const base58encoded = await serializer.serialize(data)
-      const uri = `web+tezos://?type=tzip10&data=${base58encoded}`
-      const childWindow = window.open() as Window
-      childWindow.opener = null
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      childWindow.location = uri as any
-    }
+    confirmCallback: () => undefined
   }
   await openAlert(alertConfig)
 }
