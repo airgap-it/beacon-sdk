@@ -1,21 +1,10 @@
 import { Network, NetworkType } from '..'
 
 export abstract class BlockExplorer {
-  constructor(
-    public readonly mainnetUrl: string,
-    public readonly carthagenetUrl: string,
-    public readonly delphinetUrl: string,
-    public readonly customUrl: string
-  ) {}
+  constructor(public readonly rpcUrls: { [key in NetworkType]: string }) {}
 
   protected async getLinkForNetwork(network: Network): Promise<string> {
-    return network.type === NetworkType.MAINNET
-      ? this.mainnetUrl
-      : network.type === NetworkType.CARTHAGENET
-      ? this.carthagenetUrl
-      : network.type === NetworkType.DELPHINET
-      ? this.delphinetUrl
-      : this.customUrl
+    return this.rpcUrls[network.type]
   }
 
   /**

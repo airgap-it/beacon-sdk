@@ -1,14 +1,16 @@
-import { Network } from '..'
+import { Network, NetworkType } from '..'
 import { BlockExplorer } from './block-explorer'
 
 export class TezblockBlockExplorer extends BlockExplorer {
   constructor(
-    public readonly mainnetUrl: string = 'https://tezblock.io',
-    public readonly carthagenetUrl: string = 'https://carthagenet.tezblock.io',
-    public readonly delphinetUrl: string = 'https://delphinet.tezblock.io',
-    public readonly customUrl: string = 'https://delphinet.tezblock.io'
+    public readonly rpcUrls: { [key in NetworkType]: string } = {
+      [NetworkType.MAINNET]: 'https://tezblock.io',
+      [NetworkType.CARTHAGENET]: 'https://carthagenet.tezblock.io',
+      [NetworkType.DELPHINET]: 'https://delphinet.tezblock.io',
+      [NetworkType.CUSTOM]: 'https://delphinet.tezblock.io'
+    }
   ) {
-    super(mainnetUrl, carthagenetUrl, delphinetUrl, customUrl)
+    super(rpcUrls)
   }
 
   public async getAddressLink(address: string, network: Network): Promise<string> {
