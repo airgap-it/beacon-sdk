@@ -1,5 +1,6 @@
 import { Storage } from '../..'
 import { BeaconEvent, BeaconEventType, BeaconEventHandlerFunction } from '../../events'
+import { BlockExplorer } from '../../utils/block-explorer'
 
 export interface DAppClientOptions {
   /**
@@ -26,4 +27,9 @@ export interface DAppClientOptions {
    * A list of matrix nodes the application can use to connect to
    */
   matrixNodes?: []
+
+  /**
+   * The block explorer used by the SDK
+   */
+  blockExplorer?: BlockExplorer
 }

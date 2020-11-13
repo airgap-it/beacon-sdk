@@ -5,11 +5,7 @@ import { Transport } from './transports/Transport'
 import { BeaconError } from './errors/BeaconError'
 import { ConnectionContext } from './types/ConnectionContext'
 import { Serializer } from './Serializer'
-import {
-  getAccountBlockExplorerLinkForNetwork,
-  getTransactionBlockExplorerLinkForNetwork
-} from './utils/block-explorer'
-import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
+import { BlockExplorer } from './utils/block-explorer'
 import {
   P2PPairingRequest,
   AccountInfo,
@@ -21,6 +17,7 @@ import {
   SignPayloadResponseOutput,
   Network
 } from '.'
+import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
 
 const logger = new Logger('BeaconEvents')
 const serializer = new Serializer()
@@ -69,6 +66,7 @@ export interface BeaconEventType {
   [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: {
     account: AccountInfo
     output: PermissionResponseOutput
+    blockExplorer: BlockExplorer
     connectionContext: ConnectionContext
   }
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: ErrorResponse
@@ -76,6 +74,7 @@ export interface BeaconEventType {
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: {
     account: AccountInfo
     output: OperationResponseOutput
+    blockExplorer: BlockExplorer
     connectionContext: ConnectionContext
   }
   [BeaconEvent.OPERATION_REQUEST_ERROR]: ErrorResponse
@@ -89,6 +88,7 @@ export interface BeaconEventType {
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
     network: Network
     output: BroadcastResponseOutput
+    blockExplorer: BlockExplorer
     connectionContext: ConnectionContext
   }
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: ErrorResponse
@@ -238,7 +238,7 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
 const showPermissionSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.PERMISSION_REQUEST_SUCCESS]
 ): Promise<void> => {
-  const { account, output } = data
+  const { account, output, blockExplorer } = data
   const alertConfig: AlertConfig = {
     title: 'Permission Granted',
     body: `We received permissions for the address <strong>${output.address}</strong>
@@ -251,10 +251,7 @@ const showPermissionSuccessAlert = async (
       {
         text: 'Open Blockexplorer',
         actionCallback: async (): Promise<void> => {
-          const link: string = await getAccountBlockExplorerLinkForNetwork(
-            account.network,
-            output.address
-          )
+          const link: string = await blockExplorer.getAddressLink(output.address, account.network)
           window.open(link, '_blank')
         }
       },
@@ -272,7 +269,7 @@ const showPermissionSuccessAlert = async (
 const showOperationSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.OPERATION_REQUEST_SUCCESS]
 ): Promise<void> => {
-  const { account, output } = data
+  const { account, output, blockExplorer } = data
   const alertConfig: AlertConfig = {
     title: 'Operation Broadcasted',
     body: `The transaction has successfully been broadcasted to the network with the following hash. <strong>${output.transactionHash}</strong>`,
@@ -280,9 +277,9 @@ const showOperationSuccessAlert = async (
       {
         text: 'Open Blockexplorer',
         actionCallback: async (): Promise<void> => {
-          const link: string = await getTransactionBlockExplorerLinkForNetwork(
-            account.network,
-            output.transactionHash
+          const link: string = await blockExplorer.getTransactionLink(
+            output.transactionHash,
+            account.network
           )
           window.open(link, '_blank')
         }
@@ -320,7 +317,7 @@ const showSignSuccessAlert = async (
 const showBroadcastSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.BROADCAST_REQUEST_SUCCESS]
 ): Promise<void> => {
-  const { network, output } = data
+  const { network, output, blockExplorer } = data
   const alertConfig: AlertConfig = {
     title: 'Broadcasted',
     body: `The transaction has successfully been broadcasted to the network with the following hash. <strong>${output.transactionHash}</strong>`,
@@ -328,9 +325,9 @@ const showBroadcastSuccessAlert = async (
       {
         text: 'Open Blockexplorer',
         actionCallback: async (): Promise<void> => {
-          const link: string = await getTransactionBlockExplorerLinkForNetwork(
-            network,
-            output.transactionHash
+          const link: string = await blockExplorer.getTransactionLink(
+            output.transactionHash,
+            network
           )
           window.open(link, '_blank')
         }
