@@ -119,7 +119,10 @@ export class DAppClient extends Client {
       connectionInfo: ConnectionContext
     ): Promise<void> => {
       const openRequest = this.openRequests.get(message.id)
-      if (openRequest) {
+
+      if (message.type === BeaconMessageType.Acknowledge) {
+        // Don't do anything for now, we can later use this to improve the UX
+      } else if (openRequest) {
         if (message.type === BeaconMessageType.Error) {
           openRequest.reject(message)
         } else {
@@ -137,7 +140,7 @@ export class DAppClient extends Client {
               version: BEACON_VERSION,
               relayServer: ''
             })
-            await this.events.emit(BeaconEvent.P2P_CHANNEL_CLOSED)
+            await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
           }
         } else {
           logger.error('handleResponse', 'no request found for id ', message.id)

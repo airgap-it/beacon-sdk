@@ -121,6 +121,8 @@ export class PostMessageTransport extends Transport {
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
+      this._isConnected = TransportStatus.CONNECTED
+
       await Promise.all(connectionPromises)
     } else {
       if (this.isDapp) {
@@ -151,6 +153,7 @@ export class PostMessageTransport extends Transport {
             logger.log('connectNewPeer', `received PairingResponse`, pairingResponse)
 
             await this.addPeer(pairingResponse)
+            this._isConnected = TransportStatus.CONNECTED
 
             resolve(pairingResponse)
           }

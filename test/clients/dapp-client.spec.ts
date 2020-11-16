@@ -907,6 +907,6 @@ describe(`DAppClient`, () => {
       relayServer: ''
     })
     expect(eventsStub.callCount, 'eventsStub').to.equal(3)
-    expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.P2P_CHANNEL_CLOSED)
+    expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.CHANNEL_CLOSED)
   })
 })

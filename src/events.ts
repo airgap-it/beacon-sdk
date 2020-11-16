@@ -49,10 +49,10 @@ export enum BeaconEvent {
 
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
+  CHANNEL_CLOSED = 'CHANNEL_CLOSED',
 
   P2P_CHANNEL_CONNECT_SUCCESS = 'P2P_CHANNEL_CONNECT_SUCCESS',
   P2P_LISTEN_FOR_CHANNEL_OPEN = 'P2P_LISTEN_FOR_CHANNEL_OPEN',
-  P2P_CHANNEL_CLOSED = 'P2P_CHANNEL_CLOSED',
 
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   UNKNOWN = 'UNKNOWN'
@@ -104,7 +104,7 @@ export interface BeaconEventType {
   [BeaconEvent.PAIR_SUCCESS]: undefined
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: P2PPairingRequest
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairingRequest
-  [BeaconEvent.P2P_CHANNEL_CLOSED]: string
+  [BeaconEvent.CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: string
   [BeaconEvent.UNKNOWN]: undefined
 }
@@ -387,7 +387,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showBeaconConnectedAlert,
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrAlert,
-  [BeaconEvent.P2P_CHANNEL_CLOSED]: showChannelClosedAlert,
+  [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
   [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)
 }
@@ -419,7 +419,7 @@ export class BeaconEventHandler {
     [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
     [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: [defaultEventCallbacks.P2P_CHANNEL_CONNECT_SUCCESS],
     [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: [defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN],
-    [BeaconEvent.P2P_CHANNEL_CLOSED]: [defaultEventCallbacks.P2P_CHANNEL_CLOSED],
+    [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],
     [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
   }
