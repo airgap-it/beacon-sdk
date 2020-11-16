@@ -38,7 +38,7 @@ describe(`P2PTransport`, () => {
     const eventHandler = new BeaconEventHandler()
     sinon.stub(eventHandler, 'emit').resolves()
 
-    transport = new P2PTransport('Test', keypair, localStorage, eventHandler, [], true)
+    transport = new P2PTransport('Test', keypair, localStorage, [], true)
   })
 
   it(`should be supported`, async () => {
