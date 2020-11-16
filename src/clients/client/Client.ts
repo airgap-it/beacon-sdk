@@ -146,6 +146,9 @@ export abstract class Client extends BeaconClient {
         const keyPair = await this.keyPair // We wait for keypair here so the P2P Transport creation is not delayed and causing issues
 
         const setTransport = async (newTransport: Transport): Promise<void> => {
+          if (this._transport.isSettled()) {
+            return // We only set transport if it hasn't been set before.
+          }
           await this.setTransport(newTransport)
           resolve(newTransport.type)
         }
@@ -196,28 +199,6 @@ export abstract class Client extends BeaconClient {
               .catch((emitError) => console.warn(emitError))
           })
           .catch(console.error)
-
-        resolve()
-
-        // const setBeaconTransport = async (): Promise<void> => {
-        //   const newTransport
-
-        //   return setTransport(newTransport)
-        // }
-
-        // const setBeaconTransportTimeout = window.setTimeout(setBeaconTransport, 200)
-
-        // return availableTransports.extension.then(async (postMessageAvailable) => {
-        //   if (setBeaconTransportTimeout) {
-        //     window.clearTimeout(setBeaconTransportTimeout)
-        //   }
-
-        //   if (postMessageAvailable) {
-        //     return setTransport()
-        //   } else {
-        //     return setBeaconTransport()
-        //   }
-        // })
       })
     }
   }
