@@ -6,6 +6,7 @@ import { BeaconError } from './errors/BeaconError'
 import { ConnectionContext } from './types/ConnectionContext'
 import { Serializer } from './Serializer'
 import { BlockExplorer } from './utils/block-explorer'
+import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
 import {
   P2PPairingRequest,
   AccountInfo,
@@ -17,7 +18,6 @@ import {
   SignPayloadResponseOutput,
   Network
 } from '.'
-import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
 
 const logger = new Logger('BeaconEvents')
 const serializer = new Serializer()
@@ -163,6 +163,18 @@ const showBeaconConnectedAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Success',
     body: 'A wallet has been paired over the beacon network.',
+    buttons: [{ text: 'Done', style: 'outline' }],
+    timer: 1500
+  })
+}
+
+/**
+ * Show a "connection successful" alert for 1.5 seconds
+ */
+const showExtensionConnectedAlert = async (): Promise<void> => {
+  await openAlert({
+    title: 'Success',
+    body: 'A browser extension has been paired.',
     buttons: [{ text: 'Done', style: 'outline' }],
     timer: 1500
   })
@@ -372,7 +384,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(BeaconEvent.ACTIVE_ACCOUNT_SET),
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
   [BeaconEvent.PAIR_INIT]: showPairAlert,
-  [BeaconEvent.PAIR_SUCCESS]: showChannelClosedAlert,
+  [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showBeaconConnectedAlert,
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrAlert,
   [BeaconEvent.P2P_CHANNEL_CLOSED]: showChannelClosedAlert,
