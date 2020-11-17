@@ -7,7 +7,7 @@ import {
   SignPayloadResponse,
   BroadcastRequest,
   BroadcastResponse,
-  AcknowledgeMessage,
+  AcknowledgeResponse,
   DisconnectMessage,
   ErrorResponse
 } from '../..'
@@ -21,6 +21,6 @@ export type BeaconMessage =
   | SignPayloadResponse
   | BroadcastRequest
   | BroadcastResponse
-  | AcknowledgeMessage
+  | AcknowledgeResponse
   | DisconnectMessage
   | ErrorResponse

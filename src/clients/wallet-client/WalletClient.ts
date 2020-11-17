@@ -18,6 +18,8 @@ import { ConnectionContext } from '../../types/ConnectionContext'
 import { IncomingRequestInterceptor } from '../../interceptors/IncomingRequestInterceptor'
 import { OutgoingResponseInterceptor } from '../../interceptors/OutgoingResponseInterceptor'
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
+import { BeaconMessageType } from '../../types/beacon/BeaconMessageType'
+import { AcknowledgeResponseInput } from '../../types/beacon/messages/BeaconResponseInputMessage'
 
 /**
  * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible
@@ -60,6 +62,9 @@ export class WalletClient extends Client {
     ): Promise<void> => {
       if (!this.pendingRequests.some((request) => request.id === message.id)) {
         this.pendingRequests.push(message)
+
+        await this.sendAcknowledgeResponse(message)
+
         await IncomingRequestInterceptor.intercept({
           message,
           connectionInfo,
@@ -167,12 +172,36 @@ export class WalletClient extends Client {
   }
 
   /**
+   * Send an acknowledge message back to the sender
+   *
+   * @param message The message that was received
+   */
+  private async sendAcknowledgeResponse(request: BeaconRequestMessage): Promise<void> {
+    // Acknowledge the message
+    const acknowledgeResponse: AcknowledgeResponseInput = {
+      id: request.id,
+      type: BeaconMessageType.Acknowledge
+    }
+
+    await OutgoingResponseInterceptor.intercept({
+      senderId: await this.beaconId,
+      request,
+      message: acknowledgeResponse,
+      permissionManager: this.permissionManager,
+      appMetadataManager: this.appMetadataManager,
+      interceptorCallback: async (response: BeaconMessage): Promise<void> => {
+        await this.respondToMessage(response)
+      }
+    })
+  }
+
+  /**
    * An internal method to send a BeaconMessage to the DApp
    *
-   * @param message Send a message back to the DApp
+   * @param response Send a message back to the DApp
    */
-  private async respondToMessage(message: BeaconMessage): Promise<void> {
-    const serializedMessage: string = await new Serializer().serialize(message)
+  private async respondToMessage(response: BeaconMessage): Promise<void> {
+    const serializedMessage: string = await new Serializer().serialize(response)
     await (await this.transport).send(serializedMessage)
   }
 }

@@ -122,7 +122,7 @@ import {
 import { AbortedBeaconError } from './errors/AbortedBeaconError'
 import { PeerInfo } from './types/PeerInfo'
 import { availableTransports } from './utils/available-transports'
-import { AcknowledgeMessage } from './types/beacon/messages/AcknowledgeMessage'
+import { AcknowledgeResponse } from './types/beacon/messages/AcknowledgeResponse'
 import { DisconnectMessage } from './types/beacon/messages/DisconnectMessage'
 
 // Tezos
@@ -183,7 +183,7 @@ export {
   SignPayloadResponse,
   BroadcastRequest,
   BroadcastResponse,
-  AcknowledgeMessage,
+  AcknowledgeResponse,
   DisconnectMessage,
   BeaconBaseMessage,
   BeaconMessageType,

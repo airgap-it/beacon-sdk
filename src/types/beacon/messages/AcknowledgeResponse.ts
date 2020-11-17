@@ -1,5 +1,5 @@
 import { BeaconBaseMessage, BeaconMessageType } from '../../..'
 
-export interface AcknowledgeMessage extends BeaconBaseMessage {
+export interface AcknowledgeResponse extends BeaconBaseMessage {
   type: BeaconMessageType.Acknowledge
 }
