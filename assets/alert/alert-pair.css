@@ -29,13 +29,15 @@
   box-shadow: 0 4px 12px 0 rgba(17, 17, 17, 0.24);
   border-radius: 16px;
 }
+#beacon--qr__copy__container {
+  height: 0;
+}
 #beacon--qr__copy {
   display: none;
   position: relative;
-  top: -194px;
-  right: -242px;
-  width: 0;
-  height: 0;
+  top: -190px;
+  left: 138px;
+  margin: 0;
 }
 #beacon--qr__container:hover #beacon--qr__copy {
   display: block;

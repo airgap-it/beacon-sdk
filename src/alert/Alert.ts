@@ -37,7 +37,7 @@ const formatQR = (dataString: string, pairingPayload: string): string => {
     const qr = getQrData(uri, 'svg')
     const qrString = qr.replace('<svg', `<svg class="beacon-alert__image"`)
 
-    return `<div id="beacon--qr__container">${qrString}</div>${dataString}`
+    return `<div id="beacon--qr__container">${qrString}<div id="beacon--qr__copy__container"><button class="beacon-modal__button--outline" id="beacon--qr__copy">Copy</button></div></div>${dataString}`
   }
 
   return dataString
@@ -262,7 +262,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   }
 
   const qr: HTMLElement | null = document.getElementById(`beacon--qr__container`)
-  const copyButton: HTMLElement | null = document.getElementById(`beacon--qr__code`)
+  const copyButton: HTMLElement | null = document.getElementById(`beacon--qr__copy`)
   const titleEl: HTMLElement | null = document.getElementById(`beacon-title`)
 
   const platform = isAndroid(window) ? 'android' : isIOS(window) ? 'ios' : 'desktop'
@@ -289,6 +289,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     const fn = () => {
       navigator.clipboard.writeText(pairingPayload ? pairingPayload.p2pSyncCode : '').then(
         () => {
+          copyButton.innerText = 'Copied'
           console.log('Copying to clipboard was successful!')
         },
         (err) => {
@@ -313,7 +314,6 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
       desktopList.style.display = 'none'
       webList.style.display = 'none'
       switchButton.style.display = 'initial'
-      copyButton.style.display = 'none'
 
       switch (type) {
         case 'ios':
@@ -327,13 +327,11 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
           webList.style.display = 'initial'
           titleEl.style.textAlign = 'left'
           mainText.style.display = 'initial'
-          copyButton.style.display = 'initial'
           switchButton.style.display = 'none'
           break
         default:
           // QR code
           mainText.style.display = 'initial'
-          copyButton.style.display = 'initial'
       }
     }
 
