@@ -149,13 +149,16 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
     prefix = prefixes.edpk.prefix
     plainPublicKey = publicKey
   } else {
-    Object.entries(prefixes).forEach(([key, value]) => {
+    const entries = Object.entries(prefixes)
+    for (let index = 0; index < entries.length; index++) {
+      const [key, value] = entries[index]
       if (publicKey.startsWith(key) && publicKey.length === value.length) {
         prefix = value.prefix
         const decoded = bs58check.decode(publicKey)
         plainPublicKey = decoded.slice(key.length, decoded.length).toString('hex')
+        break
       }
-    })
+    }
   }
 
   if (!prefix || !plainPublicKey) {
