@@ -307,7 +307,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
       }
 
       mainText.style.display = 'none'
-      titleEl.style.display = 'none'
+      titleEl.style.textAlign = 'center'
       iosList.style.display = 'none'
       androidList.style.display = 'none'
       desktopList.style.display = 'none'
@@ -325,6 +325,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
         case 'desktop':
           desktopList.style.display = 'initial'
           webList.style.display = 'initial'
+          titleEl.style.textAlign = 'left'
           mainText.style.display = 'initial'
           copyButton.style.display = 'initial'
           switchButton.style.display = 'none'
@@ -332,7 +333,6 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
         default:
           // QR code
           mainText.style.display = 'initial'
-          titleEl.style.display = 'initial'
           copyButton.style.display = 'initial'
       }
     }

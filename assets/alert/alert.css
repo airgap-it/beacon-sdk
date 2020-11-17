@@ -80,6 +80,11 @@ button {
   font-family: Roboto, Helvetica, sans-serif;
 }
 
+a,
+button {
+  cursor: pointer;
+}
+
 .beacon-modal__close__wrapper {
   position: absolute;
   top: 44px;
@@ -126,9 +131,12 @@ button {
   text-align: center;
 }
 
-.beacon-alert__text,
 .beacon-alert__title {
   text-align: center;
+}
+
+.beacon-alert__text,
+.beacon-alert__title {
   margin: 0 auto;
   padding: 0 0 16px;
 }
@@ -192,8 +200,12 @@ button {
   padding: 24px;
 }
 
-.beacon-action__container {
+#beacon--switch__container {
   padding-top: 24px;
+}
+
+#beacon-title {
+  margin-bottom: 24px;
 }
 
 a {
