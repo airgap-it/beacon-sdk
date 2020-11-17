@@ -200,8 +200,8 @@ button {
   padding: 24px;
 }
 
-#beacon--switch__container {
-  padding-top: 24px;
+#beacon-switch {
+  margin-top: 24px;
 }
 
 #beacon-title {
