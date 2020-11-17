@@ -128,22 +128,46 @@ export async function openCryptobox(
 export async function getAddressFromPublicKey(publicKey: string): Promise<string> {
   await sodium.ready
 
-  let plainPublicKey: string
-  if (publicKey.length === 64) {
-    plainPublicKey = publicKey
-  } else if (publicKey.startsWith('edpk') && publicKey.length === 54) {
-    const edpkPrefixLength = 4
-    const decoded = bs58check.decode(publicKey)
+  const prefixes = {
+    edpk: {
+      length: 54,
+      prefix: Buffer.from(new Uint8Array([6, 161, 159]))
+    },
+    sppk: {
+      length: 55,
+      prefix: Buffer.from(new Uint8Array([6, 161, 161]))
+    },
+    p2pk: {
+      length: 55,
+      prefix: Buffer.from(new Uint8Array([6, 161, 164]))
+    }
+  }
 
-    plainPublicKey = decoded.slice(edpkPrefixLength, decoded.length).toString('hex')
+  let prefix: Buffer | undefined
+  let plainPublicKey: string | undefined
+  if (publicKey.length === 64) {
+    prefix = prefixes.edpk.prefix
+    plainPublicKey = publicKey
   } else {
+    const entries = Object.entries(prefixes)
+    for (let index = 0; index < entries.length; index++) {
+      const [key, value] = entries[index]
+      if (publicKey.startsWith(key) && publicKey.length === value.length) {
+        prefix = value.prefix
+        const decoded = bs58check.decode(publicKey)
+        plainPublicKey = decoded.slice(key.length, decoded.length).toString('hex')
+        break
+      }
+    }
+  }
+
+  if (!prefix || !plainPublicKey) {
     throw new Error(`invalid publicKey: ${publicKey}`)
   }
 
   const payload: Uint8Array = sodium.crypto_generichash(20, Buffer.from(plainPublicKey, 'hex'))
-  const tz1Prefix: Buffer = Buffer.from(new Uint8Array([6, 161, 159]))
 
-  return bs58check.encode(Buffer.concat([tz1Prefix, Buffer.from(payload)]))
+  return bs58check.encode(Buffer.concat([prefix, Buffer.from(payload)]))
 }
 
 /**
