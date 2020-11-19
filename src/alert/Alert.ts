@@ -216,9 +216,9 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
        target="_blank" class="beacon-selection__list">
        <div class="beacon-selection__name">${extension.name}</div>
        ${
-         extension.iconURL
+         extension.iconUrl
            ? `<div>
-       <img class="beacon-selection__img" src="${extension.iconURL}"/>
+       <img class="beacon-selection__img" src="${extension.iconUrl}"/>
        </div>`
            : ''
        }
