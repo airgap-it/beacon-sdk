@@ -84,8 +84,6 @@ export class PostMessageClient extends MessageBasedClient {
             )
 
             messageCallback(JSON.parse(decrypted))
-
-            myWindow.removeEventListener('message', fn)
           } catch (decryptionError) {
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
