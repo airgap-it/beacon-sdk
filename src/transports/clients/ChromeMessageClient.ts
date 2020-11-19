@@ -85,8 +85,10 @@ export class ChromeMessageClient extends MessageBasedClient {
   }
 
   public async sendPairingResponse(pairingRequest: PostMessagePairingRequest): Promise<void> {
+    const pairingResponse = await this.getPairingResponseInfo(pairingRequest)
+
     const encryptedMessage: string = await sealCryptobox(
-      JSON.stringify(await this.getHandshakeInfo()),
+      JSON.stringify(pairingResponse),
       Buffer.from(pairingRequest.publicKey, 'hex')
     )
 

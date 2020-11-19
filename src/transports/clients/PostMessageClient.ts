@@ -97,7 +97,7 @@ export class PostMessageClient extends MessageBasedClient {
   public async sendPairingRequest(id: string): Promise<void> {
     const message: ExtensionMessage<string> = {
       target: ExtensionMessageTarget.EXTENSION,
-      payload: await new Serializer().serialize(await this.getHandshakeInfo()),
+      payload: await new Serializer().serialize(await this.getPairingRequestInfo()),
       targetId: id
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

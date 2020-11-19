@@ -70,8 +70,8 @@ export class P2PTransport extends Transport<P2PPairingResponse> {
     await super.connect()
   }
 
-  public async getHandshakeInfo(): Promise<P2PPairingRequest> {
-    return this.client.getHandshakeInfo()
+  public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
+    return this.client.getPairingRequestInfo()
   }
 
   public async getPeers(): Promise<P2PPairingRequest[]> {

@@ -225,8 +225,8 @@ export class DAppClient extends Client {
             .then(async () => {
               this.events
                 .emit(BeaconEvent.PAIR_INIT, {
-                  p2pPeerInfo: await p2pTransport.getHandshakeInfo(),
-                  postmessagePeerInfo: await postMessageTransport.getHandshakeInfo()
+                  p2pPeerInfo: await p2pTransport.getPairingRequestInfo(),
+                  postmessagePeerInfo: await postMessageTransport.getPairingRequestInfo()
                 })
                 .catch((emitError) => console.warn(emitError))
             })

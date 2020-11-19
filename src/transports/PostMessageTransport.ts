@@ -136,8 +136,8 @@ export class PostMessageTransport extends Transport<PostMessagePairingResponse> 
     await super.connect()
   }
 
-  public async getHandshakeInfo(): Promise<PostMessagePairingRequest> {
-    return this.client.getHandshakeInfo()
+  public async getPairingRequestInfo(): Promise<PostMessagePairingRequest> {
+    return this.client.getPairingRequestInfo()
   }
 
   public async getPeers(): Promise<PostMessagePairingRequest[]> {

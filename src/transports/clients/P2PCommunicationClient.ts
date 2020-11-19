@@ -53,10 +53,21 @@ export class P2PCommunicationClient extends CommunicationClient {
     this.KNOWN_RELAY_SERVERS = matrixNodes.length > 0 ? matrixNodes : KNOWN_RELAY_SERVERS
   }
 
-  public async getHandshakeInfo(): Promise<P2PPairingRequest> {
+  public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
     return {
       id: await generateGUID(),
       type: 'p2p-pairing-request',
+      name: this.name,
+      version: BEACON_VERSION,
+      publicKey: await this.getPublicKey(),
+      relayServer: await this.getRelayServer()
+    }
+  }
+
+  public async getPairingResponseInfo(request: P2PPairingRequest): Promise<P2PPairingResponse> {
+    return {
+      id: request.id,
+      type: 'p2p-pairing-response',
       name: this.name,
       version: BEACON_VERSION,
       publicKey: await this.getPublicKey(),
@@ -256,7 +267,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       const message: string =
         typeof pairingRequest.version === 'undefined'
           ? await this.getPublicKey() // v1
-          : JSON.stringify(await this.getHandshakeInfo()) // v2
+          : JSON.stringify(await this.getPairingResponseInfo(pairingRequest)) // v2
 
       const encryptedMessage: string = await sealCryptobox(
         message,
