@@ -219,7 +219,7 @@ const showQrAlert = async (
 
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
-    body: `<p>Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn more</a>.</p>`,
+    body: `<p></p>`,
     pairingPayload: { p2pSyncCode: base58encoded, postmessageSyncCode: base58encoded }
   }
   await openAlert(alertConfig)
@@ -236,7 +236,7 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
 
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
-    body: `<p>Don't know what to do with this QR code? <a href="https://docs.walletbeacon.io/supported-wallets.html" target="_blank">Learn more</a>.</p>`,
+    body: `<p></p>`,
     pairingPayload: { p2pSyncCode: p2pBase58encoded, postmessageSyncCode: postmessageBase58encoded }
   }
   await openAlert(alertConfig)
