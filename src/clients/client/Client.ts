@@ -53,11 +53,10 @@ export abstract class Client extends BeaconClient {
   }
 
   /**
-   * Returns whether or not the transport is successfully connected
+   * Returns the connection status of the Client
    */
-  protected readonly _isConnected: ExposedPromise<boolean> = new ExposedPromise()
-  public get isConnected(): Promise<boolean> {
-    return this._isConnected.promise
+  public get connectionStatus(): TransportStatus {
+    return this._transport.promiseResult?.connectionStatus ?? TransportStatus.NOT_CONNECTED
   }
 
   /**
@@ -66,6 +65,9 @@ export abstract class Client extends BeaconClient {
   public get ready(): Promise<void> {
     return this.transport.then(() => undefined)
   }
+
+  protected p2pTransport: P2PTransport | undefined
+  protected postMessageTransport: PostMessageTransport | undefined
 
   constructor(config: ClientOptions) {
     super({ name: config.name, storage: config.storage })
@@ -129,78 +131,16 @@ export abstract class Client extends BeaconClient {
    * This method initializes the client. It will check if the connection should be established to a
    * browser extension or if the P2P transport should be used.
    *
-   * @param isDapp A boolean flag indicating if this is the DAppClient or WalletClient
-   * @param transport An optional transport that can be provided by the user
+   * @param transport A transport that can be provided by the user
    */
-  public async init(isDapp: boolean = true, transport?: Transport): Promise<TransportType> {
+  public async init(transport: Transport): Promise<TransportType> {
     if (this._transport.status === ExposedPromiseStatus.RESOLVED) {
       return (await this.transport).type
     }
 
-    if (transport) {
-      await this.setTransport(transport) // Let users define their own transport
+    await this.setTransport(transport) // Let users define their own transport
 
-      return transport.type
-    } else {
-      return new Promise(async (resolve) => {
-        const keyPair = await this.keyPair // We wait for keypair here so the P2P Transport creation is not delayed and causing issues
-
-        const setTransport = async (newTransport: Transport): Promise<void> => {
-          if (this._transport.isSettled()) {
-            return // We only set transport if it hasn't been set before.
-          }
-          await this.setTransport(newTransport)
-          resolve(newTransport.type)
-        }
-
-        const p2pTransport = new P2PTransport(
-          this.name,
-          keyPair,
-          this.storage,
-          this.matrixNodes,
-          isDapp
-        )
-        const postMessageTransport = new PostMessageTransport(
-          this.name,
-          keyPair,
-          this.storage,
-          isDapp
-        )
-
-        p2pTransport
-          .connectNewPeer()
-          .then((peer) => {
-            console.log('p2p transport peer connected')
-            this.events
-              .emit(BeaconEvent.PAIR_SUCCESS, peer as any)
-              .catch((emitError) => console.warn(emitError))
-            setTransport(p2pTransport).catch(console.error)
-          })
-          .catch(console.error)
-
-        postMessageTransport
-          .connectNewPeer()
-          .then((peer) => {
-            console.log('postmessage transport peer connected')
-            this.events
-              .emit(BeaconEvent.PAIR_SUCCESS, peer as any)
-              .catch((emitError) => console.warn(emitError))
-            setTransport(postMessageTransport).catch(console.error)
-          })
-          .catch(console.error)
-
-        PostMessageTransport.getAvailableExtensions()
-          .then(async () => {
-            this.events
-              .emit(BeaconEvent.PAIR_INIT, {
-                p2pPeerInfo: await p2pTransport.getHandshakeInfo(),
-                postmessagePeerInfo: await postMessageTransport.getHandshakeInfo()
-              })
-              .catch((emitError) => console.warn(emitError))
-          })
-          .catch(console.error)
-      })
-    }
+    return transport.type
   }
 
   /**
@@ -225,45 +165,37 @@ export abstract class Client extends BeaconClient {
   }
 
   /**
-   * The method will attempt to initiate a connection using the active transport method.
-   * If the method is called multiple times while it is connecting (meaning the initial connect didn't finish),
-   * the transport will try to reconnect.
-   */
-  protected async _connect(): Promise<boolean> {
-    const transport: Transport = await this.transport
-    if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
-      await transport.connect()
-      transport
-        .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
-          if (typeof message === 'string') {
-            const deserializedMessage = (await new Serializer().deserialize(
-              message
-            )) as BeaconRequestMessage
-            this.handleResponse(deserializedMessage, connectionInfo)
-          }
-        })
-        .catch((error) => console.log(error))
-      this._isConnected.resolve(true)
-    } else if (transport.connectionStatus === TransportStatus.CONNECTING) {
-      await transport.reconnect()
-    } else {
-      // NO-OP
-    }
-
-    return this._isConnected.promise
-  }
-
-  /**
    * A "setter" for when the transport needs to be changed.
    */
-  private async setTransport(transport: Transport): Promise<void> {
-    if (this._transport.isSettled()) {
-      // If the promise has already been resolved we need to create a new one.
-      this._transport = ExposedPromise.resolve(transport)
+  protected async setTransport(transport?: Transport): Promise<void> {
+    if (transport) {
+      if (this._transport.isSettled()) {
+        // If the promise has already been resolved we need to create a new one.
+        this._transport = ExposedPromise.resolve(transport)
+      } else {
+        this._transport.resolve(transport)
+      }
     } else {
-      this._transport.resolve(transport)
+      if (this._transport.isSettled()) {
+        // If the promise has already been resolved we need to create a new one.
+        this._transport = new ExposedPromise()
+      }
     }
 
     await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport)
+  }
+
+  protected async addListener(transport: Transport): Promise<void> {
+    transport
+      .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
+        if (typeof message === 'string') {
+          const deserializedMessage = (await new Serializer().deserialize(
+            message
+          )) as BeaconRequestMessage
+          console.log('received the following message', deserializedMessage)
+          this.handleResponse(deserializedMessage, connectionInfo)
+        }
+      })
+      .catch((error) => console.log(error))
   }
 }

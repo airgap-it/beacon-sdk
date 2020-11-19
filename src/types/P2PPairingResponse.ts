@@ -1,10 +1,11 @@
 import { PeerInfo } from './PeerInfo'
 
-export interface PostMessagePairingRequest extends PeerInfo {
+export interface P2PPairingResponse extends PeerInfo {
   id: string
-  type: 'postmessage-pairing-request'
+  type: 'p2p-pairing-response'
   name: string
   publicKey: string
+  relayServer: string
   icon?: string // TODO: Should this be a URL or base64 image?
   appUrl?: string
 }

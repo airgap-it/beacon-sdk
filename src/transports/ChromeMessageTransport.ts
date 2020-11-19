@@ -18,11 +18,12 @@ import { PeerManager } from '../managers/PeerManager'
 import { Storage } from '../storage/Storage'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 import { TransportStatus } from '../types/transport/TransportStatus'
+import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { ChromeMessageClient } from './clients/ChromeMessageClient'
 
 const logger = new Logger('ChromeMessageTransport')
 
-export class ChromeMessageTransport extends Transport {
+export class ChromeMessageTransport extends Transport<PostMessagePairingResponse> {
   public readonly type: TransportType = TransportType.CHROME_MESSAGE
 
   private readonly keyPair: sodium.KeyPair

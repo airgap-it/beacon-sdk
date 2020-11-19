@@ -12,33 +12,22 @@ import {
   P2PPairingRequest
 } from '..'
 import { PeerManager } from '../managers/PeerManager'
+import { P2PPairingResponse } from '../types/P2PPairingResponse'
 
 const logger = new Logger('P2PTransport')
 
-export class P2PTransport extends Transport {
+export class P2PTransport extends Transport<P2PPairingResponse> {
   public readonly type: TransportType = TransportType.P2P
-
-  private readonly isDapp: boolean = true
 
   /**
    * The client handling the encryption/decryption of messages
    */
   private readonly client: P2PCommunicationClient
 
-  // Make sure we only listen once
-  private listeningForChannelOpenings: boolean = false
-
   private readonly peerManager: PeerManager<StorageKey.TRANSPORT_P2P_PEERS>
 
-  constructor(
-    name: string,
-    keyPair: sodium.KeyPair,
-    storage: Storage,
-    matrixNodes: string[],
-    isDapp: boolean
-  ) {
+  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, matrixNodes: string[]) {
     super(name)
-    this.isDapp = isDapp
     this.client = new P2PCommunicationClient(this.name, keyPair, 1, storage, matrixNodes, false)
     this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_P2P_PEERS)
   }
@@ -48,6 +37,10 @@ export class P2PTransport extends Transport {
   }
 
   public async connect(): Promise<void> {
+    if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
+      return
+    }
+
     logger.log('connect')
     this._isConnected = TransportStatus.CONNECTING
 
@@ -58,41 +51,27 @@ export class P2PTransport extends Transport {
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
-      await Promise.all(connectionPromises)
-    } else {
-      if (this.isDapp) {
-        await this.connectNewPeer()
-      }
+      Promise.all(connectionPromises).catch(console.log)
     }
+
+    await this.client.listenForChannelOpening(async (peer) => {
+      logger.log('listenForNewPeer', `new publicKey`, peer.publicKey)
+
+      await this.addPeer(peer as any)
+
+      this._isConnected = TransportStatus.CONNECTED
+
+      if (this.newPeerListener) {
+        this.newPeerListener(peer)
+        this.newPeerListener = undefined // TODO: Remove this once we use the id
+      }
+    })
 
     await super.connect()
   }
 
-  public async reconnect(): Promise<void> {
-    if (this.isDapp) {
-      await this.connectNewPeer()
-    }
-  }
-
   public async getHandshakeInfo(): Promise<P2PPairingRequest> {
     return this.client.getHandshakeInfo()
-  }
-
-  public async connectNewPeer(): Promise<P2PPairingRequest> {
-    logger.log('connectNewPeer')
-
-    return new Promise(async (resolve) => {
-      if (!this.listeningForChannelOpenings) {
-        await this.client.listenForChannelOpening(async (peer) => {
-          logger.log('connectNewPeer', `new publicKey`, peer.publicKey)
-
-          await this.addPeer(peer)
-
-          resolve(peer)
-        })
-        this.listeningForChannelOpenings = true
-      }
-    })
   }
 
   public async getPeers(): Promise<P2PPairingRequest[]> {

@@ -23,27 +23,18 @@ const logger = new Logger('PostMessageTransport')
 
 let extensions: ExposedPromise<Extension[]> | undefined
 
-export class PostMessageTransport extends Transport {
+export class PostMessageTransport extends Transport<PostMessagePairingResponse> {
   public readonly type: TransportType = TransportType.POST_MESSAGE
-
-  /**
-   * A flag indicating whether
-   */
-  private readonly isDapp: boolean = true
 
   /**
    * The client handling the encryption/decryption of messages
    */
   private readonly client: PostMessageClient
 
-  // Make sure we only listen once
-  private listeningForChannelOpenings: boolean = false
-
   private readonly peerManager: PeerManager<StorageKey.TRANSPORT_POSTMESSAGE_PEERS>
 
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, isDapp: boolean) {
+  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage) {
     super(name)
-    this.isDapp = isDapp
     this.client = new PostMessageClient(this.name, keyPair, false)
     this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_POSTMESSAGE_PEERS)
   }
@@ -114,6 +105,10 @@ export class PostMessageTransport extends Transport {
 
   public async connect(): Promise<void> {
     logger.log('connect')
+    if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
+      return
+    }
+
     this._isConnected = TransportStatus.CONNECTING
 
     const knownPeers = await this.peerManager.getPeers()
@@ -121,46 +116,28 @@ export class PostMessageTransport extends Transport {
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
+
+      Promise.all(connectionPromises).catch(console.log)
+    }
+
+    await this.client.listenForChannelOpening(async (peer: PostMessagePairingResponse) => {
+      logger.log('connect', `received PostMessagePairingResponse`, peer)
+
+      await this.addPeer(peer as any)
+
       this._isConnected = TransportStatus.CONNECTED
 
-      await Promise.all(connectionPromises)
-    } else {
-      if (this.isDapp) {
-        await this.connectNewPeer()
+      if (this.newPeerListener) {
+        this.newPeerListener(peer as any)
+        this.newPeerListener = undefined // TODO: Remove this once we use the id
       }
-    }
+    })
 
     await super.connect()
   }
 
-  public async reconnect(): Promise<void> {
-    if (this.isDapp) {
-      await this.connectNewPeer()
-    }
-  }
-
   public async getHandshakeInfo(): Promise<PostMessagePairingRequest> {
     return this.client.getHandshakeInfo()
-  }
-
-  public async connectNewPeer(): Promise<PostMessagePairingResponse> {
-    logger.log('connectNewPeer')
-
-    return new Promise(async (resolve) => {
-      if (!this.listeningForChannelOpenings) {
-        await this.client.listenForChannelOpening(
-          async (pairingResponse: PostMessagePairingResponse) => {
-            logger.log('connectNewPeer', `received PairingResponse`, pairingResponse)
-
-            await this.addPeer(pairingResponse)
-            this._isConnected = TransportStatus.CONNECTED
-
-            resolve(pairingResponse)
-          }
-        )
-        this.listeningForChannelOpenings = true
-      }
-    })
   }
 
   public async getPeers(): Promise<PostMessagePairingRequest[]> {

@@ -44,7 +44,9 @@ import {
   Network,
   P2PPairingRequest,
   P2PTransport,
-  BeaconError
+  BeaconError,
+  Origin,
+  PostMessageTransport
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -52,6 +54,7 @@ import { getAccountIdentifier } from '../../utils/get-account-identifier'
 import { BlockExplorer } from '../../utils/block-explorer'
 import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
 import { BeaconErrorType } from '../../types/BeaconErrorType'
+import { AlertButton } from '../../alert/Alert'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -85,13 +88,6 @@ export class DAppClient extends Client {
    */
   private _activeAccount: ExposedPromise<AccountInfo | undefined> = new ExposedPromise()
 
-  /**
-   * Returns the status if the transport is connected
-   */
-  public get isConnected(): Promise<boolean> {
-    return this._isConnected.promise
-  }
-
   constructor(config: DAppClientOptions) {
     super({
       storage: config.storage ? config.storage : new LocalStorage(),
@@ -121,10 +117,12 @@ export class DAppClient extends Client {
       const openRequest = this.openRequests.get(message.id)
 
       if (message.type === BeaconMessageType.Acknowledge) {
+        console.log('acknowledge message received for ', message.id)
         // Don't do anything for now, we can later use this to improve the UX
       } else if (openRequest) {
-        if (message.type === BeaconMessageType.Error) {
-          openRequest.reject(message)
+        if (message.type === BeaconMessageType.Error || (message as any).errorType) {
+          // TODO: Remove "any" once we remove support for v1 wallets
+          openRequest.reject(message as any)
         } else {
           openRequest.resolve({ message, connectionInfo })
         }
@@ -135,6 +133,8 @@ export class DAppClient extends Client {
           if (transport.type === TransportType.P2P) {
             // TODO: Also handle postmessage transport
             await (transport as P2PTransport).removePeer({
+              id: '',
+              type: 'p2p-pairing-request',
               name: '',
               publicKey: message.senderId,
               version: BEACON_VERSION,
@@ -149,10 +149,102 @@ export class DAppClient extends Client {
     }
   }
 
-  public async init(_isDapp?: boolean, transport?: Transport): Promise<TransportType> {
-    const initResponse = await super.init(true, transport)
+  public async init(transport?: Transport): Promise<TransportType> {
+    return new Promise(async (resolve) => {
+      console.log('transport', transport)
 
-    return initResponse
+      if (transport) {
+        await this.addListener(transport)
+
+        resolve(await super.init(transport))
+      } else {
+        const activeAccount = await this.getActiveAccount()
+
+        const keyPair = await this.keyPair
+
+        const stopListening = () => {
+          console.log('stop listening for new peers')
+          if (this.postMessageTransport) {
+            this.postMessageTransport.stopListeningForNewPeers().catch(console.error)
+          }
+          if (this.p2pTransport) {
+            this.p2pTransport.stopListeningForNewPeers().catch(console.error)
+          }
+        }
+
+        if (!this.postMessageTransport) {
+          this.postMessageTransport = new PostMessageTransport(
+            this.name,
+            keyPair,
+            this.storage,
+            false
+          )
+
+          this.postMessageTransport.connect().then().catch(console.error)
+          await this.addListener(this.postMessageTransport)
+        }
+
+        if (!this.p2pTransport) {
+          this.p2pTransport = new P2PTransport(
+            this.name,
+            keyPair,
+            this.storage,
+            this.matrixNodes,
+            false
+          )
+          this.p2pTransport.connect().then().catch(console.error)
+          await this.addListener(this.p2pTransport)
+        }
+
+        if (activeAccount && activeAccount.origin) {
+          const origin = activeAccount.origin.type
+          // Select the transport that matches the active account
+          if (origin === Origin.EXTENSION) {
+            resolve(await super.init(this.postMessageTransport))
+          } else if (origin === Origin.P2P) {
+            resolve(await super.init(this.p2pTransport))
+          }
+        } else {
+          const p2pTransport = this.p2pTransport
+          const postMessageTransport = this.postMessageTransport
+
+          postMessageTransport
+            .listenForNewPeer((peer) => {
+              console.log('postmessage transport peer connected')
+              this.events
+                .emit(BeaconEvent.PAIR_SUCCESS, peer as any)
+                .catch((emitError) => console.warn(emitError))
+              this.setTransport(this.postMessageTransport).catch(console.error)
+              stopListening()
+              resolve(TransportType.POST_MESSAGE)
+            })
+            .catch(console.error)
+
+          p2pTransport
+            .listenForNewPeer((peer) => {
+              console.log('p2p transport peer connected')
+              this.events
+                .emit(BeaconEvent.PAIR_SUCCESS, peer as any)
+                .catch((emitError) => console.warn(emitError))
+              this.setTransport(this.p2pTransport).catch(console.error)
+              stopListening()
+              resolve(TransportType.P2P)
+            })
+            .catch(console.error)
+
+          PostMessageTransport.getAvailableExtensions()
+            .then(async () => {
+              this.events
+                .emit(BeaconEvent.PAIR_INIT, {
+                  p2pPeerInfo: await p2pTransport.getHandshakeInfo(),
+                  postmessagePeerInfo: await postMessageTransport.getHandshakeInfo()
+                })
+                .catch((emitError) => console.warn(emitError))
+            })
+            .catch(console.error)
+        }
+      }
+    })
   }
 
   /**
@@ -175,6 +267,18 @@ export class DAppClient extends Client {
       this._activeAccount.resolve(account)
     }
 
+    if (account) {
+      const origin = account.origin.type
+      // Select the transport that matches the active account
+      if (origin === Origin.EXTENSION) {
+        await this.setTransport(this.postMessageTransport)
+      } else if (origin === Origin.P2P) {
+        await this.setTransport(this.p2pTransport)
+      }
+    } else {
+      await this.setTransport(undefined)
+    }
+
     await this.storage.set(
       StorageKey.ACTIVE_ACCOUNT,
       account ? account.accountIdentifier : undefined
@@ -194,15 +298,6 @@ export class DAppClient extends Client {
       name: this.name,
       icon: this.iconUrl
     }
-  }
-
-  /**
-   * The method will attempt to initiate a connection using the active transport method.
-   * If the method is called multiple times while it is connecting (meaning the initial connect didn't finish),
-   * the transport will try to reconnect.
-   */
-  public async connect(): Promise<boolean> {
-    return super._connect()
   }
 
   /**
@@ -548,9 +643,9 @@ export class DAppClient extends Client {
     beaconError: ErrorResponse
   ): Promise<void> {
     if (beaconError.errorType) {
-      let errorCallback = (): Promise<void> => Promise.resolve()
+      const buttons: AlertButton[] = []
       if (beaconError.errorType === BeaconErrorType.NO_PRIVATE_KEY_FOUND_ERROR) {
-        errorCallback = async (): Promise<void> => {
+        const actionCallback = async (): Promise<void> => {
           const operationRequest: OperationRequestInput = request as OperationRequestInput
           // if the account we requested is not available, we remove it locally
           let accountInfo: AccountInfo | undefined
@@ -566,12 +661,12 @@ export class DAppClient extends Client {
             }
           }
         }
+
+        buttons.push({ text: 'Remove account', actionCallback })
       }
 
       this.events
-        .emit(messageEvents[request.type].error, beaconError, [
-          { text: 'Remove account', actionCallback: errorCallback }
-        ])
+        .emit(messageEvents[request.type].error, beaconError, buttons)
         .catch((emitError) => console.warn(emitError))
 
       throw BeaconError.getError(beaconError.errorType)
@@ -637,8 +732,6 @@ export class DAppClient extends Client {
     logger.log('makeRequest')
     await this.init()
     logger.log('makeRequest', 'after init')
-    await this.connect()
-    logger.log('makeRequest', 'after connecting')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events

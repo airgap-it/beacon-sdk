@@ -2,6 +2,7 @@ import * as sodium from 'libsodium-wrappers'
 import { BEACON_VERSION } from '../../constants'
 import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
 import { decryptCryptoboxPayload, encryptCryptoboxPayload } from '../../utils/crypto'
+import { generateGUID } from '../../utils/generate-uuid'
 import { CommunicationClient } from './CommunicationClient'
 
 export abstract class MessageBasedClient extends CommunicationClient {
@@ -31,6 +32,8 @@ export abstract class MessageBasedClient extends CommunicationClient {
    */
   public async getHandshakeInfo(): Promise<PostMessagePairingRequest> {
     return {
+      id: await generateGUID(),
+      type: 'postmessage-pairing-request',
       name: this.name,
       version: BEACON_VERSION,
       publicKey: await this.getPublicKey()

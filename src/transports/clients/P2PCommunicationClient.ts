@@ -21,6 +21,8 @@ import { MatrixRoom } from '../../matrix-client/models/MatrixRoom'
 import { Storage } from '../../storage/Storage'
 import { P2PPairingRequest } from '../..'
 import { BEACON_VERSION } from '../../constants'
+import { generateGUID } from '../../utils/generate-uuid'
+import { P2PPairingResponse } from '../../types/P2PPairingResponse'
 import { CommunicationClient } from './CommunicationClient'
 
 const KNOWN_RELAY_SERVERS = [
@@ -53,6 +55,8 @@ export class P2PCommunicationClient extends CommunicationClient {
 
   public async getHandshakeInfo(): Promise<P2PPairingRequest> {
     return {
+      id: await generateGUID(),
+      type: 'p2p-pairing-request',
       name: this.name,
       version: BEACON_VERSION,
       publicKey: await this.getPublicKey(),
@@ -209,7 +213,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async listenForChannelOpening(
-    messageCallback: (pairingResponse: P2PPairingRequest) => void
+    messageCallback: (pairingResponse: P2PPairingResponse) => void
   ): Promise<void> {
     for (const client of this.clients) {
       client.subscribe(MatrixClientEventType.MESSAGE, async (event) => {

@@ -1,10 +1,10 @@
 import { Logger } from '../utils/Logger'
 import { ConnectionContext } from '../types/ConnectionContext'
-import { TransportType, TransportStatus } from '..'
+import { TransportType, TransportStatus, PeerInfo } from '..'
 
 const logger = new Logger('Transport')
 
-export abstract class Transport {
+export abstract class Transport<T extends PeerInfo = any> {
   /**
    * The type of the transport
    */
@@ -19,6 +19,11 @@ export abstract class Transport {
    * The status of the transport
    */
   protected _isConnected: TransportStatus = TransportStatus.NOT_CONNECTED
+
+  /**
+   * The listener that will be invoked when a new peer is connected
+   */
+  protected newPeerListener?: (peer: T) => void
 
   /**
    * The listeners that will be notified when new messages are coming in
@@ -104,6 +109,16 @@ export abstract class Transport {
     this.listeners = this.listeners.filter((element) => element !== listener)
 
     return
+  }
+
+  public async listenForNewPeer(newPeerListener: (peer: T) => void): Promise<void> {
+    logger.log('listenForNewPeer')
+    this.newPeerListener = newPeerListener
+  }
+
+  public async stopListeningForNewPeers(): Promise<void> {
+    logger.log('stopListeningForNewPeers')
+    this.newPeerListener = undefined
   }
 
   /**

@@ -3,7 +3,7 @@ import { PostMessageTransport } from '../transports/PostMessageTransport'
 export interface Extension {
   id: string
   name: string
-  iconURL?: string
+  iconUrl?: string
 }
 
 /**

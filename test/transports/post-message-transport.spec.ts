@@ -95,7 +95,7 @@ describe(`PostMessageTransport`, () => {
   })
 
   it(`should listen to new peers if no peers are stored locally`, async () => {
-    const connectNewPeerStub = sinon.stub(transport, 'connectNewPeer').resolves()
+    const listenForNewPeerStub = sinon.stub(transport, 'listenForNewPeer').resolves()
 
     sinon.stub(PeerManager.prototype, 'getPeers').resolves([])
 
@@ -103,15 +103,15 @@ describe(`PostMessageTransport`, () => {
 
     await transport.connect()
 
-    expect(connectNewPeerStub.callCount).to.equal(1)
+    expect(listenForNewPeerStub.callCount).to.equal(1)
     expect(transport.connectionStatus).to.equal(TransportStatus.CONNECTED)
     expect((<any>transport).listeningForChannelOpenings).to.be.false
   })
 
   it(`should connect to existing peers if there are peers stored locally`, async () => {
-    const connectNewPeerStub = sinon
-      .stub(transport, 'connectNewPeer')
-      .throws('ConnectNewPeer should not be called')
+    const listenForNewPeerStub = sinon
+      .stub(transport, 'listenForNewPeer')
+      .throws('listenForNewPeer should not be called')
 
     sinon.stub(PeerManager.prototype, 'getPeers').resolves([pairingResponse, pairingResponse])
 
@@ -121,22 +121,22 @@ describe(`PostMessageTransport`, () => {
 
     await transport.connect()
 
-    expect(connectNewPeerStub.callCount).to.equal(0)
+    expect(listenForNewPeerStub.callCount).to.equal(0)
     expect(listenStub.callCount).to.equal(2)
     expect(transport.connectionStatus).to.equal(TransportStatus.CONNECTED)
     expect((<any>transport).listeningForChannelOpenings).to.be.false
   })
 
   it(`should reconnect`, async () => {
-    const connectNewPeerStub = sinon.stub(transport, 'connectNewPeer').resolves()
+    const listenForNewPeerStub = sinon.stub(transport, 'listenForNewPeer').resolves()
 
     await transport.reconnect()
 
-    expect(connectNewPeerStub.callCount).to.equal(1)
+    expect(listenForNewPeerStub.callCount).to.equal(1)
   })
 
   it(`should connect new peer`, async () => {
-    const connectNewPeerSpy = sinon.spy(transport, 'connectNewPeer')
+    const listenForNewPeerSpy = sinon.spy(transport, 'listenForNewPeer')
 
     sinon
       .stub(PostMessageClient.prototype, 'listenForChannelOpening')
@@ -144,9 +144,9 @@ describe(`PostMessageTransport`, () => {
 
     const addPeerStub = sinon.stub(transport, 'addPeer').resolves()
 
-    await transport.connectNewPeer()
+    await transport.listenForNewPeer()
 
-    expect(connectNewPeerSpy.callCount).to.equal(1)
+    expect(listenForNewPeerSpy.callCount).to.equal(1)
     expect(addPeerStub.callCount).to.equal(1)
     expect((transport as any).listeningForChannelOpenings).to.be.true
   })

@@ -10,7 +10,8 @@ import {
   AppMetadata,
   PermissionInfo,
   P2PTransport,
-  P2PPairingRequest
+  P2PPairingRequest,
+  TransportStatus
 } from '../..'
 import { PermissionManager } from '../../managers/PermissionManager'
 import { AppMetadataManager } from '../../managers/AppMetadataManager'
@@ -20,6 +21,7 @@ import { OutgoingResponseInterceptor } from '../../interceptors/OutgoingResponse
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { BeaconMessageType } from '../../types/beacon/BeaconMessageType'
 import { AcknowledgeResponseInput } from '../../types/beacon/messages/BeaconResponseInputMessage'
+import { Transport } from '../../transports/Transport'
 
 /**
  * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible
@@ -41,7 +43,11 @@ export class WalletClient extends Client {
   }
 
   public async init(): Promise<TransportType> {
-    return super.init(false)
+    const keyPair = await this.keyPair // We wait for keypair here so the P2P Transport creation is not delayed and causing issues
+
+    const p2pTransport = new P2PTransport(this.name, keyPair, this.storage, this.matrixNodes, false)
+
+    return super.init(p2pTransport)
   }
 
   /**
@@ -55,7 +61,7 @@ export class WalletClient extends Client {
       message: BeaconRequestOutputMessage,
       connectionInfo: ConnectionContext
     ) => void
-  ): Promise<boolean> {
+  ): Promise<void> {
     this.handleResponse = async (
       message: BeaconRequestMessage,
       connectionInfo: ConnectionContext
@@ -73,8 +79,28 @@ export class WalletClient extends Client {
         })
       }
     }
+  }
 
-    return super._connect()
+  /**
+   * The method will attempt to initiate a connection using the active transport.
+   */
+  public async _connect(): Promise<void> {
+    const transport: Transport = await this.transport
+    if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
+      await transport.connect()
+      transport
+        .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
+          if (typeof message === 'string') {
+            const deserializedMessage = (await new Serializer().deserialize(
+              message
+            )) as BeaconRequestMessage
+            this.handleResponse(deserializedMessage, connectionInfo)
+          }
+        })
+        .catch((error) => console.log(error))
+    } else {
+      // NO-OP
+    }
   }
 
   /**
