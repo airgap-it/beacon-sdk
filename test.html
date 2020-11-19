@@ -46,7 +46,6 @@
 
       // Display the active account in the UI
       const updateActiveAccount = () => {
-        console.log('asdf')
         client.getActiveAccount().then((activeAccount) => {
           if (activeAccount) {
             document.getElementById('activeAccount').innerHTML = activeAccount.address
