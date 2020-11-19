@@ -15,13 +15,26 @@
       Active account:
       <span id="activeAccount"></span>
       <span id="activeAccountNetwork"></span>
+      <span id="activeAccountTransport"></span>
     </span>
     <br /><br />
     <button id="requestPermission">Request Permission</button>
     <br /><br />
     <button id="connect">Connect and Delegate</button>
     <br /><br />
-    <button id="test">Get Extensions</button>
+    ---
+    <br /><br />
+    <button id="getExtensions">Get Extensions</button>
+    <br /><br />
+    ---
+    <br /><br />
+    <button id="clearActiveAccount">Clear ActiveAccount</button>
+    <br /><br />
+    <button id="getAccounts">Get Accounts</button>
+    <br /><br />
+    <button id="switchAccount">Switch Accounts</button>
+    <br /><br />
+    ---
     <br /><br />
     <button id="reset">Reset and Refresh</button>
 
@@ -33,10 +46,16 @@
 
       // Display the active account in the UI
       const updateActiveAccount = () => {
+        console.log('asdf')
         client.getActiveAccount().then((activeAccount) => {
           if (activeAccount) {
             document.getElementById('activeAccount').innerHTML = activeAccount.address
             document.getElementById('activeAccountNetwork').innerHTML = activeAccount.network.type
+            document.getElementById('activeAccountTransport').innerHTML = activeAccount.origin.type
+          } else {
+            document.getElementById('activeAccount').innerHTML = ''
+            document.getElementById('activeAccountNetwork').innerHTML = ''
+            document.getElementById('activeAccountTransport').innerHTML = ''
           }
         })
       }
@@ -74,7 +93,7 @@
             delegate()
           } else {
             // If we don't have an active account, we need to request permissions first and then send the delegate operation
-            requestPermissions((permissions) => {
+            requestPermission((permissions) => {
               delegate()
               updateActiveAccount()
             })
@@ -95,8 +114,38 @@
       })
 
       // Add event listener to the button
-      document.getElementById('test').addEventListener('click', () => {
+      document.getElementById('clearActiveAccount').addEventListener('click', () => {
+        client.setActiveAccount(undefined).then(() => {
+          updateActiveAccount()
+        })
+      })
+
+      // Add event listener to the button
+      document.getElementById('getExtensions').addEventListener('click', () => {
         beacon.availableTransports.availableExtensions.then(console.log)
+      })
+
+      // Add event listener to the button
+      document.getElementById('getAccounts').addEventListener('click', () => {
+        client.getAccounts().then(console.log)
+      })
+
+      // Add event listener to the button
+      document.getElementById('switchAccount').addEventListener('click', () => {
+        client.getAccounts().then((accounts) => {
+          client.getActiveAccount().then((activeAccount) => {
+            const filtered = accounts.filter(
+              (acc) => acc.accountIdentifier !== activeAccount.accountIdentifier
+            )
+            if (filtered === 0) {
+              alert('No account to switch to')
+            } else {
+              client.setActiveAccount(filtered[0]).then(() => {
+                updateActiveAccount()
+              })
+            }
+          })
+        })
       })
     </script>
   </body>
