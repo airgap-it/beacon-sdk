@@ -173,25 +173,14 @@ export class DAppClient extends Client {
         }
 
         if (!this.postMessageTransport) {
-          this.postMessageTransport = new PostMessageTransport(
-            this.name,
-            keyPair,
-            this.storage,
-            false
-          )
+          this.postMessageTransport = new PostMessageTransport(this.name, keyPair, this.storage)
 
           this.postMessageTransport.connect().then().catch(console.error)
           await this.addListener(this.postMessageTransport)
         }
 
         if (!this.p2pTransport) {
-          this.p2pTransport = new P2PTransport(
-            this.name,
-            keyPair,
-            this.storage,
-            this.matrixNodes,
-            false
-          )
+          this.p2pTransport = new P2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
           this.p2pTransport.connect().then().catch(console.error)
           await this.addListener(this.p2pTransport)
         }

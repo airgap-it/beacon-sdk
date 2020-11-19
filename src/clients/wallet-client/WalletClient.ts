@@ -45,7 +45,7 @@ export class WalletClient extends Client {
   public async init(): Promise<TransportType> {
     const keyPair = await this.keyPair // We wait for keypair here so the P2P Transport creation is not delayed and causing issues
 
-    const p2pTransport = new P2PTransport(this.name, keyPair, this.storage, this.matrixNodes, false)
+    const p2pTransport = new P2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
 
     return super.init(p2pTransport)
   }
