@@ -202,6 +202,11 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
       const extEl = document.getElementById(`ext_${extId}`)
       if (extEl) {
         extEl.classList.add('disabled')
+
+        const el = document.createElement('span')
+        el.innerHTML = 'Not installed'
+
+        extEl.querySelector('.beacon-selection__name')?.appendChild(el)
       }
     }
   })
