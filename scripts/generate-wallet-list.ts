@@ -134,7 +134,7 @@ const convert = (list: (ExtensionApp | App)[]): Promise<string[]> => {
       <a alt="${altTag}" ${
         id ? `id="ext_${id}"` : `href="${getTzip10Link(deepLink ?? universalLink, '{{payload}}')}"`
       } target="_blank" class="beacon-selection__list">
-        <div class="beacon-selection__name">${entry.name}</div>
+        <div class="beacon-selection__name"><span>${entry.name}</span></div>
         <div>
           <img class="beacon-selection__img" src="${logo}"/>
         </div>
