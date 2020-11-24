@@ -12,12 +12,12 @@ import {
   TransportType,
   Origin,
   StorageKey,
-  Serializer
+  Serializer,
+  Storage,
+  TransportStatus
 } from '..'
 import { PeerManager } from '../managers/PeerManager'
-import { Storage } from '../storage/Storage'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
-import { TransportStatus } from '../types/transport/TransportStatus'
 import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { ChromeMessageClient } from './clients/ChromeMessageClient'
 

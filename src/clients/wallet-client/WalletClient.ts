@@ -10,7 +10,8 @@ import {
   AppMetadata,
   PermissionInfo,
   TransportStatus,
-  PeerInfo
+  PeerInfo,
+  WalletP2PTransport
 } from '../..'
 import { PermissionManager } from '../../managers/PermissionManager'
 import { AppMetadataManager } from '../../managers/AppMetadataManager'
@@ -20,7 +21,6 @@ import { OutgoingResponseInterceptor } from '../../interceptors/OutgoingResponse
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { BeaconMessageType } from '../../types/beacon/BeaconMessageType'
 import { AcknowledgeResponseInput } from '../../types/beacon/messages/BeaconResponseInputMessage'
-import { WalletP2PTransport } from '../../transports/WalletP2PTransport'
 
 /**
  * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible

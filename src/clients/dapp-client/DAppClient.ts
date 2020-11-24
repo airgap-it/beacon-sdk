@@ -45,7 +45,9 @@ import {
   Origin,
   PostMessageTransport,
   PeerInfo,
-  Transport
+  Transport,
+  DappP2PTransport,
+  DappPostMessageTransport
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -54,8 +56,6 @@ import { BlockExplorer } from '../../utils/block-explorer'
 import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
 import { BeaconErrorType } from '../../types/BeaconErrorType'
 import { AlertButton } from '../../alert/Alert'
-import { DappP2PTransport } from '../../transports/DappP2PTransport'
-import { DappPostMessageTransport } from '../../transports/DappPostMessageTransport'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')

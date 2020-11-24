@@ -1,7 +1,6 @@
 import * as sodium from 'libsodium-wrappers'
-import { TransportStatus, StorageKey, PostMessageTransport } from '..'
+import { TransportStatus, StorageKey, PostMessageTransport, Storage } from '..'
 import { Logger } from '../utils/Logger'
-import { Storage } from '../storage/Storage'
 import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 
 const logger = new Logger('DappPostMessageTransport')

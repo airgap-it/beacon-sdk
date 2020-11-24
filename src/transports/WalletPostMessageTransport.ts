@@ -1,6 +1,5 @@
 import * as sodium from 'libsodium-wrappers'
-import { StorageKey, PostMessageTransport } from '..'
-import { Storage } from '../storage/Storage'
+import { StorageKey, PostMessageTransport, Storage } from '..'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 
 // const logger = new Logger('WalletPostMessageTransport')

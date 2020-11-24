@@ -6,13 +6,13 @@ import {
   TransportStatus,
   BeaconBaseMessage,
   AccountInfo,
-  PeerInfo
+  PeerInfo,
+  Transport
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
-import { Transport } from '../../transports/Transport'
 import { ClientOptions } from './ClientOptions'
 
 /**

@@ -124,6 +124,10 @@ import { PeerInfo } from './types/PeerInfo'
 import { availableTransports } from './utils/available-transports'
 import { AcknowledgeResponse } from './types/beacon/messages/AcknowledgeResponse'
 import { DisconnectMessage } from './types/beacon/messages/DisconnectMessage'
+import { DappP2PTransport } from './transports/DappP2PTransport'
+import { DappPostMessageTransport } from './transports/DappPostMessageTransport'
+import { WalletP2PTransport } from './transports/WalletP2PTransport'
+import { WalletPostMessageTransport } from './transports/WalletPostMessageTransport'
 
 // Tezos
 export {
@@ -247,7 +251,11 @@ export {
   Transport,
   PostMessageTransport,
   P2PTransport,
-  ChromeMessageTransport
+  ChromeMessageTransport,
+  WalletP2PTransport,
+  WalletPostMessageTransport,
+  DappP2PTransport,
+  DappPostMessageTransport
 }
 
 // Events

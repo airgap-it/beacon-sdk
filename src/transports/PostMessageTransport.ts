@@ -1,23 +1,21 @@
 import * as sodium from 'libsodium-wrappers'
 import { myWindow } from '../MockWindow'
-import {
-  ExtensionMessage,
-  ExtensionMessageTarget,
-  TransportType,
-  TransportStatus,
-  ConnectionContext,
-  StorageKey
-} from '..'
-import { Origin } from '../types/Origin'
-import { PeerManager } from '../managers/PeerManager'
 import { Logger } from '../utils/Logger'
-import { Storage } from '../storage/Storage'
-import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'
+import { PeerManager } from '../managers/PeerManager'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
-import { Extension } from '../utils/available-transports'
+import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { ExposedPromise } from '../utils/exposed-promise'
-import { Transport } from './Transport'
+import { Extension } from '../types/Extension'
+import { StorageKey } from '../types/storage/StorageKey'
+import { TransportType } from '../types/transport/TransportType'
+import { ExtensionMessage } from '../types/ExtensionMessage'
+import { ExtensionMessageTarget } from '../types/ExtensionMessageTarget'
+import { TransportStatus } from '../types/transport/TransportStatus'
+import { ConnectionContext } from '../types/ConnectionContext'
+import { Origin } from '../types/Origin'
+import { Storage } from '../storage/Storage'
 import { PostMessageClient } from './clients/PostMessageClient'
+import { Transport } from './Transport'
 
 const logger = new Logger('PostMessageTransport')
 

@@ -1,14 +1,11 @@
+import { openAlert, AlertButton, AlertConfig } from './alert/Alert'
 import { openToast } from './alert/Toast'
-import { openAlert, AlertConfig, AlertButton } from './alert/Alert'
-import { Logger } from './utils/Logger'
-import { Transport } from './transports/Transport'
-import { BeaconError } from './errors/BeaconError'
-import { ConnectionContext } from './types/ConnectionContext'
-import { Serializer } from './Serializer'
-import { BlockExplorer } from './utils/block-explorer'
+import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
 import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'
-import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
+import { BlockExplorer } from './utils/block-explorer'
+import { Logger } from './utils/Logger'
+import { Serializer } from './Serializer'
 import {
   P2PPairingRequest,
   AccountInfo,
@@ -18,7 +15,10 @@ import {
   OperationResponseOutput,
   BroadcastResponseOutput,
   SignPayloadResponseOutput,
-  Network
+  Network,
+  BeaconError,
+  ConnectionContext,
+  Transport
 } from '.'
 
 const logger = new Logger('BeaconEvents')
