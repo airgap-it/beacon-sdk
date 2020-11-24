@@ -7,6 +7,8 @@ import { ConnectionContext } from './types/ConnectionContext'
 import { Serializer } from './Serializer'
 import { BlockExplorer } from './utils/block-explorer'
 import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
+import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'
+import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
 import {
   P2PPairingRequest,
   AccountInfo,
@@ -101,7 +103,7 @@ export interface BeaconEventType {
     p2pPeerInfo: P2PPairingRequest
     postmessagePeerInfo: PostMessagePairingRequest
   }
-  [BeaconEvent.PAIR_SUCCESS]: undefined
+  [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: P2PPairingRequest
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairingRequest
   [BeaconEvent.CHANNEL_CLOSED]: string

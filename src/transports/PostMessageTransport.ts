@@ -12,7 +12,7 @@ import { Origin } from '../types/Origin'
 import { PeerManager } from '../managers/PeerManager'
 import { Logger } from '../utils/Logger'
 import { Storage } from '../storage/Storage'
-import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
+import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 import { Extension } from '../utils/available-transports'
 import { ExposedPromise } from '../utils/exposed-promise'
@@ -23,20 +23,20 @@ const logger = new Logger('PostMessageTransport')
 
 let extensions: ExposedPromise<Extension[]> | undefined
 
-export class PostMessageTransport extends Transport<PostMessagePairingResponse> {
+export class PostMessageTransport<
+  T extends PostMessagePairingRequest | ExtendedPostMessagePairingResponse,
+  K extends
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
+> extends Transport<T, K, PostMessageClient> {
   public readonly type: TransportType = TransportType.POST_MESSAGE
 
-  /**
-   * The client handling the encryption/decryption of messages
-   */
-  private readonly client: PostMessageClient
-
-  private readonly peerManager: PeerManager<StorageKey.TRANSPORT_POSTMESSAGE_PEERS>
-
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage) {
-    super(name)
-    this.client = new PostMessageClient(this.name, keyPair, false)
-    this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_POSTMESSAGE_PEERS)
+  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, storageKey: K) {
+    super(
+      name,
+      new PostMessageClient(name, keyPair, false),
+      new PeerManager<K>(storage, storageKey)
+    )
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -111,7 +111,7 @@ export class PostMessageTransport extends Transport<PostMessagePairingResponse> 
 
     this._isConnected = TransportStatus.CONNECTING
 
-    const knownPeers = await this.peerManager.getPeers()
+    const knownPeers = await this.getPeers()
 
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
@@ -120,66 +120,20 @@ export class PostMessageTransport extends Transport<PostMessagePairingResponse> 
       Promise.all(connectionPromises).catch(console.log)
     }
 
-    await this.client.listenForChannelOpening(async (peer: PostMessagePairingResponse) => {
-      logger.log('connect', `received PostMessagePairingResponse`, peer)
-
-      await this.addPeer(peer as any)
-
-      this._isConnected = TransportStatus.CONNECTED
-
-      if (this.newPeerListener) {
-        this.newPeerListener(peer as any)
-        this.newPeerListener = undefined // TODO: Remove this once we use the id
-      }
-    })
+    await this.startOpenChannelListener()
 
     await super.connect()
+  }
+
+  public async startOpenChannelListener(): Promise<void> {
+    //
   }
 
   public async getPairingRequestInfo(): Promise<PostMessagePairingRequest> {
     return this.client.getPairingRequestInfo()
   }
 
-  public async getPeers(): Promise<PostMessagePairingRequest[]> {
-    return this.peerManager.getPeers()
-  }
-
-  public async addPeer(newPeer: PostMessagePairingRequest): Promise<void> {
-    if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
-      logger.log('addPeer', newPeer)
-      await this.peerManager.addPeer(newPeer)
-      await this.listen(newPeer.publicKey)
-    } else {
-      logger.log('addPeer', 'peer already added, skipping', newPeer)
-    }
-  }
-
-  public async removePeer(peerToBeRemoved: PostMessagePairingRequest): Promise<void> {
-    logger.log('removePeer', peerToBeRemoved)
-    await this.peerManager.removePeer(peerToBeRemoved.publicKey)
-    await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
-  }
-
-  public async removeAllPeers(): Promise<void> {
-    logger.log('removeAllPeers')
-    await this.peerManager.removeAllPeers()
-    await this.client.unsubscribeFromEncryptedMessages()
-  }
-
-  public async send(message: string, recipient?: string): Promise<void> {
-    logger.log('send', recipient, message)
-
-    if (recipient) {
-      await this.client.sendMessage(recipient, message)
-    } else {
-      const peers = await this.peerManager.getPeers()
-      await Promise.all(
-        peers.map((peer) => this.client.sendMessage(peer.publicKey, message).catch(console.error))
-      )
-    }
-  }
-
-  private async listen(publicKey: string): Promise<void> {
+  public async listen(publicKey: string): Promise<void> {
     logger.log('listen', publicKey)
 
     await this.client

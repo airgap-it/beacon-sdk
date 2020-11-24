@@ -2,19 +2,17 @@ import { ExposedPromise, ExposedPromiseStatus } from '../../utils/exposed-promis
 import { ConnectionContext } from '../../types/ConnectionContext'
 import {
   Serializer,
-  PostMessageTransport,
-  P2PTransport,
-  Transport,
   TransportType,
   TransportStatus,
   BeaconBaseMessage,
   AccountInfo,
-  P2PPairingRequest
+  PeerInfo
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
+import { Transport } from '../../transports/Transport'
 import { ClientOptions } from './ClientOptions'
 
 /**
@@ -47,8 +45,8 @@ export abstract class Client extends BeaconClient {
 
   protected readonly matrixNodes: string[]
 
-  protected _transport: ExposedPromise<Transport> = new ExposedPromise()
-  protected get transport(): Promise<Transport> {
+  protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
+  protected get transport(): Promise<Transport<any>> {
     return this._transport.promise
   }
 
@@ -65,9 +63,6 @@ export abstract class Client extends BeaconClient {
   public get ready(): Promise<void> {
     return this.transport.then(() => undefined)
   }
-
-  protected p2pTransport: P2PTransport | undefined
-  protected postMessageTransport: PostMessageTransport | undefined
 
   constructor(config: ClientOptions) {
     super({ name: config.name, storage: config.storage })
@@ -133,7 +128,7 @@ export abstract class Client extends BeaconClient {
    *
    * @param transport A transport that can be provided by the user
    */
-  public async init(transport: Transport): Promise<TransportType> {
+  public async init(transport: Transport<any>): Promise<TransportType> {
     if (this._transport.status === ExposedPromiseStatus.RESOLVED) {
       return (await this.transport).type
     }
@@ -146,28 +141,22 @@ export abstract class Client extends BeaconClient {
   /**
    * Return all known peers
    */
-  public async getPeers(): Promise<P2PPairingRequest[]> {
-    if ((await this.transport).type === TransportType.P2P) {
-      return ((await this.transport) as P2PTransport).getPeers() // TODO: Also support other transports?
-    } else {
-      return []
-    }
+  public async getPeers(): Promise<PeerInfo[]> {
+    return (await this.transport).getPeers()
   }
 
   /**
    * Add a new peer to the known peers
    * @param peer The new peer to add
    */
-  public async addPeer(peer: P2PPairingRequest): Promise<void> {
-    if ((await this.transport).type === TransportType.P2P) {
-      return ((await this.transport) as P2PTransport).addPeer(peer) // TODO: Also support other transports?
-    }
+  public async addPeer(peer: PeerInfo): Promise<void> {
+    return (await this.transport).addPeer(peer)
   }
 
   /**
    * A "setter" for when the transport needs to be changed.
    */
-  protected async setTransport(transport?: Transport): Promise<void> {
+  protected async setTransport(transport?: Transport<any>): Promise<void> {
     if (transport) {
       if (this._transport.isSettled()) {
         // If the promise has already been resolved we need to create a new one.
@@ -185,7 +174,7 @@ export abstract class Client extends BeaconClient {
     await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport)
   }
 
-  protected async addListener(transport: Transport): Promise<void> {
+  protected async addListener(transport: Transport<any>): Promise<void> {
     transport
       .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
         if (typeof message === 'string') {

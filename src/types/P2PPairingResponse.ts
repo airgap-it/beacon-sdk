@@ -9,3 +9,8 @@ export interface P2PPairingResponse extends PeerInfo {
   icon?: string // TODO: Should this be a URL or base64 image?
   appUrl?: string
 }
+
+export type ExtendedP2PPairingResponse = P2PPairingResponse & {
+  senderId: string
+}
+// TODO: Rename to "WalletPeerInfo"?

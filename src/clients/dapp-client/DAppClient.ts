@@ -10,7 +10,6 @@ import {
   AccountInfo,
   Client,
   TransportType,
-  Transport,
   StorageKey,
   BeaconMessageType,
   PermissionScope,
@@ -42,11 +41,11 @@ import {
   BroadcastRequestInput,
   BeaconRequestInputMessage,
   Network,
-  P2PPairingRequest,
-  P2PTransport,
   BeaconError,
   Origin,
-  PostMessageTransport
+  PostMessageTransport,
+  PeerInfo,
+  Transport
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -55,6 +54,8 @@ import { BlockExplorer } from '../../utils/block-explorer'
 import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
 import { BeaconErrorType } from '../../types/BeaconErrorType'
 import { AlertButton } from '../../alert/Alert'
+import { DappP2PTransport } from '../../transports/DappP2PTransport'
+import { DappPostMessageTransport } from '../../transports/DappPostMessageTransport'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -73,6 +74,9 @@ export class DAppClient extends Client {
    * The block explorer used by the SDK
    */
   public readonly blockExplorer: BlockExplorer
+
+  protected postMessageTransport: DappPostMessageTransport | undefined
+  protected p2pTransport: DappP2PTransport | undefined
 
   /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
@@ -130,18 +134,15 @@ export class DAppClient extends Client {
       } else {
         if (message.type === BeaconMessageType.Disconnect) {
           const transport = await this.transport
-          if (transport.type === TransportType.P2P) {
-            // TODO: Also handle postmessage transport
-            await (transport as P2PTransport).removePeer({
-              id: '',
-              type: 'p2p-pairing-request',
-              name: '',
-              publicKey: message.senderId,
-              version: BEACON_VERSION,
-              relayServer: ''
-            })
-            await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-          }
+          await transport.removePeer({
+            id: '',
+            type: 'p2p-pairing-request',
+            name: '',
+            publicKey: message.senderId,
+            version: BEACON_VERSION,
+            relayServer: ''
+          } as any)
+          await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
         } else {
           logger.error('handleResponse', 'no request found for id ', message.id)
         }
@@ -149,7 +150,7 @@ export class DAppClient extends Client {
     }
   }
 
-  public async init(transport?: Transport): Promise<TransportType> {
+  public async init(transport?: Transport<any>): Promise<TransportType> {
     return new Promise(async (resolve) => {
       console.log('transport', transport)
 
@@ -173,14 +174,19 @@ export class DAppClient extends Client {
         }
 
         if (!this.postMessageTransport) {
-          this.postMessageTransport = new PostMessageTransport(this.name, keyPair, this.storage)
+          this.postMessageTransport = new DappPostMessageTransport(this.name, keyPair, this.storage)
 
           this.postMessageTransport.connect().then().catch(console.error)
           await this.addListener(this.postMessageTransport)
         }
 
         if (!this.p2pTransport) {
-          this.p2pTransport = new P2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
+          this.p2pTransport = new DappP2PTransport(
+            this.name,
+            keyPair,
+            this.storage,
+            this.matrixNodes
+          )
           this.p2pTransport.connect().then().catch(console.error)
           await this.addListener(this.p2pTransport)
         }
@@ -201,7 +207,7 @@ export class DAppClient extends Client {
             .listenForNewPeer((peer) => {
               console.log('postmessage transport peer connected')
               this.events
-                .emit(BeaconEvent.PAIR_SUCCESS, peer as any)
+                .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
               this.setTransport(this.postMessageTransport).catch(console.error)
               stopListening()
@@ -213,7 +219,7 @@ export class DAppClient extends Client {
             .listenForNewPeer((peer) => {
               console.log('p2p transport peer connected')
               this.events
-                .emit(BeaconEvent.PAIR_SUCCESS, peer as any)
+                .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
               this.setTransport(this.p2pTransport).catch(console.error)
               stopListening()
@@ -318,30 +324,25 @@ export class DAppClient extends Client {
    *
    * @param peer Peer to be removed
    */
-  public async removePeer(peer: P2PPairingRequest): Promise<void> {
-    if ((await this.transport).type === TransportType.P2P) {
-      // TODO: Allow for other transport types?
-      const removePeerResult = ((await this.transport) as P2PTransport).removePeer(peer)
+  public async removePeer(peer: PeerInfo): Promise<void> {
+    const removePeerResult = (await this.transport).removePeer(peer)
 
-      await this.removeAccountsForPeers([peer])
+    await this.removeAccountsForPeers([peer])
 
-      return removePeerResult
-    }
+    return removePeerResult
   }
 
   /**
    * Remove all peers and all accounts that have been connected through those peers
    */
   public async removeAllPeers(): Promise<void> {
-    if ((await this.transport).type === TransportType.P2P) {
-      // TODO: Allow for other transport types?
-      const peers: P2PPairingRequest[] = await ((await this.transport) as P2PTransport).getPeers()
-      const removePeerResult = ((await this.transport) as P2PTransport).removeAllPeers()
+    // TODO: Allow for other transport types?
+    const peers: PeerInfo[] = await (await this.transport).getPeers()
+    const removePeerResult = (await this.transport).removeAllPeers()
 
-      await this.removeAccountsForPeers(peers)
+    await this.removeAccountsForPeers(peers)
 
-      return removePeerResult
-    }
+    return removePeerResult
   }
 
   /**
@@ -598,7 +599,7 @@ export class DAppClient extends Client {
    *
    * @param peersToRemove An array of peers for which accounts should be removed
    */
-  private async removeAccountsForPeers(peersToRemove: P2PPairingRequest[]): Promise<void> {
+  private async removeAccountsForPeers(peersToRemove: PeerInfo[]): Promise<void> {
     const accounts = await this.accountManager.getAccounts()
 
     const peerIdsToRemove = peersToRemove.map((peer) => peer.publicKey)

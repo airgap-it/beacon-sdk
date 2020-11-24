@@ -18,28 +18,21 @@ import { PeerManager } from '../managers/PeerManager'
 import { Storage } from '../storage/Storage'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 import { TransportStatus } from '../types/transport/TransportStatus'
-import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
+import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { ChromeMessageClient } from './clients/ChromeMessageClient'
 
 const logger = new Logger('ChromeMessageTransport')
 
-export class ChromeMessageTransport extends Transport<PostMessagePairingResponse> {
+export class ChromeMessageTransport<
+  T extends PostMessagePairingRequest | ExtendedPostMessagePairingResponse,
+  K extends
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
+> extends Transport<T, K, ChromeMessageClient> {
   public readonly type: TransportType = TransportType.CHROME_MESSAGE
 
-  private readonly keyPair: sodium.KeyPair
-
-  /**
-   * The client handling the encryption/decryption of messages
-   */
-  private readonly client: ChromeMessageClient
-
-  private readonly peerManager: PeerManager<StorageKey.TRANSPORT_POSTMESSAGE_PEERS>
-
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage) {
-    super(name)
-    this.keyPair = keyPair
-    this.client = new ChromeMessageClient(this.name, this.keyPair, false)
-    this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_POSTMESSAGE_PEERS)
+  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, storageKey: K) {
+    super(name, new ChromeMessageClient(name, keyPair, false), new PeerManager(storage, storageKey))
     this.init().catch((error) => console.error(error))
     this.connect().catch((error) => console.error(error))
   }
@@ -54,7 +47,7 @@ export class ChromeMessageTransport extends Transport<PostMessagePairingResponse
     logger.log('connect')
     this._isConnected = TransportStatus.CONNECTING
 
-    const knownPeers = await this.peerManager.getPeers()
+    const knownPeers = await this.getPeers()
 
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
@@ -76,40 +69,19 @@ export class ChromeMessageTransport extends Transport<PostMessagePairingResponse
   }
 
   public async sendToTabs(publicKey: string | undefined, payload: string): Promise<void> {
-    return this.client.sendMessage(publicKey, payload)
-  }
-
-  public async getPeers(): Promise<PostMessagePairingRequest[]> {
-    return this.peerManager.getPeers()
-  }
-
-  public async addPeer(newPeer: PostMessagePairingRequest): Promise<void> {
-    if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
-      logger.log('addPeer', newPeer)
-      await this.peerManager.addPeer(newPeer)
-      await this.listen(newPeer.publicKey)
-    } else {
-      logger.log('addPeer', 'peer already added, skipping', newPeer)
-    }
-    await this.client.sendPairingResponse(newPeer)
-  }
-
-  public async removePeer(peerToBeRemoved: PostMessagePairingRequest): Promise<void> {
-    logger.log('removePeer', peerToBeRemoved)
-    await this.peerManager.removePeer(peerToBeRemoved.publicKey)
-    if (this.client) {
-      await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
+    const peers = await this.getPeers()
+    const peer = peers.find((peerEl) => peerEl.publicKey === publicKey)
+    if (peer) {
+      return this.client.sendMessage(peer, payload)
     }
   }
 
-  public async removeAllPeers(): Promise<void> {
-    logger.log('removeAllPeers')
-    await this.peerManager.removeAllPeers()
-
-    await this.client.unsubscribeFromEncryptedMessages()
+  public async addPeer(newPeer: T): Promise<void> {
+    await super.addPeer(newPeer)
+    // await this.client.sendPairingResponse(newPeer) // TODO: Should we have a confirmation here?
   }
 
-  private async listen(publicKey: string): Promise<void> {
+  public async listen(publicKey: string): Promise<void> {
     await this.client
       .listenForEncryptedMessage(
         publicKey,

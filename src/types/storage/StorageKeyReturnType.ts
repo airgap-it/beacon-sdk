@@ -7,11 +7,15 @@ import {
   PermissionInfo
 } from '../..'
 import { MatrixState } from '../../matrix-client/MatrixClientStore'
+import { ExtendedP2PPairingResponse } from '../P2PPairingResponse'
 import { PostMessagePairingRequest } from '../PostMessagePairingRequest'
+import { ExtendedPostMessagePairingResponse } from '../PostMessagePairingResponse'
 
 export interface StorageKeyReturnType {
-  [StorageKey.TRANSPORT_P2P_PEERS]: P2PPairingRequest[]
-  [StorageKey.TRANSPORT_POSTMESSAGE_PEERS]: PostMessagePairingRequest[]
+  [StorageKey.TRANSPORT_P2P_PEERS_DAPP]: P2PPairingRequest[]
+  [StorageKey.TRANSPORT_P2P_PEERS_WALLET]: ExtendedP2PPairingResponse[]
+  [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP]: PostMessagePairingRequest[]
+  [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET]: ExtendedPostMessagePairingResponse[]
   [StorageKey.ACCOUNTS]: AccountInfo[]
   [StorageKey.ACTIVE_ACCOUNT]: AccountIdentifier | undefined
   [StorageKey.BEACON_SDK_SECRET_SEED]: string | undefined
