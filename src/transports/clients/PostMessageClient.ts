@@ -40,10 +40,13 @@ export class PostMessageClient extends MessageBasedClient {
       context: ConnectionContext
     ): Promise<void> => {
       try {
-        messageCallback(
-          await this.decryptMessage(senderPublicKey, message.encryptedPayload),
-          context
+        const decryptedMessage = await this.decryptMessage(
+          senderPublicKey,
+          message.encryptedPayload
         )
+        // console.log('calculated sender ID', await getSenderId(senderPublicKey))
+        // TODO: Add check for correct decryption key / sender ID
+        messageCallback(decryptedMessage, context)
       } catch (decryptionError) {
         /* NO-OP. We try to decode every message, but some might not be addressed to us. */
       }
@@ -58,7 +61,7 @@ export class PostMessageClient extends MessageBasedClient {
   ): Promise<void> {
     const payload = await this.encryptMessage(peer.publicKey, message)
 
-		const targetId = (peer as ExtendedPostMessagePairingResponse)?.extensionId
+    const targetId = (peer as ExtendedPostMessagePairingResponse)?.extensionId
 
     // if no targetId, we remove peer
     const msg: EncryptedExtensionMessage = {

@@ -95,11 +95,11 @@ export abstract class Transport<
    * @param message The message to send
    * @param recipient The recipient of the message
    */
-  public async send(message: string, recipient?: string): Promise<void> {
+  public async send(message: string, recipientPublicKey?: string): Promise<void> {
     const knownPeers = await this.getPeers()
 
-    if (recipient) {
-      const peer = knownPeers.find((peerEl) => peerEl.publicKey === recipient)
+    if (recipientPublicKey) {
+      const peer = knownPeers.find((peerEl) => peerEl.publicKey === recipientPublicKey)
       if (!peer) {
         throw new Error('Peer unknown')
       }

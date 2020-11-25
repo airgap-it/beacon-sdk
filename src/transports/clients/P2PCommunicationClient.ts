@@ -165,7 +165,12 @@ export class P2PCommunicationClient extends CommunicationClient {
           payload.length >= sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
         ) {
           try {
-            messageCallback(await decryptCryptoboxPayload(payload, sharedRx))
+            const decryptedMessage = await decryptCryptoboxPayload(payload, sharedRx)
+
+            // console.log('calculated sender ID', await getSenderId(senderPublicKey))
+            // TODO: Add check for correct decryption key / sender ID
+
+            messageCallback(decryptedMessage)
           } catch (decryptionError) {
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
