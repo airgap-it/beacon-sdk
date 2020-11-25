@@ -162,8 +162,6 @@ export class DAppClient extends Client {
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
     return new Promise(async (resolve) => {
-      console.log('transport', transport)
-
       if (transport) {
         await this.addListener(transport)
 
@@ -174,7 +172,6 @@ export class DAppClient extends Client {
         const keyPair = await this.keyPair
 
         const stopListening = () => {
-          console.log('stop listening for new peers')
           if (this.postMessageTransport) {
             this.postMessageTransport.stopListeningForNewPeers().catch(console.error)
           }
@@ -215,7 +212,7 @@ export class DAppClient extends Client {
 
           postMessageTransport
             .listenForNewPeer((peer) => {
-              console.log('postmessage transport peer connected')
+              logger.log('postmessage transport peer connected', peer)
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
@@ -229,7 +226,7 @@ export class DAppClient extends Client {
 
           p2pTransport
             .listenForNewPeer((peer) => {
-              console.log('p2p transport peer connected')
+              logger.log('p2p transport peer connected', peer)
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
@@ -797,7 +794,7 @@ export class DAppClient extends Client {
         (await this.postMessageTransport?.getPeers()) ?? []
       const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
       const peers = [...postMessagePeers, ...p2pPeers]
-      console.log('peers', peers)
+
       const peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
 
       if (peer) {

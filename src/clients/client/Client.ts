@@ -181,7 +181,6 @@ export abstract class Client extends BeaconClient {
           const deserializedMessage = (await new Serializer().deserialize(
             message
           )) as BeaconRequestMessage
-          console.log('received the following message', deserializedMessage)
           this.handleResponse(deserializedMessage, connectionInfo)
         }
       })
