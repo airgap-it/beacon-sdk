@@ -21,6 +21,7 @@ import { OutgoingResponseInterceptor } from '../../interceptors/OutgoingResponse
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { BeaconMessageType } from '../../types/beacon/BeaconMessageType'
 import { AcknowledgeResponseInput } from '../../types/beacon/messages/BeaconResponseInputMessage'
+import { getSenderId } from '../../utils/get-sender-id'
 
 /**
  * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible
@@ -120,7 +121,7 @@ export class WalletClient extends Client {
     )
 
     await OutgoingResponseInterceptor.intercept({
-      senderId: await this.beaconId,
+      senderId: await getSenderId(await this.beaconId),
       request,
       message,
       permissionManager: this.permissionManager,
@@ -207,7 +208,7 @@ export class WalletClient extends Client {
     }
 
     await OutgoingResponseInterceptor.intercept({
-      senderId: await this.beaconId,
+      senderId: await getSenderId(await this.beaconId),
       request,
       message: acknowledgeResponse,
       permissionManager: this.permissionManager,
