@@ -78,7 +78,6 @@ export class ChromeMessageTransport<
 
   public async addPeer(newPeer: T): Promise<void> {
     await super.addPeer(newPeer)
-    // await this.client.sendPairingResponse(newPeer) // TODO: Should we have a confirmation here?
   }
 
   public async listen(publicKey: string): Promise<void> {
