@@ -128,6 +128,7 @@ import { DappP2PTransport } from './transports/DappP2PTransport'
 import { DappPostMessageTransport } from './transports/DappPostMessageTransport'
 import { WalletP2PTransport } from './transports/WalletP2PTransport'
 import { WalletPostMessageTransport } from './transports/WalletPostMessageTransport'
+import { getSenderId } from './utils/get-sender-id'
 
 // Tezos
 export {
@@ -279,7 +280,7 @@ export { AccountManager, AppMetadataManager, PermissionManager }
 export { SDK_VERSION, BEACON_VERSION }
 
 // Utils
-export { getAccountIdentifier, getAddressFromPublicKey }
+export { getSenderId, getAccountIdentifier, getAddressFromPublicKey }
 
 // Others
 export { ConnectionContext, P2PPairingRequest, PeerInfo, Serializer, availableTransports }

@@ -14,7 +14,8 @@ import {
   StorageKey,
   Serializer,
   Storage,
-  TransportStatus
+  TransportStatus,
+  getSenderId
 } from '..'
 import { PeerManager } from '../managers/PeerManager'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
@@ -118,10 +119,13 @@ export class ChromeMessageTransport<
           // Handling PairingRequest and connect peer
           new Serializer()
             .deserialize(message.payload)
-            .then((deserialized) => {
+            .then(async (deserialized) => {
               // TODO: Add check if it's a peer
               if ((deserialized as any).publicKey) {
-                this.addPeer(deserialized as any).catch(console.error)
+                const peer = deserialized as any
+                this.addPeer({ ...peer, senderId: await getSenderId(peer.publicKey) }).catch(
+                  console.error
+                )
               } else {
                 // V1 does not support encryption, so we handle the message directly
                 if ((deserialized as any).version === '1') {

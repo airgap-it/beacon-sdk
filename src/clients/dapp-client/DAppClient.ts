@@ -143,6 +143,8 @@ export class DAppClient extends Client {
         this.openRequests.delete(message.id)
       } else {
         if (message.type === BeaconMessageType.Disconnect) {
+          // TODO: Handle senderId that is no longer a public key
+          // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
           const transport = await this.transport
           await transport.removePeer({
             id: '',
@@ -302,7 +304,7 @@ export class DAppClient extends Client {
    */
   public async getAppMetadata(): Promise<AppMetadata> {
     return {
-      senderId: await this.beaconId,
+      senderId: await getSenderId(await this.beaconId),
       name: this.name,
       icon: this.iconUrl
     }
