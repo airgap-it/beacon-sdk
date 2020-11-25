@@ -56,6 +56,9 @@ import { BlockExplorer } from '../../utils/block-explorer'
 import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
 import { BeaconErrorType } from '../../types/BeaconErrorType'
 import { AlertButton } from '../../alert/Alert'
+import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
+import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
+import { getSenderId } from '../../utils/get-sender-id'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -91,6 +94,13 @@ export class DAppClient extends Client {
    * the active account is used to determine the network and destination wallet
    */
   private _activeAccount: ExposedPromise<AccountInfo | undefined> = new ExposedPromise()
+
+  /**
+   * The currently active peer. This is used to address a peer in case the active account is not set. (Eg. for permission requests)
+   */
+  private _activePeer: ExposedPromise<
+    ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
+  > = new ExposedPromise()
 
   constructor(config: DAppClientOptions) {
     super({
@@ -209,6 +219,8 @@ export class DAppClient extends Client {
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
+
+              this.setActivePeer(peer).catch(console.error)
               this.setTransport(this.postMessageTransport).catch(console.error)
               stopListening()
               resolve(TransportType.POST_MESSAGE)
@@ -221,6 +233,8 @@ export class DAppClient extends Client {
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
+
+              this.setActivePeer(peer).catch(console.error)
               this.setTransport(this.p2pTransport).catch(console.error)
               stopListening()
               resolve(TransportType.P2P)
@@ -273,6 +287,8 @@ export class DAppClient extends Client {
     } else {
       await this.setTransport(undefined)
     }
+
+    await this.setActivePeer(undefined) // For now, the peer is only used as a fallback if no active account is set. So when the account is set, the active peer can be undefined. This should later be changed so the active peer is linked to the active account.
 
     await this.storage.set(
       StorageKey.ACTIVE_ACCOUNT,
@@ -584,6 +600,21 @@ export class DAppClient extends Client {
     return { senderId, transactionHash }
   }
 
+  protected async setActivePeer(
+    peer?: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
+  ): Promise<void> {
+    if (this._activePeer.isSettled()) {
+      // If the promise has already been resolved we need to create a new one.
+      this._activePeer = ExposedPromise.resolve<
+        ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
+      >(peer)
+    } else {
+      this._activePeer.resolve(peer)
+    }
+
+    return
+  }
+
   /**
    * This method will emit an internal error message.
    *
@@ -713,8 +744,7 @@ export class DAppClient extends Client {
    * @param account The account that the message will be sent to
    */
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
-    requestInput: Omit<T, IgnoredRequestInputProperties>,
-    account?: AccountInfo
+    requestInput: Omit<T, IgnoredRequestInputProperties>
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -745,7 +775,7 @@ export class DAppClient extends Client {
       Pick<U, IgnoredRequestInputProperties> = {
       id: await generateGUID(),
       version: BEACON_VERSION,
-      senderId: await this.beaconId,
+      senderId: await getSenderId(await this.beaconId),
       ...requestInput
     }
 
@@ -758,12 +788,29 @@ export class DAppClient extends Client {
 
     const payload = await new Serializer().serialize(request)
 
-    let origin: string | undefined
+    const account = await this.getActiveAccount()
+
+    let recipientPublicKey: string | undefined
+
     if (account) {
-      origin = account.senderId
+      const postMessagePeers: ExtendedPostMessagePairingResponse[] =
+        (await this.postMessageTransport?.getPeers()) ?? []
+      const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
+      const peers = [...postMessagePeers, ...p2pPeers]
+      console.log('peers', peers)
+      const peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
+
+      if (peer) {
+        recipientPublicKey = peer.publicKey
+      }
+    } else {
+      const activePeer = await this._activePeer.promise
+      if (activePeer) {
+        recipientPublicKey = activePeer.publicKey
+      }
     }
 
-    await (await this.transport).send(payload, origin)
+    await (await this.transport).send(payload, recipientPublicKey)
 
     this.events
       .emit(messageEvents[requestInput.type].sent)
