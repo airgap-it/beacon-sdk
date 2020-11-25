@@ -255,8 +255,6 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
           myWindow.postMessage(message as any, window.location.origin)
         }
       })
-    } else {
-      console.log('not adding listener', extension)
     }
   })
 
