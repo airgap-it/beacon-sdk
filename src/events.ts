@@ -176,7 +176,7 @@ const showBeaconConnectedAlert = async (): Promise<void> => {
 const showExtensionConnectedAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Success',
-    body: 'A browser extension has been paired.',
+    body: 'A wallet has been paired.',
     buttons: [{ text: 'Done', style: 'outline' }],
     timer: 1500
   })
