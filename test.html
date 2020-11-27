@@ -141,16 +141,25 @@
       document.getElementById('switchAccount').addEventListener('click', () => {
         client.getAccounts().then((accounts) => {
           client.getActiveAccount().then((activeAccount) => {
-            const filtered = accounts.filter(
-              (acc) => acc.accountIdentifier !== activeAccount.accountIdentifier
-            )
-            if (filtered === 0) {
-              alert('No account to switch to')
-            } else {
-              client.setActiveAccount(filtered[0]).then(() => {
+            if (!activeAccount) {
+              if (accounts.length === 0) {
+                return alert('No account to switch to')
+              }
+
+              return client.setActiveAccount(accounts[0]).then(() => {
                 updateActiveAccount()
               })
             }
+            const filtered = accounts.filter(
+              (acc) => acc.accountIdentifier !== activeAccount.accountIdentifier
+            )
+            if (filtered.length === 0) {
+              return alert('No account to switch to')
+            }
+
+            client.setActiveAccount(filtered[0]).then(() => {
+              updateActiveAccount()
+            })
           })
         })
       })
