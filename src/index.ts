@@ -129,6 +129,8 @@ import { DappPostMessageTransport } from './transports/DappPostMessageTransport'
 import { WalletP2PTransport } from './transports/WalletP2PTransport'
 import { WalletPostMessageTransport } from './transports/WalletPostMessageTransport'
 import { getSenderId } from './utils/get-sender-id'
+import { SigningType } from './types/beacon/SigningType'
+import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotSupportedBeaconError'
 
 // Tezos
 export {
@@ -196,6 +198,7 @@ export {
   Origin,
   AccountInfo,
   Threshold,
+  SigningType,
   ExtensionMessageTarget,
   ExtensionMessage,
   RequestPermissionInput,
@@ -242,6 +245,7 @@ export {
   ParametersInvalidBeaconError,
   TooManyOperationsBeaconError,
   TransactionInvalidBeaconError,
+  SignatureTypeNotSupportedBeaconError,
   UnknownBeaconError
 }
 
