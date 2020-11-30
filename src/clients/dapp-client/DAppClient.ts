@@ -59,6 +59,7 @@ import { AlertButton } from '../../alert/Alert'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
 import { getSenderId } from '../../utils/get-sender-id'
+import { SigningType } from '../../types/beacon/SigningType'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -493,6 +494,7 @@ export class DAppClient extends Client {
 
     const request: SignPayloadRequestInput = {
       type: BeaconMessageType.SignPayloadRequest,
+      signingType: SigningType.RAW,
       payload: input.payload,
       sourceAddress: input.sourceAddress || activeAccount.address
     }
@@ -504,9 +506,9 @@ export class DAppClient extends Client {
       throw this.handleRequestError(request, requestError)
     })
 
-    const { senderId, signature } = message
+    const { senderId, signingType, signature } = message
 
-    const output: SignPayloadResponseOutput = { senderId, signature }
+    const output: SignPayloadResponseOutput = { senderId, signingType, signature }
 
     await this.notifySuccess(request, {
       account: activeAccount,
