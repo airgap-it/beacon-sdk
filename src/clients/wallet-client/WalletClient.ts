@@ -9,9 +9,8 @@ import {
   BeaconResponseInputMessage,
   AppMetadata,
   PermissionInfo,
-  P2PTransport,
-  P2PPairingRequest,
-  TransportStatus
+  TransportStatus,
+  WalletP2PTransport
 } from '../..'
 import { PermissionManager } from '../../managers/PermissionManager'
 import { AppMetadataManager } from '../../managers/AppMetadataManager'
@@ -21,13 +20,23 @@ import { OutgoingResponseInterceptor } from '../../interceptors/OutgoingResponse
 import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { BeaconMessageType } from '../../types/beacon/BeaconMessageType'
 import { AcknowledgeResponseInput } from '../../types/beacon/messages/BeaconResponseInputMessage'
-import { Transport } from '../../transports/Transport'
+import { getSenderId } from '../../utils/get-sender-id'
+import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
+import { ExposedPromise } from '../../utils/exposed-promise'
 
 /**
  * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible
  * dapps and handling/responding to requests.
  */
 export class WalletClient extends Client {
+  /**
+   * Returns whether or not the transport is connected
+   */
+  protected readonly _isConnected: ExposedPromise<boolean> = new ExposedPromise()
+  public get isConnected(): Promise<boolean> {
+    return this._isConnected.promise
+  }
+
   private readonly permissionManager: PermissionManager
   private readonly appMetadataManager: AppMetadataManager
 
@@ -45,7 +54,7 @@ export class WalletClient extends Client {
   public async init(): Promise<TransportType> {
     const keyPair = await this.keyPair // We wait for keypair here so the P2P Transport creation is not delayed and causing issues
 
-    const p2pTransport = new P2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
+    const p2pTransport = new WalletP2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
 
     return super.init(p2pTransport)
   }
@@ -79,13 +88,15 @@ export class WalletClient extends Client {
         })
       }
     }
+
+    return this._connect()
   }
 
   /**
    * The method will attempt to initiate a connection using the active transport.
    */
   public async _connect(): Promise<void> {
-    const transport: Transport = await this.transport
+    const transport: WalletP2PTransport = (await this.transport) as WalletP2PTransport
     if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
       await transport.connect()
       transport
@@ -98,6 +109,7 @@ export class WalletClient extends Client {
           }
         })
         .catch((error) => console.log(error))
+      this._isConnected.resolve(true)
     } else {
       // NO-OP
     }
@@ -119,7 +131,7 @@ export class WalletClient extends Client {
     )
 
     await OutgoingResponseInterceptor.intercept({
-      senderId: await this.beaconId,
+      senderId: await getSenderId(await this.beaconId),
       request,
       message,
       permissionManager: this.permissionManager,
@@ -162,31 +174,29 @@ export class WalletClient extends Client {
     return this.permissionManager.removeAllPermissions()
   }
 
-  public async removePeer(peer: P2PPairingRequest): Promise<void> {
-    if ((await this.transport).type === TransportType.P2P) {
-      const removePeerResult = ((await this.transport) as P2PTransport).removePeer(peer)
+  public async removePeer(peer: ExtendedP2PPairingResponse): Promise<void> {
+    const removePeerResult = (await this.transport).removePeer(peer)
 
-      await this.removePermissionsForPeers([peer])
+    await this.removePermissionsForPeers([peer])
 
-      return removePeerResult
-    }
+    return removePeerResult
   }
 
   public async removeAllPeers(): Promise<void> {
-    if ((await this.transport).type === TransportType.P2P) {
-      const peers: P2PPairingRequest[] = await ((await this.transport) as P2PTransport).getPeers()
-      const removePeerResult = ((await this.transport) as P2PTransport).removeAllPeers()
+    const peers: ExtendedP2PPairingResponse[] = await (await this.transport).getPeers()
+    const removePeerResult = (await this.transport).removeAllPeers()
 
-      await this.removePermissionsForPeers(peers)
+    await this.removePermissionsForPeers(peers)
 
-      return removePeerResult
-    }
+    return removePeerResult
   }
 
-  private async removePermissionsForPeers(peersToRemove: P2PPairingRequest[]): Promise<void> {
+  private async removePermissionsForPeers(
+    peersToRemove: ExtendedP2PPairingResponse[]
+  ): Promise<void> {
     const permissions = await this.permissionManager.getPermissions()
 
-    const peerIdsToRemove = peersToRemove.map((peer) => peer.publicKey)
+    const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
     // Remove all permissions with origin of the specified peer
     const permissionsToRemove = permissions.filter((permission) =>
       peerIdsToRemove.includes(permission.appMetadata.senderId)
@@ -210,7 +220,7 @@ export class WalletClient extends Client {
     }
 
     await OutgoingResponseInterceptor.intercept({
-      senderId: await this.beaconId,
+      senderId: await getSenderId(await this.beaconId),
       request,
       message: acknowledgeResponse,
       permissionManager: this.permissionManager,

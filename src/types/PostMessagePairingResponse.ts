@@ -8,3 +8,9 @@ export interface PostMessagePairingResponse extends PeerInfo {
   icon?: string // TODO: Should this be a URL or base64 image?
   appUrl?: string
 }
+
+export type ExtendedPostMessagePairingResponse = PostMessagePairingResponse & {
+  senderId: string
+  extensionId: string
+}
+// TODO: Rename to "WalletPeerInfo"?

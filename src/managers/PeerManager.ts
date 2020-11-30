@@ -5,7 +5,11 @@ import { StorageManager, ArrayElem } from './StorageManager'
  * The PeerManager provides CRUD functionality for peer entities and persists them to the provided storage.
  */
 export class PeerManager<
-  T extends StorageKey.TRANSPORT_P2P_PEERS | StorageKey.TRANSPORT_POSTMESSAGE_PEERS
+  T extends
+    | StorageKey.TRANSPORT_P2P_PEERS_DAPP
+    | StorageKey.TRANSPORT_P2P_PEERS_WALLET
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
 > {
   private readonly storageManager: StorageManager<T>
 

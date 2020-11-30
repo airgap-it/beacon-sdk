@@ -1,8 +1,7 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
-import { ExtensionMessage, ExtensionMessageTarget } from '..'
+import { availableTransports, ExtensionMessage, ExtensionMessageTarget } from '..'
 import { myWindow } from '../MockWindow'
-import { availableTransports } from '../utils/available-transports'
 import { generateGUID } from '../utils/generate-uuid'
 import { getTzip10Link } from '../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../utils/platform'
@@ -256,8 +255,6 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
           myWindow.postMessage(message as any, window.location.origin)
         }
       })
-    } else {
-      console.log('not adding listener', extension)
     }
   })
 

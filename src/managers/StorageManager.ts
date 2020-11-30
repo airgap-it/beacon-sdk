@@ -18,8 +18,10 @@ export class StorageManager<
     | StorageKey.ACCOUNTS
     | StorageKey.APP_METADATA_LIST
     | StorageKey.PERMISSION_LIST
-    | StorageKey.TRANSPORT_P2P_PEERS
-    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS
+    | StorageKey.TRANSPORT_P2P_PEERS_DAPP
+    | StorageKey.TRANSPORT_P2P_PEERS_WALLET
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
 > {
   private readonly storage: Storage
   private readonly storageKey: T

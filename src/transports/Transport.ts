@@ -1,10 +1,21 @@
 import { Logger } from '../utils/Logger'
 import { ConnectionContext } from '../types/ConnectionContext'
-import { TransportType, TransportStatus, PeerInfo } from '..'
+import { TransportType, TransportStatus, PeerInfo, StorageKey, StorageKeyReturnType } from '..'
+import { PeerManager } from '../managers/PeerManager'
+import { ArrayElem } from '../managers/StorageManager'
+import { CommunicationClient } from './clients/CommunicationClient'
 
 const logger = new Logger('Transport')
 
-export abstract class Transport<T extends PeerInfo = any> {
+export abstract class Transport<
+  T extends PeerInfo = PeerInfo,
+  K extends
+    | StorageKey.TRANSPORT_P2P_PEERS_DAPP
+    | StorageKey.TRANSPORT_P2P_PEERS_WALLET
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET = any,
+  S extends CommunicationClient = any
+> {
   /**
    * The type of the transport
    */
@@ -19,6 +30,13 @@ export abstract class Transport<T extends PeerInfo = any> {
    * The status of the transport
    */
   protected _isConnected: TransportStatus = TransportStatus.NOT_CONNECTED
+
+  protected readonly peerManager: PeerManager<K>
+
+  /**
+   * The client handling the encryption/decryption of messages
+   */
+  protected client: S
 
   /**
    * The listener that will be invoked when a new peer is connected
@@ -37,8 +55,10 @@ export abstract class Transport<T extends PeerInfo = any> {
     return this._isConnected
   }
 
-  constructor(name: string) {
+  constructor(name: string, client: S, peerManager: PeerManager<K>) {
     this.name = name
+    this.client = client
+    this.peerManager = peerManager
   }
 
   /**
@@ -75,10 +95,22 @@ export abstract class Transport<T extends PeerInfo = any> {
    * @param message The message to send
    * @param recipient The recipient of the message
    */
-  public async send(message: string, recipient?: string): Promise<void> {
-    logger.log('send', message, recipient)
+  public async send(message: string, recipientPublicKey?: string): Promise<void> {
+    const knownPeers = await this.getPeers()
 
-    return
+    if (recipientPublicKey) {
+      const peer = knownPeers.find((peerEl) => peerEl.publicKey === recipientPublicKey)
+      if (!peer) {
+        throw new Error('Peer unknown')
+      }
+
+      return this.client.sendMessage(peer as any, message)
+    } else {
+      // A broadcast request has to be sent everywhere.
+      const promises = knownPeers.map((peer) => this.client.sendMessage(peer as any, message))
+
+      return (await Promise.all(promises))[0]
+    }
   }
 
   /**
@@ -111,14 +143,34 @@ export abstract class Transport<T extends PeerInfo = any> {
     return
   }
 
-  public async listenForNewPeer(newPeerListener: (peer: T) => void): Promise<void> {
-    logger.log('listenForNewPeer')
-    this.newPeerListener = newPeerListener
+  public async getPeers(): Promise<T[]> {
+    return this.peerManager.getPeers() as any // TODO: Fix type
   }
 
-  public async stopListeningForNewPeers(): Promise<void> {
-    logger.log('stopListeningForNewPeers')
-    this.newPeerListener = undefined
+  public async addPeer(newPeer: T): Promise<void> {
+    if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
+      logger.log('addPeer', newPeer)
+      await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
+      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
+    } else {
+      logger.log('addPeer', 'peer already added, skipping', newPeer)
+    }
+  }
+
+  public async removePeer(peerToBeRemoved: T): Promise<void> {
+    logger.log('removePeer', peerToBeRemoved)
+    await this.peerManager.removePeer(peerToBeRemoved.publicKey)
+    if (this.client) {
+      await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
+    }
+  }
+
+  public async removeAllPeers(): Promise<void> {
+    logger.log('removeAllPeers')
+    await this.peerManager.removeAllPeers()
+    if (this.client) {
+      await this.client.unsubscribeFromEncryptedMessages()
+    }
   }
 
   /**
@@ -145,4 +197,6 @@ export abstract class Transport<T extends PeerInfo = any> {
 
     return
   }
+
+  abstract async listen(publicKey: string): Promise<void>
 }

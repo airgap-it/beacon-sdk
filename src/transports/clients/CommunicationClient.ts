@@ -1,4 +1,8 @@
 import * as sodium from 'libsodium-wrappers'
+import { P2PPairingRequest } from '../..'
+import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
+import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
+import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
 import { toHex, getHexHash } from '../../utils/crypto'
 
 export abstract class CommunicationClient {
@@ -75,4 +79,16 @@ export abstract class CommunicationClient {
 
     return sodium.crypto_kx_client_session_keys(...keys)
   }
+
+  abstract async unsubscribeFromEncryptedMessages(): Promise<void>
+  abstract async unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void>
+  // abstract async send(message: string, recipient?: string): Promise<void>
+  public abstract async sendMessage(
+    peer:
+      | P2PPairingRequest
+      | ExtendedP2PPairingResponse
+      | PostMessagePairingRequest
+      | ExtendedPostMessagePairingResponse,
+    message: string
+  ): Promise<void>
 }

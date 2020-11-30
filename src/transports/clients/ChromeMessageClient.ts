@@ -1,6 +1,7 @@
 import { ExtensionMessage, ExtensionMessageTarget } from '../..'
 import { EncryptedExtensionMessage } from '../../types/ExtensionMessage'
 import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
+import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
 import { sealCryptobox } from '../../utils/crypto'
 import { MessageBasedClient } from './MessageBasedClient'
 
@@ -58,15 +59,18 @@ export class ChromeMessageClient extends MessageBasedClient {
     this.activeListeners.set(senderPublicKey, callbackFunction)
   }
 
-  public async sendMessage(recipientPublicKey: string | undefined, message: string): Promise<void> {
+  public async sendMessage(
+    peer: PostMessagePairingRequest | ExtendedPostMessagePairingResponse,
+    message: string
+  ): Promise<void> {
     let msg: EncryptedExtensionMessage | ExtensionMessage<string> = {
       target: ExtensionMessageTarget.PAGE,
       payload: message
     }
 
     // If no recipient public key is provided, we respond with an unencrypted message
-    if (recipientPublicKey) {
-      const payload = await this.encryptMessage(recipientPublicKey, message)
+    if (peer.publicKey) {
+      const payload = await this.encryptMessage(peer.publicKey, message)
 
       msg = {
         target: ExtensionMessageTarget.PAGE,

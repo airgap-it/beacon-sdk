@@ -124,6 +124,13 @@ import { PeerInfo } from './types/PeerInfo'
 import { availableTransports } from './utils/available-transports'
 import { AcknowledgeResponse } from './types/beacon/messages/AcknowledgeResponse'
 import { DisconnectMessage } from './types/beacon/messages/DisconnectMessage'
+import { DappP2PTransport } from './transports/DappP2PTransport'
+import { DappPostMessageTransport } from './transports/DappPostMessageTransport'
+import { WalletP2PTransport } from './transports/WalletP2PTransport'
+import { WalletPostMessageTransport } from './transports/WalletPostMessageTransport'
+import { getSenderId } from './utils/get-sender-id'
+import { SigningType } from './types/beacon/SigningType'
+import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotSupportedBeaconError'
 
 // Tezos
 export {
@@ -191,6 +198,7 @@ export {
   Origin,
   AccountInfo,
   Threshold,
+  SigningType,
   ExtensionMessageTarget,
   ExtensionMessage,
   RequestPermissionInput,
@@ -237,6 +245,7 @@ export {
   ParametersInvalidBeaconError,
   TooManyOperationsBeaconError,
   TransactionInvalidBeaconError,
+  SignatureTypeNotSupportedBeaconError,
   UnknownBeaconError
 }
 
@@ -247,7 +256,11 @@ export {
   Transport,
   PostMessageTransport,
   P2PTransport,
-  ChromeMessageTransport
+  ChromeMessageTransport,
+  WalletP2PTransport,
+  WalletPostMessageTransport,
+  DappP2PTransport,
+  DappPostMessageTransport
 }
 
 // Events
@@ -271,7 +284,7 @@ export { AccountManager, AppMetadataManager, PermissionManager }
 export { SDK_VERSION, BEACON_VERSION }
 
 // Utils
-export { getAccountIdentifier, getAddressFromPublicKey }
+export { getSenderId, getAccountIdentifier, getAddressFromPublicKey }
 
 // Others
 export { ConnectionContext, P2PPairingRequest, PeerInfo, Serializer, availableTransports }

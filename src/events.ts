@@ -1,12 +1,11 @@
+import { openAlert, AlertButton, AlertConfig } from './alert/Alert'
 import { openToast } from './alert/Toast'
-import { openAlert, AlertConfig, AlertButton } from './alert/Alert'
-import { Logger } from './utils/Logger'
-import { Transport } from './transports/Transport'
-import { BeaconError } from './errors/BeaconError'
-import { ConnectionContext } from './types/ConnectionContext'
-import { Serializer } from './Serializer'
-import { BlockExplorer } from './utils/block-explorer'
+import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
 import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
+import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'
+import { BlockExplorer } from './utils/block-explorer'
+import { Logger } from './utils/Logger'
+import { Serializer } from './Serializer'
 import {
   P2PPairingRequest,
   AccountInfo,
@@ -16,7 +15,10 @@ import {
   OperationResponseOutput,
   BroadcastResponseOutput,
   SignPayloadResponseOutput,
-  Network
+  Network,
+  BeaconError,
+  ConnectionContext,
+  Transport
 } from '.'
 
 const logger = new Logger('BeaconEvents')
@@ -101,7 +103,7 @@ export interface BeaconEventType {
     p2pPeerInfo: P2PPairingRequest
     postmessagePeerInfo: PostMessagePairingRequest
   }
-  [BeaconEvent.PAIR_SUCCESS]: undefined
+  [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: P2PPairingRequest
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairingRequest
   [BeaconEvent.CHANNEL_CLOSED]: string
@@ -174,7 +176,7 @@ const showBeaconConnectedAlert = async (): Promise<void> => {
 const showExtensionConnectedAlert = async (): Promise<void> => {
   await openAlert({
     title: 'Success',
-    body: 'A browser extension has been paired.',
+    body: 'A wallet has been paired.',
     buttons: [{ text: 'Done', style: 'outline' }],
     timer: 1500
   })
