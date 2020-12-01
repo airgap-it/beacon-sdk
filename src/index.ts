@@ -54,7 +54,6 @@ import { TransportType } from './types/transport/TransportType'
 import { PostMessageTransport } from './transports/PostMessageTransport'
 import { Transport } from './transports/Transport'
 import { P2PTransport } from './transports/P2PTransport'
-import { ChromeMessageTransport } from './transports/ChromeMessageTransport'
 import { Storage } from './storage/Storage'
 import { StorageKey } from './types/storage/StorageKey'
 import { StorageKeyReturnDefaults } from './types/storage/StorageKeyReturnDefaults'
@@ -270,7 +269,6 @@ export {
   Transport,
   PostMessageTransport,
   P2PTransport,
-  ChromeMessageTransport,
   WalletP2PTransport,
   WalletPostMessageTransport,
   DappP2PTransport,
