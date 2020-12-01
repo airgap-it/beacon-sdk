@@ -78,7 +78,9 @@ export class WalletClient extends Client {
       if (!this.pendingRequests.some((request) => request.id === message.id)) {
         this.pendingRequests.push(message)
 
-        await this.sendAcknowledgeResponse(message)
+        if (message.version !== '1') {
+          await this.sendAcknowledgeResponse(message)
+        }
 
         await IncomingRequestInterceptor.intercept({
           message,
