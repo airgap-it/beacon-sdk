@@ -7,6 +7,7 @@ export class TezblockBlockExplorer extends BlockExplorer {
       [NetworkType.MAINNET]: 'https://tezblock.io',
       [NetworkType.CARTHAGENET]: 'https://carthagenet.tezblock.io',
       [NetworkType.DELPHINET]: 'https://delphinet.tezblock.io',
+      [NetworkType.EDONET]: 'https://edonet.tezblock.io',
       [NetworkType.CUSTOM]: 'https://delphinet.tezblock.io'
     }
   ) {
