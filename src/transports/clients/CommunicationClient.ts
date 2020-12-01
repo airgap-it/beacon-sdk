@@ -3,7 +3,7 @@ import { P2PPairingRequest } from '../..'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
-import { toHex, getHexHash } from '../../utils/crypto'
+import { toHex, getHexHash, sealCryptobox } from '../../utils/crypto'
 
 export abstract class CommunicationClient {
   constructor(protected readonly keyPair: sodium.KeyPair) {}
@@ -80,15 +80,28 @@ export abstract class CommunicationClient {
     return sodium.crypto_kx_client_session_keys(...keys)
   }
 
+  /**
+   * Encrypt a message for a specific publicKey (receiver, asymmetric)
+   *
+   * @param recipientPublicKey
+   * @param message
+   */
+  protected async encryptMessageAsymmetric(
+    recipientPublicKey: string,
+    message: string
+  ): Promise<string> {
+    return sealCryptobox(message, Buffer.from(recipientPublicKey, 'hex'))
+  }
+
   abstract async unsubscribeFromEncryptedMessages(): Promise<void>
   abstract async unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void>
   // abstract async send(message: string, recipient?: string): Promise<void>
   public abstract async sendMessage(
-    peer:
+    message: string,
+    peer?:
       | P2PPairingRequest
       | ExtendedP2PPairingResponse
       | PostMessagePairingRequest
-      | ExtendedPostMessagePairingResponse,
-    message: string
+      | ExtendedPostMessagePairingResponse
   ): Promise<void>
 }

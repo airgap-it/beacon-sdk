@@ -104,10 +104,10 @@ export abstract class Transport<
         throw new Error('Peer unknown')
       }
 
-      return this.client.sendMessage(peer as any, message)
+      return this.client.sendMessage(message, peer as any)
     } else {
       // A broadcast request has to be sent everywhere.
-      const promises = knownPeers.map((peer) => this.client.sendMessage(peer as any, message))
+      const promises = knownPeers.map((peer) => this.client.sendMessage(message, peer as any))
 
       return (await Promise.all(promises))[0]
     }

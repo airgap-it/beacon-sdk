@@ -56,8 +56,8 @@ export class PostMessageClient extends MessageBasedClient {
   }
 
   public async sendMessage(
-    peer: PostMessagePairingRequest | ExtendedPostMessagePairingResponse,
-    message: string
+    message: string,
+    peer: PostMessagePairingRequest | ExtendedPostMessagePairingResponse
   ): Promise<void> {
     const payload = await this.encryptMessage(peer.publicKey, message)
 
