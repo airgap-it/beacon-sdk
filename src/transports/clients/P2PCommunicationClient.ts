@@ -4,7 +4,6 @@ import BigNumber from 'bignumber.js'
 import {
   getHexHash,
   toHex,
-  sealCryptobox,
   recipientString,
   openCryptobox,
   encryptCryptoboxPayload,
@@ -207,8 +206,8 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async sendMessage(
-    peer: P2PPairingRequest | ExtendedP2PPairingResponse,
-    message: string
+    message: string,
+    peer: P2PPairingRequest | ExtendedP2PPairingResponse
   ): Promise<void> {
     const { sharedTx } = await this.createCryptoBoxClient(peer.publicKey, this.keyPair.privateKey)
 
@@ -278,10 +277,11 @@ export class P2PCommunicationClient extends CommunicationClient {
           ? await this.getPublicKey() // v1
           : JSON.stringify(await this.getPairingResponseInfo(pairingRequest)) // v2
 
-      const encryptedMessage: string = await sealCryptobox(
-        message,
-        Buffer.from(pairingRequest.publicKey, 'hex')
+      const encryptedMessage: string = await this.encryptMessageAsymmetric(
+        pairingRequest.publicKey,
+        message
       )
+
       client
         .sendTextMessage(room.id, ['@channel-open', recipient, encryptedMessage].join(':'))
         .catch((error) => this.log(error))

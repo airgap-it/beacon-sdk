@@ -72,9 +72,8 @@ export class ChromeMessageTransport<
   public async sendToTabs(publicKey: string | undefined, payload: string): Promise<void> {
     const peers = await this.getPeers()
     const peer = peers.find((peerEl) => peerEl.publicKey === publicKey)
-    if (peer) {
-      return this.client.sendMessage(peer, payload)
-    }
+
+    return this.client.sendMessage(payload, peer)
   }
 
   public async addPeer(newPeer: T): Promise<void> {
