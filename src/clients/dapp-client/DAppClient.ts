@@ -79,6 +79,8 @@ export class DAppClient extends Client {
    */
   public readonly blockExplorer: BlockExplorer
 
+  public preferredNetwork: NetworkType
+
   protected postMessageTransport: DappPostMessageTransport | undefined
   protected p2pTransport: DappP2PTransport | undefined
 
@@ -110,6 +112,7 @@ export class DAppClient extends Client {
     })
     this.iconUrl = config.iconUrl
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
+    this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
 
     this.storage
       .get(StorageKey.ACTIVE_ACCOUNT)
