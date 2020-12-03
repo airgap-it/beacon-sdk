@@ -20,12 +20,18 @@ import {
   P2PPairingRequest,
   P2PTransport,
   PartialTezosOperation,
+  SigningType,
   PermissionResponse,
   PermissionScope,
   SignPayloadResponse,
   StorageKey,
   TezosOperationType,
-  TransportType
+  TransportStatus,
+  TransportType,
+  PostMessageTransport,
+  DappPostMessageTransport,
+  DappP2PTransport,
+  getSenderId
 } from '../../src'
 
 import { MockTransport } from '../test-utils/MockTransport'
@@ -38,6 +44,8 @@ chai.use(chaiAsPromised)
 const expect = chai.expect
 
 const peer1: P2PPairingRequest = {
+  id: 'id1',
+  type: 'p2p-pairing-request',
   name: 'test',
   version: BEACON_VERSION,
   publicKey: 'my-public-key',
@@ -45,6 +53,8 @@ const peer1: P2PPairingRequest = {
 }
 
 const peer2: P2PPairingRequest = {
+  id: 'id2',
+  type: 'p2p-pairing-request',
   name: 'test',
   version: BEACON_VERSION,
   publicKey: 'my-public-key-2',
@@ -82,13 +92,14 @@ const account2: AccountInfo = {
 /**
  * This mocks the response of PostMessageTransport.isAvailable. Usually it would wait 200ms making the tests slower
  *
- * @param client WalletClient
+ * @param client DAppClient
  */
 const initClientWithMock = async (client: DAppClient) => {
   const extensionRef = availableTransports.extension
   availableTransports.extension = Promise.resolve(false)
 
-  await client.init()
+  const transport = new MockTransport('TestTransport', undefined as any, undefined as any)
+  await client.init(transport)
 
   availableTransports.extension = extensionRef
 }
@@ -174,21 +185,31 @@ describe(`DAppClient`, () => {
 
       const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
-      await dAppClient.init(true, new MockTransport('TestTransport'))
-      await dAppClient.connect()
+      const transport = new MockTransport('TestTransport', undefined as any, undefined as any)
+      await dAppClient.init(transport)
       await dAppClient.ready
 
       clearTimeout(timeout)
-      expect(await dAppClient.isConnected).to.be.true
+      expect(await dAppClient.connectionStatus).to.equal(TransportStatus.NOT_CONNECTED)
+      expect(await (dAppClient as any).transport).to.equal(transport)
       resolve()
     })
   })
 
-  it(`should select P2P Transport`, async () => {
+  it(`should listen for connections on P2P and PostMessage`, async () => {
     return new Promise(async (resolve, reject) => {
       const timeout = global.setTimeout(() => {
         reject(new Error('TIMEOUT: Not connected'))
       }, 1000)
+
+      // const p2pTransportStub =
+      sinon.stub(DappP2PTransport.prototype, 'connect').resolves()
+      sinon.stub(DappP2PTransport.prototype, 'listenForNewPeer').resolves()
+      // const postMessageTransportStub =
+      sinon.stub(DappPostMessageTransport.prototype, 'connect').resolves()
+      sinon.stub(DappPostMessageTransport.prototype, 'listenForNewPeer').resolves()
+
+      sinon.stub(PostMessageTransport, 'getAvailableExtensions').resolves()
 
       const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
@@ -196,28 +217,6 @@ describe(`DAppClient`, () => {
 
       clearTimeout(timeout)
       expect((await (dAppClient as any).transport).type).to.equal(TransportType.P2P)
-      resolve()
-    })
-  })
-
-  it(`should select ChromeTransport`, async () => {
-    return new Promise(async (resolve, reject) => {
-      const timeout = global.setTimeout(() => {
-        reject(new Error('TIMEOUT: Not connected'))
-      }, 1000)
-
-      const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
-
-      const extensionRef = availableTransports.extension
-      availableTransports.extension = Promise.resolve(true)
-
-      const type = await dAppClient.init()
-
-      availableTransports.extension = extensionRef
-
-      clearTimeout(timeout)
-      expect(type).to.equal(TransportType.POST_MESSAGE)
-      expect((await (dAppClient as any).transport).type).to.equal(TransportType.POST_MESSAGE)
       resolve()
     })
   })
@@ -269,13 +268,13 @@ describe(`DAppClient`, () => {
     const metadata = await dAppClient.getAppMetadata()
 
     expect(metadata).to.deep.equal({
-      senderId: await dAppClient.beaconId,
+      senderId: getSenderId(await dAppClient.beaconId),
       name: dAppClient.name,
       icon: dAppClient.iconUrl
     })
   })
 
-  it(`should connect`, async () => {
+  it(`should initialize`, async () => {
     return new Promise(async (resolve, reject) => {
       const timeout = global.setTimeout(() => {
         reject(new Error('TIMEOUT: Not connected'))
@@ -283,12 +282,11 @@ describe(`DAppClient`, () => {
 
       const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
-      await dAppClient.init(true, new MockTransport('TestTransport'))
-      await dAppClient.connect()
+      await dAppClient.init(new MockTransport('TestTransport', undefined as any, undefined as any))
       await dAppClient.ready
 
       clearTimeout(timeout)
-      expect(await dAppClient.isConnected).to.be.true
+      expect(await dAppClient.connectionStatus).to.equal(TransportStatus.NOT_CONNECTED)
       resolve()
     })
   })
@@ -349,7 +347,7 @@ describe(`DAppClient`, () => {
       .stub(dAppClient, <any>'removeAccountsForPeers')
       .resolves()
 
-    await initClientWithMock(dAppClient)
+    // await initClientWithMock(dAppClient)
     await dAppClient.removePeer(peer1)
 
     expect(transportRemovePeerStub.callCount).to.equal(1)
@@ -496,7 +494,7 @@ describe(`DAppClient`, () => {
       appMetadata: {
         icon: undefined,
         name: 'Test',
-        senderId: await dAppClient.beaconId
+        senderId: getSenderId(await dAppClient.beaconId)
       },
       type: BeaconMessageType.PermissionRequest,
       network: { type: 'mainnet' },
@@ -538,6 +536,7 @@ describe(`DAppClient`, () => {
       type: BeaconMessageType.SignPayloadResponse,
       version: BEACON_VERSION,
       senderId: 'sender-id',
+      signingType: SigningType.RAW,
       signature: 'my-signature'
     }
 
@@ -789,7 +788,6 @@ describe(`DAppClient`, () => {
       await initClientWithMock(dAppClient)
 
       const initStub = sinon.stub(dAppClient, 'init').resolves()
-      const connectStub = sinon.stub(dAppClient, 'connect').resolves()
       const rateLimitStub = sinon
         .stub(dAppClient, 'addRequestAndCheckIfRateLimited')
         .resolves(false)
@@ -805,7 +803,6 @@ describe(`DAppClient`, () => {
 
       setTimeout(async () => {
         expect(initStub.callCount, 'initStub').to.equal(1)
-        expect(connectStub.callCount, 'connectStub').to.equal(1)
         expect(rateLimitStub.callCount, 'rateLimitStub').to.equal(1)
         expect(permissionStub.callCount, 'permissionStub').to.equal(1)
         expect(addRequestStub.callCount, 'addRequestStub').to.equal(1)

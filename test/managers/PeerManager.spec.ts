@@ -11,6 +11,8 @@ chai.use(chaiAsPromised)
 const expect = chai.expect
 
 const peer1: P2PPairingRequest = {
+  id: 'id1',
+  type: 'p2p-pairing-request',
   name: 'p1',
   version: BEACON_VERSION,
   publicKey: 'pubkey1',
@@ -18,6 +20,8 @@ const peer1: P2PPairingRequest = {
 }
 
 const peer2: P2PPairingRequest = {
+  id: 'id2',
+  type: 'p2p-pairing-request',
   name: 'p2',
   version: BEACON_VERSION,
   publicKey: 'pubkey2',
@@ -25,6 +29,8 @@ const peer2: P2PPairingRequest = {
 }
 
 const peer3: P2PPairingRequest = {
+  id: 'id3',
+  type: 'p2p-pairing-request',
   name: 'p3',
   version: BEACON_VERSION,
   publicKey: 'pubkey3',
@@ -32,11 +38,11 @@ const peer3: P2PPairingRequest = {
 }
 
 describe(`PeerManager`, () => {
-  let manager: PeerManager<StorageKey.TRANSPORT_P2P_PEERS>
+  let manager: PeerManager<StorageKey.TRANSPORT_P2P_PEERS_DAPP>
   beforeEach(async () => {
     await writeLocalFile({})
 
-    manager = new PeerManager(new FileStorage(), StorageKey.TRANSPORT_P2P_PEERS)
+    manager = new PeerManager(new FileStorage(), StorageKey.TRANSPORT_P2P_PEERS_DAPP)
   })
   it(`reads and adds peers`, async () => {
     const peersBefore: P2PPairingRequest[] = await manager.getPeers()

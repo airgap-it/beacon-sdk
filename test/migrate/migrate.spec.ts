@@ -76,13 +76,13 @@ describe(`Migrations`, () => {
 
     await storage.set(StorageKey.BEACON_SDK_VERSION, '0.6.0')
     await storage.set(StorageKey.ACCOUNTS, [account1, account2, account3] as any)
-    await storage.set(StorageKey.TRANSPORT_P2P_PEERS, [p2pInfo1, p2pInfo2] as any)
+    await storage.set(StorageKey.TRANSPORT_P2P_PEERS_DAPP, [p2pInfo1, p2pInfo2] as any)
 
     await migrate(storage)
 
     const storedSdkVersion = await storage.get(StorageKey.BEACON_SDK_VERSION)
     const accounts = await storage.get(StorageKey.ACCOUNTS)
-    const p2pInfos = await storage.get(StorageKey.TRANSPORT_P2P_PEERS)
+    const p2pInfos = await storage.get(StorageKey.TRANSPORT_P2P_PEERS_DAPP)
 
     expect(storedSdkVersion).to.equal(SDK_VERSION)
 

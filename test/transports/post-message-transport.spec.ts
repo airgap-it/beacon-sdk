@@ -5,6 +5,7 @@ import * as sinon from 'sinon'
 
 import {
   BEACON_VERSION,
+  DappPostMessageTransport,
   LocalStorage,
   Origin,
   PostMessageTransport,
@@ -13,21 +14,25 @@ import {
 import { PeerManager } from '../../src/managers/PeerManager'
 import { myWindow, clearMockWindowState } from '../../src/MockWindow'
 import { PostMessageClient } from '../../src/transports/clients/PostMessageClient'
-import { PostMessagePairingResponse } from '../../src/types/PostMessagePairingResponse'
+import { ExtendedPostMessagePairingResponse } from '../../src/types/PostMessagePairingResponse'
 import { getKeypairFromSeed } from '../../src/utils/crypto'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
 const expect = chai.expect
 
-const pairingResponse: PostMessagePairingResponse = {
+const pairingResponse: ExtendedPostMessagePairingResponse = {
+  id: 'id1',
+  type: 'postmessage-pairing-response',
   name: 'test-wallet',
   version: BEACON_VERSION,
-  publicKey: 'asdf'
+  publicKey: 'asdf',
+  senderId: 'senderId1',
+  extensionId: 'extensionId1'
 }
 
 describe(`PostMessageTransport`, () => {
-  let transport: PostMessageTransport
+  let transport: DappPostMessageTransport
 
   before(function () {
     /**
@@ -56,7 +61,7 @@ describe(`PostMessageTransport`, () => {
     const keypair = await getKeypairFromSeed('test')
     const localStorage = new LocalStorage()
 
-    transport = new PostMessageTransport('Test', keypair, localStorage, true)
+    transport = new DappPostMessageTransport('Test', keypair, localStorage)
   })
 
   it(`should not be supported`, async () => {
@@ -136,18 +141,20 @@ describe(`PostMessageTransport`, () => {
   })
 
   it(`should connect new peer`, async () => {
-    const listenForNewPeerSpy = sinon.spy(transport, 'listenForNewPeer')
-
     sinon
       .stub(PostMessageClient.prototype, 'listenForChannelOpening')
       .callsArgWithAsync(0, pairingResponse)
 
     const addPeerStub = sinon.stub(transport, 'addPeer').resolves()
 
-    await transport.listenForNewPeer()
+    const fn = () => undefined
+    await transport.listenForNewPeer(fn)
 
-    expect(listenForNewPeerSpy.callCount).to.equal(1)
-    expect(addPeerStub.callCount).to.equal(1)
+    expect((<any>transport).newPeerListener, 'newPeerListener').to.equal(fn)
+
+    await transport.startOpenChannelListener()
+
+    expect(addPeerStub.callCount, 'addPeer').to.equal(1)
     expect((transport as any).listeningForChannelOpenings).to.be.true
   })
 
@@ -206,14 +213,16 @@ describe(`PostMessageTransport`, () => {
 
   it(`should send a message to a specific peer`, async () => {
     const message = 'my-message'
-    const recipient = 'my-recipient'
 
+    const getPeersStub = sinon.stub(PeerManager.prototype, 'getPeers').resolves([pairingResponse])
     const sendMessageStub = sinon.stub(PostMessageClient.prototype, 'sendMessage').resolves()
 
-    await transport.send(message, recipient)
+    await transport.send(message, pairingResponse.publicKey)
 
+    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
+    expect(getPeersStub.firstCall.args.length, 'getPeersStub').to.equal(0)
     expect(sendMessageStub.callCount, 'sendMessageStub').to.equal(1)
-    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(recipient)
+    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
     expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(message)
   })
 
@@ -226,11 +235,9 @@ describe(`PostMessageTransport`, () => {
     await transport.send(message)
 
     expect(sendMessageStub.callCount, 'sendMessageStub').to.equal(2)
-    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse.publicKey)
+    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
     expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(message)
-    expect(sendMessageStub.secondCall.args[0], 'sendMessageStub').to.equal(
-      pairingResponse.publicKey
-    )
+    expect(sendMessageStub.secondCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
     expect(sendMessageStub.secondCall.args[1], 'sendMessageStub').to.equal(message)
   })
 

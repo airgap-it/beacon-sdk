@@ -5,30 +5,34 @@ import * as sinon from 'sinon'
 
 import {
   BEACON_VERSION,
+  DappP2PTransport,
   LocalStorage,
   Origin,
   P2PCommunicationClient,
-  P2PPairingRequest,
   P2PTransport,
   TransportStatus
 } from '../../src'
 import { BeaconEventHandler } from '../../src/events'
 import { PeerManager } from '../../src/managers/PeerManager'
+import { ExtendedP2PPairingResponse } from '../../src/types/P2PPairingResponse'
 import { getKeypairFromSeed } from '../../src/utils/crypto'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
 const expect = chai.expect
 
-const pairingResponse: P2PPairingRequest = {
+const pairingResponse: ExtendedP2PPairingResponse = {
+  id: 'id1',
+  type: 'p2p-pairing-response',
   name: 'test-wallet',
   version: BEACON_VERSION,
   publicKey: 'asdf',
-  relayServer: 'myserver.com'
+  relayServer: 'myserver.com',
+  senderId: 'senderId1'
 }
 
 describe(`P2PTransport`, () => {
-  let transport: P2PTransport
+  let transport: DappP2PTransport
 
   beforeEach(async () => {
     sinon.restore()
@@ -38,7 +42,7 @@ describe(`P2PTransport`, () => {
     const eventHandler = new BeaconEventHandler()
     sinon.stub(eventHandler, 'emit').resolves()
 
-    transport = new P2PTransport('Test', keypair, localStorage, [], true)
+    transport = new DappP2PTransport('Test', keypair, localStorage, [])
   })
 
   it(`should be supported`, async () => {
@@ -99,8 +103,7 @@ describe(`P2PTransport`, () => {
       .callsArgWithAsync(0, pairingResponse)
 
     const addPeerStub = sinon.stub(transport, 'addPeer').resolves()
-
-    await transport.listenForNewPeer()
+    await transport.listenForNewPeer(() => undefined)
 
     expect(listenForNewPeerSpy.callCount).to.equal(1)
     expect(addPeerStub.callCount).to.equal(1)
@@ -176,7 +179,7 @@ describe(`P2PTransport`, () => {
     expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
     expect(getPeersStub.firstCall.args.length, 'getPeersStub').to.equal(0)
     expect(sendMessageStub.callCount, 'sendMessageStub').to.equal(1)
-    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse.publicKey)
+    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
     expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(message)
   })
 
@@ -189,11 +192,9 @@ describe(`P2PTransport`, () => {
     await transport.send(message)
 
     expect(sendMessageStub.callCount, 'sendMessageStub').to.equal(2)
-    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse.publicKey)
+    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
     expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(message)
-    expect(sendMessageStub.secondCall.args[0], 'sendMessageStub').to.equal(
-      pairingResponse.publicKey
-    )
+    expect(sendMessageStub.secondCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
     expect(sendMessageStub.secondCall.args[1], 'sendMessageStub').to.equal(message)
   })
 

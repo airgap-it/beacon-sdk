@@ -28,6 +28,8 @@ chai.use(chaiAsPromised)
 const expect = chai.expect
 
 const peer1: P2PPairingRequest = {
+  id: 'id1',
+  type: 'p2p-pairing-request',
   name: 'test',
   version: BEACON_VERSION,
   publicKey: 'my-public-key',
@@ -35,6 +37,8 @@ const peer1: P2PPairingRequest = {
 }
 
 const peer2: P2PPairingRequest = {
+  id: 'id2',
+  type: 'p2p-pairing-request',
   name: 'test',
   version: BEACON_VERSION,
   publicKey: 'my-public-key-2',
@@ -189,7 +193,7 @@ describe(`WalletClient`, () => {
       .resolves()
 
     await initClientWithMock(walletClient)
-    await walletClient.removePeer(peer1)
+    await walletClient.removePeer(peer1 as any)
 
     expect(transportRemovePeerStub.callCount).to.equal(1)
     expect(removePermissionsForPeersStub.callCount).to.equal(1)

@@ -86,8 +86,8 @@ describe.skip(`client - Custom Tests`, () => {
       intervals.push(
         global.setInterval(async () => {
           bobClient.sendMessage(
-            await aliceClient.getPublicKey(),
-            `hey from bob ${await generateGUID()}\n\n`
+            `hey from bob ${await generateGUID()}\n\n`,
+            await aliceClient.getPairingRequestInfo()
           )
           //bobClient.sendMessage(charlieClient.getPublicKey(), 'matrix-dev.papers.tech', "hey from bob")
         }, 5000)
@@ -96,12 +96,12 @@ describe.skip(`client - Custom Tests`, () => {
       intervals.push(
         global.setInterval(async () => {
           aliceClient.sendMessage(
-            await bobClient.getPublicKey(),
-            `hey from alice ${await generateGUID()}\n\n`
+            `hey from alice ${await generateGUID()}\n\n`,
+            await bobClient.getPairingRequestInfo()
           )
           aliceClient.sendMessage(
-            await charlieClient.getPublicKey(),
-            `hey from alice ${await generateGUID()}\n\n`
+            `hey from alice ${await generateGUID()}\n\n`,
+            await charlieClient.getPairingRequestInfo()
           )
         }, 5000)
       )
@@ -110,8 +110,8 @@ describe.skip(`client - Custom Tests`, () => {
         global.setInterval(async () => {
           //charlieClient.sendMessage(bobClient.getPublicKey(), 'matrix.tez.ie', "hey from charlie")
           charlieClient.sendMessage(
-            await aliceClient.getPublicKey(),
-            `hey from charlie ${await generateGUID()}\n\n`
+            `hey from charlie ${await generateGUID()}\n\n`,
+            await aliceClient.getPairingRequestInfo()
           )
         }, 5000)
       )
