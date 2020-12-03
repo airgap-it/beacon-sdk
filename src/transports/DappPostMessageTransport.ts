@@ -14,7 +14,7 @@ export class DappPostMessageTransport extends PostMessageTransport<
   }
 
   public async startOpenChannelListener(): Promise<void> {
-    await this.client.listenForChannelOpening(async (peer: ExtendedPostMessagePairingResponse) => {
+    return this.client.listenForChannelOpening(async (peer: ExtendedPostMessagePairingResponse) => {
       logger.log('connect', `received PostMessagePairingResponse`, peer)
 
       await this.addPeer(peer)

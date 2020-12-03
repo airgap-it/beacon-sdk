@@ -10,7 +10,8 @@ import {
   Origin,
   P2PCommunicationClient,
   P2PTransport,
-  TransportStatus
+  TransportStatus,
+  WalletP2PTransport
 } from '../../src'
 import { BeaconEventHandler } from '../../src/events'
 import { PeerManager } from '../../src/managers/PeerManager'
@@ -51,7 +52,9 @@ describe(`P2PTransport`, () => {
   })
 
   it(`should listen to new peers if no peers are stored locally`, async () => {
-    const listenForNewPeerStub = sinon.stub(transport, 'listenForNewPeer').resolves()
+    const startOpenChannelListenerStub = sinon
+      .stub(transport, 'startOpenChannelListener')
+      .resolves()
 
     sinon.stub(PeerManager.prototype, 'getPeers').resolves([])
     const startClientStub = sinon.stub(P2PCommunicationClient.prototype, 'start').resolves()
@@ -61,9 +64,8 @@ describe(`P2PTransport`, () => {
     await transport.connect()
 
     expect(startClientStub.callCount).to.equal(1)
-    expect(listenForNewPeerStub.callCount).to.equal(1)
+    expect(startOpenChannelListenerStub.callCount).to.equal(1)
     expect(transport.connectionStatus).to.equal(TransportStatus.CONNECTED)
-    expect((<any>transport).listeningForChannelOpenings).to.be.false
   })
 
   it(`should connect to existing peers if there are peers stored locally`, async () => {
@@ -84,30 +86,30 @@ describe(`P2PTransport`, () => {
     expect(listenForNewPeerStub.callCount).to.equal(0)
     expect(listenStub.callCount).to.equal(2)
     expect(transport.connectionStatus).to.equal(TransportStatus.CONNECTED)
-    expect((<any>transport).listeningForChannelOpenings).to.be.false
-  })
-
-  it(`should reconnect`, async () => {
-    const listenForNewPeerStub = sinon.stub(transport, 'listenForNewPeer').resolves()
-
-    await transport.reconnect()
-
-    expect(listenForNewPeerStub.callCount).to.equal(1)
   })
 
   it(`should connect new peer`, async () => {
-    const listenForNewPeerSpy = sinon.spy(transport, 'listenForNewPeer')
+    return new Promise(async (resolve) => {
+      sinon
+        .stub(P2PCommunicationClient.prototype, 'listenForChannelOpening')
+        .callsArgWithAsync(0, pairingResponse)
 
-    sinon
-      .stub(P2PCommunicationClient.prototype, 'listenForChannelOpening')
-      .callsArgWithAsync(0, pairingResponse)
+      const addPeerStub = sinon.stub(transport, 'addPeer').resolves()
 
-    const addPeerStub = sinon.stub(transport, 'addPeer').resolves()
-    await transport.listenForNewPeer(() => undefined)
+      const fn = () => {
+        setTimeout(() => {
+          expect(addPeerStub.callCount, 'addPeer').to.equal(1)
+          expect(transport.connectionStatus).to.equal(TransportStatus.CONNECTED)
+          expect((<any>transport).newPeerListener, 'newPeerListener').to.equal(undefined)
+          resolve()
+        }, 0)
+      }
+      await transport.listenForNewPeer(fn)
 
-    expect(listenForNewPeerSpy.callCount).to.equal(1)
-    expect(addPeerStub.callCount).to.equal(1)
-    expect((transport as any).listeningForChannelOpenings).to.be.true
+      expect((<any>transport).newPeerListener, 'newPeerListener').to.equal(fn)
+
+      await transport.startOpenChannelListener()
+    })
   })
 
   it(`should get peers`, async () => {
@@ -121,6 +123,10 @@ describe(`P2PTransport`, () => {
   })
 
   it(`should add peer and start to listen`, async () => {
+    const keypair = await getKeypairFromSeed('test')
+    const localStorage = new LocalStorage()
+    transport = new WalletP2PTransport('Test', keypair, localStorage, []) as any
+
     const hasPeerStub = sinon.stub(PeerManager.prototype, 'hasPeer').resolves(false)
     const addPeerStub = sinon.stub(PeerManager.prototype, 'addPeer').resolves()
     const listenStub = sinon.stub(transport, <any>'listen').resolves()
@@ -179,8 +185,8 @@ describe(`P2PTransport`, () => {
     expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
     expect(getPeersStub.firstCall.args.length, 'getPeersStub').to.equal(0)
     expect(sendMessageStub.callCount, 'sendMessageStub').to.equal(1)
-    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
-    expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(message)
+    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(message)
+    expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(pairingResponse)
   })
 
   it(`should send a message to all peers`, async () => {
@@ -192,10 +198,10 @@ describe(`P2PTransport`, () => {
     await transport.send(message)
 
     expect(sendMessageStub.callCount, 'sendMessageStub').to.equal(2)
-    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
-    expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(message)
-    expect(sendMessageStub.secondCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
-    expect(sendMessageStub.secondCall.args[1], 'sendMessageStub').to.equal(message)
+    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(message)
+    expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(pairingResponse)
+    expect(sendMessageStub.secondCall.args[0], 'sendMessageStub').to.equal(message)
+    expect(sendMessageStub.secondCall.args[1], 'sendMessageStub').to.equal(pairingResponse)
   })
 
   it(`should listen`, async () => {

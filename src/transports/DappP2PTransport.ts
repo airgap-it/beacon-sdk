@@ -14,7 +14,7 @@ export class DappP2PTransport extends P2PTransport<
   }
 
   public async startOpenChannelListener(): Promise<void> {
-    await this.client.listenForChannelOpening(async (peer) => {
+    return this.client.listenForChannelOpening(async (peer) => {
       logger.log('listenForNewPeer', `new publicKey`, peer.publicKey)
 
       await this.addPeer(peer)

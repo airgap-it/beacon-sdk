@@ -100,7 +100,9 @@ describe(`PostMessageTransport`, () => {
   })
 
   it(`should listen to new peers if no peers are stored locally`, async () => {
-    const listenForNewPeerStub = sinon.stub(transport, 'listenForNewPeer').resolves()
+    const startOpenChannelListenerStub = sinon
+      .stub(transport, 'startOpenChannelListener')
+      .resolves()
 
     sinon.stub(PeerManager.prototype, 'getPeers').resolves([])
 
@@ -108,9 +110,8 @@ describe(`PostMessageTransport`, () => {
 
     await transport.connect()
 
-    expect(listenForNewPeerStub.callCount).to.equal(1)
+    expect(startOpenChannelListenerStub.callCount).to.equal(1)
     expect(transport.connectionStatus).to.equal(TransportStatus.CONNECTED)
-    expect((<any>transport).listeningForChannelOpenings).to.be.false
   })
 
   it(`should connect to existing peers if there are peers stored locally`, async () => {
@@ -129,33 +130,30 @@ describe(`PostMessageTransport`, () => {
     expect(listenForNewPeerStub.callCount).to.equal(0)
     expect(listenStub.callCount).to.equal(2)
     expect(transport.connectionStatus).to.equal(TransportStatus.CONNECTED)
-    expect((<any>transport).listeningForChannelOpenings).to.be.false
-  })
-
-  it(`should reconnect`, async () => {
-    const listenForNewPeerStub = sinon.stub(transport, 'listenForNewPeer').resolves()
-
-    await transport.reconnect()
-
-    expect(listenForNewPeerStub.callCount).to.equal(1)
   })
 
   it(`should connect new peer`, async () => {
-    sinon
-      .stub(PostMessageClient.prototype, 'listenForChannelOpening')
-      .callsArgWithAsync(0, pairingResponse)
+    return new Promise(async (resolve) => {
+      sinon
+        .stub(PostMessageClient.prototype, 'listenForChannelOpening')
+        .callsArgWithAsync(0, pairingResponse)
 
-    const addPeerStub = sinon.stub(transport, 'addPeer').resolves()
+      const addPeerStub = sinon.stub(transport, 'addPeer').resolves()
 
-    const fn = () => undefined
-    await transport.listenForNewPeer(fn)
+      const fn = () => {
+        setTimeout(() => {
+          expect(addPeerStub.callCount, 'addPeer').to.equal(1)
+          expect(transport.connectionStatus).to.equal(TransportStatus.CONNECTED)
+          expect((<any>transport).newPeerListener, 'newPeerListener').to.equal(undefined)
+          resolve()
+        }, 0)
+      }
+      await transport.listenForNewPeer(fn)
 
-    expect((<any>transport).newPeerListener, 'newPeerListener').to.equal(fn)
+      expect((<any>transport).newPeerListener, 'newPeerListener').to.equal(fn)
 
-    await transport.startOpenChannelListener()
-
-    expect(addPeerStub.callCount, 'addPeer').to.equal(1)
-    expect((transport as any).listeningForChannelOpenings).to.be.true
+      await transport.startOpenChannelListener()
+    })
   })
 
   it(`should get peers`, async () => {
@@ -222,8 +220,8 @@ describe(`PostMessageTransport`, () => {
     expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
     expect(getPeersStub.firstCall.args.length, 'getPeersStub').to.equal(0)
     expect(sendMessageStub.callCount, 'sendMessageStub').to.equal(1)
-    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
-    expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(message)
+    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(message)
+    expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(pairingResponse)
   })
 
   it(`should send a message to all peers`, async () => {
@@ -235,10 +233,10 @@ describe(`PostMessageTransport`, () => {
     await transport.send(message)
 
     expect(sendMessageStub.callCount, 'sendMessageStub').to.equal(2)
-    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
-    expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(message)
-    expect(sendMessageStub.secondCall.args[0], 'sendMessageStub').to.equal(pairingResponse)
-    expect(sendMessageStub.secondCall.args[1], 'sendMessageStub').to.equal(message)
+    expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(message)
+    expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(pairingResponse)
+    expect(sendMessageStub.secondCall.args[0], 'sendMessageStub').to.equal(message)
+    expect(sendMessageStub.secondCall.args[1], 'sendMessageStub').to.equal(pairingResponse)
   })
 
   it(`should listen`, async () => {

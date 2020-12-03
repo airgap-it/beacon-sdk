@@ -12,51 +12,44 @@ import {
   Origin,
   PermissionResponseInput,
   AppMetadataManager,
-  P2PPairingRequest,
-  availableTransports,
   PermissionManager,
   PermissionInfo,
   PermissionScope,
-  Serializer
+  Serializer,
+  getSenderId
 } from '../../src'
 import * as sinon from 'sinon'
 
 import { WalletClient } from '../../src/clients/wallet-client/WalletClient'
+import { ExtendedP2PPairingRequest } from '../../src/types/P2PPairingRequest'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
 const expect = chai.expect
 
-const peer1: P2PPairingRequest = {
+const pubkey1 = 'c126ba9a0217756c4d3540ba15aaa01e0edcb7c917d66f64db20b1dae8296ddd'
+const senderId1 = 'NMPgABdfdvBE'
+const pubkey2 = '04be24648e1b753cbfc6cb46aa12f8f2469f9cdf3b414a33ebcb807912d43447'
+const senderId2 = 'QwMX82A3vQwX'
+
+const peer1: ExtendedP2PPairingRequest = {
   id: 'id1',
   type: 'p2p-pairing-request',
   name: 'test',
+  senderId: senderId1,
   version: BEACON_VERSION,
-  publicKey: 'my-public-key',
+  publicKey: pubkey1,
   relayServer: 'test-relay.walletbeacon.io'
 }
 
-const peer2: P2PPairingRequest = {
+const peer2: ExtendedP2PPairingRequest = {
   id: 'id2',
   type: 'p2p-pairing-request',
   name: 'test',
+  senderId: senderId2,
   version: BEACON_VERSION,
-  publicKey: 'my-public-key-2',
+  publicKey: pubkey2,
   relayServer: 'test-relay.walletbeacon.io'
-}
-
-/**
- * This mocks the response of PostMessageTransport.isAvailable. Usually it would wait 200ms making the tests slower
- *
- * @param client WalletClient
- */
-const initClientWithMock = async (client: WalletClient) => {
-  const extensionRef = availableTransports.extension
-  availableTransports.extension = Promise.resolve(false)
-
-  await client.init()
-
-  availableTransports.extension = extensionRef
 }
 
 describe(`WalletClient`, () => {
@@ -111,12 +104,11 @@ describe(`WalletClient`, () => {
     const callback = sinon.fake()
 
     await walletClient.init()
-    const connected = await walletClient.connect(callback)
+    await walletClient.connect(callback)
 
     expect(typeof (<any>walletClient).handleResponse).to.equal('function')
     expect(connectStub.callCount).to.equal(1)
     expect(addListenerStub.callCount).to.equal(1)
-    expect(connected).to.equal(true)
     expect(callback.callCount).to.equal(0)
 
     const message: PermissionRequest = {
@@ -192,7 +184,7 @@ describe(`WalletClient`, () => {
       .stub(walletClient, <any>'removePermissionsForPeers')
       .resolves()
 
-    await initClientWithMock(walletClient)
+    await walletClient.init()
     await walletClient.removePeer(peer1 as any)
 
     expect(transportRemovePeerStub.callCount).to.equal(1)
@@ -209,7 +201,7 @@ describe(`WalletClient`, () => {
       .stub(walletClient, <any>'removePermissionsForPeers')
       .resolves()
 
-    await initClientWithMock(walletClient)
+    await walletClient.init()
     await walletClient.removeAllPeers()
 
     expect(transportGetPeerStub.callCount, 'transportGetPeerStub').to.equal(1)
@@ -229,7 +221,7 @@ describe(`WalletClient`, () => {
       'removePermissions'
     )
 
-    await initClientWithMock(walletClient)
+    await walletClient.init()
     await (<any>walletClient).removePermissionsForPeers([peer1, peer2])
 
     expect(
@@ -248,8 +240,8 @@ describe(`WalletClient`, () => {
 
     const permission1: PermissionInfo = {
       accountIdentifier: 'a1',
-      senderId: 'id1',
-      appMetadata: { senderId: peer1.publicKey, name: 'name1' },
+      senderId: await getSenderId(peer1.publicKey),
+      appMetadata: { senderId: await getSenderId(peer1.publicKey), name: 'name1' },
       website: 'website1',
       address: 'tz1',
       publicKey: 'publicKey1',
@@ -259,8 +251,8 @@ describe(`WalletClient`, () => {
     }
     const permission2: PermissionInfo = {
       accountIdentifier: 'a2',
-      senderId: 'id2',
-      appMetadata: { senderId: peer1.publicKey, name: 'name2' },
+      senderId: await getSenderId(peer1.publicKey),
+      appMetadata: { senderId: await getSenderId(peer1.publicKey), name: 'name1' },
       website: 'website2',
       address: 'tz1',
       publicKey: 'publicKey2',
@@ -277,7 +269,7 @@ describe(`WalletClient`, () => {
       'removePermissions'
     )
 
-    await initClientWithMock(walletClient)
+    await walletClient.init()
     await (<any>walletClient).removePermissionsForPeers([peer1, peer2])
 
     expect(
@@ -299,7 +291,7 @@ describe(`WalletClient`, () => {
     const serializerStub = sinon.stub(Serializer.prototype, 'serialize').resolves()
     // const sendStub = sinon.stub(P2PTransport.prototype, 'send').resolves()
 
-    await initClientWithMock(walletClient)
+    await walletClient.init()
     ;(<any>walletClient).respondToMessage({ test: 'message' })
 
     expect(serializerStub.callCount).to.equal(1)
