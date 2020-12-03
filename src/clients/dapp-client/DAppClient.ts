@@ -249,7 +249,8 @@ export class DAppClient extends Client {
               this.events
                 .emit(BeaconEvent.PAIR_INIT, {
                   p2pPeerInfo: await p2pTransport.getPairingRequestInfo(),
-                  postmessagePeerInfo: await postMessageTransport.getPairingRequestInfo()
+                  postmessagePeerInfo: await postMessageTransport.getPairingRequestInfo(),
+                  preferredNetwork: this.preferredNetwork
                 })
                 .catch((emitError) => console.warn(emitError))
             })

@@ -117,7 +117,7 @@ const convert = <T extends AppBase>(list: T[]): Promise<T[]> => {
   )
 }
 
-const createAlert = async () => {
+const createLists = async () => {
   const ALERT_DEST_DIR = path.join(PKG_DIR, 'src', 'alert')
 
   const extensionListWithInlinedLogo = await convert(extensionList)
@@ -154,4 +154,37 @@ const createAlert = async () => {
   writeFile(path.join(ALERT_DEST_DIR, 'wallet-lists.ts'), out)
 }
 
+const createAlert = async () => {
+  const ALERT_SRC_DIR = path.join(PKG_DIR, 'assets', 'alert')
+  const ALERT_DEST_DIR = path.join(PKG_DIR, 'src', 'alert')
+
+  const css = (await readFile(path.join(ALERT_SRC_DIR, 'alert.css'))).toString('utf-8')
+  const pairCss = (await readFile(path.join(ALERT_SRC_DIR, 'alert-pair.css'))).toString('utf-8')
+  let containerHtml = (await readFile(path.join(ALERT_SRC_DIR, 'alert-container.html'))).toString(
+    'utf-8'
+  )
+  let pairHtml = (await readFile(path.join(ALERT_SRC_DIR, 'alert-pair.html'))).toString('utf-8')
+  let defaultHtml = (await readFile(path.join(ALERT_SRC_DIR, 'alert-default.html'))).toString(
+    'utf-8'
+  )
+
+  const x = {
+    container: containerHtml,
+    default: {
+      html: defaultHtml,
+      css: css
+    },
+    pair: {
+      html: pairHtml,
+      css: pairCss
+    }
+  }
+
+  writeFile(
+    path.join(ALERT_DEST_DIR, 'alert-templates.ts'),
+    `export const alertTemplates = ${JSON.stringify(x)}`
+  )
+}
+
+createLists()
 createAlert()

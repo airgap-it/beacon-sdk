@@ -18,7 +18,8 @@ import {
   Network,
   BeaconError,
   ConnectionContext,
-  Transport
+  Transport,
+  NetworkType
 } from '.'
 
 const logger = new Logger('BeaconEvents')
@@ -102,6 +103,7 @@ export interface BeaconEventType {
   [BeaconEvent.PAIR_INIT]: {
     p2pPeerInfo: P2PPairingRequest
     postmessagePeerInfo: PostMessagePairingRequest
+    preferredNetwork: NetworkType
   }
   [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: P2PPairingRequest
@@ -222,7 +224,7 @@ const showQrAlert = async (
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
     body: `<p></p>`,
-    pairingPayload: { p2pSyncCode: base58encoded, postmessageSyncCode: base58encoded }
+    pairingPayload: { p2pSyncCode: base58encoded, postmessageSyncCode: base58encoded, preferredNetwork: NetworkType.MAINNET }
   }
   await openAlert(alertConfig)
 }
@@ -239,7 +241,11 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
     body: `<p></p>`,
-    pairingPayload: { p2pSyncCode: p2pBase58encoded, postmessageSyncCode: postmessageBase58encoded }
+    pairingPayload: {
+      p2pSyncCode: p2pBase58encoded,
+      postmessageSyncCode: postmessageBase58encoded,
+      preferredNetwork: data.preferredNetwork
+    }
   }
   await openAlert(alertConfig)
 }

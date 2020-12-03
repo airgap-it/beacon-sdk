@@ -68,4 +68,5 @@ storage.json
 audit.json
 gl-dependency-scanning-report.json
 
+src/alert/alert-templates.ts
 src/alert/wallet-lists.ts

@@ -75,6 +75,8 @@ export interface PairingAlertInfo {
   qrData: string
 }
 
+export type StatusUpdateHandler = (walletType: WalletType, app?: PairingAlertWallet) => void
+
 export class Pairing {
   public static async getPlatfrom(): Promise<Platform> {
     return isAndroid(window) ? Platform.ANDROID : isIOS(window) ? Platform.IOS : Platform.DESKTOP
@@ -84,24 +86,29 @@ export class Pairing {
     pairingPayload: {
       p2pSyncCode: string
       postmessageSyncCode: string
+      preferredNetwork: NetworkType
     },
+    statusUpdateHandler: StatusUpdateHandler,
     platform?: Platform
   ): Promise<PairingAlertInfo> {
     const activePlatform = (await Pairing.getPlatfrom()) ?? platform
-    const statusUpdateHandler = (status: string) => {
-      console.log('STATUS UPDATE', status)
-    }
 
-    const qrData = pairingPayload.p2pSyncCode
+    const pairingCode = pairingPayload.p2pSyncCode
     const postmessageSyncCode = pairingPayload.postmessageSyncCode
+    const preferredNetwork = pairingPayload.preferredNetwork
 
     switch (activePlatform) {
       case Platform.DESKTOP:
-        return Pairing.getDesktopPairingAlert(qrData, statusUpdateHandler, postmessageSyncCode)
+        return Pairing.getDesktopPairingAlert(
+          pairingCode,
+          statusUpdateHandler,
+          postmessageSyncCode,
+          preferredNetwork
+        )
       case Platform.IOS:
-        return Pairing.getIOSPairingAlert(qrData, statusUpdateHandler)
+        return Pairing.getIOSPairingAlert(pairingCode, statusUpdateHandler, preferredNetwork)
       case Platform.ANDROID:
-        return Pairing.getAndroidPairingAlert(qrData, statusUpdateHandler)
+        return Pairing.getAndroidPairingAlert(pairingCode, statusUpdateHandler, preferredNetwork)
 
       default:
         throw new Error('platform unknown')
@@ -109,11 +116,13 @@ export class Pairing {
   }
 
   private static async getDesktopPairingAlert(
-    qrData: string,
-    statusUpdateHandler: any,
-    postmessageSyncCode: string
+    pairingCode: string,
+    statusUpdateHandler: StatusUpdateHandler,
+    postmessageSyncCode: string,
+    network: NetworkType
   ): Promise<PairingAlertInfo> {
     const extensions = await availableTransports.availableExtensions
+    const qrLink = getTzip10Link('tezos://', pairingCode)
 
     extensions.forEach((ext) => {
       const index = defaultExtensions.indexOf(ext.id)
@@ -132,7 +141,7 @@ export class Pairing {
               name: app.name,
               logo: app.iconUrl,
               enabled: true,
-              clickHandler: () => {
+              clickHandler(): void {
                 if (postmessageSyncCode) {
                   const message: ExtensionMessage<string> = {
                     target: ExtensionMessageTarget.EXTENSION,
@@ -142,7 +151,7 @@ export class Pairing {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   myWindow.postMessage(message as any, window.location.origin)
                 }
-                statusUpdateHandler(`click ${app.name}`)
+                statusUpdateHandler(WalletType.EXTENSION, this)
               }
             })),
             ...extensionList.map((app) => ({
@@ -151,9 +160,8 @@ export class Pairing {
               color: app.color,
               logo: app.logo,
               enabled: false,
-              clickHandler: () => {
-                console.log('TEST', app.name)
-                statusUpdateHandler(`click ${app.name}`)
+              clickHandler: (): void => {
+                // Don't do anything
               }
             }))
           ]
@@ -168,34 +176,28 @@ export class Pairing {
               color: app.color,
               logo: app.logo,
               enabled: true,
-              clickHandler: () => {
-                console.log('TEST', app.name)
-                statusUpdateHandler(`click ${app.name}`)
+              clickHandler(): void {
+                const link = getTzip10Link(app.deepLink ?? app.universalLink, pairingCode)
+                window.open(link, '_blank')
+                statusUpdateHandler(WalletType.DESKTOP, this)
               }
             })),
-            ...webList.map((app) => ({
-              name: app.name,
-              shortName: app.shortName,
-              color: app.color,
-              logo: app.logo,
-              enabled: true,
-              clickHandler: () => {
-                console.log('TEST', app.name)
-                statusUpdateHandler(`click ${app.name}`)
-              }
-            }))
+            ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
           ]
         }
       ],
       buttons: [],
-      qrData
+      qrData: qrLink
     }
   }
 
   private static async getIOSPairingAlert(
-    qrData: string,
-    statusUpdateHandler: any
+    pairingCode: string,
+    statusUpdateHandler: StatusUpdateHandler,
+    network: NetworkType
   ): Promise<PairingAlertInfo> {
+    const qrLink = getTzip10Link('tezos://', pairingCode)
+
     return {
       walletLists: [
         {
@@ -207,69 +209,71 @@ export class Pairing {
             color: app.color,
             logo: app.logo,
             enabled: true,
-            clickHandler: () => {
-              console.log('TEST', app.name)
-              statusUpdateHandler(`click ${app.name}`)
+            clickHandler(): void {
+              const link = getTzip10Link(app.deepLink ?? app.universalLink, pairingCode)
+              window.open(link, '_blank')
+              statusUpdateHandler(WalletType.IOS, this)
             }
           }))
         },
         {
           title: 'Web Wallets',
-          type: WalletType.DESKTOP,
-          wallets: [
-            ...webList.map((app) => ({
-              name: app.name,
-              shortName: app.shortName,
-              color: app.color,
-              logo: app.logo,
-              enabled: true,
-              clickHandler: () => {
-                console.log('TEST', app.name)
-                statusUpdateHandler(`click ${app.name}`)
-              }
-            }))
-          ]
+          type: WalletType.WEB,
+          wallets: [...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))]
         }
       ],
       buttons: [],
-      qrData
+      qrData: qrLink
     }
   }
 
   private static async getAndroidPairingAlert(
-    qrData: string,
-    statusUpdateHandler: any
+    pairingCode: string,
+    statusUpdateHandler: StatusUpdateHandler,
+    network: NetworkType
   ): Promise<PairingAlertInfo> {
+    const qrLink = getTzip10Link('tezos://', pairingCode)
+
     return {
       walletLists: [
         {
           title: 'Web Wallets',
           type: WalletType.WEB,
-          wallets: [
-            ...webList.map((app) => ({
-              name: app.name,
-              shortName: app.shortName,
-              color: app.color,
-              logo: app.logo,
-              enabled: true,
-              clickHandler: () => {
-                console.log('TEST', app.name)
-                statusUpdateHandler(`click ${app.name}`)
-              }
-            }))
-          ]
+          wallets: [...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))]
         }
       ],
       buttons: [
         {
           text: 'Connect wallet',
-          clickHandler: () => {
-            window.open(getTzip10Link('tezos://', qrData), '_blank')
-            statusUpdateHandler(`click android`)
+          clickHandler: (): void => {
+            window.open(qrLink, '_blank')
+            statusUpdateHandler(WalletType.ANDROID)
           }
         }
       ],
-      qrData
+      qrData: qrLink
     }
+  }
+
+  private static async getWebList(
+    pairingCode: string,
+    statusUpdateHandler: StatusUpdateHandler,
+    network: NetworkType
+  ): Promise<PairingAlertWallet[]> {
+    return webList.map((app) => ({
+      name: app.name,
+      shortName: app.shortName,
+      color: app.color,
+      logo: app.logo,
+      enabled: true,
+      clickHandler(): void {
+        const link = getTzip10Link(
+          app.links[network] ?? app.links[NetworkType.MAINNET],
+          pairingCode
+        )
+        window.open(link, '_blank')
+        statusUpdateHandler(WalletType.WEB, this)
+      }
+    }))
   }
 }
