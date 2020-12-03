@@ -91,7 +91,7 @@ export class Pairing {
     statusUpdateHandler: StatusUpdateHandler,
     platform?: Platform
   ): Promise<PairingAlertInfo> {
-    const activePlatform = (await Pairing.getPlatfrom()) ?? platform
+    const activePlatform = platform ?? (await Pairing.getPlatfrom())
 
     const pairingCode = pairingPayload.p2pSyncCode
     const postmessageSyncCode = pairingPayload.postmessageSyncCode
