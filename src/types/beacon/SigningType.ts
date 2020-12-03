@@ -1,3 +1,3 @@
 export enum SigningType {
-  RAW = 0
+  RAW = 'raw'
 }

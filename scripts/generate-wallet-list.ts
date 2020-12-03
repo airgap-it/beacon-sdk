@@ -1,24 +1,7 @@
 import * as path from 'path'
 import * as fs from 'fs'
-import { replaceInTemplate } from '../src/utils/replace-in-template'
-import { getTzip10Link } from '../src/utils/get-tzip10-link'
-
-export interface AppBase {
-  name: string
-  shortName: string
-  color: string
-  logo: string
-}
-
-export interface ExtensionApp extends AppBase {
-  id: string
-  link: string
-}
-
-export interface App extends AppBase {
-  universalLink: string
-  deepLink?: string
-}
+import { NetworkType } from '../src/types/beacon/NetworkType'
+import { ExtensionApp, WebApp, App, AppBase } from '../src/alert/Pairing'
 
 export const extensionList: ExtensionApp[] = [
   {
@@ -39,13 +22,16 @@ export const extensionList: ExtensionApp[] = [
   }
 ]
 
-export const webList: App[] = [
+export const webList: WebApp[] = [
   {
     name: 'Kukai',
     shortName: 'Kukai',
     color: '',
     logo: 'web-kukai.png',
-    universalLink: 'https://wallet.kukai.app'
+    links: {
+      [NetworkType.MAINNET]: 'https://wallet.kukai.app',
+      [NetworkType.DELPHINET]: 'https://preview.kukai.app'
+    }
   }
 ]
 
@@ -104,7 +90,7 @@ function writeFile(path: string, data: any) {
       if (err) {
         reject(err)
       }
-      resolve()
+      resolve(undefined)
     })
   })
 }
@@ -114,7 +100,7 @@ const REGISTRY_DIR = path.join(PKG_DIR, 'assets', 'logos')
 
 const resizeImg = require('resize-img')
 
-const convert = (list: (ExtensionApp | App)[]): Promise<string[]> => {
+const convert = <T extends AppBase>(list: T[]): Promise<T[]> => {
   return Promise.all(
     list.map(async (entry) => {
       const image = await resizeImg(await readFile(path.join(REGISTRY_DIR, entry.logo)), {
@@ -123,25 +109,49 @@ const convert = (list: (ExtensionApp | App)[]): Promise<string[]> => {
       })
 
       const ext = path.extname(entry.logo).replace('.', '')
-      const altTag = `Open in ${entry.name}`
-      const logo = `data:image/${ext};base64,${image.toString('base64')}`
 
-      const id: string | undefined = (entry as ExtensionApp).id
-      const deepLink: string | undefined = (entry as App).deepLink
-      const universalLink: string | undefined = (entry as App).universalLink
+      entry.logo = `data:image/${ext};base64,${image.toString('base64')}`
 
-      return `
-      <a alt="${altTag}" ${
-        id ? `id="ext_${id}"` : `href="${getTzip10Link(deepLink ?? universalLink, '{{payload}}')}"`
-      } target="_blank" class="beacon-selection__list">
-        <div class="beacon-selection__name"><span>${entry.name}</span></div>
-        <div>
-          <img class="beacon-selection__img" src="${logo}"/>
-        </div>
-      </a>
-      `
+      return entry
     })
   )
+}
+
+const createLists = async () => {
+  const ALERT_DEST_DIR = path.join(PKG_DIR, 'src', 'alert')
+
+  const extensionListWithInlinedLogo = await convert(extensionList)
+  const desktopListWithInlinedLogo = await convert(desktopList)
+  const webListWithInlinedLogo = await convert(webList)
+  const iosListWithInlinedLogo = await convert(iosList)
+
+  let out = `import { App, ExtensionApp, WebApp } from './Pairing'`
+  out += `
+
+`
+
+  out += `export const extensionList: ExtensionApp[] = ${JSON.stringify(
+    extensionListWithInlinedLogo,
+    null,
+    2
+  )}`
+  out += `
+
+`
+  out += `export const desktopList: App[] = ${JSON.stringify(desktopListWithInlinedLogo, null, 2)}`
+  out += `
+
+`
+  out += `export const webList: WebApp[] = ${JSON.stringify(webListWithInlinedLogo, null, 2)}`
+  out += `
+
+`
+  out += `export const iOSList: App[] = ${JSON.stringify(iosListWithInlinedLogo, null, 2)}`
+  out += `
+
+`
+
+  writeFile(path.join(ALERT_DEST_DIR, 'wallet-lists.ts'), out)
 }
 
 const createAlert = async () => {
@@ -157,22 +167,6 @@ const createAlert = async () => {
   let defaultHtml = (await readFile(path.join(ALERT_SRC_DIR, 'alert-default.html'))).toString(
     'utf-8'
   )
-
-  /**
-   * Replace the lists of the devices
-   */
-  pairHtml = replaceInTemplate(pairHtml, 'ios', (await convert(iosList)).join(''))
-  pairHtml = replaceInTemplate(
-    pairHtml,
-    'android',
-    `<a href="${getTzip10Link(
-      'tezos://',
-      '{{payload}}'
-    )}" target="_blank"><button class="beacon-modal__button">Connect Wallet</button></a>`
-  )
-  pairHtml = replaceInTemplate(pairHtml, 'extension', (await convert(extensionList)).join(''))
-  pairHtml = replaceInTemplate(pairHtml, 'desktop', (await convert(desktopList)).join(''))
-  pairHtml = replaceInTemplate(pairHtml, 'web', (await convert(webList)).join(''))
 
   const x = {
     container: containerHtml,
@@ -192,4 +186,5 @@ const createAlert = async () => {
   )
 }
 
+createLists()
 createAlert()

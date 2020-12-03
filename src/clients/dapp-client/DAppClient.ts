@@ -79,6 +79,8 @@ export class DAppClient extends Client {
    */
   public readonly blockExplorer: BlockExplorer
 
+  public preferredNetwork: NetworkType
+
   protected postMessageTransport: DappPostMessageTransport | undefined
   protected p2pTransport: DappP2PTransport | undefined
 
@@ -110,6 +112,7 @@ export class DAppClient extends Client {
     })
     this.iconUrl = config.iconUrl
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
+    this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
 
     this.storage
       .get(StorageKey.ACTIVE_ACCOUNT)
@@ -246,7 +249,8 @@ export class DAppClient extends Client {
               this.events
                 .emit(BeaconEvent.PAIR_INIT, {
                   p2pPeerInfo: await p2pTransport.getPairingRequestInfo(),
-                  postmessagePeerInfo: await postMessageTransport.getPairingRequestInfo()
+                  postmessagePeerInfo: await postMessageTransport.getPairingRequestInfo(),
+                  preferredNetwork: this.preferredNetwork
                 })
                 .catch((emitError) => console.warn(emitError))
             })
