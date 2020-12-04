@@ -1,16 +1,16 @@
 import { PeerInfo } from './PeerInfo'
 
-export interface PostMessagePairingResponse extends PeerInfo {
+export interface P2PPairingResponse extends PeerInfo {
   id: string
-  type: 'postmessage-pairing-response'
+  type: 'p2p-pairing-response'
   name: string
   publicKey: string
+  relayServer: string
   icon?: string // TODO: Should this be a URL or base64 image?
   appUrl?: string
 }
 
-export type ExtendedPostMessagePairingResponse = PostMessagePairingResponse & {
+export type ExtendedP2PPairingResponse = P2PPairingResponse & {
   senderId: string
-  extensionId: string
 }
 // TODO: Rename to "WalletPeerInfo"?

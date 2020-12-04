@@ -1,10 +1,21 @@
 import { Logger } from '../utils/Logger'
 import { ConnectionContext } from '../types/ConnectionContext'
-import { TransportType, TransportStatus } from '..'
+import { TransportType, TransportStatus, PeerInfo, StorageKey, StorageKeyReturnType } from '..'
+import { PeerManager } from '../managers/PeerManager'
+import { ArrayElem } from '../managers/StorageManager'
+import { CommunicationClient } from './clients/CommunicationClient'
 
 const logger = new Logger('Transport')
 
-export abstract class Transport {
+export abstract class Transport<
+  T extends PeerInfo = PeerInfo,
+  K extends
+    | StorageKey.TRANSPORT_P2P_PEERS_DAPP
+    | StorageKey.TRANSPORT_P2P_PEERS_WALLET
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET = any,
+  S extends CommunicationClient = any
+> {
   /**
    * The type of the transport
    */
@@ -20,6 +31,18 @@ export abstract class Transport {
    */
   protected _isConnected: TransportStatus = TransportStatus.NOT_CONNECTED
 
+  protected readonly peerManager: PeerManager<K>
+
+  /**
+   * The client handling the encryption/decryption of messages
+   */
+  protected client: S
+
+  /**
+   * The listener that will be invoked when a new peer is connected
+   */
+  protected newPeerListener?: (peer: T) => void
+
   /**
    * The listeners that will be notified when new messages are coming in
    */
@@ -32,8 +55,10 @@ export abstract class Transport {
     return this._isConnected
   }
 
-  constructor(name: string) {
+  constructor(name: string, client: S, peerManager: PeerManager<K>) {
     this.name = name
+    this.client = client
+    this.peerManager = peerManager
   }
 
   /**
@@ -70,10 +95,22 @@ export abstract class Transport {
    * @param message The message to send
    * @param recipient The recipient of the message
    */
-  public async send(message: string, recipient?: string): Promise<void> {
-    logger.log('send', message, recipient)
+  public async send(message: string, recipientPublicKey?: string): Promise<void> {
+    const knownPeers = await this.getPeers()
 
-    return
+    if (recipientPublicKey) {
+      const peer = knownPeers.find((peerEl) => peerEl.publicKey === recipientPublicKey)
+      if (!peer) {
+        throw new Error('Peer unknown')
+      }
+
+      return this.client.sendMessage(message, peer as any)
+    } else {
+      // A broadcast request has to be sent everywhere.
+      const promises = knownPeers.map((peer) => this.client.sendMessage(message, peer as any))
+
+      return (await Promise.all(promises))[0]
+    }
   }
 
   /**
@@ -106,6 +143,36 @@ export abstract class Transport {
     return
   }
 
+  public async getPeers(): Promise<T[]> {
+    return this.peerManager.getPeers() as any // TODO: Fix type
+  }
+
+  public async addPeer(newPeer: T): Promise<void> {
+    if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
+      logger.log('addPeer', newPeer)
+      await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
+      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
+    } else {
+      logger.log('addPeer', 'peer already added, skipping', newPeer)
+    }
+  }
+
+  public async removePeer(peerToBeRemoved: T): Promise<void> {
+    logger.log('removePeer', peerToBeRemoved)
+    await this.peerManager.removePeer(peerToBeRemoved.publicKey)
+    if (this.client) {
+      await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
+    }
+  }
+
+  public async removeAllPeers(): Promise<void> {
+    logger.log('removeAllPeers')
+    await this.peerManager.removeAllPeers()
+    if (this.client) {
+      await this.client.unsubscribeFromEncryptedMessages()
+    }
+  }
+
   /**
    * Notify the listeners when a new message comes in
    *
@@ -130,4 +197,6 @@ export abstract class Transport {
 
     return
   }
+
+  abstract async listen(publicKey: string): Promise<void>
 }

@@ -31,7 +31,7 @@ import { MichelsonPrimitives } from './types/tezos/MichelsonPrimitives'
 import { TezosTransactionParameters } from './types/tezos/TezosTransactionParameters'
 import { Origin } from './types/Origin'
 import { AccountInfo, AccountIdentifier } from './types/AccountInfo'
-import { ExtensionMessage } from './types/ExtensionMessage'
+import { EncryptedExtensionMessage, ExtensionMessage } from './types/ExtensionMessage'
 import { ExtensionMessageTarget } from './types/ExtensionMessageTarget'
 import { TezosOperation } from './types/tezos/TezosOperation'
 import { Client } from './clients/client/Client'
@@ -54,7 +54,6 @@ import { TransportType } from './types/transport/TransportType'
 import { PostMessageTransport } from './transports/PostMessageTransport'
 import { Transport } from './transports/Transport'
 import { P2PTransport } from './transports/P2PTransport'
-import { ChromeMessageTransport } from './transports/ChromeMessageTransport'
 import { Storage } from './storage/Storage'
 import { StorageKey } from './types/storage/StorageKey'
 import { StorageKeyReturnDefaults } from './types/storage/StorageKeyReturnDefaults'
@@ -74,7 +73,9 @@ import {
   SignPayloadResponseInput,
   OperationResponseInput,
   BroadcastResponseInput,
-  BeaconResponseInputMessage
+  BeaconResponseInputMessage,
+  AcknowledgeResponseInput,
+  ErrorResponseInput
 } from './types/beacon/messages/BeaconResponseInputMessage'
 import {
   PermissionResponseOutput,
@@ -122,6 +123,22 @@ import {
 import { AbortedBeaconError } from './errors/AbortedBeaconError'
 import { PeerInfo } from './types/PeerInfo'
 import { availableTransports } from './utils/available-transports'
+import { AcknowledgeResponse } from './types/beacon/messages/AcknowledgeResponse'
+import { DisconnectMessage } from './types/beacon/messages/DisconnectMessage'
+import { DappP2PTransport } from './transports/DappP2PTransport'
+import { DappPostMessageTransport } from './transports/DappPostMessageTransport'
+import { WalletP2PTransport } from './transports/WalletP2PTransport'
+import { WalletPostMessageTransport } from './transports/WalletPostMessageTransport'
+import { getSenderId } from './utils/get-sender-id'
+import { SigningType } from './types/beacon/SigningType'
+import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotSupportedBeaconError'
+import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
+import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
+import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'
+import { PeerManager } from './managers/PeerManager'
+import { MessageBasedClient } from './transports/clients/MessageBasedClient'
+import { BeaconRequestMessage } from './types/beacon/BeaconRequestMessage'
+import { BeaconResponseMessage } from './types/beacon/BeaconResponseMessage'
 
 // Tezos
 export {
@@ -181,14 +198,18 @@ export {
   SignPayloadResponse,
   BroadcastRequest,
   BroadcastResponse,
+  AcknowledgeResponse,
+  DisconnectMessage,
   BeaconBaseMessage,
   BeaconMessageType,
   PermissionScope,
   Origin,
   AccountInfo,
   Threshold,
+  SigningType,
   ExtensionMessageTarget,
   ExtensionMessage,
+  EncryptedExtensionMessage,
   RequestPermissionInput,
   RequestSignPayloadInput,
   RequestOperationInput,
@@ -201,6 +222,8 @@ export {
   SignPayloadResponseInput,
   OperationResponseInput,
   BroadcastResponseInput,
+  AcknowledgeResponseInput,
+  ErrorResponseInput,
   PermissionResponseOutput,
   SignPayloadResponseOutput,
   OperationResponseOutput,
@@ -216,7 +239,9 @@ export {
   BeaconRequestInputMessage,
   BeaconRequestOutputMessage,
   BeaconResponseInputMessage,
-  BeaconResponseOutputMessage
+  BeaconResponseOutputMessage,
+  BeaconRequestMessage,
+  BeaconResponseMessage
 }
 
 // Errors
@@ -233,6 +258,7 @@ export {
   ParametersInvalidBeaconError,
   TooManyOperationsBeaconError,
   TransactionInvalidBeaconError,
+  SignatureTypeNotSupportedBeaconError,
   UnknownBeaconError
 }
 
@@ -243,7 +269,11 @@ export {
   Transport,
   PostMessageTransport,
   P2PTransport,
-  ChromeMessageTransport
+  WalletP2PTransport,
+  WalletPostMessageTransport,
+  DappP2PTransport,
+  DappPostMessageTransport,
+  MessageBasedClient
 }
 
 // Events
@@ -261,13 +291,23 @@ export {
 }
 
 // Managers
-export { AccountManager, AppMetadataManager, PermissionManager }
+export { PeerManager, AccountManager, AppMetadataManager, PermissionManager }
 
 // Constants
 export { SDK_VERSION, BEACON_VERSION }
 
 // Utils
-export { getAccountIdentifier, getAddressFromPublicKey }
+export { getSenderId, getAccountIdentifier, getAddressFromPublicKey }
+
+// Pairing
+
+export {
+  PeerInfo,
+  PostMessagePairingRequest,
+  ExtendedPostMessagePairingResponse,
+  P2PPairingRequest,
+  ExtendedP2PPairingResponse
+}
 
 // Others
-export { ConnectionContext, P2PPairingRequest, PeerInfo, Serializer, availableTransports }
+export { ConnectionContext, Serializer, availableTransports }

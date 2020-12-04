@@ -3,6 +3,7 @@ import {
   OperationResponse,
   SignPayloadResponse,
   BroadcastResponse,
+  AcknowledgeResponse,
   ErrorResponse
 } from '../../..'
 
@@ -12,6 +13,7 @@ export type PermissionResponseInput = Omit<PermissionResponse, IgnoredResponseIn
 export type OperationResponseInput = Omit<OperationResponse, IgnoredResponseInputProperties>
 export type SignPayloadResponseInput = Omit<SignPayloadResponse, IgnoredResponseInputProperties>
 export type BroadcastResponseInput = Omit<BroadcastResponse, IgnoredResponseInputProperties>
+export type AcknowledgeResponseInput = Omit<AcknowledgeResponse, IgnoredResponseInputProperties>
 export type ErrorResponseInput = Omit<ErrorResponse, IgnoredResponseInputProperties>
 
 export type BeaconResponseInputMessage =
@@ -19,4 +21,5 @@ export type BeaconResponseInputMessage =
   | OperationResponseInput
   | SignPayloadResponseInput
   | BroadcastResponseInput
-  | ErrorResponse
+  | AcknowledgeResponseInput
+  | ErrorResponseInput

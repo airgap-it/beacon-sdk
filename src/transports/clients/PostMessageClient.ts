@@ -7,9 +7,14 @@ import {
   Serializer,
   ConnectionContext
 } from '../..'
-import { PostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
+import {
+  ExtendedPostMessagePairingResponse,
+  PostMessagePairingResponse
+} from '../../types/PostMessagePairingResponse'
 import { EncryptedExtensionMessage } from '../../types/ExtensionMessage'
 import { openCryptobox } from '../../utils/crypto'
+import { getSenderId } from '../../utils/get-sender-id'
+import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
 import { MessageBasedClient } from './MessageBasedClient'
 
 export class PostMessageClient extends MessageBasedClient {
@@ -35,10 +40,13 @@ export class PostMessageClient extends MessageBasedClient {
       context: ConnectionContext
     ): Promise<void> => {
       try {
-        messageCallback(
-          await this.decryptMessage(senderPublicKey, message.encryptedPayload),
-          context
+        const decryptedMessage = await this.decryptMessage(
+          senderPublicKey,
+          message.encryptedPayload
         )
+        // console.log('calculated sender ID', await getSenderId(senderPublicKey))
+        // TODO: Add check for correct decryption key / sender ID
+        messageCallback(decryptedMessage, context)
       } catch (decryptionError) {
         /* NO-OP. We try to decode every message, but some might not be addressed to us. */
       }
@@ -47,12 +55,19 @@ export class PostMessageClient extends MessageBasedClient {
     this.activeListeners.set(senderPublicKey, callbackFunction)
   }
 
-  public async sendMessage(recipientPublicKey: string, message: string): Promise<void> {
-    const payload = await this.encryptMessage(recipientPublicKey, message)
+  public async sendMessage(
+    message: string,
+    peer: PostMessagePairingRequest | ExtendedPostMessagePairingResponse
+  ): Promise<void> {
+    const payload = await this.encryptMessage(peer.publicKey, message)
 
+    const targetId = (peer as ExtendedPostMessagePairingResponse)?.extensionId
+
+    // if no targetId, we remove peer
     const msg: EncryptedExtensionMessage = {
       target: ExtensionMessageTarget.EXTENSION,
-      encryptedPayload: payload
+      encryptedPayload: payload,
+      targetId
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,11 +75,12 @@ export class PostMessageClient extends MessageBasedClient {
   }
 
   public async listenForChannelOpening(
-    messageCallback: (pairingResponse: PostMessagePairingResponse) => void
+    messageCallback: (pairingResponse: ExtendedPostMessagePairingResponse) => void
   ): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fn = async (event: any): Promise<void> => {
       const data = event?.data?.message as ExtensionMessage<string>
+
       if (
         data &&
         data.target === ExtensionMessageTarget.PAGE &&
@@ -77,15 +93,15 @@ export class PostMessageClient extends MessageBasedClient {
           sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
         ) {
           try {
-            const decrypted = await openCryptobox(
-              payload,
-              this.keyPair.publicKey,
-              this.keyPair.privateKey
+            const pairingResponse: PostMessagePairingResponse = JSON.parse(
+              await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
             )
 
-            messageCallback(JSON.parse(decrypted))
-
-            myWindow.removeEventListener('message', fn)
+            messageCallback({
+              ...pairingResponse,
+              senderId: await getSenderId(pairingResponse.publicKey),
+              extensionId: event?.data?.sender.id
+            })
           } catch (decryptionError) {
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
@@ -94,10 +110,13 @@ export class PostMessageClient extends MessageBasedClient {
     }
 
     myWindow.addEventListener('message', fn)
+  }
 
+  public async sendPairingRequest(id: string): Promise<void> {
     const message: ExtensionMessage<string> = {
       target: ExtensionMessageTarget.EXTENSION,
-      payload: await new Serializer().serialize(await this.getHandshakeInfo())
+      payload: await new Serializer().serialize(await this.getPairingRequestInfo()),
+      targetId: id
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     myWindow.postMessage(message as any, window.location.origin)

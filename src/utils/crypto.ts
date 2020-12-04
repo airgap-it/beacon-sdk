@@ -129,14 +129,17 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
   await sodium.ready
 
   const prefixes = {
+    // tz1...
     edpk: {
       length: 54,
       prefix: Buffer.from(new Uint8Array([6, 161, 159]))
     },
+    // tz2...
     sppk: {
       length: 55,
       prefix: Buffer.from(new Uint8Array([6, 161, 161]))
     },
+    // tz3...
     p2pk: {
       length: 55,
       prefix: Buffer.from(new Uint8Array([6, 161, 164]))

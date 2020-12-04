@@ -7,7 +7,8 @@ import {
   OperationResponse,
   SignPayloadResponse,
   BroadcastResponse,
-  PermissionInfo
+  PermissionInfo,
+  AcknowledgeResponse
 } from '..'
 import { PermissionManager } from '../managers/PermissionManager'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
@@ -54,6 +55,16 @@ export class OutgoingResponseInterceptor {
           senderId,
           id: message.id,
           errorType: message.errorType
+        }
+        interceptorCallbackWrapper(response)
+        break
+      }
+      case BeaconMessageType.Acknowledge: {
+        const response: AcknowledgeResponse = {
+          type: message.type,
+          version: BEACON_VERSION,
+          senderId,
+          id: message.id
         }
         interceptorCallbackWrapper(response)
         break

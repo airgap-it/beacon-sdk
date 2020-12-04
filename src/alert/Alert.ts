@@ -1,9 +1,12 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
+import { NetworkType } from '..'
 import { generateGUID } from '../utils/generate-uuid'
-import { isAndroid, isIOS } from '../utils/platform'
+import { getTzip10Link } from '../utils/get-tzip10-link'
+import { getQrData } from '../utils/qr'
 import { replaceInTemplate } from '../utils/replace-in-template'
 import { alertTemplates } from './alert-templates'
+import { preparePairingAlert } from './PairingAlert'
 
 export interface AlertButton {
   text: string
@@ -16,7 +19,11 @@ export interface AlertConfig {
   body?: string
   timer?: number
   buttons?: AlertButton[]
-  pairingPayload?: string
+  pairingPayload?: {
+    p2pSyncCode: string
+    postmessageSyncCode: string
+    preferredNetwork: NetworkType
+  }
 }
 
 let document: Document
@@ -26,9 +33,13 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
 
 const timeout: Record<string, number | undefined> = {}
 
-const formatBody = (dataString: string): string => {
+const formatQR = (dataString: string, pairingPayload: string): string => {
   if (typeof dataString === 'string') {
-    return dataString.replace('<svg', `<svg class="beacon-alert__image"`)
+    const uri = getTzip10Link('tezos://', pairingPayload)
+    const qr = getQrData(uri, 'svg')
+    const qrString = qr.replace('<svg', `<svg class="beacon-alert__image"`)
+
+    return `<div id="beacon--qr__container">${qrString}<div id="beacon--qr__copy__container"><button class="beacon-modal__button--outline" id="beacon--qr__copy">Copy</button></div></div>${dataString}`
   }
 
   return dataString
@@ -38,7 +49,6 @@ const formatAlert = (
   id: string,
   body: string,
   title: string,
-  type: 'default' | 'pair',
   buttons: AlertButton[],
   pairingPayload?: string
 ): string => {
@@ -52,7 +62,7 @@ const formatAlert = (
 
   let allStyles = alertTemplates.default.css
 
-  if (type === 'pair') {
+  if (pairingPayload) {
     allStyles += alertTemplates.pair.css
   }
 
@@ -61,7 +71,7 @@ const formatAlert = (
   alertContainer = replaceInTemplate(
     alertContainer,
     'main',
-    type === 'pair' ? alertTemplates.pair.html : alertTemplates.default.html
+    pairingPayload ? alertTemplates.pair.html : alertTemplates.default.html
   )
 
   alertContainer = replaceInTemplate(alertContainer, 'callToAction', callToAction)
@@ -158,15 +168,9 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     })) ?? [])
   ]
 
-  const formattedBody = body ? formatBody(body) : ''
-  wrapper.innerHTML = formatAlert(
-    id,
-    formattedBody,
-    title,
-    pairingPayload ? 'pair' : 'default',
-    buttons,
-    pairingPayload
-  )
+  const formattedBody =
+    body && pairingPayload ? formatQR(body, pairingPayload?.p2pSyncCode) : body ?? ''
+  wrapper.innerHTML = formatAlert(id, formattedBody, title, buttons, pairingPayload?.p2pSyncCode)
 
   if (timer) {
     timeout[id] = window.setTimeout(async () => {
@@ -196,59 +200,8 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     })
   }
 
-  const platform = isAndroid(window) ? 'android' : isIOS(window) ? 'ios' : 'desktop'
-
-  const mainText: HTMLElement | null = document.getElementById(`beacon-main-text`)
-  const iosList: HTMLElement | null = document.getElementById(`beacon-ios-list`)
-  const androidList: HTMLElement | null = document.getElementById(`beacon-android-list`)
-  const desktopList: HTMLElement | null = document.getElementById(`beacon-desktop-list`)
-  const webList: HTMLElement | null = document.getElementById(`beacon-web-list`)
-
-  if (mainText && iosList && androidList && desktopList && webList) {
-    const showPlatform = (type: 'ios' | 'android' | 'desktop' | 'none'): void => {
-      const platformSwitch: HTMLElement | null = document.getElementById(`beacon-switch`)
-      if (platformSwitch) {
-        platformSwitch.innerHTML =
-          type === 'none' ? 'Pair Wallet on same device' : 'Pair Wallet on different device'
-      }
-
-      mainText.style.display = 'none'
-      iosList.style.display = 'none'
-      androidList.style.display = 'none'
-      desktopList.style.display = 'none'
-      webList.style.display = 'none'
-
-      switch (type) {
-        case 'ios':
-          iosList.style.display = 'initial'
-          break
-        case 'android':
-          androidList.style.display = 'initial'
-          break
-        case 'desktop':
-          desktopList.style.display = 'initial'
-          webList.style.display = 'initial'
-          break
-        default:
-          mainText.style.display = 'initial'
-      }
-    }
-
-    let showQr = platform === 'desktop'
-
-    const switchPlatform = (): void => {
-      showPlatform(showQr ? 'none' : platform)
-      showQr = !showQr
-    }
-
-    switchPlatform()
-
-    {
-      const platformSwitch: HTMLElement | null = document.getElementById(`beacon-switch`)
-      if (platformSwitch) {
-        platformSwitch.addEventListener('click', switchPlatform)
-      }
-    }
+  if (pairingPayload) {
+    await preparePairingAlert(pairingPayload)
   }
 
   return id

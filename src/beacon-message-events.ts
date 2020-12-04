@@ -44,6 +44,11 @@ export const messageEvents: {
     success: BeaconEvent.UNKNOWN,
     error: BeaconEvent.UNKNOWN
   },
+  [BeaconMessageType.Acknowledge]: {
+    sent: BeaconEvent.UNKNOWN,
+    success: BeaconEvent.UNKNOWN,
+    error: BeaconEvent.UNKNOWN
+  },
   [BeaconMessageType.Disconnect]: {
     sent: BeaconEvent.UNKNOWN,
     success: BeaconEvent.UNKNOWN,

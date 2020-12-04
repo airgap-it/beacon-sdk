@@ -1,47 +1,40 @@
 import * as sodium from 'libsodium-wrappers'
 import { myWindow } from '../MockWindow'
-import {
-  ExtensionMessage,
-  ExtensionMessageTarget,
-  TransportType,
-  TransportStatus,
-  ConnectionContext,
-  StorageKey
-} from '..'
-import { Origin } from '../types/Origin'
-import { PeerManager } from '../managers/PeerManager'
 import { Logger } from '../utils/Logger'
-import { Storage } from '../storage/Storage'
-import { PostMessagePairingResponse } from '../types/PostMessagePairingResponse'
+import { PeerManager } from '../managers/PeerManager'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
-import { Transport } from './Transport'
+import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'
+import { ExposedPromise } from '../utils/exposed-promise'
+import { Extension } from '../types/Extension'
+import { StorageKey } from '../types/storage/StorageKey'
+import { TransportType } from '../types/transport/TransportType'
+import { ExtensionMessage } from '../types/ExtensionMessage'
+import { ExtensionMessageTarget } from '../types/ExtensionMessageTarget'
+import { TransportStatus } from '../types/transport/TransportStatus'
+import { ConnectionContext } from '../types/ConnectionContext'
+import { Origin } from '../types/Origin'
+import { Storage } from '../storage/Storage'
 import { PostMessageClient } from './clients/PostMessageClient'
+import { Transport } from './Transport'
 
 const logger = new Logger('PostMessageTransport')
 
-export class PostMessageTransport extends Transport {
+let extensions: ExposedPromise<Extension[]> | undefined
+
+export class PostMessageTransport<
+  T extends PostMessagePairingRequest | ExtendedPostMessagePairingResponse,
+  K extends
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
+> extends Transport<T, K, PostMessageClient> {
   public readonly type: TransportType = TransportType.POST_MESSAGE
 
-  /**
-   * A flag indicating whether
-   */
-  private readonly isDapp: boolean = true
-
-  /**
-   * The client handling the encryption/decryption of messages
-   */
-  private readonly client: PostMessageClient
-
-  // Make sure we only listen once
-  private listeningForChannelOpenings: boolean = false
-
-  private readonly peerManager: PeerManager<StorageKey.TRANSPORT_POSTMESSAGE_PEERS>
-
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, isDapp: boolean) {
-    super(name)
-    this.isDapp = isDapp
-    this.client = new PostMessageClient(this.name, keyPair, false)
-    this.peerManager = new PeerManager(storage, StorageKey.TRANSPORT_POSTMESSAGE_PEERS)
+  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, storageKey: K) {
+    super(
+      name,
+      new PostMessageClient(name, keyPair, false),
+      new PeerManager<K>(storage, storageKey)
+    )
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -66,90 +59,79 @@ export class PostMessageTransport extends Transport {
     })
   }
 
+  public static async getAvailableExtensions(): Promise<Extension[]> {
+    if (extensions) {
+      return extensions.promise
+    }
+
+    extensions = new ExposedPromise()
+    const localExtensions: Extension[] = []
+
+    return new Promise((resolve) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fn = (event: any): void => {
+        const data = event.data as ExtensionMessage<
+          string,
+          { id: string; name: string; iconURL: string }
+        >
+        const sender = data.sender
+        if (data && data.payload === 'pong' && sender) {
+          if (!localExtensions.some((ext) => ext.id === sender.id)) {
+            localExtensions.push(sender)
+          }
+        }
+      }
+
+      myWindow.addEventListener('message', fn)
+
+      setTimeout(() => {
+        myWindow.removeEventListener('message', fn)
+        if (extensions) {
+          extensions.resolve(localExtensions)
+        }
+        resolve(localExtensions)
+      }, 1000)
+
+      const message: ExtensionMessage<string> = {
+        target: ExtensionMessageTarget.EXTENSION,
+        payload: 'ping'
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      myWindow.postMessage(message as any, window.location.origin)
+    })
+  }
+
   public async connect(): Promise<void> {
     logger.log('connect')
+    if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
+      return
+    }
+
     this._isConnected = TransportStatus.CONNECTING
 
-    const knownPeers = await this.peerManager.getPeers()
+    const knownPeers = await this.getPeers()
 
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
-      await Promise.all(connectionPromises)
-    } else {
-      if (this.isDapp) {
-        await this.connectNewPeer()
-      }
+
+      Promise.all(connectionPromises).catch(console.log)
     }
+
+    await this.startOpenChannelListener()
 
     await super.connect()
   }
 
-  public async reconnect(): Promise<void> {
-    if (this.isDapp) {
-      await this.connectNewPeer()
-    }
+  public async startOpenChannelListener(): Promise<void> {
+    //
   }
 
-  public async connectNewPeer(): Promise<void> {
-    logger.log('connectNewPeer')
-
-    return new Promise(async (resolve) => {
-      if (!this.listeningForChannelOpenings) {
-        await this.client.listenForChannelOpening(
-          async (pairingResponse: PostMessagePairingResponse) => {
-            logger.log('connectNewPeer', `received PairingResponse`, pairingResponse)
-
-            await this.addPeer(pairingResponse)
-
-            resolve()
-          }
-        )
-        this.listeningForChannelOpenings = true
-      }
-    })
+  public async getPairingRequestInfo(): Promise<PostMessagePairingRequest> {
+    return this.client.getPairingRequestInfo()
   }
 
-  public async getPeers(): Promise<PostMessagePairingRequest[]> {
-    return this.peerManager.getPeers()
-  }
-
-  public async addPeer(newPeer: PostMessagePairingRequest): Promise<void> {
-    if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
-      logger.log('addPeer', newPeer)
-      await this.peerManager.addPeer(newPeer)
-      await this.listen(newPeer.publicKey)
-    } else {
-      logger.log('addPeer', 'peer already added, skipping', newPeer)
-    }
-  }
-
-  public async removePeer(peerToBeRemoved: PostMessagePairingRequest): Promise<void> {
-    logger.log('removePeer', peerToBeRemoved)
-    await this.peerManager.removePeer(peerToBeRemoved.publicKey)
-    await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
-  }
-
-  public async removeAllPeers(): Promise<void> {
-    logger.log('removeAllPeers')
-    await this.peerManager.removeAllPeers()
-    await this.client.unsubscribeFromEncryptedMessages()
-  }
-
-  public async send(message: string, recipient?: string): Promise<void> {
-    logger.log('send', recipient, message)
-
-    if (recipient) {
-      await this.client.sendMessage(recipient, message)
-    } else {
-      const peers = await this.peerManager.getPeers()
-      await Promise.all(
-        peers.map((peer) => this.client.sendMessage(peer.publicKey, message).catch(console.error))
-      )
-    }
-  }
-
-  private async listen(publicKey: string): Promise<void> {
+  public async listen(publicKey: string): Promise<void> {
     logger.log('listen', publicKey)
 
     await this.client

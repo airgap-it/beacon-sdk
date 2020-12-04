@@ -4,7 +4,6 @@ import BigNumber from 'bignumber.js'
 import {
   getHexHash,
   toHex,
-  sealCryptobox,
   recipientString,
   openCryptobox,
   encryptCryptoboxPayload,
@@ -21,6 +20,9 @@ import { MatrixRoom } from '../../matrix-client/models/MatrixRoom'
 import { Storage } from '../../storage/Storage'
 import { P2PPairingRequest } from '../..'
 import { BEACON_VERSION } from '../../constants'
+import { generateGUID } from '../../utils/generate-uuid'
+import { ExtendedP2PPairingResponse, P2PPairingResponse } from '../../types/P2PPairingResponse'
+import { getSenderId } from '../../utils/get-sender-id'
 import { CommunicationClient } from './CommunicationClient'
 
 const KNOWN_RELAY_SERVERS = [
@@ -51,8 +53,21 @@ export class P2PCommunicationClient extends CommunicationClient {
     this.KNOWN_RELAY_SERVERS = matrixNodes.length > 0 ? matrixNodes : KNOWN_RELAY_SERVERS
   }
 
-  public async getHandshakeInfo(): Promise<P2PPairingRequest> {
+  public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
     return {
+      id: await generateGUID(),
+      type: 'p2p-pairing-request',
+      name: this.name,
+      version: BEACON_VERSION,
+      publicKey: await this.getPublicKey(),
+      relayServer: await this.getRelayServer()
+    }
+  }
+
+  public async getPairingResponseInfo(request: P2PPairingRequest): Promise<P2PPairingResponse> {
+    return {
+      id: request.id,
+      type: 'p2p-pairing-response',
       name: this.name,
       version: BEACON_VERSION,
       publicKey: await this.getPublicKey(),
@@ -149,7 +164,12 @@ export class P2PCommunicationClient extends CommunicationClient {
           payload.length >= sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
         ) {
           try {
-            messageCallback(await decryptCryptoboxPayload(payload, sharedRx))
+            const decryptedMessage = await decryptCryptoboxPayload(payload, sharedRx)
+
+            // console.log('calculated sender ID', await getSenderId(senderPublicKey))
+            // TODO: Add check for correct decryption key / sender ID
+
+            messageCallback(decryptedMessage)
           } catch (decryptionError) {
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
@@ -185,14 +205,14 @@ export class P2PCommunicationClient extends CommunicationClient {
     this.activeListeners.clear()
   }
 
-  public async sendMessage(recipientPublicKey: string, message: string): Promise<void> {
-    const { sharedTx } = await this.createCryptoBoxClient(
-      recipientPublicKey,
-      this.keyPair.privateKey
-    )
+  public async sendMessage(
+    message: string,
+    peer: P2PPairingRequest | ExtendedP2PPairingResponse
+  ): Promise<void> {
+    const { sharedTx } = await this.createCryptoBoxClient(peer.publicKey, this.keyPair.privateKey)
 
     for (let i = 0; i < this.replicationCount; i++) {
-      const recipientHash: string = await getHexHash(Buffer.from(recipientPublicKey, 'hex'))
+      const recipientHash: string = await getHexHash(Buffer.from(peer.publicKey, 'hex'))
       const recipient = recipientString(
         recipientHash,
         await this.getRelayServer(recipientHash, i.toString())
@@ -209,7 +229,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async listenForChannelOpening(
-    messageCallback: (pairingResponse: P2PPairingRequest) => void
+    messageCallback: (pairingResponse: ExtendedP2PPairingResponse) => void
   ): Promise<void> {
     for (const client of this.clients) {
       client.subscribe(MatrixClientEventType.MESSAGE, async (event) => {
@@ -225,11 +245,14 @@ export class P2PCommunicationClient extends CommunicationClient {
             sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
           ) {
             try {
-              messageCallback(
-                JSON.parse(
-                  await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
-                )
+              const pairingResponse: P2PPairingResponse = JSON.parse(
+                await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
               )
+
+              messageCallback({
+                ...pairingResponse,
+                senderId: await getSenderId(pairingResponse.publicKey)
+              })
             } catch (decryptionError) {
               /* NO-OP. We try to decode every message, but some might not be addressed to us. */
             }
@@ -252,12 +275,13 @@ export class P2PCommunicationClient extends CommunicationClient {
       const message: string =
         typeof pairingRequest.version === 'undefined'
           ? await this.getPublicKey() // v1
-          : JSON.stringify(await this.getHandshakeInfo()) // v2
+          : JSON.stringify(await this.getPairingResponseInfo(pairingRequest)) // v2
 
-      const encryptedMessage: string = await sealCryptobox(
-        message,
-        Buffer.from(pairingRequest.publicKey, 'hex')
+      const encryptedMessage: string = await this.encryptMessageAsymmetric(
+        pairingRequest.publicKey,
+        message
       )
+
       client
         .sendTextMessage(room.id, ['@channel-open', recipient, encryptedMessage].join(':'))
         .catch((error) => this.log(error))

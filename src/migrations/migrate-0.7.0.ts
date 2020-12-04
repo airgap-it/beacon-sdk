@@ -46,7 +46,9 @@ export const migrate_0_7_0 = async (storage: Storage): Promise<void> => {
   await storage.set(StorageKey.ACCOUNTS, accountInfos)
 
   // Migrate P2PPeers
-  const P2PPairingRequests: P2PPairingRequest[] = await storage.get(StorageKey.TRANSPORT_P2P_PEERS)
+  const P2PPairingRequests: P2PPairingRequest[] = await storage.get(
+    StorageKey.TRANSPORT_P2P_PEERS_DAPP
+  )
   P2PPairingRequests.forEach((p2pPairInfo) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const P2PPairingRequestOld: P2PPairingRequestOld = p2pPairInfo as any
@@ -56,7 +58,7 @@ export const migrate_0_7_0 = async (storage: Storage): Promise<void> => {
       delete P2PPairingRequestOld.pubKey
     }
   })
-  await storage.set(StorageKey.TRANSPORT_P2P_PEERS, P2PPairingRequests)
+  await storage.set(StorageKey.TRANSPORT_P2P_PEERS_DAPP, P2PPairingRequests)
 
   await storage.set(StorageKey.BEACON_SDK_VERSION, '0.7.0')
 }
