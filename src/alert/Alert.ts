@@ -24,6 +24,7 @@ export interface AlertConfig {
     postmessageSyncCode: string
     preferredNetwork: NetworkType
   }
+  closeButtonCallback?(): void
 }
 
 let document: Document
@@ -151,6 +152,8 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const title = alertConfig.title
   const timer = alertConfig.timer
   const pairingPayload = alertConfig.pairingPayload
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const closeButtonCallback = alertConfig.closeButtonCallback
 
   await closeAlerts()
 
@@ -196,6 +199,9 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
 
   if (closeButton) {
     closeButton.addEventListener('click', async () => {
+      if (closeButtonCallback) {
+        closeButtonCallback()
+      }
       await closeAlert(id)
     })
   }
