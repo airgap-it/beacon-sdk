@@ -154,16 +154,18 @@ export class Pairing {
                 statusUpdateHandler(WalletType.EXTENSION, this)
               }
             })),
-            ...extensionList.map((app) => ({
-              name: app.name,
-              shortName: app.shortName,
-              color: app.color,
-              logo: app.logo,
-              enabled: false,
-              clickHandler: (): void => {
-                // Don't do anything
-              }
-            }))
+            ...extensionList
+              .filter((app) => defaultExtensions.some((extId) => extId === app.id))
+              .map((app) => ({
+                name: app.name,
+                shortName: app.shortName,
+                color: app.color,
+                logo: app.logo,
+                enabled: false,
+                clickHandler: (): void => {
+                  // Don't do anything
+                }
+              }))
           ]
         },
         {

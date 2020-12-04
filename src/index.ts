@@ -58,7 +58,7 @@ import { Storage } from './storage/Storage'
 import { StorageKey } from './types/storage/StorageKey'
 import { StorageKeyReturnDefaults } from './types/storage/StorageKeyReturnDefaults'
 import { StorageKeyReturnType } from './types/storage/StorageKeyReturnType'
-import { P2PPairingRequest } from './types/P2PPairingRequest'
+import { ExtendedP2PPairingRequest, P2PPairingRequest } from './types/P2PPairingRequest'
 import { ChromeStorage } from './storage/ChromeStorage'
 import { LocalStorage } from './storage/LocalStorage'
 import { getStorage } from './storage/getStorage'
@@ -133,12 +133,16 @@ import { getSenderId } from './utils/get-sender-id'
 import { SigningType } from './types/beacon/SigningType'
 import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotSupportedBeaconError'
 import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
-import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
+import {
+  ExtendedPostMessagePairingRequest,
+  PostMessagePairingRequest
+} from './types/PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'
 import { PeerManager } from './managers/PeerManager'
 import { MessageBasedClient } from './transports/clients/MessageBasedClient'
 import { BeaconRequestMessage } from './types/beacon/BeaconRequestMessage'
 import { BeaconResponseMessage } from './types/beacon/BeaconResponseMessage'
+import { Pairing } from './alert/Pairing'
 
 // Tezos
 export {
@@ -273,7 +277,8 @@ export {
   WalletPostMessageTransport,
   DappP2PTransport,
   DappPostMessageTransport,
-  MessageBasedClient
+  MessageBasedClient,
+  Pairing
 }
 
 // Events
@@ -304,8 +309,10 @@ export { getSenderId, getAccountIdentifier, getAddressFromPublicKey }
 export {
   PeerInfo,
   PostMessagePairingRequest,
+  ExtendedPostMessagePairingRequest,
   ExtendedPostMessagePairingResponse,
   P2PPairingRequest,
+  ExtendedP2PPairingRequest,
   ExtendedP2PPairingResponse
 }
 
