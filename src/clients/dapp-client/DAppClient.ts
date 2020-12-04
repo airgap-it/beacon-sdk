@@ -107,7 +107,7 @@ export class DAppClient extends Client {
 
   constructor(config: DAppClientOptions) {
     super({
-      storage: config.storage ? config.storage : new LocalStorage(),
+      storage: config && config.storage ? config.storage : new LocalStorage(),
       ...config
     })
     this.iconUrl = config.iconUrl
