@@ -18,14 +18,19 @@ import {
   OperationResponse,
   Origin,
   P2PPairingRequest,
-  P2PTransport,
   PartialTezosOperation,
+  SigningType,
   PermissionResponse,
   PermissionScope,
   SignPayloadResponse,
   StorageKey,
   TezosOperationType,
-  TransportType
+  TransportStatus,
+  PostMessageTransport,
+  DappPostMessageTransport,
+  DappP2PTransport,
+  getSenderId,
+  Transport
 } from '../../src'
 
 import { MockTransport } from '../test-utils/MockTransport'
@@ -38,6 +43,8 @@ chai.use(chaiAsPromised)
 const expect = chai.expect
 
 const peer1: P2PPairingRequest = {
+  id: 'id1',
+  type: 'p2p-pairing-request',
   name: 'test',
   version: BEACON_VERSION,
   publicKey: 'my-public-key',
@@ -45,6 +52,8 @@ const peer1: P2PPairingRequest = {
 }
 
 const peer2: P2PPairingRequest = {
+  id: 'id2',
+  type: 'p2p-pairing-request',
   name: 'test',
   version: BEACON_VERSION,
   publicKey: 'my-public-key-2',
@@ -82,13 +91,14 @@ const account2: AccountInfo = {
 /**
  * This mocks the response of PostMessageTransport.isAvailable. Usually it would wait 200ms making the tests slower
  *
- * @param client WalletClient
+ * @param client DAppClient
  */
 const initClientWithMock = async (client: DAppClient) => {
   const extensionRef = availableTransports.extension
   availableTransports.extension = Promise.resolve(false)
 
-  await client.init()
+  const transport = new MockTransport('TestTransport', undefined as any, undefined as any)
+  await client.init(transport)
 
   availableTransports.extension = extensionRef
 }
@@ -174,50 +184,67 @@ describe(`DAppClient`, () => {
 
       const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
-      await dAppClient.init(true, new MockTransport('TestTransport'))
-      await dAppClient.connect()
+      const transport = new MockTransport('TestTransport', undefined as any, undefined as any)
+      await dAppClient.init(transport)
       await dAppClient.ready
 
       clearTimeout(timeout)
-      expect(await dAppClient.isConnected).to.be.true
+      expect(await dAppClient.connectionStatus).to.equal(TransportStatus.NOT_CONNECTED)
+      expect(await (dAppClient as any).transport).to.equal(transport)
       resolve()
     })
   })
 
-  it(`should select P2P Transport`, async () => {
+  it(`should listen for connections on P2P and PostMessage and wait`, async () => {
+    return new Promise(async (resolve, reject) => {
+      const timeout = global.setTimeout(() => {
+        resolve()
+      }, 100)
+
+      sinon.stub(PostMessageTransport, 'getAvailableExtensions').resolves()
+
+      const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+
+      sinon.stub((<any>dAppClient).events, 'emit').resolves()
+
+      await dAppClient.init()
+
+      clearTimeout(timeout)
+      reject(new Error('SHOULD NOT RESOLVE'))
+    })
+  })
+
+  it(`should listen for connections on P2P and PostMessage`, async () => {
     return new Promise(async (resolve, reject) => {
       const timeout = global.setTimeout(() => {
         reject(new Error('TIMEOUT: Not connected'))
       }, 1000)
 
-      const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+      const p2pConnectStub = sinon.stub(DappP2PTransport.prototype, 'connect').resolves()
+      const postMessageConnectStub = sinon
+        .stub(DappPostMessageTransport.prototype, 'connect')
+        .resolves()
 
-      await initClientWithMock(dAppClient)
+      const postMessageCallbackStub = sinon
+        .stub(DappPostMessageTransport.prototype, 'listenForNewPeer')
+        .callsArgWithAsync(0, peer1)
+        .resolves()
 
-      clearTimeout(timeout)
-      expect((await (dAppClient as any).transport).type).to.equal(TransportType.P2P)
-      resolve()
-    })
-  })
-
-  it(`should select ChromeTransport`, async () => {
-    return new Promise(async (resolve, reject) => {
-      const timeout = global.setTimeout(() => {
-        reject(new Error('TIMEOUT: Not connected'))
-      }, 1000)
+      sinon.stub(PostMessageTransport, 'getAvailableExtensions').resolves()
 
       const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
-      const extensionRef = availableTransports.extension
-      availableTransports.extension = Promise.resolve(true)
+      const eventsStub = sinon.stub((<any>dAppClient).events, 'emit').resolves()
 
-      const type = await dAppClient.init()
-
-      availableTransports.extension = extensionRef
+      await dAppClient.init()
 
       clearTimeout(timeout)
-      expect(type).to.equal(TransportType.POST_MESSAGE)
-      expect((await (dAppClient as any).transport).type).to.equal(TransportType.POST_MESSAGE)
+      expect(postMessageCallbackStub.callCount, 'postMessageCallbackStub').to.equal(1)
+      expect(eventsStub.callCount, 'eventsStub').to.equal(5)
+      const events = eventsStub.getCalls().map((call) => (<any>call).firstArg)
+      expect(events, 'eventsStub').to.include('PAIR_INIT')
+      expect(p2pConnectStub.callCount, 'p2pConnectStub').to.equal(1)
+      expect(postMessageConnectStub.callCount, 'postMessageConnectStub').to.equal(1)
       resolve()
     })
   })
@@ -269,13 +296,13 @@ describe(`DAppClient`, () => {
     const metadata = await dAppClient.getAppMetadata()
 
     expect(metadata).to.deep.equal({
-      senderId: await dAppClient.beaconId,
+      senderId: await getSenderId(await dAppClient.beaconId),
       name: dAppClient.name,
       icon: dAppClient.iconUrl
     })
   })
 
-  it(`should connect`, async () => {
+  it(`should initialize`, async () => {
     return new Promise(async (resolve, reject) => {
       const timeout = global.setTimeout(() => {
         reject(new Error('TIMEOUT: Not connected'))
@@ -283,12 +310,11 @@ describe(`DAppClient`, () => {
 
       const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
-      await dAppClient.init(true, new MockTransport('TestTransport'))
-      await dAppClient.connect()
+      await dAppClient.init(new MockTransport('TestTransport', undefined as any, undefined as any))
       await dAppClient.ready
 
       clearTimeout(timeout)
-      expect(await dAppClient.isConnected).to.be.true
+      expect(await dAppClient.connectionStatus).to.equal(TransportStatus.NOT_CONNECTED)
       resolve()
     })
   })
@@ -344,7 +370,7 @@ describe(`DAppClient`, () => {
   it(`should remove peer and all its accounts`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
-    const transportRemovePeerStub = sinon.stub(P2PTransport.prototype, 'removePeer').resolves()
+    const transportRemovePeerStub = sinon.stub(Transport.prototype, 'removePeer').resolves()
     const removeAccountsForPeersStub = sinon
       .stub(dAppClient, <any>'removeAccountsForPeers')
       .resolves()
@@ -361,10 +387,8 @@ describe(`DAppClient`, () => {
   it(`should remove all peers and all their accounts`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
-    const transportGetPeerStub = sinon.stub(P2PTransport.prototype, 'getPeers').resolves([peer1])
-    const transportRemoveAllPeersStub = sinon
-      .stub(P2PTransport.prototype, 'removeAllPeers')
-      .resolves()
+    const transportGetPeerStub = sinon.stub(Transport.prototype, 'getPeers').resolves([peer1])
+    const transportRemoveAllPeersStub = sinon.stub(Transport.prototype, 'removeAllPeers').resolves()
     const removeAccountsForPeersStub = sinon
       .stub(dAppClient, <any>'removeAccountsForPeers')
       .resolves()
@@ -403,11 +427,13 @@ describe(`DAppClient`, () => {
       await dAppClient.checkPermissions(BeaconMessageType.OperationRequest)
       throw new Error('Should have failed')
     } catch (e) {
-      expect(eventsStub.callCount).to.equal(2)
-      expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET) // This is called in the constructor
+      expect(eventsStub.callCount).to.equal(3)
+      expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET) // Called in the constructor
       expect(eventsStub.firstCall.args[1]).to.equal(undefined)
       expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.INTERNAL_ERROR)
       expect(eventsStub.secondCall.args[1]).to.equal('No active account set!')
+      expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET) // Called in the constructor
+      expect(eventsStub.thirdCall.args[1]).to.equal(undefined)
       expect(e.message).to.equal('No active account set!')
     }
   })
@@ -496,7 +522,7 @@ describe(`DAppClient`, () => {
       appMetadata: {
         icon: undefined,
         name: 'Test',
-        senderId: await dAppClient.beaconId
+        senderId: await getSenderId(await dAppClient.beaconId)
       },
       type: BeaconMessageType.PermissionRequest,
       network: { type: 'mainnet' },
@@ -538,6 +564,7 @@ describe(`DAppClient`, () => {
       type: BeaconMessageType.SignPayloadResponse,
       version: BEACON_VERSION,
       senderId: 'sender-id',
+      signingType: SigningType.RAW,
       signature: 'my-signature'
     }
 
@@ -555,10 +582,12 @@ describe(`DAppClient`, () => {
     expect(makeRequestStub.firstCall.args[0]).to.deep.equal({
       type: BeaconMessageType.SignPayloadRequest,
       payload: 'test-payload',
+      signingType: SigningType.RAW,
       sourceAddress: 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
     })
     expect(response).to.deep.equal({
       senderId: 'sender-id',
+      signingType: SigningType.RAW,
       signature: 'my-signature'
     })
   })
@@ -739,9 +768,11 @@ describe(`DAppClient`, () => {
       await (<any>dAppClient).handleRequestError(request, error)
       throw new Error('Should not happen')
     } catch (e) {
-      expect(eventsStub.callCount).to.equal(1)
+      expect(eventsStub.callCount).to.equal(2)
       expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.PERMISSION_REQUEST_ERROR)
       expect(eventsStub.firstCall.args[1]).to.equal(error)
+      expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+      expect(eventsStub.secondCall.args[1]).to.equal(undefined)
       expect(e.description).to.equal(
         'You do not have the necessary permissions to perform this action. Please initiate another permission request and give the necessary permissions.'
       )
@@ -762,7 +793,9 @@ describe(`DAppClient`, () => {
       await (<any>dAppClient).handleRequestError(request, error)
       throw new Error('Should not happen')
     } catch (e) {
-      expect(eventsStub.callCount).to.equal(0)
+      expect(eventsStub.callCount).to.equal(1)
+      expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+      expect(eventsStub.firstCall.args[1]).to.equal(undefined)
       expect(e).to.equal(error)
     }
   })
@@ -776,20 +809,21 @@ describe(`DAppClient`, () => {
     const response = {}
 
     await (<any>dAppClient).notifySuccess(request, response)
-    expect(eventsStub.callCount).to.equal(1)
+    expect(eventsStub.callCount).to.equal(2)
     expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.PERMISSION_REQUEST_SUCCESS)
     expect(eventsStub.firstCall.args[1]).to.equal(response)
+    expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+    expect(eventsStub.secondCall.args[1]).to.equal(undefined)
   })
 
   it(`should create a request`, async () => {
     return new Promise(async (resolve, _reject) => {
       const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
-      const sendStub = sinon.stub(P2PTransport.prototype, 'send').resolves()
+      const sendStub = sinon.stub(Transport.prototype, 'send').resolves()
 
       await initClientWithMock(dAppClient)
 
       const initStub = sinon.stub(dAppClient, 'init').resolves()
-      const connectStub = sinon.stub(dAppClient, 'connect').resolves()
       const rateLimitStub = sinon
         .stub(dAppClient, 'addRequestAndCheckIfRateLimited')
         .resolves(false)
@@ -805,14 +839,13 @@ describe(`DAppClient`, () => {
 
       setTimeout(async () => {
         expect(initStub.callCount, 'initStub').to.equal(1)
-        expect(connectStub.callCount, 'connectStub').to.equal(1)
         expect(rateLimitStub.callCount, 'rateLimitStub').to.equal(1)
         expect(permissionStub.callCount, 'permissionStub').to.equal(1)
         expect(addRequestStub.callCount, 'addRequestStub').to.equal(1)
         expect(typeof addRequestStub.firstCall.args[0], 'addRequestStub').to.equal('string')
         expect(addRequestStub.firstCall.args[1].isPending(), 'addRequestStub').to.be.true
         expect(sendStub.callCount, 'sendStub').to.equal(1)
-        expect(sendStub.firstCall.args[0], 'sendStub').to.include('DCRuaGjGFX')
+        expect(sendStub.firstCall.args[0].length, 'sendStub').to.be.greaterThan(20)
         expect(sendStub.firstCall.args[1], 'sendStub').to.be.undefined
         expect(eventsStub.callCount, 'eventsStub').to.equal(1)
         expect(typeof promise).to.equal('object')
@@ -890,7 +923,7 @@ describe(`DAppClient`, () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
     const eventsStub = sinon.stub((<any>dAppClient).events, 'emit').resolves()
-    const transportRemovePeerStub = sinon.stub(P2PTransport.prototype, 'removePeer').resolves()
+    const transportRemovePeerStub = sinon.stub(Transport.prototype, 'removePeer').resolves()
 
     const message = { type: BeaconMessageType.Disconnect, id: 'my-id', senderId: 'sender-id' }
     const connectionInfo = {}
@@ -901,12 +934,18 @@ describe(`DAppClient`, () => {
 
     expect(transportRemovePeerStub.callCount, 'transportRemovePeerStub').to.equal(1)
     expect(transportRemovePeerStub.firstCall.args[0]).to.deep.equal({
+      id: '',
       name: '',
       publicKey: 'sender-id',
       version: BEACON_VERSION,
+      type: 'p2p-pairing-request',
       relayServer: ''
     })
-    expect(eventsStub.callCount, 'eventsStub').to.equal(3)
-    expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.CHANNEL_CLOSED)
+
+    expect(eventsStub.callCount, 'eventsStub').to.equal(4)
+    expect(eventsStub.getCall(0).args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+    expect(eventsStub.getCall(1).args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+    expect(eventsStub.getCall(2).args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET)
+    expect(eventsStub.getCall(3).args[0]).to.equal(BeaconEvent.CHANNEL_CLOSED)
   })
 })

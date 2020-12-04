@@ -79,17 +79,6 @@ export abstract class Transport<
   }
 
   /**
-   * Reconnect the transport
-   *
-   * This method will be called if we tried to connect, but it didn't work
-   */
-  public async reconnect(): Promise<void> {
-    logger.log('reconnect')
-
-    return
-  }
-
-  /**
    * Send a message through the transport
    *
    * @param message The message to send

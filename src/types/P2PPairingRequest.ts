@@ -9,3 +9,7 @@ export interface P2PPairingRequest extends PeerInfo {
   icon?: string // TODO: Should this be a URL or base64 image?
   appUrl?: string
 }
+
+export type ExtendedP2PPairingRequest = P2PPairingRequest & {
+  senderId: string
+}
