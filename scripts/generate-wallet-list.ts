@@ -30,7 +30,7 @@ export const webList: WebApp[] = [
     logo: 'web-kukai.png',
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
-      [NetworkType.DELPHINET]: 'https://preview.kukai.app'
+      [NetworkType.DELPHINET]: 'https://testnet.kukai.app'
     }
   }
 ]
