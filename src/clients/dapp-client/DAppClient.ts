@@ -149,7 +149,9 @@ export class DAppClient extends Client {
       } else {
         if (message.type === BeaconMessageType.Disconnect) {
           const relevantTransport =
-            connectionInfo.origin === Origin.P2P ? this.p2pTransport : this.postMessageTransport
+            connectionInfo.origin === Origin.P2P
+              ? this.p2pTransport
+              : this.postMessageTransport ?? (await this.transport)
 
           if (relevantTransport) {
             // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
