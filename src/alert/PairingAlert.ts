@@ -43,7 +43,7 @@ export const preparePairingAlert = async (pairingPayload: {
     }
   })
 
-  info.walletLists.map((list) => {
+  info.walletLists.forEach((list) => {
     const listWrapperEl = document.createElement('div')
     container.appendChild(listWrapperEl)
 
