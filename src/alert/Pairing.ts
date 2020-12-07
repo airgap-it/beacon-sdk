@@ -248,7 +248,7 @@ export class Pairing {
       buttons: [
         {
           title: 'Mobile Wallets',
-          text: 'Connect wallet',
+          text: 'Connect Wallet',
           clickHandler: (): void => {
             window.open(qrLink, '_blank')
             statusUpdateHandler(WalletType.ANDROID)
