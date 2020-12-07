@@ -10,6 +10,22 @@
 
 [Beacon](https://walletbeacon.io) is the implementation of the wallet interaction standard [tzip-10](https://gitlab.com/tzip/tzip/blob/master/proposals/tzip-10/tzip-10.md) which describes the connnection of a dApp with a wallet.
 
+## Intro
+
+The `beacon-sdk` simplifies and abstracts the communication between dApps and wallets over different transport layers.
+
+Developers that plan to develop complex smart contract interactions can use [Taquito](https://github.com/ecadlabs/taquito) with the `BeaconWallet`, which uses this SDK under the hood, but provides helpful methods to interact with contracts.
+
+## Documentation
+
+The documentation can be found [here](https://docs.walletbeacon.io/).
+
+## Installation
+
+```
+npm i --save @airgap/beacon-sdk
+```
+
 ## Upgrading from v1 to v2
 
 There are some breaking changes from a developer perspective, but most of the changes are internal, specifically in the communication protocol between dApps and Extensions / Wallets. All major wallets that support beacon have been updated to support both v1 and v2 DApps.
@@ -22,20 +38,6 @@ We highly encourage developers to upgrade to v2. Besides stability improvements,
 - Secure and encrypted communication between DApp and Browser Extension
 
 [Changelog](https://docs.walletbeacon.io/CHANGELOG.html)
-
-## Intro
-
-The `beacon-sdk` simplifies and abstracts the communication between dApps and wallets over different transport layers.
-
-## Documentation
-
-The documentation can be found [here](https://docs.walletbeacon.io/).
-
-## Installation
-
-```
-npm i --save @airgap/beacon-sdk
-```
 
 ## Example DApp integration
 
