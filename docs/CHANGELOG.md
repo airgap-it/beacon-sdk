@@ -1,5 +1,52 @@
 # Changelog
 
+## 2.0.0 (2020-12-08)
+
+Beacon v2.0.0 is a big update from v1.x. The APIs on the DApp and Wallet side stayed mostly the same. There may be some minor changes in the object structure, but the majority of the changes are internal and should not affect the developers.
+
+We highly encourage developers to upgrade to v2. The most notable new features are:
+
+- Support for multiple browser extensions (eg. Thanos and Beacon Extension)
+- Support for mobile, browser and desktop wallets
+- Mobile support via Deeplinking
+- Secure and encrypted communication between DApp and Browser Extension
+
+#### Notable changes
+
+- **all**: changed `beaconId` to `senderId` in all objects
+- **senderId**: The senderId property now has to be a hash of the publicKey of the sender
+- **P2PTransport**: The pairing-response from the wallet is no longer only an encrypted public key, but rather an object including the public key (with additional metadata)
+- **P2PPairInfo**: Now includes a version and additional metadata
+- **P2PPairInfo**: JSON is now `base58check` encoded (eg. QR code)
+
+- **PostMessageTransport**: The communication is now encrypted
+- **PostMessageTransport**: `getAvailableExtensions` returns an array of available browser extensions
+
+- **DAppClient**: Having an extension installed on page load will no longer automatically select that extension as the active peer. The user always has to select his preferred wallet type.
+
+- **Acknowledge Message**: The wallet will now send an acknowledge message immediately after a request is received.
+- **Disconnect Message**: There is now a disconnect even that can be sent from both sides and indicates that the connection will no longer be listened to
+- **Error Message**: A new error message type that makes it clear the message is an error
+
+## 1.2.0 (2020-11-13)
+
+#### Features
+
+- **delphinet:** Add delphinet support
+
+## 1.1.1 (2020-08-21)
+
+#### Features
+
+- **build:** Add esmodule files
+- **libsodium:** Update to 0.7.8
+
+## 1.1.0 (2020-06-16)
+
+#### Features
+
+- **build:** Add es5 build
+
 ## 1.0.5 (2020-06-10)
 
 #### Bug Fixes
