@@ -10,7 +10,8 @@ import {
   AppMetadata,
   PermissionInfo,
   TransportStatus,
-  WalletP2PTransport
+  WalletP2PTransport,
+  DisconnectMessage
 } from '../..'
 import { PermissionManager } from '../../managers/PermissionManager'
 import { AppMetadataManager } from '../../managers/AppMetadataManager'
@@ -23,6 +24,7 @@ import { AcknowledgeResponseInput } from '../../types/beacon/messages/BeaconResp
 import { getSenderId } from '../../utils/get-sender-id'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { ExposedPromise } from '../../utils/exposed-promise'
+import { ExtendedPeerInfo } from '../../types/PeerInfo'
 
 /**
  * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible
@@ -72,9 +74,23 @@ export class WalletClient extends Client {
     ) => void
   ): Promise<void> {
     this.handleResponse = async (
-      message: BeaconRequestMessage,
+      message: BeaconRequestMessage | DisconnectMessage,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
+      if (message.type === BeaconMessageType.Disconnect) {
+        const transport = await this.transport
+        const peers: ExtendedPeerInfo[] = await transport.getPeers()
+        const peer: ExtendedPeerInfo | undefined = peers.find(
+          (peerEl) => peerEl.senderId === message.senderId
+        )
+
+        if (peer) {
+          await transport.removePeer(peer)
+        }
+
+        return
+      }
+
       if (!this.pendingRequests.some((request) => request.id === message.id)) {
         this.pendingRequests.push(message)
 
@@ -176,19 +192,32 @@ export class WalletClient extends Client {
     return this.permissionManager.removeAllPermissions()
   }
 
-  public async removePeer(peer: ExtendedP2PPairingResponse): Promise<void> {
+  public async removePeer(
+    peer: ExtendedP2PPairingResponse,
+    sendDisconnectToPeer: boolean = false
+  ): Promise<void> {
     const removePeerResult = (await this.transport).removePeer(peer)
 
     await this.removePermissionsForPeers([peer])
 
+    if (sendDisconnectToPeer) {
+      await this.sendDisconnectToPeer(peer)
+    }
+
     return removePeerResult
   }
 
-  public async removeAllPeers(): Promise<void> {
+  public async removeAllPeers(sendDisconnectToPeers: boolean = false): Promise<void> {
     const peers: ExtendedP2PPairingResponse[] = await (await this.transport).getPeers()
     const removePeerResult = (await this.transport).removeAllPeers()
 
     await this.removePermissionsForPeers(peers)
+
+    if (sendDisconnectToPeers) {
+      const disconnectPromises = peers.map((peer) => this.sendDisconnectToPeer(peer))
+
+      await Promise.all(disconnectPromises)
+    }
 
     return removePeerResult
   }

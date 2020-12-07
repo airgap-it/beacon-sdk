@@ -60,6 +60,7 @@ import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
 import { getSenderId } from '../../utils/get-sender-id'
 import { SigningType } from '../../types/beacon/SigningType'
+import { ExtendedPeerInfo } from '../../types/PeerInfo'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -147,18 +148,22 @@ export class DAppClient extends Client {
         this.openRequests.delete(message.id)
       } else {
         if (message.type === BeaconMessageType.Disconnect) {
-          // TODO: Handle senderId that is no longer a public key
-          // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
-          const transport = await this.transport
-          await transport.removePeer({
-            id: '',
-            type: 'p2p-pairing-request',
-            name: '',
-            publicKey: message.senderId,
-            version: BEACON_VERSION,
-            relayServer: ''
-          } as any)
-          await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+          const relevantTransport =
+            connectionInfo.origin === Origin.P2P ? this.p2pTransport : this.postMessageTransport
+
+          if (relevantTransport) {
+            // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
+            const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
+            const peer: ExtendedPeerInfo | undefined = peers.find(
+              (peerEl) => peerEl.senderId === message.senderId
+            )
+            if (peer) {
+              await relevantTransport.removePeer(peer as any)
+              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+            } else {
+              logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
+            }
+          }
         } else {
           logger.error('handleResponse', 'no request found for id ', message.id)
         }
@@ -344,10 +349,17 @@ export class DAppClient extends Client {
    *
    * @param peer Peer to be removed
    */
-  public async removePeer(peer: PeerInfo): Promise<void> {
+  public async removePeer(
+    peer: ExtendedPeerInfo,
+    sendDisconnectToPeer: boolean = false
+  ): Promise<void> {
     const removePeerResult = (await this.transport).removePeer(peer)
 
     await this.removeAccountsForPeers([peer])
+
+    if (sendDisconnectToPeer) {
+      await this.sendDisconnectToPeer(peer)
+    }
 
     return removePeerResult
   }
@@ -355,12 +367,17 @@ export class DAppClient extends Client {
   /**
    * Remove all peers and all accounts that have been connected through those peers
    */
-  public async removeAllPeers(): Promise<void> {
-    // TODO: Allow for other transport types?
-    const peers: PeerInfo[] = await (await this.transport).getPeers()
+  public async removeAllPeers(sendDisconnectToPeers: boolean = false): Promise<void> {
+    const peers: ExtendedPeerInfo[] = await (await this.transport).getPeers()
     const removePeerResult = (await this.transport).removeAllPeers()
 
     await this.removeAccountsForPeers(peers)
+
+    if (sendDisconnectToPeers) {
+      const disconnectPromises = peers.map((peer) => this.sendDisconnectToPeer(peer))
+
+      await Promise.all(disconnectPromises)
+    }
 
     return removePeerResult
   }
@@ -635,13 +652,13 @@ export class DAppClient extends Client {
    *
    * @param peersToRemove An array of peers for which accounts should be removed
    */
-  private async removeAccountsForPeers(peersToRemove: PeerInfo[]): Promise<void> {
+  private async removeAccountsForPeers(peersToRemove: ExtendedPeerInfo[]): Promise<void> {
     const accounts = await this.accountManager.getAccounts()
 
-    const peerIdsToRemove = peersToRemove.map((peer) => peer.publicKey)
+    const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
     // Remove all accounts with origin of the specified peer
     const accountsToRemove = accounts.filter((account) =>
-      peerIdsToRemove.includes(account.origin.id)
+      peerIdsToRemove.includes(account.senderId)
     )
     const accountIdentifiersToRemove = accountsToRemove.map(
       (accountInfo) => accountInfo.accountIdentifier
@@ -795,7 +812,7 @@ export class DAppClient extends Client {
 
     const account = await this.getActiveAccount()
 
-    let recipientPublicKey: string | undefined
+    let peer: PeerInfo | undefined
 
     if (account) {
       const postMessagePeers: ExtendedPostMessagePairingResponse[] =
@@ -803,19 +820,12 @@ export class DAppClient extends Client {
       const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
       const peers = [...postMessagePeers, ...p2pPeers]
 
-      const peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
-
-      if (peer) {
-        recipientPublicKey = peer.publicKey
-      }
+      peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
     } else {
-      const activePeer = await this._activePeer.promise
-      if (activePeer) {
-        recipientPublicKey = activePeer.publicKey
-      }
+      peer = await this._activePeer.promise
     }
 
-    await (await this.transport).send(payload, recipientPublicKey)
+    await (await this.transport).send(payload, peer)
 
     this.events
       .emit(messageEvents[requestInput.type].sent)
