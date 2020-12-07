@@ -17,7 +17,6 @@ import {
   NetworkType,
   OperationResponse,
   Origin,
-  P2PPairingRequest,
   PartialTezosOperation,
   SigningType,
   PermissionResponse,
@@ -30,7 +29,8 @@ import {
   DappPostMessageTransport,
   DappP2PTransport,
   getSenderId,
-  Transport
+  Transport,
+  ExtendedP2PPairingRequest
 } from '../../src'
 
 import { MockTransport } from '../test-utils/MockTransport'
@@ -42,27 +42,29 @@ import { Logger } from '../../src/utils/Logger'
 chai.use(chaiAsPromised)
 const expect = chai.expect
 
-const peer1: P2PPairingRequest = {
+const peer1: ExtendedP2PPairingRequest = {
   id: 'id1',
   type: 'p2p-pairing-request',
   name: 'test',
   version: BEACON_VERSION,
   publicKey: 'my-public-key',
+  senderId: 'sender1',
   relayServer: 'test-relay.walletbeacon.io'
 }
 
-const peer2: P2PPairingRequest = {
+const peer2: ExtendedP2PPairingRequest = {
   id: 'id2',
   type: 'p2p-pairing-request',
   name: 'test',
   version: BEACON_VERSION,
   publicKey: 'my-public-key-2',
+  senderId: 'sender2',
   relayServer: 'test-relay.walletbeacon.io'
 }
 
 const account1: AccountInfo = {
   accountIdentifier: 'a1',
-  senderId: 'id1',
+  senderId: 'sender1',
   origin: {
     type: Origin.P2P,
     id: peer1.publicKey
@@ -76,7 +78,7 @@ const account1: AccountInfo = {
 
 const account2: AccountInfo = {
   accountIdentifier: 'a2',
-  senderId: 'id2',
+  senderId: 'sender2',
   origin: {
     type: Origin.P2P,
     id: peer1.publicKey
@@ -924,6 +926,17 @@ describe(`DAppClient`, () => {
 
     const eventsStub = sinon.stub((<any>dAppClient).events, 'emit').resolves()
     const transportRemovePeerStub = sinon.stub(Transport.prototype, 'removePeer').resolves()
+    const getPeersStub = sinon.stub(Transport.prototype, 'getPeers').resolves([
+      {
+        id: '',
+        name: '',
+        publicKey: 'sender-id',
+        senderId: 'sender-id',
+        version: BEACON_VERSION,
+        type: 'p2p-pairing-request',
+        relayServer: ''
+      }
+    ])
 
     const message = { type: BeaconMessageType.Disconnect, id: 'my-id', senderId: 'sender-id' }
     const connectionInfo = {}
@@ -932,11 +945,13 @@ describe(`DAppClient`, () => {
 
     await (<any>dAppClient).handleResponse(message, connectionInfo)
 
+    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
     expect(transportRemovePeerStub.callCount, 'transportRemovePeerStub').to.equal(1)
     expect(transportRemovePeerStub.firstCall.args[0]).to.deep.equal({
       id: '',
       name: '',
       publicKey: 'sender-id',
+      senderId: 'sender-id',
       version: BEACON_VERSION,
       type: 'p2p-pairing-request',
       relayServer: ''
