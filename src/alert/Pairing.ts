@@ -59,6 +59,7 @@ export interface PairingAlertWallet {
 }
 
 export interface PairingAlertButton {
+  title: string
   text: string
   clickHandler(): void
 }
@@ -246,6 +247,7 @@ export class Pairing {
       ],
       buttons: [
         {
+          title: 'Mobile Wallets',
           text: 'Connect wallet',
           clickHandler: (): void => {
             window.open(qrLink, '_blank')

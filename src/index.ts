@@ -121,7 +121,7 @@ import {
   PartialTezosRevealOperation
 } from './types/tezos/PartialTezosOperation'
 import { AbortedBeaconError } from './errors/AbortedBeaconError'
-import { PeerInfo } from './types/PeerInfo'
+import { ExtendedPeerInfo, PeerInfo } from './types/PeerInfo'
 import { availableTransports } from './utils/available-transports'
 import { AcknowledgeResponse } from './types/beacon/messages/AcknowledgeResponse'
 import { DisconnectMessage } from './types/beacon/messages/DisconnectMessage'
@@ -308,6 +308,7 @@ export { getSenderId, getAccountIdentifier, getAddressFromPublicKey }
 
 export {
   PeerInfo,
+  ExtendedPeerInfo,
   PostMessagePairingRequest,
   ExtendedPostMessagePairingRequest,
   ExtendedPostMessagePairingResponse,
