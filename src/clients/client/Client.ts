@@ -192,7 +192,7 @@ export abstract class Client extends BeaconClient {
       .catch((error) => console.log(error))
   }
 
-  protected async sendDisconnectToPeer(peer: PeerInfo): Promise<void> {
+  protected async sendDisconnectToPeer(peer: PeerInfo, transport?: Transport<any>): Promise<void> {
     const request: DisconnectMessage = {
       id: await generateGUID(),
       version: BEACON_VERSION,
@@ -201,7 +201,8 @@ export abstract class Client extends BeaconClient {
     }
 
     const payload = await new Serializer().serialize(request)
+    const selectedTransport = transport ?? (await this.transport)
 
-    await (await this.transport).send(payload, peer)
+    await selectedTransport.send(payload, peer)
   }
 }

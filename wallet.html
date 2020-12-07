@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <title>Beacon Example Wallet</title>
+
+    <script src="./dist/walletbeacon.min.js"></script>
+  </head>
+
+  <body>
+    Beacon Example Wallet
+    <br /><br />
+    <button id="paste">Paste Sync Code</button>
+    <br /><br />
+    ---
+    <br /><br />
+    <button id="removePeer">Remove Peer</button>
+    <br /><br />
+    ---
+    <br /><br />
+    <button id="reset">Reset and Refresh</button>
+
+    <script>
+      // Initiate DAppClient
+      const client = new beacon.WalletClient({
+        name: 'Example Wallet' // Name of the DApp
+      })
+
+      // Add event listener to the button
+      document.getElementById('paste').addEventListener('click', () => {
+        navigator.clipboard.readText().then((clipText) => {
+          const serializer = new beacon.Serializer()
+          serializer
+            .deserialize(clipText)
+            .then((peer) => {
+              console.log('Adding peer', peer)
+              client.addPeer(peer).then(() => {
+                console.log('Peer added')
+              })
+            })
+            .catch((e) => console.error('not a valid sync code'))
+        })
+      })
+
+      client.init().then(() => {
+        console.log('init')
+        client
+          .connect((message) => {
+            console.log('message', message)
+            // Example: Handle PermissionRequest. A wallet should handle all request types
+            if (message.type === beacon.BeaconMessageType.PermissionRequest) {
+              // Show a UI to the user where he can confirm sharing an account with the DApp
+
+              const response = {
+                type: beacon.BeaconMessageType.PermissionResponse,
+                network: message.network, // Use the same network that the user requested
+                scopes: [beacon.PermissionScope.OPERATION_REQUEST], // Ignore the scopes that have been requested and instead give only operation permissions
+                id: message.id,
+                publicKey: '3b92229274683b338cf8b040cf91ac0f8e19e410f06eda5537ef077e718e0024'
+              }
+
+              // Send response back to DApp
+              client.respond(response)
+            } else {
+              console.error('Only permission requests are supported in this demo')
+            }
+          })
+          .catch((error) => console.error('connect error', error))
+      }) // Establish P2P connection
+
+      // Add event listener to the button
+      document.getElementById('reset').addEventListener('click', () => {
+        client.destroy().then(() => {
+          window.location.reload()
+        })
+      })
+
+      // Add event listener to the button
+      document.getElementById('removePeer').addEventListener('click', () => {
+        client.getPeers().then((peers) => {
+          if (peers.length > 0) {
+            client.removePeer(peers[0], true).then(() => {
+              console.log('peer removed', peers[0])
+            })
+          } else {
+            console.log('no peers to be removed')
+          }
+        })
+      })
+    </script>
+  </body>
+</html>

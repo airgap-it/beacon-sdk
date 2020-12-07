@@ -161,6 +161,7 @@ export class DAppClient extends Client {
             )
             if (peer) {
               await relevantTransport.removePeer(peer as any)
+              await this.removeAccountsForPeers([peer])
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             } else {
               logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
@@ -355,12 +356,14 @@ export class DAppClient extends Client {
     peer: ExtendedPeerInfo,
     sendDisconnectToPeer: boolean = false
   ): Promise<void> {
-    const removePeerResult = (await this.transport).removePeer(peer)
+    const transport = await this.transport
+
+    const removePeerResult = transport.removePeer(peer)
 
     await this.removeAccountsForPeers([peer])
 
     if (sendDisconnectToPeer) {
-      await this.sendDisconnectToPeer(peer)
+      await this.sendDisconnectToPeer(peer, transport)
     }
 
     return removePeerResult
@@ -370,13 +373,15 @@ export class DAppClient extends Client {
    * Remove all peers and all accounts that have been connected through those peers
    */
   public async removeAllPeers(sendDisconnectToPeers: boolean = false): Promise<void> {
-    const peers: ExtendedPeerInfo[] = await (await this.transport).getPeers()
-    const removePeerResult = (await this.transport).removeAllPeers()
+    const transport = await this.transport
+
+    const peers: ExtendedPeerInfo[] = await transport.getPeers()
+    const removePeerResult = transport.removeAllPeers()
 
     await this.removeAccountsForPeers(peers)
 
     if (sendDisconnectToPeers) {
-      const disconnectPromises = peers.map((peer) => this.sendDisconnectToPeer(peer))
+      const disconnectPromises = peers.map((peer) => this.sendDisconnectToPeer(peer, transport))
 
       await Promise.all(disconnectPromises)
     }
