@@ -180,7 +180,7 @@ describe(`P2PTransport`, () => {
     const getPeersStub = sinon.stub(PeerManager.prototype, 'getPeers').resolves([pairingResponse])
     const sendMessageStub = sinon.stub(P2PCommunicationClient.prototype, 'sendMessage').resolves()
 
-    await transport.send(message, pairingResponse.publicKey)
+    await transport.send(message, pairingResponse)
 
     expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
     expect(getPeersStub.firstCall.args.length, 'getPeersStub').to.equal(0)

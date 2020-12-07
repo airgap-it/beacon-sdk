@@ -121,10 +121,10 @@ export class Pairing {
     postmessageSyncCode: string,
     network: NetworkType
   ): Promise<PairingAlertInfo> {
-    const extensions = await availableTransports.availableExtensions
+    const availableExtensions = await availableTransports.availableExtensions
     const qrLink = getTzip10Link('tezos://', pairingCode)
 
-    extensions.forEach((ext) => {
+    availableExtensions.forEach((ext) => {
       const index = defaultExtensions.indexOf(ext.id)
       if (index >= 0) {
         defaultExtensions.splice(index, 1)
@@ -137,9 +137,9 @@ export class Pairing {
           title: 'Browser Extensions',
           type: WalletType.EXTENSION,
           wallets: [
-            ...extensions.map((app) => ({
+            ...availableExtensions.map((app) => ({
               name: app.name,
-              logo: app.iconUrl,
+              logo: app.iconUrl ?? extensionList.find((ext) => ext.id === app.id)?.logo,
               enabled: true,
               clickHandler(): void {
                 if (postmessageSyncCode) {
