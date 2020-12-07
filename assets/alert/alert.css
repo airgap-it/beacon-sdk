@@ -196,6 +196,10 @@ button {
   border: 1px solid rgba(17, 17, 17, 0.04);
   border-radius: 16px;
 }
+.connect__btn {
+  margin: 24px 0;
+  width: 100%;
+}
 
 .beacon-modal__content {
   padding: 24px;
@@ -206,7 +210,7 @@ button {
 }
 
 #beacon-title {
-  margin-bottom: 24px;
+  margin: 0 0 24px;
 }
 
 a {

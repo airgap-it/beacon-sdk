@@ -25,7 +25,8 @@ export const preparePairingAlert = async (pairingPayload: {
     const randomId = await generateGUID()
 
     const x = `
-		<button class="beacon-modal__button">${button.text}</button>
+    <div class="beacon-list__title">${button.title}</div>
+		<button class="beacon-modal__button connect__btn">${button.text}</button>
 		 `
 
     const el = document.createElement('a')

@@ -16,6 +16,11 @@ The `beacon-sdk` simplifies and abstracts the communication between dApps and wa
 
 Developers that plan to develop complex smart contract interactions can use [Taquito](https://github.com/ecadlabs/taquito) with the `BeaconWallet`, which uses this SDK under the hood, but provides helpful methods to interact with contracts.
 
+Besides this Typescript SDK, we also provide SDKs for native iOS and Android wallets:
+
+- [Beacon Android SDK (Kotlin)](https://github.com/airgap-it/beacon-android-sdk)
+- [Beacon iOS SDK (Swift)](https://github.com/airgap-it/beacon-ios-sdk)
+
 ## Documentation
 
 The documentation can be found [here](https://docs.walletbeacon.io/).
@@ -79,11 +84,6 @@ client
   })
   .catch((error) => console.error('connect error', error))
 ```
-
-Besides this Typescript SDK, we also provide SDKs for native iOS and Android apps:
-
-- [Beacon Android SDK (Kotlin)](https://github.com/airgap-it/beacon-android-sdk)
-- [Beacon iOS SDK (Swift)](https://github.com/airgap-it/beacon-ios-sdk)
 
 ## Development
 
