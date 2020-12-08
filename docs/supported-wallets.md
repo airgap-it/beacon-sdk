@@ -8,6 +8,10 @@ AirGap Wallet is a mobile wallet for [Android](https://play.google.com/store/app
 
 The Beacon Extension is a browser extension and supports connection to mobile wallets like AirGap Wallet, Ledger hardware wallets as well as a local mnemonic option recommended for developers.
 
+**[Kukai](https://wallet.kukai.app/)**
+
+Kukai is a Tezos web wallet based on three principles: Security, Community and Reliability.
+
 **[Thanos](https://thanoswallet.com/)**
 
 Thanos is a web extension for your browser, easy-to-use browser extension wallet for interacting with the Tezos ecosystem.

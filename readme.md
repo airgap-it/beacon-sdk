@@ -16,7 +16,7 @@ The `beacon-sdk` simplifies and abstracts the communication between dApps and wa
 
 Developers that plan to develop complex smart contract interactions can use [Taquito](https://github.com/ecadlabs/taquito) with the `BeaconWallet`, which uses this SDK under the hood, but provides helpful methods to interact with contracts.
 
-Besides this Typescript SDK, we also provide SDKs for native iOS and Android wallets:
+Besides this Typescript SDK, we also provide SDKs for native iOS and Android Wallets:
 
 - [Beacon Android SDK (Kotlin)](https://github.com/airgap-it/beacon-android-sdk)
 - [Beacon iOS SDK (Swift)](https://github.com/airgap-it/beacon-ios-sdk)
@@ -33,12 +33,12 @@ npm i --save @airgap/beacon-sdk
 
 ## Upgrading from v1 to v2
 
-There are some breaking changes from a developer perspective, but most of the changes are internal, specifically in the communication protocol between dApps and Extensions / Wallets. All major wallets that support beacon have been updated to support both v1 and v2 DApps.
+Beacon SDK v2 introduces some some breaking changes from a developer perspective, most of the changes are internal, specifically in the communication protocol between dApps and Extensions/Wallets. All major Wallets that support Beacon (tzip-10) have been updated to support both v1 and v2 DApps.
 
 We highly encourage developers to upgrade to v2. Besides stability improvements, the most notable new features are:
 
 - Support for multiple browser extensions (eg. Thanos and Beacon Extension)
-- Support for mobile, browser and desktop wallets
+- Support for mobile, browser and desktop Wallets
 - Mobile support via Deeplinking
 - Secure and encrypted communication between DApp and Browser Extension
 
