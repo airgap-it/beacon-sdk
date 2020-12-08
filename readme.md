@@ -58,6 +58,8 @@ client
   .catch((error) => console.log(error))
 ```
 
+For a more complete example, take a look at the `example-dapp.html` file.
+
 ## Example Wallet integration
 
 ```ts
@@ -85,6 +87,8 @@ client
   .catch((error) => console.error('connect error', error))
 ```
 
+For a more complete example, take a look at the `example-wallet.html` file.
+
 ## Development
 
 ```
@@ -93,4 +97,4 @@ $ npm run build
 $ npm run test
 ```
 
-Once the SDK is built, you can open the `test.html` file in your browser and try out the basic functionality. To support browser extensions as well, the file should be viewed over a webserver. You can easily start one with `python -m SimpleHTTPServer 8000` and then open the file with `http://localhost:8000/test.html`.
+Once the SDK is built, you can open the `example-dapp.html` file in your browser and try out the basic functionality. To support browser extensions as well, the file should be viewed over a webserver. You can easily start one with `python -m SimpleHTTPServer 8000` and then open the file with `http://localhost:8000/example-dapp.html`.

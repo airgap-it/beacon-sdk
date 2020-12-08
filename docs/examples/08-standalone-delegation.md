@@ -8,4 +8,4 @@ To try this example, you can copy and paste the following snippet into a local f
 
 > Please note: Adblockers sometimes block requests from CDNs, so you might have to host the `walletbeacon.min.js` yourself.
 
-<<< @/src/examples/test.html
+<<< @/src/examples/example-dapp.html

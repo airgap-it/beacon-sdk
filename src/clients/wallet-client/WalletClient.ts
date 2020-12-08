@@ -24,7 +24,7 @@ import { AcknowledgeResponseInput } from '../../types/beacon/messages/BeaconResp
 import { getSenderId } from '../../utils/get-sender-id'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { ExposedPromise } from '../../utils/exposed-promise'
-import { ExtendedPeerInfo } from '../../types/PeerInfo'
+import { ExtendedPeerInfo, PeerInfo } from '../../types/PeerInfo'
 
 /**
  * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible
@@ -85,7 +85,7 @@ export class WalletClient extends Client {
         )
 
         if (peer) {
-          await transport.removePeer(peer)
+          await this.removePeer(peer as any)
         }
 
         return
@@ -190,6 +190,19 @@ export class WalletClient extends Client {
 
   public async removeAllPermissions(): Promise<void> {
     return this.permissionManager.removeAllPermissions()
+  }
+
+  /**
+   * Add a new peer to the known peers
+   * @param peer The new peer to add
+   */
+  public async addPeer(peer: PeerInfo): Promise<void> {
+    const extendedPeer: ExtendedPeerInfo = {
+      ...peer,
+      senderId: await getSenderId(peer.publicKey)
+    }
+
+    return (await this.transport).addPeer(extendedPeer)
   }
 
   public async removePeer(

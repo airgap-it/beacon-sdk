@@ -182,8 +182,7 @@ describe(`P2PTransport`, () => {
 
     await transport.send(message, pairingResponse)
 
-    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
-    expect(getPeersStub.firstCall.args.length, 'getPeersStub').to.equal(0)
+    expect(getPeersStub.callCount, 'getPeersStub').to.equal(0)
     expect(sendMessageStub.callCount, 'sendMessageStub').to.equal(1)
     expect(sendMessageStub.firstCall.args[0], 'sendMessageStub').to.equal(message)
     expect(sendMessageStub.firstCall.args[1], 'sendMessageStub').to.equal(pairingResponse)
