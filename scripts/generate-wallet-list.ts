@@ -36,14 +36,14 @@ export const webList: WebApp[] = [
 ]
 
 export const desktopList: App[] = [
-  {
-    name: 'Galleon',
-    shortName: 'Galleon',
-    color: '',
-    logo: 'desktop-galleon.png',
-    universalLink: 'https://cryptonomic.tech',
-    deepLink: 'galleon://'
-  }
+  // {
+  //   name: 'Galleon',
+  //   shortName: 'Galleon',
+  //   color: '',
+  //   logo: 'desktop-galleon.png',
+  //   universalLink: 'https://cryptonomic.tech',
+  //   deepLink: 'galleon://'
+  // }
 ]
 
 export const iosList: App[] = [
