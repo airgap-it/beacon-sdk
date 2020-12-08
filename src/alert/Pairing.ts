@@ -138,23 +138,29 @@ export class Pairing {
           title: 'Browser Extensions',
           type: WalletType.EXTENSION,
           wallets: [
-            ...availableExtensions.map((app) => ({
-              name: app.name,
-              logo: app.iconUrl ?? extensionList.find((ext) => ext.id === app.id)?.logo,
-              enabled: true,
-              clickHandler(): void {
-                if (postmessageSyncCode) {
-                  const message: ExtensionMessage<string> = {
-                    target: ExtensionMessageTarget.EXTENSION,
-                    payload: postmessageSyncCode,
-                    targetId: app.id
+            ...availableExtensions.map((app) => {
+              const ext = extensionList.find((extEl) => extEl.id === app.id)
+
+              return {
+                name: app.name ?? ext?.name,
+                logo: app.iconUrl ?? ext?.logo,
+                shortName: app.shortName ?? ext?.shortName,
+                color: app.color ?? ext?.color,
+                enabled: true,
+                clickHandler(): void {
+                  if (postmessageSyncCode) {
+                    const message: ExtensionMessage<string> = {
+                      target: ExtensionMessageTarget.EXTENSION,
+                      payload: postmessageSyncCode,
+                      targetId: app.id
+                    }
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    myWindow.postMessage(message as any, window.location.origin)
                   }
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  myWindow.postMessage(message as any, window.location.origin)
+                  statusUpdateHandler(WalletType.EXTENSION, this)
                 }
-                statusUpdateHandler(WalletType.EXTENSION, this)
               }
-            })),
+            }),
             ...extensionList
               .filter((app) => defaultExtensions.some((extId) => extId === app.id))
               .map((app) => ({
