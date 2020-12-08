@@ -1,26 +1,35 @@
-import { Storage, StorageKey, P2PPairInfo } from '..'
-import { StorageManager } from './StorageManager'
+import { Storage, StorageKey, StorageKeyReturnType } from '..'
+import { StorageManager, ArrayElem } from './StorageManager'
 
-export class PeerManager {
-  private readonly storageManager: StorageManager<StorageKey.TRANSPORT_P2P_PEERS>
+/**
+ * The PeerManager provides CRUD functionality for peer entities and persists them to the provided storage.
+ */
+export class PeerManager<
+  T extends
+    | StorageKey.TRANSPORT_P2P_PEERS_DAPP
+    | StorageKey.TRANSPORT_P2P_PEERS_WALLET
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
+> {
+  private readonly storageManager: StorageManager<T>
 
-  constructor(storage: Storage) {
-    this.storageManager = new StorageManager(storage, StorageKey.TRANSPORT_P2P_PEERS)
+  constructor(storage: Storage, key: T) {
+    this.storageManager = new StorageManager(storage, key)
   }
 
   public async hasPeer(publicKey: string): Promise<boolean> {
     return (await this.getPeer(publicKey)) ? true : false
   }
 
-  public async getPeers(): Promise<P2PPairInfo[]> {
+  public async getPeers(): Promise<StorageKeyReturnType[T]> {
     return this.storageManager.getAll()
   }
 
-  public async getPeer(publicKey: string): Promise<P2PPairInfo | undefined> {
+  public async getPeer(publicKey: string): Promise<ArrayElem<StorageKeyReturnType[T]> | undefined> {
     return this.storageManager.getOne((peer) => peer.publicKey === publicKey)
   }
 
-  public async addPeer(peerInfo: P2PPairInfo): Promise<void> {
+  public async addPeer(peerInfo: ArrayElem<StorageKeyReturnType[T]>): Promise<void> {
     return this.storageManager.addOne(peerInfo, (peer) => peer.publicKey === peerInfo.publicKey)
   }
 

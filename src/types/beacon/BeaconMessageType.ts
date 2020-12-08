@@ -6,5 +6,8 @@ export enum BeaconMessageType {
   PermissionResponse = 'permission_response',
   SignPayloadResponse = 'sign_payload_response',
   OperationResponse = 'operation_response',
-  BroadcastResponse = 'broadcast_response'
+  BroadcastResponse = 'broadcast_response',
+  Acknowledge = 'acknowledge',
+  Disconnect = 'disconnect',
+  Error = 'error'
 }

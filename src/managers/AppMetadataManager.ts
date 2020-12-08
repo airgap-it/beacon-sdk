@@ -1,6 +1,9 @@
 import { Storage, StorageKey, AppMetadata } from '..'
 import { StorageManager } from './StorageManager'
 
+/**
+ * The AppMetadataManager provides CRUD functionality for app-metadata entities and persists them to the provided storage.
+ */
 export class AppMetadataManager {
   private readonly storageManager: StorageManager<StorageKey.APP_METADATA_LIST>
 
@@ -12,28 +15,28 @@ export class AppMetadataManager {
     return this.storageManager.getAll()
   }
 
-  public async getAppMetadata(beaconId: string): Promise<AppMetadata | undefined> {
+  public async getAppMetadata(senderId: string): Promise<AppMetadata | undefined> {
     return this.storageManager.getOne(
-      (appMetadata: AppMetadata) => appMetadata.beaconId === beaconId
+      (appMetadata: AppMetadata) => appMetadata.senderId === senderId
     )
   }
 
   public async addAppMetadata(appMetadata: AppMetadata): Promise<void> {
     return this.storageManager.addOne(
       appMetadata,
-      (appMetadataElement: AppMetadata) => appMetadataElement.beaconId === appMetadata.beaconId
+      (appMetadataElement: AppMetadata) => appMetadataElement.senderId === appMetadata.senderId
     )
   }
 
-  public async removeAppMetadata(beaconId: string): Promise<void> {
+  public async removeAppMetadata(senderId: string): Promise<void> {
     return this.storageManager.remove(
-      (appMetadata: AppMetadata) => appMetadata.beaconId === beaconId
+      (appMetadata: AppMetadata) => appMetadata.senderId === senderId
     )
   }
 
-  public async removeAppMetadatas(beaconIds: string[]): Promise<void> {
+  public async removeAppMetadatas(senderIds: string[]): Promise<void> {
     return this.storageManager.remove((appMetadata: AppMetadata) =>
-      beaconIds.includes(appMetadata.beaconId)
+      senderIds.includes(appMetadata.senderId)
     )
   }
 

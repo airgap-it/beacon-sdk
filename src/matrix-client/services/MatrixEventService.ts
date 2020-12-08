@@ -24,11 +24,20 @@ export interface MatrixSyncOptions {
   pollingTimeout?: number
 }
 
+/**
+ * A service to help with matrix event management
+ */
 export class MatrixEventService {
   private readonly cachedPromises: Map<CacheKeys, Promise<any>> = new Map()
 
   constructor(private readonly httpClient: MatrixHttpClient) {}
 
+  /**
+   * Get the latest state from the matrix node
+   *
+   * @param accessToken
+   * @param options
+   */
   public async sync(accessToken: string, options?: MatrixSyncOptions): Promise<MatrixSyncResponse> {
     return this.withCache('sync', () =>
       this.httpClient.get<MatrixSyncResponse>(
@@ -42,6 +51,14 @@ export class MatrixEventService {
     )
   }
 
+  /**
+   * Send a message to a room
+   *
+   * @param accessToken
+   * @param room
+   * @param content
+   * @param txnId
+   */
   public async sendMessage(
     accessToken: string,
     room: MatrixRoom,
@@ -61,11 +78,21 @@ export class MatrixEventService {
     )
   }
 
+  /**
+   * Schedules an event to be sent to the node
+   *
+   * @param event
+   */
   public scheduleEvent(event: MatrixScheduledEvent<any>) {
     // TODO: actual scheduling
     this.sendEvent(event)
   }
 
+  /**
+   * Send an event to the matrix node
+   *
+   * @param scheduledEvent
+   */
   public async sendEvent(scheduledEvent: MatrixScheduledEvent<any>): Promise<void> {
     const { room, type, txnId, content, accessToken } = scheduledEvent
 
@@ -85,6 +112,12 @@ export class MatrixEventService {
     }
   }
 
+  /**
+   * Check the cache when interacting with the Matrix node, if there is an already ongoing call for the specified key, return its promise instead of duplicating the call.
+   *
+   * @param key
+   * @param promiseProvider
+   */
   private withCache<T>(key: CacheKeys, promiseProvider: () => Promise<T>): Promise<T> {
     let promise = this.cachedPromises.get(key)
 

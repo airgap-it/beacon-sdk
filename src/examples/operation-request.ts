@@ -1,14 +1,9 @@
-import {
-  TezosOperationType,
-  DAppClient,
-  TezosTransactionOperation,
-  BeaconErrorMessage,
-  OperationResponseOutput
-} from '..' // Replace '..' with '@airgap/beacon-sdk'
+import { TezosOperationType, DAppClient, ErrorResponse, OperationResponseOutput } from '..' // Replace '..' with '@airgap/beacon-sdk'
+import { PartialTezosTransactionOperation } from '../types/tezos/PartialTezosOperation'
 
 const client = new DAppClient({ name: 'My Sample DApp' })
 
-const operation: Partial<TezosTransactionOperation> = {
+const operation: PartialTezosTransactionOperation = {
   kind: TezosOperationType.TRANSACTION,
   amount: '1234567',
   destination: 'tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ'
@@ -21,4 +16,4 @@ client
   .then((response: OperationResponseOutput) => {
     console.log('transaction hash', response.transactionHash)
   })
-  .catch((operationError: BeaconErrorMessage) => console.error(operationError))
+  .catch((operationError: ErrorResponse) => console.error(operationError))

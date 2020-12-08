@@ -1,7 +1,7 @@
 import { StorageKey, Storage, StorageKeyReturnType } from '..'
 
 /** Type workaround for https://github.com/Microsoft/TypeScript/issues/7294#issuecomment-465794460 */
-type ArrayElem<A> = A extends (infer Elem)[] ? Elem : never
+export type ArrayElem<A> = A extends (infer Elem)[] ? Elem : never
 
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 function fixArrayType<T>(array: T): ArrayElem<T>[] {
@@ -10,12 +10,18 @@ function fixArrayType<T>(array: T): ArrayElem<T>[] {
 }
 /* eslint-enable prefer-arrow/prefer-arrow-functions */
 
+/**
+ * The StorageManager provides CRUD functionality for specific entities and persists them to the provided storage.
+ */
 export class StorageManager<
   T extends
     | StorageKey.ACCOUNTS
     | StorageKey.APP_METADATA_LIST
     | StorageKey.PERMISSION_LIST
-    | StorageKey.TRANSPORT_P2P_PEERS
+    | StorageKey.TRANSPORT_P2P_PEERS_DAPP
+    | StorageKey.TRANSPORT_P2P_PEERS_WALLET
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
 > {
   private readonly storage: Storage
   private readonly storageKey: T

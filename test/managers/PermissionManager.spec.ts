@@ -12,8 +12,8 @@ const expect = chai.expect
 
 const permission1: PermissionInfo = {
   accountIdentifier: 'a1',
-  beaconId: 'id1',
-  appMetadata: { beaconId: 'id1', name: 'name1' },
+  senderId: 'id1',
+  appMetadata: { senderId: 'id1', name: 'name1' },
   website: 'website1',
   address: 'tz1',
   publicKey: 'publicKey1',
@@ -24,8 +24,8 @@ const permission1: PermissionInfo = {
 
 const permission2: PermissionInfo = {
   accountIdentifier: 'a2',
-  beaconId: 'id2',
-  appMetadata: { beaconId: 'id2', name: 'name2' },
+  senderId: 'id2',
+  appMetadata: { senderId: 'id2', name: 'name2' },
   website: 'website2',
   address: 'tz2',
   publicKey: 'publicKey2',
@@ -36,8 +36,8 @@ const permission2: PermissionInfo = {
 
 const permission3: PermissionInfo = {
   accountIdentifier: 'a3',
-  beaconId: 'id3',
-  appMetadata: { beaconId: 'id3', name: 'name3' },
+  senderId: 'id3',
+  appMetadata: { senderId: 'id3', name: 'name3' },
   website: 'website3',
   address: 'tz3',
   publicKey: 'publicKey3',

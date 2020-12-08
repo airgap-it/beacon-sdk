@@ -8,15 +8,30 @@ The `beacon-sdk` should allow developers to integrate this functionality with mi
 
 For more information on how to integrate the `beacon-sdk` in your DApp, read our [Getting Started](/beacon/02.getting-started-dapp.html) guide.
 
+To get started, install the beacon-sdk from NPM:
+
+`npm install --save @airgap/beacon-sdk`
+
+## Upgrading from v1 to v2
+
+Beacon SDK v2 introduces some some breaking changes from a developer perspective, most of the changes are internal, specifically in the communication protocol between dApps and Extensions/Wallets. All major Wallets that support Beacon (tzip-10) have been updated to support both v1 and v2 DApps.
+
+We highly encourage developers to upgrade to v2. Besides stability improvements, the most notable new features are:
+
+- Support for multiple browser extensions (eg. Thanos and Beacon Extension)
+- Support for mobile, browser and desktop Wallets
+- Mobile support via Deeplinking
+- Secure and encrypted communication between DApp and Browser Extension
+
 ## DApps
 
 - [WalletBeacon.io](https://walletbeacon.io) [Source Code](https://github.com/airgap-it/beacon-example-dapp) is the high-level explanation of beacon and is itself a DApp.
 - [Beacon Example](https://airgap-it.github.io/beacon-vue-example/) [Source Code](https://github.com/airgap-it/beacon-vue-example) is a small sample application built for the sole purpose of showcasing beacon integration.
 
-## Extensions
+## Browser Extensions
 
-- [Beacon Extension](https://chrome.google.com/webstore/detail/gpfndedineagiepkpinficbcbbgjoenn/) is the official extension by the beacon team. It is the most feature complete way of interacting with Beacon DApps at the moment.
+- [Beacon Extension](https://chrome.google.com/webstore/detail/gpfndedineagiepkpinficbcbbgjoenn/) is a reference implementation of a Browser Extension built by the team behind the Beacon SDK.
 
 ## Mobile Wallets
 
-- [AirGap Wallet](https://airgap.it/) is a mobile application that supports the beacon.
+- [AirGap Wallet](https://airgap.it/) is a mobile application that supports Beacon.

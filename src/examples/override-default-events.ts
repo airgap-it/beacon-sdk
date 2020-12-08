@@ -1,11 +1,11 @@
 import {
   BeaconEvent,
-  BeaconErrorMessage,
+  ErrorResponse,
   DAppClient,
   PermissionScope,
   PermissionResponseOutput,
-  P2PPairInfo,
-  defaultEventCallbacks
+  defaultEventCallbacks,
+  P2PPairingRequest
 } from '..' // Replace '..' with '@airgap/beacon-sdk'
 
 const client = new DAppClient({
@@ -15,7 +15,7 @@ const client = new DAppClient({
       // Every BeaconEvent can be overriden by passing a handler here.
       // The default will not be executed anymore. To keep the default,
       // you will have to call it again.
-      handler: async (syncInfo: P2PPairInfo): Promise<void> => {
+      handler: async (syncInfo: P2PPairingRequest): Promise<void> => {
         await defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN(syncInfo) // Add this if you want to keep the default behaviour.
         console.log('syncInfo', syncInfo)
       }
@@ -36,4 +36,4 @@ client
   .then((permissionResponse: PermissionResponseOutput) => {
     console.log('permissions', permissionResponse)
   })
-  .catch((permissionError: BeaconErrorMessage) => console.error(permissionError))
+  .catch((permissionError: ErrorResponse) => console.error(permissionError))

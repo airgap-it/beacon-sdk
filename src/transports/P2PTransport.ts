@@ -9,42 +9,31 @@ import {
   TransportType,
   P2PCommunicationClient,
   Origin,
-  P2PPairInfo
+  P2PPairingRequest
 } from '..'
-import { BeaconEventHandler, BeaconEvent } from '../events'
 import { PeerManager } from '../managers/PeerManager'
+import { ExtendedP2PPairingResponse } from '../types/P2PPairingResponse'
 
-const logger = new Logger('Transport')
+const logger = new Logger('P2PTransport')
 
-export class P2PTransport extends Transport {
+export class P2PTransport<
+  T extends P2PPairingRequest | ExtendedP2PPairingResponse,
+  K extends StorageKey.TRANSPORT_P2P_PEERS_DAPP | StorageKey.TRANSPORT_P2P_PEERS_WALLET
+> extends Transport<T, K, P2PCommunicationClient> {
   public readonly type: TransportType = TransportType.P2P
-  private readonly events: BeaconEventHandler
-
-  private readonly isDapp: boolean = true
-  private readonly storage: Storage
-  private readonly keyPair: sodium.KeyPair
-
-  private readonly client: P2PCommunicationClient
-
-  // Make sure we only listen once
-  private listeningForChannelOpenings: boolean = false
-
-  private readonly peerManager: PeerManager
 
   constructor(
     name: string,
     keyPair: sodium.KeyPair,
     storage: Storage,
-    events: BeaconEventHandler,
-    isDapp: boolean
+    matrixNodes: string[],
+    storageKey: K
   ) {
-    super(name)
-    this.keyPair = keyPair
-    this.storage = storage
-    this.events = events
-    this.isDapp = isDapp
-    this.client = new P2PCommunicationClient(this.name, this.keyPair, 1, false)
-    this.peerManager = new PeerManager(storage)
+    super(
+      name,
+      new P2PCommunicationClient(name, keyPair, 1, storage, matrixNodes, false),
+      new PeerManager<K>(storage, storageKey)
+    )
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -52,115 +41,37 @@ export class P2PTransport extends Transport {
   }
 
   public async connect(): Promise<void> {
+    if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
+      return
+    }
+
     logger.log('connect')
     this._isConnected = TransportStatus.CONNECTING
 
     await this.client.start()
 
-    const knownPeers = await this.peerManager.getPeers()
+    const knownPeers = await this.getPeers()
 
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
-      await Promise.all(connectionPromises)
-    } else {
-      if (this.isDapp) {
-        await this.connectNewPeer()
-      }
+      Promise.all(connectionPromises).catch(console.log)
     }
+
+    await this.startOpenChannelListener()
 
     await super.connect()
   }
 
-  public async reconnect(): Promise<void> {
-    if (this.isDapp) {
-      await this.connectNewPeer()
-    }
+  public async startOpenChannelListener(): Promise<void> {
+    //
   }
 
-  public async connectNewPeer(): Promise<void> {
-    logger.log('connectNewPeer')
-
-    return new Promise(async (resolve) => {
-      if (!this.listeningForChannelOpenings) {
-        await this.client.listenForChannelOpening(async (publicKey) => {
-          logger.log('connectNewPeer', `new publicKey ${publicKey}`)
-
-          const newPeer = { name: '', publicKey, relayServer: '' }
-
-          if (!(await this.peerManager.hasPeer(publicKey))) {
-            await this.peerManager.addPeer(newPeer)
-            await this.listen(publicKey)
-          }
-
-          this.events
-            .emit(BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS, newPeer)
-            .catch((emitError) => console.warn(emitError))
-
-          resolve()
-        })
-        this.listeningForChannelOpenings = true
-      }
-
-      this.events
-        .emit(BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN, await this.client.getHandshakeInfo())
-        .catch((emitError) => console.warn(emitError))
-    })
+  public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
+    return this.client.getPairingRequestInfo()
   }
 
-  public async getPeers(): Promise<P2PPairInfo[]> {
-    return this.peerManager.getPeers()
-  }
-
-  public async addPeer(newPeer: P2PPairInfo): Promise<void> {
-    if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
-      logger.log('addPeer', newPeer)
-      await this.peerManager.addPeer({
-        name: newPeer.name,
-        publicKey: newPeer.publicKey,
-        relayServer: newPeer.relayServer
-      })
-
-      await this.client.openChannel(newPeer.publicKey, newPeer.relayServer) // TODO: Should we have a confirmation here?
-      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
-    } else {
-      logger.log('addPeer', 'peer already added, skipping', newPeer)
-    }
-  }
-
-  public async removePeer(peerToBeRemoved: P2PPairInfo): Promise<void> {
-    logger.log('removePeer', peerToBeRemoved)
-    await this.peerManager.removePeer(peerToBeRemoved.publicKey)
-    if (this.client) {
-      await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
-    }
-  }
-
-  public async removeAllPeers(): Promise<void> {
-    logger.log('removeAllPeers')
-    await this.peerManager.removeAllPeers()
-
-    await this.client.unsubscribeFromEncryptedMessages()
-  }
-
-  public async send(message: string, recipient?: string): Promise<void> {
-    const knownPeers = await this.storage.get(StorageKey.TRANSPORT_P2P_PEERS)
-
-    if (recipient) {
-      if (!knownPeers.some((peer) => peer.publicKey === recipient)) {
-        throw new Error('Recipient unknown')
-      }
-
-      return this.client.sendMessage(recipient, message)
-    } else {
-      // A broadcast request has to be sent everywhere.
-      const promises = knownPeers.map((peer) => this.client.sendMessage(peer.publicKey, message))
-
-      return (await Promise.all(promises))[0]
-    }
-  }
-
-  private async listen(publicKey: string): Promise<void> {
+  public async listen(publicKey: string): Promise<void> {
     await this.client
       .listenForEncryptedMessage(publicKey, (message) => {
         const connectionContext: ConnectionContext = {

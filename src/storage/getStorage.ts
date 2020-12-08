@@ -3,6 +3,9 @@ import { ChromeStorage, Storage, LocalStorage } from '..'
 
 const logger = new Logger('STORAGE')
 
+/**
+ * Get a supported storage on this platform
+ */
 export const getStorage: () => Promise<Storage> = async (): Promise<Storage> => {
   if (await ChromeStorage.isSupported()) {
     logger.log('getStorage', 'USING CHROME STORAGE')

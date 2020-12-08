@@ -1,0 +1,218 @@
+:root {
+  --animation-duration: 300ms;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animated {
+  animation-duration: var(--animation-duration);
+  animation-fill-mode: both;
+}
+
+.fadeIn {
+  animation-name: fadeIn;
+}
+
+.fadeOut {
+  animation-name: fadeOut;
+}
+
+.beacon-modal__wrapper {
+  position: relative;
+  transform: translateY(-50%);
+  top: 50%;
+  display: inline-block;
+  z-index: 2147483000;
+  max-width: 500px;
+  width: 100%;
+  padding: 24px;
+}
+
+.beacon-modal__base,
+.beacon-modal__close__wrapper {
+  background: #fff;
+  box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.1);
+}
+
+.beacon-modal__base {
+  margin: 0 auto;
+  border-radius: 32px;
+  overflow: hidden;
+}
+
+.beacon-modal__header {
+  padding: 16px 0;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.beacon-modal__headerLogo {
+  width: 100%;
+  max-width: 320px;
+  margin: 20px auto;
+  height: 100%;
+}
+
+.beacon-alert__text,
+.beacon-alert__title,
+.beacon-selection__name,
+.beacon-list__title,
+p,
+button {
+  font-family: Roboto, Helvetica, sans-serif;
+}
+
+a,
+button {
+  cursor: pointer;
+}
+
+.beacon-modal__close__wrapper {
+  position: absolute;
+  top: 44px;
+  right: 24px;
+  z-index: 10000;
+  cursor: pointer;
+  border-radius: 100%;
+}
+
+.beacon-modal__close__icon {
+  width: 16px;
+  height: 16px;
+  position: relative;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(45deg);
+  margin: 8px;
+}
+
+.beacon-modal__close__line1 {
+  position: absolute;
+  width: 90%;
+  border: 1px solid #000;
+}
+
+.beacon-modal__close__line2 {
+  position: absolute;
+  width: 90%;
+  border: 1px solid #000;
+  transform: rotate(90deg);
+}
+
+.beacon-alert__base {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2147482999;
+  background-color: rgb(17 17 17 / 0.84);
+  text-align: center;
+}
+
+.beacon-alert__title {
+  text-align: center;
+}
+
+.beacon-alert__text,
+.beacon-alert__title {
+  margin: 0 auto;
+  padding: 0 0 24px;
+}
+
+.margin__bottom {
+  margin-bottom: 16px;
+}
+
+.beacon-alert__title {
+  color: #7c828b;
+  font-size: 18px;
+}
+
+.beacon-alert__text {
+  color: #000;
+  font-size: 14px;
+}
+
+.beacon-modal__button,
+.beacon-modal__button--outline {
+  height: 36px;
+  font-size: 14px;
+  letter-spacing: 0.84px;
+  margin-bottom: 4px;
+  margin-inline-end: 2px;
+  margin-inline-start: 2px;
+  margin-left: 2px;
+  margin-right: 2px;
+  margin-top: 4px;
+  padding-inline-end: 15.4px;
+  padding-inline-start: 15.4px;
+  padding-left: 15.4px;
+  padding-right: 15.4px;
+  overflow-wrap: break-word;
+  pointer-events: auto;
+  text-align: center;
+  border: 2px solid #3880ff;
+  border-radius: 4px;
+}
+
+.beacon-modal__button {
+  background: #3880ff;
+  color: #fff;
+}
+
+.beacon-modal__button--outline {
+  background: #fff;
+  color: #3880ff;
+}
+
+.beacon-alert__image {
+  width: 200px;
+  height: 200px;
+  box-sizing: border-box;
+  box-shadow: 0 10px 20px 0 rgba(17, 17, 17, 0.12);
+  border: 1px solid rgba(17, 17, 17, 0.04);
+  border-radius: 16px;
+}
+.connect__btn {
+  margin: 24px 0;
+  width: 100%;
+}
+
+.beacon-modal__content {
+  padding: 24px;
+}
+
+#beacon-switch {
+  margin-top: 24px;
+}
+
+#beacon-title {
+  margin: 0 0 24px;
+}
+
+a {
+  text-decoration: none;
+}

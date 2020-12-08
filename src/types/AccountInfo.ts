@@ -5,7 +5,7 @@ export type AccountIdentifier = string
 
 export interface AccountInfo extends PermissionEntity {
   accountIdentifier: AccountIdentifier
-  beaconId: string
+  senderId: string
   origin: {
     type: Origin
     id: string

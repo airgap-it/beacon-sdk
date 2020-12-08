@@ -1,3 +1,4 @@
+import { Storage } from '../storage/Storage'
 import { MatrixClientStore } from './MatrixClientStore'
 import { MatrixHttpClient } from './MatrixHttpClient'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
@@ -10,6 +11,7 @@ import { MatrixClientEventType, MatrixClientEvent } from './models/MatrixClientE
 
 interface MatrixClientOptions {
   baseUrl: string
+  storage: Storage
 }
 
 interface MatrixLoginConfig {
@@ -20,9 +22,17 @@ interface MatrixLoginConfig {
 
 const MAX_POLLING_RETRIES = 3
 
+/**
+ * The matrix client used to connect to the matrix network
+ */
 export class MatrixClient {
+  /**
+   * Create a matrix client based on the options provided
+   *
+   * @param config
+   */
   public static create(config: MatrixClientOptions): MatrixClient {
-    const store = MatrixClientStore.createLocal()
+    const store = new MatrixClientStore(config.storage)
     const eventEmitter = new MatrixClientEventEmitter()
 
     const httpClient = new MatrixHttpClient(config.baseUrl)
@@ -34,18 +44,27 @@ export class MatrixClient {
     return new MatrixClient(store, eventEmitter, accountService, roomService, eventService)
   }
 
+  /**
+   * Return all the rooms we are currently part of
+   */
   public get joinedRooms(): MatrixRoom[] {
     return Object.values(this.store.get('rooms')).filter(
       (room) => room.status === MatrixRoomStatus.JOINED
     )
   }
 
+  /**
+   * Return all the rooms to which we have received invitations
+   */
   public get invitedRooms(): MatrixRoom[] {
     return Object.values(this.store.get('rooms')).filter(
       (room) => room.status === MatrixRoomStatus.INVITED
     )
   }
 
+  /**
+   * Return all the rooms that we left
+   */
   public get leftRooms(): MatrixRoom[] {
     return Object.values(this.store.get('rooms')).filter(
       (room) => room.status === MatrixRoomStatus.LEFT
@@ -64,21 +83,26 @@ export class MatrixClient {
     }, 'rooms')
   }
 
+  /**
+   * Initiate the connection to the matrix node and log in
+   *
+   * @param user
+   */
   public async start(user: MatrixLoginConfig): Promise<void> {
     const response = await this.userService.login(user.id, user.password, user.deviceId)
 
-    this.store.update({
+    await this.store.update({
       accessToken: response.access_token
     })
 
-    return new Promise((resolve, reject) => {
-      this.poll(
+    return new Promise(async (resolve, reject) => {
+      await this.poll(
         0,
-        (pollingResponse: MatrixSyncResponse) => {
+        async (pollingResponse: MatrixSyncResponse) => {
           if (!this.store.get('isRunning')) {
             resolve()
           }
-          this.store.update({
+          await this.store.update({
             isRunning: true,
             syncToken: pollingResponse.next_batch,
             pollingTimeout: 30000,
@@ -86,11 +110,11 @@ export class MatrixClient {
             rooms: MatrixRoom.fromSync(pollingResponse.rooms)
           })
         },
-        (error) => {
+        async (error) => {
           if (!this.store.get('isRunning')) {
             reject(error)
           }
-          this.store.update({
+          await this.store.update({
             isRunning: false,
             pollingRetries: this.store.get('pollingRetries') + 1
           })
@@ -99,6 +123,12 @@ export class MatrixClient {
     })
   }
 
+  /**
+   * Subscribe to new matrix events
+   *
+   * @param event
+   * @param listener
+   */
   public subscribe<T extends MatrixClientEventType>(
     event: T,
     listener: (event: MatrixClientEvent<T>) => void
@@ -106,6 +136,12 @@ export class MatrixClient {
     this.eventEmitter.on(event, listener)
   }
 
+  /**
+   * Unsubscribe from matrix events
+   *
+   * @param event
+   * @param listener
+   */
   public unsubscribe(
     event: MatrixClientEventType,
     listener?: (event: MatrixClientEvent<any>) => void
@@ -121,6 +157,11 @@ export class MatrixClient {
     return this.store.getRoom(id)
   }
 
+  /**
+   * Create a private room with the supplied members
+   *
+   * @param members Members that will be in the room
+   */
   public async createTrustedPrivateRoom(...members: string[]): Promise<string> {
     return this.requiresAuthorization('createRoom', async (accessToken) => {
       const response = await this.roomService.createRoom(accessToken, {
@@ -133,6 +174,12 @@ export class MatrixClient {
     })
   }
 
+  /**
+   * Invite user to rooms
+   *
+   * @param user The user to be invited
+   * @param roomsOrIds The rooms the user will be invited to
+   */
   public async inviteToRooms(user: string, ...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
     await this.requiresAuthorization('invite', (accessToken) =>
       Promise.all(
@@ -146,6 +193,11 @@ export class MatrixClient {
     )
   }
 
+  /**
+   * Join rooms
+   *
+   * @param roomsOrIds
+   */
   public async joinRooms(...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
     await this.requiresAuthorization('join', (accessToken) =>
       Promise.all(
@@ -158,11 +210,17 @@ export class MatrixClient {
     )
   }
 
+  /**
+   * Send a text message
+   *
+   * @param roomOrId
+   * @param message
+   */
   public async sendTextMessage(roomOrId: string | MatrixRoom, message: string): Promise<void> {
     try {
       await this.requiresAuthorization('send', async (accessToken) => {
         const room = this.store.getRoom(roomOrId)
-        const txnId = this.createTxnId()
+        const txnId = await this.createTxnId()
 
         return this.eventService.sendMessage(
           accessToken,
@@ -179,15 +237,25 @@ export class MatrixClient {
     }
   }
 
-  private poll(
+  /**
+   * Poll the server to get the latest data and get notified of changes
+   *
+   * @param interval
+   * @param onSyncSuccess
+   * @param onSyncError
+   */
+  private async poll(
     interval: number,
     onSyncSuccess: (response: MatrixSyncResponse) => void,
     onSyncError: (error: unknown) => void
-  ): void {
+  ): Promise<void> {
     const store = this.store
     const sync = this.sync.bind(this)
 
-    const pollSync = async (): Promise<void> => {
+    const pollSync = async (
+      resolve: (value?: void | PromiseLike<void> | undefined) => void,
+      reject: (reason?: any) => void
+    ): Promise<void> => {
       let continueSyncing: boolean = false
       try {
         const response = await sync()
@@ -198,22 +266,27 @@ export class MatrixClient {
         onSyncError(error)
 
         continueSyncing = store.get('pollingRetries') < MAX_POLLING_RETRIES
-        console.warn('Could not sync:', error)
+        // console.warn('Could not sync:', error)
         if (continueSyncing) {
           console.log('Retry syncing...')
         }
       } finally {
         if (continueSyncing) {
-          setTimeout(pollSync, interval)
+          setTimeout(async () => {
+            await pollSync(resolve, reject)
+          }, interval)
         } else {
-          throw new Error(`Max polling retries exeeded: ${MAX_POLLING_RETRIES}`)
+          reject(new Error(`Max polling retries exeeded: ${MAX_POLLING_RETRIES}`))
         }
       }
     }
 
-    pollSync()
+    return new Promise(pollSync)
   }
 
+  /**
+   * Get state from server
+   */
   private async sync(): Promise<MatrixSyncResponse> {
     return this.requiresAuthorization('sync', async (accessToken) =>
       this.eventService.sync(accessToken, {
@@ -223,22 +296,33 @@ export class MatrixClient {
     )
   }
 
+  /**
+   * A helper method that makes sure an access token is provided
+   *
+   * @param name
+   * @param action
+   */
   private async requiresAuthorization<T>(
     name: string,
     action: (accessToken: string) => Promise<T>
   ): Promise<T> {
-    if (!this.store.get('accessToken')) {
+    const storedToken: string | undefined = this.store.get('accessToken')
+
+    if (!storedToken) {
       return Promise.reject(`${name} requires authorization but no access token has been provided.`)
     }
 
-    return action(this.store.get('accessToken')!)
+    return action(storedToken)
   }
 
-  private createTxnId(): string {
+  /**
+   * Create a transaction ID
+   */
+  private async createTxnId(): Promise<string> {
     const timestamp = new Date().getTime()
     const counter = this.store.get('txnNo')
 
-    this.store.update({
+    await this.store.update({
       txnNo: counter + 1
     })
 

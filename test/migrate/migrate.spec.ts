@@ -5,7 +5,7 @@ import 'mocha'
 import { FileStorage, writeLocalFile } from '../test-utils/FileStorage'
 import { NetworkType, Origin, Storage, StorageKey, SDK_VERSION } from '../../src'
 import { migrate } from '../../src/migrations/migrations'
-import { AccountInfoOld, P2PPairInfoOld } from '../../src/migrations/migrate-0.7.0'
+import { AccountInfoOld, P2PPairingRequestOld } from '../../src/migrations/migrate-0.7.0'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -62,13 +62,13 @@ describe(`Migrations`, () => {
       connectedAt: new Date()
     }
 
-    const p2pInfo1: P2PPairInfoOld = {
+    const p2pInfo1: P2PPairingRequestOld = {
       name: 'name1',
       pubKey: 'pubkey1',
       relayServer: 'relayServer1'
     }
 
-    const p2pInfo2: P2PPairInfoOld = {
+    const p2pInfo2: P2PPairingRequestOld = {
       name: 'name2',
       pubKey: 'pubkey2',
       relayServer: 'relayServer2'
@@ -76,13 +76,13 @@ describe(`Migrations`, () => {
 
     await storage.set(StorageKey.BEACON_SDK_VERSION, '0.6.0')
     await storage.set(StorageKey.ACCOUNTS, [account1, account2, account3] as any)
-    await storage.set(StorageKey.TRANSPORT_P2P_PEERS, [p2pInfo1, p2pInfo2] as any)
+    await storage.set(StorageKey.TRANSPORT_P2P_PEERS_DAPP, [p2pInfo1, p2pInfo2] as any)
 
     await migrate(storage)
 
     const storedSdkVersion = await storage.get(StorageKey.BEACON_SDK_VERSION)
     const accounts = await storage.get(StorageKey.ACCOUNTS)
-    const p2pInfos = await storage.get(StorageKey.TRANSPORT_P2P_PEERS)
+    const p2pInfos = await storage.get(StorageKey.TRANSPORT_P2P_PEERS_DAPP)
 
     expect(storedSdkVersion).to.equal(SDK_VERSION)
 

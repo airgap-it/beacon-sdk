@@ -10,7 +10,7 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document = window.document
 }
 
-let timeout: NodeJS.Timeout | undefined
+let timeout: number | undefined
 
 const getToastHTML = (config: ToastConfig): string => {
   const text = config.body
@@ -70,7 +70,7 @@ const getToastHTML = (config: ToastConfig): string => {
 
     .beacon-toast__content {
       padding: 0 0 0 16px;
-      font-family: Roboto, sans-serif;
+      font-family: Roboto, Helvetica, sans-serif;
     }
     .spinner .loader,
     .spinner .loader:after {
@@ -125,6 +125,9 @@ const getToastHTML = (config: ToastConfig): string => {
 `
 }
 
+/**
+ * Close a toast
+ */
 const closeToast = (): Promise<void> =>
   new Promise((resolve) => {
     const elm = document.getElementById('beacon-toast')
@@ -137,7 +140,7 @@ const closeToast = (): Promise<void> =>
       }
 
       elm.className = elm.className.replace('fadeIn', 'fadeOut')
-      setTimeout(() => {
+      window.setTimeout(() => {
         const wrapper = document.getElementById('beacon-toast-wrapper')
         if (wrapper) {
           document.body.removeChild(wrapper)
@@ -149,6 +152,11 @@ const closeToast = (): Promise<void> =>
     }
   })
 
+/**
+ * Create a new toast
+ *
+ * @param toastConfig Configuration of the toast
+ */
 const openToast = async (toastConfig: ToastConfig): Promise<void> => {
   const timer = toastConfig.timer
 
@@ -159,7 +167,7 @@ const openToast = async (toastConfig: ToastConfig): Promise<void> => {
   wrapper.innerHTML = getToastHTML(toastConfig)
 
   if (timer) {
-    timeout = setTimeout(async () => {
+    timeout = window.setTimeout(async () => {
       await closeToast()
     }, timer)
   }

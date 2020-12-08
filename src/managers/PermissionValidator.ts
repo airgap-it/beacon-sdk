@@ -2,6 +2,9 @@ import { BeaconMessage, BeaconMessageType, PermissionScope } from '..'
 import { PermissionEntity } from '../types/PermissionEntity'
 import { getAccountIdentifier } from '../utils/get-account-identifier'
 
+/**
+ * The PermissionValidator is used to check if permissions for a certain message type have been given
+ */
 export class PermissionValidator {
   /**
    * Check if permissions were given for a certain message type.

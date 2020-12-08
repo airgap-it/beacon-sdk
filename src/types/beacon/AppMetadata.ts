@@ -1,5 +1,5 @@
 export interface AppMetadata {
-  beaconId: string
+  senderId: string
   name: string
   icon?: string // URL
 }
