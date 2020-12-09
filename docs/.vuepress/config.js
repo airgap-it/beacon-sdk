@@ -1,5 +1,51 @@
-const getConfig = require('vuepress-bar')
-const barConfig = getConfig(`${__dirname}/..`)
+// Automatically generate the sidebar
+// const getConfig = require('vuepress-bar')
+// const barConfig = getConfig(`${__dirname}/..`)
+
+// console.log('barConfig.sidebar', barConfig.sidebar)
+
+// We need to change the order, so we take the generated output from above and customize it
+const sidebar = [
+  '',
+  {
+    title: 'Beacon',
+    children: [
+      'beacon/02.getting-started-dapp',
+      'beacon/03.getting-started-wallet',
+      'beacon/04.getting-started-extension',
+      'beacon/05.messages',
+      'beacon/06.errors',
+      'beacon/07.contracts',
+      'beacon/08.security',
+      'beacon/09.faq'
+    ]
+  },
+  'CHANGELOG',
+  {
+    title: 'Examples',
+    children: [
+      'examples/02.permission-request',
+      'examples/03.operation-request',
+      'examples/04.sign-request',
+      'examples/05.broadcast-request',
+      'examples/06.using-custom-network',
+      'examples/07-overriding-defaukt-events',
+      'examples/08-standalone-delegation'
+    ]
+  },
+  {
+    title: 'Flows',
+    children: [
+      'flows/Connection',
+      'flows/ExtensionCommunication',
+      'flows/Ledger',
+      'flows/LocalMnemonic',
+      'flows/P2PDirect',
+      'flows/P2PExtension'
+    ]
+  },
+  'supported-wallets'
+]
 
 module.exports = {
   base: '/',
@@ -15,7 +61,7 @@ module.exports = {
         target: '_blank'
       }
     ],
-    sidebar: barConfig.sidebar
+    sidebar: sidebar
   },
   plugins: [
     '@vuepress/last-updated',
