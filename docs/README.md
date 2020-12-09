@@ -28,10 +28,6 @@ We highly encourage developers to upgrade to v2. Besides stability improvements,
 - [WalletBeacon.io](https://walletbeacon.io) [Source Code](https://github.com/airgap-it/beacon-example-dapp) is the high-level explanation of beacon and is itself a DApp.
 - [Beacon Example](https://airgap-it.github.io/beacon-vue-example/) [Source Code](https://github.com/airgap-it/beacon-vue-example) is a small sample application built for the sole purpose of showcasing beacon integration.
 
-## Browser Extensions
+## Wallets
 
-- [Beacon Extension](https://chrome.google.com/webstore/detail/gpfndedineagiepkpinficbcbbgjoenn/) is a reference implementation of a Browser Extension built by the team behind the Beacon SDK.
-
-## Mobile Wallets
-
-- [AirGap Wallet](https://airgap.it/) is a mobile application that supports Beacon.
+A list of wallets with support for beacon is available [here](/supported-wallets.html).
