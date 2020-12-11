@@ -27,6 +27,8 @@ export interface AlertConfig {
   closeButtonCallback?(): void
 }
 
+let lastFocusedElement: Element | undefined | null
+
 let document: Document
 if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document = window.document
@@ -115,6 +117,9 @@ const closeAlert = (id: string): Promise<void> =>
         const wrapper = document.getElementById(`beacon-alert-wrapper-${id}`)
         if (wrapper) {
           document.body.removeChild(wrapper)
+          if (lastFocusedElement) {
+            ;(lastFocusedElement as any).focus() // set focus back to last focussed element
+          }
         }
         resolve()
       }, animationDuration)
@@ -161,6 +166,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
 
   const wrapper = document.createElement('div')
   wrapper.setAttribute('id', `beacon-alert-wrapper-${id}`)
+  wrapper.setAttribute('tabindex', `0`) // Make modal focussable
 
   const buttons: AlertButton[] = [
     ...(alertConfig.buttons?.map((button) => ({
@@ -182,6 +188,9 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   }
 
   document.body.appendChild(wrapper)
+
+  lastFocusedElement = document.activeElement // Store which element has been focussed before the alert is shown
+  wrapper.focus() // Focus alert for accessibility
 
   buttons.forEach((button: AlertButton, index) => {
     const buttonElement = document.getElementById(`beacon-alert-${id}-${index}`)
