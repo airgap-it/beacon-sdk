@@ -197,14 +197,24 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
 
   const closeButton = document.getElementById(`beacon-alert-${id}-close`)
 
+  const closeButtonClick = async (): Promise<void> => {
+    if (closeButtonCallback) {
+      closeButtonCallback()
+    }
+    await closeAlert(id)
+  }
+
   if (closeButton) {
     closeButton.addEventListener('click', async () => {
-      if (closeButtonCallback) {
-        closeButtonCallback()
-      }
-      await closeAlert(id)
+      await closeButtonClick()
     })
   }
+
+  window.addEventListener('keydown', async (event) => {
+    if (event.key === 'Escape') {
+      await closeButtonClick()
+    }
+  })
 
   if (pairingPayload) {
     await preparePairingAlert(pairingPayload)
