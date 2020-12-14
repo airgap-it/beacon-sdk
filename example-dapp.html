@@ -43,6 +43,9 @@
     <button id="reset">Reset and Refresh</button>
 
     <script>
+      // Report security violations (eg. alert HTML)
+      window.addEventListener('securitypolicyviolation', console.error.bind(console))
+
       // Initiate DAppClient
       const client = new beacon.DAppClient({
         name: 'Example DApp' // Name of the DApp
@@ -78,13 +81,18 @@
 
       // Initiate a permission request
       const requestPermission = (callback) => {
-        client.requestPermissions().then((permissions) => {
-          console.log('permissions', permissions)
-          if (callback) {
-            callback(permissions)
-          }
-          updateActiveAccount()
-        })
+        client
+          .requestPermissions()
+          .then((permissions) => {
+            console.log('permissions', permissions)
+            if (callback) {
+              callback(permissions)
+            }
+            updateActiveAccount()
+          })
+          .catch((error) => {
+            console.log('error during permission request', error)
+          })
       }
 
       // Add event listener to the button

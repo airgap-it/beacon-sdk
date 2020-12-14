@@ -457,7 +457,7 @@ export class DAppClient extends Client {
       PermissionRequest,
       PermissionResponse
     >(request).catch(async (requestError: ErrorResponse) => {
-      throw this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request, requestError)
     })
 
     // TODO: Migration code. Remove sometime after 1.0.0 release.
@@ -531,7 +531,7 @@ export class DAppClient extends Client {
       SignPayloadRequest,
       SignPayloadResponse
     >(request).catch(async (requestError: ErrorResponse) => {
-      throw this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request, requestError)
     })
 
     const { senderId, signingType, signature } = message
@@ -573,7 +573,7 @@ export class DAppClient extends Client {
     const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
-      throw this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request, requestError)
     })
 
     const { senderId, transactionHash } = message
@@ -612,7 +612,7 @@ export class DAppClient extends Client {
     const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
-      throw this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request, requestError)
     })
 
     const { senderId, transactionHash } = message
@@ -721,8 +721,6 @@ export class DAppClient extends Client {
 
       throw BeaconError.getError(beaconError.errorType)
     }
-
-    console.error('requestError', beaconError)
 
     throw beaconError
   }

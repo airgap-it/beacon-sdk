@@ -224,7 +224,11 @@ const showQrAlert = async (
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
     body: `<p></p>`,
-    pairingPayload: { p2pSyncCode: base58encoded, postmessageSyncCode: base58encoded, preferredNetwork: NetworkType.MAINNET }
+    pairingPayload: {
+      p2pSyncCode: base58encoded,
+      postmessageSyncCode: base58encoded,
+      preferredNetwork: NetworkType.MAINNET
+    }
   }
   await openAlert(alertConfig)
 }
