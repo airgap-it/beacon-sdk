@@ -36,6 +36,10 @@
     <br /><br />
     ---
     <br /><br />
+    <button id="externalInit">External Init</button>
+    <br /><br />
+    ---
+    <br /><br />
     <button id="removePeer">Remove Peer</button>
     <br /><br />
     ---
@@ -188,6 +192,20 @@
           } else {
             console.log('no peers to be removed')
           }
+        })
+      })
+
+      document.getElementById('externalInit').addEventListener('click', () => {
+        console.log('This method has to be called directly after page load to reproduce the error')
+        client.init().then(() => {
+          console.log('init done')
+          client.requestPermissions().then((permissions) => {
+            console.log('permissions', permissions)
+            if (callback) {
+              callback(permissions)
+            }
+            updateActiveAccount()
+          })
         })
       })
 
