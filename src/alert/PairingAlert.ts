@@ -60,7 +60,7 @@ export const preparePairingAlert = async (pairingPayload: {
       const altTag = `Open in ${wallet.name}`
       const randomId = await generateGUID()
       const x = `
-			<a alt="${altTag}" id="wallet_${randomId}"
+			<a tabindex="0" alt="${altTag}" id="wallet_${randomId}"
 			 target="_blank" class="beacon-selection__list${wallet.enabled ? '' : ' disabled'}">
 			 <div class="beacon-selection__name">${wallet.name}
 			 ${wallet.enabled ? '' : '<p>Not installed</p>'}
@@ -85,6 +85,11 @@ export const preparePairingAlert = async (pairingPayload: {
       if (walletEl) {
         walletEl.addEventListener('click', async () => {
           wallet.clickHandler()
+        })
+        walletEl.addEventListener('keydown', async (event) => {
+          if (event.key === 'Enter') {
+            wallet.clickHandler()
+          }
         })
       }
     })
