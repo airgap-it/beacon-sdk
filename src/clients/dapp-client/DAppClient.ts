@@ -176,6 +176,22 @@ export class DAppClient extends Client {
     }
   }
 
+  public async initInternalTransports(): Promise<void> {
+    const keyPair = await this.keyPair
+
+    if (this.postMessageTransport || this.p2pTransport) {
+      return
+    }
+
+    this.postMessageTransport = new DappPostMessageTransport(this.name, keyPair, this.storage)
+    await this.addListener(this.postMessageTransport)
+
+    this.p2pTransport = new DappP2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
+    await this.addListener(this.p2pTransport)
+
+    console.log('finished setting up')
+  }
+
   public async init(transport?: Transport<any>): Promise<TransportType> {
     if (this._initPromise) {
       return this._initPromise
@@ -189,8 +205,6 @@ export class DAppClient extends Client {
       } else {
         const activeAccount = await this.getActiveAccount()
 
-        const keyPair = await this.keyPair
-
         const stopListening = () => {
           if (this.postMessageTransport) {
             this.postMessageTransport.stopListeningForNewPeers().catch(console.error)
@@ -200,23 +214,14 @@ export class DAppClient extends Client {
           }
         }
 
-        if (!this.postMessageTransport) {
-          this.postMessageTransport = new DappPostMessageTransport(this.name, keyPair, this.storage)
+        await this.initInternalTransports()
 
-          this.postMessageTransport.connect().then().catch(console.error)
-          await this.addListener(this.postMessageTransport)
+        if (!this.postMessageTransport || !this.p2pTransport) {
+          return
         }
 
-        if (!this.p2pTransport) {
-          this.p2pTransport = new DappP2PTransport(
-            this.name,
-            keyPair,
-            this.storage,
-            this.matrixNodes
-          )
-          this.p2pTransport.connect().then().catch(console.error)
-          await this.addListener(this.p2pTransport)
-        }
+        this.postMessageTransport.connect().then().catch(console.error)
+        this.p2pTransport.connect().then().catch(console.error)
 
         if (activeAccount && activeAccount.origin) {
           const origin = activeAccount.origin.type
@@ -301,6 +306,8 @@ export class DAppClient extends Client {
 
     if (account) {
       const origin = account.origin.type
+      await this.initInternalTransports()
+
       // Select the transport that matches the active account
       if (origin === Origin.EXTENSION) {
         await this.setTransport(this.postMessageTransport)
@@ -653,6 +660,17 @@ export class DAppClient extends Client {
     }
 
     return
+  }
+
+  /**
+   * A "setter" for when the transport needs to be changed.
+   */
+  protected async setTransport(transport?: Transport<any>): Promise<void> {
+    if (!transport) {
+      this._initPromise = undefined
+    }
+
+    return super.setTransport(transport)
   }
 
   /**
