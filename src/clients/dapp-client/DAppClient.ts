@@ -47,7 +47,8 @@ import {
   PeerInfo,
   Transport,
   DappP2PTransport,
-  DappPostMessageTransport
+  DappPostMessageTransport,
+  PeerManager
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -131,6 +132,28 @@ export class DAppClient extends Client {
         console.error(storageError)
       })
 
+    this.storage
+      .get(StorageKey.ACTIVE_PEER)
+      .then(async (activePeerPublicKey) => {
+        if (activePeerPublicKey) {
+          const p2pPeerManager = new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_DAPP)
+          const postmessagePeerManager = new PeerManager(
+            this.storage,
+            StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+          )
+          const peer =
+            (await p2pPeerManager.getPeer(activePeerPublicKey)) ??
+            (await postmessagePeerManager.getPeer(activePeerPublicKey))
+          await this.setActivePeer(peer as any)
+        } else {
+          await this.setActivePeer(undefined)
+        }
+      })
+      .catch(async (storageError) => {
+        await this.setActiveAccount(undefined)
+        console.error(storageError)
+      })
+
     this.handleResponse = async (
       message: BeaconMessage,
       connectionInfo: ConnectionContext
@@ -202,6 +225,8 @@ export class DAppClient extends Client {
         await this.addListener(transport)
 
         resolve(await super.init(transport))
+      } else if (this._transport.isSettled()) {
+        resolve(await super.init(await this.transport))
       } else {
         const activeAccount = await this.getActiveAccount()
 
@@ -317,8 +342,6 @@ export class DAppClient extends Client {
     } else {
       await this.setTransport(undefined)
     }
-
-    await this.setActivePeer(undefined) // For now, the peer is only used as a fallback if no active account is set. So when the account is set, the active peer can be undefined. This should later be changed so the active peer is linked to the active account.
 
     await this.storage.set(
       StorageKey.ACTIVE_ACCOUNT,
@@ -658,6 +681,18 @@ export class DAppClient extends Client {
     } else {
       this._activePeer.resolve(peer)
     }
+
+    if (peer) {
+      await this.initInternalTransports()
+
+      if (peer.type === 'postmessage-pairing-response') {
+        await this.setTransport(this.postMessageTransport)
+      } else if (peer.type === 'p2p-pairing-response') {
+        await this.setTransport(this.p2pTransport)
+      }
+    }
+
+    await this.storage.set(StorageKey.ACTIVE_PEER, peer ? peer.publicKey : undefined)
 
     return
   }
