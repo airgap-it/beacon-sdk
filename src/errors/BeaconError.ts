@@ -10,7 +10,8 @@ import {
   ParametersInvalidBeaconError,
   TooManyOperationsBeaconError,
   TransactionInvalidBeaconError,
-  SignatureTypeNotSupportedBeaconError
+  SignatureTypeNotSupportedBeaconError,
+  BroadcastBeaconError
 } from '..'
 
 export abstract class BeaconError implements Error {
@@ -28,7 +29,7 @@ export abstract class BeaconError implements Error {
   public static getError(errorType: BeaconErrorType): BeaconError {
     switch (errorType) {
       case BeaconErrorType.BROADCAST_ERROR:
-        return new NetworkNotSupportedBeaconError()
+        return new BroadcastBeaconError()
       case BeaconErrorType.NETWORK_NOT_SUPPORTED:
         return new NetworkNotSupportedBeaconError()
       case BeaconErrorType.NO_ADDRESS_ERROR:

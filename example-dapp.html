@@ -40,6 +40,10 @@
     <br /><br />
     ---
     <br /><br />
+    <button id="contractCall">Contract Call</button>
+    <br /><br />
+    ---
+    <br /><br />
     <button id="reset">Reset and Refresh</button>
 
     <script>
@@ -78,13 +82,18 @@
 
       // Initiate a permission request
       const requestPermission = (callback) => {
-        client.requestPermissions().then((permissions) => {
-          console.log('permissions', permissions)
-          if (callback) {
-            callback(permissions)
-          }
-          updateActiveAccount()
-        })
+        client
+          .requestPermissions()
+          .then((permissions) => {
+            console.log('permissions', permissions)
+            if (callback) {
+              callback(permissions)
+            }
+            updateActiveAccount()
+          })
+          .catch((error) => {
+            console.log('error during permission request', error)
+          })
       }
 
       // Add event listener to the button
@@ -180,6 +189,28 @@
             console.log('no peers to be removed')
           }
         })
+      })
+
+      // Add event listener to the button
+      document.getElementById('contractCall').addEventListener('click', () => {
+        client
+          .requestOperation({
+            operationDetails: [
+              {
+                kind: beacon.TezosOperationType.TRANSACTION,
+                amount: '0',
+                destination: 'KT1RxKJyi48W3bZR8HErRiisXZQw19HwLGWj',
+                parameters: {
+                  entrypoint: 'toggleStatus',
+                  value: {
+                    prim: 'True'
+                  }
+                }
+              }
+            ]
+          })
+          .then((response) => console.log(response))
+          .catch((error) => console.log(error))
       })
     </script>
   </body>
