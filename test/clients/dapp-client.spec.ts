@@ -166,9 +166,10 @@ describe(`DAppClient`, () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: storage })
     await (<any>dAppClient).handleResponse(message, contextInfo)
 
-    expect(storageStub.callCount).to.equal(2)
+    expect(storageStub.callCount).to.equal(3)
     expect(storageStub.firstCall.args[0]).to.equal(StorageKey.BEACON_SDK_SECRET_SEED)
     expect(storageStub.secondCall.args[0]).to.equal(StorageKey.ACTIVE_ACCOUNT)
+    expect(storageStub.thirdCall.args[0]).to.equal(StorageKey.ACTIVE_PEER)
     expect(setActiveAccountStub.callCount).to.equal(1)
     expect(setActiveAccountStub.firstCall.args[0]).to.be.undefined
   })
