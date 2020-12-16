@@ -220,7 +220,14 @@ export class Pairing {
             enabled: true,
             clickHandler(): void {
               const link = getTzip10Link(app.deepLink ?? app.universalLink, pairingCode)
-              window.open(link, '_blank')
+
+              // iOS does not trigger deeplinks with `window.open(...)`. The only way is using a normal link. So we have to work around that.
+              const a = document.createElement('a')
+              a.setAttribute('href', link)
+              a.dispatchEvent(
+                new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
+              )
+
               statusUpdateHandler(WalletType.IOS, this)
             }
           }))
