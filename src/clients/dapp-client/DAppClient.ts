@@ -106,6 +106,8 @@ export class DAppClient extends Client {
     ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
   > = new ExposedPromise()
 
+  private _initPromise: Promise<TransportType> | undefined
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -175,7 +177,11 @@ export class DAppClient extends Client {
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
-    return new Promise(async (resolve) => {
+    if (this._initPromise) {
+      return this._initPromise
+    }
+
+    this._initPromise = new Promise(async (resolve) => {
       if (transport) {
         await this.addListener(transport)
 
@@ -258,14 +264,22 @@ export class DAppClient extends Client {
                 .emit(BeaconEvent.PAIR_INIT, {
                   p2pPeerInfo: await p2pTransport.getPairingRequestInfo(),
                   postmessagePeerInfo: await postMessageTransport.getPairingRequestInfo(),
-                  preferredNetwork: this.preferredNetwork
+                  preferredNetwork: this.preferredNetwork,
+                  abortedHandler: () => {
+                    this._initPromise = undefined
+                  }
                 })
                 .catch((emitError) => console.warn(emitError))
             })
-            .catch(console.error)
+            .catch((error) => {
+              this._initPromise = undefined
+              console.error(error)
+            })
         }
       }
     })
+
+    return this._initPromise
   }
 
   /**

@@ -104,6 +104,7 @@ export interface BeaconEventType {
     p2pPeerInfo: P2PPairingRequest
     postmessagePeerInfo: PostMessagePairingRequest
     preferredNetwork: NetworkType
+    abortedHandler?(): void
   }
   [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: P2PPairingRequest
@@ -249,7 +250,9 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
       p2pSyncCode: p2pBase58encoded,
       postmessageSyncCode: postmessageBase58encoded,
       preferredNetwork: data.preferredNetwork
-    }
+    },
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    closeButtonCallback: data.abortedHandler
   }
   await openAlert(alertConfig)
 }
