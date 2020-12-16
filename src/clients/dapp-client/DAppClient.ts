@@ -188,8 +188,6 @@ export class DAppClient extends Client {
 
     this.p2pTransport = new DappP2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
     await this.addListener(this.p2pTransport)
-
-    console.log('finished setting up')
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
