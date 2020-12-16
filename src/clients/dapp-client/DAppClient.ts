@@ -271,7 +271,10 @@ export class DAppClient extends Client {
                 })
                 .catch((emitError) => console.warn(emitError))
             })
-            .catch(console.error)
+            .catch((error) => {
+              this._initPromise = undefined
+              console.error(error)
+            })
         }
       }
     })
