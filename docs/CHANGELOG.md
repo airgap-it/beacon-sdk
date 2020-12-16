@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.1 ()
+
+#### Features
+
+- **accessibility:** Close alerts with "ESC" button
+- **accessibility:** Tab through selection on pairing alert and select item with enter
+
+#### Bug Fixes
+
+- **errors:** Error messages were thrown internally in some cases and could not be caught by the developer
+- **broadcast-error**: The "Broadcast" error was mistakenly displayed as a "Network not supported" error
+- **init**: If the `init` method was called manually by the developer, the following requests would never resolve
+- **pageload**: The transport is now set on pageload even if `init` is not called
+- **pageload**: If a peer was connected but no permissions were shared, a refresh will now reconnect to the previous peer
+- **deeplink**: Deeplinks on iOS did not work
+
 ## 2.0.0 (2020-12-08)
 
 Beacon v2.0.0 is a big update from v1.x. The APIs on the DApp and Wallet side stayed mostly the same. There may be some minor changes in the object structure, but the majority of the changes are internal and should not affect the developers.
