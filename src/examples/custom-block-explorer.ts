@@ -1,5 +1,11 @@
-import { ErrorResponse, DAppClient, PermissionResponseOutput, NetworkType, Network } from '..' // Replace '..' with '@airgap/beacon-sdk'
-import { BlockExplorer } from '../utils/block-explorer'
+import {
+  BlockExplorer,
+  DAppClient,
+  ErrorResponse,
+  PermissionResponseOutput,
+  NetworkType,
+  Network
+} from '..' // Replace '..' with '@airgap/beacon-sdk'
 
 class TzStatsBlockExplorer extends BlockExplorer {
   constructor(
