@@ -143,6 +143,8 @@ import { MessageBasedClient } from './transports/clients/MessageBasedClient'
 import { BeaconRequestMessage } from './types/beacon/BeaconRequestMessage'
 import { BeaconResponseMessage } from './types/beacon/BeaconResponseMessage'
 import { Pairing } from './alert/Pairing'
+import { BlockExplorer } from './utils/block-explorer'
+import { TezblockBlockExplorer } from './utils/tezblock-blockexplorer'
 
 // Tezos
 export {
@@ -316,6 +318,9 @@ export {
   ExtendedP2PPairingRequest,
   ExtendedP2PPairingResponse
 }
+
+// BlockExplorer
+export { BlockExplorer, TezblockBlockExplorer }
 
 // Others
 export { ConnectionContext, Serializer, availableTransports }
