@@ -11,9 +11,8 @@ class TzStatsBlockExplorer extends BlockExplorer {
   constructor(
     public readonly rpcUrls: { [key in NetworkType]: string } = {
       [NetworkType.MAINNET]: 'https://tzstats.com/',
-      [NetworkType.CARTHAGENET]: 'https://carthagenet.tzstats.com/',
       [NetworkType.DELPHINET]: 'https://delphi.tzstats.com/',
-      // [NetworkType.EDONET]: 'https://edo.tzstats.com/',
+      [NetworkType.EDONET]: 'https://edo.tzstats.com/',
       [NetworkType.CUSTOM]: 'https://edo.tzstats.com/'
     }
   ) {
