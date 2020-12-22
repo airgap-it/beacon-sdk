@@ -25,7 +25,7 @@ describe(`AccountIdentifier`, () => {
 
       const accountIdentifier: string = await getAccountIdentifier(address, network)
 
-      expect(accountIdentifier).to.deep.equal('YRiyvQRFbUmq5bqzVyK')
+      expect(accountIdentifier).to.deep.equal('2M1kGfFekH3G48Yxav3H')
     })
 
     it(`should return the account identifier for an address on custom net`, async () => {
