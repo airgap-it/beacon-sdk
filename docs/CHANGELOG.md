@@ -4,17 +4,21 @@
 
 #### Features
 
-- **accessibility:** Close alerts with "ESC" button
-- **accessibility:** Tab through selection on pairing alert and select item with enter
+- **edonet**: Add Edonet
+- **carthagenet**: Remove Carthagenet
+
+- **accessibility**: Close alerts with "ESC" button
+- **accessibility**: Tab through selection on pairing alert and select item with enter
 
 #### Bug Fixes
 
-- **errors:** Error messages were thrown internally in some cases and could not be caught by the developer
+- **errors**: Error messages were thrown internally in some cases and could not be caught by the developer
 - **broadcast-error**: The "Broadcast" error was mistakenly displayed as a "Network not supported" error
 - **init**: If the `init` method was called manually by the developer, the following requests would never resolve
 - **pageload**: The transport is now set on pageload even if `init` is not called
 - **pageload**: If a peer was connected but no permissions were shared, a refresh will now reconnect to the previous peer
-- **deeplink**: Deeplinks on iOS did not work
+- **deeplink**: Deeplinks on iOS did not work in some browsers
+- **pairing**: Center QR code
 
 ## 2.0.0 (2020-12-08)
 
