@@ -38,7 +38,6 @@ export interface ExtensionApp extends AppBase {
 export interface WebApp extends AppBase {
   links: {
     [NetworkType.MAINNET]: string
-    [NetworkType.CARTHAGENET]?: string
     [NetworkType.DELPHINET]?: string
     [NetworkType.EDONET]?: string
     [NetworkType.CUSTOM]?: string
