@@ -17,10 +17,10 @@ const sidebar = [
       'beacon/06.errors',
       'beacon/07.contracts',
       'beacon/08.security',
-      'beacon/09.faq'
+      'beacon/09.faq',
+      'beacon/10.security-audits'
     ]
   },
-  'CHANGELOG',
   {
     title: 'Examples',
     children: [
@@ -44,6 +44,7 @@ const sidebar = [
       'flows/P2PExtension'
     ]
   },
+  'CHANGELOG',
   'supported-wallets'
 ]
 
