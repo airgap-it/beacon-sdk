@@ -5,9 +5,9 @@ export class TezblockBlockExplorer extends BlockExplorer {
   constructor(
     public readonly rpcUrls: { [key in NetworkType]: string } = {
       [NetworkType.MAINNET]: 'https://tezblock.io',
-      [NetworkType.CARTHAGENET]: 'https://carthagenet.tezblock.io',
       [NetworkType.DELPHINET]: 'https://delphinet.tezblock.io',
-      [NetworkType.CUSTOM]: 'https://delphinet.tezblock.io'
+      [NetworkType.EDONET]: 'https://edonet.tezblock.io',
+      [NetworkType.CUSTOM]: 'https://edonet.tezblock.io'
     }
   ) {
     super(rpcUrls)

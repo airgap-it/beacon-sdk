@@ -19,13 +19,13 @@ describe(`AccountIdentifier`, () => {
       expect(accountIdentifier).to.deep.equal('yQxM85PrJ718CA1N6oz')
     })
 
-    it(`should return the account identifier for an address on carthagenet`, async () => {
+    it(`should return the account identifier for an address on delphinet`, async () => {
       const address: string = 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
-      const network: Network = { type: NetworkType.CARTHAGENET }
+      const network: Network = { type: NetworkType.DELPHINET }
 
       const accountIdentifier: string = await getAccountIdentifier(address, network)
 
-      expect(accountIdentifier).to.deep.equal('YRiyvQRFbUmq5bqzVyK')
+      expect(accountIdentifier).to.deep.equal('2M1kGfFekH3G48Yxav3H')
     })
 
     it(`should return the account identifier for an address on custom net`, async () => {
