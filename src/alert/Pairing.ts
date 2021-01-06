@@ -44,6 +44,10 @@ export interface WebApp extends AppBase {
   }
 }
 
+export interface DesktopApp extends AppBase {
+  deepLink: string
+}
+
 export interface App extends AppBase {
   universalLink: string
   deepLink?: string
@@ -186,7 +190,7 @@ export class Pairing {
               logo: app.logo,
               enabled: true,
               clickHandler(): void {
-                const link = getTzip10Link(app.deepLink ?? app.universalLink, pairingCode)
+                const link = getTzip10Link(app.deepLink, pairingCode)
                 window.open(link, '_blank')
                 statusUpdateHandler(WalletType.DESKTOP, this)
               }
