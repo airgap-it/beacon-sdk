@@ -1,7 +1,7 @@
 import { TezosBaseOperation, TezosOperationType } from '../../..'
 
 export interface TezosOriginationOperation extends TezosBaseOperation {
-  kind: TezosOperationType.DELEGATION
+  kind: TezosOperationType.ORIGINATION
   source: string
   fee: string
   counter: string
