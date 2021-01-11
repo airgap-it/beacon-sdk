@@ -45,7 +45,7 @@
   "dependencies": {
     "@types/chrome": "0.0.115",
     "@types/libsodium-wrappers": "0.7.7",
-    "axios": "0.19.2",
+    "axios": "0.21.1",
     "bignumber.js": "9.0.0",
     "bs58check": "2.1.2",
     "libsodium-wrappers": "0.7.8",
