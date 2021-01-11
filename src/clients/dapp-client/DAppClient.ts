@@ -221,7 +221,6 @@ export class DAppClient extends Client {
     this._initPromise = new Promise(async (resolve) => {
       if (transport) {
         await this.addListener(transport)
-        await (await this.transport).connect()
 
         resolve(await super.init(transport))
       } else if (this._transport.isSettled()) {
