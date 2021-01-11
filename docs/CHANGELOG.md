@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1 (2021-01-11)
+
+#### Features
+
+- **pairing:** Add Galleon Desktop Wallet
+
 ## 2.0.0 (2020-12-08)
 
 Beacon v2.0.0 is a big update from v1.x. The APIs on the DApp and Wallet side stayed mostly the same. There may be some minor changes in the object structure, but the majority of the changes are internal and should not affect the developers.
