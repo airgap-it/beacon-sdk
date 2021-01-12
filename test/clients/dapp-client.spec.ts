@@ -198,6 +198,43 @@ describe(`DAppClient`, () => {
     })
   })
 
+  it(`should reconnect`, async () => {
+    return new Promise(async (resolve, reject) => {
+      const timeout = global.setTimeout(() => {
+        reject(new Error('TIMEOUT: Not connected'))
+      }, 1000)
+
+      const storage = new LocalStorage()
+      await storage.set(
+        StorageKey.ACTIVE_PEER,
+        '48d79c808e9c6adcef4343fee74599ac7f3c766be6798143235c8cb939acf19f'
+      )
+      await storage.set(StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP, [
+        {
+          id: 'c21fcf96-53d5-c30c-0cf1-7105e046b8ac',
+          type: 'postmessage-pairing-response',
+          name: 'Beacon Extension',
+          version: '2',
+          publicKey: '48d79c808e9c6adcef4343fee74599ac7f3c766be6798143235c8cb939acf19f',
+          senderId: '2CnDdXvxhEC9d',
+          extensionId: 'pmaikkbanoioekgijdjfmaifipnbmgmc'
+        }
+      ] as any)
+
+      const dAppClient = new DAppClient({ name: 'Test', storage: storage })
+
+      await dAppClient.init()
+      await dAppClient.ready
+
+      await storage.delete(StorageKey.ACTIVE_PEER)
+      await storage.delete(StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP)
+
+      clearTimeout(timeout)
+      expect(await dAppClient.connectionStatus).to.equal(TransportStatus.CONNECTED)
+      resolve()
+    })
+  })
+
   it(`should listen for connections on P2P and PostMessage and wait`, async () => {
     return new Promise(async (resolve, reject) => {
       const timeout = global.setTimeout(() => {
@@ -959,9 +996,9 @@ describe(`DAppClient`, () => {
     })
 
     expect(eventsStub.callCount, 'eventsStub').to.equal(4)
-    expect(eventsStub.getCall(0).args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
-    expect(eventsStub.getCall(1).args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
-    expect(eventsStub.getCall(2).args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET)
-    expect(eventsStub.getCall(3).args[0]).to.equal(BeaconEvent.CHANNEL_CLOSED)
+    expect(eventsStub.getCall(0).args[0], '1').to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+    expect(eventsStub.getCall(1).args[0], '2').to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET)
+    expect(eventsStub.getCall(2).args[0], '3').to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+    expect(eventsStub.getCall(3).args[0], '4').to.equal(BeaconEvent.CHANNEL_CLOSED)
   })
 })

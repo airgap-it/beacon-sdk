@@ -109,6 +109,9 @@ export class DAppClient extends Client {
 
   private _initPromise: Promise<TransportType> | undefined
 
+  private readonly activePeerLoaded: Promise<void>
+  private readonly activeAccountLoaded: Promise<void>
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -118,7 +121,7 @@ export class DAppClient extends Client {
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
 
-    this.storage
+    this.activeAccountLoaded = this.storage
       .get(StorageKey.ACTIVE_ACCOUNT)
       .then(async (activeAccountIdentifier) => {
         if (activeAccountIdentifier) {
@@ -132,7 +135,7 @@ export class DAppClient extends Client {
         console.error(storageError)
       })
 
-    this.storage
+    this.activePeerLoaded = this.storage
       .get(StorageKey.ACTIVE_PEER)
       .then(async (activePeerPublicKey) => {
         if (activePeerPublicKey) {
@@ -218,12 +221,25 @@ export class DAppClient extends Client {
       return this._initPromise
     }
 
+    try {
+      await this.activeAccountLoaded
+    } catch {
+      //
+    }
+    try {
+      await this.activePeerLoaded
+    } catch {
+      //
+    }
+
     this._initPromise = new Promise(async (resolve) => {
       if (transport) {
         await this.addListener(transport)
 
         resolve(await super.init(transport))
       } else if (this._transport.isSettled()) {
+        await (await this.transport).connect()
+
         resolve(await super.init(await this.transport))
       } else {
         const activeAccount = await this.getActiveAccount()
@@ -685,7 +701,6 @@ export class DAppClient extends Client {
 
     if (peer) {
       await this.initInternalTransports()
-
       if (peer.type === 'postmessage-pairing-response') {
         await this.setTransport(this.postMessageTransport)
       } else if (peer.type === 'p2p-pairing-response') {

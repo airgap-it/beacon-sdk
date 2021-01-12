@@ -1,7 +1,7 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import { NetworkType } from '../src/types/beacon/NetworkType'
-import { ExtensionApp, WebApp, App, AppBase } from '../src/alert/Pairing'
+import { ExtensionApp, WebApp, App, AppBase, DesktopApp } from '../src/alert/Pairing'
 
 export const extensionList: ExtensionApp[] = [
   {
@@ -35,15 +35,14 @@ export const webList: WebApp[] = [
   }
 ]
 
-export const desktopList: App[] = [
-  // {
-  //   name: 'Galleon',
-  //   shortName: 'Galleon',
-  //   color: '',
-  //   logo: 'desktop-galleon.png',
-  //   universalLink: 'https://cryptonomic.tech',
-  //   deepLink: 'galleon://'
-  // }
+export const desktopList: DesktopApp[] = [
+  {
+    name: 'Galleon',
+    shortName: 'Galleon',
+    color: '',
+    logo: 'desktop-galleon.png',
+    deepLink: 'galleon://'
+  }
 ]
 
 export const iosList: App[] = [
@@ -125,7 +124,7 @@ const createLists = async () => {
   const webListWithInlinedLogo = await convert(webList)
   const iosListWithInlinedLogo = await convert(iosList)
 
-  let out = `import { App, ExtensionApp, WebApp } from './Pairing'`
+  let out = `import { App, DesktopApp, ExtensionApp, WebApp } from './Pairing'`
   out += `
 
 `
@@ -138,7 +137,11 @@ const createLists = async () => {
   out += `
 
 `
-  out += `export const desktopList: App[] = ${JSON.stringify(desktopListWithInlinedLogo, null, 2)}`
+  out += `export const desktopList: DesktopApp[] = ${JSON.stringify(
+    desktopListWithInlinedLogo,
+    null,
+    2
+  )}`
   out += `
 
 `

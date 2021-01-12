@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.1 ()
+## 2.0.2 ()
 
 #### Features
 
@@ -19,6 +19,13 @@
 - **pageload**: If a peer was connected but no permissions were shared, a refresh will now reconnect to the previous peer
 - **deeplink**: Deeplinks on iOS did not work in some browsers
 - **pairing**: Center QR code
+- **types**: "kind" of the `OriginationOperation` was wrong
+
+## 2.0.1 (2021-01-11)
+
+#### Features
+
+- **pairing:** Add Galleon Desktop Wallet
 
 ## 2.0.0 (2020-12-08)
 
