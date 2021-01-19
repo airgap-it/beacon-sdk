@@ -54,71 +54,93 @@ const getToastHTML = (config: ToastConfig): string => {
 
     .beacon-toast__base {
       position: absolute;
-      bottom: 16px;
+      top: 16px;
       right: 16px;
-      padding: 16px;
-      height: 64px;
       z-index: 2147483000;
       background: #fff;
       margin: 0 auto;
-      border-radius: 4px;
+      border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
+      flex-direction: column;
+    }
+
+    a {
+      text-decoration: none;
     }
 
     .beacon-toast__content {
-      padding: 0 0 0 16px;
+      justify-content: space-between;
+    }
+
+    .beacon-toast__content, .beacon-toast__base, .beacon-toast__action__item  {
+      display: flex;
+    }
+
+    .beacon-toast__content, .beacon-toast__action__item  {
+      padding: 0 16px;
       font-family: Roboto, Helvetica, sans-serif;
     }
-    .spinner .loader,
-    .spinner .loader:after {
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
+
+    .beacon-toast__action__item {
+      align-items: center;
+      font-size: 14px;
     }
-    .spinner .loader {
-      position: relative;
-      text-indent: -9999em;
-      border-top: 4px solid rgba(56,128,255, 0.2);
-      border-right: 4px solid rgba(56,128,255, 0.2);
-      border-bottom: 4px solid rgba(56,128,255, 0.2);
-      border-left: 4px solid #3880ff;
-      -webkit-transform: translateZ(0);
-      -ms-transform: translateZ(0);
-      transform: translateZ(0);
-      -webkit-animation: spinner 1.1s infinite linear;
-      animation: spinner 1.1s infinite linear;
+
+    .beacon-toast__action__item p {
+      margin-right: 12px;
     }
-    @-webkit-keyframes spinner {
-      0% {
-        -webkit-transform: rotate(0deg);
-        transform: rotate(0deg);
-      }
-      100% {
-        -webkit-transform: rotate(360deg);
-        transform: rotate(360deg);
-      }
+
+    .beacon-toast__more {
+      width: 14px;
+      padding-left: 16px;
     }
-    @keyframes spinner {
-      0% {
-        -webkit-transform: rotate(0deg);
-        transform: rotate(0deg);
-      }
-      100% {
-        -webkit-transform: rotate(360deg);
-        transform: rotate(360deg);
-      }
+
+    .beacon-toast__more--action {
+      margin: 8px 0;
+    }
+
+    .progress-line, .progress-line:before {
+      height: 3px;
+      width: 100%;
+      margin: 0;
+    }
+    .progress-line {
+      background-color: #a7c4f7;
+      display: -webkit-flex;
+      display: flex;
+    }
+    .progress-line:before {
+      background-color: #3880ff;
+      content: '';
+      -webkit-animation: running-progress 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      animation: running-progress 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @-webkit-keyframes running-progress {
+      0% { margin-left: 0px; margin-right: 100%; }
+      50% { margin-left: 25%; margin-right: 0%; }
+      100% { margin-left: 100%; margin-right: 0; }
+    }
+    @keyframes running-progress {
+      0% { margin-left: 0px; margin-right: 100%; }
+      50% { margin-left: 25%; margin-right: 0%; }
+      100% { margin-left: 100%; margin-right: 0; }
     }
   </style>
   
   <div id="beacon-toast" class="beacon-toast__base animated fadeIn">
-    <div class="load-container spinner">
-      <div class="loader">Loading...</div>
-    </div>
     <div class="beacon-toast__content">
       <p>${text}</p>
+      <svg class="beacon-toast__more" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="angle-down" class="svg-inline--fa fa-angle-down fa-w-10" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentColor" d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9l22.6-22.6c9.4-9.4 24.6-9.4 33.9 0l96.4 96.4 96.4-96.4c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9l-136 136c-9.2 9.4-24.4 9.4-33.8 0z"></path></svg>
+    </div>
+    <div class="progress-line"></div>
+    <div class="beacon-toast__more--action">
+    <div class="beacon-toast__action__item">
+    <p>Did you make a mistake?</p><a href="#">Cancel Request</a>
+    </div>
+    <div class="beacon-toast__action__item">
+    <p>Wallet not receiving request?</p><a href="#">Reset Connection</a>
+    </div>
     </div>
     ${config.showDoneButton ? '<div id="beacon-toast-button-done"></div>' : ''}
   </div>

@@ -118,7 +118,10 @@ export interface BeaconEventType {
  * Show a "Request sent" toast
  */
 const showSentToast = async (): Promise<void> => {
-  openToast({ body: 'Request sent', timer: 3000 }).catch((toastError) => console.error(toastError))
+  openToast({
+    body: 'Request sent to <strong>Thanos</strong>',
+    timer: 1000000
+  }).catch((toastError) => console.error(toastError))
 }
 
 /**
