@@ -30,11 +30,7 @@ export class PostMessageTransport<
   public readonly type: TransportType = TransportType.POST_MESSAGE
 
   constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, storageKey: K) {
-    super(
-      name,
-      new PostMessageClient(name, keyPair, false),
-      new PeerManager<K>(storage, storageKey)
-    )
+    super(name, new PostMessageClient(name, keyPair), new PeerManager<K>(storage, storageKey))
   }
 
   public static async isAvailable(): Promise<boolean> {

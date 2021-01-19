@@ -132,7 +132,7 @@ export abstract class Transport<
 
   public async addPeer(newPeer: T): Promise<void> {
     if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
-      logger.log('addPeer', newPeer)
+      logger.log('addPeer', 'adding peer', newPeer)
       await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
       await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
     } else {
@@ -141,7 +141,7 @@ export abstract class Transport<
   }
 
   public async removePeer(peerToBeRemoved: T): Promise<void> {
-    logger.log('removePeer', peerToBeRemoved)
+    logger.log('removePeer', '', peerToBeRemoved)
     await this.peerManager.removePeer(peerToBeRemoved.publicKey)
     if (this.client) {
       await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
@@ -171,7 +171,7 @@ export abstract class Transport<
     if (this.listeners.length === 0) {
       logger.warn('notifyListeners', '0 listeners notified!', this)
     } else {
-      logger.log(`Notifying ${this.listeners.length} listeners`, this)
+      logger.log('notifyListeners', `Notifying ${this.listeners.length} listeners`, this)
     }
 
     this.listeners.forEach((listener) => {

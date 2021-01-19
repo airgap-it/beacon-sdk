@@ -163,6 +163,8 @@ export class DAppClient extends Client {
     ): Promise<void> => {
       const openRequest = this.openRequests.get(message.id)
 
+      logger.log('handleResponse', 'Received message', message, connectionInfo)
+
       if (message.type === BeaconMessageType.Acknowledge) {
         console.log('acknowledge message received for ', message.id)
         // Don't do anything for now, we can later use this to improve the UX
@@ -276,7 +278,7 @@ export class DAppClient extends Client {
 
           postMessageTransport
             .listenForNewPeer((peer) => {
-              logger.log('postmessage transport peer connected', peer)
+              logger.log('init', 'postmessage transport peer connected', peer)
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
@@ -290,7 +292,7 @@ export class DAppClient extends Client {
 
           p2pTransport
             .listenForNewPeer((peer) => {
-              logger.log('p2p transport peer connected', peer)
+              logger.log('init', 'p2p transport peer connected', peer)
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
@@ -772,6 +774,7 @@ export class DAppClient extends Client {
     request: BeaconRequestInputMessage,
     beaconError: ErrorResponse
   ): Promise<void> {
+    console.log('error response', beaconError)
     if (beaconError.errorType) {
       const buttons: AlertButton[] = []
       if (beaconError.errorType === BeaconErrorType.NO_PRIVATE_KEY_FOUND_ERROR) {
@@ -799,7 +802,7 @@ export class DAppClient extends Client {
         .emit(messageEvents[request.type].error, beaconError, buttons)
         .catch((emitError) => console.warn(emitError))
 
-      throw BeaconError.getError(beaconError.errorType)
+      throw BeaconError.getError(beaconError.errorType, beaconError.errorData)
     }
 
     throw beaconError
@@ -856,7 +859,7 @@ export class DAppClient extends Client {
     message: U
     connectionInfo: ConnectionContext
   }> {
-    logger.log('makeRequest')
+    logger.log('makeRequest', 'starting')
     await this.init()
     logger.log('makeRequest', 'after init')
 

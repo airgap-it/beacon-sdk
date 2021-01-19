@@ -145,6 +145,7 @@ import { BeaconResponseMessage } from './types/beacon/BeaconResponseMessage'
 import { Pairing } from './alert/Pairing'
 import { BlockExplorer } from './utils/block-explorer'
 import { TezblockBlockExplorer } from './utils/tezblock-blockexplorer'
+import { setDebugEnabled, getDebugEnabled } from './debug'
 
 // Tezos
 export {
@@ -324,3 +325,6 @@ export { BlockExplorer, TezblockBlockExplorer }
 
 // Others
 export { ConnectionContext, Serializer, availableTransports }
+
+// Debug
+export { setDebugEnabled, getDebugEnabled }
