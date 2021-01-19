@@ -119,7 +119,8 @@ export interface BeaconEventType {
  */
 const showSentToast = async (): Promise<void> => {
   openToast({
-    body: 'Request sent to <strong>Thanos</strong>',
+    body:
+      'Request sent to <img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>',
     timer: 1000000
   }).catch((toastError) => console.error(toastError))
 }

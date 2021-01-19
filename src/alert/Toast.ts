@@ -73,7 +73,11 @@ const getToastHTML = (config: ToastConfig): string => {
       justify-content: space-between;
     }
 
-    .beacon-toast__content, .beacon-toast__base, .beacon-toast__action__item  {
+    .beacon-toast__content p, .beacon-toast__action__item {
+      align-items: center;
+    }
+
+    .beacon-toast__content, .beacon-toast__base, .beacon-toast__action__item, .beacon-toast__content p  {
       display: flex;
     }
 
@@ -83,17 +87,23 @@ const getToastHTML = (config: ToastConfig): string => {
     }
 
     .beacon-toast__action__item {
-      align-items: center;
       font-size: 14px;
     }
 
     .beacon-toast__action__item p {
-      margin-right: 12px;
+      margin-right: 8px;
+      align-items: center;
+    }
+
+    .beacon-toast__content__img {
+      width: 24px;
+      height: 24px;
+      margin: 0 4px 0 6px;
     }
 
     .beacon-toast__more {
       width: 14px;
-      padding-left: 16px;
+      padding-left: 24px;
     }
 
     .beacon-toast__more--action {
