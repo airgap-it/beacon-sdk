@@ -69,6 +69,15 @@ const getToastHTML = (config: ToastConfig): string => {
       text-decoration: none;
     }
 
+    hr {
+      height: 1px;
+      color: rgba(0,0,0,0.12);
+      background-color: rgba(0,0,0,0.12);
+      border: none;
+      width: 100%;
+      margin: 0;
+    }
+
     .beacon-toast__content {
       justify-content: space-between;
     }
@@ -95,6 +104,11 @@ const getToastHTML = (config: ToastConfig): string => {
       align-items: center;
     }
 
+    .beacon-toast__action__item__subtitle {
+      min-width: 88px;
+      color: rgba(0,0,0,0.54);
+    }
+
     .beacon-toast__content__img {
       width: 24px;
       height: 24px;
@@ -103,7 +117,7 @@ const getToastHTML = (config: ToastConfig): string => {
 
     .beacon-toast__more {
       width: 14px;
-      padding-left: 24px;
+      padding-left: 32px;
     }
 
     .beacon-toast__more--action {
@@ -154,6 +168,28 @@ const getToastHTML = (config: ToastConfig): string => {
     </div>
     ${config.showDoneButton ? '<div id="beacon-toast-button-done"></div>' : ''}
   </div>
+  <!--
+  <div id="beacon-toast" class="beacon-toast__base animated fadeIn">
+    <div class="beacon-toast__content">
+      <p>${text}</p>
+      <svg class="beacon-toast__more" aria-hidden="true" focusable="false" data-prefix="fal" data-icon="times" class="svg-inline--fa fa-times fa-w-10" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentColor" d="M193.94 256L296.5 153.44l21.15-21.15c3.12-3.12 3.12-8.19 0-11.31l-22.63-22.63c-3.12-3.12-8.19-3.12-11.31 0L160 222.06 36.29 98.34c-3.12-3.12-8.19-3.12-11.31 0L2.34 120.97c-3.12 3.12-3.12 8.19 0 11.31L126.06 256 2.34 379.71c-3.12 3.12-3.12 8.19 0 11.31l22.63 22.63c3.12 3.12 8.19 3.12 11.31 0L160 289.94 262.56 392.5l21.15 21.15c3.12 3.12 8.19 3.12 11.31 0l22.63-22.63c3.12-3.12 3.12-8.19 0-11.31L193.94 256z"></path></svg>
+    </div>
+    <hr />
+    <div class="beacon-toast__more--action">
+      <div class="beacon-toast__action__item">
+        <p><strong>tz1Mj7..SUAdtT</strong></p>
+        </div>
+        <div class="beacon-toast__action__item">
+          <p class="beacon-toast__action__item__subtitle">Network</p><p>mainnet</p>
+        </div>
+        <div class="beacon-toast__action__item">
+          <p class="beacon-toast__action__item__subtitle">Permissions</p> <p>operation_request,sign</p>
+        </div>
+      </div>
+    </div>
+    ${config.showDoneButton ? '<div id="beacon-toast-button-done"></div>' : ''}
+  </div>
+  -->
 `
 }
 

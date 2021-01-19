@@ -120,7 +120,12 @@ export interface BeaconEventType {
 const showSentToast = async (): Promise<void> => {
   openToast({
     body:
+      /** TODO: Request Sent */
       'Request sent to <img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>',
+    /** TODO: Wallet Acknowledged
+     * 'Awaiting confirmation in <img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>',*/
+    /** TODO: Permission granted 
+      '<img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>&nbsphas granted permission',*/
     timer: 1000000
   }).catch((toastError) => console.error(toastError))
 }
