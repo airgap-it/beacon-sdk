@@ -67,6 +67,16 @@ const getToastHTML = (config: ToastConfig): string => {
 
     a {
       text-decoration: none;
+      color: #3880ff;
+    }
+
+    a svg {
+      width: 12px;
+      margin-left: 2px;
+    }
+
+    a:visited {
+      color: #3880ff;
     }
 
     hr {
@@ -168,7 +178,31 @@ const getToastHTML = (config: ToastConfig): string => {
     </div>
     ${config.showDoneButton ? '<div id="beacon-toast-button-done"></div>' : ''}
   </div>
-  <!--
+
+  <!-- TODO: permission request
+  <div id="beacon-toast" class="beacon-toast__base animated fadeIn">
+  <div class="beacon-toast__content">
+    <p>${text}</p>
+    <svg class="beacon-toast__more" aria-hidden="true" focusable="false" data-prefix="fal" data-icon="times" class="svg-inline--fa fa-times fa-w-10" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentColor" d="M193.94 256L296.5 153.44l21.15-21.15c3.12-3.12 3.12-8.19 0-11.31l-22.63-22.63c-3.12-3.12-8.19-3.12-11.31 0L160 222.06 36.29 98.34c-3.12-3.12-8.19-3.12-11.31 0L2.34 120.97c-3.12 3.12-3.12 8.19 0 11.31L126.06 256 2.34 379.71c-3.12 3.12-3.12 8.19 0 11.31l22.63 22.63c3.12 3.12 8.19 3.12 11.31 0L160 289.94 262.56 392.5l21.15 21.15c3.12 3.12 8.19 3.12 11.31 0l22.63-22.63c3.12-3.12 3.12-8.19 0-11.31L193.94 256z"></path></svg>
+  </div>
+  <hr />
+  <div class="beacon-toast__more--action">
+    <div class="beacon-toast__action__item">
+      <p><strong>tz1Mj7..SUAdtT</strong></p>
+      </div>
+      <div class="beacon-toast__action__item">
+        <p class="beacon-toast__action__item__subtitle">Network</p><p>mainnet</p>
+      </div>
+      <div class="beacon-toast__action__item">
+        <p class="beacon-toast__action__item__subtitle">Permissions</p> <p>operation_request,sign</p>
+      </div>
+    </div>
+  </div>
+  ${config.showDoneButton ? '<div id="beacon-toast-button-done"></div>' : ''}
+  </div>
+  -->
+
+  <!-- TODO: operation broadcasted
   <div id="beacon-toast" class="beacon-toast__base animated fadeIn">
     <div class="beacon-toast__content">
       <p>${text}</p>
@@ -177,13 +211,7 @@ const getToastHTML = (config: ToastConfig): string => {
     <hr />
     <div class="beacon-toast__more--action">
       <div class="beacon-toast__action__item">
-        <p><strong>tz1Mj7..SUAdtT</strong></p>
-        </div>
-        <div class="beacon-toast__action__item">
-          <p class="beacon-toast__action__item__subtitle">Network</p><p>mainnet</p>
-        </div>
-        <div class="beacon-toast__action__item">
-          <p class="beacon-toast__action__item__subtitle">Permissions</p> <p>operation_request,sign</p>
+        <p><strong>ooR5Md..WwBDkYLes</strong></p><a href="#">Open Blockexplorer <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="external-link-alt" class="svg-inline--fa fa-external-link-alt fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M432,320H400a16,16,0,0,0-16,16V448H64V128H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V336A16,16,0,0,0,432,320ZM488,0h-128c-21.37,0-32.05,25.91-17,41l35.73,35.73L135,320.37a24,24,0,0,0,0,34L157.67,377a24,24,0,0,0,34,0L435.28,133.32,471,169c15,15,41,4.5,41-17V24A24,24,0,0,0,488,0Z"></path></svg></a>
         </div>
       </div>
     </div>

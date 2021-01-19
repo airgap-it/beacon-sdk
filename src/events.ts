@@ -126,6 +126,8 @@ const showSentToast = async (): Promise<void> => {
      * 'Awaiting confirmation in <img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>',*/
     /** TODO: Permission granted 
       '<img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>&nbsphas granted permission',*/
+    /** TODO: Operation broadcasted 
+      '<img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>&nbspsuccessfully submitted operation',*/
     timer: 1000000
   }).catch((toastError) => console.error(toastError))
 }
