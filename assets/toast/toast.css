@@ -140,6 +140,10 @@ hr {
   cursor: pointer;
 }
 
+.theme__dark .beacon-toast__more {
+  color: #7c99d6;
+}
+
 .beacon-toast__more--action {
   margin: 8px 0;
 }
