@@ -373,6 +373,13 @@ export class DAppClient extends Client {
   }
 
   /**
+   * Clear the active account
+   */
+  public clearActiveAccount(): Promise<void> {
+    return this.setActiveAccount()
+  }
+
+  /**
    * Returns the metadata of this DApp
    */
   public async getAppMetadata(): Promise<AppMetadata> {
