@@ -133,7 +133,7 @@ const showSentToast = async (walletInfo: WalletInfo): Promise<void> => {
   }).catch((toastError) => console.error(toastError))
 }
 
-const showAcknowledgedToast = async (message: AcknowledgeResponse): Promise<void> => {
+const showAcknowledgedToast = async (_message: AcknowledgeResponse): Promise<void> => {
   openToast({
     body: 'Awaiting confirmation in {{wallet}}'
     /** TODO: Permission granted 
