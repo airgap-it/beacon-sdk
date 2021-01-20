@@ -136,11 +136,16 @@ hr {
 
 .beacon-toast__more {
   width: 14px;
-  padding-left: 32px;
+  transition: transform 0.5s;
+  cursor: pointer;
 }
 
 .beacon-toast__more--action {
   margin: 8px 0;
+}
+
+#beacon-text {
+  padding-right: 24px;
 }
 
 .progress-line,
