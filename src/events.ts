@@ -26,6 +26,8 @@ import {
 const logger = new Logger('BeaconEvents')
 const serializer = new Serializer()
 
+const SUCCESS_TIMER: number = 5 * 1000
+
 /**
  * The different events that can be emitted by the beacon-sdk
  */
@@ -127,7 +129,7 @@ export interface BeaconEventType {
  */
 const showSentToast = async (walletInfo: WalletInfo): Promise<void> => {
   openToast({
-    body: `Request sent to {{wallet}}`,
+    body: `Request sent to&nbsp;{{wallet}}`,
     walletInfo,
     forceNew: true
   }).catch((toastError) => console.error(toastError))
@@ -135,11 +137,7 @@ const showSentToast = async (walletInfo: WalletInfo): Promise<void> => {
 
 const showAcknowledgedToast = async (_message: AcknowledgeResponse): Promise<void> => {
   openToast({
-    body: 'Awaiting confirmation in {{wallet}}'
-    /** TODO: Permission granted 
-      '{{wallet}}&nbsphas granted permission',*/
-    /** TODO: Operation broadcasted 
-      '{{wallet}}&nbspsuccessfully submitted operation',*/
+    body: 'Awaiting confirmation in&nbsp;{{wallet}}'
   }).catch((toastError) => console.error(toastError))
 }
 
@@ -203,12 +201,12 @@ const showBeaconConnectedAlert = async (): Promise<void> => {
  * Show a "connection successful" alert for 1.5 seconds
  */
 const showExtensionConnectedAlert = async (): Promise<void> => {
-  await openAlert({
-    title: 'Success',
-    body: 'A wallet has been paired.',
-    buttons: [{ text: 'Done', style: 'outline' }],
-    timer: 1500
-  })
+  // await openAlert({
+  //   title: 'Success',
+  //   body: 'A wallet has been paired.',
+  //   buttons: [{ text: 'Done', style: 'outline' }],
+  //   timer: 1500
+  // })
 }
 
 /**
@@ -311,7 +309,11 @@ const showPermissionSuccessAlert = async (
       { text: 'Done', style: 'solid' }
     ]
   }
-  await closeToast()
+  await openToast({
+    body: `{{wallet}}&nbsp;has granted permission`,
+    timer: SUCCESS_TIMER
+  })
+
   await openAlert(alertConfig)
 }
 
@@ -341,7 +343,11 @@ const showOperationSuccessAlert = async (
       { text: 'Done', style: 'solid' }
     ]
   }
-  await closeToast()
+  await openToast({
+    body: `{{wallet}}&nbsp;successfully submitted operation`,
+    timer: SUCCESS_TIMER
+  })
+
   await openAlert(alertConfig)
 }
 
@@ -361,7 +367,11 @@ const showSignSuccessAlert = async (
     Signature: <strong>${output.signature}</strong>`,
     buttons: [{ text: 'Done', style: 'solid' }]
   }
-  await closeToast()
+  await openToast({
+    body: `{{wallet}}&nbsp;successfully signed payload`,
+    timer: SUCCESS_TIMER
+  })
+
   await openAlert(alertConfig)
 }
 
@@ -391,7 +401,11 @@ const showBroadcastSuccessAlert = async (
       { text: 'Done', style: 'solid' }
     ]
   }
-  await closeToast()
+  await openToast({
+    body: `{{wallet}}&nbsp;successfully injected operation`,
+    timer: SUCCESS_TIMER
+  })
+
   await openAlert(alertConfig)
 }
 
