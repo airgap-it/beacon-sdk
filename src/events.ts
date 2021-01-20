@@ -1,5 +1,5 @@
 import { openAlert, AlertButton, AlertConfig } from './ui/alert/Alert'
-import { openToast } from './ui/toast/Toast'
+import { closeToast, openToast } from './ui/toast/Toast'
 import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
 import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'
@@ -19,7 +19,8 @@ import {
   BeaconError,
   ConnectionContext,
   Transport,
-  NetworkType
+  NetworkType,
+  AcknowledgeResponse
 } from '.'
 
 const logger = new Logger('BeaconEvents')
@@ -42,6 +43,8 @@ export enum BeaconEvent {
   BROADCAST_REQUEST_SUCCESS = 'BROADCAST_REQUEST_SUCCESS',
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
 
+  ACKNOWLEDGE_RECEIVED = 'ACKNOWLEDGE_RECEIVED',
+
   LOCAL_RATE_LIMIT_REACHED = 'LOCAL_RATE_LIMIT_REACHED',
 
   NO_PERMISSIONS = 'NO_PERMISSIONS',
@@ -61,11 +64,16 @@ export enum BeaconEvent {
   UNKNOWN = 'UNKNOWN'
 }
 
+export interface WalletInfo {
+  walletName: string
+  walletIcon?: string
+}
+
 /**
  * The type of the payload of the different BeaconEvents
  */
 export interface BeaconEventType {
-  [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
+  [BeaconEvent.PERMISSION_REQUEST_SENT]: WalletInfo
   [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: {
     account: AccountInfo
     output: PermissionResponseOutput
@@ -73,7 +81,7 @@ export interface BeaconEventType {
     connectionContext: ConnectionContext
   }
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: ErrorResponse
-  [BeaconEvent.OPERATION_REQUEST_SENT]: undefined
+  [BeaconEvent.OPERATION_REQUEST_SENT]: WalletInfo
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: {
     account: AccountInfo
     output: OperationResponseOutput
@@ -81,13 +89,13 @@ export interface BeaconEventType {
     connectionContext: ConnectionContext
   }
   [BeaconEvent.OPERATION_REQUEST_ERROR]: ErrorResponse
-  [BeaconEvent.SIGN_REQUEST_SENT]: undefined
+  [BeaconEvent.SIGN_REQUEST_SENT]: WalletInfo
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: {
     output: SignPayloadResponseOutput
     connectionContext: ConnectionContext
   }
   [BeaconEvent.SIGN_REQUEST_ERROR]: ErrorResponse
-  [BeaconEvent.BROADCAST_REQUEST_SENT]: undefined
+  [BeaconEvent.BROADCAST_REQUEST_SENT]: WalletInfo
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
     network: Network
     output: BroadcastResponseOutput
@@ -95,7 +103,7 @@ export interface BeaconEventType {
     connectionContext: ConnectionContext
   }
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: ErrorResponse
-  [BeaconEvent.PERMISSION_REQUEST_SENT]: undefined
+  [BeaconEvent.ACKNOWLEDGE_RECEIVED]: AcknowledgeResponse
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: undefined
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
@@ -117,18 +125,21 @@ export interface BeaconEventType {
 /**
  * Show a "Request sent" toast
  */
-const showSentToast = async (): Promise<void> => {
+const showSentToast = async (walletInfo: WalletInfo): Promise<void> => {
   openToast({
-    body:
-      /** TODO: Request Sent */
-      'Request sent to <img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>',
-    /** TODO: Wallet Acknowledged
-     * 'Awaiting confirmation in <img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>',*/
+    body: `Request sent to {{wallet}}`,
+    walletInfo,
+    forceNew: true
+  }).catch((toastError) => console.error(toastError))
+}
+
+const showAcknowledgedToast = async (message: AcknowledgeResponse): Promise<void> => {
+  openToast({
+    body: 'Awaiting confirmation in {{wallet}}'
     /** TODO: Permission granted 
-      '<img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>&nbsphas granted permission',*/
+      '{{wallet}}&nbsphas granted permission',*/
     /** TODO: Operation broadcasted 
-      '<img class="beacon-toast__content__img" src="https://thanoswallet.com/logo.png"> <strong>Thanos</strong>&nbspsuccessfully submitted operation',*/
-    timer: 1000000
+      '{{wallet}}&nbspsuccessfully submitted operation',*/
   }).catch((toastError) => console.error(toastError))
 }
 
@@ -155,6 +166,8 @@ const showErrorAlert = async (
     ? BeaconError.getError(beaconError.errorType, beaconError.errorData)
     : new UnknownBeaconError()
 
+  await closeToast()
+
   await openAlert({
     title: error.title,
     body: error.description,
@@ -166,8 +179,10 @@ const showErrorAlert = async (
  * Show a rate limit reached toast
  */
 const showRateLimitReached = async (): Promise<void> => {
-  openToast({
+  openAlert({
+    title: 'Error',
     body: 'Rate limit reached. Please slow down',
+    buttons: [{ text: 'Done', style: 'outline' }],
     timer: 3000
   }).catch((toastError) => console.error(toastError))
 }
@@ -296,6 +311,7 @@ const showPermissionSuccessAlert = async (
       { text: 'Done', style: 'solid' }
     ]
   }
+  await closeToast()
   await openAlert(alertConfig)
 }
 
@@ -325,6 +341,7 @@ const showOperationSuccessAlert = async (
       { text: 'Done', style: 'solid' }
     ]
   }
+  await closeToast()
   await openAlert(alertConfig)
 }
 
@@ -344,6 +361,7 @@ const showSignSuccessAlert = async (
     Signature: <strong>${output.signature}</strong>`,
     buttons: [{ text: 'Done', style: 'solid' }]
   }
+  await closeToast()
   await openAlert(alertConfig)
 }
 
@@ -373,6 +391,7 @@ const showBroadcastSuccessAlert = async (
       { text: 'Done', style: 'solid' }
     ]
   }
+  await closeToast()
   await openAlert(alertConfig)
 }
 
@@ -405,6 +424,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.BROADCAST_REQUEST_SENT]: showSentToast,
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: showBroadcastSuccessAlert,
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: showErrorAlert,
+  [BeaconEvent.ACKNOWLEDGE_RECEIVED]: showAcknowledgedToast,
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(BeaconEvent.ACTIVE_ACCOUNT_SET),
@@ -437,6 +457,7 @@ export class BeaconEventHandler {
     [BeaconEvent.BROADCAST_REQUEST_SENT]: [defaultEventCallbacks.BROADCAST_REQUEST_SENT],
     [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: [defaultEventCallbacks.BROADCAST_REQUEST_SUCCESS],
     [BeaconEvent.BROADCAST_REQUEST_ERROR]: [defaultEventCallbacks.BROADCAST_REQUEST_ERROR],
+    [BeaconEvent.ACKNOWLEDGE_RECEIVED]: [defaultEventCallbacks.ACKNOWLEDGE_RECEIVED],
     [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: [defaultEventCallbacks.LOCAL_RATE_LIMIT_REACHED],
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
     [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],

@@ -80,6 +80,18 @@ hr {
   margin: 0;
 }
 
+.expanded {
+  display: block;
+}
+
+.collapsed {
+  display: none;
+}
+
+.beacon-toast__upside_down {
+  transform: rotate(180deg);
+}
+
 .beacon-toast__content {
   justify-content: space-between;
 }

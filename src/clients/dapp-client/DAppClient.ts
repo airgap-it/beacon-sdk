@@ -58,7 +58,10 @@ import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
 import { BeaconErrorType } from '../../types/BeaconErrorType'
 import { AlertButton } from '../../ui/alert/Alert'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
-import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
+import {
+  ExtendedPostMessagePairingResponse,
+  PostMessagePairingResponse
+} from '../../types/PostMessagePairingResponse'
 import { getSenderId } from '../../utils/get-sender-id'
 import { SigningType } from '../../types/beacon/SigningType'
 import { ExtendedPeerInfo } from '../../types/PeerInfo'
@@ -170,7 +173,7 @@ export class DAppClient extends Client {
 
       if (message.type === BeaconMessageType.Acknowledge) {
         console.log('acknowledge message received for ', message.id)
-        // Don't do anything for now, we can later use this to improve the UX
+        this.events.emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, message).catch(console.error)
       } else if (openRequest) {
         if (message.type === BeaconMessageType.Error || (message as any).errorType) {
           // TODO: Remove "any" once we remove support for v1 wallets
@@ -933,8 +936,15 @@ export class DAppClient extends Client {
 
     await (await this.transport).send(payload, peer)
 
+    console.log('peer', peer)
+
+    const typedPeer: PostMessagePairingResponse = peer as any
+
     this.events
-      .emit(messageEvents[requestInput.type].sent)
+      .emit(messageEvents[requestInput.type].sent, {
+        walletName: typedPeer.name,
+        walletIcon: typedPeer.icon
+      })
       .catch((emitError) => console.warn(emitError))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
