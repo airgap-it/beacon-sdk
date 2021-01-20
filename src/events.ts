@@ -152,7 +152,7 @@ const showErrorAlert = async (
   buttons?: AlertButton[]
 ): Promise<void> => {
   const error = beaconError.errorType
-    ? BeaconError.getError(beaconError.errorType)
+    ? BeaconError.getError(beaconError.errorType, beaconError.errorData)
     : new UnknownBeaconError()
 
   await openAlert({
@@ -458,7 +458,7 @@ export class BeaconEventHandler {
     } = {}
   ) {
     this.overrideDefaults(eventsToOverride).catch((overrideError: Error) => {
-      logger.error('constructor', overrideError)
+      logger.error('constructor', 'overriding error', overrideError)
     })
   }
 

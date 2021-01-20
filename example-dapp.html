@@ -5,6 +5,12 @@
     <meta http-equiv="Content-Style-Type" content="text/css" />
     <title>Beacon Example</title>
 
+    <script>
+      // This will enable the debug mode of beacon
+      // This should only be used during development
+      window.beaconSdkDebugEnabled = true
+    </script>
+
     <script src="./dist/walletbeacon.min.js"></script>
   </head>
 
@@ -21,6 +27,8 @@
     <button id="requestPermission">Request Permission</button>
     <br /><br />
     <button id="connect">Connect and Delegate</button>
+    <br /><br />
+    <button id="signPayload">Sign Payload</button>
     <br /><br />
     ---
     <br /><br />
@@ -149,8 +157,17 @@
       })
 
       // Add event listener to the button
+      document.getElementById('signPayload').addEventListener('click', async () => {
+        const signature = await client.requestSignPayload({
+          payload: 'test'
+        })
+
+        console.log('signature:', signature)
+      })
+
+      // Add event listener to the button
       document.getElementById('clearActiveAccount').addEventListener('click', () => {
-        client.setActiveAccount(undefined).then(() => {
+        client.setActiveAccount().then(() => {
           updateActiveAccount()
         })
       })

@@ -22,8 +22,7 @@ describe.skip(`client - Custom Tests`, () => {
         await getKeypairFromSeed('alice1234'),
         1,
         new LocalStorage(),
-        [],
-        false
+        []
       )
       await aliceClient
         .start()
@@ -34,8 +33,7 @@ describe.skip(`client - Custom Tests`, () => {
         await getKeypairFromSeed('bob1234'),
         1,
         new LocalStorage(),
-        [],
-        false
+        []
       )
       await bobClient
         .start()
@@ -46,8 +44,7 @@ describe.skip(`client - Custom Tests`, () => {
         await getKeypairFromSeed('charlie1234'),
         1,
         new LocalStorage(),
-        [],
-        false
+        []
       )
       await charlieClient
         .start()

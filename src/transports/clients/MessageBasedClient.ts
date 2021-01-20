@@ -12,11 +12,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
    */
   protected abstract readonly activeListeners: Map<string, unknown> = new Map()
 
-  constructor(
-    protected readonly name: string,
-    keyPair: sodium.KeyPair,
-    protected readonly debug: boolean = true
-  ) {
+  constructor(protected readonly name: string, keyPair: sodium.KeyPair) {
     super(keyPair)
     this.init().catch(console.error)
   }
