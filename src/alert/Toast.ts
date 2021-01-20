@@ -57,12 +57,23 @@ const getToastHTML = (config: ToastConfig): string => {
       top: 16px;
       right: 16px;
       z-index: 2147483000;
-      background: #fff;
       margin: 0 auto;
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.1);
       flex-direction: column;
+    }
+
+    .theme__light.beacon-toast__base {
+      background: #fff;
+    }
+
+    .theme__dark.beacon-toast__base {
+      background: #27334c;
+    }
+
+    .theme__dark p {
+      color: #6183ff;
     }
 
     a {
@@ -162,7 +173,7 @@ const getToastHTML = (config: ToastConfig): string => {
     }
   </style>
   
-  <div id="beacon-toast" class="beacon-toast__base animated fadeIn">
+  <div id="beacon-toast" class="beacon-toast__base theme__dark animated fadeIn">
     <div class="beacon-toast__content">
       <p>${text}</p>
       <svg class="beacon-toast__more" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="angle-down" class="svg-inline--fa fa-angle-down fa-w-10" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentColor" d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9l22.6-22.6c9.4-9.4 24.6-9.4 33.9 0l96.4 96.4 96.4-96.4c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9l-136 136c-9.2 9.4-24.4 9.4-33.8 0z"></path></svg>

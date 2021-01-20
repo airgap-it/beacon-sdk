@@ -15,19 +15,32 @@
 
 .beacon-list__title {
   text-align: left;
-  color: #7c828b;
   font-size: 12px;
 }
+
+.theme__light .beacon-list__title {
+  color: #7c828b;
+}
+.theme__dark .beacon-list__title {
+  color: #7c99d6;
+}
+
 .beacon-selection__name {
   font-size: 1rem;
   font-weight: 600;
+}
+.theme__light .beacon-selection__name {
   color: #3b3d40;
+}
+.theme__dark .beacon-selection__name {
+  color: #6183ff;
 }
 .beacon-selection__img {
   width: 48px;
   height: 48px;
   box-shadow: 0 4px 12px 0 rgba(17, 17, 17, 0.24);
   border-radius: 16px;
+  background-color: #fff;
 }
 #beacon--qr__copy__container {
   height: 0;
