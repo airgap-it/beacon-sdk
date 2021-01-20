@@ -1,5 +1,6 @@
 import { NetworkType, Storage } from '../..'
 import { BeaconEvent, BeaconEventType, BeaconEventHandlerFunction } from '../../events'
+import { ColorMode } from '../../types/ColorMode'
 import { BlockExplorer } from '../../utils/block-explorer'
 
 export interface DAppClientOptions {
@@ -37,4 +38,9 @@ export interface DAppClientOptions {
    * Indicates on which network the DApp is planning to run. This is currently used to adjust the URLs of web-wallets in the pairing alert if they use different URLs for testnets.
    */
   preferredNetwork?: NetworkType
+
+  /**
+   * Set the color mode for the UI elements (alerts and toasts)
+   */
+  colorMode?: ColorMode
 }

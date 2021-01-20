@@ -56,12 +56,14 @@ import { getAccountIdentifier } from '../../utils/get-account-identifier'
 import { BlockExplorer } from '../../utils/block-explorer'
 import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
 import { BeaconErrorType } from '../../types/BeaconErrorType'
-import { AlertButton } from '../../alert/Alert'
+import { AlertButton } from '../../ui/alert/Alert'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
 import { getSenderId } from '../../utils/get-sender-id'
 import { SigningType } from '../../types/beacon/SigningType'
 import { ExtendedPeerInfo } from '../../types/PeerInfo'
+import { ColorMode } from '../../types/ColorMode'
+import { getColorMode, setColorMode } from '../../colorMode'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -120,6 +122,7 @@ export class DAppClient extends Client {
     this.iconUrl = config.iconUrl
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
+    setColorMode(config.colorMode ?? ColorMode.LIGHT)
 
     this.activeAccountLoaded = this.storage
       .get(StorageKey.ACTIVE_ACCOUNT)
@@ -377,6 +380,14 @@ export class DAppClient extends Client {
    */
   public clearActiveAccount(): Promise<void> {
     return this.setActiveAccount()
+  }
+
+  public async setColorMode(colorMode: ColorMode): Promise<void> {
+    return setColorMode(colorMode)
+  }
+
+  public async getColorMode(): Promise<ColorMode> {
+    return getColorMode()
   }
 
   /**

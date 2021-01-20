@@ -1,5 +1,5 @@
-import { openAlert, AlertButton, AlertConfig } from './alert/Alert'
-import { openToast } from './alert/Toast'
+import { openAlert, AlertButton, AlertConfig } from './ui/alert/Alert'
+import { openToast } from './ui/toast/Toast'
 import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
 import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'

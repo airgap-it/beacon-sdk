@@ -1,6 +1,6 @@
-import { NetworkType } from '..'
-import { generateGUID } from '../utils/generate-uuid'
-import { isAndroid, isIOS } from '../utils/platform'
+import { NetworkType } from '../..'
+import { generateGUID } from '../../utils/generate-uuid'
+import { isAndroid, isIOS } from '../../utils/platform'
 import { closeAlerts } from './Alert'
 import { Pairing } from './Pairing'
 

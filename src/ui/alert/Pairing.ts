@@ -1,7 +1,7 @@
-import { ExtensionMessage, ExtensionMessageTarget, NetworkType, availableTransports } from '..'
-import { myWindow } from '../MockWindow'
-import { getTzip10Link } from '../utils/get-tzip10-link'
-import { isAndroid, isIOS } from '../utils/platform'
+import { ExtensionMessage, ExtensionMessageTarget, NetworkType, availableTransports } from '../..'
+import { myWindow } from '../../MockWindow'
+import { getTzip10Link } from '../../utils/get-tzip10-link'
+import { isAndroid, isIOS } from '../../utils/platform'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
 
 const defaultExtensions = [

@@ -1,10 +1,11 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
-import { NetworkType } from '..'
-import { generateGUID } from '../utils/generate-uuid'
-import { getTzip10Link } from '../utils/get-tzip10-link'
-import { getQrData } from '../utils/qr'
-import { replaceInTemplate } from '../utils/replace-in-template'
+import { NetworkType } from '../..'
+import { getColorMode } from '../../colorMode'
+import { generateGUID } from '../../utils/generate-uuid'
+import { getTzip10Link } from '../../utils/get-tzip10-link'
+import { getQrData } from '../../utils/qr'
+import { replaceInTemplate } from '../../utils/replace-in-template'
 import { alertTemplates } from './alert-templates'
 import { preparePairingAlert } from './PairingAlert'
 
@@ -188,6 +189,12 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   }
 
   document.body.appendChild(wrapper)
+
+  const colorMode = getColorMode()
+  const elm = document.getElementById(`beacon-alert-modal-${id}`)
+  if (elm) {
+    elm.classList.add(`theme__${colorMode}`)
+  }
 
   lastFocusedElement = document.activeElement // Store which element has been focussed before the alert is shown
   wrapper.focus() // Focus alert for accessibility
