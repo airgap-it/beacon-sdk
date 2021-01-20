@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.2 ()
+## 2.1.0 ()
 
 #### Features
 
@@ -9,6 +9,8 @@
 
 - **accessibility**: Close alerts with "ESC" button
 - **accessibility**: Tab through selection on pairing alert and select item with enter
+
+- **DAppClient**: add `clearActiveAccount()` method. This is just a wrapper for `setActiveAccount()` but should make it more clear how to clear an account.
 
 #### Bug Fixes
 
