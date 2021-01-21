@@ -78,13 +78,18 @@ hr {
   border: none;
   width: 100%;
   margin: 0;
+  display: none;
 }
 
 .show {
-  display: block;
+  display: block !important;
 }
 
 .hide {
+  display: none !important;
+}
+
+#beacon-toast-list {
   display: none;
 }
 
