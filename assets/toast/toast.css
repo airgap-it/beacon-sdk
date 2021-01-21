@@ -80,11 +80,11 @@ hr {
   margin: 0;
 }
 
-.expanded {
+.show {
   display: block;
 }
 
-.collapsed {
+.hide {
   display: none;
 }
 

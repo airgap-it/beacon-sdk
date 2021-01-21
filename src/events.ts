@@ -26,7 +26,7 @@ import {
 const logger = new Logger('BeaconEvents')
 const serializer = new Serializer()
 
-const SUCCESS_TIMER: number = 5 * 1000
+const SUCCESS_TIMER: number = 1000 * 1000
 
 /**
  * The different events that can be emitted by the beacon-sdk
@@ -131,7 +131,24 @@ const showSentToast = async (walletInfo: WalletInfo): Promise<void> => {
   openToast({
     body: `Request sent to&nbsp;{{wallet}}`,
     walletInfo,
-    forceNew: true
+    forceNew: true,
+    state: 'loading',
+    actions: [
+      {
+        text: 'Did you make a mistake?',
+        actionText: 'Cancel Request',
+        actionCallback: async (): Promise<void> => {
+          await closeToast()
+        }
+      },
+      {
+        text: 'Wallet not receiving request?',
+        actionText: 'Reset Connection',
+        actionCallback: async (): Promise<void> => {
+          await closeToast()
+        }
+      }
+    ]
   }).catch((toastError) => console.error(toastError))
 }
 
@@ -290,31 +307,31 @@ const showPermissionSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.PERMISSION_REQUEST_SUCCESS]
 ): Promise<void> => {
   const { account, output, blockExplorer } = data
-  const alertConfig: AlertConfig = {
-    title: 'Permission Granted',
-    body: `We received permissions for the address <strong>${output.address}</strong>
-    <br>
-    <br>
-    Network: <strong>${output.network.type}</strong>
-    <br>
-    Permissions: <strong>${output.scopes}</strong>`,
-    buttons: [
+
+  await openToast({
+    body: `{{wallet}}&nbsp;has granted permission`,
+    timer: SUCCESS_TIMER,
+    state: 'finished',
+    actions: [
+      { text: `<strong>${output.address}</strong>` },
       {
-        text: 'Open Blockexplorer',
+        text: 'Network',
+        actionText: `${output.network.type}`
+      },
+      {
+        text: 'Permissions',
+        actionText: output.scopes.join(', ')
+      },
+      {
+        text: '',
+        actionText: 'Open Blockexplorer',
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getAddressLink(output.address, account.network)
           window.open(link, '_blank')
         }
-      },
-      { text: 'Done', style: 'solid' }
+      }
     ]
-  }
-  await openToast({
-    body: `{{wallet}}&nbsp;has granted permission`,
-    timer: SUCCESS_TIMER
   })
-
-  await openAlert(alertConfig)
 }
 
 /**
@@ -326,12 +343,15 @@ const showOperationSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.OPERATION_REQUEST_SUCCESS]
 ): Promise<void> => {
   const { account, output, blockExplorer } = data
-  const alertConfig: AlertConfig = {
-    title: 'Operation Broadcasted',
-    body: `The transaction has successfully been broadcasted to the network with the following hash. <strong>${output.transactionHash}</strong>`,
-    buttons: [
+
+  await openToast({
+    body: `{{wallet}}&nbsp;successfully submitted operation`,
+    timer: SUCCESS_TIMER,
+    state: 'finished',
+    actions: [
       {
-        text: 'Open Blockexplorer',
+        text: `<strong>${output.transactionHash}</strong>`,
+        actionText: 'Open Blockexplorer',
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getTransactionLink(
             output.transactionHash,
@@ -339,16 +359,9 @@ const showOperationSuccessAlert = async (
           )
           window.open(link, '_blank')
         }
-      },
-      { text: 'Done', style: 'solid' }
+      }
     ]
-  }
-  await openToast({
-    body: `{{wallet}}&nbsp;successfully submitted operation`,
-    timer: SUCCESS_TIMER
   })
-
-  await openAlert(alertConfig)
 }
 
 /**
@@ -360,19 +373,20 @@ const showSignSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.SIGN_REQUEST_SUCCESS]
 ): Promise<void> => {
   const output = data.output
-  const alertConfig: AlertConfig = {
-    title: 'Payload signed',
-    body: `The payload has successfully been signed.
-    <br>
-    Signature: <strong>${output.signature}</strong>`,
-    buttons: [{ text: 'Done', style: 'solid' }]
-  }
   await openToast({
     body: `{{wallet}}&nbsp;successfully signed payload`,
-    timer: SUCCESS_TIMER
+    timer: SUCCESS_TIMER,
+    state: 'finished',
+    actions: [
+      {
+        text: `<strong>${output.signature}</strong>`,
+        actionText: 'Copy to clipboard',
+        actionCallback: async (): Promise<void> => {
+          console.log('TODO: COPY TO CLIPBOARD')
+        }
+      }
+    ]
   })
-
-  await openAlert(alertConfig)
 }
 
 /**
@@ -384,12 +398,15 @@ const showBroadcastSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.BROADCAST_REQUEST_SUCCESS]
 ): Promise<void> => {
   const { network, output, blockExplorer } = data
-  const alertConfig: AlertConfig = {
-    title: 'Broadcasted',
-    body: `The transaction has successfully been broadcasted to the network with the following hash. <strong>${output.transactionHash}</strong>`,
-    buttons: [
+
+  await openToast({
+    body: `{{wallet}}&nbsp;successfully injected operation`,
+    timer: SUCCESS_TIMER,
+    state: 'finished',
+    actions: [
       {
-        text: 'Open Blockexplorer',
+        text: `<strong>${output.transactionHash}</strong>`,
+        actionText: 'Open Blockexplorer',
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getTransactionLink(
             output.transactionHash,
@@ -397,16 +414,9 @@ const showBroadcastSuccessAlert = async (
           )
           window.open(link, '_blank')
         }
-      },
-      { text: 'Done', style: 'solid' }
+      }
     ]
-  }
-  await openToast({
-    body: `{{wallet}}&nbsp;successfully injected operation`,
-    timer: SUCCESS_TIMER
   })
-
-  await openAlert(alertConfig)
 }
 
 const emptyHandler = (eventType: BeaconEvent): BeaconEventHandlerFunction => async (
