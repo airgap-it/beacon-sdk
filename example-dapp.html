@@ -22,6 +22,8 @@
     <br /><br />
     <button id="connect">Connect and Delegate</button>
     <br /><br />
+    <button id="signPayload">Sign Payload</button>
+    <br /><br />
     ---
     <br /><br />
     <button id="getExtensions">Get Extensions</button>
@@ -149,8 +151,17 @@
       })
 
       // Add event listener to the button
+      document.getElementById('signPayload').addEventListener('click', async () => {
+        const signature = await client.requestSignPayload({
+          payload: 'test'
+        })
+
+        console.log('signature:', signature)
+      })
+
+      // Add event listener to the button
       document.getElementById('clearActiveAccount').addEventListener('click', () => {
-        client.setActiveAccount(undefined).then(() => {
+        client.setActiveAccount().then(() => {
           updateActiveAccount()
         })
       })
