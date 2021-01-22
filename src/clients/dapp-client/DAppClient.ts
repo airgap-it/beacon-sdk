@@ -943,7 +943,10 @@ export class DAppClient extends Client {
     this.events
       .emit(messageEvents[requestInput.type].sent, {
         walletName: typedPeer.name,
-        walletIcon: typedPeer.icon
+        walletIcon: typedPeer.icon,
+        resetCallback: async () => {
+          await this.clearActiveAccount()
+        }
       })
       .catch((emitError) => console.warn(emitError))
 

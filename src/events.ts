@@ -1,4 +1,4 @@
-import { openAlert, AlertButton, AlertConfig } from './ui/alert/Alert'
+import { openAlert, AlertButton, AlertConfig, closeAlerts } from './ui/alert/Alert'
 import { closeToast, openToast } from './ui/toast/Toast'
 import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
 import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
@@ -26,7 +26,7 @@ import {
 const logger = new Logger('BeaconEvents')
 const serializer = new Serializer()
 
-const SUCCESS_TIMER: number = 1000 * 1000
+const SUCCESS_TIMER: number = 10 * 1000
 
 /**
  * The different events that can be emitted by the beacon-sdk
@@ -66,16 +66,17 @@ export enum BeaconEvent {
   UNKNOWN = 'UNKNOWN'
 }
 
-export interface WalletInfo {
+export interface RequestSentInfo {
   walletName: string
   walletIcon?: string
+  resetCallback(): Promise<void>
 }
 
 /**
  * The type of the payload of the different BeaconEvents
  */
 export interface BeaconEventType {
-  [BeaconEvent.PERMISSION_REQUEST_SENT]: WalletInfo
+  [BeaconEvent.PERMISSION_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: {
     account: AccountInfo
     output: PermissionResponseOutput
@@ -83,7 +84,7 @@ export interface BeaconEventType {
     connectionContext: ConnectionContext
   }
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: ErrorResponse
-  [BeaconEvent.OPERATION_REQUEST_SENT]: WalletInfo
+  [BeaconEvent.OPERATION_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: {
     account: AccountInfo
     output: OperationResponseOutput
@@ -91,13 +92,13 @@ export interface BeaconEventType {
     connectionContext: ConnectionContext
   }
   [BeaconEvent.OPERATION_REQUEST_ERROR]: ErrorResponse
-  [BeaconEvent.SIGN_REQUEST_SENT]: WalletInfo
+  [BeaconEvent.SIGN_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: {
     output: SignPayloadResponseOutput
     connectionContext: ConnectionContext
   }
   [BeaconEvent.SIGN_REQUEST_ERROR]: ErrorResponse
-  [BeaconEvent.BROADCAST_REQUEST_SENT]: WalletInfo
+  [BeaconEvent.BROADCAST_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
     network: Network
     output: BroadcastResponseOutput
@@ -127,10 +128,10 @@ export interface BeaconEventType {
 /**
  * Show a "Request sent" toast
  */
-const showSentToast = async (walletInfo: WalletInfo): Promise<void> => {
+const showSentToast = async (requestSentInfo: RequestSentInfo): Promise<void> => {
   openToast({
     body: `Request sent to&nbsp;{{wallet}}`,
-    walletInfo,
+    requestSentInfo,
     forceNew: true,
     state: 'loading',
     actions: [
@@ -146,6 +147,12 @@ const showSentToast = async (walletInfo: WalletInfo): Promise<void> => {
         actionText: 'Reset Connection',
         actionCallback: async (): Promise<void> => {
           await closeToast()
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          const resetCallback = requestSentInfo.resetCallback
+          if (resetCallback) {
+            logger.log('showSentToast', 'resetCallback invoked')
+            await resetCallback()
+          }
         }
       }
     ]
@@ -218,6 +225,7 @@ const showBeaconConnectedAlert = async (): Promise<void> => {
  * Show a "connection successful" alert for 1.5 seconds
  */
 const showExtensionConnectedAlert = async (): Promise<void> => {
+  await closeAlerts()
   // await openAlert({
   //   title: 'Success',
   //   body: 'A wallet has been paired.',
