@@ -22,11 +22,14 @@ import {
   NetworkType,
   AcknowledgeResponse
 } from '.'
+import { shortenString } from './utils/shorten-string'
 
 const logger = new Logger('BeaconEvents')
 const serializer = new Serializer()
 
-const SUCCESS_TIMER: number = 10 * 1000
+const SUCCESS_TIMER: number = 100 * 1000
+
+const SVG_EXTERNAL: string = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="external-link-alt" class="svg-inline--fa fa-external-link-alt fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M432,320H400a16,16,0,0,0-16,16V448H64V128H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V336A16,16,0,0,0,432,320ZM488,0h-128c-21.37,0-32.05,25.91-17,41l35.73,35.73L135,320.37a24,24,0,0,0,0,34L157.67,377a24,24,0,0,0,34,0L435.28,133.32,471,169c15,15,41,4.5,41-17V24A24,24,0,0,0,488,0Z"></path></svg>`
 
 /**
  * The different events that can be emitted by the beacon-sdk
@@ -314,14 +317,17 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
 const showPermissionSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.PERMISSION_REQUEST_SUCCESS]
 ): Promise<void> => {
-  const { account, output, blockExplorer } = data
+  const { output } = data
 
   await openToast({
     body: `{{wallet}}&nbsp;has granted permission`,
     timer: SUCCESS_TIMER,
     state: 'finished',
     actions: [
-      { text: `<strong>${output.address}</strong>` },
+      {
+        text: 'Address',
+        actionText: `<strong>${shortenString(output.address)}</strong>`
+      },
       {
         text: 'Network',
         actionText: `${output.network.type}`
@@ -329,14 +335,6 @@ const showPermissionSuccessAlert = async (
       {
         text: 'Permissions',
         actionText: output.scopes.join(', ')
-      },
-      {
-        text: '',
-        actionText: 'Open Blockexplorer',
-        actionCallback: async (): Promise<void> => {
-          const link: string = await blockExplorer.getAddressLink(output.address, account.network)
-          window.open(link, '_blank')
-        }
       }
     ]
   })
@@ -358,14 +356,15 @@ const showOperationSuccessAlert = async (
     state: 'finished',
     actions: [
       {
-        text: `<strong>${output.transactionHash}</strong>`,
-        actionText: 'Open Blockexplorer',
+        text: `<strong>${shortenString(output.transactionHash)}</strong>`,
+        actionText: `Open Blockexplorer ${SVG_EXTERNAL}`,
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getTransactionLink(
             output.transactionHash,
             account.network
           )
           window.open(link, '_blank')
+          await closeToast()
         }
       }
     ]
@@ -387,10 +386,18 @@ const showSignSuccessAlert = async (
     state: 'finished',
     actions: [
       {
-        text: `<strong>${output.signature}</strong>`,
+        text: `Signature: <strong>${shortenString(output.signature)}</strong>`,
         actionText: 'Copy to clipboard',
         actionCallback: async (): Promise<void> => {
-          console.log('TODO: COPY TO CLIPBOARD')
+          navigator.clipboard.writeText(output.signature).then(
+            () => {
+              console.log('Copying to clipboard was successful!')
+            },
+            (err) => {
+              console.error('Could not copy text to clipboard: ', err)
+            }
+          )
+          await closeToast()
         }
       }
     ]
@@ -413,14 +420,15 @@ const showBroadcastSuccessAlert = async (
     state: 'finished',
     actions: [
       {
-        text: `<strong>${output.transactionHash}</strong>`,
-        actionText: 'Open Blockexplorer',
+        text: `<strong>${shortenString(output.transactionHash)}</strong>`,
+        actionText: `Open Blockexplorer ${SVG_EXTERNAL}`,
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getTransactionLink(
             output.transactionHash,
             network
           )
           window.open(link, '_blank')
+          await closeToast()
         }
       }
     ]

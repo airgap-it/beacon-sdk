@@ -134,6 +134,7 @@ const showElement = (id: string): void => {
 
   if (el) {
     el.classList.remove('hide')
+    el.classList.add('show')
   }
 }
 
@@ -142,6 +143,7 @@ const hideElement = (id: string): void => {
 
   if (el) {
     el.classList.add('hide')
+    el.classList.remove('show')
   }
 }
 
@@ -308,6 +310,7 @@ const updateToast = async (toastConfig: ToastConfig): Promise<void> => {
   }
 
   if (timer) {
+    console.log('SETTING TIMER (SEC)', timer / 1000)
     timeout = window.setTimeout(async () => {
       await closeToast()
     }, timer)
