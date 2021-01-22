@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.2.0 ()
+
+#### Features
+
+- **ui-improvements**: We changed the flow of the UI from the ground up. When a new message is sent from the dApp, the "request sent" toast now sticks to the top right of the page. It shows a loading animation and also includes the name (and logo) of the wallet where the request has been sent to. The toast will update whenever new information is received from the wallet (eg. request acknowledgement or response). Only the pairing information and errors will be displayed in a blocking alert. As always, all of these UI elements can be overwritten if dApp developers want to use their own UI.
+
+- **dark-mode**: The dApp developer can now choose between a "dark" and "light" color theme. This will change the look of both alerts and toasts.
+
+- **errors**: The `beacon-sdk` now allows for RPC-Errors to be passed in the `TRANSACTION_INVALID_ERROR`. Errors MUST always be displayed in the wallet. This change does not change that. It simply provides the dApps that expect certain errors to provide more insights into what went wrong. dApps are not required to display the details of an error, but they can choose to do so if it improves the user experience.
+
+- **debug**: New debug methods have been introduced. To activate logs from the `beacon-sdk` during development, it is possible to call `setDebugEnabled(true)`. This will enable logs throughout the `beacon-sdk`.
+
+The `beacon-sdk` will now also listen to the `beaconSdkDebugEnabled` variable on the global window object. This will allow browser extensions (eg. Beacon Extension) to set the debug flag to true on production websites, which will help debugging on production dApps.
+
 ## 2.1.0 (2021-01-22)
 
 #### Features
