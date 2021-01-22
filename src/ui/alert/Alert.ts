@@ -190,10 +190,27 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
 
   document.body.appendChild(wrapper)
 
+  const closeButton = document.getElementById(`beacon-alert-${id}-close`)
+
+  const closeButtonClick = async (): Promise<void> => {
+    if (closeButtonCallback) {
+      closeButtonCallback()
+    }
+    await closeAlert(id)
+  }
+
   const colorMode = getColorMode()
   const elm = document.getElementById(`beacon-alert-modal-${id}`)
   if (elm) {
     elm.classList.add(`theme__${colorMode}`)
+    elm.addEventListener('click', closeButtonClick) // Backdrop click dismisses alert
+  }
+
+  const modal = document.getElementsByClassName(`beacon-modal__wrapper`)
+  if (modal.length > 0) {
+    modal[0].addEventListener('click', (event) => {
+      event.stopPropagation()
+    })
   }
 
   lastFocusedElement = document.activeElement // Store which element has been focussed before the alert is shown
@@ -210,15 +227,6 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
       })
     }
   })
-
-  const closeButton = document.getElementById(`beacon-alert-${id}-close`)
-
-  const closeButtonClick = async (): Promise<void> => {
-    if (closeButtonCallback) {
-      closeButtonCallback()
-    }
-    await closeAlert(id)
-  }
 
   if (closeButton) {
     closeButton.addEventListener('click', async () => {

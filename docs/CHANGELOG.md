@@ -14,6 +14,8 @@
 
 The `beacon-sdk` will now also listen to the `beaconSdkDebugEnabled` variable on the global window object. This will allow browser extensions (eg. Beacon Extension) to set the debug flag to true on production websites, which will help debugging on production dApps.
 
+- **alert**: A click outside the alert will now dismiss the alert.
+
 ## 2.1.0 (2021-01-22)
 
 #### Features
