@@ -47,7 +47,8 @@ import {
   PeerInfo,
   Transport,
   DappP2PTransport,
-  DappPostMessageTransport
+  DappPostMessageTransport,
+  PeerManager
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -106,6 +107,11 @@ export class DAppClient extends Client {
     ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
   > = new ExposedPromise()
 
+  private _initPromise: Promise<TransportType> | undefined
+
+  private readonly activePeerLoaded: Promise<void>
+  private readonly activeAccountLoaded: Promise<void>
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -115,13 +121,35 @@ export class DAppClient extends Client {
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
 
-    this.storage
+    this.activeAccountLoaded = this.storage
       .get(StorageKey.ACTIVE_ACCOUNT)
       .then(async (activeAccountIdentifier) => {
         if (activeAccountIdentifier) {
           await this.setActiveAccount(await this.accountManager.getAccount(activeAccountIdentifier))
         } else {
           await this.setActiveAccount(undefined)
+        }
+      })
+      .catch(async (storageError) => {
+        await this.setActiveAccount(undefined)
+        console.error(storageError)
+      })
+
+    this.activePeerLoaded = this.storage
+      .get(StorageKey.ACTIVE_PEER)
+      .then(async (activePeerPublicKey) => {
+        if (activePeerPublicKey) {
+          const p2pPeerManager = new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_DAPP)
+          const postmessagePeerManager = new PeerManager(
+            this.storage,
+            StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
+          )
+          const peer =
+            (await p2pPeerManager.getPeer(activePeerPublicKey)) ??
+            (await postmessagePeerManager.getPeer(activePeerPublicKey))
+          await this.setActivePeer(peer as any)
+        } else {
+          await this.setActivePeer(undefined)
         }
       })
       .catch(async (storageError) => {
@@ -174,16 +202,47 @@ export class DAppClient extends Client {
     }
   }
 
+  public async initInternalTransports(): Promise<void> {
+    const keyPair = await this.keyPair
+
+    if (this.postMessageTransport || this.p2pTransport) {
+      return
+    }
+
+    this.postMessageTransport = new DappPostMessageTransport(this.name, keyPair, this.storage)
+    await this.addListener(this.postMessageTransport)
+
+    this.p2pTransport = new DappP2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
+    await this.addListener(this.p2pTransport)
+  }
+
   public async init(transport?: Transport<any>): Promise<TransportType> {
-    return new Promise(async (resolve) => {
+    if (this._initPromise) {
+      return this._initPromise
+    }
+
+    try {
+      await this.activeAccountLoaded
+    } catch {
+      //
+    }
+    try {
+      await this.activePeerLoaded
+    } catch {
+      //
+    }
+
+    this._initPromise = new Promise(async (resolve) => {
       if (transport) {
         await this.addListener(transport)
 
         resolve(await super.init(transport))
+      } else if (this._transport.isSettled()) {
+        await (await this.transport).connect()
+
+        resolve(await super.init(await this.transport))
       } else {
         const activeAccount = await this.getActiveAccount()
-
-        const keyPair = await this.keyPair
 
         const stopListening = () => {
           if (this.postMessageTransport) {
@@ -194,23 +253,14 @@ export class DAppClient extends Client {
           }
         }
 
-        if (!this.postMessageTransport) {
-          this.postMessageTransport = new DappPostMessageTransport(this.name, keyPair, this.storage)
+        await this.initInternalTransports()
 
-          this.postMessageTransport.connect().then().catch(console.error)
-          await this.addListener(this.postMessageTransport)
+        if (!this.postMessageTransport || !this.p2pTransport) {
+          return
         }
 
-        if (!this.p2pTransport) {
-          this.p2pTransport = new DappP2PTransport(
-            this.name,
-            keyPair,
-            this.storage,
-            this.matrixNodes
-          )
-          this.p2pTransport.connect().then().catch(console.error)
-          await this.addListener(this.p2pTransport)
-        }
+        this.postMessageTransport.connect().then().catch(console.error)
+        this.p2pTransport.connect().then().catch(console.error)
 
         if (activeAccount && activeAccount.origin) {
           const origin = activeAccount.origin.type
@@ -258,14 +308,22 @@ export class DAppClient extends Client {
                 .emit(BeaconEvent.PAIR_INIT, {
                   p2pPeerInfo: await p2pTransport.getPairingRequestInfo(),
                   postmessagePeerInfo: await postMessageTransport.getPairingRequestInfo(),
-                  preferredNetwork: this.preferredNetwork
+                  preferredNetwork: this.preferredNetwork,
+                  abortedHandler: () => {
+                    this._initPromise = undefined
+                  }
                 })
                 .catch((emitError) => console.warn(emitError))
             })
-            .catch(console.error)
+            .catch((error) => {
+              this._initPromise = undefined
+              console.error(error)
+            })
         }
       }
     })
+
+    return this._initPromise
   }
 
   /**
@@ -290,6 +348,8 @@ export class DAppClient extends Client {
 
     if (account) {
       const origin = account.origin.type
+      await this.initInternalTransports()
+
       // Select the transport that matches the active account
       if (origin === Origin.EXTENSION) {
         await this.setTransport(this.postMessageTransport)
@@ -300,8 +360,6 @@ export class DAppClient extends Client {
       await this.setTransport(undefined)
     }
 
-    await this.setActivePeer(undefined) // For now, the peer is only used as a fallback if no active account is set. So when the account is set, the active peer can be undefined. This should later be changed so the active peer is linked to the active account.
-
     await this.storage.set(
       StorageKey.ACTIVE_ACCOUNT,
       account ? account.accountIdentifier : undefined
@@ -310,6 +368,13 @@ export class DAppClient extends Client {
     await this.events.emit(BeaconEvent.ACTIVE_ACCOUNT_SET, account)
 
     return
+  }
+
+  /**
+   * Clear the active account
+   */
+  public clearActiveAccount(): Promise<void> {
+    return this.setActiveAccount()
   }
 
   /**
@@ -457,7 +522,7 @@ export class DAppClient extends Client {
       PermissionRequest,
       PermissionResponse
     >(request).catch(async (requestError: ErrorResponse) => {
-      throw this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request, requestError)
     })
 
     // TODO: Migration code. Remove sometime after 1.0.0 release.
@@ -531,7 +596,7 @@ export class DAppClient extends Client {
       SignPayloadRequest,
       SignPayloadResponse
     >(request).catch(async (requestError: ErrorResponse) => {
-      throw this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request, requestError)
     })
 
     const { senderId, signingType, signature } = message
@@ -573,7 +638,7 @@ export class DAppClient extends Client {
     const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
-      throw this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request, requestError)
     })
 
     const { senderId, transactionHash } = message
@@ -612,7 +677,7 @@ export class DAppClient extends Client {
     const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
-      throw this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request, requestError)
     })
 
     const { senderId, transactionHash } = message
@@ -641,7 +706,29 @@ export class DAppClient extends Client {
       this._activePeer.resolve(peer)
     }
 
+    if (peer) {
+      await this.initInternalTransports()
+      if (peer.type === 'postmessage-pairing-response') {
+        await this.setTransport(this.postMessageTransport)
+      } else if (peer.type === 'p2p-pairing-response') {
+        await this.setTransport(this.p2pTransport)
+      }
+    }
+
+    await this.storage.set(StorageKey.ACTIVE_PEER, peer ? peer.publicKey : undefined)
+
     return
+  }
+
+  /**
+   * A "setter" for when the transport needs to be changed.
+   */
+  protected async setTransport(transport?: Transport<any>): Promise<void> {
+    if (!transport) {
+      this._initPromise = undefined
+    }
+
+    return super.setTransport(transport)
   }
 
   /**
@@ -721,8 +808,6 @@ export class DAppClient extends Client {
 
       throw BeaconError.getError(beaconError.errorType)
     }
-
-    console.error('requestError', beaconError)
 
     throw beaconError
   }

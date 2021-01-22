@@ -38,10 +38,14 @@ export interface ExtensionApp extends AppBase {
 export interface WebApp extends AppBase {
   links: {
     [NetworkType.MAINNET]: string
-    [NetworkType.CARTHAGENET]?: string
     [NetworkType.DELPHINET]?: string
+    [NetworkType.EDONET]?: string
     [NetworkType.CUSTOM]?: string
   }
+}
+
+export interface DesktopApp extends AppBase {
+  deepLink: string
 }
 
 export interface App extends AppBase {
@@ -186,7 +190,7 @@ export class Pairing {
               logo: app.logo,
               enabled: true,
               clickHandler(): void {
-                const link = getTzip10Link(app.deepLink ?? app.universalLink, pairingCode)
+                const link = getTzip10Link(app.deepLink, pairingCode)
                 window.open(link, '_blank')
                 statusUpdateHandler(WalletType.DESKTOP, this)
               }
@@ -220,7 +224,14 @@ export class Pairing {
             enabled: true,
             clickHandler(): void {
               const link = getTzip10Link(app.deepLink ?? app.universalLink, pairingCode)
-              window.open(link, '_blank')
+
+              // iOS does not trigger deeplinks with `window.open(...)`. The only way is using a normal link. So we have to work around that.
+              const a = document.createElement('a')
+              a.setAttribute('href', link)
+              a.dispatchEvent(
+                new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
+              )
+
               statusUpdateHandler(WalletType.IOS, this)
             }
           }))

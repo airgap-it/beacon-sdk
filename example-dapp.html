@@ -22,6 +22,8 @@
     <br /><br />
     <button id="connect">Connect and Delegate</button>
     <br /><br />
+    <button id="signPayload">Sign Payload</button>
+    <br /><br />
     ---
     <br /><br />
     <button id="getExtensions">Get Extensions</button>
@@ -36,7 +38,19 @@
     <br /><br />
     ---
     <br /><br />
+    Reproducing bugs:
+    <br /><br />
+    <button id="externalInit">External Init</button>
+    <br /><br />
+    <button id="2requests">2 requests at once</button>
+    <br /><br />
+    ---
+    <br /><br />
     <button id="removePeer">Remove Peer</button>
+    <br /><br />
+    ---
+    <br /><br />
+    <button id="contractCall">Contract Call</button>
     <br /><br />
     ---
     <br /><br />
@@ -76,15 +90,35 @@
         })
       }
 
+      // Initiate a delegate operation
+      const sendToSelf = () => {
+        client.getActiveAccount().then((activeAccount) => {
+          client.requestOperation({
+            operationDetails: [
+              {
+                kind: beacon.TezosOperationType.TRANSACTION,
+                destination: activeAccount.address,
+                amount: '1'
+              }
+            ]
+          })
+        })
+      }
+
       // Initiate a permission request
       const requestPermission = (callback) => {
-        client.requestPermissions().then((permissions) => {
-          console.log('permissions', permissions)
-          if (callback) {
-            callback(permissions)
-          }
-          updateActiveAccount()
-        })
+        client
+          .requestPermissions()
+          .then((permissions) => {
+            console.log('permissions', permissions)
+            if (callback) {
+              callback(permissions)
+            }
+            updateActiveAccount()
+          })
+          .catch((error) => {
+            console.log('error during permission request', error)
+          })
       }
 
       // Add event listener to the button
@@ -117,8 +151,17 @@
       })
 
       // Add event listener to the button
+      document.getElementById('signPayload').addEventListener('click', async () => {
+        const signature = await client.requestSignPayload({
+          payload: 'test'
+        })
+
+        console.log('signature:', signature)
+      })
+
+      // Add event listener to the button
       document.getElementById('clearActiveAccount').addEventListener('click', () => {
-        client.setActiveAccount(undefined).then(() => {
+        client.setActiveAccount().then(() => {
           updateActiveAccount()
         })
       })
@@ -180,6 +223,48 @@
             console.log('no peers to be removed')
           }
         })
+      })
+
+      document.getElementById('externalInit').addEventListener('click', () => {
+        console.log('This method has to be called directly after page load to reproduce the error')
+        client.init().then(() => {
+          console.log('init done')
+          client.requestPermissions().then((permissions) => {
+            console.log('permissions', permissions)
+            if (callback) {
+              callback(permissions)
+            }
+            updateActiveAccount()
+          })
+        })
+      })
+
+      // Add event listener to the button
+      document.getElementById('contractCall').addEventListener('click', () => {
+        client
+          .requestOperation({
+            operationDetails: [
+              {
+                kind: beacon.TezosOperationType.TRANSACTION,
+                amount: '0',
+                destination: 'KT1RxKJyi48W3bZR8HErRiisXZQw19HwLGWj',
+                parameters: {
+                  entrypoint: 'toggleStatus',
+                  value: {
+                    prim: 'True'
+                  }
+                }
+              }
+            ]
+          })
+          .then((response) => console.log(response))
+          .catch((error) => console.log(error))
+      })
+
+      // Add event listener to the button
+      document.getElementById('2requests').addEventListener('click', () => {
+        setTimeout(sendToSelf, 0)
+        setTimeout(sendToSelf, 1000)
       })
     </script>
   </body>

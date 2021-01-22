@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.1.0 (2021-01-22)
+
+#### Features
+
+- **edonet**: Add Edonet
+- **carthagenet**: Remove Carthagenet
+
+- **accessibility**: Close alerts with "ESC" button
+- **accessibility**: Tab through selection on pairing alert and select item with enter
+
+- **DAppClient**: add `clearActiveAccount()` method. This is just a wrapper for `setActiveAccount()` but should make it more clear how to clear an account.
+
+#### Bug Fixes
+
+- **errors**: Error messages were thrown internally in some cases and could not be caught by the developer
+- **broadcast-error**: The "Broadcast" error was mistakenly displayed as a "Network not supported" error
+- **init**: If the `init` method was called manually by the developer, the following requests would never resolve
+- **pageload**: The transport is now set on pageload even if `init` is not called
+- **pageload**: If a peer was connected but no permissions were shared, a refresh will now reconnect to the previous peer
+- **deeplink**: Deeplinks on iOS did not work in some browsers
+- **pairing**: Center QR code
+- **types**: "kind" of the `OriginationOperation` was wrong
+
 ## 2.0.1 (2021-01-11)
 
 #### Features
