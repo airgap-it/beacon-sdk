@@ -70,7 +70,7 @@ const formatToastText = (html: string): string => {
   if (walletName) {
     wallet += `<strong>${walletName}</strong>`
   } else {
-    wallet += `wallet`
+    wallet += `Wallet`
   }
 
   return replaceInTemplate(html, 'wallet', wallet)
@@ -200,6 +200,23 @@ const expandOrCollapseList = (): void => {
   }
 }
 
+const addActionsToToast = async (toastConfig: ToastConfig, list: HTMLElement): Promise<void> => {
+  const actions = toastConfig.actions
+  if (actions && actions.length > 0) {
+    const actionPromises = actions.map(async (action) => {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      return createActionItem(action)
+    })
+
+    const actionItems = await Promise.all(actionPromises)
+
+    actionItems.forEach((item) => list.appendChild(item))
+  } else {
+    showClose()
+    collapseList()
+  }
+}
+
 const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
   globalToastConfig = toastConfig
   const timer = toastConfig.timer
@@ -224,21 +241,8 @@ const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
 
   const list = document.getElementById('beacon-toast-list')
 
-  const actions = toastConfig.actions
   if (list) {
-    if (actions && actions.length > 0) {
-      const actionPromises = actions.map(async (action) => {
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        return createActionItem(action)
-      })
-
-      const actionItems = await Promise.all(actionPromises)
-
-      actionItems.forEach((item) => list.appendChild(item))
-    } else {
-      showClose()
-      collapseList()
-    }
+    await addActionsToToast(toastConfig, list)
   }
 
   expandTimeout = window.setTimeout(async () => {
@@ -273,35 +277,7 @@ const updateToast = async (toastConfig: ToastConfig): Promise<void> => {
   if (list) {
     removeAllChildNodes(list)
 
-    const actions = toastConfig.actions
-    if (actions && actions.length > 0) {
-      const actionPromises = actions.map(async (action) => {
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        return createActionItem(action)
-      })
-
-      const actionItems = await Promise.all(actionPromises)
-
-      actionItems.forEach((item) => list.appendChild(item))
-    } else {
-      console.log('NO ACTIONS')
-      showClose()
-      collapseList()
-    }
-  }
-
-  // if (globalToastConfig.state === 'loading') {
-  //   console.log('loading', globalToastConfig)
-  //   showLoader()
-  //   showToggle()
-  //   collapseList()
-  // }
-
-  if (globalToastConfig.state === 'finished') {
-    console.log('finished', globalToastConfig)
-    hideLoader()
-    showClose()
-    expandList()
+    await addActionsToToast(toastConfig, list)
   }
 
   const toastTextEl = document.getElementById('beacon-text')
@@ -340,11 +316,19 @@ const openToast = async (toastConfig: ToastConfig): Promise<void> => {
     if (toastConfig.forceNew) {
       await closeToast()
     } else {
-      return updateToast(toastConfig)
+      await updateToast(toastConfig)
     }
+  } else {
+    await createNewToast(toastConfig)
   }
 
-  return createNewToast(toastConfig)
+  if (globalToastConfig && globalToastConfig.state === 'finished') {
+    hideLoader()
+    showClose()
+    expandList()
+  }
+
+  return
 }
 
 export { closeToast, openToast }
