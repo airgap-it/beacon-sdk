@@ -65,10 +65,10 @@ const formatToastText = (html: string): string => {
 
   let wallet = ''
   if (walletIcon) {
-    wallet += `<img class="beacon-toast__content__img" src="${walletIcon}">`
+    wallet += `<span class="beacon-toast__wallet__container"><img class="beacon-toast__content__img" src="${walletIcon}">`
   }
   if (walletName) {
-    wallet += `<strong>${walletName}</strong>`
+    wallet += `<strong>${walletName}</strong></span>`
   } else {
     wallet += `Wallet`
   }
