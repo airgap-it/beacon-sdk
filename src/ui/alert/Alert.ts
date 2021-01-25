@@ -55,7 +55,10 @@ const formatAlert = (
   title: string,
   buttons: AlertButton[],
   pairingPayload?: string
-): string => {
+): {
+  style: string
+  html: string
+} => {
   const callToAction: string = title
   const buttonsHtml = buttons.map(
     (button, index: number) =>
@@ -70,7 +73,7 @@ const formatAlert = (
     allStyles += alertTemplates.pair.css
   }
 
-  let alertContainer = `<style>${allStyles}</style>${alertTemplates.container}`
+  let alertContainer = alertTemplates.container
 
   alertContainer = replaceInTemplate(
     alertContainer,
@@ -93,7 +96,10 @@ const formatAlert = (
     throw new Error('Not all placeholders replaced!')
   }
 
-  return alertContainer
+  return {
+    style: allStyles,
+    html: alertContainer
+  }
 }
 
 /**
@@ -103,7 +109,12 @@ const formatAlert = (
  */
 const closeAlert = (id: string): Promise<void> =>
   new Promise((resolve) => {
-    const elm = document.getElementById(`beacon-alert-modal-${id}`)
+    const wrapper = document.getElementById(`beacon-alert-wrapper-${id}`)
+    if (!wrapper) {
+      return resolve()
+    }
+
+    const elm = wrapper.shadowRoot?.getElementById(`beacon-alert-modal-${id}`)
     if (elm) {
       const animationDuration = 300
 
@@ -115,12 +126,9 @@ const closeAlert = (id: string): Promise<void> =>
 
       elm.className = elm.className.replace('fadeIn', 'fadeOut')
       window.setTimeout(() => {
-        const wrapper = document.getElementById(`beacon-alert-wrapper-${id}`)
-        if (wrapper) {
-          document.body.removeChild(wrapper)
-          if (lastFocusedElement) {
-            ;(lastFocusedElement as any).focus() // set focus back to last focussed element
-          }
+        document.body.removeChild(wrapper)
+        if (lastFocusedElement) {
+          ;(lastFocusedElement as any).focus() // set focus back to last focussed element
         }
         resolve()
       }, animationDuration)
@@ -165,9 +173,14 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
 
   const id = (await generateGUID()).split('-').join('')
 
+  const shadowRootEl = document.createElement('div')
+  shadowRootEl.setAttribute('id', `beacon-alert-wrapper-${id}`)
+  const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })
+
   const wrapper = document.createElement('div')
-  wrapper.setAttribute('id', `beacon-alert-wrapper-${id}`)
   wrapper.setAttribute('tabindex', `0`) // Make modal focussable
+
+  shadowRoot.appendChild(wrapper)
 
   const buttons: AlertButton[] = [
     ...(alertConfig.buttons?.map((button) => ({
@@ -180,7 +193,20 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
 
   const formattedBody =
     body && pairingPayload ? formatQR(body, pairingPayload?.p2pSyncCode) : body ?? ''
-  wrapper.innerHTML = formatAlert(id, formattedBody, title, buttons, pairingPayload?.p2pSyncCode)
+
+  const { style, html } = formatAlert(
+    id,
+    formattedBody,
+    title,
+    buttons,
+    pairingPayload?.p2pSyncCode
+  )
+  wrapper.innerHTML = html
+
+  const styleEl = document.createElement('style')
+
+  styleEl.textContent = style
+  shadowRoot.appendChild(styleEl)
 
   if (timer) {
     timeout[id] = window.setTimeout(async () => {
@@ -188,9 +214,9 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     }, timer)
   }
 
-  document.body.appendChild(wrapper)
+  document.body.appendChild(shadowRootEl)
 
-  const closeButton = document.getElementById(`beacon-alert-${id}-close`)
+  const closeButton = shadowRoot.getElementById(`beacon-alert-${id}-close`)
 
   const closeButtonClick = async (): Promise<void> => {
     if (closeButtonCallback) {
@@ -200,13 +226,13 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   }
 
   const colorMode = getColorMode()
-  const elm = document.getElementById(`beacon-alert-modal-${id}`)
+  const elm = shadowRoot.getElementById(`beacon-alert-modal-${id}`)
   if (elm) {
     elm.classList.add(`theme__${colorMode}`)
     elm.addEventListener('click', closeButtonClick) // Backdrop click dismisses alert
   }
 
-  const modal = document.getElementsByClassName(`beacon-modal__wrapper`)
+  const modal = shadowRoot.querySelectorAll('.beacon-modal__wrapper')
   if (modal.length > 0) {
     modal[0].addEventListener('click', (event) => {
       event.stopPropagation()
@@ -217,7 +243,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   wrapper.focus() // Focus alert for accessibility
 
   buttons.forEach((button: AlertButton, index) => {
-    const buttonElement = document.getElementById(`beacon-alert-${id}-${index}`)
+    const buttonElement = shadowRoot.getElementById(`beacon-alert-${id}-${index}`)
     if (buttonElement) {
       buttonElement.addEventListener('click', async () => {
         await closeAlert(id)
@@ -241,7 +267,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   })
 
   if (pairingPayload) {
-    await preparePairingAlert(pairingPayload)
+    await preparePairingAlert(shadowRoot, pairingPayload)
   }
 
   return id
