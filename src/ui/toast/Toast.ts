@@ -76,14 +76,21 @@ const formatToastText = (html: string): string => {
   return replaceInTemplate(html, 'wallet', wallet)
 }
 
-const getToastHTML = (config: ToastConfig): string => {
+const getToastHTML = (
+  config: ToastConfig
+): {
+  style: string
+  html: string
+} => {
   const text = config.body
 
-  let html = `<style>${toastTemplates.default.css}</style>${toastTemplates.default.html}`
-  html = replaceInTemplate(html, 'text', text)
+  let html = replaceInTemplate(toastTemplates.default.html, 'text', text)
   html = formatToastText(html)
 
-  return html
+  return {
+    style: toastTemplates.default.css,
+    html
+  }
 }
 
 /**
@@ -92,7 +99,13 @@ const getToastHTML = (config: ToastConfig): string => {
 const closeToast = (): Promise<void> =>
   new Promise((resolve) => {
     globalToastConfig = undefined
-    const elm = document.getElementById('beacon-toast')
+
+    const wrapper = document.getElementById('beacon-toast-wrapper')
+    if (!wrapper) {
+      return resolve()
+    }
+
+    const elm = wrapper.shadowRoot?.getElementById('beacon-toast')
     if (elm) {
       const animationDuration = 300
 
@@ -103,10 +116,7 @@ const closeToast = (): Promise<void> =>
 
       elm.className = elm.className.replace('fadeIn', 'fadeOut')
       window.setTimeout(() => {
-        const wrapper = document.getElementById('beacon-toast-wrapper')
-        if (wrapper) {
-          document.body.removeChild(wrapper)
-        }
+        document.body.removeChild(wrapper)
         resolve()
       }, animationDuration)
     } else {
@@ -115,10 +125,11 @@ const closeToast = (): Promise<void> =>
   })
 
 const registerClick = (
+  shadowRoot: ShadowRoot,
   id: string,
   callback: (el: HTMLElement) => Promise<void>
 ): HTMLElement | null => {
-  const button = document.getElementById(id)
+  const button = shadowRoot.getElementById(id)
 
   if (button) {
     button.addEventListener('click', async () => {
@@ -129,8 +140,8 @@ const registerClick = (
   return button
 }
 
-const showElement = (id: string): void => {
-  const el = document.getElementById(id)
+const showElement = (shadowRoot: ShadowRoot, id: string): void => {
+  const el = shadowRoot.getElementById(id)
 
   if (el) {
     el.classList.remove('hide')
@@ -138,8 +149,8 @@ const showElement = (id: string): void => {
   }
 }
 
-const hideElement = (id: string): void => {
-  const el = document.getElementById(id)
+const hideElement = (shadowRoot: ShadowRoot, id: string): void => {
+  const el = shadowRoot.getElementById(id)
 
   if (el) {
     el.classList.add('hide')
@@ -151,9 +162,9 @@ const hideElement = (id: string): void => {
 //   showElement('beacon-toast-loader')
 // }
 
-const hideLoader = (): void => {
-  hideElement('beacon-toast-loader')
-  showElement('beacon-toast-loader-placeholder')
+const hideLoader = (shadowRoot: ShadowRoot): void => {
+  hideElement(shadowRoot, 'beacon-toast-loader')
+  showElement(shadowRoot, 'beacon-toast-loader-placeholder')
 }
 
 // const showToggle = (): void => {
@@ -161,46 +172,56 @@ const hideLoader = (): void => {
 //   hideElement('beacon-toast-button-close')
 // }
 
-const showClose = (): void => {
-  showElement('beacon-toast-button-close')
-  hideElement('beacon-toast-button-expand')
+const showClose = (shadowRoot: ShadowRoot): void => {
+  showElement(shadowRoot, 'beacon-toast-button-close')
+  hideElement(shadowRoot, 'beacon-toast-button-expand')
 }
 
-const collapseList = (): void => {
-  const expandButton = document.getElementById('beacon-toast-button-expand')
-  const list = document.getElementById('beacon-toast-list')
+const collapseList = (shadowRoot: ShadowRoot): void => {
+  const expandButton = shadowRoot.getElementById('beacon-toast-button-expand')
+  const list = shadowRoot.getElementById('beacon-toast-list')
+  const poweredByBeacon = shadowRoot.getElementById('beacon-toast-powered-by')
 
-  if (expandButton && list) {
+  if (poweredByBeacon && expandButton && list) {
     expandButton.classList.remove('beacon-toast__upside_down')
     list.classList.add('hide')
     list.classList.remove('show')
+    poweredByBeacon.classList.add('hide')
+    poweredByBeacon.classList.remove('show')
   }
 }
 
-const expandList = (): void => {
-  const expandButton = document.getElementById('beacon-toast-button-expand')
-  const list = document.getElementById('beacon-toast-list')
+const expandList = (shadowRoot: ShadowRoot): void => {
+  const expandButton = shadowRoot.getElementById('beacon-toast-button-expand')
+  const list = shadowRoot.getElementById('beacon-toast-list')
+  const poweredByBeacon = shadowRoot.getElementById('beacon-toast-powered-by')
 
-  if (expandButton && list) {
+  if (poweredByBeacon && expandButton && list) {
     expandButton.classList.add('beacon-toast__upside_down')
     list.classList.remove('hide')
     list.classList.add('show')
+    poweredByBeacon.classList.remove('hide')
+    poweredByBeacon.classList.add('show')
   }
 }
 
-const expandOrCollapseList = (): void => {
-  const expandButton = document.getElementById('beacon-toast-button-expand')
-  const list = document.getElementById('beacon-toast-list')
+const expandOrCollapseList = (shadowRoot: ShadowRoot): void => {
+  const expandButton = shadowRoot.getElementById('beacon-toast-button-expand')
+  const list = shadowRoot.getElementById('beacon-toast-list')
   if (expandButton && list) {
     if (expandButton.classList.contains('beacon-toast__upside_down')) {
-      collapseList()
+      collapseList(shadowRoot)
     } else {
-      expandList()
+      expandList(shadowRoot)
     }
   }
 }
 
-const addActionsToToast = async (toastConfig: ToastConfig, list: HTMLElement): Promise<void> => {
+const addActionsToToast = async (
+  shadowRoot: ShadowRoot,
+  toastConfig: ToastConfig,
+  list: HTMLElement
+): Promise<void> => {
   const actions = toastConfig.actions
   if (actions && actions.length > 0) {
     const actionPromises = actions.map(async (action) => {
@@ -212,8 +233,8 @@ const addActionsToToast = async (toastConfig: ToastConfig, list: HTMLElement): P
 
     actionItems.forEach((item) => list.appendChild(item))
   } else {
-    showClose()
-    collapseList()
+    showClose(shadowRoot)
+    collapseList(shadowRoot)
   }
 }
 
@@ -221,9 +242,20 @@ const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
   globalToastConfig = toastConfig
   const timer = toastConfig.timer
 
+  const shadowRootEl = document.createElement('div')
+  shadowRootEl.setAttribute('id', 'beacon-toast-wrapper')
+  const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })
+
   const wrapper = document.createElement('div')
-  wrapper.setAttribute('id', 'beacon-toast-wrapper')
-  wrapper.innerHTML = getToastHTML(toastConfig)
+  const { style, html } = getToastHTML(toastConfig)
+  wrapper.innerHTML = html
+
+  const styleEl = document.createElement('style')
+
+  styleEl.textContent = style
+
+  shadowRoot.appendChild(wrapper)
+  shadowRoot.appendChild(styleEl)
 
   if (timer) {
     timeout = window.setTimeout(async () => {
@@ -231,39 +263,38 @@ const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
     }, timer)
   }
 
-  document.body.appendChild(wrapper)
+  document.body.appendChild(shadowRootEl)
 
   const colorMode = getColorMode()
-  const elm = document.getElementById(`beacon-toast`)
+  const elm = shadowRoot.getElementById(`beacon-toast`)
   if (elm) {
     elm.classList.add(`theme__${colorMode}`)
   }
 
-  const list = document.getElementById('beacon-toast-list')
+  const list = shadowRoot.getElementById('beacon-toast-list')
 
   if (list) {
-    await addActionsToToast(toastConfig, list)
+    await addActionsToToast(shadowRoot, toastConfig, list)
   }
 
   expandTimeout = window.setTimeout(async () => {
-    const expandButton = document.getElementById('beacon-toast-button-expand')
+    const expandButton = shadowRoot.getElementById('beacon-toast-button-expand')
     if (expandButton && !expandButton.classList.contains('beacon-toast__upside_down')) {
-      expandOrCollapseList()
+      expandOrCollapseList(shadowRoot)
     }
   }, EXPAND_AFTER)
 
-  registerClick('beacon-toast-button-done', async () => {
+  registerClick(shadowRoot, 'beacon-toast-button-done', async () => {
     await closeToast()
   })
-  const closeButton = registerClick('beacon-toast-button-close', async () => {
+  const closeButton = registerClick(shadowRoot, 'beacon-toast-button-close', async () => {
     await closeToast()
   })
   if (closeButton) {
     closeButton.classList.add('hide')
   }
-  registerClick('beacon-toast-button-expand', async () => {
-    console.log('CLICK')
-    expandOrCollapseList()
+  registerClick(shadowRoot, 'beacon-toast-button-expand', async () => {
+    expandOrCollapseList(shadowRoot)
   })
 }
 
@@ -272,15 +303,24 @@ const updateToast = async (toastConfig: ToastConfig): Promise<void> => {
   console.log('UPDATE, global', globalToastConfig)
   const timer = toastConfig.timer
 
-  const list = document.getElementById('beacon-toast-list')
+  const wrapper = document.getElementById('beacon-toast-wrapper')
+  if (!wrapper) {
+    return
+  }
+  const shadowRoot = wrapper.shadowRoot
+  if (!shadowRoot) {
+    return
+  }
+
+  const list = shadowRoot.getElementById('beacon-toast-list')
 
   if (list) {
     removeAllChildNodes(list)
 
-    await addActionsToToast(toastConfig, list)
+    await addActionsToToast(shadowRoot, toastConfig, list)
   }
 
-  const toastTextEl = document.getElementById('beacon-text')
+  const toastTextEl = shadowRoot.getElementById('beacon-text')
   if (toastTextEl) {
     toastTextEl.innerHTML = formatToastText(toastConfig.body)
   }
@@ -292,7 +332,7 @@ const updateToast = async (toastConfig: ToastConfig): Promise<void> => {
     }, timer)
   }
 
-  const doneButton = document.getElementById('beacon-toast-button-done')
+  const doneButton = shadowRoot.getElementById('beacon-toast-button-done')
 
   if (doneButton) {
     doneButton.addEventListener('click', async () => {
@@ -323,9 +363,13 @@ const openToast = async (toastConfig: ToastConfig): Promise<void> => {
   }
 
   if (globalToastConfig && globalToastConfig.state === 'finished') {
-    hideLoader()
-    showClose()
-    expandList()
+    const shadowRoot = document.getElementById('beacon-toast-wrapper')?.shadowRoot
+
+    if (shadowRoot) {
+      hideLoader(shadowRoot)
+      showClose(shadowRoot)
+      expandList(shadowRoot)
+    }
   }
 
   return
