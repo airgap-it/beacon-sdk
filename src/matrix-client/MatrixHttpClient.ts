@@ -19,15 +19,10 @@ export class MatrixHttpClient {
    * Get data from the synapse node
    *
    * @param endpoint
-   * @param params
    * @param options
    */
-  public async get<T>(
-    endpoint: string,
-    params: MatrixRequestParams<T>,
-    options?: HttpOptions
-  ): Promise<T> {
-    return this.send('GET', endpoint, options, params)
+  public async get<T>(endpoint: string, options?: HttpOptions): Promise<T> {
+    return this.send('GET', endpoint, options)
   }
 
   /**

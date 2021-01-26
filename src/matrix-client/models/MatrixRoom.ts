@@ -43,11 +43,11 @@ export class MatrixRoom {
    * @param status
    */
   public static from(roomOrId: string | MatrixRoom, status?: MatrixRoomStatus): MatrixRoom {
-    return roomOrId instanceof MatrixRoom
-      ? status
-        ? new MatrixRoom(roomOrId.id, status, roomOrId.members, roomOrId.messages)
-        : roomOrId
-      : new MatrixRoom(roomOrId, status || MatrixRoomStatus.UNKNOWN)
+    return typeof roomOrId === 'string'
+      ? new MatrixRoom(roomOrId, status || MatrixRoomStatus.UNKNOWN)
+      : status !== undefined
+      ? new MatrixRoom(roomOrId.id, status, roomOrId.members, roomOrId.messages)
+      : roomOrId
   }
 
   /**

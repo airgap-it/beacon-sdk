@@ -56,4 +56,13 @@ export class MatrixRoomService {
 
     return this.httpClient.post(`/rooms/${room.id}/join`, {}, { accessToken })
   }
+
+  /**
+   * Get all joined rooms
+   *
+   * @param accessToken
+   */
+  public async getJoinedRooms(accessToken: string): Promise<MatrixRoomJoinResponse> {
+    return this.httpClient.get(`/joined_rooms`, { accessToken })
+  }
 }
