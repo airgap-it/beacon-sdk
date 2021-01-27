@@ -435,10 +435,8 @@ const showBroadcastSuccessAlert = async (
   })
 }
 
-const emptyHandler = (eventType: BeaconEvent): BeaconEventHandlerFunction => async (
-  data?: unknown
-): Promise<void> => {
-  logger.log('emptyHandler', eventType, data)
+const emptyHandler = (): BeaconEventHandlerFunction => async (): Promise<void> => {
+  //
 }
 
 export type BeaconEventHandlerFunction<T = unknown> = (
@@ -467,15 +465,15 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACKNOWLEDGE_RECEIVED]: showAcknowledgedToast,
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
-  [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(BeaconEvent.ACTIVE_ACCOUNT_SET),
-  [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
+  [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(),
+  [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(),
   [BeaconEvent.PAIR_INIT]: showPairAlert,
   [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
   [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showBeaconConnectedAlert,
   [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrAlert,
   [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
-  [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)
+  [BeaconEvent.UNKNOWN]: emptyHandler()
 }
 
 /**
@@ -516,11 +514,13 @@ export class BeaconEventHandler {
       [key in BeaconEvent]?: {
         handler: BeaconEventHandlerFunction<BeaconEventType[key]>
       }
-    } = {}
+    } = {},
+    overrideAll?: boolean
   ) {
-    this.overrideDefaults(eventsToOverride).catch((overrideError: Error) => {
-      logger.error('constructor', 'overriding error', overrideError)
-    })
+    if (overrideAll) {
+      this.setAllHandlers()
+    }
+    this.overrideDefaults(eventsToOverride)
   }
 
   /**
@@ -566,18 +566,35 @@ export class BeaconEventHandler {
    *
    * @param eventsToOverride An object with the events to override
    */
-  private async overrideDefaults(
+  private overrideDefaults(
     eventsToOverride: {
       [key in BeaconEvent]?: {
         handler: BeaconEventHandlerFunction<BeaconEventType[key]>
       }
     }
-  ): Promise<void> {
+  ): void {
     Object.keys(eventsToOverride).forEach((untypedEvent: string) => {
       const eventType: BeaconEvent = untypedEvent as BeaconEvent
       const event = eventsToOverride[eventType]
       if (event) {
         this.callbackMap[eventType] = [event.handler]
+      }
+    })
+  }
+
+  /**
+   * Set all event callbacks to a specific handler.
+   */
+  private setAllHandlers(handler?: BeaconEventHandlerFunction): void {
+    Object.keys(this.callbackMap).forEach((untypedEvent: string) => {
+      const eventType: BeaconEvent = untypedEvent as BeaconEvent
+      this.callbackMap[eventType] = []
+      if (handler) {
+        this.callbackMap[eventType].push(handler)
+      } else {
+        this.callbackMap[eventType].push((...data) => {
+          logger.log(untypedEvent, ...data)
+        })
       }
     })
   }

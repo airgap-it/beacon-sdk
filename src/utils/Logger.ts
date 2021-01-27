@@ -108,24 +108,19 @@ export class Logger {
     this.name = service
   }
 
-  public log(method: string, message?: string, ...args: any[]): void {
-    this._log('log', method, message, args)
+  public log(method: string, ...args: any[]): void {
+    this._log('log', method, args)
   }
 
-  public warn(method: string, message?: string, ...args: any[]): void {
-    this._log('warn', method, message, args)
+  public warn(method: string, ...args: any[]): void {
+    this._log('warn', method, args)
   }
 
-  public error(method: string, message?: string, ...args: any[]): void {
-    this._log('error', method, message, args)
+  public error(method: string, ...args: any[]): void {
+    this._log('error', method, args)
   }
 
-  private _log(
-    type: 'log' | 'warn' | 'error',
-    method: string,
-    message?: string,
-    args: any[] = []
-  ): void {
+  private _log(type: 'log' | 'warn' | 'error', method: string, args: any[] = []): void {
     if (!getDebugEnabled()) {
       return
     }
@@ -136,8 +131,8 @@ export class Logger {
     // echo.log(echo.asWarning(`[${this.name}]`), echo.asAlert(`(${method})`), ...args)
     // echo.groupEnd()
 
-    console.group(`[BEACON] ${message}`)
-    console.log(`[${this.name}](${method})`, ...args)
+    console.group(`[BEACON] [${this.name}](${method})`)
+    console.log(...args)
     console.groupEnd()
   }
 }
