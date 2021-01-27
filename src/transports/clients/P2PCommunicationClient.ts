@@ -223,11 +223,35 @@ export class P2PCommunicationClient extends CommunicationClient {
       for (const client of this.clients) {
         const roomId = await this.getRelevantRoom(client, recipient)
 
-        client
-          .sendTextMessage(roomId, await encryptCryptoboxPayload(message, sharedTx))
-          .catch((error) => logger.log(error))
+        const encryptedMessage = await encryptCryptoboxPayload(message, sharedTx)
+        client.sendTextMessage(roomId, encryptedMessage).catch(async (error) => {
+          if (error.errcode === 'M_FORBIDDEN') {
+            // Room doesn't exist
+            logger.log('sendMessage', 'M_FORBIDDEN', error)
+            await this.deleteRoomIdFromRooms(roomId)
+            const newRoomId = await this.getRelevantRoom(client, recipient)
+            client.sendTextMessage(newRoomId, encryptedMessage).catch(async (error2) => {
+              logger.log('sendMessage', 'inner error', error2)
+            })
+          } else {
+            logger.log('sendMessage', 'not forbidden', error)
+          }
+        })
       }
     }
+  }
+
+  public async deleteRoomIdFromRooms(roomId: string): Promise<void> {
+    const roomIds = await this.storage.get(StorageKey.MATRIX_PEER_ROOM_IDS)
+    const newRoomIds = Object.entries(roomIds)
+      .filter((entry) => entry[1] !== roomId)
+      .reduce(
+        (pv, cv) => ({ ...pv, [cv[0]]: cv[1] }),
+        {} as {
+          [key: string]: string | undefined
+        }
+      )
+    await this.storage.set(StorageKey.MATRIX_PEER_ROOM_IDS, newRoomIds)
   }
 
   public async listenForChannelOpening(
@@ -327,7 +351,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     let roomId = roomIds[recipient]
 
     if (!roomId) {
-      logger.log(`No room found for peer ${recipient}, creating new one.`)
+      logger.log(`No room found for peer ${recipient}, checking joined ones.`)
       const room = await this.getRelevantJoinedRoom(client, recipient)
       roomId = room.id
       roomIds[recipient] = room.id

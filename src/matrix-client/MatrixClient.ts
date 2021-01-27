@@ -217,23 +217,19 @@ export class MatrixClient {
    * @param message
    */
   public async sendTextMessage(roomId: string, message: string): Promise<void> {
-    try {
-      await this.requiresAuthorization('send', async (accessToken) => {
-        const txnId = await this.createTxnId()
+    await this.requiresAuthorization('send', async (accessToken) => {
+      const txnId = await this.createTxnId()
 
-        return this.eventService.sendMessage(
-          accessToken,
-          roomId,
-          {
-            msgtype: 'm.text',
-            body: message
-          },
-          txnId
-        )
-      })
-    } catch (error) {
-      console.error(error)
-    }
+      return this.eventService.sendMessage(
+        accessToken,
+        roomId,
+        {
+          msgtype: 'm.text',
+          body: message
+        },
+        txnId
+      )
+    })
   }
 
   /**
