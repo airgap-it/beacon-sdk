@@ -23,6 +23,7 @@ import { BEACON_VERSION } from '../../constants'
 import { generateGUID } from '../../utils/generate-uuid'
 import { ExtendedP2PPairingResponse, P2PPairingResponse } from '../../types/P2PPairingResponse'
 import { getSenderId } from '../../utils/get-sender-id'
+import { getDebugEnabled } from '../../debug'
 import { CommunicationClient } from './CommunicationClient'
 
 const KNOWN_RELAY_SERVERS = [
@@ -45,8 +46,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     keyPair: sodium.KeyPair,
     public readonly replicationCount: number,
     private readonly storage: Storage,
-    matrixNodes: string[],
-    private readonly debug: boolean = false
+    matrixNodes: string[]
   ) {
     super(keyPair)
 
@@ -341,7 +341,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   private async log(...args: unknown[]): Promise<void> {
-    if (this.debug) {
+    if (getDebugEnabled()) {
       console.log(`--- [P2PCommunicationClient]:${this.name}: `, ...args)
     }
   }

@@ -31,7 +31,7 @@ export class P2PTransport<
   ) {
     super(
       name,
-      new P2PCommunicationClient(name, keyPair, 1, storage, matrixNodes, false),
+      new P2PCommunicationClient(name, keyPair, 1, storage, matrixNodes),
       new PeerManager<K>(storage, storageKey)
     )
   }
