@@ -38,10 +38,12 @@ const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> 
   wrapper.classList.add('beacon-toast__action__item')
 
   if (actionCallback) {
-    wrapper.innerHTML = `<p>${text}</p>
-  <a id="${id}" href="#">${actionText}</a>`
+    wrapper.innerHTML = text.length > 0 ? `<p>${text}</p>` : ``
+    wrapper.innerHTML += `<p><a id="${id}" href="#">${actionText}</a></p>`
   } else if (actionText) {
-    wrapper.innerHTML = `<p class="beacon-toast__action__item__subtitle">${text}</p><p>${actionText}</p>`
+    wrapper.innerHTML =
+      text.length > 0 ? `<p class="beacon-toast__action__item__subtitle">${text}</p>` : ``
+    wrapper.innerHTML += `<p>${actionText}</p>`
   } else {
     wrapper.innerHTML = `<p>${text}</p>`
   }
@@ -180,28 +182,22 @@ const showClose = (shadowRoot: ShadowRoot): void => {
 const collapseList = (shadowRoot: ShadowRoot): void => {
   const expandButton = shadowRoot.getElementById('beacon-toast-button-expand')
   const list = shadowRoot.getElementById('beacon-toast-list')
-  const poweredByBeacon = shadowRoot.getElementById('beacon-toast-powered-by')
 
-  if (poweredByBeacon && expandButton && list) {
+  if (expandButton && list) {
     expandButton.classList.remove('beacon-toast__upside_down')
     list.classList.add('hide')
     list.classList.remove('show')
-    poweredByBeacon.classList.add('hide')
-    poweredByBeacon.classList.remove('show')
   }
 }
 
 const expandList = (shadowRoot: ShadowRoot): void => {
   const expandButton = shadowRoot.getElementById('beacon-toast-button-expand')
   const list = shadowRoot.getElementById('beacon-toast-list')
-  const poweredByBeacon = shadowRoot.getElementById('beacon-toast-powered-by')
 
-  if (poweredByBeacon && expandButton && list) {
+  if (expandButton && list) {
     expandButton.classList.add('beacon-toast__upside_down')
     list.classList.remove('hide')
     list.classList.add('show')
-    poweredByBeacon.classList.remove('hide')
-    poweredByBeacon.classList.add('show')
   }
 }
 
@@ -232,6 +228,12 @@ const addActionsToToast = async (
     const actionItems = await Promise.all(actionPromises)
 
     actionItems.forEach((item) => list.appendChild(item))
+
+    const poweredByBeacon = document.createElement('small')
+    poweredByBeacon.classList.add('beacon-toast__powered')
+    poweredByBeacon.innerHTML = toastTemplates.default.poweredByBeacon
+
+    list.appendChild(poweredByBeacon)
   } else {
     showClose(shadowRoot)
     collapseList(shadowRoot)

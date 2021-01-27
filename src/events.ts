@@ -189,8 +189,7 @@ const showErrorToast = async (
 
   const actions: ToastAction[] = [
     {
-      text: 'Error',
-      actionText: `<strong>${error.title}</strong>`
+      text: `<strong>${error.title}</strong>`
     },
     {
       text: error.description

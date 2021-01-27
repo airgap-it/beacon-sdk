@@ -196,11 +196,15 @@ const createToast = async () => {
   const css = (await readFile(path.join(TOAST_SRC_DIR, 'toast.css'))).toString('utf-8')
 
   let html = (await readFile(path.join(TOAST_SRC_DIR, 'toast.html'))).toString('utf-8')
+  let poweredByBeacon = (
+    await readFile(path.join(TOAST_SRC_DIR, 'powered-by-beacon.html'))
+  ).toString('utf-8')
 
   const x = {
     default: {
       html: html,
-      css: css
+      css: css,
+      poweredByBeacon
     }
   }
 
