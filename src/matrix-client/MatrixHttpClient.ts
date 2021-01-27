@@ -19,12 +19,11 @@ export class MatrixHttpClient {
    * Get data from the synapse node
    *
    * @param endpoint
-   * @param params
    * @param options
    */
   public async get<T>(
     endpoint: string,
-    params: MatrixRequestParams<T>,
+    params?: MatrixRequestParams<T>,
     options?: HttpOptions
   ): Promise<T> {
     return this.send('GET', endpoint, options, params)
@@ -83,14 +82,19 @@ export class MatrixHttpClient {
     const headers = config ? this.getHeaders(config) : undefined
     const params = requestParams ? this.getParams(requestParams) : undefined
 
-    const response: AxiosResponse<T> = await axios.request({
-      method,
-      url: endpoint,
-      baseURL: this.apiUrl(CLIENT_API_R0),
-      headers,
-      data,
-      params
-    })
+    let response: AxiosResponse<T>
+    try {
+      response = await axios.request({
+        method,
+        url: endpoint,
+        baseURL: this.apiUrl(CLIENT_API_R0),
+        headers,
+        data,
+        params
+      })
+    } catch (axiosError) {
+      throw axiosError.response.data
+    }
 
     return response.data
   }

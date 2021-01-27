@@ -1,5 +1,4 @@
 import { MatrixHttpClient } from '../MatrixHttpClient'
-import { MatrixRoom, MatrixRoomStatus } from '../models/MatrixRoom'
 
 import { MatrixEventSendResponse } from '../models/api/MatrixEventSend'
 import { MatrixSyncResponse } from '../models/api/MatrixSync'
@@ -7,7 +6,7 @@ import { MatrixStateEventMessageContent } from '../models/MatrixStateEvent'
 
 interface MatrixScheduledEvent<T> {
   accessToken: string
-  room: MatrixRoom
+  roomId: string
   type: MatrixEventType
   content: any
   txnId: string
@@ -61,14 +60,14 @@ export class MatrixEventService {
    */
   public async sendMessage(
     accessToken: string,
-    room: MatrixRoom,
+    roomId: string,
     content: MatrixStateEventMessageContent,
     txnId: string
   ): Promise<MatrixEventSendResponse> {
     return new Promise((resolve, reject) =>
       this.scheduleEvent({
         accessToken,
-        room,
+        roomId,
         type: 'm.room.message',
         content,
         txnId,
@@ -94,15 +93,11 @@ export class MatrixEventService {
    * @param scheduledEvent
    */
   public async sendEvent(scheduledEvent: MatrixScheduledEvent<any>): Promise<void> {
-    const { room, type, txnId, content, accessToken } = scheduledEvent
-
-    if (room.status !== MatrixRoomStatus.JOINED && room.status !== MatrixRoomStatus.UNKNOWN) {
-      return Promise.reject(`User is not a member of room ${room.id}.`)
-    }
+    const { roomId, type, txnId, content, accessToken } = scheduledEvent
 
     try {
       const response = await this.httpClient.put<MatrixEventSendResponse>(
-        `/rooms/${room.id}/send/${type}/${txnId}`,
+        `/rooms/${roomId}/send/${type}/${txnId}`,
         content,
         { accessToken }
       )
