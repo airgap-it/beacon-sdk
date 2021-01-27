@@ -4,17 +4,43 @@
 
 #### Features
 
-- **ui-improvements**: We changed the flow of the UI from the ground up. When a new message is sent from the dApp, the "request sent" toast now sticks to the top right of the page. It shows a loading animation and also includes the name (and logo) of the wallet where the request has been sent to. The toast will update whenever new information is received from the wallet (eg. request acknowledgement or response). Only the pairing information and errors will be displayed in a blocking alert. As always, all of these UI elements can be overwritten if dApp developers want to use their own UI.
+- **UI Improvements**: We changed the flow of the UI from the ground up. When a new message is sent from the dApp, the "request sent" toast now sticks to the top right of the page. It shows a loading animation and also includes the name (and logo) of the wallet where the request has been sent to. The toast will update whenever new information is received from the wallet (eg. request acknowledgement or response). Only the pairing information and errors will be displayed in a blocking alert. As always, all of these UI elements can be overwritten if dApp developers want to use their own UI.
 
-- **dark-mode**: The dApp developer can now choose between a "dark" and "light" color theme. This will change the look of both alerts and toasts.
+- **UI Improvements**: Default UI Elements in Beacon now use Shadow Dom. This will encapsulate the styling of the UI elements, so the styling of the page will no longer affect the styling of the beacon-sdk UI elements, and vice versa.
 
-- **errors**: The `beacon-sdk` now allows for RPC-Errors to be passed in the `TRANSACTION_INVALID_ERROR`. Errors MUST always be displayed in the wallet. This change does not change that. It simply provides the dApps that expect certain errors to provide more insights into what went wrong. dApps are not required to display the details of an error, but they can choose to do so if it improves the user experience.
+- **Dark Mode**: The dApp developer can now choose between a "dark" and "light" color theme. This will change the look of both alerts and toasts.
 
-- **debug**: New debug methods have been introduced. To activate logs from the `beacon-sdk` during development, it is possible to call `setDebugEnabled(true)`. This will enable logs throughout the `beacon-sdk`.
+- **Errors**: The `beacon-sdk` now allows for RPC-Errors to be passed in the `TRANSACTION_INVALID_ERROR`. Errors MUST always be displayed in the wallet. This change does not change that. It simply provides the dApps that expect certain errors to provide more insights into what went wrong. dApps are not required to display the details of an error, but they can choose to do so if it improves the user experience.
+
+- **Debug**: New debug methods have been introduced. To activate logs from the `beacon-sdk` during development, it is possible to call `setDebugEnabled(true)`. This will enable logs throughout the `beacon-sdk`.
 
 The `beacon-sdk` will now also listen to the `beaconSdkDebugEnabled` variable on the global window object. This will allow browser extensions (eg. Beacon Extension) to set the debug flag to true on production websites, which will help debugging on production dApps.
 
-- **alert**: A click outside the alert will now dismiss the alert.
+- **UI Elements**: All default UI Elements / Event Handlers can be removed at once by setting the `disableDefaultEvents` flag in the `DAppClientOptions` to true. Keep in mind that this will also disable the Pairing Alert. If you want to keep the Pairing Alert, you will have to add those default handlers again. An example would be:
+
+```ts
+const client = new DAppClient({
+  name: 'My Sample DApp',
+  disableDefaultEvents: true, // Disable all events / UI. This also disables the pairing alert.
+  eventHandlers: {
+    // To keep the pairing alert, we have to add the following default event handlers back
+    [BeaconEvent.PAIR_INIT]: {
+      handler: defaultEventCallbacks.PAIR_INIT
+    },
+    [BeaconEvent.PAIR_SUCCESS]: {
+      handler: defaultEventCallbacks.PAIR_SUCCESS
+    }
+  }
+})
+```
+
+- **Matrix Performace Improvements**: Fixed a timing issue that lead to additional rooms being created instead of re-using old ones
+- **Alert**: A click outside the alert will now dismiss the alert
+
+#### Fixes
+
+- **Types**: The type of `matrixNodes` was incorrect and has been fixed
+- **Docs**: Fix typo in link
 
 ## 2.1.0 (2021-01-22)
 
