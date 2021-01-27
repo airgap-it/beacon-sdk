@@ -1,5 +1,5 @@
 import { openAlert, AlertButton, AlertConfig, closeAlerts } from './ui/alert/Alert'
-import { closeToast, openToast } from './ui/toast/Toast'
+import { closeToast, openToast, ToastAction } from './ui/toast/Toast'
 import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
 import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'
@@ -7,6 +7,7 @@ import { BlockExplorer } from './utils/block-explorer'
 import { Logger } from './utils/Logger'
 import { Serializer } from './Serializer'
 import { shortenString } from './utils/shorten-string'
+import { BeaconErrorType } from './types/BeaconErrorType'
 import {
   P2PPairingRequest,
   AccountInfo,
@@ -61,9 +62,6 @@ export enum BeaconEvent {
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
-
-  P2P_CHANNEL_CONNECT_SUCCESS = 'P2P_CHANNEL_CONNECT_SUCCESS',
-  P2P_LISTEN_FOR_CHANNEL_OPEN = 'P2P_LISTEN_FOR_CHANNEL_OPEN',
 
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   UNKNOWN = 'UNKNOWN'
@@ -121,8 +119,6 @@ export interface BeaconEventType {
     abortedHandler?(): void
   }
   [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
-  [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: P2PPairingRequest
-  [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: P2PPairingRequest
   [BeaconEvent.CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: string
   [BeaconEvent.UNKNOWN]: undefined
@@ -179,11 +175,11 @@ const showNoPermissionAlert = async (): Promise<void> => {
 }
 
 /**
- * Show an error alert
+ * Show an error toast
  *
  * @param beaconError The beacon error
  */
-const showErrorAlert = async (
+const showErrorToast = async (
   beaconError: ErrorResponse,
   buttons?: AlertButton[]
 ): Promise<void> => {
@@ -191,12 +187,40 @@ const showErrorAlert = async (
     ? BeaconError.getError(beaconError.errorType, beaconError.errorData)
     : new UnknownBeaconError()
 
-  await closeToast()
+  const actions: ToastAction[] = [
+    {
+      text: 'Error',
+      actionText: `<strong>${error.title}</strong>`
+    },
+    {
+      text: error.description
+    }
+  ]
 
-  await openAlert({
-    title: error.title,
-    body: error.description,
-    buttons
+  if (
+    beaconError.errorType === BeaconErrorType.TRANSACTION_INVALID_ERROR &&
+    beaconError.errorData
+  ) {
+    actions.push({
+      text: '',
+      actionText: 'Show Details',
+      actionCallback: async (): Promise<void> => {
+        await closeToast()
+        await openAlert({
+          title: error.title,
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          body: error.fullDescription,
+          buttons
+        })
+      }
+    })
+  }
+
+  await openToast({
+    body: `{{wallet}}&nbsp;has returned an error`,
+    timer: beaconError.errorType === BeaconErrorType.ABORTED_ERROR ? SUCCESS_TIMER : undefined,
+    state: 'finished',
+    actions
   })
 }
 
@@ -215,26 +239,8 @@ const showRateLimitReached = async (): Promise<void> => {
 /**
  * Show a "connection successful" alert for 1.5 seconds
  */
-const showBeaconConnectedAlert = async (): Promise<void> => {
-  await openAlert({
-    title: 'Success',
-    body: 'A wallet has been paired over the beacon network.',
-    buttons: [{ text: 'Done', style: 'outline' }],
-    timer: 1500
-  })
-}
-
-/**
- * Show a "connection successful" alert for 1.5 seconds
- */
 const showExtensionConnectedAlert = async (): Promise<void> => {
   await closeAlerts()
-  // await openAlert({
-  //   title: 'Success',
-  //   body: 'A wallet has been paired.',
-  //   buttons: [{ text: 'Done', style: 'outline' }],
-  //   timer: 1500
-  // })
 }
 
 /**
@@ -256,32 +262,6 @@ const showInternalErrorAlert = async (
     title: 'Internal Error',
     body: `${data}`,
     buttons: [{ text: 'Done', style: 'outline' }]
-  }
-  await openAlert(alertConfig)
-}
-
-/**
- * Show a connect alert with QR code
- *
- * @param data The data that is emitted by the P2P_LISTEN_FOR_CHANNEL_OPEN event
- */
-const showQrAlert = async (
-  data: BeaconEventType[BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]
-): Promise<void> => {
-  const dataString = JSON.stringify(data)
-  console.log(dataString) // TODO: Remove after "copy to clipboard" has been added.
-
-  const base58encoded = await serializer.serialize(data)
-  console.log(base58encoded) // TODO: Remove after "copy to clipboard" has been added.
-
-  const alertConfig: AlertConfig = {
-    title: 'Choose your preferred wallet',
-    body: `<p></p>`,
-    pairingPayload: {
-      p2pSyncCode: base58encoded,
-      postmessageSyncCode: base58encoded,
-      preferredNetwork: NetworkType.MAINNET
-    }
   }
   await openAlert(alertConfig)
 }
@@ -454,16 +434,16 @@ export const defaultEventCallbacks: {
 } = {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: showSentToast,
   [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: showPermissionSuccessAlert,
-  [BeaconEvent.PERMISSION_REQUEST_ERROR]: showErrorAlert,
+  [BeaconEvent.PERMISSION_REQUEST_ERROR]: showErrorToast,
   [BeaconEvent.OPERATION_REQUEST_SENT]: showSentToast,
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: showOperationSuccessAlert,
-  [BeaconEvent.OPERATION_REQUEST_ERROR]: showErrorAlert,
+  [BeaconEvent.OPERATION_REQUEST_ERROR]: showErrorToast,
   [BeaconEvent.SIGN_REQUEST_SENT]: showSentToast,
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: showSignSuccessAlert,
-  [BeaconEvent.SIGN_REQUEST_ERROR]: showErrorAlert,
+  [BeaconEvent.SIGN_REQUEST_ERROR]: showErrorToast,
   [BeaconEvent.BROADCAST_REQUEST_SENT]: showSentToast,
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: showBroadcastSuccessAlert,
-  [BeaconEvent.BROADCAST_REQUEST_ERROR]: showErrorAlert,
+  [BeaconEvent.BROADCAST_REQUEST_ERROR]: showErrorToast,
   [BeaconEvent.ACKNOWLEDGE_RECEIVED]: showAcknowledgedToast,
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
@@ -471,8 +451,6 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(BeaconEvent.ACTIVE_TRANSPORT_SET),
   [BeaconEvent.PAIR_INIT]: showPairAlert,
   [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
-  [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: showBeaconConnectedAlert,
-  [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: showQrAlert,
   [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
   [BeaconEvent.UNKNOWN]: emptyHandler(BeaconEvent.UNKNOWN)
@@ -504,8 +482,6 @@ export class BeaconEventHandler {
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
     [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
-    [BeaconEvent.P2P_CHANNEL_CONNECT_SUCCESS]: [defaultEventCallbacks.P2P_CHANNEL_CONNECT_SUCCESS],
-    [BeaconEvent.P2P_LISTEN_FOR_CHANNEL_OPEN]: [defaultEventCallbacks.P2P_LISTEN_FOR_CHANNEL_OPEN],
     [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],
     [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
