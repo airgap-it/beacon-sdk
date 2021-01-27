@@ -18,7 +18,7 @@ import {
 import { MatrixMessageType } from '../../matrix-client/models/MatrixMessage'
 import { MatrixRoom } from '../../matrix-client/models/MatrixRoom'
 import { Storage } from '../../storage/Storage'
-import { P2PPairingRequest, Serializer, StorageKey } from '../..'
+import { P2PPairingRequest, StorageKey } from '../..'
 import { BEACON_VERSION } from '../../constants'
 import { generateGUID } from '../../utils/generate-uuid'
 import { ExtendedP2PPairingResponse, P2PPairingResponse } from '../../types/P2PPairingResponse'
