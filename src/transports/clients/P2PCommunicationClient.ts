@@ -18,13 +18,15 @@ import {
 import { MatrixMessageType } from '../../matrix-client/models/MatrixMessage'
 import { MatrixRoom } from '../../matrix-client/models/MatrixRoom'
 import { Storage } from '../../storage/Storage'
-import { P2PPairingRequest } from '../..'
+import { P2PPairingRequest, StorageKey } from '../..'
 import { BEACON_VERSION } from '../../constants'
 import { generateGUID } from '../../utils/generate-uuid'
 import { ExtendedP2PPairingResponse, P2PPairingResponse } from '../../types/P2PPairingResponse'
 import { getSenderId } from '../../utils/get-sender-id'
-import { getDebugEnabled } from '../../debug'
+import { Logger } from '../../utils/Logger'
 import { CommunicationClient } from './CommunicationClient'
+
+const logger = new Logger('P2PCommunicationClient')
 
 const KNOWN_RELAY_SERVERS = [
   'matrix.papers.tech'
@@ -91,7 +93,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async start(): Promise<void> {
-    await this.log('starting client')
+    logger.log('starting client')
     await sodium.ready
 
     const loginRawDigest = sodium.crypto_generichash(
@@ -100,7 +102,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     )
     const rawSignature = sodium.crypto_sign_detached(loginRawDigest, this.keyPair.privateKey)
 
-    await this.log(`connecting to ${this.replicationCount} servers`)
+    logger.log(`connecting to ${this.replicationCount} servers`)
 
     for (let i = 0; i < this.replicationCount; i++) {
       // TODO: Parallel
@@ -116,7 +118,7 @@ export class P2PCommunicationClient extends CommunicationClient {
         await client.joinRooms(event.content.roomId)
       })
 
-      await this.log(
+      logger.log(
         'login',
         await this.getPublicKeyHash(),
         'on',
@@ -129,9 +131,9 @@ export class P2PCommunicationClient extends CommunicationClient {
           password: `ed:${toHex(rawSignature)}:${await this.getPublicKey()}`,
           deviceId: toHex(this.keyPair.publicKey)
         })
-        .catch((error) => this.log(error))
+        .catch((error) => logger.log(error))
 
-      await client.joinRooms(...client.invitedRooms).catch((error) => this.log(error))
+      await client.joinRooms(...client.invitedRooms).catch((error) => logger.log(error))
 
       this.clients.push(client)
     }
@@ -219,13 +221,37 @@ export class P2PCommunicationClient extends CommunicationClient {
       )
 
       for (const client of this.clients) {
-        const room = await this.getRelevantRoom(client, recipient)
+        const roomId = await this.getRelevantRoom(client, recipient)
 
-        client
-          .sendTextMessage(room.id, await encryptCryptoboxPayload(message, sharedTx))
-          .catch((error) => this.log(error))
+        const encryptedMessage = await encryptCryptoboxPayload(message, sharedTx)
+        client.sendTextMessage(roomId, encryptedMessage).catch(async (error) => {
+          if (error.errcode === 'M_FORBIDDEN') {
+            // Room doesn't exist
+            logger.log('sendMessage', 'M_FORBIDDEN', error)
+            await this.deleteRoomIdFromRooms(roomId)
+            const newRoomId = await this.getRelevantRoom(client, recipient)
+            client.sendTextMessage(newRoomId, encryptedMessage).catch(async (error2) => {
+              logger.log('sendMessage', 'inner error', error2)
+            })
+          } else {
+            logger.log('sendMessage', 'not forbidden', error)
+          }
+        })
       }
     }
+  }
+
+  public async deleteRoomIdFromRooms(roomId: string): Promise<void> {
+    const roomIds = await this.storage.get(StorageKey.MATRIX_PEER_ROOM_IDS)
+    const newRoomIds = Object.entries(roomIds)
+      .filter((entry) => entry[1] !== roomId)
+      .reduce(
+        (pv, cv) => ({ ...pv, [cv[0]]: cv[1] }),
+        {} as {
+          [key: string]: string | undefined
+        }
+      )
+    await this.storage.set(StorageKey.MATRIX_PEER_ROOM_IDS, newRoomIds)
   }
 
   public async listenForChannelOpening(
@@ -233,9 +259,9 @@ export class P2PCommunicationClient extends CommunicationClient {
   ): Promise<void> {
     for (const client of this.clients) {
       client.subscribe(MatrixClientEventType.MESSAGE, async (event) => {
-        await this.log('channel opening', event)
+        logger.log('channel opening', JSON.stringify(event))
         if (this.isTextMessage(event.content) && (await this.isChannelOpenMessage(event.content))) {
-          await this.log('new channel open event!')
+          logger.log('new channel open event!')
 
           const splits = event.content.message.content.split(':')
           const payload = Buffer.from(splits[splits.length - 1], 'hex')
@@ -263,13 +289,13 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async sendPairingResponse(pairingRequest: P2PPairingRequest): Promise<void> {
-    await this.log('open channel')
+    logger.log('open channel')
     const recipientHash = await getHexHash(Buffer.from(pairingRequest.publicKey, 'hex'))
     const recipient = recipientString(recipientHash, pairingRequest.relayServer)
 
-    await this.log(`currently there are ${this.clients.length} clients open`)
+    logger.log(`currently there are ${this.clients.length} clients open`)
     for (const client of this.clients) {
-      const room = await this.getRelevantRoom(client, recipient)
+      const roomId = await this.getRelevantRoom(client, recipient)
 
       // TODO: remove v1 backwards-compatibility
       const message: string =
@@ -283,8 +309,8 @@ export class P2PCommunicationClient extends CommunicationClient {
       )
 
       client
-        .sendTextMessage(room.id, ['@channel-open', recipient, encryptedMessage].join(':'))
-        .catch((error) => this.log(error))
+        .sendTextMessage(roomId, ['@channel-open', recipient, encryptedMessage].join(':'))
+        .catch((error) => logger.log(error))
     }
   }
 
@@ -320,7 +346,27 @@ export class P2PCommunicationClient extends CommunicationClient {
     return difference.absoluteValue()
   }
 
-  private async getRelevantRoom(client: MatrixClient, recipient: string): Promise<MatrixRoom> {
+  private async getRelevantRoom(client: MatrixClient, recipient: string): Promise<string> {
+    const roomIds = await this.storage.get(StorageKey.MATRIX_PEER_ROOM_IDS)
+    let roomId = roomIds[recipient]
+
+    if (!roomId) {
+      logger.log(`No room found for peer ${recipient}, checking joined ones.`)
+      const room = await this.getRelevantJoinedRoom(client, recipient)
+      roomId = room.id
+      roomIds[recipient] = room.id
+      await this.storage.set(StorageKey.MATRIX_PEER_ROOM_IDS, roomIds)
+    }
+
+    logger.log(`Using room ${roomId}`)
+
+    return roomId
+  }
+
+  private async getRelevantJoinedRoom(
+    client: MatrixClient,
+    recipient: string
+  ): Promise<MatrixRoom> {
     const joinedRooms = client.joinedRooms
     const relevantRooms = joinedRooms.filter((roomElement: MatrixRoom) =>
       roomElement.members.some((member: string) => member === recipient)
@@ -328,21 +374,15 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     let room: MatrixRoom
     if (relevantRooms.length === 0) {
-      await this.log(`no relevant rooms found`)
+      logger.log(`no relevant rooms found`)
 
       const roomId = await client.createTrustedPrivateRoom(recipient)
       room = client.getRoomById(roomId)
     } else {
       room = relevantRooms[0]
-      await this.log(`channel already open, reusing room ${room.id}`)
+      logger.log(`channel already open, reusing room ${room.id}`)
     }
 
     return room
-  }
-
-  private async log(...args: unknown[]): Promise<void> {
-    if (getDebugEnabled()) {
-      console.log(`--- [P2PCommunicationClient]:${this.name}: `, ...args)
-    }
   }
 }

@@ -2,6 +2,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Style-Type" content="text/css" />
     <title>Beacon Example</title>
 
@@ -12,6 +13,15 @@
     </script>
 
     <script src="./dist/walletbeacon.min.js"></script>
+
+    <style>
+      div {
+        background-color: red;
+      }
+      span {
+        background-color: orange;
+      }
+    </style>
   </head>
 
   <body>
@@ -25,6 +35,8 @@
     </span>
     <br /><br />
     <button id="requestPermission">Request Permission</button>
+    <br /><br />
+    <button id="sendToSelf">Send 1 mutez to myself</button>
     <br /><br />
     <button id="connect">Connect and Delegate</button>
     <br /><br />
@@ -56,6 +68,17 @@
     <br /><br />
     ---
     <br /><br />
+    <span>
+      Color Mode:
+      <span id="activeColorMode"></span>
+    </span>
+    <br /><br />
+    <button id="color-mode-light">Set color mode "light"</button>
+    <br /><br />
+    <button id="color-mode-dark">Set color mode "dark"</button>
+    <br /><br />
+    ---
+    <br /><br />
     <button id="contractCall">Contract Call</button>
     <br /><br />
     ---
@@ -83,6 +106,14 @@
         })
       }
       updateActiveAccount()
+
+      // Display the active account in the UI
+      const updateColorMode = () => {
+        client.getColorMode().then((colorMode) => {
+          document.getElementById('activeColorMode').innerHTML = colorMode
+        })
+      }
+      updateColorMode()
 
       // Initiate a delegate operation
       const delegate = () => {
@@ -271,6 +302,23 @@
       document.getElementById('2requests').addEventListener('click', () => {
         setTimeout(sendToSelf, 0)
         setTimeout(sendToSelf, 1000)
+      })
+
+      // Add event listener to the button
+      document.getElementById('sendToSelf').addEventListener('click', () => {
+        sendToSelf()
+      })
+
+      // Add event listener to the button
+      document.getElementById('color-mode-light').addEventListener('click', () => {
+        client.setColorMode('light')
+        updateColorMode()
+      })
+
+      // Add event listener to the button
+      document.getElementById('color-mode-dark').addEventListener('click', () => {
+        client.setColorMode('dark')
+        updateColorMode()
       })
     </script>
   </body>
