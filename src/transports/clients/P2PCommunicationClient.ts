@@ -18,7 +18,7 @@ import {
 import { MatrixMessageType } from '../../matrix-client/models/MatrixMessage'
 import { MatrixRoom } from '../../matrix-client/models/MatrixRoom'
 import { Storage } from '../../storage/Storage'
-import { P2PPairingRequest, StorageKey } from '../..'
+import { P2PPairingRequest, Serializer, StorageKey } from '../..'
 import { BEACON_VERSION } from '../../constants'
 import { generateGUID } from '../../utils/generate-uuid'
 import { ExtendedP2PPairingResponse, P2PPairingResponse } from '../../types/P2PPairingResponse'
@@ -52,6 +52,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   ) {
     super(keyPair)
 
+    logger.log('constructor', 'P2PCommunicationClient created')
     this.KNOWN_RELAY_SERVERS = matrixNodes.length > 0 ? matrixNodes : KNOWN_RELAY_SERVERS
   }
 
@@ -93,7 +94,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async start(): Promise<void> {
-    logger.log('starting client')
+    logger.log('start', 'starting client')
     await sodium.ready
 
     const loginRawDigest = sodium.crypto_generichash(
@@ -102,7 +103,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     )
     const rawSignature = sodium.crypto_sign_detached(loginRawDigest, this.keyPair.privateKey)
 
-    logger.log(`connecting to ${this.replicationCount} servers`)
+    logger.log('start', `connecting to ${this.replicationCount} servers`)
 
     for (let i = 0; i < this.replicationCount; i++) {
       // TODO: Parallel
@@ -119,6 +120,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       })
 
       logger.log(
+        'start',
         'login',
         await this.getPublicKeyHash(),
         'on',
@@ -168,6 +170,12 @@ export class P2PCommunicationClient extends CommunicationClient {
           try {
             const decryptedMessage = await decryptCryptoboxPayload(payload, sharedRx)
 
+            // logger.log(
+            //   'listenForEncryptedMessage',
+            //   'encrypted message received',
+            //   decryptedMessage,
+            //   await new Serializer().deserialize(decryptedMessage)
+            // )
             // console.log('calculated sender ID', await getSenderId(senderPublicKey))
             // TODO: Add check for correct decryption key / sender ID
 
@@ -224,6 +232,16 @@ export class P2PCommunicationClient extends CommunicationClient {
         const roomId = await this.getRelevantRoom(client, recipient)
 
         const encryptedMessage = await encryptCryptoboxPayload(message, sharedTx)
+
+        // logger.log(
+        //   'sendMessage',
+        //   'sending encrypted message',
+        //   peer.publicKey,
+        //   roomId,
+        //   message,
+        //   await new Serializer().deserialize(message)
+        // )
+
         client.sendTextMessage(roomId, encryptedMessage).catch(async (error) => {
           if (error.errcode === 'M_FORBIDDEN') {
             // Room doesn't exist
