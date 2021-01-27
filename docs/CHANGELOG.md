@@ -4,7 +4,7 @@
 
 #### Features
 
-- **UI Improvements**: We changed the flow of the UI from the ground up. When a new message is sent from the dApp, the "request sent" toast now sticks to the top right of the page. It shows a loading animation and also includes the name (and logo) of the wallet where the request has been sent to. The toast will update whenever new information is received from the wallet (eg. request acknowledgement or response). Only the pairing information and errors will be displayed in a blocking alert. As always, all of these UI elements can be overwritten if dApp developers want to use their own UI.
+- **UI Improvements**: We changed the flow of the UI from the ground up. When a new message is sent from the dApp, the "request sent" toast now sticks to the top right of the page. It shows a loading animation and also includes the name (and logo) of the wallet where the request has been sent to. The toast will update whenever new information is received from the wallet (eg. request acknowledgement or response). Only the pairing information and details of errors will be displayed in a blocking alert. As always, all of these UI elements can be overwritten if dApp developers want to use their own UI.
 
 - **UI Improvements**: Default UI Elements in Beacon now use Shadow Dom. This will encapsulate the styling of the UI elements, so the styling of the page will no longer affect the styling of the beacon-sdk UI elements, and vice versa.
 
