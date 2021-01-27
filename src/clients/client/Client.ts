@@ -72,7 +72,7 @@ export abstract class Client extends BeaconClient {
   constructor(config: ClientOptions) {
     super({ name: config.name, storage: config.storage })
 
-    this.events = new BeaconEventHandler(config.eventHandlers)
+    this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
     this.accountManager = new AccountManager(config.storage)
     this.matrixNodes = config.matrixNodes ?? []
 
