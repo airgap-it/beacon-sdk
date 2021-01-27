@@ -12,5 +12,5 @@ export interface WalletClientOptions {
   /**
    * A list of matrix nodes the application can use to connect to
    */
-  matrixNodes?: []
+  matrixNodes?: string[]
 }
