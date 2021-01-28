@@ -67,6 +67,7 @@ import { SigningType } from '../../types/beacon/SigningType'
 import { ExtendedPeerInfo } from '../../types/PeerInfo'
 import { ColorMode } from '../../types/ColorMode'
 import { getColorMode, setColorMode } from '../../colorMode'
+import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wallet-lists'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -936,14 +937,19 @@ export class DAppClient extends Client {
 
     await (await this.transport).send(payload, peer)
 
-    console.log('peer', peer)
-
     const typedPeer: PostMessagePairingResponse = peer as any
+
+    // TODO: Remove once all wallets send the icon?
+    const selectedApp =
+      iOSList.find((app) => app.name === typedPeer.name) ??
+      webList.find((app) => app.name === typedPeer.name) ??
+      desktopList.find((app) => app.name === typedPeer.name) ??
+      extensionList.find((app) => app.name === typedPeer.name)
 
     this.events
       .emit(messageEvents[requestInput.type].sent, {
         walletName: typedPeer.name,
-        walletIcon: typedPeer.icon,
+        walletIcon: typedPeer.icon ?? selectedApp?.logo,
         resetCallback: async () => {
           await this.clearActiveAccount()
         }
