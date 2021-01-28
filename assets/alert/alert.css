@@ -171,7 +171,8 @@ button {
   color: #7c828b;
 }
 
-.theme__dark .beacon-alert__title {
+.theme__dark .beacon-alert__title,
+.theme__dark .beacon-alert__text {
   color: #7c99d6;
 }
 
