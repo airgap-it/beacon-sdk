@@ -311,7 +311,7 @@ describe(`WalletClient`, () => {
 
     const id = '1234test'
 
-    ;(<any>walletClient).pendingRequests.push({ id })
+    ;(<any>walletClient).pendingRequests.push([{ id }, {}])
 
     await walletClient.init()
 
@@ -342,7 +342,7 @@ describe(`WalletClient`, () => {
 
     const id = '1234test'
 
-    ;(<any>walletClient).pendingRequests.push({ id })
+    ;(<any>walletClient).pendingRequests.push([{ id }, {}])
 
     await walletClient.init()
 
@@ -375,7 +375,7 @@ describe(`WalletClient`, () => {
 
     const id = '1234test'
 
-    ;(<any>walletClient).pendingRequests.push({ id })
+    ;(<any>walletClient).pendingRequests.push([{ id }, {}])
 
     await walletClient.init()
 
