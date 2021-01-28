@@ -15,6 +15,11 @@ export interface DAppClientOptions {
   iconUrl?: string
 
   /**
+   * A URL to the website of the application
+   */
+  appUrl?: string
+
+  /**
    * The storage that will be used by the SDK
    */
   storage?: Storage

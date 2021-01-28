@@ -9,8 +9,15 @@ export class DappP2PTransport extends P2PTransport<
   ExtendedP2PPairingResponse,
   StorageKey.TRANSPORT_P2P_PEERS_DAPP
 > {
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, matrixNodes: string[]) {
-    super(name, keyPair, storage, matrixNodes, StorageKey.TRANSPORT_P2P_PEERS_DAPP)
+  constructor(
+    name: string,
+    keyPair: sodium.KeyPair,
+    storage: Storage,
+    matrixNodes: string[],
+    iconUrl?: string,
+    appUrl?: string
+  ) {
+    super(name, keyPair, storage, matrixNodes, StorageKey.TRANSPORT_P2P_PEERS_DAPP, iconUrl, appUrl)
   }
 
   public async startOpenChannelListener(): Promise<void> {

@@ -17,6 +17,16 @@ export abstract class BeaconClient {
    */
   public readonly name: string
 
+  /**
+   * The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet
+   */
+  public readonly iconUrl?: string
+
+  /**
+   * The URL of the dApp.
+   */
+  public readonly appUrl?: string
+
   /** The beaconId is a public key that is used to identify one specific application (dapp or wallet).
    * This is used inside a message to specify the sender, for example.
    */
@@ -45,6 +55,8 @@ export abstract class BeaconClient {
       throw new Error('Storage not set')
     }
     this.name = config.name
+    this.iconUrl = config.iconUrl
+    this.appUrl = config.appUrl
     this.storage = config.storage
 
     this.initSDK().catch(console.error)

@@ -78,11 +78,6 @@ const logger = new Logger('DAppClient')
  */
 export class DAppClient extends Client {
   /**
-   * The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet
-   */
-  public readonly iconUrl?: string
-
-  /**
    * The block explorer used by the SDK
    */
   public readonly blockExplorer: BlockExplorer
@@ -123,7 +118,6 @@ export class DAppClient extends Client {
       storage: config && config.storage ? config.storage : new LocalStorage(),
       ...config
     })
-    this.iconUrl = config.iconUrl
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
@@ -221,7 +215,14 @@ export class DAppClient extends Client {
     this.postMessageTransport = new DappPostMessageTransport(this.name, keyPair, this.storage)
     await this.addListener(this.postMessageTransport)
 
-    this.p2pTransport = new DappP2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
+    this.p2pTransport = new DappP2PTransport(
+      this.name,
+      keyPair,
+      this.storage,
+      this.matrixNodes,
+      this.iconUrl,
+      this.appUrl
+    )
     await this.addListener(this.p2pTransport)
   }
 
