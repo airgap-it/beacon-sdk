@@ -33,6 +33,28 @@ export class PostMessageTransport<
     super(name, new PostMessageClient(name, keyPair), new PeerManager<K>(storage, storageKey))
   }
 
+  public static async isAvailable(): Promise<boolean> {
+    return new Promise((resolve) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fn = (event: any): void => {
+        const data = event.data as ExtensionMessage<string>
+        if (data && data.payload === 'pong') {
+          resolve(true)
+          myWindow.removeEventListener('message', fn)
+        }
+      }
+
+      myWindow.addEventListener('message', fn)
+
+      const message: ExtensionMessage<string> = {
+        target: ExtensionMessageTarget.EXTENSION,
+        payload: 'ping'
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      myWindow.postMessage(message as any, window.location.origin)
+    })
+  }
+
   public static async getAvailableExtensions(): Promise<Extension[]> {
     if (extensions) {
       return extensions.promise
