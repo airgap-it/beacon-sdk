@@ -9,7 +9,8 @@ import {
   PeerInfo,
   Transport,
   BeaconMessageType,
-  DisconnectMessage
+  DisconnectMessage,
+  AppMetadata
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { BeaconClient } from '../beacon-client/BeaconClient'
@@ -144,6 +145,17 @@ export abstract class Client extends BeaconClient {
     await this.setTransport(transport) // Let users define their own transport
 
     return transport.type
+  }
+
+  /**
+   * Returns the metadata of this DApp
+   */
+  public async getOwnAppMetadata(): Promise<AppMetadata> {
+    return {
+      senderId: await getSenderId(await this.beaconId),
+      name: this.name,
+      icon: this.iconUrl
+    }
   }
 
   /**

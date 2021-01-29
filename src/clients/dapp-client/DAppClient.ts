@@ -2,7 +2,7 @@ import { ExposedPromise } from '../../utils/exposed-promise'
 
 import { Logger } from '../../utils/Logger'
 import { generateGUID } from '../../utils/generate-uuid'
-import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../../events'
+import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType, WalletInfo } from '../../events'
 import { BEACON_VERSION } from '../../constants'
 import { getAddressFromPublicKey } from '../../utils/crypto'
 import { ConnectionContext } from '../../types/ConnectionContext'
@@ -28,7 +28,6 @@ import {
   RequestOperationInput,
   RequestBroadcastInput,
   PermissionRequest,
-  AppMetadata,
   Serializer,
   LocalStorage,
   PermissionResponseOutput,
@@ -48,7 +47,8 @@ import {
   Transport,
   DappP2PTransport,
   DappPostMessageTransport,
-  PeerManager
+  PeerManager,
+  AppMetadataManager
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -113,6 +113,8 @@ export class DAppClient extends Client {
   private readonly activePeerLoaded: Promise<void>
   private readonly activeAccountLoaded: Promise<void>
 
+  private readonly appMetadataManager: AppMetadataManager
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -121,6 +123,8 @@ export class DAppClient extends Client {
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
+
+    this.appMetadataManager = new AppMetadataManager(this.storage)
 
     this.activeAccountLoaded = this.storage
       .get(StorageKey.ACTIVE_ACCOUNT)
@@ -170,8 +174,18 @@ export class DAppClient extends Client {
         logger.log(`acknowledge message received for ${message.id}`)
         console.timeLog(message.id, 'acknowledge')
 
-        this.events.emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, message).catch(console.error)
+        this.events
+          .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
+            message,
+            extraInfo: {},
+            walletInfo: await this.getWalletInfo()
+          })
+          .catch(console.error)
       } else if (openRequest) {
+        if (message.type === BeaconMessageType.PermissionResponse && message.appMetadata) {
+          await this.appMetadataManager.addAppMetadata(message.appMetadata)
+        }
+
         console.timeLog(message.id, 'response')
         console.timeEnd(message.id)
 
@@ -401,17 +415,6 @@ export class DAppClient extends Client {
   }
 
   /**
-   * Returns the metadata of this DApp
-   */
-  public async getAppMetadata(): Promise<AppMetadata> {
-    return {
-      senderId: await getSenderId(await this.beaconId),
-      name: this.name,
-      icon: this.iconUrl
-    }
-  }
-
-  /**
    * Will remove the account from the local storage and set a new active account if necessary.
    *
    * @param accountIdentifier ID of the account
@@ -532,7 +535,7 @@ export class DAppClient extends Client {
     input?: RequestPermissionInput
   ): Promise<PermissionResponseOutput> {
     const request: PermissionRequestInput = {
-      appMetadata: await this.getAppMetadata(),
+      appMetadata: await this.getOwnAppMetadata(),
       type: BeaconMessageType.PermissionRequest,
       network: input && input.network ? input.network : { type: NetworkType.MAINNET },
       scopes:
@@ -570,22 +573,18 @@ export class DAppClient extends Client {
     await this.accountManager.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)
 
-    const { senderId, network, scopes, threshold } = message
-
     const output: PermissionResponseOutput = {
-      senderId,
+      ...message,
       address,
-      network,
-      scopes,
-      publicKey,
-      threshold
-    } // TODO: Should we return the account info here?
+      accountInfo
+    }
 
     await this.notifySuccess(request, {
       account: accountInfo,
       output,
       blockExplorer: this.blockExplorer,
-      connectionContext: connectionInfo
+      connectionContext: connectionInfo,
+      walletInfo: await this.getWalletInfo()
     })
 
     return output
@@ -622,17 +621,14 @@ export class DAppClient extends Client {
       throw await this.handleRequestError(request, requestError)
     })
 
-    const { senderId, signingType, signature } = message
-
-    const output: SignPayloadResponseOutput = { senderId, signingType, signature }
-
     await this.notifySuccess(request, {
       account: activeAccount,
-      output,
-      connectionContext: connectionInfo
+      output: message,
+      connectionContext: connectionInfo,
+      walletInfo: await this.getWalletInfo()
     })
 
-    return output
+    return message
   }
 
   /**
@@ -664,18 +660,15 @@ export class DAppClient extends Client {
       throw await this.handleRequestError(request, requestError)
     })
 
-    const { senderId, transactionHash } = message
-
-    const output: OperationResponseOutput = { senderId, transactionHash }
-
     await this.notifySuccess(request, {
       account: activeAccount,
-      output,
+      output: message,
       blockExplorer: this.blockExplorer,
-      connectionContext: connectionInfo
+      connectionContext: connectionInfo,
+      walletInfo: await this.getWalletInfo()
     })
 
-    return { senderId, transactionHash }
+    return message
   }
 
   /**
@@ -703,18 +696,15 @@ export class DAppClient extends Client {
       throw await this.handleRequestError(request, requestError)
     })
 
-    const { senderId, transactionHash } = message
-
-    const output: BroadcastResponseOutput = { senderId, transactionHash }
-
     await this.notifySuccess(request, {
       network,
-      output,
+      output: message,
       blockExplorer: this.blockExplorer,
-      connectionContext: connectionInfo
+      connectionContext: connectionInfo,
+      walletInfo: await this.getWalletInfo()
     })
 
-    return { senderId, transactionHash }
+    return message
   }
 
   protected async setActivePeer(
@@ -826,8 +816,15 @@ export class DAppClient extends Client {
         buttons.push({ text: 'Remove account', actionCallback })
       }
 
+      const peer = await this.getPeer()
+      const activeAccount = await this.getActiveAccount()
+
       this.events
-        .emit(messageEvents[request.type].error, beaconError, buttons)
+        .emit(
+          messageEvents[request.type].error,
+          { errorResponse: beaconError, walletInfo: await this.getWalletInfo(peer, activeAccount) },
+          buttons
+        )
         .catch((emitError) => logger.error('handleRequestError', emitError))
 
       throw BeaconError.getError(beaconError.errorType, beaconError.errorData)
@@ -850,27 +847,96 @@ export class DAppClient extends Client {
           output: PermissionResponseOutput
           blockExplorer: BlockExplorer
           connectionContext: ConnectionContext
+          walletInfo: WalletInfo
         }
       | {
           account: AccountInfo
           output: OperationResponseOutput
           blockExplorer: BlockExplorer
           connectionContext: ConnectionContext
+          walletInfo: WalletInfo
         }
       | {
           output: SignPayloadResponseOutput
           connectionContext: ConnectionContext
+          walletInfo: WalletInfo
         }
       | {
           network: Network
           output: BroadcastResponseOutput
           blockExplorer: BlockExplorer
           connectionContext: ConnectionContext
+          walletInfo: WalletInfo
         }
   ): Promise<void> {
     this.events
       .emit(messageEvents[request.type].success, response)
       .catch((emitError) => console.warn(emitError))
+  }
+
+  private async getWalletInfo(peer?: PeerInfo, account?: AccountInfo): Promise<WalletInfo> {
+    const selectedAccount = account ? account : await this.getActiveAccount()
+
+    const selectedPeer = peer ? peer : await this.getPeer(selectedAccount)
+
+    let walletInfo: WalletInfo | undefined
+    if (selectedAccount) {
+      walletInfo = await this.appMetadataManager.getAppMetadata(selectedAccount.senderId)
+    }
+
+    const typedPeer: PostMessagePairingResponse = selectedPeer as any
+
+    if (!walletInfo) {
+      walletInfo = {
+        name: typedPeer.name,
+        icon: typedPeer.icon
+      }
+    }
+
+    // TODO: Remove once all wallets send the icon?
+    const selectedApp =
+      iOSList.find((app) => app.name === walletInfo?.name) ??
+      webList.find((app) => app.name === walletInfo?.name) ??
+      desktopList.find((app) => app.name === walletInfo?.name) ??
+      extensionList.find((app) => app.name === walletInfo?.name)
+
+    if (selectedApp) {
+      return {
+        name: walletInfo.name,
+        icon: walletInfo.icon ?? selectedApp.logo
+      }
+    }
+
+    return walletInfo
+  }
+
+  private async getPeer(account?: AccountInfo): Promise<PeerInfo> {
+    let peer: PeerInfo | undefined
+
+    if (account) {
+      logger.log('', 'We have an account', account)
+      const postMessagePeers: ExtendedPostMessagePairingResponse[] =
+        (await this.postMessageTransport?.getPeers()) ?? []
+      const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
+      const peers = [...postMessagePeers, ...p2pPeers]
+
+      logger.log('', 'Found peers', peers)
+
+      peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
+      if (!peer) {
+        // We could not find an exact match for a sender, so we most likely received it over a relay
+        peer = peers.find((peerEl) => (peerEl as any).extensionId === account.origin.id)
+      }
+    } else {
+      peer = await this._activePeer.promise
+      logger.log('', 'Active peer', peer)
+    }
+
+    if (!peer) {
+      throw new Error('No matching peer found.')
+    }
+
+    return peer
   }
 
   /**
@@ -931,38 +997,24 @@ export class DAppClient extends Client {
 
     const account = await this.getActiveAccount()
 
-    let peer: PeerInfo | undefined
+    const peer = await this.getPeer(account)
 
-    if (account) {
-      const postMessagePeers: ExtendedPostMessagePairingResponse[] =
-        (await this.postMessageTransport?.getPeers()) ?? []
-      const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
-      const peers = [...postMessagePeers, ...p2pPeers]
-
-      peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
-    } else {
-      peer = await this._activePeer.promise
-    }
+    const walletInfo = await this.getWalletInfo(peer, account)
 
     console.timeLog(messageId, 'sending')
     await (await this.transport).send(payload, peer)
     console.timeLog(messageId, 'sent')
 
-    const typedPeer: PostMessagePairingResponse = peer as any
-
-    // TODO: Remove once all wallets send the icon?
-    const selectedApp =
-      iOSList.find((app) => app.name === typedPeer.name) ??
-      webList.find((app) => app.name === typedPeer.name) ??
-      desktopList.find((app) => app.name === typedPeer.name) ??
-      extensionList.find((app) => app.name === typedPeer.name)
-
     this.events
       .emit(messageEvents[requestInput.type].sent, {
-        walletName: typedPeer.name,
-        walletIcon: typedPeer.icon ?? selectedApp?.logo,
-        resetCallback: async () => {
-          await this.clearActiveAccount()
+        walletInfo: {
+          name: walletInfo.name ?? 'Wallet',
+          icon: walletInfo.icon
+        },
+        extraInfo: {
+          resetCallback: async () => {
+            await this.clearActiveAccount()
+          }
         }
       })
       .catch((emitError) => console.warn(emitError))

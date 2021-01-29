@@ -67,10 +67,18 @@ export enum BeaconEvent {
   UNKNOWN = 'UNKNOWN'
 }
 
-export interface RequestSentInfo {
-  walletName: string
-  walletIcon?: string
-  resetCallback(): Promise<void>
+export interface WalletInfo {
+  name: string
+  icon?: string
+}
+
+export interface ExtraInfo {
+  resetCallback?(): Promise<void>
+}
+
+interface RequestSentInfo {
+  extraInfo: ExtraInfo
+  walletInfo: WalletInfo
 }
 
 /**
@@ -83,31 +91,39 @@ export interface BeaconEventType {
     output: PermissionResponseOutput
     blockExplorer: BlockExplorer
     connectionContext: ConnectionContext
+    walletInfo: WalletInfo
   }
-  [BeaconEvent.PERMISSION_REQUEST_ERROR]: ErrorResponse
+  [BeaconEvent.PERMISSION_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
   [BeaconEvent.OPERATION_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: {
     account: AccountInfo
     output: OperationResponseOutput
     blockExplorer: BlockExplorer
     connectionContext: ConnectionContext
+    walletInfo: WalletInfo
   }
-  [BeaconEvent.OPERATION_REQUEST_ERROR]: ErrorResponse
+  [BeaconEvent.OPERATION_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
   [BeaconEvent.SIGN_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: {
     output: SignPayloadResponseOutput
     connectionContext: ConnectionContext
+    walletInfo: WalletInfo
   }
-  [BeaconEvent.SIGN_REQUEST_ERROR]: ErrorResponse
+  [BeaconEvent.SIGN_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
   [BeaconEvent.BROADCAST_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
     network: Network
     output: BroadcastResponseOutput
     blockExplorer: BlockExplorer
     connectionContext: ConnectionContext
+    walletInfo: WalletInfo
   }
-  [BeaconEvent.BROADCAST_REQUEST_ERROR]: ErrorResponse
-  [BeaconEvent.ACKNOWLEDGE_RECEIVED]: AcknowledgeResponse
+  [BeaconEvent.BROADCAST_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
+  [BeaconEvent.ACKNOWLEDGE_RECEIVED]: {
+    message: AcknowledgeResponse
+    extraInfo: ExtraInfo
+    walletInfo: WalletInfo
+  }
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: undefined
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
@@ -127,10 +143,10 @@ export interface BeaconEventType {
 /**
  * Show a "Request sent" toast
  */
-const showSentToast = async (requestSentInfo: RequestSentInfo): Promise<void> => {
+const showSentToast = async (data: RequestSentInfo): Promise<void> => {
   openToast({
     body: `Request sent to&nbsp;{{wallet}}`,
-    requestSentInfo,
+    walletInfo: data.walletInfo,
     forceNew: true,
     state: 'loading',
     actions: [
@@ -147,7 +163,7 @@ const showSentToast = async (requestSentInfo: RequestSentInfo): Promise<void> =>
         actionCallback: async (): Promise<void> => {
           await closeToast()
           // eslint-disable-next-line @typescript-eslint/unbound-method
-          const resetCallback = requestSentInfo.resetCallback
+          const resetCallback = data.extraInfo.resetCallback
           if (resetCallback) {
             logger.log('showSentToast', 'resetCallback invoked')
             await resetCallback()
@@ -158,9 +174,14 @@ const showSentToast = async (requestSentInfo: RequestSentInfo): Promise<void> =>
   }).catch((toastError) => console.error(toastError))
 }
 
-const showAcknowledgedToast = async (_message: AcknowledgeResponse): Promise<void> => {
+const showAcknowledgedToast = async (data: {
+  message: AcknowledgeResponse
+  extraInfo: ExtraInfo
+  walletInfo: WalletInfo
+}): Promise<void> => {
   openToast({
-    body: 'Awaiting confirmation in&nbsp;{{wallet}}'
+    body: 'Awaiting confirmation in&nbsp;{{wallet}}',
+    walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
 }
 
@@ -180,11 +201,11 @@ const showNoPermissionAlert = async (): Promise<void> => {
  * @param beaconError The beacon error
  */
 const showErrorToast = async (
-  beaconError: ErrorResponse,
+  response: { errorResponse: ErrorResponse; walletInfo: WalletInfo },
   buttons?: AlertButton[]
 ): Promise<void> => {
-  const error = beaconError.errorType
-    ? BeaconError.getError(beaconError.errorType, beaconError.errorData)
+  const error = response.errorResponse.errorType
+    ? BeaconError.getError(response.errorResponse.errorType, response.errorResponse.errorData)
     : new UnknownBeaconError()
 
   const actions: ToastAction[] = [
@@ -197,8 +218,8 @@ const showErrorToast = async (
   ]
 
   if (
-    beaconError.errorType === BeaconErrorType.TRANSACTION_INVALID_ERROR &&
-    beaconError.errorData
+    response.errorResponse.errorType === BeaconErrorType.TRANSACTION_INVALID_ERROR &&
+    response.errorResponse.errorData
   ) {
     actions.push({
       text: '',
@@ -217,8 +238,12 @@ const showErrorToast = async (
 
   await openToast({
     body: `{{wallet}}&nbsp;has returned an error`,
-    timer: beaconError.errorType === BeaconErrorType.ABORTED_ERROR ? SUCCESS_TIMER : undefined,
+    timer:
+      response.errorResponse.errorType === BeaconErrorType.ABORTED_ERROR
+        ? SUCCESS_TIMER
+        : undefined,
     state: 'finished',
+    walletInfo: response.walletInfo,
     actions
   })
 }
@@ -301,6 +326,7 @@ const showPermissionSuccessAlert = async (
   await openToast({
     body: `{{wallet}}&nbsp;has granted permission`,
     timer: SUCCESS_TIMER,
+    walletInfo: data.walletInfo,
     state: 'finished',
     actions: [
       {
@@ -333,6 +359,7 @@ const showOperationSuccessAlert = async (
     body: `{{wallet}}&nbsp;successfully submitted operation`,
     timer: SUCCESS_TIMER,
     state: 'finished',
+    walletInfo: data.walletInfo,
     actions: [
       {
         text: `<strong>${shortenString(output.transactionHash)}</strong>`,
@@ -363,6 +390,7 @@ const showSignSuccessAlert = async (
     body: `{{wallet}}&nbsp;successfully signed payload`,
     timer: SUCCESS_TIMER,
     state: 'finished',
+    walletInfo: data.walletInfo,
     actions: [
       {
         text: `Signature: <strong>${shortenString(output.signature)}</strong>`,
@@ -397,6 +425,7 @@ const showBroadcastSuccessAlert = async (
     body: `{{wallet}}&nbsp;successfully injected operation`,
     timer: SUCCESS_TIMER,
     state: 'finished',
+    walletInfo: data.walletInfo,
     actions: [
       {
         text: `<strong>${shortenString(output.transactionHash)}</strong>`,
