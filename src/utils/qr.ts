@@ -1,4 +1,7 @@
 import qrcode from 'qrcode-generator'
+import { Logger } from './Logger'
+
+const logger = new Logger('QR')
 
 /**
  * Convert data to a QR code
@@ -10,6 +13,14 @@ export const getQrData = (payload: string, type?: 'data' | 'svg' | 'ascii'): str
   const typeNumber: TypeNumber = 0
   const errorCorrectionLevel: ErrorCorrectionLevel = 'L'
   const qr = qrcode(typeNumber, errorCorrectionLevel)
+
+  if (payload.length > 500) {
+    logger.warn(
+      'getQrData',
+      'The size of the payload in the QR code is quite long and some devices might not be able to scan it anymore. To reduce the QR size, try using a shorter "name", "appUrl" and "iconUrl"'
+    )
+  }
+
   try {
     qr.addData(payload)
     qr.make()

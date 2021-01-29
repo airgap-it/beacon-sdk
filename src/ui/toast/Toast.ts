@@ -302,7 +302,7 @@ const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
 
 const updateToast = async (toastConfig: ToastConfig): Promise<void> => {
   globalToastConfig = { ...globalToastConfig, ...toastConfig }
-  console.log('UPDATE, global', globalToastConfig)
+
   const timer = toastConfig.timer
 
   const wrapper = document.getElementById('beacon-toast-wrapper')
@@ -328,7 +328,6 @@ const updateToast = async (toastConfig: ToastConfig): Promise<void> => {
   }
 
   if (timer) {
-    console.log('SETTING TIMER (SEC)', timer / 1000)
     timeout = window.setTimeout(async () => {
       await closeToast()
     }, timer)

@@ -10,6 +10,9 @@ import {
 import { ConnectionContext } from '../types/ConnectionContext'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
 import { BeaconRequestMessage } from '../types/beacon/BeaconRequestMessage'
+import { Logger } from '../utils/Logger'
+
+const logger = new Logger('IncomingRequestInterceptor')
 
 interface IncomingRequestInterceptorOptions {
   message: BeaconRequestMessage
@@ -96,7 +99,7 @@ export class IncomingRequestInterceptor {
         break
 
       default:
-        console.log('Message not handled')
+        logger.log('intercept', 'Message not handled')
     }
   }
 

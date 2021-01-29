@@ -1,8 +1,11 @@
 import { NetworkType } from '../..'
 import { generateGUID } from '../../utils/generate-uuid'
+import { Logger } from '../../utils/Logger'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { closeAlerts } from './Alert'
 import { Pairing } from './Pairing'
+
+const logger = new Logger('Alert')
 
 export const preparePairingAlert = async (
   shadowRoot: ShadowRoot,
@@ -114,10 +117,10 @@ export const preparePairingAlert = async (
       navigator.clipboard.writeText(pairingPayload ? pairingPayload.p2pSyncCode : '').then(
         () => {
           copyButton.innerText = 'Copied'
-          console.log('Copying to clipboard was successful!')
+          logger.log('Copying to clipboard was successful!')
         },
         (err) => {
-          console.error('Could not copy text to clipboard: ', err)
+          logger.error('Could not copy text to clipboard: ', err)
         }
       )
     }

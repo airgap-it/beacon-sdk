@@ -370,10 +370,10 @@ const showSignSuccessAlert = async (
         actionCallback: async (): Promise<void> => {
           navigator.clipboard.writeText(output.signature).then(
             () => {
-              console.log('Copying to clipboard was successful!')
+              logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
             },
             (err) => {
-              console.error('Could not copy text to clipboard: ', err)
+              logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
             }
           )
           await closeToast()

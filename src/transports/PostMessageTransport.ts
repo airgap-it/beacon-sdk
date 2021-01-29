@@ -33,28 +33,6 @@ export class PostMessageTransport<
     super(name, new PostMessageClient(name, keyPair), new PeerManager<K>(storage, storageKey))
   }
 
-  public static async isAvailable(): Promise<boolean> {
-    return new Promise((resolve) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fn = (event: any): void => {
-        const data = event.data as ExtensionMessage<string>
-        if (data && data.payload === 'pong') {
-          resolve(true)
-          myWindow.removeEventListener('message', fn)
-        }
-      }
-
-      myWindow.addEventListener('message', fn)
-
-      const message: ExtensionMessage<string> = {
-        target: ExtensionMessageTarget.EXTENSION,
-        payload: 'ping'
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      myWindow.postMessage(message as any, window.location.origin)
-    })
-  }
-
   public static async getAvailableExtensions(): Promise<Extension[]> {
     if (extensions) {
       return extensions.promise
@@ -72,6 +50,7 @@ export class PostMessageTransport<
         >
         const sender = data.sender
         if (data && data.payload === 'pong' && sender) {
+          logger.log('getAvailableExtensions', `extension "${sender.name}" is available`, sender)
           if (!localExtensions.some((ext) => ext.id === sender.id)) {
             localExtensions.push(sender)
           }
@@ -81,6 +60,7 @@ export class PostMessageTransport<
       myWindow.addEventListener('message', fn)
 
       setTimeout(() => {
+        // TODO: Should we allow extensions to register after the timeout has passed?
         myWindow.removeEventListener('message', fn)
         if (extensions) {
           extensions.resolve(localExtensions)
@@ -93,7 +73,7 @@ export class PostMessageTransport<
         payload: 'ping'
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      myWindow.postMessage(message as any, window.location.origin)
+      myWindow.postMessage(message as any, myWindow.location.origin)
     })
   }
 
@@ -111,7 +91,7 @@ export class PostMessageTransport<
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
 
-      Promise.all(connectionPromises).catch(console.log)
+      Promise.all(connectionPromises).catch((error) => logger.error('connect', error))
     }
 
     await this.startOpenChannelListener()

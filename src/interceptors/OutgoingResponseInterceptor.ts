@@ -152,7 +152,7 @@ export class OutgoingResponseInterceptor {
         break
 
       default:
-        console.log('Message not handled')
+        logger.log('intercept', 'Message not handled')
     }
   }
 }
