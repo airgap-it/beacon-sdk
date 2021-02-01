@@ -18,7 +18,10 @@ import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { generateGUID } from '../../utils/generate-uuid'
 import { BEACON_VERSION } from '../../constants'
 import { getSenderId } from '../../utils/get-sender-id'
+import { Logger } from '../../utils/Logger'
 import { ClientOptions } from './ClientOptions'
+
+const logger = new Logger('Client')
 
 /**
  * This abstract class handles the a big part of the logic that is shared between the dapp and wallet client.
@@ -189,7 +192,7 @@ export abstract class Client extends BeaconClient {
           this.handleResponse(deserializedMessage, connectionInfo)
         }
       })
-      .catch((error) => console.log(error))
+      .catch((error) => logger.error('addListener', error))
   }
 
   protected async sendDisconnectToPeer(peer: PeerInfo, transport?: Transport<any>): Promise<void> {

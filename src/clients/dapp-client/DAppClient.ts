@@ -155,7 +155,7 @@ export class DAppClient extends Client {
       })
       .catch(async (storageError) => {
         await this.setActiveAccount(undefined)
-        console.error(storageError)
+        logger.error(storageError)
       })
 
     this.handleResponse = async (
@@ -167,9 +167,14 @@ export class DAppClient extends Client {
       logger.log('handleResponse', 'Received message', message, connectionInfo)
 
       if (message.type === BeaconMessageType.Acknowledge) {
-        console.log('acknowledge message received for ', message.id)
+        logger.log(`acknowledge message received for ${message.id}`)
+        console.timeLog(message.id, 'acknowledge')
+
         this.events.emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, message).catch(console.error)
       } else if (openRequest) {
+        console.timeLog(message.id, 'response')
+        console.timeEnd(message.id)
+
         if (message.type === BeaconMessageType.Error || (message as any).errorType) {
           // TODO: Remove "any" once we remove support for v1 wallets
           openRequest.reject(message as any)
@@ -797,7 +802,7 @@ export class DAppClient extends Client {
     request: BeaconRequestInputMessage,
     beaconError: ErrorResponse
   ): Promise<void> {
-    console.log('error response', beaconError)
+    logger.error('handleRequestError', 'error response', beaconError)
     if (beaconError.errorType) {
       const buttons: AlertButton[] = []
       if (beaconError.errorType === BeaconErrorType.NO_PRIVATE_KEY_FOUND_ERROR) {
@@ -823,7 +828,7 @@ export class DAppClient extends Client {
 
       this.events
         .emit(messageEvents[request.type].error, beaconError, buttons)
-        .catch((emitError) => console.warn(emitError))
+        .catch((emitError) => logger.error('handleRequestError', emitError))
 
       throw BeaconError.getError(beaconError.errorType, beaconError.errorData)
     }
@@ -882,8 +887,11 @@ export class DAppClient extends Client {
     message: U
     connectionInfo: ConnectionContext
   }> {
+    const messageId = await generateGUID()
+    console.time(messageId)
     logger.log('makeRequest', 'starting')
     await this.init()
+    console.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -906,7 +914,7 @@ export class DAppClient extends Client {
 
     const request: Omit<T, IgnoredRequestInputProperties> &
       Pick<U, IgnoredRequestInputProperties> = {
-      id: await generateGUID(),
+      id: messageId,
       version: BEACON_VERSION,
       senderId: await getSenderId(await this.beaconId),
       ...requestInput
@@ -936,7 +944,9 @@ export class DAppClient extends Client {
       peer = await this._activePeer.promise
     }
 
+    console.timeLog(messageId, 'sending')
     await (await this.transport).send(payload, peer)
+    console.timeLog(messageId, 'sent')
 
     const typedPeer: PostMessagePairingResponse = peer as any
 

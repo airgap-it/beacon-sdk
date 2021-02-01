@@ -108,6 +108,10 @@ export class Logger {
     this.name = service
   }
 
+  public debug(method: string, ...args: any[]): void {
+    this._log('debug', method, args)
+  }
+
   public log(method: string, ...args: any[]): void {
     this._log('log', method, args)
   }
@@ -120,19 +124,40 @@ export class Logger {
     this._log('error', method, args)
   }
 
-  private _log(type: 'log' | 'warn' | 'error', method: string, args: any[] = []): void {
+  private _log(type: 'debug' | 'log' | 'warn' | 'error', method: string, args: any[] = []): void {
     if (!getDebugEnabled()) {
       return
     }
-    if (type) {
-      //
+
+    let groupText = `[BEACON] ${new Date().toISOString()} [${this.name}](${method})`
+    let data = args
+    if (args[0] && typeof args[0] === 'string') {
+      groupText += ` ${args[0]}`
+      data = args.slice(1)
     }
+
+    switch (type) {
+      case 'error':
+        console.group(groupText)
+        console.error(...data)
+        break
+      case 'warn':
+        console.group(groupText)
+        console.warn(...data)
+        break
+      case 'debug':
+        console.groupCollapsed(groupText)
+        console.debug(...data)
+        break
+
+      default:
+        console.group(groupText)
+        console.log(...data)
+    }
+    console.groupEnd()
+
     // echo.group(echo.asWarning(`[BEACON] ${message}`))
     // echo.log(echo.asWarning(`[${this.name}]`), echo.asAlert(`(${method})`), ...args)
     // echo.groupEnd()
-
-    console.group(`[BEACON] [${this.name}](${method})`)
-    console.log(...args)
-    console.groupEnd()
   }
 }

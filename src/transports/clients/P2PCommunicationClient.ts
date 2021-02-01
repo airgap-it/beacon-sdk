@@ -265,14 +265,14 @@ export class P2PCommunicationClient extends CommunicationClient {
         client.sendTextMessage(roomId, encryptedMessage).catch(async (error) => {
           if (error.errcode === 'M_FORBIDDEN') {
             // Room doesn't exist
-            logger.log('sendMessage', 'M_FORBIDDEN', error)
+            logger.log(`sendMessage`, `M_FORBIDDEN`, error)
             await this.deleteRoomIdFromRooms(roomId)
             const newRoomId = await this.getRelevantRoom(client, recipient)
             client.sendTextMessage(newRoomId, encryptedMessage).catch(async (error2) => {
-              logger.log('sendMessage', 'inner error', error2)
+              logger.log(`sendMessage`, `inner error`, error2)
             })
           } else {
-            logger.log('sendMessage', 'not forbidden', error)
+            logger.log(`sendMessage`, `not forbidden`, error)
           }
         })
       }
@@ -297,9 +297,8 @@ export class P2PCommunicationClient extends CommunicationClient {
   ): Promise<void> {
     for (const client of this.clients) {
       client.subscribe(MatrixClientEventType.MESSAGE, async (event) => {
-        logger.log('channel opening', JSON.stringify(event))
         if (this.isTextMessage(event.content) && (await this.isChannelOpenMessage(event.content))) {
-          logger.log('new channel open event!')
+          logger.log(`listenForChannelOpening`, `channel opening`, JSON.stringify(event))
 
           const splits = event.content.message.content.split(':')
           const payload = Buffer.from(splits[splits.length - 1], 'hex')
@@ -327,11 +326,11 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async sendPairingResponse(pairingRequest: P2PPairingRequest): Promise<void> {
-    logger.log('open channel')
+    logger.log(`sendPairingResponse`)
     const recipientHash = await getHexHash(Buffer.from(pairingRequest.publicKey, 'hex'))
     const recipient = recipientString(recipientHash, pairingRequest.relayServer)
 
-    logger.log(`currently there are ${this.clients.length} clients open`)
+    logger.log(`sendPairingResponse`, `currently there are ${this.clients.length} clients open`)
     for (const client of this.clients) {
       const roomId = await this.getRelevantRoom(client, recipient)
 
@@ -389,14 +388,14 @@ export class P2PCommunicationClient extends CommunicationClient {
     let roomId = roomIds[recipient]
 
     if (!roomId) {
-      logger.log(`No room found for peer ${recipient}, checking joined ones.`)
+      logger.log(`getRelevantRoom`, `No room found for peer ${recipient}, checking joined ones.`)
       const room = await this.getRelevantJoinedRoom(client, recipient)
       roomId = room.id
       roomIds[recipient] = room.id
       await this.storage.set(StorageKey.MATRIX_PEER_ROOM_IDS, roomIds)
     }
 
-    logger.log(`Using room ${roomId}`)
+    logger.log(`getRelevantRoom`, `Using room ${roomId}`)
 
     return roomId
   }
@@ -412,13 +411,13 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     let room: MatrixRoom
     if (relevantRooms.length === 0) {
-      logger.log(`no relevant rooms found`)
+      logger.log(`getRelevantJoinedRoom`, `no relevant rooms found`)
 
       const roomId = await client.createTrustedPrivateRoom(recipient)
       room = client.getRoomById(roomId)
     } else {
       room = relevantRooms[0]
-      logger.log(`channel already open, reusing room ${room.id}`)
+      logger.log(`getRelevantJoinedRoom`, `channel already open, reusing room ${room.id}`)
     }
 
     return room

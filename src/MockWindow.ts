@@ -20,6 +20,9 @@ let myWindow = {
       cbs.indexOf((element) => element === eventCallback),
       1
     )
+  },
+  location: {
+    origin: '*'
   }
 }
 

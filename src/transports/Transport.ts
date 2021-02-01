@@ -104,7 +104,7 @@ export abstract class Transport<
   public async addListener(
     listener: (message: unknown, connectionInfo: ConnectionContext) => void
   ): Promise<void> {
-    logger.log('addListener')
+    logger.debug('addListener', listener)
 
     this.listeners.push(listener)
 
@@ -166,8 +166,6 @@ export abstract class Transport<
     message: unknown,
     connectionInfo: ConnectionContext
   ): Promise<void> {
-    logger.log('notifyListeners')
-
     if (this.listeners.length === 0) {
       logger.warn('notifyListeners', '0 listeners notified!', this)
     } else {

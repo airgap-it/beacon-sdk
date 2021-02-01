@@ -25,6 +25,9 @@ import { getSenderId } from '../../utils/get-sender-id'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { ExposedPromise } from '../../utils/exposed-promise'
 import { ExtendedPeerInfo, PeerInfo } from '../../types/PeerInfo'
+import { Logger } from '../../utils/Logger'
+
+const logger = new Logger('WalletClient')
 
 /**
  * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible
@@ -133,7 +136,7 @@ export class WalletClient extends Client {
             this.handleResponse(deserializedMessage, connectionInfo)
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => logger.log('_connect', error))
       this._isConnected.resolve(true)
     } else {
       // NO-OP

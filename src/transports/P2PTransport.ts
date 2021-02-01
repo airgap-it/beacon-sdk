@@ -57,7 +57,7 @@ export class P2PTransport<
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
-      Promise.all(connectionPromises).catch(console.log)
+      Promise.all(connectionPromises).catch((error) => logger.error('connect', error))
     }
 
     await this.startOpenChannelListener()

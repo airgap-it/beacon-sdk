@@ -159,7 +159,7 @@ export class Pairing {
                       targetId: app.id
                     }
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    myWindow.postMessage(message as any, window.location.origin)
+                    myWindow.postMessage(message as any, myWindow.location.origin)
                   }
                   statusUpdateHandler(WalletType.EXTENSION, this)
                 }
