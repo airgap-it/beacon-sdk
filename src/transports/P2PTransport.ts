@@ -27,11 +27,13 @@ export class P2PTransport<
     keyPair: sodium.KeyPair,
     storage: Storage,
     matrixNodes: string[],
-    storageKey: K
+    storageKey: K,
+    iconUrl?: string,
+    appUrl?: string
   ) {
     super(
       name,
-      new P2PCommunicationClient(name, keyPair, 1, storage, matrixNodes),
+      new P2PCommunicationClient(name, keyPair, 1, storage, matrixNodes, iconUrl, appUrl),
       new PeerManager<K>(storage, storageKey)
     )
   }

@@ -67,6 +67,7 @@ import { SigningType } from '../../types/beacon/SigningType'
 import { ExtendedPeerInfo } from '../../types/PeerInfo'
 import { ColorMode } from '../../types/ColorMode'
 import { getColorMode, setColorMode } from '../../colorMode'
+import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wallet-lists'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -76,11 +77,6 @@ const logger = new Logger('DAppClient')
  * wallets and sending requests.
  */
 export class DAppClient extends Client {
-  /**
-   * The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet
-   */
-  public readonly iconUrl?: string
-
   /**
    * The block explorer used by the SDK
    */
@@ -122,7 +118,6 @@ export class DAppClient extends Client {
       storage: config && config.storage ? config.storage : new LocalStorage(),
       ...config
     })
-    this.iconUrl = config.iconUrl
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
@@ -220,7 +215,14 @@ export class DAppClient extends Client {
     this.postMessageTransport = new DappPostMessageTransport(this.name, keyPair, this.storage)
     await this.addListener(this.postMessageTransport)
 
-    this.p2pTransport = new DappP2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
+    this.p2pTransport = new DappP2PTransport(
+      this.name,
+      keyPair,
+      this.storage,
+      this.matrixNodes,
+      this.iconUrl,
+      this.appUrl
+    )
     await this.addListener(this.p2pTransport)
   }
 
@@ -936,14 +938,19 @@ export class DAppClient extends Client {
 
     await (await this.transport).send(payload, peer)
 
-    console.log('peer', peer)
-
     const typedPeer: PostMessagePairingResponse = peer as any
+
+    // TODO: Remove once all wallets send the icon?
+    const selectedApp =
+      iOSList.find((app) => app.name === typedPeer.name) ??
+      webList.find((app) => app.name === typedPeer.name) ??
+      desktopList.find((app) => app.name === typedPeer.name) ??
+      extensionList.find((app) => app.name === typedPeer.name)
 
     this.events
       .emit(messageEvents[requestInput.type].sent, {
         walletName: typedPeer.name,
-        walletIcon: typedPeer.icon,
+        walletIcon: typedPeer.icon ?? selectedApp?.logo,
         resetCallback: async () => {
           await this.clearActiveAccount()
         }

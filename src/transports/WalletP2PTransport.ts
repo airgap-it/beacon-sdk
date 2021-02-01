@@ -7,8 +7,23 @@ export class WalletP2PTransport extends P2PTransport<
   P2PPairingRequest,
   StorageKey.TRANSPORT_P2P_PEERS_WALLET
 > {
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, matrixNodes: string[]) {
-    super(name, keyPair, storage, matrixNodes, StorageKey.TRANSPORT_P2P_PEERS_WALLET)
+  constructor(
+    name: string,
+    keyPair: sodium.KeyPair,
+    storage: Storage,
+    matrixNodes: string[],
+    iconUrl?: string,
+    appUrl?: string
+  ) {
+    super(
+      name,
+      keyPair,
+      storage,
+      matrixNodes,
+      StorageKey.TRANSPORT_P2P_PEERS_WALLET,
+      iconUrl,
+      appUrl
+    )
   }
 
   public async addPeer(newPeer: P2PPairingRequest): Promise<void> {

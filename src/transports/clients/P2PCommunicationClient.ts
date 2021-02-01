@@ -48,7 +48,9 @@ export class P2PCommunicationClient extends CommunicationClient {
     keyPair: sodium.KeyPair,
     public readonly replicationCount: number,
     private readonly storage: Storage,
-    matrixNodes: string[]
+    matrixNodes: string[],
+    private readonly iconUrl?: string,
+    private readonly appUrl?: string
   ) {
     super(keyPair)
 
@@ -57,7 +59,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
-    return {
+    const info: P2PPairingRequest = {
       id: await generateGUID(),
       type: 'p2p-pairing-request',
       name: this.name,
@@ -65,10 +67,19 @@ export class P2PCommunicationClient extends CommunicationClient {
       publicKey: await this.getPublicKey(),
       relayServer: await this.getRelayServer()
     }
+
+    if (this.iconUrl) {
+      info.icon = this.iconUrl
+    }
+    if (this.appUrl) {
+      info.appUrl = this.appUrl
+    }
+
+    return info
   }
 
   public async getPairingResponseInfo(request: P2PPairingRequest): Promise<P2PPairingResponse> {
-    return {
+    const info: P2PPairingResponse = {
       id: request.id,
       type: 'p2p-pairing-response',
       name: this.name,
@@ -76,6 +87,15 @@ export class P2PCommunicationClient extends CommunicationClient {
       publicKey: await this.getPublicKey(),
       relayServer: await this.getRelayServer()
     }
+
+    if (this.iconUrl) {
+      info.icon = this.iconUrl
+    }
+    if (this.appUrl) {
+      info.appUrl = this.appUrl
+    }
+
+    return info
   }
 
   public async getRelayServer(publicKeyHash?: string, nonce: string = ''): Promise<string> {
