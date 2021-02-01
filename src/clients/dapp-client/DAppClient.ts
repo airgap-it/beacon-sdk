@@ -620,10 +620,42 @@ export class DAppClient extends Client {
       throw await this.sendInternalError('No active account!')
     }
 
+    const payload = input.payload
+
+    if (typeof payload !== 'string') {
+      throw new Error('Payload must be a string')
+    }
+
+    const signingType = ((): SigningType => {
+      switch (input.signingType) {
+        case SigningType.OPERATION:
+          if (payload.startsWith('03')) {
+            throw new Error(
+              'When using singing type "OPERATION", the payload must start with prefix "03"'
+            )
+          }
+
+          return SigningType.OPERATION
+
+        case SigningType.MICHELINE:
+          if (payload.startsWith('05')) {
+            throw new Error(
+              'When using singing type "MICHELINE", the payload must start with prefix "05"'
+            )
+          }
+
+          return SigningType.MICHELINE
+
+        case SigningType.RAW:
+        default:
+          return SigningType.RAW
+      }
+    })()
+
     const request: SignPayloadRequestInput = {
       type: BeaconMessageType.SignPayloadRequest,
-      signingType: SigningType.RAW,
-      payload: input.payload,
+      signingType,
+      payload,
       sourceAddress: input.sourceAddress || activeAccount.address
     }
 
