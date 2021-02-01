@@ -48,7 +48,8 @@ import {
   DappP2PTransport,
   DappPostMessageTransport,
   PeerManager,
-  AppMetadataManager
+  AppMetadataManager,
+  AppMetadata
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import { IgnoredRequestInputProperties } from '../../types/beacon/messages/BeaconRequestInputMessage'
@@ -412,6 +413,15 @@ export class DAppClient extends Client {
 
   public async getColorMode(): Promise<ColorMode> {
     return getColorMode()
+  }
+
+  /**
+   * @deprecated
+   *
+   * Use getOwnAppMetadata instead
+   */
+  public async getAppMetadata(): Promise<AppMetadata> {
+    return this.getOwnAppMetadata()
   }
 
   /**
