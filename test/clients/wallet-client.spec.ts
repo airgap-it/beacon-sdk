@@ -76,6 +76,7 @@ describe(`WalletClient`, () => {
 
   beforeEach(() => {
     sinon.restore()
+    ;(window as any).beaconCreatedClientInstance = false
   })
 
   it(`should throw an error if initialized with an empty object`, async () => {
@@ -166,7 +167,8 @@ describe(`WalletClient`, () => {
       publicKey: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3'
     }
 
-    ;(<any>walletClient).pendingRequests = [{ id }]
+    ;(<any>walletClient).pendingRequests.push([{ id }, {}])
+
     const respondStub = sinon.stub(walletClient, <any>'respondToMessage').resolves()
     const appMetadataManagerStub = sinon
       .stub(AppMetadataManager.prototype, 'getAppMetadata')
@@ -304,7 +306,7 @@ describe(`WalletClient`, () => {
     // expect(sendStub.firstCall.args[0]).to.equal('aRNACa2rFgw2dfAugetVZpzSbMdahH')
   })
 
-  it.only(`should respond with an error message`, async () => {
+  it(`should respond with an error message`, async () => {
     const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
 
     const respondStub = sinon.stub(walletClient, <any>'respondToMessage').resolves()
@@ -335,7 +337,7 @@ describe(`WalletClient`, () => {
     expect(respondStub.firstCall.args[0].errorData).not.to.be.undefined
   })
 
-  it.only(`should respond with an error message`, async () => {
+  it(`should respond with an error message`, async () => {
     const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
 
     const respondStub = sinon.stub(walletClient, <any>'respondToMessage').resolves()
@@ -368,7 +370,7 @@ describe(`WalletClient`, () => {
     expect(respondStub.firstCall.args[0].errorData).to.be.undefined
   })
 
-  it.only(`should not respond with an invalid error message`, async () => {
+  it(`should not respond with an invalid error message`, async () => {
     const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
 
     const respondStub = sinon.stub(walletClient, <any>'respondToMessage').resolves()

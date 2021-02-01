@@ -930,7 +930,7 @@ export class DAppClient extends Client {
       const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
       const peers = [...postMessagePeers, ...p2pPeers]
 
-      logger.log('', 'Found peers', peers)
+      logger.log('', 'Found peers', peers, account)
 
       peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
       if (!peer) {
