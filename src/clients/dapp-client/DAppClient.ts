@@ -385,7 +385,10 @@ export class DAppClient extends Client {
       } else if (origin === Origin.P2P) {
         await this.setTransport(this.p2pTransport)
       }
+      const peer = await this.getPeer(account)
+      await this.setActivePeer(peer as any)
     } else {
+      await this.setActivePeer(undefined)
       await this.setTransport(undefined)
     }
 
