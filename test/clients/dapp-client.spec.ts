@@ -148,6 +148,10 @@ describe(`DAppClient`, () => {
     const storageStub = sinon.stub(storage, 'get').resolves()
 
     const message: PermissionResponse = {
+      appMetadata: {
+        senderId: 'sender-id',
+        name: 'test-wallet'
+      },
       id: 'some-id',
       version: BEACON_VERSION,
       senderId: 'sender-id',
@@ -538,6 +542,10 @@ describe(`DAppClient`, () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
     const permissionResponse: PermissionResponse = {
+      appMetadata: {
+        senderId: 'sender-id',
+        name: 'test-wallet'
+      },
       id: 'my-id',
       type: BeaconMessageType.PermissionResponse,
       version: BEACON_VERSION,
