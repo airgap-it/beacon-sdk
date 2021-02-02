@@ -24,6 +24,7 @@ import * as sinon from 'sinon'
 
 import { WalletClient } from '../../src/clients/wallet-client/WalletClient'
 import { ExtendedP2PPairingRequest } from '../../src/types/P2PPairingRequest'
+import { myWindow } from '../../src/MockWindow'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -76,7 +77,7 @@ describe(`WalletClient`, () => {
 
   beforeEach(() => {
     sinon.restore()
-    ;(window as any).beaconCreatedClientInstance = false
+    ;(myWindow as any).beaconCreatedClientInstance = false
   })
 
   it(`should throw an error if initialized with an empty object`, async () => {

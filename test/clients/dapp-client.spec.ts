@@ -37,6 +37,7 @@ import { MockTransport } from '../test-utils/MockTransport'
 import { availableTransports } from '../../src/utils/available-transports'
 import { ExposedPromise } from '../../src/utils/exposed-promise'
 import { Logger } from '../../src/utils/Logger'
+import { myWindow } from '../../src/MockWindow'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -127,7 +128,7 @@ describe(`DAppClient`, () => {
 
   beforeEach(() => {
     sinon.restore()
-    ;(window as any).beaconCreatedClientInstance = false
+    ;(myWindow as any).beaconCreatedClientInstance = false
   })
 
   it(`should throw an error if initialized with an empty object`, async () => {
@@ -596,7 +597,7 @@ describe(`DAppClient`, () => {
 
     const response = await dAppClient.requestPermissions()
 
-    expect(getPeersStub.callCount, 'getPeersStub').to.equal(2)
+    expect(getPeersStub.callCount, 'getPeersStub').to.equal(4)
     expect(notifySuccessStub.callCount, 'notifySuccessStub').to.equal(1)
     expect(makeRequestStub.callCount).to.equal(1)
     expect(makeRequestStub.firstCall.args[0]).to.deep.equal({
@@ -644,6 +645,8 @@ describe(`DAppClient`, () => {
       connectedAt: 1599142450653
     }
 
+    const getPeerStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
+
     await (<any>dAppClient).accountManager.addAccount(account)
     await dAppClient.setActiveAccount(account)
 
@@ -666,21 +669,9 @@ describe(`DAppClient`, () => {
 
     const notifySuccessStub = sinon.stub(dAppClient, <any>'notifySuccess').resolves()
 
-    const getPeersStub = sinon.stub(Transport.prototype, 'getPeers').resolves([
-      {
-        id: '',
-        name: '',
-        publicKey: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3',
-        senderId: 'sender-id',
-        version: BEACON_VERSION,
-        type: 'p2p-pairing-request',
-        relayServer: ''
-      }
-    ])
-
     const response = await dAppClient.requestSignPayload({ payload: 'test-payload' })
 
-    expect(getPeersStub.callCount, 'getPeersStub').to.equal(2)
+    expect(getPeerStub.callCount, 'getPeersStub').to.equal(2)
     expect(notifySuccessStub.callCount, 'notifySuccessStub').to.equal(1)
     expect(makeRequestStub.callCount).to.equal(1)
     expect(makeRequestStub.firstCall.args[0]).to.deep.equal({
@@ -717,6 +708,8 @@ describe(`DAppClient`, () => {
       connectedAt: 1599142450653
     }
 
+    const getPeerStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
+
     await (<any>dAppClient).accountManager.addAccount(account)
     await dAppClient.setActiveAccount(account)
 
@@ -738,18 +731,6 @@ describe(`DAppClient`, () => {
 
     const notifySuccessStub = sinon.stub(dAppClient, <any>'notifySuccess').resolves()
 
-    const getPeersStub = sinon.stub(Transport.prototype, 'getPeers').resolves([
-      {
-        id: '',
-        name: '',
-        publicKey: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3',
-        senderId: 'sender-id',
-        version: BEACON_VERSION,
-        type: 'p2p-pairing-request',
-        relayServer: ''
-      }
-    ])
-
     const operationDetails: PartialTezosOperation[] = [
       {
         kind: TezosOperationType.TRANSACTION,
@@ -759,7 +740,7 @@ describe(`DAppClient`, () => {
     ]
     const response = await dAppClient.requestOperation({ operationDetails })
 
-    expect(getPeersStub.callCount, 'getPeersStub').to.equal(2)
+    expect(getPeerStub.callCount, 'getPeersStub').to.equal(2)
     expect(notifySuccessStub.callCount, 'notifySuccessStub').to.equal(1)
     expect(makeRequestStub.callCount).to.equal(1)
     expect(makeRequestStub.firstCall.args[0]).to.deep.equal({
@@ -795,6 +776,8 @@ describe(`DAppClient`, () => {
       connectedAt: 1599142450653
     }
 
+    const getPeerStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
+
     await (<any>dAppClient).accountManager.addAccount(account)
     await dAppClient.setActiveAccount(account)
 
@@ -816,21 +799,9 @@ describe(`DAppClient`, () => {
 
     const notifySuccessStub = sinon.stub(dAppClient, <any>'notifySuccess').resolves()
 
-    const getPeersStub = sinon.stub(Transport.prototype, 'getPeers').resolves([
-      {
-        id: '',
-        name: '',
-        publicKey: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3',
-        senderId: 'sender-id',
-        version: BEACON_VERSION,
-        type: 'p2p-pairing-request',
-        relayServer: ''
-      }
-    ])
-
     const response = await dAppClient.requestBroadcast({ signedTransaction: 'signed-tx' })
 
-    expect(getPeersStub.callCount, 'getPeersStub').to.equal(2)
+    expect(getPeerStub.callCount, 'getPeersStub').to.equal(2)
     expect(notifySuccessStub.callCount, 'notifySuccessStub').to.equal(1)
     expect(makeRequestStub.callCount).to.equal(1)
     expect(makeRequestStub.firstCall.args[0]).to.deep.equal({
@@ -856,7 +827,7 @@ describe(`DAppClient`, () => {
       await (<any>dAppClient).sendInternalError('some-message')
       throw new Error('Should not happen')
     } catch (e) {
-      expect(eventsStub.callCount).to.equal(2)
+      expect(eventsStub.callCount).to.equal(1)
       expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.INTERNAL_ERROR)
       expect(eventsStub.firstCall.args[1]).to.equal('some-message')
       expect(e.message).to.equal('some-message')
@@ -911,19 +882,15 @@ describe(`DAppClient`, () => {
 
     const walletInfoStub = sinon.stub(dAppClient, <any>'getWalletInfo').resolves({})
 
-    ;(<any>dAppClient)._activePeer = {
-      promise: new Promise((resolve) => {
-        resolve({
-          id: '',
-          name: '',
-          publicKey: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3',
-          senderId: 'sender-id',
-          version: BEACON_VERSION,
-          type: 'p2p-pairing-request',
-          relayServer: ''
-        })
-      })
-    }
+    ;(<any>dAppClient)._activePeer = ExposedPromise.resolve({
+      id: '',
+      name: '',
+      publicKey: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3',
+      senderId: 'sender-id',
+      version: BEACON_VERSION,
+      type: 'p2p-pairing-request',
+      relayServer: ''
+    })
 
     try {
       await (<any>dAppClient).handleRequestError(request, error)
@@ -931,15 +898,13 @@ describe(`DAppClient`, () => {
     } catch (e) {
       expect(walletInfoStub.callCount, 'walletInfoStub').to.equal(1)
 
-      expect(eventsStub.callCount).to.equal(4)
-      expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
-      expect(eventsStub.firstCall.args[1]).to.equal(undefined)
-      expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
-      expect(eventsStub.secondCall.args[1]).to.equal(undefined)
-      expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET)
-      expect(eventsStub.thirdCall.args[1]).to.equal(undefined)
-      expect(eventsStub.getCall(3).args[0]).to.equal(BeaconEvent.PERMISSION_REQUEST_ERROR)
-      expect(eventsStub.getCall(3).args[1]).to.deep.eq({ errorResponse: error, walletInfo: {} })
+      expect(eventsStub.callCount).to.equal(3)
+      expect(eventsStub.getCall(0).args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+      expect(eventsStub.getCall(0).args[1]).to.equal(undefined)
+      expect(eventsStub.getCall(1).args[0]).to.equal(BeaconEvent.PERMISSION_REQUEST_ERROR)
+      expect(eventsStub.getCall(1).args[1]).to.deep.eq({ errorResponse: error, walletInfo: {} })
+      expect(eventsStub.getCall(2).args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET)
+      expect(eventsStub.getCall(2).args[1]).to.equal(undefined)
       expect(e.description).to.equal(
         'You do not have the necessary permissions to perform this action. Please initiate another permission request and give the necessary permissions.'
       )
@@ -960,9 +925,7 @@ describe(`DAppClient`, () => {
       await (<any>dAppClient).handleRequestError(request, error)
       throw new Error('Should not happen')
     } catch (e) {
-      expect(eventsStub.callCount).to.equal(1)
-      expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
-      expect(eventsStub.firstCall.args[1]).to.equal(undefined)
+      expect(eventsStub.callCount).to.equal(0)
       expect(e).to.equal(error)
     }
   })
@@ -976,11 +939,9 @@ describe(`DAppClient`, () => {
     const response = {}
 
     await (<any>dAppClient).notifySuccess(request, response)
-    expect(eventsStub.callCount).to.equal(2)
+    expect(eventsStub.callCount).to.equal(1)
     expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.PERMISSION_REQUEST_SUCCESS)
     expect(eventsStub.firstCall.args[1]).to.equal(response)
-    expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
-    expect(eventsStub.secondCall.args[1]).to.equal(undefined)
   })
 
   it(`should create a request`, async () => {
@@ -988,17 +949,7 @@ describe(`DAppClient`, () => {
       const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
       const sendStub = sinon.stub(Transport.prototype, 'send').resolves()
 
-      const peer = {
-        id: '',
-        name: '',
-        publicKey: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3',
-        senderId: 'sender-id',
-        version: BEACON_VERSION,
-        type: 'p2p-pairing-request',
-        relayServer: ''
-      }
-
-      const getPeerStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer)
+      const getPeerStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
 
       await initClientWithMock(dAppClient)
 
@@ -1027,7 +978,7 @@ describe(`DAppClient`, () => {
         expect(addRequestStub.firstCall.args[1].isPending(), 'addRequestStub').to.be.true
         expect(sendStub.callCount, 'sendStub').to.equal(1)
         expect(sendStub.firstCall.args[0].length, 'sendStub').to.be.greaterThan(20)
-        expect(sendStub.firstCall.args[1], 'sendStub').to.equal(peer)
+        expect(sendStub.firstCall.args[1], 'sendStub').to.equal(peer1)
         expect(eventsStub.callCount, 'eventsStub').to.equal(1)
         expect(typeof promise).to.equal('object')
 
