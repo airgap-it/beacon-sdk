@@ -12,7 +12,7 @@ import {
   TransportStatus
 } from '../../src'
 import { PeerManager } from '../../src/managers/PeerManager'
-import { myWindow, clearMockWindowState } from '../../src/MockWindow'
+import { windowRef, clearMockWindowState } from '../../src/MockWindow'
 import { PostMessageClient } from '../../src/transports/clients/PostMessageClient'
 import { ExtendedPostMessagePairingResponse } from '../../src/types/PostMessagePairingResponse'
 import { getKeypairFromSeed } from '../../src/utils/crypto'
@@ -89,7 +89,7 @@ describe(`PostMessageTransport`, () => {
       }, 1000)
 
       setTimeout(() => {
-        myWindow.postMessage({ payload: 'pong' }, '*')
+        windowRef.postMessage({ payload: 'pong' }, '*')
       }, 10)
 
       const isAvailable = await PostMessageTransport.isAvailable()

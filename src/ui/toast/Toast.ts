@@ -1,5 +1,5 @@
 import { getColorMode } from '../../colorMode'
-import { RequestSentInfo } from '../../events'
+import { WalletInfo } from '../../events'
 import { replaceInTemplate } from '../../utils/replace-in-template'
 import { generateGUID } from '../../utils/generate-uuid'
 import { toastTemplates } from './toast-templates'
@@ -14,9 +14,9 @@ export interface ToastConfig {
   body: string
   timer?: number
   forceNew?: boolean
-  requestSentInfo?: RequestSentInfo
   state?: 'loading' | 'finished'
   actions?: ToastAction[]
+  walletInfo?: WalletInfo
 }
 
 let document: Document
@@ -62,8 +62,8 @@ const removeAllChildNodes = (parent: HTMLElement): void => {
 }
 
 const formatToastText = (html: string): string => {
-  const walletIcon = globalToastConfig?.requestSentInfo?.walletIcon
-  const walletName = globalToastConfig?.requestSentInfo?.walletName
+  const walletIcon = globalToastConfig?.walletInfo?.icon
+  const walletName = globalToastConfig?.walletInfo?.name
 
   let wallet = ''
   if (walletIcon) {

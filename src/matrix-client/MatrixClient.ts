@@ -1,4 +1,5 @@
 import { Storage } from '../storage/Storage'
+import { Logger } from '../utils/Logger'
 import { MatrixClientStore } from './MatrixClientStore'
 import { MatrixHttpClient } from './MatrixHttpClient'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
@@ -8,6 +9,8 @@ import { MatrixEventService } from './services/MatrixEventService'
 import { MatrixSyncResponse } from './models/api/MatrixSync'
 import { MatrixClientEventEmitter } from './MatrixClientEventEmitter'
 import { MatrixClientEventType, MatrixClientEvent } from './models/MatrixClientEvent'
+
+const logger = new Logger('MatrixClient')
 
 interface MatrixClientOptions {
   baseUrl: string
@@ -187,7 +190,7 @@ export class MatrixClient {
           const room = this.store.getRoom(roomOrId)
           this.roomService
             .inviteToRoom(accessToken, user, room)
-            .catch((error) => console.warn(error))
+            .catch((error) => logger.warn('inviteToRooms', error))
         })
       )
     )
@@ -263,7 +266,7 @@ export class MatrixClient {
         continueSyncing = store.get('pollingRetries') < MAX_POLLING_RETRIES
         // console.warn('Could not sync:', error)
         if (continueSyncing) {
-          console.log('Retry syncing...')
+          logger.log('Retry syncing...')
         }
       } finally {
         if (continueSyncing) {

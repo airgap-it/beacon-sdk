@@ -36,11 +36,15 @@ const client = new DAppClient({
 
 - **Matrix Performace Improvements**: Fixed a timing issue that lead to additional rooms being created instead of re-using old ones
 - **Alert**: A click outside the alert will now dismiss the alert
+- **Logs**: Add warning logs when the QR code gets too big and when muliple Clients are created
+- **SigningType**: Add `TRANSACTION` and `MICHELINE` SigningTypes. The payload of the `TRANSACTION` type has to start with a `03` and the `MICHELINE` type has to start with a `05`
 
 #### Fixes
 
+- **DAppClient**: `setActiveAccount` now updates and persists the active peer
 - **Types**: The type of `matrixNodes` was incorrect and has been fixed
 - **Docs**: Fix typo in link
+- **dApp / Wallet metadata**: The dApp and wallet metadata (name and icon) are now included in the pairing request / response
 
 ## 2.1.0 (2021-01-22)
 

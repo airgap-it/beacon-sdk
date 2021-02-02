@@ -1,5 +1,5 @@
 import * as sodium from 'libsodium-wrappers'
-import { myWindow } from '../MockWindow'
+import { windowRef } from '../MockWindow'
 import { Logger } from '../utils/Logger'
 import { PeerManager } from '../managers/PeerManager'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
@@ -40,18 +40,18 @@ export class PostMessageTransport<
         const data = event.data as ExtensionMessage<string>
         if (data && data.payload === 'pong') {
           resolve(true)
-          myWindow.removeEventListener('message', fn)
+          windowRef.removeEventListener('message', fn)
         }
       }
 
-      myWindow.addEventListener('message', fn)
+      windowRef.addEventListener('message', fn)
 
       const message: ExtensionMessage<string> = {
         target: ExtensionMessageTarget.EXTENSION,
         payload: 'ping'
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      myWindow.postMessage(message as any, window.location.origin)
+      windowRef.postMessage(message as any, window.location.origin)
     })
   }
 
@@ -79,11 +79,11 @@ export class PostMessageTransport<
         }
       }
 
-      myWindow.addEventListener('message', fn)
+      windowRef.addEventListener('message', fn)
 
       setTimeout(() => {
         // TODO: Should we allow extensions to register after the timeout has passed?
-        myWindow.removeEventListener('message', fn)
+        windowRef.removeEventListener('message', fn)
         if (extensions) {
           extensions.resolve(localExtensions)
         }
@@ -95,7 +95,7 @@ export class PostMessageTransport<
         payload: 'ping'
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      myWindow.postMessage(message as any, myWindow.location.origin)
+      windowRef.postMessage(message as any, windowRef.location.origin)
     })
   }
 

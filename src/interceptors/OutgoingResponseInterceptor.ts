@@ -8,7 +8,8 @@ import {
   SignPayloadResponse,
   BroadcastResponse,
   PermissionInfo,
-  AcknowledgeResponse
+  AcknowledgeResponse,
+  AppMetadata
 } from '..'
 import { PermissionManager } from '../managers/PermissionManager'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
@@ -23,6 +24,7 @@ interface OutgoingResponseInterceptorOptions {
   senderId: string
   request: BeaconRequestMessage
   message: BeaconResponseInputMessage
+  ownAppMetadata: AppMetadata
   permissionManager: PermissionManager
   appMetadataManager: AppMetadataManager
   interceptorCallback(message: BeaconMessage): void
@@ -39,6 +41,7 @@ export class OutgoingResponseInterceptor {
       senderId,
       request,
       message,
+      ownAppMetadata,
       permissionManager,
       appMetadataManager,
       interceptorCallback
@@ -91,6 +94,7 @@ export class OutgoingResponseInterceptor {
         const response: PermissionResponse = {
           senderId,
           version: BEACON_VERSION,
+          appMetadata: ownAppMetadata,
           ...message
         }
 

@@ -260,10 +260,10 @@ describe(`MatrixClient`, () => {
 
     await client.sendTextMessage('123', 'my-message')
 
-    expect(getRoomStub.callCount).to.equal(1)
-    expect(createTxStub.callCount).to.equal(1)
-    expect(syncStub.callCount).to.equal(1)
-    expect(eventSyncStub.callCount).to.equal(1)
+    expect(getRoomStub.callCount, 'getRoomStub').to.equal(0)
+    expect(createTxStub.callCount, 'createTxStub').to.equal(1)
+    expect(syncStub.callCount, 'syncStub').to.equal(1)
+    expect(eventSyncStub.callCount, 'eventSyncStub').to.equal(1)
   })
 
   it(`should poll the server for updates`, async () => {

@@ -164,6 +164,7 @@ export class WalletClient extends Client {
       senderId: await getSenderId(await this.beaconId),
       request: request[0],
       message,
+      ownAppMetadata: await this.getOwnAppMetadata(),
       permissionManager: this.permissionManager,
       appMetadataManager: this.appMetadataManager,
       interceptorCallback: async (response: BeaconMessage): Promise<void> => {
@@ -282,6 +283,7 @@ export class WalletClient extends Client {
       senderId: await getSenderId(await this.beaconId),
       request,
       message: acknowledgeResponse,
+      ownAppMetadata: await this.getOwnAppMetadata(),
       permissionManager: this.permissionManager,
       appMetadataManager: this.appMetadataManager,
       interceptorCallback: async (response: BeaconMessage): Promise<void> => {

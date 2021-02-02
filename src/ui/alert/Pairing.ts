@@ -1,5 +1,5 @@
 import { ExtensionMessage, ExtensionMessageTarget, NetworkType, availableTransports } from '../..'
-import { myWindow } from '../../MockWindow'
+import { windowRef } from '../../MockWindow'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
@@ -159,7 +159,7 @@ export class Pairing {
                       targetId: app.id
                     }
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    myWindow.postMessage(message as any, myWindow.location.origin)
+                    windowRef.postMessage(message as any, windowRef.location.origin)
                   }
                   statusUpdateHandler(WalletType.EXTENSION, this)
                 }

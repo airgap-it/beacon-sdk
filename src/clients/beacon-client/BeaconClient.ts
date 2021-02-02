@@ -5,6 +5,7 @@ import { getKeypairFromSeed, toHex } from '../../utils/crypto'
 import { Storage, StorageKey } from '../..'
 import { BeaconEventHandler } from '../../events'
 import { SDK_VERSION } from '../../constants'
+import { windowRef } from '../../MockWindow'
 import { BeaconClientOptions } from './BeaconClientOptions'
 
 /**
@@ -60,12 +61,12 @@ export abstract class BeaconClient {
     this.storage = config.storage
 
     // TODO: This is a temporary "fix" to prevent users from creating multiple Client instances
-    if ((window as any).beaconCreatedClientInstance) {
+    if ((windowRef as any).beaconCreatedClientInstance) {
       console.warn(
         '[BEACON] It looks like you created multiple Beacon SDK Client instances. This can lead to problems. Only create one instance and re-use it everywhere.'
       )
     } else {
-      ;(window as any).beaconCreatedClientInstance = true
+      ;(windowRef as any).beaconCreatedClientInstance = true
     }
 
     this.initSDK().catch(console.error)
@@ -76,7 +77,7 @@ export abstract class BeaconClient {
    */
   public async destroy(): Promise<void> {
     await this.removeBeaconEntriesFromStorage()
-    ;(window as any).beaconCreatedClientInstance = false
+    ;(windowRef as any).beaconCreatedClientInstance = false
   }
 
   /**

@@ -1,5 +1,7 @@
+import { windowRef } from './MockWindow'
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let debug: boolean = (window as any).beaconSdkDebugEnabled ? true : false
+let debug: boolean = (windowRef as any).beaconSdkDebugEnabled ? true : false
 if (debug) {
   // eslint-disable-next-line no-console
   console.log(
