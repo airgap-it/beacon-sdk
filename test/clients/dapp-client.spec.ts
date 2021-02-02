@@ -324,6 +324,8 @@ describe(`DAppClient`, () => {
       connectedAt: new Date().getTime()
     }
 
+    const getPeersStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
+
     await dAppClient.setActiveAccount(account1)
 
     activeAccount = await dAppClient.getActiveAccount()
@@ -333,6 +335,8 @@ describe(`DAppClient`, () => {
 
     activeAccount = await dAppClient.getActiveAccount()
     expect(activeAccount).to.be.undefined
+
+    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
   })
 
   it(`should get app metadata`, async () => {
@@ -367,6 +371,8 @@ describe(`DAppClient`, () => {
   it(`should remove an account and unset active account`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
+    const getPeersStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
+
     await (<any>dAppClient).accountManager.addAccount(account1)
     await (<any>dAppClient).accountManager.addAccount(account2)
     await dAppClient.setActiveAccount(account1)
@@ -378,10 +384,14 @@ describe(`DAppClient`, () => {
 
     expect(await dAppClient.getAccounts()).to.deep.equal([account2])
     expect(await dAppClient.getActiveAccount()).to.be.undefined
+
+    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
   })
 
   it(`should remove an account and not unset active account`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+
+    const getPeersStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
 
     await (<any>dAppClient).accountManager.addAccount(account1)
     await (<any>dAppClient).accountManager.addAccount(account2)
@@ -394,10 +404,14 @@ describe(`DAppClient`, () => {
 
     expect(await dAppClient.getAccounts()).to.deep.equal([account1])
     expect(await dAppClient.getActiveAccount()).to.deep.equal(account1)
+
+    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
   })
 
   it(`should remove all accounts and unset active account`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+
+    const getPeersStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
 
     await (<any>dAppClient).accountManager.addAccount(account1)
     await (<any>dAppClient).accountManager.addAccount(account2)
@@ -410,6 +424,8 @@ describe(`DAppClient`, () => {
 
     expect(await dAppClient.getAccounts()).to.deep.equal([])
     expect(await dAppClient.getActiveAccount()).to.deep.equal(undefined)
+
+    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
   })
 
   it(`should remove peer and all its accounts`, async () => {
@@ -472,13 +488,13 @@ describe(`DAppClient`, () => {
       await dAppClient.checkPermissions(BeaconMessageType.OperationRequest)
       throw new Error('Should have failed')
     } catch (e) {
-      expect(eventsStub.callCount).to.equal(3)
       expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET) // Called in the constructor
       expect(eventsStub.firstCall.args[1]).to.equal(undefined)
       expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.INTERNAL_ERROR)
       expect(eventsStub.secondCall.args[1]).to.equal('No active account set!')
-      expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET) // Called in the constructor
-      expect(eventsStub.thirdCall.args[1]).to.equal(undefined)
+      // expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET) // Called in the constructor
+      // expect(eventsStub.thirdCall.args[1]).to.equal(undefined)
+      expect(eventsStub.callCount).to.equal(2)
       expect(e.message).to.equal('No active account set!')
     }
   })
@@ -982,7 +998,7 @@ describe(`DAppClient`, () => {
         relayServer: ''
       }
 
-      const getPeersStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer)
+      const getPeerStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer)
 
       await initClientWithMock(dAppClient)
 
@@ -1001,7 +1017,7 @@ describe(`DAppClient`, () => {
       const promise: Promise<any> = (<any>dAppClient).makeRequest(input)
 
       setTimeout(async () => {
-        expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
+        expect(getPeerStub.callCount, 'getPeersStub').to.equal(1)
 
         expect(initStub.callCount, 'initStub').to.equal(1)
         expect(rateLimitStub.callCount, 'rateLimitStub').to.equal(1)
