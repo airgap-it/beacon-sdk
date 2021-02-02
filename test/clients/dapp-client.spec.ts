@@ -37,7 +37,7 @@ import { MockTransport } from '../test-utils/MockTransport'
 import { availableTransports } from '../../src/utils/available-transports'
 import { ExposedPromise } from '../../src/utils/exposed-promise'
 import { Logger } from '../../src/utils/Logger'
-import { myWindow } from '../../src/MockWindow'
+import { windowRef } from '../../src/MockWindow'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -128,7 +128,7 @@ describe(`DAppClient`, () => {
 
   beforeEach(() => {
     sinon.restore()
-    ;(myWindow as any).beaconCreatedClientInstance = false
+    ;(windowRef as any).beaconCreatedClientInstance = false
   })
 
   it(`should throw an error if initialized with an empty object`, async () => {
