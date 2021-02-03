@@ -9,7 +9,8 @@ import {
   PeerInfo,
   Transport,
   BeaconMessageType,
-  DisconnectMessage
+  DisconnectMessage,
+  AppMetadata
 } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { BeaconClient } from '../beacon-client/BeaconClient'
@@ -18,7 +19,10 @@ import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { generateGUID } from '../../utils/generate-uuid'
 import { BEACON_VERSION } from '../../constants'
 import { getSenderId } from '../../utils/get-sender-id'
+import { Logger } from '../../utils/Logger'
 import { ClientOptions } from './ClientOptions'
+
+const logger = new Logger('Client')
 
 /**
  * This abstract class handles the a big part of the logic that is shared between the dapp and wallet client.
@@ -70,9 +74,9 @@ export abstract class Client extends BeaconClient {
   }
 
   constructor(config: ClientOptions) {
-    super({ name: config.name, storage: config.storage })
+    super(config)
 
-    this.events = new BeaconEventHandler(config.eventHandlers)
+    this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
     this.accountManager = new AccountManager(config.storage)
     this.matrixNodes = config.matrixNodes ?? []
 
@@ -144,6 +148,17 @@ export abstract class Client extends BeaconClient {
   }
 
   /**
+   * Returns the metadata of this DApp
+   */
+  public async getOwnAppMetadata(): Promise<AppMetadata> {
+    return {
+      senderId: await getSenderId(await this.beaconId),
+      name: this.name,
+      icon: this.iconUrl
+    }
+  }
+
+  /**
    * Return all known peers
    */
   public async getPeers(): Promise<PeerInfo[]> {
@@ -189,7 +204,7 @@ export abstract class Client extends BeaconClient {
           this.handleResponse(deserializedMessage, connectionInfo)
         }
       })
-      .catch((error) => console.log(error))
+      .catch((error) => logger.error('addListener', error))
   }
 
   protected async sendDisconnectToPeer(peer: PeerInfo, transport?: Transport<any>): Promise<void> {

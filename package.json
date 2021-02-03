@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "The beacon-sdk allows you to easily connect DApps with Wallets through P2P communication or a chrome extension.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -25,7 +25,7 @@
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
     "build": "npm run pretest && tsc -p tsconfig.json && tsc -p ./tsconfig-cjs.json && npm run browserify && npm run posttest",
     "browserify": "npm run pretest && tsc -p ./tsconfig-browserify.json && npm run posttest && browserify ./dist/browserify/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js && rm -rf dist/browserify",
-    "prettier": "prettier --write 'src/**/*' 'docs/**/*.md'",
+    "prettier": "prettier --write 'src/**/*' 'docs/**/*.md' 'example-dapp.html' 'example-wallet.html'",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "lint-ci": "eslint 'src/**/*.ts' -f json -o lintReport.json || true",

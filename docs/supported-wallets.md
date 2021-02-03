@@ -4,9 +4,9 @@
 
 AirGap Wallet is a mobile wallet for [Android](https://play.google.com/store/apps/details?id=it.airgap.wallet) and [iOS](https://apps.apple.com/us/app/airgap-wallet/id1420996542?l=de&ls=1) that works in conjunction with AirGap Vault.
 
-**[Beacon Extension](https://chrome.google.com/webstore/detail/gpfndedineagiepkpinficbcbbgjoenn/)**
+**[Spire](https://spirewallet.com/)**
 
-The Beacon Extension is a browser extension and supports connection to mobile wallets like AirGap Wallet, Ledger hardware wallets as well as a local mnemonic option recommended for developers.
+Spire is a browser extension and supports connection to mobile wallets like AirGap Wallet, Ledger hardware wallets as well as a local mnemonic option recommended for developers.
 
 **[Kukai](https://wallet.kukai.app/)**
 

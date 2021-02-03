@@ -1,5 +1,5 @@
 import * as sodium from 'libsodium-wrappers'
-import { myWindow } from '../../MockWindow'
+import { windowRef } from '../../MockWindow'
 import {
   ExtensionMessage,
   ExtensionMessageTarget,
@@ -71,7 +71,7 @@ export class PostMessageClient extends MessageBasedClient {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    myWindow.postMessage(msg as any, window.location.origin)
+    windowRef.postMessage(msg as any, windowRef.location.origin)
   }
 
   public async listenForChannelOpening(
@@ -109,7 +109,7 @@ export class PostMessageClient extends MessageBasedClient {
       }
     }
 
-    myWindow.addEventListener('message', fn)
+    windowRef.addEventListener('message', fn)
   }
 
   public async sendPairingRequest(id: string): Promise<void> {
@@ -119,7 +119,7 @@ export class PostMessageClient extends MessageBasedClient {
       targetId: id
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    myWindow.postMessage(message as any, window.location.origin)
+    windowRef.postMessage(message as any, windowRef.location.origin)
   }
 
   public async isChannelOpenMessage(message: any): Promise<boolean> {
@@ -127,7 +127,7 @@ export class PostMessageClient extends MessageBasedClient {
   }
 
   private async subscribeToMessages(): Promise<void> {
-    myWindow.addEventListener('message', (message) => {
+    windowRef.addEventListener('message', (message) => {
       if (typeof message === 'object' && message) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data: {

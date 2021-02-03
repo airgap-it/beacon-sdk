@@ -8,7 +8,8 @@ import {
   SignPayloadResponse,
   BroadcastResponse,
   PermissionInfo,
-  AcknowledgeResponse
+  AcknowledgeResponse,
+  AppMetadata
 } from '..'
 import { PermissionManager } from '../managers/PermissionManager'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
@@ -16,15 +17,20 @@ import { BEACON_VERSION } from '../constants'
 import { getAddressFromPublicKey } from '../utils/crypto'
 import { getAccountIdentifier } from '../utils/get-account-identifier'
 import { BeaconRequestMessage } from '../types/beacon/BeaconRequestMessage'
+import { BeaconErrorType } from '../types/BeaconErrorType'
+import { Logger } from '../utils/Logger'
 
 interface OutgoingResponseInterceptorOptions {
   senderId: string
   request: BeaconRequestMessage
   message: BeaconResponseInputMessage
+  ownAppMetadata: AppMetadata
   permissionManager: PermissionManager
   appMetadataManager: AppMetadataManager
   interceptorCallback(message: BeaconMessage): void
 }
+
+const logger = new Logger('OutgoingResponseInterceptor')
 
 /**
  * The OutgoingResponseInterceptor is used in the WalletClient to intercept an outgoing response and enrich it with data.
@@ -35,6 +41,7 @@ export class OutgoingResponseInterceptor {
       senderId,
       request,
       message,
+      ownAppMetadata,
       permissionManager,
       appMetadataManager,
       interceptorCallback
@@ -56,6 +63,20 @@ export class OutgoingResponseInterceptor {
           id: message.id,
           errorType: message.errorType
         }
+        if (message.errorType === BeaconErrorType.TRANSACTION_INVALID_ERROR && message.errorData) {
+          const errorData = message.errorData
+          // Check if error data is in correct format
+          if (
+            Array.isArray(errorData) &&
+            errorData.every((item) => Boolean(item.kind) && Boolean(item.id))
+          ) {
+            response.errorData = message.errorData
+          } else {
+            logger.warn(
+              'ErrorData provided is not in correct format. It needs to be an array of RPC errors. It will not be included in the message sent to the dApp'
+            )
+          }
+        }
         interceptorCallbackWrapper(response)
         break
       }
@@ -73,6 +94,7 @@ export class OutgoingResponseInterceptor {
         const response: PermissionResponse = {
           senderId,
           version: BEACON_VERSION,
+          appMetadata: ownAppMetadata,
           ...message
         }
 
@@ -134,7 +156,7 @@ export class OutgoingResponseInterceptor {
         break
 
       default:
-        console.log('Message not handled')
+        logger.log('intercept', 'Message not handled')
     }
   }
 }

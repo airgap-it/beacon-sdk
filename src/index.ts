@@ -142,9 +142,11 @@ import { PeerManager } from './managers/PeerManager'
 import { MessageBasedClient } from './transports/clients/MessageBasedClient'
 import { BeaconRequestMessage } from './types/beacon/BeaconRequestMessage'
 import { BeaconResponseMessage } from './types/beacon/BeaconResponseMessage'
-import { Pairing } from './alert/Pairing'
+import { Pairing } from './ui/alert/Pairing'
 import { BlockExplorer } from './utils/block-explorer'
 import { TezblockBlockExplorer } from './utils/tezblock-blockexplorer'
+import { setDebugEnabled, getDebugEnabled } from './debug'
+import { ColorMode } from './types/ColorMode'
 
 // Tezos
 export {
@@ -323,4 +325,7 @@ export {
 export { BlockExplorer, TezblockBlockExplorer }
 
 // Others
-export { ConnectionContext, Serializer, availableTransports }
+export { ConnectionContext, Serializer, availableTransports, ColorMode }
+
+// Debug
+export { setDebugEnabled, getDebugEnabled }

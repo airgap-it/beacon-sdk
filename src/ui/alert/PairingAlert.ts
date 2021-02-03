@@ -1,19 +1,25 @@
-import { NetworkType } from '..'
-import { generateGUID } from '../utils/generate-uuid'
-import { isAndroid, isIOS } from '../utils/platform'
+import { NetworkType } from '../..'
+import { generateGUID } from '../../utils/generate-uuid'
+import { Logger } from '../../utils/Logger'
+import { isAndroid, isIOS } from '../../utils/platform'
 import { closeAlerts } from './Alert'
 import { Pairing } from './Pairing'
 
-export const preparePairingAlert = async (pairingPayload: {
-  p2pSyncCode: string
-  postmessageSyncCode: string
-  preferredNetwork: NetworkType
-}): Promise<void> => {
+const logger = new Logger('Alert')
+
+export const preparePairingAlert = async (
+  shadowRoot: ShadowRoot,
+  pairingPayload: {
+    p2pSyncCode: string
+    postmessageSyncCode: string
+    preferredNetwork: NetworkType
+  }
+): Promise<void> => {
   const info = await Pairing.getPairingInfo(pairingPayload, async () => {
     await closeAlerts()
   })
 
-  const container = document.getElementById(`pairing-container`)
+  const container = shadowRoot.getElementById(`pairing-container`)
   if (!container) {
     throw new Error('container not found')
   }
@@ -35,7 +41,7 @@ export const preparePairingAlert = async (pairingPayload: {
 
     buttonListWrapper.appendChild(el)
 
-    const buttonEl = document.getElementById(el.id)
+    const buttonEl = shadowRoot.getElementById(el.id)
 
     if (buttonEl) {
       buttonEl.addEventListener('click', async () => {
@@ -80,7 +86,7 @@ export const preparePairingAlert = async (pairingPayload: {
 
       listEl.appendChild(el)
 
-      const walletEl = document.getElementById(`wallet_${randomId}`)
+      const walletEl = shadowRoot.getElementById(`wallet_${randomId}`)
 
       if (walletEl) {
         walletEl.addEventListener('click', async () => {
@@ -95,26 +101,26 @@ export const preparePairingAlert = async (pairingPayload: {
     })
   })
 
-  const qr: HTMLElement | null = document.getElementById(`beacon--qr__container`)
-  const copyButton: HTMLElement | null = document.getElementById(`beacon--qr__copy`)
-  const titleEl: HTMLElement | null = document.getElementById(`beacon-title`)
+  const qr: HTMLElement | null = shadowRoot.getElementById(`beacon--qr__container`)
+  const copyButton: HTMLElement | null = shadowRoot.getElementById(`beacon--qr__copy`)
+  const titleEl: HTMLElement | null = shadowRoot.getElementById(`beacon-title`)
 
   const platform = isAndroid(window) ? 'android' : isIOS(window) ? 'ios' : 'desktop'
 
-  const mainText: HTMLElement | null = document.getElementById(`beacon-main-text`)
-  const walletList: HTMLElement | null = document.getElementById(`pairing-container`)
+  const mainText: HTMLElement | null = shadowRoot.getElementById(`beacon-main-text`)
+  const walletList: HTMLElement | null = shadowRoot.getElementById(`pairing-container`)
 
-  const switchButton: HTMLElement | null = document.getElementById(`beacon--switch__container`)
+  const switchButton: HTMLElement | null = shadowRoot.getElementById(`beacon--switch__container`)
 
   if (mainText && walletList && switchButton && copyButton && qr && titleEl) {
     const fn = () => {
       navigator.clipboard.writeText(pairingPayload ? pairingPayload.p2pSyncCode : '').then(
         () => {
           copyButton.innerText = 'Copied'
-          console.log('Copying to clipboard was successful!')
+          logger.log('Copying to clipboard was successful!')
         },
         (err) => {
-          console.error('Could not copy text to clipboard: ', err)
+          logger.error('Could not copy text to clipboard: ', err)
         }
       )
     }
@@ -122,7 +128,7 @@ export const preparePairingAlert = async (pairingPayload: {
     qr.addEventListener('click', fn)
 
     const showPlatform = (type: 'ios' | 'android' | 'desktop' | 'none'): void => {
-      const platformSwitch: HTMLElement | null = document.getElementById(`beacon-switch`)
+      const platformSwitch: HTMLElement | null = shadowRoot.getElementById(`beacon-switch`)
       if (platformSwitch) {
         platformSwitch.innerHTML =
           type === 'none' ? 'Pair Wallet on same device' : 'Pair Wallet on different device'
@@ -162,7 +168,7 @@ export const preparePairingAlert = async (pairingPayload: {
     switchPlatform()
 
     {
-      const platformSwitch: HTMLElement | null = document.getElementById(`beacon-switch`)
+      const platformSwitch: HTMLElement | null = shadowRoot.getElementById(`beacon-switch`)
       if (platformSwitch) {
         platformSwitch.addEventListener('click', switchPlatform)
       }

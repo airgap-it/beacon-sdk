@@ -1,4 +1,4 @@
-:root {
+:host {
   --animation-duration: 300ms;
 }
 
@@ -44,9 +44,18 @@
   padding: 24px;
 }
 
+.theme__light .beacon-modal__base,
+.theme__light .beacon-modal__close__wrapper {
+  background: #fff;
+}
+
+.theme__dark .beacon-modal__base,
+.theme__dark .beacon-modal__close__wrapper {
+  background: #27334c;
+}
+
 .beacon-modal__base,
 .beacon-modal__close__wrapper {
-  background: #fff;
   box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.1);
 }
 
@@ -111,14 +120,22 @@ button {
 .beacon-modal__close__line1 {
   position: absolute;
   width: 90%;
-  border: 1px solid #000;
 }
 
 .beacon-modal__close__line2 {
   position: absolute;
   width: 90%;
-  border: 1px solid #000;
   transform: rotate(90deg);
+}
+
+.theme__light .beacon-modal__close__line2,
+.theme__light .beacon-modal__close__line1 {
+  border: 1px solid #000;
+}
+
+.theme__dark .beacon-modal__close__line2,
+.theme__dark .beacon-modal__close__line1 {
+  border: 1px solid #fff;
 }
 
 .beacon-alert__base {
@@ -147,8 +164,16 @@ button {
 }
 
 .beacon-alert__title {
-  color: #7c828b;
   font-size: 18px;
+}
+
+.theme__light .beacon-alert__title {
+  color: #7c828b;
+}
+
+.theme__dark .beacon-alert__title,
+.theme__dark .beacon-alert__text {
+  color: #7c99d6;
 }
 
 .beacon-alert__text {
@@ -215,4 +240,15 @@ button {
 
 a {
   text-decoration: none;
+}
+
+pre {
+  white-space: pre-wrap; /* css-3 */
+  white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+  white-space: -pre-wrap; /* Opera 4-6 */
+  white-space: -o-pre-wrap; /* Opera 7 */
+  word-wrap: break-word; /* Internet Explorer 5.5+ */
+  padding: 16px;
+  background: #ececec;
+  line-height: 1.25rem;
 }

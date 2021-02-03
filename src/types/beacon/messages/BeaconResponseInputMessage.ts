@@ -7,7 +7,7 @@ import {
   ErrorResponse
 } from '../../..'
 
-export type IgnoredResponseInputProperties = 'senderId' | 'version'
+export type IgnoredResponseInputProperties = 'senderId' | 'version' | 'appMetadata'
 
 export type PermissionResponseInput = Omit<PermissionResponse, IgnoredResponseInputProperties>
 export type OperationResponseInput = Omit<OperationResponse, IgnoredResponseInputProperties>

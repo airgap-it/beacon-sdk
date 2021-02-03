@@ -21,12 +21,16 @@ export abstract class BeaconError implements Error {
   public title: string = 'Error' // Visible in the UI
   public description: string // Visible in the UI
 
+  public get fullDescription(): string {
+    return this.description
+  }
+
   constructor(errorType: BeaconErrorType, message: string) {
     this.message = `[${errorType}]:${message}`
     this.description = message
   }
 
-  public static getError(errorType: BeaconErrorType): BeaconError {
+  public static getError(errorType: BeaconErrorType, errorData: any): BeaconError {
     switch (errorType) {
       case BeaconErrorType.BROADCAST_ERROR:
         return new BroadcastBeaconError()
@@ -43,7 +47,7 @@ export abstract class BeaconError implements Error {
       case BeaconErrorType.TOO_MANY_OPERATIONS:
         return new TooManyOperationsBeaconError()
       case BeaconErrorType.TRANSACTION_INVALID_ERROR:
-        return new TransactionInvalidBeaconError()
+        return new TransactionInvalidBeaconError(errorData)
       case BeaconErrorType.SIGNATURE_TYPE_NOT_SUPPORTED:
         return new SignatureTypeNotSupportedBeaconError()
       case BeaconErrorType.ABORTED_ERROR:

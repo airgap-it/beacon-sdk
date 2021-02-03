@@ -2,17 +2,19 @@ import {
   PermissionResponse,
   OperationResponse,
   SignPayloadResponse,
-  BroadcastResponse
+  BroadcastResponse,
+  AccountInfo
 } from '../../..'
 
 export type IgnoredResponseOutputProperties = 'id' | 'version' | 'type'
 
-export type PermissionResponseOutput = Omit<PermissionResponse, IgnoredResponseOutputProperties> & {
+export type PermissionResponseOutput = PermissionResponse & {
   address: string
+  accountInfo: AccountInfo
 }
-export type OperationResponseOutput = Omit<OperationResponse, IgnoredResponseOutputProperties>
-export type SignPayloadResponseOutput = Omit<SignPayloadResponse, IgnoredResponseOutputProperties>
-export type BroadcastResponseOutput = Omit<BroadcastResponse, IgnoredResponseOutputProperties>
+export type OperationResponseOutput = OperationResponse
+export type SignPayloadResponseOutput = SignPayloadResponse
+export type BroadcastResponseOutput = BroadcastResponse
 
 export type BeaconResponseOutputMessage =
   | PermissionResponseOutput

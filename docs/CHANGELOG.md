@@ -1,5 +1,52 @@
 # Changelog
 
+## 2.2.0 (21-02-03)
+
+#### Features
+
+- **UI Improvements**: We changed the flow of the UI from the ground up. When a new message is sent from the dApp, the "request sent" toast now sticks to the top right of the page. It shows a loading animation and also includes the name (and logo) of the wallet where the request has been sent to. The toast will update whenever new information is received from the wallet (eg. request acknowledgement or response). Only the pairing information and details of errors will be displayed in a blocking alert. As always, all of these UI elements can be overwritten if dApp developers want to use their own UI.
+
+- **UI Improvements**: Default UI Elements in Beacon now use Shadow Dom. This will encapsulate the styling of the UI elements, so the styling of the page will no longer affect the styling of the beacon-sdk UI elements, and vice versa.
+
+- **Dark Mode**: The dApp developer can now choose between a "dark" and "light" color theme. This will change the look of both alerts and toasts.
+
+- **Errors**: The `beacon-sdk` now allows for RPC-Errors to be passed in the `TRANSACTION_INVALID_ERROR` response. Errors MUST be displayed in the wallet. This change does not change that. It simply allows dApps that expect certain errors to provide more insights into what went wrong. dApps are not required to display the details of an error, but they can choose to do so if it improves the user experience.
+
+- **Debug**: New debug methods have been introduced. To activate logs from the `beacon-sdk` during development, it is possible to call `setDebugEnabled(true)`. This will enable logs throughout the `beacon-sdk`.
+
+The `beacon-sdk` will now also listen to the `beaconSdkDebugEnabled` variable on the global window object. This will allow browser extensions (eg. Spire) to set the debug flag to true on production websites, which will help debugging on production dApps.
+
+- **UI Elements**: All default UI Elements / Event Handlers can be removed at once by setting the `disableDefaultEvents` flag in the `DAppClientOptions` to true. Keep in mind that this will also disable the Pairing Alert. If you want to keep the Pairing Alert, you will have to add those default handlers again. An example would be:
+
+```ts
+const client = new DAppClient({
+  name: 'My Sample DApp',
+  disableDefaultEvents: true, // Disable all events / UI. This also disables the pairing alert.
+  eventHandlers: {
+    // To keep the pairing alert, we have to add the following default event handlers back
+    [BeaconEvent.PAIR_INIT]: {
+      handler: defaultEventCallbacks.PAIR_INIT
+    },
+    [BeaconEvent.PAIR_SUCCESS]: {
+      handler: defaultEventCallbacks.PAIR_SUCCESS
+    }
+  }
+})
+```
+
+- **Alert**: A click outside the alert will now dismiss the alert
+- **Logs**: Add warning logs when the QR code gets too big and when muliple Clients are created
+- **SigningType**: Add `TRANSACTION` and `MICHELINE` SigningTypes. The payload of the `TRANSACTION` type has to start with a `03` and the `MICHELINE` type has to start with a `05`
+- **Beacon Extension**: The "Beacon Extension" has been renamed to "Spire".
+- **dApp / Wallet metadata**: The dApp and wallet metadata (name and icon) are now included in the pairing request / response
+
+#### Fixes
+
+- **Matrix Performace Improvements**: Fixed a timing issue that lead to slower responses
+- **DAppClient**: `setActiveAccount` now updates and persists the active peer
+- **Types**: The type of `matrixNodes` was incorrect
+- **Docs**: Fixed a typo in link a docs link
+
 ## 2.1.0 (2021-01-22)
 
 #### Features
@@ -35,7 +82,7 @@ Beacon v2.0.0 is a big update from v1.x. The APIs on the DApp and Wallet side st
 
 We highly encourage developers to upgrade to v2. The most notable new features are:
 
-- Support for multiple Browser Extensions (eg. Thanos and Beacon Extension)
+- Support for multiple Browser Extensions (eg. Thanos and Spire)
 - Support for mobile, browser and desktop Wallets
 - Mobile support via Deeplinking
 - Secure and encrypted communication between DApp and Browser Extension

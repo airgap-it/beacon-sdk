@@ -27,11 +27,13 @@ export class P2PTransport<
     keyPair: sodium.KeyPair,
     storage: Storage,
     matrixNodes: string[],
-    storageKey: K
+    storageKey: K,
+    iconUrl?: string,
+    appUrl?: string
   ) {
     super(
       name,
-      new P2PCommunicationClient(name, keyPair, 1, storage, matrixNodes, false),
+      new P2PCommunicationClient(name, keyPair, 1, storage, matrixNodes, iconUrl, appUrl),
       new PeerManager<K>(storage, storageKey)
     )
   }
@@ -55,7 +57,7 @@ export class P2PTransport<
     if (knownPeers.length > 0) {
       logger.log('connect', `connecting to ${knownPeers.length} peers`)
       const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
-      Promise.all(connectionPromises).catch(console.log)
+      Promise.all(connectionPromises).catch((error) => logger.error('connect', error))
     }
 
     await this.startOpenChannelListener()

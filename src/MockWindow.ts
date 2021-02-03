@@ -5,7 +5,7 @@ const cbs: Callback[] = [(_: unknown): void => undefined]
 /**
  * A mock for postmessage if run in node.js environment
  */
-let myWindow = {
+let windowRef = {
   postMessage: (message: string | Record<string, unknown>, _target?: string): void => {
     console.log('GOT MOCK POST MESSAGE', message)
     cbs.forEach((callbackElement: Callback) => {
@@ -20,13 +20,16 @@ let myWindow = {
       cbs.indexOf((element) => element === eventCallback),
       1
     )
+  },
+  location: {
+    origin: '*'
   }
 }
 
 try {
   if (typeof window !== 'undefined') {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    myWindow = window as any
+    windowRef = window as any
   }
 } catch (windowError) {
   console.log(`not defined: ${windowError}`)
@@ -36,4 +39,4 @@ const clearMockWindowState: () => void = (): void => {
   cbs.length = 0
 }
 
-export { myWindow, clearMockWindowState }
+export { windowRef, clearMockWindowState }

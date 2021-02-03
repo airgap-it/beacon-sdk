@@ -5,6 +5,7 @@ import { getKeypairFromSeed, toHex } from '../../utils/crypto'
 import { Storage, StorageKey } from '../..'
 import { BeaconEventHandler } from '../../events'
 import { SDK_VERSION } from '../../constants'
+import { windowRef } from '../../MockWindow'
 import { BeaconClientOptions } from './BeaconClientOptions'
 
 /**
@@ -16,6 +17,16 @@ export abstract class BeaconClient {
    * The name of the client
    */
   public readonly name: string
+
+  /**
+   * The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet
+   */
+  public readonly iconUrl?: string
+
+  /**
+   * The URL of the dApp.
+   */
+  public readonly appUrl?: string
 
   /** The beaconId is a public key that is used to identify one specific application (dapp or wallet).
    * This is used inside a message to specify the sender, for example.
@@ -45,7 +56,18 @@ export abstract class BeaconClient {
       throw new Error('Storage not set')
     }
     this.name = config.name
+    this.iconUrl = config.iconUrl
+    this.appUrl = config.appUrl
     this.storage = config.storage
+
+    // TODO: This is a temporary "fix" to prevent users from creating multiple Client instances
+    if ((windowRef as any).beaconCreatedClientInstance) {
+      console.warn(
+        '[BEACON] It looks like you created multiple Beacon SDK Client instances. This can lead to problems. Only create one instance and re-use it everywhere.'
+      )
+    } else {
+      ;(windowRef as any).beaconCreatedClientInstance = true
+    }
 
     this.initSDK().catch(console.error)
   }
@@ -55,6 +77,7 @@ export abstract class BeaconClient {
    */
   public async destroy(): Promise<void> {
     await this.removeBeaconEntriesFromStorage()
+    ;(windowRef as any).beaconCreatedClientInstance = false
   }
 
   /**

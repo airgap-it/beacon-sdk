@@ -25,6 +25,9 @@ import { getSenderId } from '../../utils/get-sender-id'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { ExposedPromise } from '../../utils/exposed-promise'
 import { ExtendedPeerInfo, PeerInfo } from '../../types/PeerInfo'
+import { Logger } from '../../utils/Logger'
+
+const logger = new Logger('WalletClient')
 
 /**
  * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible
@@ -45,7 +48,7 @@ export class WalletClient extends Client {
   /**
    * This array stores pending requests, meaning requests we received and have not yet handled / sent a response.
    */
-  private pendingRequests: BeaconRequestMessage[] = []
+  private pendingRequests: [BeaconRequestMessage, ConnectionContext][] = []
 
   constructor(config: WalletClientOptions) {
     super({ storage: new LocalStorage(), ...config })
@@ -56,7 +59,14 @@ export class WalletClient extends Client {
   public async init(): Promise<TransportType> {
     const keyPair = await this.keyPair // We wait for keypair here so the P2P Transport creation is not delayed and causing issues
 
-    const p2pTransport = new WalletP2PTransport(this.name, keyPair, this.storage, this.matrixNodes)
+    const p2pTransport = new WalletP2PTransport(
+      this.name,
+      keyPair,
+      this.storage,
+      this.matrixNodes,
+      this.iconUrl,
+      this.appUrl
+    )
 
     return super.init(p2pTransport)
   }
@@ -70,12 +80,12 @@ export class WalletClient extends Client {
   public async connect(
     newMessageCallback: (
       message: BeaconRequestOutputMessage,
-      connectionInfo: ConnectionContext
+      connectionContext: ConnectionContext
     ) => void
   ): Promise<void> {
     this.handleResponse = async (
       message: BeaconRequestMessage | DisconnectMessage,
-      connectionInfo: ConnectionContext
+      connectionContext: ConnectionContext
     ): Promise<void> => {
       if (message.type === BeaconMessageType.Disconnect) {
         const transport = await this.transport
@@ -91,16 +101,16 @@ export class WalletClient extends Client {
         return
       }
 
-      if (!this.pendingRequests.some((request) => request.id === message.id)) {
-        this.pendingRequests.push(message)
+      if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
+        this.pendingRequests.push([message, connectionContext])
 
         if (message.version !== '1') {
-          await this.sendAcknowledgeResponse(message)
+          await this.sendAcknowledgeResponse(message, connectionContext)
         }
 
         await IncomingRequestInterceptor.intercept({
           message,
-          connectionInfo,
+          connectionInfo: connectionContext,
           appMetadataManager: this.appMetadataManager,
           interceptorCallback: newMessageCallback
         })
@@ -126,7 +136,7 @@ export class WalletClient extends Client {
             this.handleResponse(deserializedMessage, connectionInfo)
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => logger.log('_connect', error))
       this._isConnected.resolve(true)
     } else {
       // NO-OP
@@ -139,23 +149,26 @@ export class WalletClient extends Client {
    * @param message The BeaconResponseMessage that will be sent back to the DApp
    */
   public async respond(message: BeaconResponseInputMessage): Promise<void> {
-    const request = this.pendingRequests.find((pendingRequest) => pendingRequest.id === message.id)
+    const request = this.pendingRequests.find(
+      (pendingRequest) => pendingRequest[0].id === message.id
+    )
     if (!request) {
       throw new Error('No matching request found!')
     }
 
     this.pendingRequests = this.pendingRequests.filter(
-      (pendingRequest) => pendingRequest.id !== message.id
+      (pendingRequest) => pendingRequest[0].id !== message.id
     )
 
     await OutgoingResponseInterceptor.intercept({
       senderId: await getSenderId(await this.beaconId),
-      request,
+      request: request[0],
       message,
+      ownAppMetadata: await this.getOwnAppMetadata(),
       permissionManager: this.permissionManager,
       appMetadataManager: this.appMetadataManager,
       interceptorCallback: async (response: BeaconMessage): Promise<void> => {
-        await this.respondToMessage(response)
+        await this.respondToMessage(response, request[1])
       }
     })
   }
@@ -256,7 +269,10 @@ export class WalletClient extends Client {
    *
    * @param message The message that was received
    */
-  private async sendAcknowledgeResponse(request: BeaconRequestMessage): Promise<void> {
+  private async sendAcknowledgeResponse(
+    request: BeaconRequestMessage,
+    connectionContext: ConnectionContext
+  ): Promise<void> {
     // Acknowledge the message
     const acknowledgeResponse: AcknowledgeResponseInput = {
       id: request.id,
@@ -267,10 +283,11 @@ export class WalletClient extends Client {
       senderId: await getSenderId(await this.beaconId),
       request,
       message: acknowledgeResponse,
+      ownAppMetadata: await this.getOwnAppMetadata(),
       permissionManager: this.permissionManager,
       appMetadataManager: this.appMetadataManager,
       interceptorCallback: async (response: BeaconMessage): Promise<void> => {
-        await this.respondToMessage(response)
+        await this.respondToMessage(response, connectionContext)
       }
     })
   }
@@ -280,8 +297,17 @@ export class WalletClient extends Client {
    *
    * @param response Send a message back to the DApp
    */
-  private async respondToMessage(response: BeaconMessage): Promise<void> {
+  private async respondToMessage(
+    response: BeaconMessage,
+    connectionContext: ConnectionContext
+  ): Promise<void> {
     const serializedMessage: string = await new Serializer().serialize(response)
-    await (await this.transport).send(serializedMessage)
+    if (connectionContext) {
+      const peerInfos = await this.getPeers()
+      const peer = peerInfos.find((peerInfo) => peerInfo.publicKey === connectionContext.id)
+      await (await this.transport).send(serializedMessage, peer)
+    } else {
+      await (await this.transport).send(serializedMessage)
+    }
   }
 }

@@ -16,12 +16,15 @@ import {
   PermissionInfo,
   PermissionScope,
   Serializer,
-  getSenderId
+  getSenderId,
+  BeaconErrorType,
+  BeaconResponseInputMessage
 } from '../../src'
 import * as sinon from 'sinon'
 
 import { WalletClient } from '../../src/clients/wallet-client/WalletClient'
 import { ExtendedP2PPairingRequest } from '../../src/types/P2PPairingRequest'
+import { windowRef } from '../../src/MockWindow'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -74,6 +77,7 @@ describe(`WalletClient`, () => {
 
   beforeEach(() => {
     sinon.restore()
+    ;(windowRef as any).beaconCreatedClientInstance = false
   })
 
   it(`should throw an error if initialized with an empty object`, async () => {
@@ -164,7 +168,8 @@ describe(`WalletClient`, () => {
       publicKey: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3'
     }
 
-    ;(<any>walletClient).pendingRequests = [{ id }]
+    ;(<any>walletClient).pendingRequests.push([{ id }, {}])
+
     const respondStub = sinon.stub(walletClient, <any>'respondToMessage').resolves()
     const appMetadataManagerStub = sinon
       .stub(AppMetadataManager.prototype, 'getAppMetadata')
@@ -294,9 +299,104 @@ describe(`WalletClient`, () => {
     await walletClient.init()
     ;(<any>walletClient).respondToMessage({ test: 'message' })
 
+    // TODO: Test if acknowledge message is sent
+
     expect(serializerStub.callCount).to.equal(1)
     expect(serializerStub.firstCall.args[0]).to.deep.equal({ test: 'message' })
     // expect(sendStub.callCount).to.equal(1)
     // expect(sendStub.firstCall.args[0]).to.equal('aRNACa2rFgw2dfAugetVZpzSbMdahH')
+  })
+
+  it(`should respond with an error message`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+
+    const respondStub = sinon.stub(walletClient, <any>'respondToMessage').resolves()
+
+    const id = '1234test'
+
+    ;(<any>walletClient).pendingRequests.push([{ id }, {}])
+
+    await walletClient.init()
+
+    const message: BeaconResponseInputMessage = {
+      id,
+      type: BeaconMessageType.Error,
+      errorType: BeaconErrorType.TRANSACTION_INVALID_ERROR,
+      errorData: [
+        {
+          kind: 'temporary',
+          id: 'proto.007-PsDELPH1.contract.non_existing_contract',
+          contract: 'KT1RxKJyi48W3bZR8HErRiisXZQw19HwLGWj'
+        }
+      ]
+    }
+
+    await walletClient.respond(message)
+
+    expect(respondStub.callCount).to.equal(1)
+    expect(respondStub.firstCall.args[0]).to.include(message)
+    expect(respondStub.firstCall.args[0].errorData).not.to.be.undefined
+  })
+
+  it(`should respond with an error message`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+
+    const respondStub = sinon.stub(walletClient, <any>'respondToMessage').resolves()
+
+    const id = '1234test'
+
+    ;(<any>walletClient).pendingRequests.push([{ id }, {}])
+
+    await walletClient.init()
+
+    const message: BeaconResponseInputMessage = {
+      id,
+      type: BeaconMessageType.Error,
+      errorType: BeaconErrorType.PARAMETERS_INVALID_ERROR,
+      errorData: [
+        {
+          kind: 'temporary',
+          id: 'proto.007-PsDELPH1.contract.non_existing_contract',
+          contract: 'KT1RxKJyi48W3bZR8HErRiisXZQw19HwLGWj'
+        }
+      ]
+    }
+
+    await walletClient.respond(message)
+
+    const { errorData, ...newMessage } = message
+
+    expect(respondStub.callCount).to.equal(1)
+    expect(respondStub.firstCall.args[0]).to.include(newMessage)
+    expect(respondStub.firstCall.args[0].errorData).to.be.undefined
+  })
+
+  it(`should not respond with an invalid error message`, async () => {
+    const walletClient = new WalletClient({ name: 'Test', storage: new LocalStorage() })
+
+    const respondStub = sinon.stub(walletClient, <any>'respondToMessage').resolves()
+
+    const id = '1234test'
+
+    ;(<any>walletClient).pendingRequests.push([{ id }, {}])
+
+    await walletClient.init()
+
+    const message: BeaconResponseInputMessage = {
+      id,
+      type: BeaconMessageType.Error,
+      errorType: BeaconErrorType.PARAMETERS_INVALID_ERROR,
+      errorData: {
+        test: 123
+      }
+    }
+
+    await walletClient.respond(message)
+
+    const { errorData, ...newMessage } = message
+
+    expect(respondStub.callCount).to.equal(1)
+    expect(respondStub.firstCall.args[0]).to.include(newMessage)
+    expect(respondStub.firstCall.args[0].errorData).to.be.undefined
   })
 })

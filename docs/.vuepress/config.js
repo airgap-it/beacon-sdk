@@ -29,7 +29,7 @@ const sidebar = [
       'examples/04.sign-request',
       'examples/05.broadcast-request',
       'examples/06.using-custom-network',
-      'examples/07-overriding-defaukt-events',
+      'examples/07-overriding-default-events',
       'examples/08-standalone-delegation'
     ]
   },
