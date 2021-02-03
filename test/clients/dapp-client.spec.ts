@@ -627,7 +627,7 @@ describe(`DAppClient`, () => {
     })
   })
 
-  it(`should prepare a sign payload request`, async () => {
+  it(`should prepare a sign payload request (RAW)`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
     const account: AccountInfo = {
@@ -680,14 +680,53 @@ describe(`DAppClient`, () => {
       signingType: SigningType.RAW,
       sourceAddress: 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
     })
-    expect(response).to.deep.equal({
+
+    const expectedResponse = {
       id: 'my-id',
       senderId: 'sender-id',
       signingType: SigningType.RAW,
       signature: 'my-signature',
       type: BeaconMessageType.SignPayloadResponse,
       version: '2'
+    }
+
+    expect(response).to.deep.equal(expectedResponse)
+
+    const responseOperation = await dAppClient.requestSignPayload({
+      signingType: SigningType.OPERATION,
+      payload: '03test-payload'
     })
+    expect(responseOperation).to.deep.equal(expectedResponse)
+
+    try {
+      const responseFailure = await dAppClient.requestSignPayload({
+        signingType: SigningType.OPERATION,
+        payload: 'test-payload'
+      })
+      throw new Error('should not get here' + responseFailure)
+    } catch (e) {
+      expect(e.message).to.equal(
+        `When using singing type "OPERATION", the payload must start with prefix "03"`
+      )
+    }
+
+    const responseMicheline = await dAppClient.requestSignPayload({
+      signingType: SigningType.MICHELINE,
+      payload: '05test-payload'
+    })
+    expect(responseMicheline).to.deep.equal(expectedResponse)
+
+    try {
+      const responseFailure = await dAppClient.requestSignPayload({
+        signingType: SigningType.MICHELINE,
+        payload: 'test-payload'
+      })
+      throw new Error('should not get here' + responseFailure)
+    } catch (e) {
+      expect(e.message).to.equal(
+        `When using singing type "MICHELINE", the payload must start with prefix "05"`
+      )
+    }
   })
 
   it(`should prepare an operation request`, async () => {

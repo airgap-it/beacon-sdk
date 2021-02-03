@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.2.0 (21-02-03)
+## 2.2.0 (2021-02-03)
 
 #### Features
 
@@ -36,7 +36,7 @@ const client = new DAppClient({
 
 - **Alert**: A click outside the alert will now dismiss the alert
 - **Logs**: Add warning logs when the QR code gets too big and when muliple Clients are created
-- **SigningType**: Add `TRANSACTION` and `MICHELINE` SigningTypes. The payload of the `TRANSACTION` type has to start with a `03` and the `MICHELINE` type has to start with a `05`
+- **SigningType**: Add `OPERATION` and `MICHELINE` SigningTypes. The payload of the `OPERATION` type has to start with `03` and the `MICHELINE` type has to start with `05`
 - **Beacon Extension**: The "Beacon Extension" has been renamed to "Spire".
 - **dApp / Wallet metadata**: The dApp and wallet metadata (name and icon) are now included in the pairing request / response
 

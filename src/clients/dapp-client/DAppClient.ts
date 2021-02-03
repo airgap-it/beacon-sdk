@@ -629,7 +629,7 @@ export class DAppClient extends Client {
     const signingType = ((): SigningType => {
       switch (input.signingType) {
         case SigningType.OPERATION:
-          if (payload.startsWith('03')) {
+          if (!payload.startsWith('03')) {
             throw new Error(
               'When using singing type "OPERATION", the payload must start with prefix "03"'
             )
@@ -638,7 +638,7 @@ export class DAppClient extends Client {
           return SigningType.OPERATION
 
         case SigningType.MICHELINE:
-          if (payload.startsWith('05')) {
+          if (!payload.startsWith('05')) {
             throw new Error(
               'When using singing type "MICHELINE", the payload must start with prefix "05"'
             )
