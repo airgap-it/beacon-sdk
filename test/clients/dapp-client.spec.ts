@@ -219,7 +219,7 @@ describe(`DAppClient`, () => {
         {
           id: 'c21fcf96-53d5-c30c-0cf1-7105e046b8ac',
           type: 'postmessage-pairing-response',
-          name: 'Beacon Extension',
+          name: 'Spire',
           version: '2',
           publicKey: '48d79c808e9c6adcef4343fee74599ac7f3c766be6798143235c8cb939acf19f',
           senderId: '2CnDdXvxhEC9d',

@@ -14,11 +14,11 @@ export const extensionList: ExtensionApp[] = [
   },
   {
     id: 'gpfndedineagiepkpinficbcbbgjoenn',
-    name: 'Beacon Extension',
-    shortName: 'Beacon',
+    name: 'Spire',
+    shortName: 'Spire',
     color: '',
-    logo: 'extension-beacon.png',
-    link: 'https://walletbeacon.io/'
+    logo: 'extension-spire.png',
+    link: 'https://spirewallet.com/'
   }
 ]
 
