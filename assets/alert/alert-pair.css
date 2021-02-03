@@ -28,6 +28,7 @@
 .beacon-selection__name {
   font-size: 1rem;
   font-weight: 600;
+  text-align: left;
 }
 .theme__light .beacon-selection__name {
   color: #3b3d40;
