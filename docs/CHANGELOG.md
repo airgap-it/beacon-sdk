@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.2.0 ()
+## 2.2.0 (21-02-03)
 
 #### Features
 
@@ -10,7 +10,7 @@
 
 - **Dark Mode**: The dApp developer can now choose between a "dark" and "light" color theme. This will change the look of both alerts and toasts.
 
-- **Errors**: The `beacon-sdk` now allows for RPC-Errors to be passed in the `TRANSACTION_INVALID_ERROR`. Errors MUST always be displayed in the wallet. This change does not change that. It simply provides the dApps that expect certain errors to provide more insights into what went wrong. dApps are not required to display the details of an error, but they can choose to do so if it improves the user experience.
+- **Errors**: The `beacon-sdk` now allows for RPC-Errors to be passed in the `TRANSACTION_INVALID_ERROR` response. Errors MUST be displayed in the wallet. This change does not change that. It simply allows dApps that expect certain errors to provide more insights into what went wrong. dApps are not required to display the details of an error, but they can choose to do so if it improves the user experience.
 
 - **Debug**: New debug methods have been introduced. To activate logs from the `beacon-sdk` during development, it is possible to call `setDebugEnabled(true)`. This will enable logs throughout the `beacon-sdk`.
 
@@ -34,18 +34,18 @@ const client = new DAppClient({
 })
 ```
 
-- **Matrix Performace Improvements**: Fixed a timing issue that lead to additional rooms being created instead of re-using old ones
 - **Alert**: A click outside the alert will now dismiss the alert
 - **Logs**: Add warning logs when the QR code gets too big and when muliple Clients are created
 - **SigningType**: Add `TRANSACTION` and `MICHELINE` SigningTypes. The payload of the `TRANSACTION` type has to start with a `03` and the `MICHELINE` type has to start with a `05`
 - **Beacon Extension**: The "Beacon Extension" has been renamed to "Spire".
+- **dApp / Wallet metadata**: The dApp and wallet metadata (name and icon) are now included in the pairing request / response
 
 #### Fixes
 
+- **Matrix Performace Improvements**: Fixed a timing issue that lead to slower responses
 - **DAppClient**: `setActiveAccount` now updates and persists the active peer
-- **Types**: The type of `matrixNodes` was incorrect and has been fixed
-- **Docs**: Fix typo in link
-- **dApp / Wallet metadata**: The dApp and wallet metadata (name and icon) are now included in the pairing request / response
+- **Types**: The type of `matrixNodes` was incorrect
+- **Docs**: Fixed a typo in link a docs link
 
 ## 2.1.0 (2021-01-22)
 
