@@ -37,7 +37,7 @@ Beacon SDK v2 introduces some some breaking changes from a developer perspective
 
 We highly encourage developers to upgrade to v2. Besides stability improvements, the most notable new features are:
 
-- Support for multiple browser extensions (eg. Thanos and Beacon Extension)
+- Support for multiple browser extensions (eg. Thanos and Spire)
 - Support for mobile, browser and desktop Wallets
 - Mobile support via Deeplinking
 - Secure and encrypted communication between DApp and Browser Extension

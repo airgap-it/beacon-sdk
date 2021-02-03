@@ -14,7 +14,7 @@
 
 - **Debug**: New debug methods have been introduced. To activate logs from the `beacon-sdk` during development, it is possible to call `setDebugEnabled(true)`. This will enable logs throughout the `beacon-sdk`.
 
-The `beacon-sdk` will now also listen to the `beaconSdkDebugEnabled` variable on the global window object. This will allow browser extensions (eg. Beacon Extension) to set the debug flag to true on production websites, which will help debugging on production dApps.
+The `beacon-sdk` will now also listen to the `beaconSdkDebugEnabled` variable on the global window object. This will allow browser extensions (eg. Spire) to set the debug flag to true on production websites, which will help debugging on production dApps.
 
 - **UI Elements**: All default UI Elements / Event Handlers can be removed at once by setting the `disableDefaultEvents` flag in the `DAppClientOptions` to true. Keep in mind that this will also disable the Pairing Alert. If you want to keep the Pairing Alert, you will have to add those default handlers again. An example would be:
 
@@ -38,6 +38,7 @@ const client = new DAppClient({
 - **Alert**: A click outside the alert will now dismiss the alert
 - **Logs**: Add warning logs when the QR code gets too big and when muliple Clients are created
 - **SigningType**: Add `TRANSACTION` and `MICHELINE` SigningTypes. The payload of the `TRANSACTION` type has to start with a `03` and the `MICHELINE` type has to start with a `05`
+- **Beacon Extension**: The "Beacon Extension" has been renamed to "Spire".
 
 #### Fixes
 
@@ -81,7 +82,7 @@ Beacon v2.0.0 is a big update from v1.x. The APIs on the DApp and Wallet side st
 
 We highly encourage developers to upgrade to v2. The most notable new features are:
 
-- Support for multiple Browser Extensions (eg. Thanos and Beacon Extension)
+- Support for multiple Browser Extensions (eg. Thanos and Spire)
 - Support for mobile, browser and desktop Wallets
 - Mobile support via Deeplinking
 - Secure and encrypted communication between DApp and Browser Extension
