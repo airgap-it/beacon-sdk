@@ -171,7 +171,7 @@ export class DAppClient extends Client {
 
       logger.log('handleResponse', 'Received message', message, connectionInfo)
 
-      if (message.type === BeaconMessageType.Acknowledge) {
+      if (openRequest && message.type === BeaconMessageType.Acknowledge) {
         logger.log(`acknowledge message received for ${message.id}`)
         console.timeLog(message.id, 'acknowledge')
 
@@ -1046,6 +1046,7 @@ export class DAppClient extends Client {
 
     const walletInfo = await this.getWalletInfo(peer, account)
 
+    logger.log('makeRequest', 'sending message', request)
     console.timeLog(messageId, 'sending')
     await (await this.transport).send(payload, peer)
     console.timeLog(messageId, 'sent')
