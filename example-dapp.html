@@ -154,7 +154,7 @@
       // Initiate a permission request
       const requestPermission = (callback) => {
         client
-          .requestPermissions(/*{ network: beacon.NetworkType.DELPHINET }*/)
+          .requestPermissions(/*{ network: { type: beacon.NetworkType.DELPHINET } }*/)
           .then((permissions) => {
             console.log('permissions', permissions)
             if (callback) {
