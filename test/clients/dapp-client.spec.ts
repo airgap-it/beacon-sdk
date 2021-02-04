@@ -706,7 +706,7 @@ describe(`DAppClient`, () => {
       throw new Error('should not get here' + responseFailure)
     } catch (e) {
       expect(e.message).to.equal(
-        `When using singing type "OPERATION", the payload must start with prefix "03"`
+        `When using signing type "OPERATION", the payload must start with prefix "03"`
       )
     }
 
@@ -724,7 +724,7 @@ describe(`DAppClient`, () => {
       throw new Error('should not get here' + responseFailure)
     } catch (e) {
       expect(e.message).to.equal(
-        `When using singing type "MICHELINE", the payload must start with prefix "05"`
+        `When using signing type "MICHELINE", the payload must start with prefix "05"`
       )
     }
   })

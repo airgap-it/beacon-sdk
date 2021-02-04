@@ -631,7 +631,7 @@ export class DAppClient extends Client {
         case SigningType.OPERATION:
           if (!payload.startsWith('03')) {
             throw new Error(
-              'When using singing type "OPERATION", the payload must start with prefix "03"'
+              'When using signing type "OPERATION", the payload must start with prefix "03"'
             )
           }
 
@@ -640,7 +640,7 @@ export class DAppClient extends Client {
         case SigningType.MICHELINE:
           if (!payload.startsWith('05')) {
             throw new Error(
-              'When using singing type "MICHELINE", the payload must start with prefix "05"'
+              'When using signing type "MICHELINE", the payload must start with prefix "05"'
             )
           }
 
