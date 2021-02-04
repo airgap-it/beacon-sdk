@@ -85,6 +85,8 @@
     <br /><br />
     <button id="contractCall">Contract Call</button>
     <br /><br />
+    <button id="deserializeData">Deserialize Data</button>
+    <br /><br />
     ---
     <br /><br />
     <button id="reset">Reset and Refresh</button>
@@ -94,7 +96,8 @@
     <script>
       // Initiate DAppClient
       const client = new beacon.DAppClient({
-        name: 'Example DApp' // Name of the DApp
+        name: 'Example DApp' // Name of the DApp,
+        // preferredNetwork: beacon.NetworkType.DELPHINET
       })
 
       // Display the active account in the UI
@@ -151,7 +154,7 @@
       // Initiate a permission request
       const requestPermission = (callback) => {
         client
-          .requestPermissions()
+          .requestPermissions(/*{ network: beacon.NetworkType.DELPHINET }*/)
           .then((permissions) => {
             console.log('permissions', permissions)
             if (callback) {
@@ -345,6 +348,11 @@
       document.getElementById('color-mode-dark').addEventListener('click', () => {
         client.setColorMode('dark')
         updateColorMode()
+      })
+
+      // Add event listener to the button
+      document.getElementById('deserializeData').addEventListener('click', () => {
+        new beacon.Serializer().deserialize('').then(console.log).catch(console.error)
       })
     </script>
   </body>
