@@ -214,7 +214,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     }, timer)
   }
 
-  document.body.appendChild(shadowRootEl)
+  document.body.prepend(shadowRootEl)
 
   const closeButton = shadowRoot.getElementById(`beacon-alert-${id}-close`)
 

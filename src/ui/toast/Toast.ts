@@ -265,7 +265,7 @@ const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
     }, timer)
   }
 
-  document.body.appendChild(shadowRootEl)
+  document.body.prepend(shadowRootEl)
 
   const colorMode = getColorMode()
   const elm = shadowRoot.getElementById(`beacon-toast`)
