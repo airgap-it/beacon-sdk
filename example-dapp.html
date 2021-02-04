@@ -40,7 +40,11 @@
     <br /><br />
     <button id="connect">Connect and Delegate</button>
     <br /><br />
-    <button id="signPayload">Sign Payload</button>
+    <button id="signPayloadRaw">Sign Payload (Raw)</button>
+    <br /><br />
+    <button id="signPayloadOperation">Sign Payload (Operation)</button>
+    <br /><br />
+    <button id="signPayloadMicheline">Sign Payload (Micheline)</button>
     <br /><br />
     ---
     <br /><br />
@@ -188,9 +192,29 @@
       })
 
       // Add event listener to the button
-      document.getElementById('signPayload').addEventListener('click', async () => {
+      document.getElementById('signPayloadRaw').addEventListener('click', async () => {
         const signature = await client.requestSignPayload({
           payload: 'test'
+        })
+
+        console.log('signature:', signature)
+      })
+
+      // Add event listener to the button
+      document.getElementById('signPayloadOperation').addEventListener('click', async () => {
+        const signature = await client.requestSignPayload({
+          signingType: beacon.SigningType.OPERATION,
+          payload: '03test'
+        })
+
+        console.log('signature:', signature)
+      })
+
+      // Add event listener to the button
+      document.getElementById('signPayloadMicheline').addEventListener('click', async () => {
+        const signature = await client.requestSignPayload({
+          signingType: beacon.SigningType.MICHELINE,
+          payload: '05test'
         })
 
         console.log('signature:', signature)
