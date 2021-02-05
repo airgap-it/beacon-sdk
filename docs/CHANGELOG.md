@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.2.1 (2021-02-05)
+
+#### Fixes
+
+- **signing**: The validation of the `OPERATION` and `MICHELINE` payloads is now correct
+- **alert**: The page no longer scrolls down when the alert opens
+- **alert**: Alert width fixed on mobile
+- **toast**: Toasts are now sticky to the top of the window, not the top of the page
+- **toast**: Toast height fixed on iOS
+- **toast**: If an acknowledge message is received after the response, it will be ignored
+- **toast**: The close button will now always be shown in the "awaiting" state
+- **toast**: Remove unnecessary "href" from link in error toast
+- **toast**: New toasts that are triggered while another one is being shown will now be handled correctly
+
 ## 2.2.0 (2021-02-03)
 
 #### Features
