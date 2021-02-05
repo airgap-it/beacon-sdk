@@ -39,7 +39,7 @@ const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> 
 
   if (actionCallback) {
     wrapper.innerHTML = text.length > 0 ? `<p>${text}</p>` : ``
-    wrapper.innerHTML += `<p><a id="${id}" href="#">${actionText}</a></p>`
+    wrapper.innerHTML += `<p><a id="${id}">${actionText}</a></p>`
   } else if (actionText) {
     wrapper.innerHTML =
       text.length > 0 ? `<p class="beacon-toast__action__item__subtitle">${text}</p>` : ``
