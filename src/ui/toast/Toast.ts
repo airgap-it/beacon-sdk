@@ -356,6 +356,7 @@ const openToast = async (toastConfig: ToastConfig): Promise<void> => {
   if (wrapper) {
     if (toastConfig.forceNew) {
       await closeToast()
+      await createNewToast(toastConfig)
     } else {
       await updateToast(toastConfig)
     }
