@@ -1,6 +1,20 @@
 # Changelog
 
-## 2.2.0 (21-02-03)
+## 2.2.1 (2021-02-08)
+
+#### Fixes
+
+- **signing**: The validation of the `OPERATION` and `MICHELINE` payloads is now correct
+- **alert**: The page no longer scrolls down when the alert opens
+- **alert**: Alert width fixed on mobile
+- **toast**: Toasts are now sticky to the top of the window, not the top of the page
+- **toast**: Toast height fixed on iOS
+- **toast**: If an acknowledge message is received after the response, it will be ignored
+- **toast**: The close button will now always be shown in the "awaiting" state
+- **toast**: Remove unnecessary "href" from link in error toast
+- **toast**: New toasts that are triggered while another one is being shown will now be handled correctly
+
+## 2.2.0 (2021-02-03)
 
 #### Features
 
@@ -36,7 +50,7 @@ const client = new DAppClient({
 
 - **Alert**: A click outside the alert will now dismiss the alert
 - **Logs**: Add warning logs when the QR code gets too big and when muliple Clients are created
-- **SigningType**: Add `TRANSACTION` and `MICHELINE` SigningTypes. The payload of the `TRANSACTION` type has to start with a `03` and the `MICHELINE` type has to start with a `05`
+- **SigningType**: Add `OPERATION` and `MICHELINE` SigningTypes. The payload of the `OPERATION` type has to start with `03` and the `MICHELINE` type has to start with `05`
 - **Beacon Extension**: The "Beacon Extension" has been renamed to "Spire".
 - **dApp / Wallet metadata**: The dApp and wallet metadata (name and icon) are now included in the pairing request / response
 

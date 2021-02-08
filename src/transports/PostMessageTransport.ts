@@ -51,7 +51,7 @@ export class PostMessageTransport<
         payload: 'ping'
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      windowRef.postMessage(message as any, window.location.origin)
+      windowRef.postMessage(message as any, windowRef.location.origin)
     })
   }
 

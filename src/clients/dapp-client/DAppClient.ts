@@ -171,7 +171,7 @@ export class DAppClient extends Client {
 
       logger.log('handleResponse', 'Received message', message, connectionInfo)
 
-      if (message.type === BeaconMessageType.Acknowledge) {
+      if (openRequest && message.type === BeaconMessageType.Acknowledge) {
         logger.log(`acknowledge message received for ${message.id}`)
         console.timeLog(message.id, 'acknowledge')
 
@@ -629,18 +629,18 @@ export class DAppClient extends Client {
     const signingType = ((): SigningType => {
       switch (input.signingType) {
         case SigningType.OPERATION:
-          if (payload.startsWith('03')) {
+          if (!payload.startsWith('03')) {
             throw new Error(
-              'When using singing type "OPERATION", the payload must start with prefix "03"'
+              'When using signing type "OPERATION", the payload must start with prefix "03"'
             )
           }
 
           return SigningType.OPERATION
 
         case SigningType.MICHELINE:
-          if (payload.startsWith('05')) {
+          if (!payload.startsWith('05')) {
             throw new Error(
-              'When using singing type "MICHELINE", the payload must start with prefix "05"'
+              'When using signing type "MICHELINE", the payload must start with prefix "05"'
             )
           }
 
@@ -1046,6 +1046,7 @@ export class DAppClient extends Client {
 
     const walletInfo = await this.getWalletInfo(peer, account)
 
+    logger.log('makeRequest', 'sending message', request)
     console.timeLog(messageId, 'sending')
     await (await this.transport).send(payload, peer)
     console.timeLog(messageId, 'sent')

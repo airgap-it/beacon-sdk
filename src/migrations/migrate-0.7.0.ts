@@ -38,7 +38,7 @@ export const migrate_0_7_0 = async (storage: Storage): Promise<void> => {
     // pubKey is now publicKey
     if (accountInfoOld.pubkey) {
       accountInfo.publicKey = accountInfoOld.pubkey
-      delete accountInfoOld.pubkey
+      delete (accountInfoOld as any).pubkey
     }
     // connectedAt is now a number
     accountInfo.connectedAt = new Date(accountInfoOld.connectedAt).getTime()
@@ -55,7 +55,7 @@ export const migrate_0_7_0 = async (storage: Storage): Promise<void> => {
     // pubKey is now publicKey
     if (P2PPairingRequestOld.pubKey) {
       p2pPairInfo.publicKey = P2PPairingRequestOld.pubKey
-      delete P2PPairingRequestOld.pubKey
+      delete (P2PPairingRequestOld as any).pubKey
     }
   })
   await storage.set(StorageKey.TRANSPORT_P2P_PEERS_DAPP, P2PPairingRequests)

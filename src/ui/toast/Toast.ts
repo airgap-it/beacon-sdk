@@ -14,7 +14,7 @@ export interface ToastConfig {
   body: string
   timer?: number
   forceNew?: boolean
-  state?: 'loading' | 'finished'
+  state: 'loading' | 'acknowledge' | 'finished'
   actions?: ToastAction[]
   walletInfo?: WalletInfo
 }
@@ -39,7 +39,7 @@ const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> 
 
   if (actionCallback) {
     wrapper.innerHTML = text.length > 0 ? `<p>${text}</p>` : ``
-    wrapper.innerHTML += `<p><a id="${id}" href="#">${actionText}</a></p>`
+    wrapper.innerHTML += `<p><a id="${id}">${actionText}</a></p>`
   } else if (actionText) {
     wrapper.innerHTML =
       text.length > 0 ? `<p class="beacon-toast__action__item__subtitle">${text}</p>` : ``
@@ -265,7 +265,7 @@ const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
     }, timer)
   }
 
-  document.body.appendChild(shadowRootEl)
+  document.body.prepend(shadowRootEl)
 
   const colorMode = getColorMode()
   const elm = shadowRoot.getElementById(`beacon-toast`)
@@ -279,12 +279,14 @@ const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
     await addActionsToToast(shadowRoot, toastConfig, list)
   }
 
-  expandTimeout = window.setTimeout(async () => {
-    const expandButton = shadowRoot.getElementById('beacon-toast-button-expand')
-    if (expandButton && !expandButton.classList.contains('beacon-toast__upside_down')) {
-      expandOrCollapseList(shadowRoot)
-    }
-  }, EXPAND_AFTER)
+  if (globalToastConfig.state === 'loading') {
+    expandTimeout = window.setTimeout(async () => {
+      const expandButton = shadowRoot.getElementById('beacon-toast-button-expand')
+      if (expandButton && !expandButton.classList.contains('beacon-toast__upside_down')) {
+        expandOrCollapseList(shadowRoot)
+      }
+    }, EXPAND_AFTER)
+  }
 
   registerClick(shadowRoot, 'beacon-toast-button-done', async () => {
     await closeToast()
@@ -292,7 +294,7 @@ const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
   const closeButton = registerClick(shadowRoot, 'beacon-toast-button-close', async () => {
     await closeToast()
   })
-  if (closeButton) {
+  if (closeButton && globalToastConfig.state === 'loading') {
     closeButton.classList.add('hide')
   }
   registerClick(shadowRoot, 'beacon-toast-button-expand', async () => {
@@ -356,6 +358,7 @@ const openToast = async (toastConfig: ToastConfig): Promise<void> => {
   if (wrapper) {
     if (toastConfig.forceNew) {
       await closeToast()
+      await createNewToast(toastConfig)
     } else {
       await updateToast(toastConfig)
     }

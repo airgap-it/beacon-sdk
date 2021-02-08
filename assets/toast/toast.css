@@ -34,7 +34,7 @@
 }
 
 .beacon-toast__base {
-  position: absolute;
+  position: fixed;
   top: 16px;
   right: 16px;
   z-index: 2147483000;
@@ -106,6 +106,7 @@ hr {
 
 .beacon-toast__content {
   justify-content: space-between;
+  max-height: 56px;
 }
 
 .beacon-toast__action__item,
