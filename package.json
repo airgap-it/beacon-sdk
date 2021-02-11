@@ -1,11 +1,15 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "2.2.2-beta.0",
+  "version": "2.2.2-beta.1",
   "description": "The beacon-sdk allows you to easily connect DApps with Wallets through P2P communication or a chrome extension.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    "require": "./dist/cjs/index.js",
+    "import": "./dist/esm/index.js"
+  },
   "unpkg": "dist/walletbeacon.min.js",
-  "types": "dist/cjs/index.d.ts",
   "keywords": [
     "airgap",
     "beacon",
@@ -22,9 +26,13 @@
     "url": "https://github.com/airgap-it/beacon-sdk"
   },
   "scripts": {
+    "clean": "rimraf dist",
+    "declarations": "tsc -p tsconfig.json",
+    "build:esm": "cross-env BABEL_ENV=esmUnbundled babel src --extensions '.ts' --out-dir 'dist/esm' --source-maps",
+    "build:cjs": "cross-env BABEL_ENV=cjs babel src --extensions '.ts' --out-dir 'dist/cjs' --source-maps",
+    "build:bundles": "npx webpack",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:bundles && npm run declarations",
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
-    "build": "tsc -p tsconfig.json && npm run browserify",
-    "browserify": "tsc -p ./tsconfig-cjs.json && browserify ./dist/cjs/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js",
     "prettier": "prettier --write 'src/**/*' 'docs/**/*.md' 'example-dapp.html' 'example-wallet.html'",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
@@ -50,6 +58,12 @@
     "qrcode-generator": "1.4.4"
   },
   "devDependencies": {
+    "@babel/cli": "^7.12.13",
+    "@babel/core": "^7.12.13",
+    "@babel/plugin-proposal-class-properties": "^7.12.13",
+    "@babel/plugin-transform-runtime": "^7.12.15",
+    "@babel/preset-env": "^7.12.13",
+    "@babel/preset-typescript": "^7.12.13",
     "@types/chai-as-promised": "7.1.2",
     "@types/mocha": "7.0.2",
     "@types/node": "14.0.1",
@@ -62,6 +76,7 @@
     "browserify": "16.5.1",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
+    "cross-env": "^7.0.3",
     "eslint": "7.0.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-import": "2.20.2",
@@ -75,8 +90,10 @@
     "prettier": "2.0.5",
     "pretty-quick": "2.0.1",
     "resize-img": "2.0.0",
+    "rimraf": "^3.0.2",
     "sinon": "9.0.3",
     "sonar-scanner": "3.1.0",
+    "terser-webpack-plugin": "^4.2.3",
     "ts-node": "8.10.1",
     "tslint": "6.1.2",
     "typescript": "3.9.2",
@@ -86,7 +103,11 @@
     "vuepress": "1.5.0",
     "vuepress-bar": "0.3.1",
     "vuepress-plugin-code-copy": "1.0.6",
-    "vuepress-plugin-mermaidjs": "1.5.1"
+    "vuepress-plugin-mermaidjs": "1.5.1",
+    "webpack": "^4.44.2",
+    "webpack-assets-manifest": "^3.1.1",
+    "webpack-cli": "^3.3.12",
+    "webpack-subresource-integrity": "^1.4.1"
   },
   "files": [
     "/dist"

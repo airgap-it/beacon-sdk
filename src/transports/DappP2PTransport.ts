@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import { KeyPair } from 'libsodium-wrappers'
 import { Storage, StorageKey, P2PTransport, TransportStatus } from '..'
 import { ExtendedP2PPairingResponse } from '../types/P2PPairingResponse'
 import { Logger } from '../utils/Logger'
@@ -11,7 +11,7 @@ export class DappP2PTransport extends P2PTransport<
 > {
   constructor(
     name: string,
-    keyPair: sodium.KeyPair,
+    keyPair: KeyPair,
     storage: Storage,
     matrixNodes: string[],
     iconUrl?: string,

@@ -1,5 +1,19 @@
 import * as bs58check from 'bs58check'
-import * as sodium from 'libsodium-wrappers'
+import {
+  ready,
+  crypto_generichash,
+  crypto_sign_seed_keypair,
+  from_string,
+  KeyPair,
+  randombytes_buf,
+  crypto_secretbox_NONCEBYTES,
+  crypto_secretbox_easy,
+  crypto_secretbox_open_easy,
+  crypto_sign_ed25519_pk_to_curve25519,
+  crypto_sign_ed25519_sk_to_curve25519,
+  crypto_box_seal,
+  crypto_box_seal_open
+} from 'libsodium-wrappers'
 
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 
@@ -19,9 +33,9 @@ export function toHex(value: any): string {
  * @param key
  */
 export async function getHexHash(key: string | Buffer | Uint8Array): Promise<string> {
-  await sodium.ready
+  await ready
 
-  return toHex(sodium.crypto_generichash(32, key))
+  return toHex(crypto_generichash(32, key))
 }
 
 /**
@@ -29,10 +43,10 @@ export async function getHexHash(key: string | Buffer | Uint8Array): Promise<str
  *
  * @param seed
  */
-export async function getKeypairFromSeed(seed: string): Promise<sodium.KeyPair> {
-  await sodium.ready
+export async function getKeypairFromSeed(seed: string): Promise<KeyPair> {
+  await ready
 
-  return sodium.crypto_sign_seed_keypair(sodium.crypto_generichash(32, sodium.from_string(seed)))
+  return crypto_sign_seed_keypair(crypto_generichash(32, from_string(seed)))
 }
 
 /**
@@ -45,12 +59,12 @@ export async function encryptCryptoboxPayload(
   message: string,
   sharedKey: Uint8Array
 ): Promise<string> {
-  await sodium.ready
+  await ready
 
-  const nonce = Buffer.from(sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES))
+  const nonce = Buffer.from(randombytes_buf(crypto_secretbox_NONCEBYTES))
   const combinedPayload = Buffer.concat([
     nonce,
-    Buffer.from(sodium.crypto_secretbox_easy(Buffer.from(message, 'utf8'), nonce, sharedKey))
+    Buffer.from(crypto_secretbox_easy(Buffer.from(message, 'utf8'), nonce, sharedKey))
   ])
 
   return toHex(combinedPayload)
@@ -66,14 +80,12 @@ export async function decryptCryptoboxPayload(
   payload: Uint8Array,
   sharedKey: Uint8Array
 ): Promise<string> {
-  await sodium.ready
+  await ready
 
-  const nonce = payload.slice(0, sodium.crypto_secretbox_NONCEBYTES)
-  const ciphertext = payload.slice(sodium.crypto_secretbox_NONCEBYTES)
+  const nonce = payload.slice(0, crypto_secretbox_NONCEBYTES)
+  const ciphertext = payload.slice(crypto_secretbox_NONCEBYTES)
 
-  return Buffer.from(sodium.crypto_secretbox_open_easy(ciphertext, nonce, sharedKey)).toString(
-    'utf8'
-  )
+  return Buffer.from(crypto_secretbox_open_easy(ciphertext, nonce, sharedKey)).toString('utf8')
 }
 
 /**
@@ -86,10 +98,10 @@ export async function sealCryptobox(
   payload: string | Buffer,
   publicKey: Uint8Array
 ): Promise<string> {
-  await sodium.ready
+  await ready
 
-  const kxSelfPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(Buffer.from(publicKey)) // Secret bytes to scalar bytes
-  const encryptedMessage = sodium.crypto_box_seal(payload, kxSelfPublicKey)
+  const kxSelfPublicKey = crypto_sign_ed25519_pk_to_curve25519(Buffer.from(publicKey)) // Secret bytes to scalar bytes
+  const encryptedMessage = crypto_box_seal(payload, kxSelfPublicKey)
 
   return toHex(encryptedMessage)
 }
@@ -106,16 +118,12 @@ export async function openCryptobox(
   publicKey: Uint8Array,
   privateKey: Uint8Array
 ): Promise<string> {
-  await sodium.ready
+  await ready
 
-  const kxSelfPrivateKey = sodium.crypto_sign_ed25519_sk_to_curve25519(Buffer.from(privateKey)) // Secret bytes to scalar bytes
-  const kxSelfPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(Buffer.from(publicKey)) // Secret bytes to scalar bytes
+  const kxSelfPrivateKey = crypto_sign_ed25519_sk_to_curve25519(Buffer.from(privateKey)) // Secret bytes to scalar bytes
+  const kxSelfPublicKey = crypto_sign_ed25519_pk_to_curve25519(Buffer.from(publicKey)) // Secret bytes to scalar bytes
 
-  const decryptedMessage = sodium.crypto_box_seal_open(
-    encryptedPayload,
-    kxSelfPublicKey,
-    kxSelfPrivateKey
-  )
+  const decryptedMessage = crypto_box_seal_open(encryptedPayload, kxSelfPublicKey, kxSelfPrivateKey)
 
   return Buffer.from(decryptedMessage).toString()
 }
@@ -126,7 +134,7 @@ export async function openCryptobox(
  * @param publicKey
  */
 export async function getAddressFromPublicKey(publicKey: string): Promise<string> {
-  await sodium.ready
+  await ready
 
   const prefixes = {
     // tz1...
@@ -168,7 +176,7 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
     throw new Error(`invalid publicKey: ${publicKey}`)
   }
 
-  const payload: Uint8Array = sodium.crypto_generichash(20, Buffer.from(plainPublicKey, 'hex'))
+  const payload: Uint8Array = crypto_generichash(20, Buffer.from(plainPublicKey, 'hex'))
 
   return bs58check.encode(Buffer.concat([prefix, Buffer.from(payload)]))
 }

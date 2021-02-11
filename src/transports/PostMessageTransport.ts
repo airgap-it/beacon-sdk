@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import { KeyPair } from 'libsodium-wrappers'
 import { windowRef } from '../MockWindow'
 import { Logger } from '../utils/Logger'
 import { PeerManager } from '../managers/PeerManager'
@@ -29,7 +29,7 @@ export class PostMessageTransport<
 > extends Transport<T, K, PostMessageClient> {
   public readonly type: TransportType = TransportType.POST_MESSAGE
 
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage, storageKey: K) {
+  constructor(name: string, keyPair: KeyPair, storage: Storage, storageKey: K) {
     super(name, new PostMessageClient(name, keyPair), new PeerManager<K>(storage, storageKey))
   }
 

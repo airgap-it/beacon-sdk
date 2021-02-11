@@ -1,6 +1,5 @@
+import * as qrcode from 'qrcode-generator'
 import { Logger } from './Logger'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const qrcode = require('qrcode-generator')
 
 const logger = new Logger('QR')
 
@@ -11,10 +10,10 @@ const logger = new Logger('QR')
  * @param type How the QR code will be encoded
  */
 export const getQrData = (payload: string, type?: 'data' | 'svg' | 'ascii'): string => {
-  const typeNumber: number /* TypeNumber */ = 0
-  const errorCorrectionLevel: string /* ErrorCorrectionLevel */ = 'L'
+  const typeNumber: TypeNumber = 0
+  const errorCorrectionLevel: ErrorCorrectionLevel = 'L'
 
-  const qr = qrcode(typeNumber, errorCorrectionLevel)
+  const qr = qrcode.default(typeNumber, errorCorrectionLevel)
 
   if (payload.length > 500) {
     logger.warn(

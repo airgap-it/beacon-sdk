@@ -71,3 +71,5 @@ gl-dependency-scanning-report.json
 src/ui/alert/alert-templates.ts
 src/ui/toast/toast-templates.ts
 src/ui/alert/wallet-lists.ts
+
+manifest.json

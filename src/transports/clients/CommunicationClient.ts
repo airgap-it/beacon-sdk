@@ -1,4 +1,11 @@
-import * as sodium from 'libsodium-wrappers'
+import {
+  KeyPair,
+  CryptoKX,
+  crypto_sign_ed25519_sk_to_curve25519,
+  crypto_sign_ed25519_pk_to_curve25519,
+  crypto_kx_server_session_keys,
+  crypto_kx_client_session_keys
+} from 'libsodium-wrappers'
 import { P2PPairingRequest } from '../..'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
@@ -6,7 +13,7 @@ import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairi
 import { toHex, getHexHash, sealCryptobox } from '../../utils/crypto'
 
 export abstract class CommunicationClient {
-  constructor(protected readonly keyPair: sodium.KeyPair) {}
+  constructor(protected readonly keyPair: KeyPair) {}
 
   /**
    * Get the public key
@@ -33,13 +40,11 @@ export abstract class CommunicationClient {
     selfPrivateKey: Uint8Array
   ): Promise<[Uint8Array, Uint8Array, Uint8Array]> {
     // TODO: Don't calculate it every time?
-    const kxSelfPrivateKey = sodium.crypto_sign_ed25519_sk_to_curve25519(
-      Buffer.from(selfPrivateKey)
-    ) // Secret bytes to scalar bytes
-    const kxSelfPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(
+    const kxSelfPrivateKey = crypto_sign_ed25519_sk_to_curve25519(Buffer.from(selfPrivateKey)) // Secret bytes to scalar bytes
+    const kxSelfPublicKey = crypto_sign_ed25519_pk_to_curve25519(
       Buffer.from(selfPrivateKey).slice(32, 64)
     ) // Secret bytes to scalar bytes
-    const kxOtherPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(
+    const kxOtherPublicKey = crypto_sign_ed25519_pk_to_curve25519(
       Buffer.from(otherPublicKey, 'hex')
     ) // Secret bytes to scalar bytes
 
@@ -59,10 +64,10 @@ export abstract class CommunicationClient {
   protected async createCryptoBoxServer(
     otherPublicKey: string,
     selfPrivateKey: Uint8Array
-  ): Promise<sodium.CryptoKX> {
+  ): Promise<CryptoKX> {
     const keys = await this.createCryptoBox(otherPublicKey, selfPrivateKey)
 
-    return sodium.crypto_kx_server_session_keys(...keys)
+    return crypto_kx_server_session_keys(...keys)
   }
 
   /**
@@ -74,10 +79,10 @@ export abstract class CommunicationClient {
   protected async createCryptoBoxClient(
     otherPublicKey: string,
     selfPrivateKey: Uint8Array
-  ): Promise<sodium.CryptoKX> {
+  ): Promise<CryptoKX> {
     const keys = await this.createCryptoBox(otherPublicKey, selfPrivateKey)
 
-    return sodium.crypto_kx_client_session_keys(...keys)
+    return crypto_kx_client_session_keys(...keys)
   }
 
   /**

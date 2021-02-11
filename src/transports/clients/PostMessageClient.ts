@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import { crypto_secretbox_NONCEBYTES, crypto_secretbox_MACBYTES } from 'libsodium-wrappers'
 import { windowRef } from '../../MockWindow'
 import {
   ExtensionMessage,
@@ -88,10 +88,7 @@ export class PostMessageClient extends MessageBasedClient {
       ) {
         const payload = Buffer.from(data.payload, 'hex')
 
-        if (
-          payload.length >=
-          sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
-        ) {
+        if (payload.length >= crypto_secretbox_NONCEBYTES + crypto_secretbox_MACBYTES) {
           try {
             const pairingResponse: PostMessagePairingResponse = JSON.parse(
               await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)

@@ -6,7 +6,9 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "declaration": true,
-    "outDir": "./dist/esm",
+    "emitDeclarationOnly": true,
+    "declarationMap": true,
+    "outDir": "dist/types",
     "typeRoots": ["./node_modules/@types", "./src/typings"],
     "sourceMap": true,
     /* Strict Type-Checking Options */
@@ -24,5 +26,5 @@
     "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
     "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"] // TODO: reference only index file?
 }

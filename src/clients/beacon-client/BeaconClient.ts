@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import { KeyPair } from 'libsodium-wrappers'
 import { ExposedPromise } from '../../utils/exposed-promise'
 import { generateGUID } from '../../utils/generate-uuid'
 import { getKeypairFromSeed, toHex } from '../../utils/crypto'
@@ -43,8 +43,8 @@ export abstract class BeaconClient {
   /**
    * The local keypair that is used for the communication encryption
    */
-  protected _keyPair: ExposedPromise<sodium.KeyPair> = new ExposedPromise()
-  protected get keyPair(): Promise<sodium.KeyPair> {
+  protected _keyPair: ExposedPromise<KeyPair> = new ExposedPromise()
+  protected get keyPair(): Promise<KeyPair> {
     return this._keyPair.promise
   }
 
