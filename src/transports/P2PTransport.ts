@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import { KeyPair } from 'libsodium-wrappers'
 import { Logger } from '../utils/Logger'
 import { ConnectionContext } from '../types/ConnectionContext'
 import {
@@ -24,7 +24,7 @@ export class P2PTransport<
 
   constructor(
     name: string,
-    keyPair: sodium.KeyPair,
+    keyPair: KeyPair,
     storage: Storage,
     matrixNodes: string[],
     storageKey: K,

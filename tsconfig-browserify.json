@@ -1,7 +1,0 @@
-{
-  "extends": "./tsconfig-cjs.json",
-  "compilerOptions": {
-    "esModuleInterop": false,
-    "outDir": "./dist/browserify"
-  }
-}

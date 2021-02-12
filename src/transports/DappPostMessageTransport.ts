@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import { KeyPair } from 'libsodium-wrappers'
 import { TransportStatus, StorageKey, PostMessageTransport, Storage } from '..'
 import { Logger } from '../utils/Logger'
 import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'
@@ -9,7 +9,7 @@ export class DappPostMessageTransport extends PostMessageTransport<
   ExtendedPostMessagePairingResponse,
   StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
 > {
-  constructor(name: string, keyPair: sodium.KeyPair, storage: Storage) {
+  constructor(name: string, keyPair: KeyPair, storage: Storage) {
     super(name, keyPair, storage, StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP)
   }
 
