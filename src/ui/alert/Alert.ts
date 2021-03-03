@@ -126,7 +126,11 @@ const closeAlert = (id: string): Promise<void> =>
 
       elm.className = elm.className.replace('fadeIn', 'fadeOut')
       window.setTimeout(() => {
-        document.body.removeChild(wrapper)
+        const parent = wrapper.parentNode
+        if (parent) {
+          parent.removeChild(wrapper)
+        }
+
         if (lastFocusedElement) {
           ;(lastFocusedElement as any).focus() // set focus back to last focussed element
         }
