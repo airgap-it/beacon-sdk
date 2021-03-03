@@ -118,7 +118,10 @@ const closeToast = (): Promise<void> =>
 
       elm.className = elm.className.replace('fadeIn', 'fadeOut')
       window.setTimeout(() => {
-        document.body.removeChild(wrapper)
+        const parent = wrapper.parentNode
+        if (parent) {
+          parent.removeChild(wrapper)
+        }
         resolve()
       }, animationDuration)
     } else {

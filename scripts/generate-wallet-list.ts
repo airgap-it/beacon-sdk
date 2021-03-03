@@ -6,11 +6,11 @@ import { ExtensionApp, WebApp, App, AppBase, DesktopApp } from '../src/ui/alert/
 export const extensionList: ExtensionApp[] = [
   {
     id: 'ookjlbkiijinhpmnjffcofjonbfbgaoc',
-    name: 'Thanos Wallet',
-    shortName: 'Thanos',
+    name: 'Temple Wallet',
+    shortName: 'Temple',
     color: '',
-    logo: 'extension-thanos.png',
-    link: 'https://thanoswallet.com/'
+    logo: 'extension-temple.png',
+    link: 'https://templewallet.com/'
   },
   {
     id: 'gpfndedineagiepkpinficbcbbgjoenn',
@@ -30,7 +30,8 @@ export const webList: WebApp[] = [
     logo: 'web-kukai.png',
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
-      [NetworkType.DELPHINET]: 'https://testnet.kukai.app'
+      [NetworkType.DELPHINET]: 'https://testnet.kukai.app',
+      [NetworkType.EDONET]: 'https://edonet.kukai.app'
     }
   }
 ]
