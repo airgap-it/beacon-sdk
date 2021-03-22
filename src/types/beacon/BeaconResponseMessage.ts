@@ -6,6 +6,9 @@ import {
 } from '../..'
 import { ErrorResponse } from './messages/ErrorResponse'
 
+/**
+ * @internalapi
+ */
 export type BeaconResponseMessage =
   | PermissionResponse
   | OperationResponse

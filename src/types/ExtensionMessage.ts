@@ -1,5 +1,8 @@
 import { ExtensionMessageTarget } from '..'
 
+/**
+ * @internalapi
+ */
 export interface ExtensionMessage<T, U = unknown> {
   target: ExtensionMessageTarget
   targetId?: string
@@ -7,6 +10,9 @@ export interface ExtensionMessage<T, U = unknown> {
   payload: T
 }
 
+/**
+ * @internalapi
+ */
 export interface EncryptedExtensionMessage<U = unknown> {
   target: ExtensionMessageTarget
   targetId?: string

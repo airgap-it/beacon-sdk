@@ -11,6 +11,9 @@ import { ExtendedP2PPairingResponse } from '../P2PPairingResponse'
 import { PostMessagePairingRequest } from '../PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from '../PostMessagePairingResponse'
 
+/**
+ * @internalapi
+ */
 export interface StorageKeyReturnType {
   [StorageKey.TRANSPORT_P2P_PEERS_DAPP]: P2PPairingRequest[]
   [StorageKey.TRANSPORT_P2P_PEERS_WALLET]: ExtendedP2PPairingResponse[]

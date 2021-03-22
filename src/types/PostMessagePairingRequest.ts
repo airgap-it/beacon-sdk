@@ -1,5 +1,8 @@
 import { PeerInfo } from './PeerInfo'
 
+/**
+ * @internalapi
+ */
 export interface PostMessagePairingRequest extends PeerInfo {
   id: string
   type: 'postmessage-pairing-request'
@@ -9,6 +12,9 @@ export interface PostMessagePairingRequest extends PeerInfo {
   appUrl?: string
 }
 
+/**
+ * @internalapi
+ */
 export type ExtendedPostMessagePairingRequest = PostMessagePairingRequest & {
   senderId: string
 }
