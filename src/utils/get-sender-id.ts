@@ -2,6 +2,8 @@ import * as sodium from 'libsodium-wrappers'
 import * as bs58check from 'bs58check'
 
 /**
+ * @internalapi
+ *
  * Generate a deterministic sender identifier based on a public key
  *
  * @param publicKey

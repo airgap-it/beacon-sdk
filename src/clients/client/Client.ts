@@ -25,6 +25,8 @@ import { ClientOptions } from './ClientOptions'
 const logger = new Logger('Client')
 
 /**
+ * @internalapi
+ *
  * This abstract class handles the a big part of the logic that is shared between the dapp and wallet client.
  * For example, it selects and manages the transport and accounts.
  */

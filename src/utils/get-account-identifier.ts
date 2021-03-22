@@ -3,6 +3,8 @@ import * as bs58check from 'bs58check'
 import { Network } from '..'
 
 /**
+ * @internalapi
+ *
  * Generate a deterministic account identifier based on an address and a network
  *
  * @param address

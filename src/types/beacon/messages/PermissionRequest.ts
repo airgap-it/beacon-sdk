@@ -6,6 +6,9 @@ import {
   Network
 } from '../../..'
 
+/**
+ * @category Message
+ */
 export interface PermissionRequest extends BeaconBaseMessage {
   type: BeaconMessageType.PermissionRequest
   appMetadata: AppMetadata // Some additional information about the DApp

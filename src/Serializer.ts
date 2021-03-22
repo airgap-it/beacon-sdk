@@ -1,6 +1,8 @@
 import * as bs58check from 'bs58check'
 
 /**
+ * @internalapi
+ *
  * The Serializer is used to serialize / deserialize JSON objects and encode them with bs58check
  */
 export class Serializer {

@@ -74,8 +74,12 @@ import { DAppClientOptions } from './DAppClientOptions'
 const logger = new Logger('DAppClient')
 
 /**
+ * @publicapi
+ *
  * The DAppClient has to be used in decentralized applications. It handles all the logic related to connecting to beacon-compatible
  * wallets and sending requests.
+ *
+ * @category DApp
  */
 export class DAppClient extends Client {
   /**

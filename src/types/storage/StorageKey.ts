@@ -1,3 +1,6 @@
+/**
+ * @internalapi
+ */
 export enum StorageKey {
   TRANSPORT_P2P_PEERS_DAPP = 'beacon:communication-peers-dapp',
   TRANSPORT_P2P_PEERS_WALLET = 'beacon:communication-peers-wallet',

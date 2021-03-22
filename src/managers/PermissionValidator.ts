@@ -3,6 +3,8 @@ import { PermissionEntity } from '../types/PermissionEntity'
 import { getAccountIdentifier } from '../utils/get-account-identifier'
 
 /**
+ * @internalapi
+ *
  * The PermissionValidator is used to check if permissions for a certain message type have been given
  */
 export class PermissionValidator {

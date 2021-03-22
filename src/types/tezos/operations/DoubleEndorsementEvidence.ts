@@ -7,10 +7,14 @@ export interface InlinedEndorsement {
 }
 
 export interface InlinedEndorsementContents {
-  kind: 'endorsement'
+  kind: TezosOperationType.ENDORSEMENT
   level: string
 }
 
+/**
+ * @internalapi
+ * @category Tezos
+ */
 export interface TezosDoubleEndorsementEvidenceOperation extends TezosBaseOperation {
   kind: TezosOperationType.DOUBLE_ENDORSEMENT_EVIDENCE
   op1: InlinedEndorsement

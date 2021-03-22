@@ -1,3 +1,6 @@
+/**
+ * @internalapi
+ */
 export enum ExtensionMessageTarget {
   BACKGROUND = 'toBackground',
   PAGE = 'toPage',

@@ -1,5 +1,8 @@
 import { BeaconBaseMessage, BeaconMessageType, SigningType } from '../../..'
 
+/**
+ * @category Message
+ */
 export interface SignPayloadRequest extends BeaconBaseMessage {
   type: BeaconMessageType.SignPayloadRequest
   signingType: SigningType // How the payload should be signed. If the wallet cannot handle this type, it has to fail and send back an error

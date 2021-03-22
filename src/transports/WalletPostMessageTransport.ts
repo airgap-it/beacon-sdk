@@ -4,6 +4,11 @@ import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 
 // const logger = new Logger('WalletPostMessageTransport')
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export class WalletPostMessageTransport extends PostMessageTransport<
   PostMessagePairingRequest,
   StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET

@@ -1,5 +1,8 @@
 import { BeaconError, BeaconErrorType } from '..'
 
+/**
+ * @category Error
+ */
 export class NoPrivateKeyBeaconError extends BeaconError {
   public name: string = 'NoPrivateKeyBeaconError'
   public title: string = 'Account Not Found'

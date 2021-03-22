@@ -21,6 +21,11 @@ const logger = new Logger('PostMessageTransport')
 
 let extensions: ExposedPromise<Extension[]> | undefined
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export class PostMessageTransport<
   T extends PostMessagePairingRequest | ExtendedPostMessagePairingResponse,
   K extends

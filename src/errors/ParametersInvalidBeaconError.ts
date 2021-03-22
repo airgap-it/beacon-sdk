@@ -1,5 +1,8 @@
 import { BeaconError, BeaconErrorType } from '..'
 
+/**
+ * @category Error
+ */
 export class ParametersInvalidBeaconError extends BeaconError {
   public name: string = 'ParametersInvalidBeaconError'
   public title: string = 'Parameters Invalid'

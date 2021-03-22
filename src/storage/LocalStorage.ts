@@ -1,6 +1,11 @@
 import { defaultValues } from '../types/storage/StorageKeyReturnDefaults'
 import { Storage, StorageKey, StorageKeyReturnType } from '..'
 
+/**
+ * @internalapi
+ *
+ * A storage that can be used in the browser
+ */
 export class LocalStorage implements Storage {
   constructor(private readonly prefix?: string) {}
   public static async isSupported(): Promise<boolean> {

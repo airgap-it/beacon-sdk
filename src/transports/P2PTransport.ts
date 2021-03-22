@@ -16,6 +16,11 @@ import { ExtendedP2PPairingResponse } from '../types/P2PPairingResponse'
 
 const logger = new Logger('P2PTransport')
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export class P2PTransport<
   T extends P2PPairingRequest | ExtendedP2PPairingResponse,
   K extends StorageKey.TRANSPORT_P2P_PEERS_DAPP | StorageKey.TRANSPORT_P2P_PEERS_WALLET

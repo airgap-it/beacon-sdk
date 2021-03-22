@@ -1,3 +1,7 @@
+/**
+ * @internalapi
+ * @category Tezos
+ */
 export type MichelsonPrimitives =
   | 'ADD'
   | 'IF_NONE'

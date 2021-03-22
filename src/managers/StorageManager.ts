@@ -11,6 +11,8 @@ function fixArrayType<T>(array: T): ArrayElem<T>[] {
 /* eslint-enable prefer-arrow/prefer-arrow-functions */
 
 /**
+ * @internalapi
+ *
  * The StorageManager provides CRUD functionality for specific entities and persists them to the provided storage.
  */
 export class StorageManager<

@@ -3,6 +3,11 @@ import { Storage, StorageKey, P2PTransport, P2PPairingRequest } from '..'
 
 // const logger = new Logger('DappP2PTransport')
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export class WalletP2PTransport extends P2PTransport<
   P2PPairingRequest,
   StorageKey.TRANSPORT_P2P_PEERS_WALLET

@@ -17,6 +17,11 @@ import { getSenderId } from '../../utils/get-sender-id'
 import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
 import { MessageBasedClient } from './MessageBasedClient'
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export class PostMessageClient extends MessageBasedClient {
   protected readonly activeListeners: Map<
     string,

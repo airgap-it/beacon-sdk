@@ -1,5 +1,9 @@
 import { MichelsonPrimitives } from '../..'
 
+/**
+ * @internalapi
+ * @category Tezos
+ */
 export type MichelineMichelsonV1Expression =
   | { int: string }
   | { string: string } // eslint-disable-line id-blacklist

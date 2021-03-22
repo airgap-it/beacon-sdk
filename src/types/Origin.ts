@@ -1,3 +1,6 @@
+/**
+ * @internalapi
+ */
 export enum Origin {
   WEBSITE = 'website',
   EXTENSION = 'extension',

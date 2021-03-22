@@ -39,7 +39,8 @@
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:deploy": "./deploy-docs.sh",
-    "check-version": "ts-node --project tsconfig-cjs.json scripts/check-sdk-version.ts"
+    "check-version": "ts-node --project tsconfig-cjs.json scripts/check-sdk-version.ts",
+    "typedoc": "typedoc src/index.ts --includeVersion --internal-aliases publicapi --external-aliases internalapi --logLevel Verbose --listInvalidSymbolLinks && ts-node --project tsconfig-cjs.json scripts/process-docs.ts"
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
@@ -81,6 +82,8 @@
     "sonar-scanner": "3.1.0",
     "ts-node": "8.10.1",
     "tslint": "6.1.2",
+    "typedoc": "^0.20.30",
+    "typedoc-plugin-internal-external": "^2.2.0",
     "typescript": "3.9.2",
     "uglify-js": "3.9.4",
     "vue": "^2.6.11",

@@ -7,6 +7,9 @@ import {
   Threshold
 } from '../../..'
 
+/**
+ * @category Message
+ */
 export interface PermissionResponse extends BeaconBaseMessage {
   type: BeaconMessageType.PermissionResponse
   appMetadata: AppMetadata // Some additional information about the Wallet
