@@ -31,19 +31,6 @@ The documentation can be found [here](https://docs.walletbeacon.io/).
 npm i --save @airgap/beacon-sdk
 ```
 
-## Upgrading from v1 to v2
-
-Beacon SDK v2 introduces some some breaking changes from a developer perspective, most of the changes are internal, specifically in the communication protocol between dApps and Extensions/Wallets. All major Wallets that support Beacon (tzip-10) have been updated to support both v1 and v2 DApps.
-
-We highly encourage developers to upgrade to v2. Besides stability improvements, the most notable new features are:
-
-- Support for multiple browser extensions (eg. Thanos and Spire)
-- Support for mobile, browser and desktop Wallets
-- Mobile support via Deeplinking
-- Secure and encrypted communication between DApp and Browser Extension
-
-[Changelog](https://docs.walletbeacon.io/CHANGELOG.html)
-
 ## Example DApp integration
 
 ```ts
