@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.2.2 (2021-03-03)
+
+#### Features
+
+- **temple**: Rename "Thanos" to "Temple"
+- **kukai**: Add edonet URL
+
+#### Fixes
+
+- **error**: Fix removing of dom element that would result in an error
+
 ## 2.2.1 (2021-02-08)
 
 #### Fixes
