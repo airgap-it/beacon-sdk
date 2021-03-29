@@ -31,7 +31,7 @@ jobs:
         run: |
           npm run typedoc
           cd docs
-          echo 'docs.walletbeacon.io' > CNAME
+          echo 'typedocs.walletbeacon.io' > CNAME
           git config --global user.email "support+actions@github.com"
           git config --global user.name "github-actions-bot"
           git init

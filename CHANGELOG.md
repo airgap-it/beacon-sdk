@@ -1,1 +1,1 @@
-https://docs.walletbeacon.io/CHANGELOG.html
+https://docs.walletbeacon.io/CHANGELOG

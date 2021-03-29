@@ -23,7 +23,7 @@ Besides this Typescript SDK, we also provide SDKs for native iOS and Android Wal
 
 ## Documentation
 
-The documentation can be found [here](https://docs.walletbeacon.io/).
+The documentation can be found [here](https://docs.walletbeacon.io/), technical documentation can be found [here](https://typedocs.walletbeacon.io/).
 
 ## Installation
 
