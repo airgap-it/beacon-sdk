@@ -1,5 +1,8 @@
 import { BeaconError, BeaconErrorType } from '..'
 
+/**
+ * @category Error
+ */
 export class TooManyOperationsBeaconError extends BeaconError {
   public name: string = 'TooManyOperationsBeaconError'
   public title: string = 'Too Many Operations'

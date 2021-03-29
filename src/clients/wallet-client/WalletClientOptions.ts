@@ -1,5 +1,8 @@
 import { Storage } from '../..'
 
+/**
+ * @category Wallet
+ */
 export interface WalletClientOptions {
   /**
    * Name of the application

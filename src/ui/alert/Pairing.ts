@@ -82,6 +82,10 @@ export interface PairingAlertInfo {
 
 export type StatusUpdateHandler = (walletType: WalletType, app?: PairingAlertWallet) => void
 
+/**
+ * @internalapi
+ *
+ */
 export class Pairing {
   public static async getPlatfrom(): Promise<Platform> {
     return isAndroid(window) ? Platform.ANDROID : isIOS(window) ? Platform.IOS : Platform.DESKTOP

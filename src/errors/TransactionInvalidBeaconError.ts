@@ -1,5 +1,8 @@
 import { BeaconError, BeaconErrorType } from '..'
 
+/**
+ * @category Error
+ */
 export class TransactionInvalidBeaconError extends BeaconError {
   public name: string = 'TransactionInvalidBeaconError'
   public title: string = 'Transaction Invalid'
@@ -12,7 +15,7 @@ export class TransactionInvalidBeaconError extends BeaconError {
     )}</pre>`
   }
 
-  constructor(public readonly data: any) {
+  constructor(public readonly data: unknown) {
     super(
       BeaconErrorType.TRANSACTION_INVALID_ERROR,
       `The transaction is invalid and the node did not accept it.`

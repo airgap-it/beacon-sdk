@@ -1,5 +1,8 @@
 import { BeaconError, BeaconErrorType } from '..'
 
+/**
+ * @category Error
+ */
 export class SignatureTypeNotSupportedBeaconError extends BeaconError {
   public name: string = 'SignatureTypeNotSupportedBeaconError'
   public title: string = 'Signature Type Not Supported'

@@ -1,7 +1,13 @@
 import { StorageKey, StorageKeyReturnType } from '../..'
 
+/**
+ * @internalapi
+ */
 export type StorageKeyReturnDefaults = { [key in StorageKey]: StorageKeyReturnType[key] }
 
+/**
+ * @internalapi
+ */
 export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.TRANSPORT_P2P_PEERS_DAPP]: [],
   [StorageKey.TRANSPORT_P2P_PEERS_WALLET]: [],

@@ -5,6 +5,11 @@ import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest
 import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
 import { toHex, getHexHash, sealCryptobox } from '../../utils/crypto'
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export abstract class CommunicationClient {
   constructor(protected readonly keyPair: sodium.KeyPair) {}
 

@@ -1,5 +1,8 @@
 import { PeerInfo } from './PeerInfo'
 
+/**
+ * @internalapi
+ */
 export interface P2PPairingResponse extends PeerInfo {
   id: string
   type: 'p2p-pairing-response'
@@ -10,6 +13,9 @@ export interface P2PPairingResponse extends PeerInfo {
   appUrl?: string
 }
 
+/**
+ * @internalapi
+ */
 export type ExtendedP2PPairingResponse = P2PPairingResponse & {
   senderId: string
 }

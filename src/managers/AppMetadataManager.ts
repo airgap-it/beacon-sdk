@@ -2,6 +2,8 @@ import { Storage, StorageKey, AppMetadata } from '..'
 import { StorageManager } from './StorageManager'
 
 /**
+ * @internalapi
+ *
  * The AppMetadataManager provides CRUD functionality for app-metadata entities and persists them to the provided storage.
  */
 export class AppMetadataManager {

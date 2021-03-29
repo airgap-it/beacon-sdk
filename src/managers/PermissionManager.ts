@@ -4,6 +4,8 @@ import { StorageManager } from './StorageManager'
 import { PermissionValidator } from './PermissionValidator'
 
 /**
+ * @internalapi
+ *
  * The PermissionManager provides CRUD functionality for permission entities and persists them to the provided storage.
  */
 export class PermissionManager {

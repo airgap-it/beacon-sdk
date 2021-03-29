@@ -1,5 +1,8 @@
 import { Storage } from '../..'
 
+/**
+ * @internalapi
+ */
 export interface BeaconClientOptions {
   /**
    * Name of the application

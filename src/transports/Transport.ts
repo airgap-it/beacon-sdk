@@ -7,6 +7,11 @@ import { CommunicationClient } from './clients/CommunicationClient'
 
 const logger = new Logger('Transport')
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export abstract class Transport<
   T extends PeerInfo = PeerInfo,
   K extends

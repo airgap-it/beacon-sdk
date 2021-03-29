@@ -2,6 +2,8 @@ import { Storage, StorageKey, StorageKeyReturnType } from '..'
 import { StorageManager, ArrayElem } from './StorageManager'
 
 /**
+ * @internalapi
+ *
  * The PeerManager provides CRUD functionality for peer entities and persists them to the provided storage.
  */
 export class PeerManager<

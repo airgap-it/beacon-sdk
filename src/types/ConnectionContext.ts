@@ -1,5 +1,8 @@
 import { Origin } from '..'
 
+/**
+ * @internalapi
+ */
 export interface ConnectionContext {
   origin: Origin
   id: string

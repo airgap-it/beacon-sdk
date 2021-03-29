@@ -22,6 +22,8 @@ interface IncomingRequestInterceptorOptions {
 }
 
 /**
+ * @internalapi
+ *
  * The IncomingRequestInterceptor is used in the WalletClient to intercept an incoming request and enrich it with data, like app metadata.
  */
 export class IncomingRequestInterceptor {

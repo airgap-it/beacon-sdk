@@ -3,6 +3,9 @@ import { BeaconEvent, BeaconEventType, BeaconEventHandlerFunction } from '../../
 import { ColorMode } from '../../types/ColorMode'
 import { BlockExplorer } from '../../utils/block-explorer'
 
+/**
+ * @category DApp
+ */
 export interface DAppClientOptions {
   /**
    * Name of the application

@@ -5,6 +5,11 @@ import { Logger } from '../utils/Logger'
 
 const logger = new Logger('DappP2PTransport')
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export class DappP2PTransport extends P2PTransport<
   ExtendedP2PPairingResponse,
   StorageKey.TRANSPORT_P2P_PEERS_DAPP

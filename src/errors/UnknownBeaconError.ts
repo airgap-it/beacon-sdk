@@ -1,5 +1,8 @@
 import { BeaconError, BeaconErrorType } from '..'
 
+/**
+ * @category Error
+ */
 export class UnknownBeaconError extends BeaconError {
   public name: string = 'UnknownBeaconError'
   public title: string = 'Error'

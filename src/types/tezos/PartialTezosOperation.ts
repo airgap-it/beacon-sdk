@@ -9,13 +9,37 @@ import { TezosRevealOperation } from './operations/Reveal'
 import { TezosSeedNonceRevelationOperation } from './operations/SeedNonceRevelation'
 import { TezosTransactionOperation } from './operations/Transaction'
 
-type omittedProperties = 'source' | 'fee' | 'counter' | 'gas_limit' | 'storage_limit'
+/**
+ * @publicapi
+ * @category Tezos
+ */
+export type omittedProperties = 'source' | 'fee' | 'counter' | 'gas_limit' | 'storage_limit'
 
+/**
+ * @internalapi
+ * @category Tezos
+ */
 export type PartialTezosDelegationOperation = Omit<TezosDelegationOperation, omittedProperties>
+/**
+ * @internalapi
+ * @category Tezos
+ */
 export type PartialTezosOriginationOperation = Omit<TezosOriginationOperation, omittedProperties>
+/**
+ * @internalapi
+ * @category Tezos
+ */
 export type PartialTezosRevealOperation = Omit<TezosRevealOperation, omittedProperties>
+/**
+ * @internalapi
+ * @category Tezos
+ */
 export type PartialTezosTransactionOperation = Omit<TezosTransactionOperation, omittedProperties>
 
+/**
+ * @publicapi
+ * @category Tezos
+ */
 export type PartialTezosOperation =
   | TezosActivateAccountOperation
   | TezosBallotOperation

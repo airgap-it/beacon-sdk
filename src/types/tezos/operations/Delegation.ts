@@ -1,5 +1,9 @@
 import { TezosBaseOperation, TezosOperationType } from '../../..'
 
+/**
+ * @internalapi
+ * @category Tezos
+ */
 export interface TezosDelegationOperation extends TezosBaseOperation {
   kind: TezosOperationType.DELEGATION
   source: string

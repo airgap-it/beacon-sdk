@@ -9,6 +9,8 @@ import { windowRef } from '../../MockWindow'
 import { BeaconClientOptions } from './BeaconClientOptions'
 
 /**
+ * @internalapi
+ *
  * The beacon client is an abstract client that handles everything that is shared between all other clients.
  * Specifically, it handles managing the beaconId and and the local keypair.
  */

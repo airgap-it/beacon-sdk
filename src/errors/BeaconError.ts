@@ -14,6 +14,9 @@ import {
   BroadcastBeaconError
 } from '..'
 
+/**
+ * @category Error
+ */
 export abstract class BeaconError implements Error {
   public name: string = 'BeaconError'
   public message: string
@@ -30,7 +33,7 @@ export abstract class BeaconError implements Error {
     this.description = message
   }
 
-  public static getError(errorType: BeaconErrorType, errorData: any): BeaconError {
+  public static getError(errorType: BeaconErrorType, errorData: unknown): BeaconError {
     switch (errorType) {
       case BeaconErrorType.BROADCAST_ERROR:
         return new BroadcastBeaconError()

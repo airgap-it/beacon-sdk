@@ -1,6 +1,11 @@
 import { defaultValues } from '../types/storage/StorageKeyReturnDefaults'
 import { Storage, StorageKey, StorageKeyReturnType } from '..'
 
+/**
+ * @internalapi
+ *
+ * A storage that can be used in chrome extensions
+ */
 export class ChromeStorage implements Storage {
   public static async isSupported(): Promise<boolean> {
     return (

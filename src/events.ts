@@ -484,6 +484,8 @@ export const defaultEventCallbacks: {
 }
 
 /**
+ * @internalapi
+ *
  * Handles beacon events
  */
 export class BeaconEventHandler {

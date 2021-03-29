@@ -3,6 +3,8 @@ import { StorageManager } from './StorageManager'
 import { PermissionValidator } from './PermissionValidator'
 
 /**
+ * @internalapi
+ *
  * The AccountManager provides CRUD functionality for account entities and persists them to the provided storage.
  */
 export class AccountManager {

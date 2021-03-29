@@ -30,8 +30,12 @@ import { Logger } from '../../utils/Logger'
 const logger = new Logger('WalletClient')
 
 /**
+ * @publicapi
+ *
  * The WalletClient has to be used in the wallet. It handles all the logic related to connecting to beacon-compatible
  * dapps and handling/responding to requests.
+ *
+ * @category Wallet
  */
 export class WalletClient extends Client {
   /**

@@ -36,6 +36,11 @@ const KNOWN_RELAY_SERVERS = [
   // "yadayada.cryptonomic-infra.tech"
 ]
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export class P2PCommunicationClient extends CommunicationClient {
   private readonly clients: MatrixClient[] = []
 

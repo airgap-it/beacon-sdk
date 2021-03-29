@@ -1,6 +1,9 @@
 import { Storage } from '../..'
 import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../../events'
 
+/**
+ * @internalapi
+ */
 export interface ClientOptions {
   /**
    * Name of the application

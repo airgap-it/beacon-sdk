@@ -1,5 +1,8 @@
 import { BeaconError, BeaconErrorType } from '..'
 
+/**
+ * @category Error
+ */
 export class NetworkNotSupportedBeaconError extends BeaconError {
   public name: string = 'NetworkNotSupportedBeaconError'
   public title: string = 'Network Error'

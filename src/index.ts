@@ -1,3 +1,7 @@
+/**
+ * General docs
+ * @module public
+ */
 import { P2PCommunicationClient } from './transports/clients/P2PCommunicationClient'
 import { AppMetadata } from './types/beacon/AppMetadata'
 import { PermissionRequest } from './types/beacon/messages/PermissionRequest'

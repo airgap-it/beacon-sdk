@@ -1,6 +1,6 @@
 name: Deploy Docs
 
-on: [workflow_dispatch]
+on: push
 
 jobs:
   deploy_github_pages:
@@ -29,9 +29,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run docs:build
-          cd docs/.vuepress/dist
-          echo 'docs.walletbeacon.io' > CNAME
+          npm run typedoc
+          cd docs
+          echo 'typedocs.walletbeacon.io' > CNAME
           git config --global user.email "support+actions@github.com"
           git config --global user.name "github-actions-bot"
           git init

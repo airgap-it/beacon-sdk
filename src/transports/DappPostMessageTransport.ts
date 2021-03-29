@@ -5,6 +5,11 @@ import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingR
 
 const logger = new Logger('DappPostMessageTransport')
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export class DappPostMessageTransport extends PostMessageTransport<
   ExtendedPostMessagePairingResponse,
   StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP

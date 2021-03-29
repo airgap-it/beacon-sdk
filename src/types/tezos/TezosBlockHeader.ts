@@ -1,3 +1,7 @@
+/**
+ * @internalapi
+ * @category Tezos
+ */
 export interface TezosBlockHeader {
   level: number
   proto: number

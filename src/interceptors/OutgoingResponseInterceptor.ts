@@ -33,6 +33,8 @@ interface OutgoingResponseInterceptorOptions {
 const logger = new Logger('OutgoingResponseInterceptor')
 
 /**
+ * @internalapi
+ *
  * The OutgoingResponseInterceptor is used in the WalletClient to intercept an outgoing response and enrich it with data.
  */
 export class OutgoingResponseInterceptor {

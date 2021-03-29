@@ -5,7 +5,7 @@ import {
   PermissionResponseOutput,
   NetworkType,
   Network
-} from '..' // Replace '..' with '@airgap/beacon-sdk'
+} from '@airgap/beacon-sdk'
 
 class TzStatsBlockExplorer extends BlockExplorer {
   constructor(

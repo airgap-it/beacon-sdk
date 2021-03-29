@@ -2,6 +2,8 @@ import { StorageKey } from '../types/storage/StorageKey'
 import { StorageKeyReturnType } from '../types/storage/StorageKeyReturnType'
 
 /**
+ * @internalapi
+ *
  * The storage used in the SDK
  */
 export abstract class Storage {

@@ -1,5 +1,8 @@
 import { BeaconError, BeaconErrorType } from '..'
 
+/**
+ * @category Error
+ */
 export class NotGrantedBeaconError extends BeaconError {
   public name: string = 'NotGrantedBeaconError'
   public title: string = 'Permission Not Granted'

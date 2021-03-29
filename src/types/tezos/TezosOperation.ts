@@ -11,6 +11,10 @@ import {
   TezosTransactionOperation
 } from '../..'
 
+/**
+ * @internalapi
+ * @category Tezos
+ */
 export type TezosOperation =
   | TezosActivateAccountOperation
   | TezosBallotOperation

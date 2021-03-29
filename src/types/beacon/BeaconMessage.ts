@@ -12,6 +12,9 @@ import {
   ErrorResponse
 } from '../..'
 
+/**
+ * @internalapi
+ */
 export type BeaconMessage =
   | PermissionRequest
   | PermissionResponse

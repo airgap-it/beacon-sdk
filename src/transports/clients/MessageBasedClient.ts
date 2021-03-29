@@ -6,6 +6,11 @@ import { decryptCryptoboxPayload, encryptCryptoboxPayload } from '../../utils/cr
 import { generateGUID } from '../../utils/generate-uuid'
 import { CommunicationClient } from './CommunicationClient'
 
+/**
+ * @internalapi
+ *
+ *
+ */
 export abstract class MessageBasedClient extends CommunicationClient {
   /**
    * The listeners that will be notified of new messages

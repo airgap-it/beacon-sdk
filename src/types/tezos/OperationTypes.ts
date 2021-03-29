@@ -1,3 +1,7 @@
+/**
+ * @publicapi
+ * @category Tezos
+ */
 export enum TezosOperationType {
   ENDORSEMENT = 'endorsement',
   SEED_NONCE_REVELATION = 'seed_nonce_revelation',

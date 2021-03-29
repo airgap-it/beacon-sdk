@@ -36,10 +36,8 @@
     "audit-ci": "npm audit --json > audit.json && node scripts/dependency-scanning.js",
     "sonar-scanner": "sonar-scanner",
     "prepare": "npm run build",
-    "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs",
-    "docs:deploy": "./deploy-docs.sh",
-    "check-version": "ts-node --project tsconfig-cjs.json scripts/check-sdk-version.ts"
+    "check-version": "ts-node --project tsconfig-cjs.json scripts/check-sdk-version.ts",
+    "typedoc": "typedoc src/index.ts --includeVersion --internal-aliases publicapi --external-aliases internalapi --logLevel Verbose --listInvalidSymbolLinks && ts-node --project tsconfig-cjs.json scripts/process-docs.ts"
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
@@ -59,7 +57,6 @@
     "@typescript-eslint/eslint-plugin": "2.33.0",
     "@typescript-eslint/eslint-plugin-tslint": "2.33.0",
     "@typescript-eslint/parser": "2.33.0",
-    "@vuepress/plugin-back-to-top": "1.5.0",
     "axios-mock-adapter": "1.18.2",
     "browserify": "16.5.1",
     "chai": "4.2.0",
@@ -81,14 +78,10 @@
     "sonar-scanner": "3.1.0",
     "ts-node": "8.10.1",
     "tslint": "6.1.2",
+    "typedoc": "^0.20.30",
+    "typedoc-plugin-internal-external": "^2.2.0",
     "typescript": "3.9.2",
-    "uglify-js": "3.9.4",
-    "vue": "^2.6.11",
-    "vue-server-renderer": "^2.6.11",
-    "vuepress": "1.5.0",
-    "vuepress-bar": "0.3.1",
-    "vuepress-plugin-code-copy": "1.0.6",
-    "vuepress-plugin-mermaidjs": "1.5.1"
+    "uglify-js": "3.9.4"
   },
   "files": [
     "/dist"
