@@ -35,13 +35,19 @@
 
 .beacon-modal__wrapper {
   position: relative;
-  transform: translateY(-50%);
-  top: 50%;
+  top: 0;
   display: inline-block;
   z-index: 2147483000;
   max-width: 500px;
   width: 80%;
   padding: 24px;
+}
+
+@media (min-height: 700px) {
+  .beacon-modal__wrapper {
+    top: 50%;
+    transform: translateY(-50%);
+  }
 }
 
 .theme__light .beacon-modal__base,
@@ -140,6 +146,7 @@ button {
 
 .beacon-alert__base {
   position: fixed;
+  overflow-y: scroll;
   top: 0;
   left: 0;
   width: 100%;
@@ -147,6 +154,12 @@ button {
   z-index: 2147482999;
   background-color: rgb(17 17 17 / 0.84);
   text-align: center;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.beacon-alert__base::-webkit-scrollbar {
+  display: none;
 }
 
 .beacon-alert__title {
