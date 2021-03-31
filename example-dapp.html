@@ -18,6 +18,7 @@
       div {
         background-color: red;
       }
+
       span {
         background-color: orange;
       }
@@ -96,8 +97,10 @@
     <script>
       // Initiate DAppClient
       const client = new beacon.DAppClient({
-        name: 'Example DApp' // Name of the DApp,
+        name: 'Example DApp', // Name of the DApp,
         // preferredNetwork: beacon.NetworkType.DELPHINET
+        // matrixNodes: ['matrix.papers.tech']
+        matrixNodes: ['beacon.tztip.me']
       })
 
       // Display the active account in the UI

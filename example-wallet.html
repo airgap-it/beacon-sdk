@@ -31,7 +31,9 @@
     <script>
       // Initiate DAppClient
       const client = new beacon.WalletClient({
-        name: 'Example Wallet' // Name of the DApp
+        name: 'Example Wallet', // Name of the DApp
+        matrixNodes: ['matrix.papers.tech']
+        // matrixNodes: ['beacon.tztip.me']
       })
 
       // Add event listener to the button
@@ -74,6 +76,13 @@
               client.respond(response)
             } else {
               console.error('Only permission requests are supported in this demo')
+
+              const response = {
+                type: beacon.BeaconMessageType.Error,
+                id: message.id,
+                errorType: beacon.BeaconErrorType.ABORTED_ERROR
+              }
+              client.respond(response)
             }
           })
           .catch((error) => console.error('connect error', error))
