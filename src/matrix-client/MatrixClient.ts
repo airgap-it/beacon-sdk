@@ -207,7 +207,7 @@ export class MatrixClient {
         (roomsOrIds as any[]).map((roomOrId) => {
           const room = this.store.getRoom(roomOrId)
 
-          return this.roomService.joinRoom(accessToken, room).catch((error) => console.warn(error))
+          return this.roomService.joinRoom(accessToken, room)
         })
       )
     )

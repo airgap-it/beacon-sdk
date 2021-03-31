@@ -118,6 +118,25 @@ export class P2PCommunicationClient extends CommunicationClient {
     }, Promise.resolve(this.KNOWN_RELAY_SERVERS[0]))
   }
 
+  public async tryJoinRooms(
+    client: MatrixClient,
+    roomId: string,
+    retry: number = 1
+  ): Promise<void> {
+    try {
+      await client.joinRooms(roomId)
+    } catch (error) {
+      if (retry <= 5 && error.errcode === 'M_FORBIDDEN') {
+        logger.log(`Retrying to join...`, error)
+        setTimeout(async () => {
+          await this.tryJoinRooms(client, roomId, retry + 1)
+        }, 200)
+      } else {
+        logger.log(`Failed to join after ${retry} tries.`, error)
+      }
+    }
+  }
+
   public async start(): Promise<void> {
     logger.log('start', 'starting client')
     await sodium.ready
@@ -141,7 +160,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       })
 
       client.subscribe(MatrixClientEventType.INVITE, async (event) => {
-        await client.joinRooms(event.content.roomId)
+        await this.tryJoinRooms(client, event.content.roomId)
       })
 
       logger.log(
@@ -248,10 +267,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     for (let i = 0; i < this.replicationCount; i++) {
       const recipientHash: string = await getHexHash(Buffer.from(peer.publicKey, 'hex'))
-      const recipient = recipientString(
-        recipientHash,
-        await this.getRelayServer(recipientHash, i.toString())
-      )
+      const recipient = recipientString(recipientHash, peer.relayServer)
 
       for (const client of this.clients) {
         const roomId = await this.getRelevantRoom(client, recipient)
@@ -330,6 +346,29 @@ export class P2PCommunicationClient extends CommunicationClient {
     }
   }
 
+  public async waitForJoin(client: MatrixClient, roomId: string, retry: number = 0): Promise<void> {
+    // Rooms are updated as new events come in
+    // TODO: Improve to listen to "JOIN" event
+    const room = client.getRoomById(roomId)
+    logger.log(`waitForJoin`, `Currently ${room.members.length} members`)
+    if (room.members.length >= 2) {
+      return
+    } else {
+      if (retry <= 200) {
+        // On mobile, due to app switching, we have to wait for a long time
+        logger.log(`Waiting for join... Try: ${retry}`)
+
+        return new Promise((resolve) => {
+          setTimeout(async () => {
+            resolve(this.waitForJoin(client, roomId, retry + 1))
+          }, 100 * (retry > 50 ? 10 : 1)) // After the initial 5 seconds, retry only once per second
+        })
+      } else {
+        new Error(`Noone joined after ${retry} tries.`)
+      }
+    }
+  }
+
   public async sendPairingResponse(pairingRequest: P2PPairingRequest): Promise<void> {
     logger.log(`sendPairingResponse`)
     const recipientHash = await getHexHash(Buffer.from(pairingRequest.publicKey, 'hex'))
@@ -338,6 +377,9 @@ export class P2PCommunicationClient extends CommunicationClient {
     logger.log(`sendPairingResponse`, `currently there are ${this.clients.length} clients open`)
     for (const client of this.clients) {
       const roomId = await this.getRelevantRoom(client, recipient)
+
+      // Before we send the message, we have to wait for the join to be accepted.
+      await this.waitForJoin(client, roomId)
 
       // TODO: remove v1 backwards-compatibility
       const message: string =
@@ -410,6 +452,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     recipient: string
   ): Promise<MatrixRoom> {
     const joinedRooms = client.joinedRooms
+    logger.log('checking joined rooms', joinedRooms, recipient)
     const relevantRooms = joinedRooms.filter((roomElement: MatrixRoom) =>
       roomElement.members.some((member: string) => member === recipient)
     )
@@ -420,6 +463,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
       const roomId = await client.createTrustedPrivateRoom(recipient)
       room = client.getRoomById(roomId)
+      logger.log(`getRelevantJoinedRoom`, room)
     } else {
       room = relevantRooms[0]
       logger.log(`getRelevantJoinedRoom`, `channel already open, reusing room ${room.id}`)

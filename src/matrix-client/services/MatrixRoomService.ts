@@ -40,7 +40,11 @@ export class MatrixRoomService {
       return Promise.reject(`User is not a member of room ${room.id}.`)
     }
 
-    return this.httpClient.post(`/rooms/${room.id}/invite`, { user_id: user }, { accessToken })
+    return this.httpClient.post(
+      `/rooms/${encodeURIComponent(room.id)}/invite`,
+      { user_id: user },
+      { accessToken }
+    )
   }
 
   /**
@@ -54,7 +58,7 @@ export class MatrixRoomService {
       return Promise.resolve({ room_id: room.id })
     }
 
-    return this.httpClient.post(`/rooms/${room.id}/join`, {}, { accessToken })
+    return this.httpClient.post(`/rooms/${encodeURIComponent(room.id)}/join`, {}, { accessToken })
   }
 
   /**
