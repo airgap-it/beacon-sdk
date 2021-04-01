@@ -5,8 +5,8 @@ import { isAndroid, isIOS } from '../../utils/platform'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
 
 const defaultExtensions = [
-  'ookjlbkiijinhpmnjffcofjonbfbgaoc', // Thanos
-  'gpfndedineagiepkpinficbcbbgjoenn' // Beacon
+  'ookjlbkiijinhpmnjffcofjonbfbgaoc', // Temple
+  'gpfndedineagiepkpinficbcbbgjoenn' // Spire
 ]
 
 export enum Platform {

@@ -10,6 +10,7 @@ import { MatrixState } from '../../matrix-client/MatrixClientStore'
 import { ExtendedP2PPairingResponse } from '../P2PPairingResponse'
 import { PostMessagePairingRequest } from '../PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from '../PostMessagePairingResponse'
+import { PushToken } from '../PushToken'
 
 /**
  * @internalapi
@@ -22,6 +23,7 @@ export interface StorageKeyReturnType {
   [StorageKey.ACCOUNTS]: AccountInfo[]
   [StorageKey.ACTIVE_ACCOUNT]: AccountIdentifier | undefined
   [StorageKey.ACTIVE_PEER]: string | undefined
+  [StorageKey.PUSH_TOKENS]: PushToken[]
   [StorageKey.BEACON_SDK_SECRET_SEED]: string | undefined
   [StorageKey.APP_METADATA_LIST]: AppMetadata[]
   [StorageKey.PERMISSION_LIST]: PermissionInfo[]

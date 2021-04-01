@@ -9,6 +9,7 @@ export enum StorageKey {
   ACCOUNTS = 'beacon:accounts',
   ACTIVE_ACCOUNT = 'beacon:active-account',
   ACTIVE_PEER = 'beacon:active-peer',
+  PUSH_TOKENS = 'beacon:push-tokens',
   BEACON_SDK_SECRET_SEED = 'beacon:sdk-secret-seed',
   APP_METADATA_LIST = 'beacon:app-metadata-list',
   PERMISSION_LIST = 'beacon:permissions',

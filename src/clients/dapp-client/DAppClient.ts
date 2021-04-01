@@ -1,9 +1,12 @@
+import * as bs58check from 'bs58check'
+import * as sodium from 'libsodium-wrappers'
+import axios from 'axios'
 import { ExposedPromise } from '../../utils/exposed-promise'
 
 import { Logger } from '../../utils/Logger'
 import { generateGUID } from '../../utils/generate-uuid'
 import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType, WalletInfo } from '../../events'
-import { BEACON_VERSION } from '../../constants'
+import { BEACON_VERSION, NOTIFICATION_ORACLE_URL } from '../../constants'
 import { getAddressFromPublicKey } from '../../utils/crypto'
 import { ConnectionContext } from '../../types/ConnectionContext'
 import {
@@ -72,6 +75,51 @@ import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wal
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
+
+const toBuffer = async (message: string): Promise<Uint8Array> => {
+  if (message.length % 2 !== 0) {
+    return sodium.from_string(message)
+  }
+
+  let adjustedMessage = message
+
+  if (message.startsWith('0x')) {
+    adjustedMessage = message.slice(2)
+  }
+
+  const buffer = Buffer.from(adjustedMessage, 'hex')
+
+  if (buffer.length === adjustedMessage.length / 2) {
+    return buffer
+  }
+
+  return sodium.from_string(message)
+}
+
+const coinlibhash = async (message: Uint8Array, size: number = 32): Promise<Uint8Array> => {
+  await sodium.ready
+
+  return sodium.crypto_generichash(size, message)
+}
+
+export const signMessage = async (
+  message: string,
+  keypair: { privateKey: Buffer }
+): Promise<string> => {
+  await sodium.ready
+
+  const bufferMessage: Uint8Array = await toBuffer(message)
+
+  const edsigPrefix: Uint8Array = new Uint8Array([9, 245, 205, 134, 18])
+
+  const hash: Uint8Array = await coinlibhash(bufferMessage)
+  const rawSignature: Uint8Array = sodium.crypto_sign_detached(hash, keypair.privateKey)
+  const signature: string = bs58check.encode(
+    Buffer.concat([Buffer.from(edsigPrefix), Buffer.from(rawSignature)])
+  )
+
+  return signature
+}
 
 /**
  * @publicapi
@@ -223,7 +271,7 @@ export class DAppClient extends Client {
             }
           }
         } else {
-          logger.error('handleResponse', 'no request found for id ', message.id)
+          logger.error('handleResponse', 'no request found for id ', message.id, message)
         }
       }
     }
@@ -344,6 +392,7 @@ export class DAppClient extends Client {
                   postmessagePeerInfo: await postMessageTransport.getPairingRequestInfo(),
                   preferredNetwork: this.preferredNetwork,
                   abortedHandler: () => {
+                    console.log('ABORTED')
                     this._initPromise = undefined
                   }
                 })
@@ -541,6 +590,59 @@ export class DAppClient extends Client {
     }
   }
 
+  public async sendNotificationWithAccessToken(
+    title: string,
+    message: string,
+    payload: string
+  ): Promise<string> {
+    const activeAccount = await this.getActiveAccount()
+
+    if (
+      !activeAccount ||
+      (activeAccount &&
+        !activeAccount.scopes.includes(PermissionScope.NOTIFIACTION) &&
+        !activeAccount.notification)
+    ) {
+      throw new Error('notification permissions not given')
+    }
+
+    if (!activeAccount.notification?.token) {
+      throw new Error('No AccessToken')
+    }
+
+    const url = activeAccount.notification?.apiUrl
+
+    if (!url) {
+      throw new Error('No Push URL set')
+    }
+
+    return this.sendNotification({
+      url,
+      recipient: activeAccount.address,
+      title,
+      body: message,
+      payload,
+      accessToken: activeAccount.notification?.token,
+      isPublic: false
+    })
+  }
+
+  public async sendNotificationToAddress(
+    address: string,
+    title: string,
+    body: string,
+    payload: string
+  ): Promise<string> {
+    return this.sendNotification({
+      url: NOTIFICATION_ORACLE_URL,
+      recipient: address,
+      title,
+      body,
+      payload,
+      isPublic: true
+    })
+  }
+
   /**
    * Send a permission request to the DApp. This should be done as the first step. The wallet will respond
    * with an publicKey and permissions that were given. The account returned will be set as the "activeAccount"
@@ -584,7 +686,8 @@ export class DAppClient extends Client {
       network: message.network,
       scopes: message.scopes,
       threshold: message.threshold,
-      connectedAt: new Date().getTime()
+      connectedAt: new Date().getTime(),
+      notification: message.notification
     }
 
     await this.accountManager.addAccount(accountInfo)
@@ -1088,5 +1191,49 @@ export class DAppClient extends Client {
   ): void {
     logger.log('addOpenRequest', this.name, `adding request ${id} and waiting for answer`)
     this.openRequests.set(id, promise)
+  }
+
+  private async sendNotification(notification: {
+    url: string
+    recipient: string
+    title: string
+    body: string
+    payload: string
+    accessToken?: string
+    isPublic: boolean
+  }): Promise<string> {
+    const { url, recipient, title, body, payload, accessToken, isPublic } = notification
+    const timestamp = new Date().toISOString()
+
+    const keypair = await this.keyPair
+
+    const rawPublicKey = keypair.publicKey
+
+    const prefix = Buffer.from(new Uint8Array([13, 15, 37, 217]))
+
+    const publicKey = bs58check.encode(Buffer.concat([prefix, Buffer.from(rawPublicKey)]))
+
+    const constructedString = [recipient, title, body, timestamp, payload].join(':')
+
+    const signature = await signMessage(constructedString, {
+      privateKey: Buffer.from(keypair.privateKey)
+    })
+
+    const notificationResponse = await axios.post(`${url}/send`, {
+      recipient,
+      title,
+      body,
+      timestamp,
+      payload,
+      accessToken,
+      public: isPublic,
+      sender: {
+        name: this.name,
+        publicKey,
+        signature
+      }
+    })
+
+    return notificationResponse.data
   }
 }

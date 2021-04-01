@@ -1,3 +1,5 @@
+import axios from 'axios'
+import { PushToken } from 'src/types/PushToken'
 import {
   Serializer,
   Client,
@@ -11,7 +13,8 @@ import {
   PermissionInfo,
   TransportStatus,
   WalletP2PTransport,
-  DisconnectMessage
+  DisconnectMessage,
+  StorageKey
 } from '../..'
 import { PermissionManager } from '../../managers/PermissionManager'
 import { AppMetadataManager } from '../../managers/AppMetadataManager'
@@ -26,6 +29,8 @@ import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { ExposedPromise } from '../../utils/exposed-promise'
 import { ExtendedPeerInfo, PeerInfo } from '../../types/PeerInfo'
 import { Logger } from '../../utils/Logger'
+import { NOTIFICATION_ORACLE_URL } from '../../constants'
+import { signMessage } from '../dapp-client/DAppClient'
 
 const logger = new Logger('WalletClient')
 
@@ -122,6 +127,57 @@ export class WalletClient extends Client {
     }
 
     return this._connect()
+  }
+
+  public async registerPush(
+    backendUrl: string,
+    accountPublicKey: string,
+    oracleUrl: string = NOTIFICATION_ORACLE_URL
+  ): Promise<PushToken> {
+    const tokens = await this.storage.get(StorageKey.PUSH_TOKENS)
+    const token = tokens.find(
+      (el) => el.publicKey === accountPublicKey && el.backendUrl === backendUrl
+    )
+    if (token) {
+      return token
+    }
+
+    // Check if account is already registered
+    const challenge = (await axios.get(`${oracleUrl}/challenge`)).data
+
+    const keypair = await this.keyPair
+
+    const constructedString = [
+      challenge.id,
+      challenge.timestamp,
+      accountPublicKey,
+      backendUrl
+    ].join(':')
+
+    const signature = await signMessage(constructedString, {
+      privateKey: Buffer.from(keypair.privateKey)
+    })
+
+    const register = (
+      await axios.post(`${oracleUrl}/register`, {
+        name: this.name,
+        challenge,
+        accountPublicKey,
+        signature,
+        backendUrl
+      })
+    ).data
+
+    tokens.push({
+      publicKey: accountPublicKey,
+      backendUrl,
+      accessToken: register.accessToken,
+      managementToken: register.managementToken
+    })
+
+    await this.storage.set(StorageKey.PUSH_TOKENS, tokens)
+
+    return register
   }
 
   /**
