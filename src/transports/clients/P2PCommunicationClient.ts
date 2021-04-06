@@ -364,7 +364,7 @@ export class P2PCommunicationClient extends CommunicationClient {
           }, 100 * (retry > 50 ? 10 : 1)) // After the initial 5 seconds, retry only once per second
         })
       } else {
-        new Error(`Noone joined after ${retry} tries.`)
+        throw new Error(`No one joined after ${retry} tries.`)
       }
     }
   }
