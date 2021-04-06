@@ -48,6 +48,11 @@ const clientNotReadyError = (): never => {
 export class P2PCommunicationClient extends CommunicationClient {
   private client: MatrixClient | undefined
 
+  private initialEvent: MatrixClientEvent<MatrixClientEventType.MESSAGE> | undefined
+  private initialListener:
+    | ((event: MatrixClientEvent<MatrixClientEventType.MESSAGE>) => void)
+    | undefined
+
   private readonly KNOWN_RELAY_SERVERS: string[]
 
   private readonly activeListeners: Map<string, (event: MatrixClientEvent<any>) => void> = new Map()
@@ -160,6 +165,19 @@ export class P2PCommunicationClient extends CommunicationClient {
       storage: this.storage
     })
 
+    this.initialListener = async (
+      event: MatrixClientEvent<MatrixClientEventType.MESSAGE>
+    ): Promise<void> => {
+      if (this.initialEvent && this.initialEvent.timestamp && event && event.timestamp) {
+        if (this.initialEvent.timestamp < event.timestamp) {
+          this.initialEvent = event
+        }
+      } else {
+        this.initialEvent = event
+      }
+    }
+    this.client.subscribe(MatrixClientEventType.MESSAGE, this.initialListener)
+
     this.client.subscribe(MatrixClientEventType.INVITE, async (event) => {
       await this.tryJoinRooms(event.content.roomId)
     })
@@ -185,11 +203,9 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async stop(): Promise<void> {
-    if (!this.client) {
-      throw clientNotReadyError()
+    if (this.client) {
+      this.client.stop().catch((error) => logger.error(error))
     }
-
-    this.client.stop().catch((error) => logger.error(error))
   }
 
   public async listenForEncryptedMessage(
@@ -245,6 +261,24 @@ export class P2PCommunicationClient extends CommunicationClient {
     this.activeListeners.set(senderPublicKey, callbackFunction)
 
     this.client.subscribe(MatrixClientEventType.MESSAGE, callbackFunction)
+
+    const lastEvent = this.initialEvent
+    if (
+      lastEvent &&
+      lastEvent.timestamp &&
+      new Date().getTime() - lastEvent.timestamp < 5 * 60 * 1000
+    ) {
+      logger.log('listenForEncryptedMessage', 'Handling previous event')
+      await callbackFunction(lastEvent)
+    } else {
+      logger.log('listenForEncryptedMessage', 'No previous event found')
+    }
+
+    if (this.initialListener) {
+      this.client.unsubscribe(MatrixClientEventType.MESSAGE, this.initialListener)
+    }
+    this.initialListener = undefined
+    this.initialEvent = undefined
   }
 
   public async unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void> {
