@@ -140,6 +140,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
   public async start(): Promise<void> {
     logger.log('start', 'starting client')
+
     await sodium.ready
 
     const loginRawDigest = sodium.crypto_generichash(
@@ -148,41 +149,41 @@ export class P2PCommunicationClient extends CommunicationClient {
     )
     const rawSignature = sodium.crypto_sign_detached(loginRawDigest, this.keyPair.privateKey)
 
-    logger.log('start', `connecting to ${this.replicationCount} servers`)
+    logger.log('start', `connecting to server`)
 
-    for (let i = 0; i < this.replicationCount; i++) {
-      // TODO: Parallel
-      const client = MatrixClient.create({
-        baseUrl: `https://${await this.getRelayServer(
-          await this.getPublicKeyHash(),
-          i.toString()
-        )}`,
-        storage: this.storage
+    const client = MatrixClient.create({
+      baseUrl: `https://${await this.getRelayServer(await this.getPublicKeyHash(), '0')}`,
+      storage: this.storage
+    })
+    this.clients.push(client)
+
+    client.subscribe(MatrixClientEventType.INVITE, async (event) => {
+      await this.tryJoinRooms(client, event.content.roomId)
+    })
+
+    logger.log(
+      'start',
+      'login',
+      await this.getPublicKeyHash(),
+      'on',
+      await this.getRelayServer(await this.getPublicKeyHash(), '0')
+    )
+
+    await client
+      .start({
+        id: await this.getPublicKeyHash(),
+        password: `ed:${toHex(rawSignature)}:${await this.getPublicKey()}`,
+        deviceId: toHex(this.keyPair.publicKey)
       })
+      .catch((error) => logger.log(error))
 
-      client.subscribe(MatrixClientEventType.INVITE, async (event) => {
-        await this.tryJoinRooms(client, event.content.roomId)
-      })
+    const invitedRooms = await client.invitedRooms
+    await client.joinRooms(...invitedRooms).catch((error) => logger.log(error))
+  }
 
-      logger.log(
-        'start',
-        'login',
-        await this.getPublicKeyHash(),
-        'on',
-        await this.getRelayServer(await this.getPublicKeyHash(), i.toString())
-      )
-
-      await client
-        .start({
-          id: await this.getPublicKeyHash(),
-          password: `ed:${toHex(rawSignature)}:${await this.getPublicKey()}`,
-          deviceId: toHex(this.keyPair.publicKey)
-        })
-        .catch((error) => logger.log(error))
-
-      await client.joinRooms(...client.invitedRooms).catch((error) => logger.log(error))
-
-      this.clients.push(client)
+  public async stop(): Promise<void> {
+    for (const client of this.clients) {
+      client.stop().catch((error) => logger.error(error))
     }
   }
 
@@ -350,7 +351,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   public async waitForJoin(client: MatrixClient, roomId: string, retry: number = 0): Promise<void> {
     // Rooms are updated as new events come in. `client.getRoomById` only accesses memory, it does not do any network requests.
     // TODO: Improve to listen to "JOIN" event
-    const room = client.getRoomById(roomId)
+    const room = await client.getRoomById(roomId)
     logger.log(`waitForJoin`, `Currently ${room.members.length} members, we need at least 2`)
     if (room.members.length >= 2) {
       return
@@ -452,7 +453,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     client: MatrixClient,
     recipient: string
   ): Promise<MatrixRoom> {
-    const joinedRooms = client.joinedRooms
+    const joinedRooms = await client.joinedRooms
     logger.log('checking joined rooms', joinedRooms, recipient)
     const relevantRooms = joinedRooms.filter((roomElement: MatrixRoom) =>
       roomElement.members.some((member: string) => member === recipient)
@@ -463,7 +464,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       logger.log(`getRelevantJoinedRoom`, `no relevant rooms found`)
 
       const roomId = await client.createTrustedPrivateRoom(recipient)
-      room = client.getRoomById(roomId)
+      room = await client.getRoomById(roomId)
       logger.log(`getRelevantJoinedRoom`, room)
     } else {
       room = relevantRooms[0]

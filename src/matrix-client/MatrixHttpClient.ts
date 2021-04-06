@@ -1,4 +1,4 @@
-import axios, { AxiosResponse, Method as HttpMethod } from 'axios'
+import axios, { AxiosResponse, CancelTokenSource, Method as HttpMethod } from 'axios'
 
 import { keys } from '../utils/utils'
 import { MatrixRequest, MatrixRequestParams } from './models/api/MatrixRequest'
@@ -13,7 +13,11 @@ const CLIENT_API_R0 = '/_matrix/client/r0'
  * Handling the HTTP connection to the matrix synapse node
  */
 export class MatrixHttpClient {
-  constructor(private readonly baseUrl: string) {}
+  private readonly cancelTokenSource: CancelTokenSource
+
+  constructor(private readonly baseUrl: string) {
+    this.cancelTokenSource = axios.CancelToken.source()
+  }
 
   /**
    * Get data from the synapse node
@@ -63,6 +67,10 @@ export class MatrixHttpClient {
     return this.send('PUT', endpoint, options, params, body)
   }
 
+  public async cancelAllRequests(): Promise<void> {
+    return this.cancelTokenSource.cancel('Manually cancelled')
+  }
+
   /**
    * Send a request to the synapse node
    *
@@ -90,7 +98,8 @@ export class MatrixHttpClient {
         baseURL: this.apiUrl(CLIENT_API_R0),
         headers,
         data,
-        params
+        params,
+        cancelToken: this.cancelTokenSource.token
       })
     } catch (axiosError) {
       throw axiosError.response.data

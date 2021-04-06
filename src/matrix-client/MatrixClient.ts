@@ -1,5 +1,6 @@
 import { Storage } from '../storage/Storage'
 import { Logger } from '../utils/Logger'
+import { ExposedPromise } from '../utils/exposed-promise'
 import { MatrixClientStore } from './MatrixClientStore'
 import { MatrixHttpClient } from './MatrixHttpClient'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
@@ -29,6 +30,22 @@ const MAX_POLLING_RETRIES = 3
  * The matrix client used to connect to the matrix network
  */
 export class MatrixClient {
+  private isActive: boolean = true
+  private _isReady: ExposedPromise<void> = new ExposedPromise()
+
+  constructor(
+    private readonly store: MatrixClientStore,
+    private readonly eventEmitter: MatrixClientEventEmitter,
+    private readonly userService: MatrixUserService,
+    private readonly roomService: MatrixRoomService,
+    private readonly eventService: MatrixEventService,
+    private readonly httpClient: MatrixHttpClient
+  ) {
+    this.store.onStateChanged((oldState, newState, stateChange) => {
+      this.eventEmitter.onStateChanged(oldState, newState, stateChange)
+    }, 'rooms')
+  }
+
   /**
    * Create a matrix client based on the options provided
    *
@@ -44,46 +61,59 @@ export class MatrixClient {
     const roomService = new MatrixRoomService(httpClient)
     const eventService = new MatrixEventService(httpClient)
 
-    return new MatrixClient(store, eventEmitter, accountService, roomService, eventService)
+    return new MatrixClient(
+      store,
+      eventEmitter,
+      accountService,
+      roomService,
+      eventService,
+      httpClient
+    )
   }
 
   /**
    * Return all the rooms we are currently part of
    */
-  public get joinedRooms(): MatrixRoom[] {
-    return Object.values(this.store.get('rooms')).filter(
-      (room) => room.status === MatrixRoomStatus.JOINED
-    )
+  public get joinedRooms(): Promise<MatrixRoom[]> {
+    return new Promise(async (resolve) => {
+      await this.isConnected()
+
+      resolve(
+        Object.values(this.store.get('rooms')).filter(
+          (room) => room.status === MatrixRoomStatus.JOINED
+        )
+      )
+    })
   }
 
   /**
    * Return all the rooms to which we have received invitations
    */
-  public get invitedRooms(): MatrixRoom[] {
-    return Object.values(this.store.get('rooms')).filter(
-      (room) => room.status === MatrixRoomStatus.INVITED
-    )
+  public get invitedRooms(): Promise<MatrixRoom[]> {
+    return new Promise(async (resolve) => {
+      await this.isConnected()
+
+      resolve(
+        Object.values(this.store.get('rooms')).filter(
+          (room) => room.status === MatrixRoomStatus.INVITED
+        )
+      )
+    })
   }
 
   /**
    * Return all the rooms that we left
    */
-  public get leftRooms(): MatrixRoom[] {
-    return Object.values(this.store.get('rooms')).filter(
-      (room) => room.status === MatrixRoomStatus.LEFT
-    )
-  }
+  public get leftRooms(): Promise<MatrixRoom[]> {
+    return new Promise(async (resolve) => {
+      await this.isConnected()
 
-  constructor(
-    private readonly store: MatrixClientStore,
-    private readonly eventEmitter: MatrixClientEventEmitter,
-    private readonly userService: MatrixUserService,
-    private readonly roomService: MatrixRoomService,
-    private readonly eventService: MatrixEventService
-  ) {
-    this.store.onStateChanged((oldState, newState, stateChange) => {
-      this.eventEmitter.onStateChanged(oldState, newState, stateChange)
-    }, 'rooms')
+      resolve(
+        Object.values(this.store.get('rooms')).filter(
+          (room) => room.status === MatrixRoomStatus.LEFT
+        )
+      )
+    })
   }
 
   /**
@@ -98,7 +128,7 @@ export class MatrixClient {
       accessToken: response.access_token
     })
 
-    return new Promise(async (resolve, reject) => {
+    const initialPollingResult = new Promise<void>(async (resolve, reject) => {
       await this.poll(
         0,
         async (pollingResponse: MatrixSyncResponse) => {
@@ -124,6 +154,29 @@ export class MatrixClient {
         }
       )
     })
+
+    initialPollingResult
+      .then(() => {
+        this._isReady.resolve()
+      })
+      .catch(console.error)
+
+    return initialPollingResult
+  }
+
+  public async isConnected(): Promise<void> {
+    return this._isReady.promise
+  }
+
+  /**
+   * Stop all running requests
+   */
+  public async stop(): Promise<void> {
+    logger.log(`MATRIX CLIENT STOPPED`)
+    this.isActive = false
+    this._isReady = new ExposedPromise()
+
+    return this.httpClient.cancelAllRequests()
   }
 
   /**
@@ -156,7 +209,9 @@ export class MatrixClient {
     }
   }
 
-  public getRoomById(id: string): MatrixRoom {
+  public async getRoomById(id: string): Promise<MatrixRoom> {
+    await this.isConnected()
+
     return this.store.getRoom(id)
   }
 
@@ -166,6 +221,8 @@ export class MatrixClient {
    * @param members Members that will be in the room
    */
   public async createTrustedPrivateRoom(...members: string[]): Promise<string> {
+    await this.isConnected()
+
     return this.requiresAuthorization('createRoom', async (accessToken) => {
       const response = await this.roomService.createRoom(accessToken, {
         invite: members,
@@ -184,6 +241,8 @@ export class MatrixClient {
    * @param roomsOrIds The rooms the user will be invited to
    */
   public async inviteToRooms(user: string, ...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
+    await this.isConnected()
+
     await this.requiresAuthorization('invite', (accessToken) =>
       Promise.all(
         (roomsOrIds as any[]).map((roomOrId) => {
@@ -202,6 +261,8 @@ export class MatrixClient {
    * @param roomsOrIds
    */
   public async joinRooms(...roomsOrIds: string[] | MatrixRoom[]): Promise<void> {
+    await this.isConnected()
+
     await this.requiresAuthorization('join', (accessToken) =>
       Promise.all(
         (roomsOrIds as any[]).map((roomOrId) => {
@@ -220,6 +281,8 @@ export class MatrixClient {
    * @param message
    */
   public async sendTextMessage(roomId: string, message: string): Promise<void> {
+    await this.isConnected()
+
     await this.requiresAuthorization('send', async (accessToken) => {
       const txnId = await this.createTxnId()
 
@@ -265,16 +328,20 @@ export class MatrixClient {
 
         continueSyncing = store.get('pollingRetries') < MAX_POLLING_RETRIES
         // console.warn('Could not sync:', error)
-        if (continueSyncing) {
+        if (continueSyncing && this.isActive) {
           logger.log('Retry syncing...')
         }
       } finally {
-        if (continueSyncing) {
-          setTimeout(async () => {
-            await pollSync(resolve, reject)
-          }, interval)
+        if (this.isActive) {
+          if (continueSyncing) {
+            setTimeout(async () => {
+              await pollSync(resolve, reject)
+            }, interval)
+          } else {
+            reject(new Error(`Max polling retries exeeded: ${MAX_POLLING_RETRIES}`))
+          }
         } else {
-          reject(new Error(`Max polling retries exeeded: ${MAX_POLLING_RETRIES}`))
+          reject(new Error(`Syncing stopped manually.`))
         }
       }
     }
