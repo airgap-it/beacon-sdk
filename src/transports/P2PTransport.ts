@@ -34,11 +34,12 @@ export class P2PTransport<
     matrixNodes: string[],
     storageKey: K,
     iconUrl?: string,
-    appUrl?: string
+    appUrl?: string,
+    isWallet: boolean = false
   ) {
     super(
       name,
-      new P2PCommunicationClient(name, keyPair, 1, storage, matrixNodes, iconUrl, appUrl),
+      new P2PCommunicationClient(name, keyPair, 1, storage, matrixNodes, iconUrl, appUrl, isWallet),
       new PeerManager<K>(storage, storageKey)
     )
   }

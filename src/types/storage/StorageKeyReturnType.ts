@@ -28,4 +28,5 @@ export interface StorageKeyReturnType {
   [StorageKey.BEACON_SDK_VERSION]: string | undefined
   [StorageKey.MATRIX_PRESERVED_STATE]: Partial<MatrixState>
   [StorageKey.MATRIX_PEER_ROOM_IDS]: { [key: string]: string | undefined }
+  [StorageKey.MATRIX_ROOM_STANDBY]: string | undefined
 }

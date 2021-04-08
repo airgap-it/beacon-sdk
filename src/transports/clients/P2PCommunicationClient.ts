@@ -64,7 +64,8 @@ export class P2PCommunicationClient extends CommunicationClient {
     private readonly storage: Storage,
     matrixNodes: string[],
     private readonly iconUrl?: string,
-    private readonly appUrl?: string
+    private readonly appUrl?: string,
+    private readonly isWallet: boolean = false
   ) {
     super(keyPair)
 
@@ -200,6 +201,49 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     const invitedRooms = await this.client.invitedRooms
     await this.client.joinRooms(...invitedRooms).catch((error) => logger.log(error))
+    this.prepareStandbyRoom().catch((err) =>
+      logger.error(`start`, `could not create standby room`, err)
+    )
+  }
+
+  public async prepareStandbyRoom(): Promise<void> {
+    if (!this.isWallet) {
+      return
+    }
+    if (!this.client) {
+      throw clientNotReadyError()
+    }
+
+    const standbyRoom = await this.storage.get(StorageKey.MATRIX_ROOM_STANDBY)
+
+    if (standbyRoom) {
+      return
+    }
+
+    const roomId = await this.client.createTrustedPrivateRoom()
+    await this.storage.set(StorageKey.MATRIX_ROOM_STANDBY, roomId)
+  }
+
+  public async getAndRemoveStandbyRoom(): Promise<string | undefined> {
+    if (!this.isWallet) {
+      return undefined
+    }
+    if (!this.client) {
+      throw clientNotReadyError()
+    }
+
+    const standbyRoom = await this.storage.get(StorageKey.MATRIX_ROOM_STANDBY)
+
+    if (!standbyRoom) {
+      return undefined
+    }
+    await this.storage.delete(StorageKey.MATRIX_ROOM_STANDBY)
+
+    this.prepareStandbyRoom().catch((err) =>
+      logger.error(`start`, `could not create standby room`, err)
+    )
+
+    return standbyRoom
   }
 
   public async stop(): Promise<void> {
@@ -520,7 +564,17 @@ export class P2PCommunicationClient extends CommunicationClient {
     if (relevantRooms.length === 0) {
       logger.log(`getRelevantJoinedRoom`, `no relevant rooms found`)
 
-      const roomId = await this.client.createTrustedPrivateRoom(recipient)
+      const standbyRoom = await this.getAndRemoveStandbyRoom()
+      let roomId
+      if (standbyRoom) {
+        logger.log(`getRelevantJoinedRoom`, `using standby room`, standbyRoom)
+        await this.client.inviteToRooms(recipient, standbyRoom)
+        roomId = standbyRoom
+      } else {
+        logger.log(`getRelevantJoinedRoom`, `creating new room`)
+        roomId = await this.client.createTrustedPrivateRoom(recipient)
+      }
+
       room = await this.client.getRoomById(roomId)
       logger.log(`getRelevantJoinedRoom`, room)
     } else {

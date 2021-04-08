@@ -27,7 +27,8 @@ export class WalletP2PTransport extends P2PTransport<
       matrixNodes,
       StorageKey.TRANSPORT_P2P_PEERS_WALLET,
       iconUrl,
-      appUrl
+      appUrl,
+      true
     )
   }
 
