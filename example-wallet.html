@@ -18,6 +18,8 @@
   <body>
     Beacon Example Wallet
     <br /><br />
+    <div id="status"></div>
+    <br /><br />
     <button id="paste">Paste Sync Code</button>
     <br /><br />
     ---
@@ -36,6 +38,10 @@
         // matrixNodes: ['beacon.tztip.me']
       })
 
+      const setStatus = (status) => {
+        document.getElementById('status').innerHTML = status ? 'Status: ' + status : status
+      }
+
       // Add event listener to the button
       document.getElementById('paste').addEventListener('click', () => {
         navigator.clipboard.readText().then((clipText) => {
@@ -44,7 +50,9 @@
             .deserialize(clipText)
             .then((peer) => {
               console.log('Adding peer', peer)
+              setStatus('Connecting...')
               client.addPeer(peer).then(() => {
+                setStatus('')
                 console.log('Peer added')
               })
             })
@@ -56,6 +64,8 @@
         console.log('init')
         client
           .connect(async (message) => {
+            setStatus('Handling request...')
+
             console.log('message', message)
             // Example: Handle PermissionRequest. A wallet should handle all request types
             if (message.type === beacon.BeaconMessageType.PermissionRequest) {
@@ -84,6 +94,8 @@
               }
               client.respond(response)
             }
+
+            setStatus('')
           })
           .catch((error) => console.error('connect error', error))
       }) // Establish P2P connection
