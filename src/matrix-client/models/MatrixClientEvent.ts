@@ -8,7 +8,7 @@ export enum MatrixClientEventType {
 export type MatrixClientEventContent<T> = T extends MatrixClientEventType.INVITE
   ? MatrixClientEventInviteContent
   : T extends MatrixClientEventType.MESSAGE
-  ? MatrixClientEventMessageContent<any>
+  ? MatrixClientEventMessageContent<unknown>
   : never
 
 export interface MatrixClientEventInviteContent {
@@ -23,4 +23,5 @@ export interface MatrixClientEventMessageContent<T> {
 export interface MatrixClientEvent<T extends MatrixClientEventType> {
   type: T
   content: MatrixClientEventContent<T>
+  timestamp?: number
 }

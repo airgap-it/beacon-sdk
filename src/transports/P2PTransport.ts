@@ -67,7 +67,13 @@ export class P2PTransport<
 
     await this.startOpenChannelListener()
 
-    await super.connect()
+    return super.connect()
+  }
+
+  public async disconnect(): Promise<void> {
+    await this.client.stop()
+
+    return super.disconnect()
   }
 
   public async startOpenChannelListener(): Promise<void> {

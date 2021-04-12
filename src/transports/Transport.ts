@@ -84,6 +84,16 @@ export abstract class Transport<
   }
 
   /**
+   * Disconnect the transport
+   */
+  public async disconnect(): Promise<void> {
+    logger.log('disconnect')
+    this._isConnected = TransportStatus.NOT_CONNECTED
+
+    return
+  }
+
+  /**
    * Send a message through the transport
    *
    * @param message The message to send
