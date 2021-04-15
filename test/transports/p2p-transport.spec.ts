@@ -74,6 +74,9 @@ describe(`P2PTransport`, () => {
       .throws('listenForNewPeer should not be called')
 
     const startClientStub = sinon.stub(P2PCommunicationClient.prototype, 'start').resolves()
+    const listenForChannelOpeningStub = sinon
+      .stub(P2PCommunicationClient.prototype, 'listenForChannelOpening')
+      .resolves()
     sinon.stub(PeerManager.prototype, 'getPeers').resolves([pairingResponse, pairingResponse])
 
     const listenStub = sinon.stub(transport, <any>'listen').resolves()
@@ -83,6 +86,7 @@ describe(`P2PTransport`, () => {
     await transport.connect()
 
     expect(startClientStub.callCount).to.equal(1)
+    expect(listenForChannelOpeningStub.callCount).to.equal(1)
     expect(listenForNewPeerStub.callCount).to.equal(0)
     expect(listenStub.callCount).to.equal(2)
     expect(transport.connectionStatus).to.equal(TransportStatus.CONNECTED)

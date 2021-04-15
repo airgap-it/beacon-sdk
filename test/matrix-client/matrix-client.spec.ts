@@ -21,6 +21,7 @@ describe(`MatrixClient`, () => {
       baseUrl: `https://test.walletbeacon.io`,
       storage: new LocalStorage()
     })
+    ;(client as any)._isReady.resolve()
   })
 
   it(`should create with options`, async () => {
@@ -28,40 +29,40 @@ describe(`MatrixClient`, () => {
   })
 
   it(`should return joined rooms (case: empty)`, async () => {
-    expect(client.joinedRooms).to.deep.equal([])
+    expect(await client.joinedRooms).to.deep.equal([])
   })
 
   it(`should return joined rooms (case: 1 room)`, async () => {
     const rooms = [{ status: MatrixRoomStatus.JOINED }]
     const storeStub = sinon.stub((<any>client).store, 'get').returns(rooms)
 
-    expect(client.joinedRooms).to.deep.equal(rooms)
+    expect(await client.joinedRooms).to.deep.equal(rooms)
     expect(storeStub.callCount).to.equal(1)
     expect(storeStub.firstCall.args[0]).to.equal('rooms')
   })
 
   it(`should return invited rooms (case: empty)`, async () => {
-    expect(client.invitedRooms).to.deep.equal([])
+    expect(await client.invitedRooms).to.deep.equal([])
   })
 
   it(`should return invited rooms (case: 1 room)`, async () => {
     const rooms = [{ status: MatrixRoomStatus.INVITED }]
     const storeStub = sinon.stub((<any>client).store, 'get').returns(rooms)
 
-    expect(client.invitedRooms).to.deep.equal(rooms)
+    expect(await client.invitedRooms).to.deep.equal(rooms)
     expect(storeStub.callCount).to.equal(1)
     expect(storeStub.firstCall.args[0]).to.equal('rooms')
   })
 
   it(`should return left rooms (case: empty)`, async () => {
-    expect(client.leftRooms).to.deep.equal([])
+    expect(await client.leftRooms).to.deep.equal([])
   })
 
   it(`should return left rooms (case: 1 room)`, async () => {
     const rooms = [{ status: MatrixRoomStatus.LEFT }]
     const storeStub = sinon.stub((<any>client).store, 'get').returns(rooms)
 
-    expect(client.leftRooms).to.deep.equal(rooms)
+    expect(await client.leftRooms).to.deep.equal(rooms)
     expect(storeStub.callCount).to.equal(1)
     expect(storeStub.firstCall.args[0]).to.equal('rooms')
   })
@@ -175,7 +176,7 @@ describe(`MatrixClient`, () => {
     const getRoomStub = sinon.stub((<any>client).store, 'getRoom').resolves()
 
     const id = 'my-id'
-    client.getRoomById(id)
+    await client.getRoomById(id)
 
     expect(getRoomStub.callCount).to.equal(1)
     expect(getRoomStub.firstCall.args[0]).to.equal(id)
@@ -248,22 +249,29 @@ describe(`MatrixClient`, () => {
   })
 
   it(`should send a text message`, async () => {
-    const getRoomStub = sinon.stub((<any>client).store, 'getRoom').returns('room')
-    const createTxStub = sinon.stub(<any>client, 'createTxnId').returns('random-id')
+    return new Promise(async (resolve) => {
+      const getRoomStub = sinon.stub((<any>client).store, 'getRoom').returns('room')
+      const createTxnIdStub = sinon
+        .stub(<any>MatrixClient.prototype, 'createTxnId')
+        .resolves('random-id')
 
-    const eventSyncStub = sinon.stub((<any>client).eventService, 'sendMessage').resolves()
+      const eventSyncStub = sinon.stub((<any>client).eventService, 'sendMessage').resolves()
 
-    const syncStub = sinon
-      .stub(client, <any>'requiresAuthorization')
-      .callsArgWithAsync(1, 'myToken')
-      .resolves()
+      const syncStub = sinon
+        .stub(client, <any>'requiresAuthorization')
+        .callsArgWithAsync(1, 'myToken')
+        .resolves()
 
-    await client.sendTextMessage('123', 'my-message')
+      await client.sendTextMessage('123', 'my-message')
 
-    expect(getRoomStub.callCount, 'getRoomStub').to.equal(0)
-    expect(createTxStub.callCount, 'createTxStub').to.equal(1)
-    expect(syncStub.callCount, 'syncStub').to.equal(1)
-    expect(eventSyncStub.callCount, 'eventSyncStub').to.equal(1)
+      expect(getRoomStub.callCount, 'getRoomStub').to.equal(0)
+      setTimeout(() => {
+        expect(createTxnIdStub.callCount, 'createTxnId').to.equal(1)
+        expect(syncStub.callCount, 'syncStub').to.equal(1)
+        expect(eventSyncStub.callCount, 'eventSyncStub').to.equal(1)
+        resolve()
+      }, 0)
+    })
   })
 
   it(`should poll the server for updates`, async () => {
