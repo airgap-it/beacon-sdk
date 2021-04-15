@@ -160,8 +160,10 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     logger.log('start', `connecting to server`)
 
+    const relayServer = await this.getRelayServer(await this.getPublicKeyHash(), '0')
+
     this.client = MatrixClient.create({
-      baseUrl: `https://${await this.getRelayServer(await this.getPublicKeyHash(), '0')}`,
+      baseUrl: `https://${relayServer}`,
       storage: this.storage
     })
 
@@ -182,13 +184,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       await this.tryJoinRooms(event.content.roomId)
     })
 
-    logger.log(
-      'start',
-      'login',
-      await this.getPublicKeyHash(),
-      'on',
-      await this.getRelayServer(await this.getPublicKeyHash(), '0')
-    )
+    logger.log('start', 'login', await this.getPublicKeyHash(), 'on', relayServer)
 
     await this.client
       .start({
@@ -408,7 +404,8 @@ export class P2PCommunicationClient extends CommunicationClient {
     // TODO: Improve to listen to "JOIN" event
     const room = await this.client.getRoomById(roomId)
     logger.log(`waitForJoin`, `Currently ${room.members.length} members, we need at least 2`)
-    if (room.members.length >= 2) {
+    if (room.members.length >= 2 || room.members.length === 0) {
+      // 0 means it's an unknown room, we don't need to wait
       return
     } else {
       if (retry <= 200) {
@@ -451,9 +448,24 @@ export class P2PCommunicationClient extends CommunicationClient {
       message
     )
 
-    this.client
-      .sendTextMessage(roomId, ['@channel-open', recipient, encryptedMessage].join(':'))
-      .catch((error) => logger.log(error))
+    const msg = ['@channel-open', recipient, encryptedMessage].join(':')
+    this.client.sendTextMessage(roomId, msg).catch(async (error) => {
+      if (error.errcode === 'M_FORBIDDEN') {
+        // Room doesn't exist
+        logger.log(`sendMessage`, `M_FORBIDDEN`, error)
+        await this.deleteRoomIdFromRooms(roomId)
+        const newRoomId = await this.getRelevantRoom(recipient)
+
+        if (!this.client) {
+          throw clientNotReadyError()
+        }
+        this.client.sendTextMessage(newRoomId, msg).catch(async (error2) => {
+          logger.log(`sendMessage`, `inner error`, error2)
+        })
+      } else {
+        logger.log(`sendMessage`, `not forbidden`, error)
+      }
+    })
   }
 
   public isTextMessage(
@@ -518,11 +530,11 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     let room: MatrixRoom
     if (relevantRooms.length === 0) {
-      logger.log(`getRelevantJoinedRoom`, `no relevant rooms found`)
+      logger.log(`getRelevantJoinedRoom`, `no relevant rooms found, creating new one`)
 
       const roomId = await this.client.createTrustedPrivateRoom(recipient)
       room = await this.client.getRoomById(roomId)
-      logger.log(`getRelevantJoinedRoom`, room)
+      logger.log(`getRelevantJoinedRoom`, `new room created and peer invited: ${room.id}`)
     } else {
       room = relevantRooms[0]
       logger.log(`getRelevantJoinedRoom`, `channel already open, reusing room ${room.id}`)
