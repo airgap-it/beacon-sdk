@@ -160,8 +160,10 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     logger.log('start', `connecting to server`)
 
+    const relayServer = await this.getRelayServer(await this.getPublicKeyHash(), '0')
+
     this.client = MatrixClient.create({
-      baseUrl: `https://${await this.getRelayServer(await this.getPublicKeyHash(), '0')}`,
+      baseUrl: `https://${relayServer}`,
       storage: this.storage
     })
 
@@ -182,13 +184,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       await this.tryJoinRooms(event.content.roomId)
     })
 
-    logger.log(
-      'start',
-      'login',
-      await this.getPublicKeyHash(),
-      'on',
-      await this.getRelayServer(await this.getPublicKeyHash(), '0')
-    )
+    logger.log('start', 'login', await this.getPublicKeyHash(), 'on', relayServer)
 
     await this.client
       .start({
