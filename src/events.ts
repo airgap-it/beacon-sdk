@@ -22,7 +22,8 @@ import {
   ConnectionContext,
   Transport,
   NetworkType,
-  AcknowledgeResponse
+  AcknowledgeResponse,
+  EncryptPayloadResponseOutput
 } from '.'
 
 const logger = new Logger('BeaconEvents')
@@ -45,6 +46,9 @@ export enum BeaconEvent {
   SIGN_REQUEST_SENT = 'SIGN_REQUEST_SENT',
   SIGN_REQUEST_SUCCESS = 'SIGN_REQUEST_SUCCESS',
   SIGN_REQUEST_ERROR = 'SIGN_REQUEST_ERROR',
+  ENCRYPT_REQUEST_SENT = 'ENCRYPT_REQUEST_SENT',
+  ENCRYPT_REQUEST_SUCCESS = 'ENCRYPT_REQUEST_SUCCESS',
+  ENCRYPT_REQUEST_ERROR = 'ENCRYPT_REQUEST_ERROR',
   BROADCAST_REQUEST_SENT = 'BROADCAST_REQUEST_SENT',
   BROADCAST_REQUEST_SUCCESS = 'BROADCAST_REQUEST_SUCCESS',
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
@@ -110,6 +114,13 @@ export interface BeaconEventType {
     walletInfo: WalletInfo
   }
   [BeaconEvent.SIGN_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
+  [BeaconEvent.ENCRYPT_REQUEST_SENT]: RequestSentInfo
+  [BeaconEvent.ENCRYPT_REQUEST_SUCCESS]: {
+    output: EncryptPayloadResponseOutput
+    connectionContext: ConnectionContext
+    walletInfo: WalletInfo
+  }
+  [BeaconEvent.ENCRYPT_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
   [BeaconEvent.BROADCAST_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
     network: Network
@@ -413,6 +424,40 @@ const showSignSuccessAlert = async (
 }
 
 /**
+ * Show a "Transaction Signed" alert
+ *
+ * @param data The data that is emitted by the ENCRYPT_REQUEST_SUCCESS event
+ */
+const showEncryptSuccessAlert = async (
+  data: BeaconEventType[BeaconEvent.ENCRYPT_REQUEST_SUCCESS]
+): Promise<void> => {
+  const output = data.output
+  await openToast({
+    body: `{{wallet}}&nbsp;successfully encrypted/decrypted payload`,
+    timer: SUCCESS_TIMER,
+    state: 'finished',
+    walletInfo: data.walletInfo,
+    actions: [
+      {
+        text: `Payload: <strong>${shortenString(output.payload)}</strong>`,
+        actionText: 'Copy to clipboard',
+        actionCallback: async (): Promise<void> => {
+          navigator.clipboard.writeText(output.payload).then(
+            () => {
+              logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+            },
+            (err) => {
+              logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+            }
+          )
+          await closeToast()
+        }
+      }
+    ]
+  })
+}
+
+/**
  * Show a "Broadcasted" alert
  *
  * @param data The data that is emitted by the BROADCAST_REQUEST_SUCCESS event
@@ -468,6 +513,9 @@ export const defaultEventCallbacks: {
   [BeaconEvent.SIGN_REQUEST_SENT]: showSentToast,
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: showSignSuccessAlert,
   [BeaconEvent.SIGN_REQUEST_ERROR]: showErrorToast,
+  [BeaconEvent.ENCRYPT_REQUEST_SENT]: showSentToast,
+  [BeaconEvent.ENCRYPT_REQUEST_SUCCESS]: showEncryptSuccessAlert,
+  [BeaconEvent.ENCRYPT_REQUEST_ERROR]: showErrorToast,
   [BeaconEvent.BROADCAST_REQUEST_SENT]: showSentToast,
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: showBroadcastSuccessAlert,
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: showErrorToast,
@@ -501,6 +549,9 @@ export class BeaconEventHandler {
     [BeaconEvent.SIGN_REQUEST_SENT]: [defaultEventCallbacks.SIGN_REQUEST_SENT],
     [BeaconEvent.SIGN_REQUEST_SUCCESS]: [defaultEventCallbacks.SIGN_REQUEST_SUCCESS],
     [BeaconEvent.SIGN_REQUEST_ERROR]: [defaultEventCallbacks.SIGN_REQUEST_ERROR],
+    [BeaconEvent.ENCRYPT_REQUEST_SENT]: [defaultEventCallbacks.ENCRYPT_REQUEST_SENT],
+    [BeaconEvent.ENCRYPT_REQUEST_SUCCESS]: [defaultEventCallbacks.ENCRYPT_REQUEST_SUCCESS],
+    [BeaconEvent.ENCRYPT_REQUEST_ERROR]: [defaultEventCallbacks.ENCRYPT_REQUEST_ERROR],
     [BeaconEvent.BROADCAST_REQUEST_SENT]: [defaultEventCallbacks.BROADCAST_REQUEST_SENT],
     [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: [defaultEventCallbacks.BROADCAST_REQUEST_SUCCESS],
     [BeaconEvent.BROADCAST_REQUEST_ERROR]: [defaultEventCallbacks.BROADCAST_REQUEST_ERROR],

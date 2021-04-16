@@ -70,11 +70,13 @@ import { BeaconMessage } from './types/beacon/BeaconMessage'
 import { Serializer } from './Serializer'
 import { RequestPermissionInput } from './types/RequestPermissionInput'
 import { RequestSignPayloadInput } from './types/RequestSignPayloadInput'
+import { RequestEncryptPayloadInput } from './types/RequestEncryptPayloadInput'
 import { RequestOperationInput } from './types/RequestOperationInput'
 import { RequestBroadcastInput } from './types/RequestBroadcastInput'
 import {
   PermissionResponseInput,
   SignPayloadResponseInput,
+  EncryptPayloadResponseInput,
   OperationResponseInput,
   BroadcastResponseInput,
   BeaconResponseInputMessage,
@@ -84,6 +86,7 @@ import {
 import {
   PermissionResponseOutput,
   SignPayloadResponseOutput,
+  EncryptPayloadResponseOutput,
   OperationResponseOutput,
   BroadcastResponseOutput,
   BeaconResponseOutputMessage
@@ -91,6 +94,7 @@ import {
 import {
   PermissionRequestInput,
   SignPayloadRequestInput,
+  EncryptPayloadRequestInput,
   OperationRequestInput,
   BroadcastRequestInput,
   BeaconRequestInputMessage
@@ -98,6 +102,7 @@ import {
 import {
   PermissionRequestOutput,
   SignPayloadRequestOutput,
+  EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,
   BeaconRequestOutputMessage
@@ -135,7 +140,6 @@ import { WalletP2PTransport } from './transports/WalletP2PTransport'
 import { WalletPostMessageTransport } from './transports/WalletPostMessageTransport'
 import { getSenderId } from './utils/get-sender-id'
 import { SigningType } from './types/beacon/SigningType'
-import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotSupportedBeaconError'
 import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
 import {
   ExtendedPostMessagePairingRequest,
@@ -151,6 +155,13 @@ import { BlockExplorer } from './utils/block-explorer'
 import { TezblockBlockExplorer } from './utils/tezblock-blockexplorer'
 import { setDebugEnabled, getDebugEnabled } from './debug'
 import { ColorMode } from './types/ColorMode'
+import {
+  EncryptionType,
+  EncryptPayloadRequest
+} from './types/beacon/messages/EncryptPayloadRequest'
+import { EncryptPayloadResponse } from './types/beacon/messages/EncryptPayloadResponse'
+import { EncryptionTypeNotSupportedBeaconError } from './errors/EncryptionTypeNotSupportedBeaconError'
+import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotSupportedBeaconError'
 
 // Tezos
 export {
@@ -207,7 +218,9 @@ export {
   OperationRequest,
   OperationResponse,
   SignPayloadRequest,
+  EncryptPayloadRequest,
   SignPayloadResponse,
+  EncryptPayloadResponse,
   BroadcastRequest,
   BroadcastResponse,
   AcknowledgeResponse,
@@ -219,11 +232,13 @@ export {
   AccountInfo,
   Threshold,
   SigningType,
+  EncryptionType,
   ExtensionMessageTarget,
   ExtensionMessage,
   EncryptedExtensionMessage,
   RequestPermissionInput,
   RequestSignPayloadInput,
+  RequestEncryptPayloadInput,
   RequestOperationInput,
   RequestBroadcastInput,
   PermissionInfo
@@ -232,20 +247,24 @@ export {
 export {
   PermissionResponseInput,
   SignPayloadResponseInput,
+  EncryptPayloadResponseInput,
   OperationResponseInput,
   BroadcastResponseInput,
   AcknowledgeResponseInput,
   ErrorResponseInput,
   PermissionResponseOutput,
   SignPayloadResponseOutput,
+  EncryptPayloadResponseOutput,
   OperationResponseOutput,
   BroadcastResponseOutput,
   PermissionRequestInput,
   SignPayloadRequestInput,
+  EncryptPayloadRequestInput,
   OperationRequestInput,
   BroadcastRequestInput,
   PermissionRequestOutput,
   SignPayloadRequestOutput,
+  EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,
   BeaconRequestInputMessage,
@@ -271,6 +290,7 @@ export {
   TooManyOperationsBeaconError,
   TransactionInvalidBeaconError,
   SignatureTypeNotSupportedBeaconError,
+  EncryptionTypeNotSupportedBeaconError,
   UnknownBeaconError
 }
 

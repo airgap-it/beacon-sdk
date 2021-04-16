@@ -49,6 +49,10 @@
     <br /><br />
     ---
     <br /><br />
+    <button id="encryptPayload">Encrypt Payload</button>
+    <br /><br />
+    ---
+    <br /><br />
     <button id="getExtensions">Get Extensions</button>
     <br /><br />
     ---
@@ -209,6 +213,15 @@
         })
 
         console.log('signature:', signature)
+      })
+
+      // Add event listener to the button
+      document.getElementById('encryptPayload').addEventListener('click', async () => {
+        const signature = await client.requestEncryptPayload({
+          payload: 'test'
+        })
+
+        console.log('payload:', payload)
       })
 
       // Add event listener to the button

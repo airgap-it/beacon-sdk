@@ -1,3 +1,4 @@
+import { assertNever } from '../utils/assert-never'
 import {
   ErrorResponse,
   BeaconMessage,
@@ -9,7 +10,8 @@ import {
   BroadcastResponse,
   PermissionInfo,
   AcknowledgeResponse,
-  AppMetadata
+  AppMetadata,
+  EncryptPayloadResponse
 } from '..'
 import { PermissionManager } from '../managers/PermissionManager'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
@@ -146,6 +148,16 @@ export class OutgoingResponseInterceptor {
           interceptorCallbackWrapper(response)
         }
         break
+      case BeaconMessageType.EncryptPayloadResponse:
+        {
+          const response: EncryptPayloadResponse = {
+            senderId,
+            version: BEACON_VERSION,
+            ...message
+          }
+          interceptorCallbackWrapper(response)
+        }
+        break
       case BeaconMessageType.BroadcastResponse:
         {
           const response: BroadcastResponse = {
@@ -159,6 +171,7 @@ export class OutgoingResponseInterceptor {
 
       default:
         logger.log('intercept', 'Message not handled')
+        assertNever(message)
     }
   }
 }
