@@ -22,8 +22,20 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', {
 // This sets the mock adapter on the default instance
 const mock = new MockAdapter(Axios)
 
-mock.onAny().reply((config) => {
-  console.log('UNMOCKED URL, RETURNING ERROR 500', config.url)
+mock
+  .onGet('https://matrix.papers.tech/_matrix/client/versions')
+  .reply(200, {
+    versions: ['r0.0.1', 'r0.1.0', 'r0.2.0', 'r0.3.0', 'r0.4.0', 'r0.5.0'],
+    unstable_features: {
+      'm.lazy_load_members': true,
+      'm.id_access_token': true,
+      'm.require_identity_server': false,
+      'm.separate_add_and_bind': true
+    }
+  })
+  .onAny()
+  .reply((config) => {
+    console.log('UNMOCKED URL, RETURNING ERROR 500', config.url)
 
-  return [500, {}]
-})
+    return [500, {}]
+  })
