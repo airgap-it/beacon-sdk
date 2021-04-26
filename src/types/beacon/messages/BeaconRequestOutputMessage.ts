@@ -1,3 +1,4 @@
+import { Optional } from '../../../utils/utils'
 import {
   AppMetadata,
   PermissionRequest,
@@ -21,22 +22,25 @@ export interface ExtraResponseOutputProperties {
 /**
  * @category Wallet
  */
-export type PermissionRequestOutput = Omit<PermissionRequest, IgnoredRequestOutputProperties> &
+export type PermissionRequestOutput = Optional<PermissionRequest, IgnoredRequestOutputProperties> &
   ExtraResponseOutputProperties
 /**
  * @category Wallet
  */
-export type OperationRequestOutput = Omit<OperationRequest, IgnoredRequestOutputProperties> &
+export type OperationRequestOutput = Optional<OperationRequest, IgnoredRequestOutputProperties> &
   ExtraResponseOutputProperties
 /**
  * @category Wallet
  */
-export type SignPayloadRequestOutput = Omit<SignPayloadRequest, IgnoredRequestOutputProperties> &
+export type SignPayloadRequestOutput = Optional<
+  SignPayloadRequest,
+  IgnoredRequestOutputProperties
+> &
   ExtraResponseOutputProperties
 /**
  * @category Wallet
  */
-export type BroadcastRequestOutput = Omit<BroadcastRequest, IgnoredRequestOutputProperties> &
+export type BroadcastRequestOutput = Optional<BroadcastRequest, IgnoredRequestOutputProperties> &
   ExtraResponseOutputProperties
 
 /**

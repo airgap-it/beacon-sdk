@@ -1,3 +1,4 @@
+import { Optional } from '../../../utils/utils'
 import { PermissionRequest, OperationRequest, SignPayloadRequest, BroadcastRequest } from '../../..'
 
 /**
@@ -10,22 +11,22 @@ export type IgnoredRequestInputProperties = 'id' | 'senderId' | 'version'
  * @internalapi
  * @category DApp
  */
-export type PermissionRequestInput = Omit<PermissionRequest, IgnoredRequestInputProperties>
+export type PermissionRequestInput = Optional<PermissionRequest, IgnoredRequestInputProperties>
 /**
  * @internalapi
  * @category DApp
  */
-export type OperationRequestInput = Omit<OperationRequest, IgnoredRequestInputProperties>
+export type OperationRequestInput = Optional<OperationRequest, IgnoredRequestInputProperties>
 /**
  * @internalapi
  * @category DApp
  */
-export type SignPayloadRequestInput = Omit<SignPayloadRequest, IgnoredRequestInputProperties>
+export type SignPayloadRequestInput = Optional<SignPayloadRequest, IgnoredRequestInputProperties>
 /**
  * @internalapi
  * @category DApp
  */
-export type BroadcastRequestInput = Omit<BroadcastRequest, IgnoredRequestInputProperties>
+export type BroadcastRequestInput = Optional<BroadcastRequest, IgnoredRequestInputProperties>
 
 /**
  * @internalapi
