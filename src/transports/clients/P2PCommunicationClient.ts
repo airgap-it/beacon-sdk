@@ -57,6 +57,8 @@ export class P2PCommunicationClient extends CommunicationClient {
 
   private readonly activeListeners: Map<string, (event: MatrixClientEvent<any>) => void> = new Map()
 
+  private readonly ignoredRooms: string[] = []
+
   constructor(
     private readonly name: string,
     keyPair: sodium.KeyPair,
@@ -358,6 +360,11 @@ export class P2PCommunicationClient extends CommunicationClient {
         }
       )
     await this.storage.set(StorageKey.MATRIX_PEER_ROOM_IDS, newRoomIds)
+
+    // TODO: We also need to delete the room from the sync state
+    // If we need to delete a room, we can assume the local state is not up to date anymore, so we can reset the state
+
+    this.ignoredRooms.push(roomId)
   }
 
   public async listenForChannelOpening(
@@ -524,12 +531,16 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     const joinedRooms = await this.client.joinedRooms
     logger.log('checking joined rooms', joinedRooms, recipient)
-    const relevantRooms = joinedRooms.filter((roomElement: MatrixRoom) =>
-      roomElement.members.some((member: string) => member === recipient)
-    )
+    const relevantRooms = joinedRooms
+      .filter((roomElement: MatrixRoom) => !this.ignoredRooms.some((id) => roomElement.id === id))
+      .filter((roomElement: MatrixRoom) =>
+        roomElement.members.some((member: string) => member === recipient)
+      )
 
     let room: MatrixRoom
-    if (relevantRooms.length === 0) {
+    // We always create a new room if one has been ignored. This is because if we ignore one, we know the server state changed.
+    // So we cannot trust the current sync state. This can be removed once we have a method to properly clear and refresh the sync state.
+    if (relevantRooms.length === 0 || this.ignoredRooms.length > 0) {
       logger.log(`getRelevantJoinedRoom`, `no relevant rooms found, creating new one`)
 
       const roomId = await this.client.createTrustedPrivateRoom(recipient)
