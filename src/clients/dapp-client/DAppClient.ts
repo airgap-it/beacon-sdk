@@ -1064,7 +1064,7 @@ export class DAppClient extends Client {
         },
         extraInfo: {
           resetCallback: async () => {
-            await this.clearActiveAccount()
+            await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
           }
         }
       })

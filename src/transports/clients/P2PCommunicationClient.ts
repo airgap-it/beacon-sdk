@@ -1,6 +1,6 @@
 import * as sodium from 'libsodium-wrappers'
-import BigNumber from 'bignumber.js'
 
+import axios from 'axios'
 import {
   getHexHash,
   toHex,
@@ -114,19 +114,33 @@ export class P2PCommunicationClient extends CommunicationClient {
     return info
   }
 
-  public async getRelayServer(publicKeyHash?: string, nonce: string = ''): Promise<string> {
-    const hash: string = publicKeyHash || (await getHexHash(this.keyPair.publicKey))
+  public async getRelayServer(): Promise<string> {
+    const node = await this.storage.get(StorageKey.MATRIX_SELECTED_NODE)
+    if (node && node.length > 0) {
+      return node
+    }
 
-    return this.KNOWN_RELAY_SERVERS.reduce(async (prevPromise: Promise<string>, curr: string) => {
-      const prev = await prevPromise
-      const prevRelayServerHash: string = await getHexHash(prev + nonce)
-      const currRelayServerHash: string = await getHexHash(curr + nonce)
+    const startIndex = Math.floor(Math.random() * this.KNOWN_RELAY_SERVERS.length)
+    let offset = 0
 
-      const prevBigInt = await this.getAbsoluteBigIntDifference(hash, prevRelayServerHash)
-      const currBigInt = await this.getAbsoluteBigIntDifference(hash, currRelayServerHash)
+    while (offset < this.KNOWN_RELAY_SERVERS.length) {
+      const serverIndex = (startIndex + offset) % this.KNOWN_RELAY_SERVERS.length
+      const server = this.KNOWN_RELAY_SERVERS[serverIndex]
 
-      return prevBigInt.isLessThan(currBigInt) ? prev : curr
-    }, Promise.resolve(this.KNOWN_RELAY_SERVERS[0]))
+      try {
+        await axios.get(`https://${server}/_matrix/client/versions`)
+        this.storage
+          .set(StorageKey.MATRIX_SELECTED_NODE, server)
+          .catch((error) => logger.log(error))
+
+        return server
+      } catch (relayError) {
+        logger.log(`Ignoring server "${server}", trying another one...`)
+        offset++
+      }
+    }
+
+    throw new Error(`No matrix server reachable!`)
   }
 
   public async tryJoinRooms(roomId: string, retry: number = 1): Promise<void> {
@@ -162,9 +176,9 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     logger.log('start', `connecting to server`)
 
-    const relayServer = await this.getRelayServer(await this.getPublicKeyHash(), '0')
+    const relayServer = await this.getRelayServer()
 
-    this.client = MatrixClient.create({
+    const client = MatrixClient.create({
       baseUrl: `https://${relayServer}`,
       storage: this.storage
     })
@@ -180,15 +194,15 @@ export class P2PCommunicationClient extends CommunicationClient {
         this.initialEvent = event
       }
     }
-    this.client.subscribe(MatrixClientEventType.MESSAGE, this.initialListener)
+    client.subscribe(MatrixClientEventType.MESSAGE, this.initialListener)
 
-    this.client.subscribe(MatrixClientEventType.INVITE, async (event) => {
+    client.subscribe(MatrixClientEventType.INVITE, async (event) => {
       await this.tryJoinRooms(event.content.roomId)
     })
 
     logger.log('start', 'login', await this.getPublicKeyHash(), 'on', relayServer)
 
-    await this.client
+    await client
       .start({
         id: await this.getPublicKeyHash(),
         password: `ed:${toHex(rawSignature)}:${await this.getPublicKey()}`,
@@ -196,13 +210,15 @@ export class P2PCommunicationClient extends CommunicationClient {
       })
       .catch((error) => logger.log(error))
 
-    const invitedRooms = await this.client.invitedRooms
-    await this.client.joinRooms(...invitedRooms).catch((error) => logger.log(error))
+    this.client = client
   }
 
   public async stop(): Promise<void> {
     if (this.client) {
       this.client.stop().catch((error) => logger.error(error))
+      this.storage.delete(StorageKey.MATRIX_PEER_ROOM_IDS).catch((error) => logger.log(error))
+      this.storage.delete(StorageKey.MATRIX_PRESERVED_STATE).catch((error) => logger.log(error))
+      this.storage.delete(StorageKey.MATRIX_SELECTED_NODE).catch((error) => logger.log(error))
     }
   }
 
@@ -496,15 +512,6 @@ export class P2PCommunicationClient extends CommunicationClient {
     return event.content.message.sender.startsWith(
       `@${await getHexHash(Buffer.from(senderPublicKey, 'hex'))}`
     )
-  }
-
-  private async getAbsoluteBigIntDifference(
-    firstHash: string,
-    secondHash: string
-  ): Promise<BigNumber> {
-    const difference: BigNumber = new BigNumber(`0x${firstHash}`).minus(`0x${secondHash}`)
-
-    return difference.absoluteValue()
   }
 
   private async getRelevantRoom(recipient: string): Promise<string> {

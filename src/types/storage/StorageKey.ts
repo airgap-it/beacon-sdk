@@ -14,5 +14,6 @@ export enum StorageKey {
   PERMISSION_LIST = 'beacon:permissions',
   BEACON_SDK_VERSION = 'beacon:sdk_version',
   MATRIX_PRESERVED_STATE = 'beacon:sdk-matrix-preserved-state',
-  MATRIX_PEER_ROOM_IDS = 'beacon:matrix-peer-rooms'
+  MATRIX_PEER_ROOM_IDS = 'beacon:matrix-peer-rooms',
+  MATRIX_SELECTED_NODE = 'beacon:matrix-selected-node'
 }
