@@ -1,5 +1,6 @@
 :host {
   --animation-duration: 300ms;
+  all: initial;
 }
 
 @keyframes fadeIn {
@@ -176,7 +177,15 @@ hr {
 .beacon-toast__more {
   width: 14px;
   transition: transform 0.5s;
+}
+
+a,
+.beacon-toast__more {
   cursor: pointer;
+}
+
+a:hover {
+  opacity: 0.64;
 }
 
 .theme__dark .beacon-toast__more {
