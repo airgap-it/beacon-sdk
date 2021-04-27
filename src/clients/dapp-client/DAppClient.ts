@@ -69,6 +69,7 @@ import { ExtendedPeerInfo } from '../../types/PeerInfo'
 import { ColorMode } from '../../types/ColorMode'
 import { getColorMode, setColorMode } from '../../colorMode'
 import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wallet-lists'
+import { Optional } from '../../utils/utils'
 import { DAppClientOptions } from './DAppClientOptions'
 
 const logger = new Logger('DAppClient')
@@ -997,7 +998,7 @@ export class DAppClient extends Client {
    * @param account The account that the message will be sent to
    */
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
-    requestInput: Omit<T, IgnoredRequestInputProperties>
+    requestInput: Optional<T, IgnoredRequestInputProperties>
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -1027,7 +1028,7 @@ export class DAppClient extends Client {
       throw await this.sendInternalError('BeaconID not defined')
     }
 
-    const request: Omit<T, IgnoredRequestInputProperties> &
+    const request: Optional<T, IgnoredRequestInputProperties> &
       Pick<U, IgnoredRequestInputProperties> = {
       id: messageId,
       version: BEACON_VERSION,

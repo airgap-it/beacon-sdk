@@ -1,3 +1,4 @@
+import { Optional } from '../../../utils/utils'
 import {
   PermissionResponse,
   OperationResponse,
@@ -10,32 +11,35 @@ import {
 /**
  * @category Wallet
  */
-export type IgnoredResponseInputProperties = 'senderId' | 'version' | 'appMetadata'
+export type IgnoredResponseInputProperties = 'senderId' | 'version'
 
 /**
  * @category Wallet
  */
-export type PermissionResponseInput = Omit<PermissionResponse, IgnoredResponseInputProperties>
+export type PermissionResponseInput = Optional<
+  PermissionResponse,
+  IgnoredResponseInputProperties | 'appMetadata'
+>
 /**
  * @category Wallet
  */
-export type OperationResponseInput = Omit<OperationResponse, IgnoredResponseInputProperties>
+export type OperationResponseInput = Optional<OperationResponse, IgnoredResponseInputProperties>
 /**
  * @category Wallet
  */
-export type SignPayloadResponseInput = Omit<SignPayloadResponse, IgnoredResponseInputProperties>
+export type SignPayloadResponseInput = Optional<SignPayloadResponse, IgnoredResponseInputProperties>
 /**
  * @category Wallet
  */
-export type BroadcastResponseInput = Omit<BroadcastResponse, IgnoredResponseInputProperties>
+export type BroadcastResponseInput = Optional<BroadcastResponse, IgnoredResponseInputProperties>
 /**
  * @category Wallet
  */
-export type AcknowledgeResponseInput = Omit<AcknowledgeResponse, IgnoredResponseInputProperties>
+export type AcknowledgeResponseInput = Optional<AcknowledgeResponse, IgnoredResponseInputProperties>
 /**
  * @category Wallet
  */
-export type ErrorResponseInput = Omit<ErrorResponse, IgnoredResponseInputProperties>
+export type ErrorResponseInput = Optional<ErrorResponse, IgnoredResponseInputProperties>
 
 /**
  * @internalapi

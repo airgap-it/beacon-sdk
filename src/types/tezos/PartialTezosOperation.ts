@@ -1,3 +1,4 @@
+import { Optional } from '../../utils/utils'
 import { TezosActivateAccountOperation } from './operations/ActivateAccount'
 import { TezosBallotOperation } from './operations/Ballot'
 import { TezosDelegationOperation } from './operations/Delegation'
@@ -19,22 +20,28 @@ export type omittedProperties = 'source' | 'fee' | 'counter' | 'gas_limit' | 'st
  * @internalapi
  * @category Tezos
  */
-export type PartialTezosDelegationOperation = Omit<TezosDelegationOperation, omittedProperties>
+export type PartialTezosDelegationOperation = Optional<TezosDelegationOperation, omittedProperties>
 /**
  * @internalapi
  * @category Tezos
  */
-export type PartialTezosOriginationOperation = Omit<TezosOriginationOperation, omittedProperties>
+export type PartialTezosOriginationOperation = Optional<
+  TezosOriginationOperation,
+  omittedProperties
+>
 /**
  * @internalapi
  * @category Tezos
  */
-export type PartialTezosRevealOperation = Omit<TezosRevealOperation, omittedProperties>
+export type PartialTezosRevealOperation = Optional<TezosRevealOperation, omittedProperties>
 /**
  * @internalapi
  * @category Tezos
  */
-export type PartialTezosTransactionOperation = Omit<TezosTransactionOperation, omittedProperties>
+export type PartialTezosTransactionOperation = Optional<
+  TezosTransactionOperation,
+  omittedProperties
+>
 
 /**
  * @publicapi
