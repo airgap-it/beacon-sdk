@@ -1,5 +1,6 @@
 :host {
   --animation-duration: 300ms;
+  all: initial;
 }
 
 @keyframes fadeIn {
