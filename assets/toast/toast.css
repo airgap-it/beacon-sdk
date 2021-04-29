@@ -152,6 +152,7 @@ hr {
 
 .beacon-toast__action__item {
   font-size: 14px;
+  max-width: 40ch;
 }
 
 .beacon-toast__action__item p {
