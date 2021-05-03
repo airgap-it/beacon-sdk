@@ -29,11 +29,8 @@ import { CommunicationClient } from './CommunicationClient'
 const logger = new Logger('P2PCommunicationClient')
 
 const KNOWN_RELAY_SERVERS = [
-  'matrix.papers.tech'
-  // 'matrix.tez.ie',
-  // 'matrix-dev.papers.tech',
-  // "matrix.stove-labs.com",
-  // "yadayada.cryptonomic-infra.tech"
+  'matrix.papers.tech',
+  'beacon-node-0.papers.tech:8448'
 ]
 
 const clientNotReadyError = (): never => {
