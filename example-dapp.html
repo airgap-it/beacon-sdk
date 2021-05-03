@@ -100,6 +100,7 @@
         name: 'Example DApp', // Name of the DApp,
         // preferredNetwork: beacon.NetworkType.DELPHINET
         matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
+        // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['matrix.papers.tech']
         // matrixNodes: ['beacon.tztip.me']
       })
@@ -356,7 +357,7 @@
 
       // Add event listener to the button
       document.getElementById('deserializeData').addEventListener('click', () => {
-        new beacon.Serializer().deserialize('').then(console.log).catch(console.error)
+        new beacon.Serializer().deserialize('LAB35h7CSZkEZaccyT8UJum46hpUsxxsHUawsB6omEseng3hzGXavcUxg4w8GWkNK2r7kJuyfbfhcgpfA2oWcQhuEaXKjQqyr4Sp6LbEqEJHZnvBTLXi4i2mzoNq4iQct9eKYx9x6eQK6g7z8LJMSmPba67BN7digh2c32mMNJqfNQsq6kjxbDduFySvvvLprXfRc25zfUGXUvbMhKYpxC2Mtyd64QEWQ6us2za4wWG8fFspGykWjmzU3pxqDQsWFUtwi8nyRqSKVDtr1B7KEtmKivQkHUBVroN7HpWurvHsUsieVy').then(console.log).catch(console.error)
       })
     </script>
   </body>
