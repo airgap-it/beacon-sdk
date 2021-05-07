@@ -86,6 +86,7 @@
     <br /><br />
     <button id="contractCall">Contract Call</button>
     <br /><br />
+    <textarea id="beacon-textbox"></textarea>
     <button id="deserializeData">Deserialize Data</button>
     <br /><br />
     ---
@@ -357,7 +358,9 @@
 
       // Add event listener to the button
       document.getElementById('deserializeData').addEventListener('click', () => {
-        new beacon.Serializer().deserialize('LAB35h7CSZkEZaccyT8UJum46hpUsxxsHUawsB6omEseng3hzGXavcUxg4w8GWkNK2r7kJuyfbfhcgpfA2oWcQhuEaXKjQqyr4Sp6LbEqEJHZnvBTLXi4i2mzoNq4iQct9eKYx9x6eQK6g7z8LJMSmPba67BN7digh2c32mMNJqfNQsq6kjxbDduFySvvvLprXfRc25zfUGXUvbMhKYpxC2Mtyd64QEWQ6us2za4wWG8fFspGykWjmzU3pxqDQsWFUtwi8nyRqSKVDtr1B7KEtmKivQkHUBVroN7HpWurvHsUsieVy').then(console.log).catch(console.error)
+        const value = document.getElementById('beacon-textbox').value
+        console.log('Deserializing:', value)
+        new beacon.Serializer().deserialize(value).then(console.log).catch(console.error)
       })
     </script>
   </body>

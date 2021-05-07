@@ -1,6 +1,13 @@
 import { Logger } from '../utils/Logger'
 import { ConnectionContext } from '../types/ConnectionContext'
-import { TransportType, TransportStatus, PeerInfo, StorageKey, StorageKeyReturnType } from '..'
+import {
+  TransportType,
+  TransportStatus,
+  PeerInfo,
+  StorageKey,
+  StorageKeyReturnType,
+  P2PPairingRequest
+} from '..'
 import { PeerManager } from '../managers/PeerManager'
 import { ArrayElem } from '../managers/StorageManager'
 import { CommunicationClient } from './clients/CommunicationClient'
@@ -146,8 +153,17 @@ export abstract class Transport<
   }
 
   public async addPeer(newPeer: T): Promise<void> {
-    if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
+    console.log('add peer')
+    const peer = await this.peerManager.getPeer(newPeer.publicKey)
+    if (!peer) {
       logger.log('addPeer', 'adding peer', newPeer)
+      await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
+      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
+    } else if (
+      ((peer as any) as P2PPairingRequest).relayServer !==
+      ((newPeer as any) as P2PPairingRequest).relayServer
+    ) {
+      logger.log('addPeer', 'updating peer', newPeer)
       await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
       await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
     } else {
