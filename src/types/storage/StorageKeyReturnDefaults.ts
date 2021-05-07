@@ -22,5 +22,6 @@ export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.BEACON_SDK_VERSION]: undefined,
   [StorageKey.MATRIX_PRESERVED_STATE]: {},
   [StorageKey.MATRIX_PEER_ROOM_IDS]: {},
-  [StorageKey.MATRIX_SELECTED_NODE]: undefined
+  [StorageKey.MATRIX_SELECTED_NODE]: undefined,
+  [StorageKey.MULTI_NODE_SETUP_DONE]: undefined
 }
