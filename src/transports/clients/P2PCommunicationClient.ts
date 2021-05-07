@@ -18,7 +18,7 @@ import {
 import { MatrixMessageType } from '../../matrix-client/models/MatrixMessage'
 import { MatrixRoom } from '../../matrix-client/models/MatrixRoom'
 import { Storage } from '../../storage/Storage'
-import { P2PPairingRequest, StorageKey } from '../..'
+import { P2PPairingRequest, PeerManager, StorageKey } from '../..'
 import { BEACON_VERSION } from '../../constants'
 import { generateGUID } from '../../utils/generate-uuid'
 import { ExtendedP2PPairingResponse, P2PPairingResponse } from '../../types/P2PPairingResponse'
@@ -195,7 +195,18 @@ export class P2PCommunicationClient extends CommunicationClient {
     client.subscribe(MatrixClientEventType.MESSAGE, this.initialListener)
 
     client.subscribe(MatrixClientEventType.INVITE, async (event) => {
+      let member
+      if (event.content.members.length === 1) {
+        // If there is only one member we know it's a new room
+        // TODO: Use the "sender" of the event instead
+        member = event.content.members[0]
+      }
+
       await this.tryJoinRooms(event.content.roomId)
+
+      if (member) {
+        await this.updateRelayServer(member)
+      }
     })
 
     logger.log('start', 'login', await this.getPublicKeyHash(), 'on', relayServer)
@@ -247,6 +258,8 @@ export class P2PCommunicationClient extends CommunicationClient {
     ): Promise<void> => {
       if (this.isTextMessage(event.content) && (await this.isSender(event, senderPublicKey))) {
         let payload
+
+        await this.updateRelayServer(event.content.message.sender)
 
         try {
           payload = Buffer.from(event.content.message.content, 'hex')
@@ -328,6 +341,9 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     const roomId = await this.getRelevantRoom(recipient)
 
+    // Before we send the message, we have to wait for the join to be accepted.
+    await this.waitForJoin(roomId) // TODO: This can probably be removed because we are now waiting inside the get room method
+
     const encryptedMessage = await encryptCryptoboxPayload(message, sharedTx)
 
     // logger.log(
@@ -381,6 +397,8 @@ export class P2PCommunicationClient extends CommunicationClient {
     ;(await this.client.promise).subscribe(MatrixClientEventType.MESSAGE, async (event) => {
       if (this.isTextMessage(event.content) && (await this.isChannelOpenMessage(event.content))) {
         logger.log(`listenForChannelOpening`, `channel opening`, JSON.stringify(event))
+
+        await this.updateRelayServer(event.content.message.sender)
 
         const splits = event.content.message.content.split(':')
         const payload = Buffer.from(splits[splits.length - 1], 'hex')
@@ -438,7 +456,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     const roomId = await this.getRelevantRoom(recipient)
 
     // Before we send the message, we have to wait for the join to be accepted.
-    await this.waitForJoin(roomId)
+    await this.waitForJoin(roomId) // TODO: This can probably be removed because we are now waiting inside the get room method
 
     // TODO: remove v1 backwards-compatibility
     const message: string =
@@ -472,6 +490,34 @@ export class P2PCommunicationClient extends CommunicationClient {
     content: MatrixClientEventMessageContent<any>
   ): content is MatrixClientEventMessageContent<string> {
     return content.message.type === MatrixMessageType.TEXT
+  }
+
+  public async updateRelayServer(sender: string) {
+    // Sender is in the format "@pubkeyhash:relayserver.tld"
+    const split = sender.split(':')
+    if (split.length < 2 || !split[0].startsWith('@')) {
+      console.log(sender)
+      throw new Error('Invalid sender')
+    }
+    const senderHash = split.shift()
+    const relayServer = split.join(':')
+    const manager = localStorage.getItem('beacon:communication-peers-dapp')
+      ? new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_DAPP)
+      : new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_WALLET)
+    const peers = await manager.getPeers()
+    const promiseArray = (peers as any).map(
+      async (peer: P2PPairingRequest | ExtendedP2PPairingResponse) => {
+        const hash = `@${await getHexHash(Buffer.from(peer.publicKey, 'hex'))}`
+        console.log(hash, senderHash)
+        if (hash === senderHash) {
+          if (peer.relayServer !== relayServer) {
+            peer.relayServer = relayServer
+            await manager.addPeer(peer as any)
+          }
+        }
+      }
+    )
+    await Promise.all(promiseArray)
   }
 
   public async isChannelOpenMessage(
@@ -525,6 +571,8 @@ export class P2PCommunicationClient extends CommunicationClient {
 
       const roomId = await (await this.client.promise).createTrustedPrivateRoom(recipient)
       room = await (await this.client.promise).getRoomById(roomId)
+      logger.log(`getRelevantJoinedRoom`, `waiting for other party to join room: ${room.id}`)
+      await this.waitForJoin(roomId)
       logger.log(`getRelevantJoinedRoom`, `new room created and peer invited: ${room.id}`)
     } else {
       room = relevantRooms[0]
