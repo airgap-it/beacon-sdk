@@ -50,6 +50,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   private readonly activeListeners: Map<string, (event: MatrixClientEvent<any>) => void> = new Map()
 
   private readonly ignoredRooms: string[] = []
+  private loginCounter: number = 0
 
   constructor(
     private readonly name: string,
@@ -125,12 +126,10 @@ export class P2PCommunicationClient extends CommunicationClient {
 
       const hasDoneMigration = await this.storage.get(StorageKey.MULTI_NODE_SETUP_DONE)
       if (!hasDoneMigration) {
-        console.log('MIGRATION 2')
         // If this migration has run before, we can skip it.
         const preservedState = await this.storage.get(StorageKey.MATRIX_PRESERVED_STATE)
         console.log('PRESERVED STATE', preservedState)
         if (preservedState.syncToken || preservedState.rooms) {
-          console.log('MIGRATION 3')
           // If migration has NOT run and we have a sync state, we know have been previously connected. So we set the old default relayServer as our current node.
           const node = 'matrix.papers.tech' // 2.2.7 Migration: This will default to the old default to avoid peers from losing their relayServer.
           this.storage
@@ -248,8 +247,13 @@ export class P2PCommunicationClient extends CommunicationClient {
       console.log('ERROR, RETRYING')
       await this.reset() // If we can't log in, let's reset
       console.log('TRYING AGAIN')
-      this.start()
-      return
+      if (this.loginCounter <= this.KNOWN_RELAY_SERVERS.length) {
+        this.loginCounter++
+        this.start()
+        return
+      } else {
+        throw new Error('Too many login attempts. Try again later.')
+      }
     }
 
     console.log('client is ready')
