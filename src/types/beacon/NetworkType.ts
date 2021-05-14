@@ -3,5 +3,6 @@ export enum NetworkType {
   DELPHINET = 'delphinet',
   EDONET = 'edonet',
   FLORENCENET = 'florencenet',
+  GRANADANET = 'granadanet',
   CUSTOM = 'custom'
 }
