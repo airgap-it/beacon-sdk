@@ -153,7 +153,6 @@ export abstract class Transport<
   }
 
   public async addPeer(newPeer: T): Promise<void> {
-    console.log('add peer')
     const peer = await this.peerManager.getPeer(newPeer.publicKey)
     if (!peer) {
       logger.log('addPeer', 'adding peer', newPeer)
