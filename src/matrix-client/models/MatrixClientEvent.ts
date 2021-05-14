@@ -13,6 +13,7 @@ export type MatrixClientEventContent<T> = T extends MatrixClientEventType.INVITE
 
 export interface MatrixClientEventInviteContent {
   roomId: string
+  members: string[]
 }
 
 export interface MatrixClientEventMessageContent<T> {
