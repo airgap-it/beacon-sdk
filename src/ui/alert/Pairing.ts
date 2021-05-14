@@ -41,6 +41,7 @@ export interface WebApp extends AppBase {
     [NetworkType.DELPHINET]?: string
     [NetworkType.EDONET]?: string
     [NetworkType.FLORENCENET]?: string
+    [NetworkType.GRANADANET]?: string
     [NetworkType.CUSTOM]?: string
   }
 }
