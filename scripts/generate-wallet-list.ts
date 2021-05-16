@@ -32,7 +32,8 @@ export const webList: WebApp[] = [
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
       [NetworkType.DELPHINET]: 'https://testnet.kukai.app',
       [NetworkType.EDONET]: 'https://edonet.kukai.app',
-      [NetworkType.FLORENCENET]: 'https://florencenet.kukai.app'
+      [NetworkType.FLORENCENET]: 'https://florencenet.kukai.app',
+      [NetworkType.GRANADANET]: 'https://granadanet.kukai.app'
     }
   }
 ]
