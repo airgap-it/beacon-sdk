@@ -1,10 +1,11 @@
-import { EncryptionType } from './beacon/messages/EncryptPayloadRequest'
+import { EncryptionOperation, EncryptionType } from '..'
 
 /**
  * @category DApp
  */
 export interface RequestEncryptPayloadInput {
-  encryptionType?: EncryptionType
+  encryptionCryptoOperation: EncryptionOperation
+  encryptionType: EncryptionType
   payload: string
   sourceAddress?: string
 }

@@ -35,9 +35,9 @@ export const messageEvents: {
     error: BeaconEvent.UNKNOWN
   },
   [BeaconMessageType.EncryptPayloadRequest]: {
-    sent: BeaconEvent.SIGN_REQUEST_SENT,
-    success: BeaconEvent.SIGN_REQUEST_SUCCESS,
-    error: BeaconEvent.SIGN_REQUEST_ERROR
+    sent: BeaconEvent.ENCRYPT_REQUEST_SENT,
+    success: BeaconEvent.ENCRYPT_REQUEST_SUCCESS,
+    error: BeaconEvent.ENCRYPT_REQUEST_ERROR
   },
   [BeaconMessageType.EncryptPayloadResponse]: {
     sent: BeaconEvent.UNKNOWN,

@@ -23,7 +23,8 @@ import {
   Transport,
   NetworkType,
   AcknowledgeResponse,
-  EncryptPayloadResponseOutput
+  EncryptPayloadResponseOutput,
+  EncryptionOperation
 } from '.'
 
 const logger = new Logger('BeaconEvents')
@@ -433,7 +434,9 @@ const showEncryptSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output
   await openToast({
-    body: `{{wallet}}&nbsp;successfully encrypted/decrypted payload`,
+    body: `{{wallet}}&nbsp;successfully ${
+      data.output.cryptoOperation === EncryptionOperation.ENCRYPT ? 'encrypted' : 'decrypted'
+    } payload`,
     timer: SUCCESS_TIMER,
     state: 'finished',
     walletInfo: data.walletInfo,

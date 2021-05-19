@@ -155,13 +155,12 @@ import { BlockExplorer } from './utils/block-explorer'
 import { TezblockBlockExplorer } from './utils/tezblock-blockexplorer'
 import { setDebugEnabled, getDebugEnabled } from './debug'
 import { ColorMode } from './types/ColorMode'
-import {
-  EncryptionType,
-  EncryptPayloadRequest
-} from './types/beacon/messages/EncryptPayloadRequest'
+import { EncryptPayloadRequest } from './types/beacon/messages/EncryptPayloadRequest'
 import { EncryptPayloadResponse } from './types/beacon/messages/EncryptPayloadResponse'
 import { EncryptionTypeNotSupportedBeaconError } from './errors/EncryptionTypeNotSupportedBeaconError'
 import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotSupportedBeaconError'
+import { EncryptionType } from './types/EncryptionType'
+import { EncryptionOperation } from './types/EncryptionOperation'
 
 // Tezos
 export {
@@ -233,6 +232,7 @@ export {
   Threshold,
   SigningType,
   EncryptionType,
+  EncryptionOperation,
   ExtensionMessageTarget,
   ExtensionMessage,
   EncryptedExtensionMessage,

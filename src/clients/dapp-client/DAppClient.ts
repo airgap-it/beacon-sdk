@@ -54,6 +54,7 @@ import {
   EncryptPayloadResponseOutput,
   EncryptPayloadResponse,
   EncryptionType,
+  EncryptionOperation,
   EncryptPayloadRequest
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
@@ -716,7 +717,8 @@ export class DAppClient extends Client {
 
     const request: EncryptPayloadRequestInput = {
       type: BeaconMessageType.EncryptPayloadRequest,
-      encryptionType: input.encryptionType ?? EncryptionType.ENCRYPT_ASYMMETRIC,
+      cryptoOperation: input.encryptionCryptoOperation ?? EncryptionOperation.DECRYPT,
+      encryptionType: input.encryptionType ?? EncryptionType.ASYMMETRIC,
       payload,
       sourceAddress: input.sourceAddress || activeAccount.address
     }
