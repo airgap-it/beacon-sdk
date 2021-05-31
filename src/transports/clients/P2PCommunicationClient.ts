@@ -31,6 +31,14 @@ const logger = new Logger('P2PCommunicationClient')
 
 const KNOWN_RELAY_SERVERS = ['matrix.papers.tech', 'beacon-node-0.papers.tech:8448']
 
+const publicKeyToNumber = (arr: Uint8Array, mod: number) => {
+  let sum = 0
+  for (let i = 0; i < arr.length; i++) {
+    sum += arr[i] + i
+  }
+  return Math.floor(sum % mod)
+}
+
 /**
  * @internalapi
  *
@@ -146,7 +154,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     console.log('GET RELAY SERVER')
 
-    const startIndex = Math.floor(Math.random() * this.KNOWN_RELAY_SERVERS.length)
+    const startIndex = publicKeyToNumber(this.keyPair.publicKey, this.KNOWN_RELAY_SERVERS.length)
     let offset = 0
 
     while (offset < this.KNOWN_RELAY_SERVERS.length) {
