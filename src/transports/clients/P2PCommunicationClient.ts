@@ -422,7 +422,6 @@ export class P2PCommunicationClient extends CommunicationClient {
     // Sender is in the format "@pubkeyhash:relayserver.tld"
     const split = sender.split(':')
     if (split.length < 2 || !split[0].startsWith('@')) {
-      console.log(sender)
       throw new Error('Invalid sender')
     }
 
