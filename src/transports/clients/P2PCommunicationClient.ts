@@ -280,7 +280,12 @@ export class P2PCommunicationClient extends CommunicationClient {
     await this.storage.delete(StorageKey.MATRIX_PEER_ROOM_IDS).catch((error) => logger.log(error))
     await this.storage.delete(StorageKey.MATRIX_PRESERVED_STATE).catch((error) => logger.log(error))
     await this.storage.delete(StorageKey.MATRIX_SELECTED_NODE).catch((error) => logger.log(error))
+    // Instead of resetting everything, maybe we should make sure a new instance is created?
     this.relayServer = undefined
+    this.client = new ExposedPromise()
+    this.loginCounter = 0
+    this.initialEvent = undefined
+    this.initialListener = undefined
   }
 
   public async listenForEncryptedMessage(
