@@ -283,7 +283,6 @@ export class P2PCommunicationClient extends CommunicationClient {
     // Instead of resetting everything, maybe we should make sure a new instance is created?
     this.relayServer = undefined
     this.client = new ExposedPromise()
-    this.loginCounter = 0
     this.initialEvent = undefined
     this.initialListener = undefined
   }
