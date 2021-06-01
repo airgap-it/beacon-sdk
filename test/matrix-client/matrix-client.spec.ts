@@ -165,7 +165,7 @@ describe(`MatrixClient`, () => {
     const removeStub = sinon.stub((<any>client).eventEmitter, 'removeListener').resolves()
     const removeAllStub = sinon.stub((<any>client).eventEmitter, 'removeAllListeners').resolves()
 
-    client.unsubscribe(MatrixClientEventType.MESSAGE)
+    client.unsubscribeAll(MatrixClientEventType.MESSAGE)
 
     expect(removeStub.callCount).to.equal(0)
     expect(removeAllStub.callCount).to.equal(1)
