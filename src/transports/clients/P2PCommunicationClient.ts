@@ -351,8 +351,9 @@ export class P2PCommunicationClient extends CommunicationClient {
       logger.log('listenForEncryptedMessage', 'No previous event found')
     }
 
-    if (this.initialListener) {
-      ;(await this.client.promise).unsubscribe(MatrixClientEventType.MESSAGE, this.initialListener)
+    const initialListener = this.initialListener
+    if (initialListener) {
+      ;(await this.client.promise).unsubscribe(MatrixClientEventType.MESSAGE, initialListener)
     }
     this.initialListener = undefined
     this.initialEvent = undefined
@@ -370,7 +371,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async unsubscribeFromEncryptedMessages(): Promise<void> {
-    ;(await this.client.promise).unsubscribe(MatrixClientEventType.MESSAGE)
+    ;(await this.client.promise).unsubscribeAll(MatrixClientEventType.MESSAGE)
 
     this.activeListeners.clear()
   }

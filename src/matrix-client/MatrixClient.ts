@@ -200,13 +200,21 @@ export class MatrixClient {
    */
   public unsubscribe(
     event: MatrixClientEventType,
-    listener?: (event: MatrixClientEvent<any>) => void
+    listener: (event: MatrixClientEvent<any>) => void
   ): void {
     if (listener) {
       this.eventEmitter.removeListener(event, listener)
-    } else {
-      this.eventEmitter.removeAllListeners(event)
     }
+  }
+
+  /**
+   * Unsubscribe from all matrix events of this type
+   *
+   * @param event
+   * @param listener
+   */
+  public unsubscribeAll(event: MatrixClientEventType): void {
+    this.eventEmitter.removeAllListeners(event)
   }
 
   public async getRoomById(id: string): Promise<MatrixRoom> {
