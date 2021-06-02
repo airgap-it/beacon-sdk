@@ -47,7 +47,6 @@ import {
   Transport,
   DappP2PTransport,
   DappPostMessageTransport,
-  PeerManager,
   AppMetadataManager,
   AppMetadata
 } from '../..'
@@ -107,16 +106,8 @@ export class DAppClient extends Client {
    */
   private _activeAccount: ExposedPromise<AccountInfo | undefined> = new ExposedPromise()
 
-  /**
-   * The currently active peer. This is used to address a peer in case the active account is not set. (Eg. for permission requests)
-   */
-  private _activePeer: ExposedPromise<
-    ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
-  > = new ExposedPromise()
-
   private _initPromise: Promise<TransportType> | undefined
 
-  private readonly activePeerLoaded: Promise<void>
   private readonly activeAccountLoaded: Promise<void>
 
   private readonly appMetadataManager: AppMetadataManager
@@ -144,28 +135,6 @@ export class DAppClient extends Client {
       .catch(async (storageError) => {
         await this.setActiveAccount(undefined)
         console.error(storageError)
-      })
-
-    this.activePeerLoaded = this.storage
-      .get(StorageKey.ACTIVE_PEER)
-      .then(async (activePeerPublicKey) => {
-        if (activePeerPublicKey) {
-          const p2pPeerManager = new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_DAPP)
-          const postmessagePeerManager = new PeerManager(
-            this.storage,
-            StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
-          )
-          const peer =
-            (await p2pPeerManager.getPeer(activePeerPublicKey)) ??
-            (await postmessagePeerManager.getPeer(activePeerPublicKey))
-          await this.setActivePeer(peer as any)
-        } else {
-          await this.setActivePeer(undefined)
-        }
-      })
-      .catch(async (storageError) => {
-        await this.setActiveAccount(undefined)
-        logger.error(storageError)
       })
 
     this.handleResponse = async (
@@ -261,11 +230,6 @@ export class DAppClient extends Client {
     } catch {
       //
     }
-    try {
-      await this.activePeerLoaded
-    } catch {
-      //
-    }
 
     this._initPromise = new Promise(async (resolve) => {
       if (transport) {
@@ -316,7 +280,6 @@ export class DAppClient extends Client {
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
 
-              this.setActivePeer(peer).catch(console.error)
               this.setTransport(this.postMessageTransport).catch(console.error)
               stopListening()
               resolve(TransportType.POST_MESSAGE)
@@ -330,7 +293,6 @@ export class DAppClient extends Client {
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
 
-              this.setActivePeer(peer).catch(console.error)
               this.setTransport(this.p2pTransport).catch(console.error)
               stopListening()
               resolve(TransportType.P2P)
@@ -391,10 +353,7 @@ export class DAppClient extends Client {
       } else if (origin === Origin.P2P) {
         await this.setTransport(this.p2pTransport)
       }
-      const peer = await this.getPeer(account)
-      await this.setActivePeer(peer as any)
     } else {
-      await this.setActivePeer(undefined)
       await this.setTransport(undefined)
     }
 
@@ -757,32 +716,6 @@ export class DAppClient extends Client {
     return message
   }
 
-  protected async setActivePeer(
-    peer?: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
-  ): Promise<void> {
-    if (this._activePeer.isSettled()) {
-      // If the promise has already been resolved we need to create a new one.
-      this._activePeer = ExposedPromise.resolve<
-        ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
-      >(peer)
-    } else {
-      this._activePeer.resolve(peer)
-    }
-
-    if (peer) {
-      await this.initInternalTransports()
-      if (peer.type === 'postmessage-pairing-response') {
-        await this.setTransport(this.postMessageTransport)
-      } else if (peer.type === 'p2p-pairing-response') {
-        await this.setTransport(this.p2pTransport)
-      }
-    }
-
-    await this.storage.set(StorageKey.ACTIVE_PEER, peer ? peer.publicKey : undefined)
-
-    return
-  }
-
   /**
    * A "setter" for when the transport needs to be changed.
    */
@@ -977,9 +910,6 @@ export class DAppClient extends Client {
         // We could not find an exact match for a sender, so we most likely received it over a relay
         peer = peers.find((peerEl) => (peerEl as any).extensionId === account.origin.id)
       }
-    } else {
-      peer = await this._activePeer.promise
-      logger.log('', 'Active peer', peer)
     }
 
     if (!peer) {
