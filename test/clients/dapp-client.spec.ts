@@ -175,7 +175,6 @@ describe(`DAppClient`, () => {
     expect(storageStub.callCount).to.equal(3)
     expect(storageStub.firstCall.args[0]).to.equal(StorageKey.BEACON_SDK_SECRET_SEED)
     expect(storageStub.secondCall.args[0]).to.equal(StorageKey.ACTIVE_ACCOUNT)
-    expect(storageStub.thirdCall.args[0]).to.equal(StorageKey.ACTIVE_PEER)
     expect(setActiveAccountStub.callCount).to.equal(1)
     expect(setActiveAccountStub.firstCall.args[0]).to.be.undefined
   })
@@ -211,10 +210,6 @@ describe(`DAppClient`, () => {
       }, 1000)
 
       const storage = new LocalStorage()
-      await storage.set(
-        StorageKey.ACTIVE_PEER,
-        '48d79c808e9c6adcef4343fee74599ac7f3c766be6798143235c8cb939acf19f'
-      )
       await storage.set(StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP, [
         {
           id: 'c21fcf96-53d5-c30c-0cf1-7105e046b8ac',
@@ -232,7 +227,6 @@ describe(`DAppClient`, () => {
       await dAppClient.init()
       await dAppClient.ready
 
-      await storage.delete(StorageKey.ACTIVE_PEER)
       await storage.delete(StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP)
 
       clearTimeout(timeout)
