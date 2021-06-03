@@ -31,6 +31,14 @@ const logger = new Logger('P2PCommunicationClient')
 
 const KNOWN_RELAY_SERVERS = ['matrix.papers.tech', 'beacon-node-0.papers.tech:8448']
 
+const publicKeyToNumber = (arr: Uint8Array, mod: number) => {
+  let sum = 0
+  for (let i = 0; i < arr.length; i++) {
+    sum += arr[i] + i
+  }
+  return Math.floor(sum % mod)
+}
+
 /**
  * @internalapi
  *
@@ -146,7 +154,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     console.log('GET RELAY SERVER')
 
-    const startIndex = Math.floor(Math.random() * this.KNOWN_RELAY_SERVERS.length)
+    const startIndex = publicKeyToNumber(this.keyPair.publicKey, this.KNOWN_RELAY_SERVERS.length)
     let offset = 0
 
     while (offset < this.KNOWN_RELAY_SERVERS.length) {
@@ -232,6 +240,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
       if (member) {
         await this.updateRelayServer(member)
+        await this.updatePeerRoom(member, event.content.roomId)
       }
     })
 
@@ -271,7 +280,11 @@ export class P2PCommunicationClient extends CommunicationClient {
     await this.storage.delete(StorageKey.MATRIX_PEER_ROOM_IDS).catch((error) => logger.log(error))
     await this.storage.delete(StorageKey.MATRIX_PRESERVED_STATE).catch((error) => logger.log(error))
     await this.storage.delete(StorageKey.MATRIX_SELECTED_NODE).catch((error) => logger.log(error))
+    // Instead of resetting everything, maybe we should make sure a new instance is created?
     this.relayServer = undefined
+    this.client = new ExposedPromise()
+    this.initialEvent = undefined
+    this.initialListener = undefined
   }
 
   public async listenForEncryptedMessage(
@@ -291,6 +304,7 @@ export class P2PCommunicationClient extends CommunicationClient {
         let payload
 
         await this.updateRelayServer(event.content.message.sender)
+        await this.updatePeerRoom(event.content.message.sender, event.content.roomId)
 
         try {
           payload = Buffer.from(event.content.message.content, 'hex')
@@ -337,8 +351,9 @@ export class P2PCommunicationClient extends CommunicationClient {
       logger.log('listenForEncryptedMessage', 'No previous event found')
     }
 
-    if (this.initialListener) {
-      ;(await this.client.promise).unsubscribe(MatrixClientEventType.MESSAGE, this.initialListener)
+    const initialListener = this.initialListener
+    if (initialListener) {
+      ;(await this.client.promise).unsubscribe(MatrixClientEventType.MESSAGE, initialListener)
     }
     this.initialListener = undefined
     this.initialEvent = undefined
@@ -356,7 +371,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async unsubscribeFromEncryptedMessages(): Promise<void> {
-    ;(await this.client.promise).unsubscribe(MatrixClientEventType.MESSAGE)
+    ;(await this.client.promise).unsubscribeAll(MatrixClientEventType.MESSAGE)
 
     this.activeListeners.clear()
   }
@@ -404,6 +419,30 @@ export class P2PCommunicationClient extends CommunicationClient {
     })
   }
 
+  public async updatePeerRoom(sender: string, roomId: string): Promise<void> {
+    // Sender is in the format "@pubkeyhash:relayserver.tld"
+    const split = sender.split(':')
+    if (split.length < 2 || !split[0].startsWith('@')) {
+      throw new Error('Invalid sender')
+    }
+
+    const roomIds = await this.storage.get(StorageKey.MATRIX_PEER_ROOM_IDS)
+
+    const room = roomIds[sender]
+
+    if (room && room[1]) {
+      // If we have a room already, let's ignore it. We need to do this, otherwise it will be loaded from the matrix cache.
+      this.ignoredRooms.push(room[1])
+    }
+
+    roomIds[sender] = roomId
+
+    await this.storage.set(StorageKey.MATRIX_PEER_ROOM_IDS, roomIds)
+
+    // TODO: We also need to delete the room from the sync state
+    // If we need to delete a room, we can assume the local state is not up to date anymore, so we can reset the state
+  }
+
   public async deleteRoomIdFromRooms(roomId: string): Promise<void> {
     const roomIds = await this.storage.get(StorageKey.MATRIX_PEER_ROOM_IDS)
     const newRoomIds = Object.entries(roomIds)
@@ -430,6 +469,7 @@ export class P2PCommunicationClient extends CommunicationClient {
         logger.log(`listenForChannelOpening`, `channel opening`, JSON.stringify(event))
 
         await this.updateRelayServer(event.content.message.sender)
+        await this.updatePeerRoom(event.content.message.sender, event.content.roomId)
 
         const splits = event.content.message.content.split(':')
         const payload = Buffer.from(splits[splits.length - 1], 'hex')
@@ -484,7 +524,10 @@ export class P2PCommunicationClient extends CommunicationClient {
     const recipientHash = await getHexHash(Buffer.from(pairingRequest.publicKey, 'hex'))
     const recipient = recipientString(recipientHash, pairingRequest.relayServer)
 
-    const roomId = await this.getRelevantRoom(recipient)
+    // We force room creation here because if we "re-pair", we need to make sure that we don't send it to an old room.
+    const roomId = await (await this.client.promise).createTrustedPrivateRoom(recipient)
+
+    await this.updatePeerRoom(recipient, roomId)
 
     // Before we send the message, we have to wait for the join to be accepted.
     await this.waitForJoin(roomId) // TODO: This can probably be removed because we are now waiting inside the get room method
@@ -527,7 +570,6 @@ export class P2PCommunicationClient extends CommunicationClient {
     // Sender is in the format "@pubkeyhash:relayserver.tld"
     const split = sender.split(':')
     if (split.length < 2 || !split[0].startsWith('@')) {
-      console.log(sender)
       throw new Error('Invalid sender')
     }
     const senderHash = split.shift()
@@ -539,7 +581,6 @@ export class P2PCommunicationClient extends CommunicationClient {
     const promiseArray = (peers as any).map(
       async (peer: P2PPairingRequest | ExtendedP2PPairingResponse) => {
         const hash = `@${await getHexHash(Buffer.from(peer.publicKey, 'hex'))}`
-        console.log(hash, senderHash)
         if (hash === senderHash) {
           if (peer.relayServer !== relayServer) {
             peer.relayServer = relayServer
