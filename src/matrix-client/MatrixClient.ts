@@ -24,7 +24,8 @@ interface MatrixLoginConfig {
   deviceId: string
 }
 
-const MAX_POLLING_RETRIES = 3
+const IMMEDIATE_POLLING_RETRIES = 3
+const RETRY_INTERVAL = 5000
 
 /**
  * The matrix client used to connect to the matrix network
@@ -325,29 +326,26 @@ export class MatrixClient {
       resolve: (value?: void | PromiseLike<void> | undefined) => void,
       reject: (reason?: any) => void
     ): Promise<void> => {
-      let continueSyncing: boolean = false
+      let syncingRetries: number = 0
       try {
         const response = await sync()
         onSyncSuccess(response)
-
-        continueSyncing = true
       } catch (error) {
         onSyncError(error)
 
-        continueSyncing = store.get('pollingRetries') < MAX_POLLING_RETRIES
+        syncingRetries = store.get('pollingRetries')
         // console.warn('Could not sync:', error)
-        if (continueSyncing && this.isActive) {
-          logger.log('Retry syncing...')
+        if (this.isActive) {
+          logger.log(`Retry syncing... ${syncingRetries} retries so far`)
         }
       } finally {
         if (this.isActive) {
-          if (continueSyncing) {
-            setTimeout(async () => {
+          setTimeout(
+            async () => {
               await pollSync(resolve, reject)
-            }, interval)
-          } else {
-            reject(new Error(`Max polling retries exeeded: ${MAX_POLLING_RETRIES}`))
-          }
+            },
+            syncingRetries > IMMEDIATE_POLLING_RETRIES ? RETRY_INTERVAL + interval : interval
+          )
         } else {
           reject(new Error(`Syncing stopped manually.`))
         }
