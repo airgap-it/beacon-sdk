@@ -33,23 +33,29 @@ const getVersionReply = () => {
     }
   }
 }
-const getLogin = (hostname: string) => {
-  console.log('GET LOGIN')
-  return {
-    user_id: `@xxx:${hostname}`,
-    access_token: 'ACCESS_TOKEN',
-    home_server: hostname,
-    device_id: 'xxx'
-  }
-}
+// const getLogin = (hostname: string) => {
+//   console.log('GET LOGIN')
+//   return {
+//     user_id: `@xxx:${hostname}`,
+//     access_token: 'ACCESS_TOKEN',
+//     home_server: hostname,
+//     device_id: 'xxx'
+//   }
+// }
 
 mock
   .onGet('https://matrix.papers.tech/_matrix/client/versions')
   .reply(200, getVersionReply())
   .onGet('https://beacon-node-0.papers.tech:8448/_matrix/client/versions')
   .reply(200, getVersionReply())
-  .onGet('/login')
-  .reply(200, getLogin('matrix.papers.tech'))
+  // .onPost('https://matrix.papers.tech/_matrix/client/r0/login')
+  // .reply(200, getLogin('matrix.papers.tech'))
+  // .onPost('https://beacon-node-0.papers.tech:8448/_matrix/client/r0/login')
+  // .reply(200, getLogin('beacon-node-0.papers.tech:8448'))
+  // .onGet('https://matrix.papers.tech/_matrix/client/r0/sync')
+  // .reply(200, {})
+  // .onGet('https://beacon-node-0.papers.tech:8448/_matrix/client/r0/sync')
+  // .reply(200, {})
   .onAny()
   .reply((config) => {
     console.log('UNMOCKED URL, RETURNING ERROR 500', `${config.baseURL}${config.url}`)

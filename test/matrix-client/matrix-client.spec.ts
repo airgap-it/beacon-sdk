@@ -165,7 +165,7 @@ describe(`MatrixClient`, () => {
     const removeStub = sinon.stub((<any>client).eventEmitter, 'removeListener').resolves()
     const removeAllStub = sinon.stub((<any>client).eventEmitter, 'removeAllListeners').resolves()
 
-    client.unsubscribe(MatrixClientEventType.MESSAGE)
+    client.unsubscribeAll(MatrixClientEventType.MESSAGE)
 
     expect(removeStub.callCount).to.equal(0)
     expect(removeAllStub.callCount).to.equal(1)
@@ -282,6 +282,11 @@ describe(`MatrixClient`, () => {
       const successResponse = 'my-response'
       const getStub = sinon.stub((<any>client).store, 'get').returns(3)
       const syncStub = sinon.stub(client, <any>'sync').returns(successResponse)
+
+      // Stop the requests after 1s, otherwise it will retry forever
+      setTimeout(() => {
+        client.stop()
+      }, 1000)
       ;(<any>client)
         .poll(
           0,
