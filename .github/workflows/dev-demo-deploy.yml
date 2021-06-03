@@ -46,4 +46,4 @@ jobs:
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        run: netlify deploy --dir=public --alias=${GITHUB_REF##*/} --prod
+        run: netlify deploy --dir=public --alias=${GITHUB_REF##*/}
