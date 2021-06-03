@@ -330,8 +330,6 @@ export class MatrixClient {
       try {
         const response = await sync()
         onSyncSuccess(response)
-
-        syncingRetries = 0
       } catch (error) {
         onSyncError(error)
 
