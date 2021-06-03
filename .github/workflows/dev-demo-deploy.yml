@@ -1,0 +1,36 @@
+name: Deploy to Netlify on pull requests
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout repo
+      - uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Install Netlify
+        run: npm install netlify-cli -g
+
+      - name: Build site
+        run: npm run build
+
+      - name: Copy files
+        run: |
+          mkdir -p public/dist
+          mv example-dapp.html public/
+          mv example-wallet.html public/
+          mv dist/walletbeacon.min.js public/dist/
+
+      # Deploy the site with netlify-cli
+      - name: Deploy Site
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: netlify deploy --dir=public --alias=${GITHUB_REF##*/} --prod
