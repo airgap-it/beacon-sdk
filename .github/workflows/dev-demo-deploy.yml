@@ -8,12 +8,25 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       # Checkout repo
       - uses: actions/checkout@v2
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Cache node modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Node 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Prepare
+        run: npm ci
 
       - name: Install Netlify
         run: npm install netlify-cli -g
