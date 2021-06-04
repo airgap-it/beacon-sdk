@@ -1,9 +1,6 @@
 name: Deploy to Netlify on pull requests
 
-on:
-  push:
-    branches-ignore:
-      - master
+on: push
 
 jobs:
   build:
