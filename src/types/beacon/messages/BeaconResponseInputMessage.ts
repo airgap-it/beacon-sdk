@@ -32,7 +32,7 @@ export type SignPayloadResponseInput = Optional<SignPayloadResponse, IgnoredResp
 /**
  * @category Wallet
  */
-export type EncryptPayloadResponseInput = Omit<
+export type EncryptPayloadResponseInput = Optional<
   EncryptPayloadResponse,
   IgnoredResponseInputProperties
 >

@@ -218,7 +218,8 @@
       // Add event listener to the button
       document.getElementById('encryptPayload').addEventListener('click', async () => {
         const encryptionResponse = await client.requestEncryptPayload({
-          encryptionType: beacon.EncryptionType.ENCRYPT_ASYMMETRIC,
+          encryptionType: beacon.EncryptionType.ASYMMETRIC,
+          cryptoOperation: beacon.EncryptionOperation.ENCRYPT,
           payload: 'my-secret-string'
         })
 
@@ -227,7 +228,8 @@
         await new Promise((resolve) => setTimeout(resolve, 2000))
 
         const decryptionResponse = await client.requestEncryptPayload({
-          encryptionType: beacon.EncryptionType.DECRYPT_ASYMMETRIC,
+          encryptionType: beacon.EncryptionType.ASYMMETRIC,
+          cryptoOperation: beacon.EncryptionOperation.DECRYPT,
           payload: encryptionResponse.payload
         })
 

@@ -41,7 +41,7 @@ export type SignPayloadRequestOutput = Optional<
 /**
  * @category Wallet
  */
-export type EncryptPayloadRequestOutput = Omit<
+export type EncryptPayloadRequestOutput = Optional<
   EncryptPayloadRequest,
   IgnoredRequestOutputProperties
 > &
