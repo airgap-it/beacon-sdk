@@ -219,7 +219,7 @@
       document.getElementById('encryptPayload').addEventListener('click', async () => {
         const encryptionResponse = await client.requestEncryptPayload({
           encryptionType: beacon.EncryptionType.ASYMMETRIC,
-          cryptoOperation: beacon.EncryptionOperation.ENCRYPT,
+          encryptionCryptoOperation: beacon.EncryptionOperation.ENCRYPT,
           payload: 'my-secret-string'
         })
 
@@ -229,7 +229,7 @@
 
         const decryptionResponse = await client.requestEncryptPayload({
           encryptionType: beacon.EncryptionType.ASYMMETRIC,
-          cryptoOperation: beacon.EncryptionOperation.DECRYPT,
+          encryptionCryptoOperation: beacon.EncryptionOperation.DECRYPT,
           payload: encryptionResponse.payload
         })
 

@@ -53,8 +53,6 @@ import {
   RequestEncryptPayloadInput,
   EncryptPayloadResponseOutput,
   EncryptPayloadResponse,
-  EncryptionType,
-  EncryptionOperation,
   EncryptPayloadRequest
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
@@ -715,10 +713,18 @@ export class DAppClient extends Client {
       throw new Error('Payload must be a string')
     }
 
+    if (typeof input.encryptionCryptoOperation !== 'undefined') {
+      throw new Error('encryptionCryptoOperation must be defined')
+    }
+
+    if (typeof input.encryptionType !== 'undefined') {
+      throw new Error('encryptionType must be defined')
+    }
+
     const request: EncryptPayloadRequestInput = {
       type: BeaconMessageType.EncryptPayloadRequest,
-      cryptoOperation: input.encryptionCryptoOperation ?? EncryptionOperation.DECRYPT,
-      encryptionType: input.encryptionType ?? EncryptionType.ASYMMETRIC,
+      cryptoOperation: input.encryptionCryptoOperation,
+      encryptionType: input.encryptionType,
       payload,
       sourceAddress: input.sourceAddress || activeAccount.address
     }
