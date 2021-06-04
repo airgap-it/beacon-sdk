@@ -713,11 +713,11 @@ export class DAppClient extends Client {
       throw new Error('Payload must be a string')
     }
 
-    if (typeof input.encryptionCryptoOperation !== 'undefined') {
+    if (typeof input.encryptionCryptoOperation === 'undefined') {
       throw new Error('encryptionCryptoOperation must be defined')
     }
 
-    if (typeof input.encryptionType !== 'undefined') {
+    if (typeof input.encryptionType === 'undefined') {
       throw new Error('encryptionType must be defined')
     }
 
