@@ -71,6 +71,7 @@ import { getColorMode, setColorMode } from '../../colorMode'
 import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wallet-lists'
 import { Optional } from '../../utils/utils'
 import { DAppClientOptions } from './DAppClientOptions'
+import { App, WebApp } from 'src/ui/alert/Pairing'
 
 const logger = new Logger('DAppClient')
 
@@ -951,9 +952,19 @@ export class DAppClient extends Client {
       extensionList.find((app) => app.name === walletInfo?.name)
 
     if (selectedApp) {
+      let deeplink: string | undefined
+      if (selectedApp.hasOwnProperty('links')) {
+        deeplink = (selectedApp as WebApp).links[
+          selectedAccount?.network.type ?? this.preferredNetwork
+        ]
+      } else if (selectedApp.hasOwnProperty('deepLink')) {
+        deeplink = (selectedApp as App).deepLink
+      }
+
       return {
         name: walletInfo.name,
-        icon: walletInfo.icon ?? selectedApp.logo
+        icon: walletInfo.icon ?? selectedApp.logo,
+        deeplink
       }
     }
 
@@ -1059,12 +1070,12 @@ export class DAppClient extends Client {
     this.events
       .emit(messageEvents[requestInput.type].sent, {
         walletInfo: {
-          name: walletInfo.name ?? 'Wallet',
-          icon: walletInfo.icon
+          ...walletInfo,
+          name: walletInfo.name ?? 'Wallet'
         },
         extraInfo: {
           resetCallback: async () => {
-            await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
+            this.disconnect()
           }
         }
       })
@@ -1072,6 +1083,12 @@ export class DAppClient extends Client {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed.promise as any // TODO: fix type
+  }
+
+  private async disconnect() {
+    this.postMessageTransport = undefined
+    this.p2pTransport = undefined
+    await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
   }
 
   /**
