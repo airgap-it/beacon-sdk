@@ -70,6 +70,7 @@ export enum BeaconEvent {
 export interface WalletInfo {
   name: string
   icon?: string
+  deeplink?: string
 }
 
 export interface ExtraInfo {
@@ -144,33 +145,48 @@ export interface BeaconEventType {
  * Show a "Request sent" toast
  */
 const showSentToast = async (data: RequestSentInfo): Promise<void> => {
+  const actions: ToastAction[] = [
+    {
+      text: 'Did you make a mistake?',
+      actionText: 'Cancel Request',
+      actionCallback: async (): Promise<void> => {
+        await closeToast()
+      }
+    }
+  ]
+  if (data.walletInfo.deeplink) {
+    const link = data.walletInfo.deeplink
+    actions.push({
+      text: `Wallet not open?`,
+      actionText: `Open ${data.walletInfo.name}`,
+      actionCallback: async (): Promise<void> => {
+        const a = document.createElement('a')
+        a.setAttribute('href', link)
+        a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
+        // window.open(data.walletInfo.deeplink, '_blank')
+      }
+    })
+  }
+  actions.push({
+    text: 'Wallet not receiving request?',
+    actionText: 'Reset Connection',
+    actionCallback: async (): Promise<void> => {
+      await closeToast()
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const resetCallback = data.extraInfo.resetCallback
+      if (resetCallback) {
+        logger.log('showSentToast', 'resetCallback invoked')
+        await resetCallback()
+      }
+    }
+  })
+
   openToast({
     body: `Request sent to&nbsp;{{wallet}}`,
     walletInfo: data.walletInfo,
     forceNew: true,
     state: 'loading',
-    actions: [
-      {
-        text: 'Did you make a mistake?',
-        actionText: 'Cancel Request',
-        actionCallback: async (): Promise<void> => {
-          await closeToast()
-        }
-      },
-      {
-        text: 'Wallet not receiving request?',
-        actionText: 'Reset Connection',
-        actionCallback: async (): Promise<void> => {
-          await closeToast()
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          const resetCallback = data.extraInfo.resetCallback
-          if (resetCallback) {
-            logger.log('showSentToast', 'resetCallback invoked')
-            await resetCallback()
-          }
-        }
-      }
-    ]
+    actions
   }).catch((toastError) => console.error(toastError))
 }
 
