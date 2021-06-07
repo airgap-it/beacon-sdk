@@ -31,8 +31,13 @@ export class WalletP2PTransport extends P2PTransport<
     )
   }
 
-  public async addPeer(newPeer: P2PPairingRequest): Promise<void> {
+  public async addPeer(
+    newPeer: P2PPairingRequest,
+    forceNewConnection: boolean = true
+  ): Promise<void> {
     await super.addPeer(newPeer)
-    await this.client.sendPairingResponse(newPeer) // TODO: Should we have a confirmation here?
+    if (forceNewConnection) {
+      await this.client.sendPairingResponse(newPeer) // TODO: Should we have a confirmation here?
+    }
   }
 }

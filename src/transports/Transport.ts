@@ -145,14 +145,14 @@ export abstract class Transport<
     return this.peerManager.getPeers() as any // TODO: Fix type
   }
 
-  public async addPeer(newPeer: T): Promise<void> {
+  public async addPeer(newPeer: T, _forceNewConnection: boolean = true): Promise<void> {
     logger.log('addPeer', 'adding peer', newPeer)
     await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
     await this.listen(newPeer.publicKey)
   }
 
   public async removePeer(peerToBeRemoved: T): Promise<void> {
-    logger.log('removePeer', '', peerToBeRemoved)
+    logger.log('removePeer', 'removing peer', peerToBeRemoved)
     await this.peerManager.removePeer(peerToBeRemoved.publicKey)
     if (this.client) {
       await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)
