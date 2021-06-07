@@ -1,13 +1,6 @@
 import { Logger } from '../utils/Logger'
 import { ConnectionContext } from '../types/ConnectionContext'
-import {
-  TransportType,
-  TransportStatus,
-  PeerInfo,
-  StorageKey,
-  StorageKeyReturnType,
-  P2PPairingRequest
-} from '..'
+import { TransportType, TransportStatus, PeerInfo, StorageKey, StorageKeyReturnType } from '..'
 import { PeerManager } from '../managers/PeerManager'
 import { ArrayElem } from '../managers/StorageManager'
 import { CommunicationClient } from './clients/CommunicationClient'
