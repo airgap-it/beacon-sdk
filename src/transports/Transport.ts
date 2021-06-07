@@ -153,21 +153,9 @@ export abstract class Transport<
   }
 
   public async addPeer(newPeer: T): Promise<void> {
-    const peer = await this.peerManager.getPeer(newPeer.publicKey)
-    if (!peer) {
-      logger.log('addPeer', 'adding peer', newPeer)
-      await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
-      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
-    } else if (
-      ((peer as any) as P2PPairingRequest).relayServer !==
-      ((newPeer as any) as P2PPairingRequest).relayServer
-    ) {
-      logger.log('addPeer', 'updating peer', newPeer)
-      await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
-      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
-    } else {
-      logger.log('addPeer', 'peer already added, skipping', newPeer)
-    }
+    logger.log('addPeer', 'adding peer', newPeer)
+    await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
+    await this.listen(newPeer.publicKey)
   }
 
   public async removePeer(peerToBeRemoved: T): Promise<void> {
