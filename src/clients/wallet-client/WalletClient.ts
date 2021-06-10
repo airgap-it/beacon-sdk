@@ -213,13 +213,13 @@ export class WalletClient extends Client {
    * Add a new peer to the known peers
    * @param peer The new peer to add
    */
-  public async addPeer(peer: PeerInfo, forceNewConnection: boolean = true): Promise<void> {
+  public async addPeer(peer: PeerInfo, sendPairingResponse: boolean = true): Promise<void> {
     const extendedPeer: ExtendedPeerInfo = {
       ...peer,
       senderId: await getSenderId(peer.publicKey)
     }
 
-    return (await this.transport).addPeer(extendedPeer, forceNewConnection)
+    return (await this.transport).addPeer(extendedPeer, sendPairingResponse)
   }
 
   public async removePeer(

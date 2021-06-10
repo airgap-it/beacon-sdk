@@ -33,10 +33,10 @@ export class WalletP2PTransport extends P2PTransport<
 
   public async addPeer(
     newPeer: P2PPairingRequest,
-    forceNewConnection: boolean = true
+    sendPairingResponse: boolean = true
   ): Promise<void> {
     await super.addPeer(newPeer)
-    if (forceNewConnection) {
+    if (sendPairingResponse) {
       await this.client.sendPairingResponse(newPeer) // TODO: Should we have a confirmation here?
     }
   }
