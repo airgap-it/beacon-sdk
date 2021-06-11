@@ -1059,12 +1059,12 @@ export class DAppClient extends Client {
     this.events
       .emit(messageEvents[requestInput.type].sent, {
         walletInfo: {
-          name: walletInfo.name ?? 'Wallet',
-          icon: walletInfo.icon
+          ...walletInfo,
+          name: walletInfo.name ?? 'Wallet'
         },
         extraInfo: {
           resetCallback: async () => {
-            await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
+            this.disconnect()
           }
         }
       })
@@ -1072,6 +1072,12 @@ export class DAppClient extends Client {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed.promise as any // TODO: fix type
+  }
+
+  private async disconnect() {
+    this.postMessageTransport = undefined
+    this.p2pTransport = undefined
+    await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
   }
 
   /**
