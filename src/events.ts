@@ -24,6 +24,7 @@ import {
   NetworkType,
   AcknowledgeResponse
 } from '.'
+import { isMobile } from './utils/platform'
 
 const logger = new Logger('BeaconEvents')
 const serializer = new Serializer()
@@ -69,6 +70,7 @@ export enum BeaconEvent {
 
 export interface WalletInfo {
   name: string
+  type?: 'extension' | 'mobile' | 'web' | 'desktop'
   icon?: string
   deeplink?: string
 }
@@ -145,28 +147,33 @@ export interface BeaconEventType {
  * Show a "Request sent" toast
  */
 const showSentToast = async (data: RequestSentInfo): Promise<void> => {
-  const actions: ToastAction[] = [
-    {
-      text: 'Did you make a mistake?',
-      actionText: 'Cancel Request',
-      actionCallback: async (): Promise<void> => {
-        await closeToast()
-      }
-    }
-  ]
+  let openWalletAction
+  const actions: ToastAction[] = []
   if (data.walletInfo.deeplink) {
-    const link = data.walletInfo.deeplink
-    actions.push({
-      text: `Wallet not open?`,
-      actionText: `Open ${data.walletInfo.name}`,
-      actionCallback: async (): Promise<void> => {
+    if (
+      data.walletInfo.type === 'web' ||
+      (data.walletInfo.type === 'mobile' && isMobile(window)) ||
+      (data.walletInfo.type === 'desktop' && !isMobile(window))
+    ) {
+      const link = data.walletInfo.deeplink
+      openWalletAction = async (): Promise<void> => {
         const a = document.createElement('a')
         a.setAttribute('href', link)
+        a.setAttribute('target', '_blank')
         a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
-        // window.open(data.walletInfo.deeplink, '_blank')
       }
-    })
+    }
   }
+  actions.push({
+    text: `No answer from your wallet received. Please make sure the wallet is open.`
+  })
+  actions.push({
+    text: 'Did you make a mistake?',
+    actionText: 'Cancel Request',
+    actionCallback: async (): Promise<void> => {
+      await closeToast()
+    }
+  })
   actions.push({
     text: 'Wallet not receiving request?',
     actionText: 'Reset Connection',
@@ -186,7 +193,8 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     walletInfo: data.walletInfo,
     forceNew: true,
     state: 'loading',
-    actions
+    actions,
+    openWalletAction
   }).catch((toastError) => console.error(toastError))
 }
 
