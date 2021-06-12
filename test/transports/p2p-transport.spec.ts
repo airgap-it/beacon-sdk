@@ -131,7 +131,6 @@ describe(`P2PTransport`, () => {
     const localStorage = new LocalStorage()
     transport = new WalletP2PTransport('Test', keypair, localStorage, []) as any
 
-    const getPeerStub = sinon.stub(PeerManager.prototype, 'getPeer').resolves(false)
     const addPeerStub = sinon.stub(PeerManager.prototype, 'addPeer').resolves()
     const listenStub = sinon.stub(transport, <any>'listen').resolves()
     const sendResponseStub = sinon
@@ -140,8 +139,6 @@ describe(`P2PTransport`, () => {
 
     await transport.addPeer(pairingResponse)
 
-    expect(getPeerStub.callCount, 'getPeerStub').to.equal(1)
-    expect(getPeerStub.firstCall.args[0], 'getPeerStub').to.equal(pairingResponse.publicKey)
     expect(addPeerStub.callCount, 'addPeerStub').to.equal(1)
     expect(addPeerStub.firstCall.args[0], 'addPeerStub').to.equal(pairingResponse)
     expect(listenStub.callCount, 'listenStub').to.equal(1)
