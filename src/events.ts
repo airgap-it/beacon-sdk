@@ -165,7 +165,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     }
   }
   actions.push({
-    text: `No answer from your wallet received. Please make sure the wallet is open.`
+    text: `<strong>No answer from your wallet received yet. Please make sure the wallet is open.</strong>`
   })
   actions.push({
     text: 'Did you make a mistake?',
@@ -204,7 +204,8 @@ const showAcknowledgedToast = async (data: {
   walletInfo: WalletInfo
 }): Promise<void> => {
   openToast({
-    body: 'Awaiting confirmation in&nbsp;{{wallet}}',
+    body:
+      '<span class="beacon-toast__wallet__outer">Awaiting confirmation in&nbsp;{{wallet}}<span>',
     state: 'acknowledge',
     walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
