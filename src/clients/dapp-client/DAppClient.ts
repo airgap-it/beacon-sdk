@@ -71,6 +71,7 @@ import { getColorMode, setColorMode } from '../../colorMode'
 import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wallet-lists'
 import { Optional } from '../../utils/utils'
 import { DAppClientOptions } from './DAppClientOptions'
+import { App, DesktopApp, ExtensionApp, WebApp } from 'src/ui/alert/Pairing'
 
 const logger = new Logger('DAppClient')
 
@@ -943,17 +944,38 @@ export class DAppClient extends Client {
       }
     }
 
+    let selectedApp: WebApp | App | DesktopApp | ExtensionApp | undefined
+    let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
     // TODO: Remove once all wallets send the icon?
-    const selectedApp =
-      iOSList.find((app) => app.name === walletInfo?.name) ??
-      webList.find((app) => app.name === walletInfo?.name) ??
-      desktopList.find((app) => app.name === walletInfo?.name) ??
-      extensionList.find((app) => app.name === walletInfo?.name)
+    if (iOSList.find((app) => app.name === walletInfo?.name)) {
+      selectedApp = iOSList.find((app) => app.name === walletInfo?.name)
+      type = 'mobile'
+    } else if (webList.find((app) => app.name === walletInfo?.name)) {
+      selectedApp = webList.find((app) => app.name === walletInfo?.name)
+      type = 'web'
+    } else if (desktopList.find((app) => app.name === walletInfo?.name)) {
+      selectedApp = desktopList.find((app) => app.name === walletInfo?.name)
+      type = 'desktop'
+    } else if (extensionList.find((app) => app.name === walletInfo?.name)) {
+      selectedApp = extensionList.find((app) => app.name === walletInfo?.name)
+      type = 'extension'
+    }
 
     if (selectedApp) {
+      let deeplink: string | undefined
+      if (selectedApp.hasOwnProperty('links')) {
+        deeplink = (selectedApp as WebApp).links[
+          selectedAccount?.network.type ?? this.preferredNetwork
+        ]
+      } else if (selectedApp.hasOwnProperty('deepLink')) {
+        deeplink = (selectedApp as App).deepLink
+      }
+
       return {
         name: walletInfo.name,
-        icon: walletInfo.icon ?? selectedApp.logo
+        icon: walletInfo.icon ?? selectedApp.logo,
+        deeplink,
+        type
       }
     }
 

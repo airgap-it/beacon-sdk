@@ -24,7 +24,7 @@ export const extensionList: ExtensionApp[] = [
 
 export const webList: WebApp[] = [
   {
-    name: 'Kukai',
+    name: 'Kukai Wallet',
     shortName: 'Kukai',
     color: '',
     logo: 'web-kukai.png',
