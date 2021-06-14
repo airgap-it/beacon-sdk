@@ -115,6 +115,7 @@ hr {
 .beacon-toast__content {
   justify-content: space-between;
   min-height: 56px;
+  height: 0;
 }
 
 .beacon-toast__action__item,
