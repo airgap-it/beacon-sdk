@@ -215,7 +215,7 @@ export class Pairing {
                 const code = await serializer.serialize(await pairingCode())
                 const link = getTzip10Link(app.deepLink, code)
                 window.open(link, '_blank')
-                statusUpdateHandler(WalletType.DESKTOP, this)
+                statusUpdateHandler(WalletType.DESKTOP, this, true)
               }
             })),
             ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
@@ -271,7 +271,7 @@ export class Pairing {
                 new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
               )
 
-              statusUpdateHandler(WalletType.IOS, this)
+              statusUpdateHandler(WalletType.IOS, this, true)
             }
           }))
         },
@@ -328,7 +328,7 @@ export class Pairing {
         const code = await serializer.serialize(await pairingCode())
         const link = getTzip10Link(app.links[network] ?? app.links[NetworkType.MAINNET], code)
         window.open(link, '_blank')
-        statusUpdateHandler(WalletType.WEB, this)
+        statusUpdateHandler(WalletType.WEB, this, true)
       }
     }))
   }
