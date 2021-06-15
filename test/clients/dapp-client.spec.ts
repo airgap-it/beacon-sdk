@@ -27,7 +27,6 @@ import {
   TransportStatus,
   PostMessageTransport,
   DappPostMessageTransport,
-  DappP2PTransport,
   getSenderId,
   Transport,
   ExtendedP2PPairingRequest
@@ -266,7 +265,6 @@ describe(`DAppClient`, () => {
         reject(new Error('TIMEOUT: Not connected'))
       }, 1000)
 
-      const p2pConnectStub = sinon.stub(DappP2PTransport.prototype, 'connect').resolves()
       const postMessageConnectStub = sinon
         .stub(DappPostMessageTransport.prototype, 'connect')
         .resolves()
@@ -289,7 +287,6 @@ describe(`DAppClient`, () => {
       expect(eventsStub.callCount, 'eventsStub').to.equal(5)
       const events = eventsStub.getCalls().map((call) => (<any>call).firstArg)
       expect(events, 'eventsStub').to.include('PAIR_INIT')
-      expect(p2pConnectStub.callCount, 'p2pConnectStub').to.equal(1)
       expect(postMessageConnectStub.callCount, 'postMessageConnectStub').to.equal(1)
       resolve()
     })
