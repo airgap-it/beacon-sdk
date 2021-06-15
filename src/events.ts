@@ -5,7 +5,6 @@ import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'
 import { BlockExplorer } from './utils/block-explorer'
 import { Logger } from './utils/Logger'
-import { Serializer } from './Serializer'
 import { shortenString } from './utils/shorten-string'
 import { BeaconErrorType } from './types/BeaconErrorType'
 import {
@@ -27,7 +26,6 @@ import {
 import { isMobile } from './utils/platform'
 
 const logger = new Logger('BeaconEvents')
-const serializer = new Serializer()
 
 const SUCCESS_TIMER: number = 5 * 1000
 
@@ -132,8 +130,8 @@ export interface BeaconEventType {
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
   [BeaconEvent.PAIR_INIT]: {
-    p2pPeerInfo: P2PPairingRequest
-    postmessagePeerInfo: PostMessagePairingRequest
+    p2pPeerInfo: () => Promise<P2PPairingRequest>
+    postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
     preferredNetwork: NetworkType
     abortedHandler?(): void
   }
@@ -322,15 +320,12 @@ const showInternalErrorAlert = async (
  * @param data The data that is emitted by the PAIR_INIT event
  */
 const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Promise<void> => {
-  const p2pBase58encoded = await serializer.serialize(data.p2pPeerInfo)
-  const postmessageBase58encoded = await serializer.serialize(data.postmessagePeerInfo)
-
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
     body: `<p></p>`,
     pairingPayload: {
-      p2pSyncCode: p2pBase58encoded,
-      postmessageSyncCode: postmessageBase58encoded,
+      p2pSyncCode: data.p2pPeerInfo,
+      postmessageSyncCode: data.postmessagePeerInfo,
       preferredNetwork: data.preferredNetwork
     },
     // eslint-disable-next-line @typescript-eslint/unbound-method

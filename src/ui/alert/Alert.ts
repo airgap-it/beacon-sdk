@@ -1,10 +1,8 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
-import { NetworkType } from '../..'
+import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '../..'
 import { getColorMode } from '../../colorMode'
 import { generateGUID } from '../../utils/generate-uuid'
-import { getTzip10Link } from '../../utils/get-tzip10-link'
-import { getQrData } from '../../utils/qr'
 import { replaceInTemplate } from '../../utils/replace-in-template'
 import { alertTemplates } from './alert-templates'
 import { preparePairingAlert } from './PairingAlert'
@@ -21,8 +19,8 @@ export interface AlertConfig {
   timer?: number
   buttons?: AlertButton[]
   pairingPayload?: {
-    p2pSyncCode: string
-    postmessageSyncCode: string
+    p2pSyncCode: () => Promise<P2PPairingRequest>
+    postmessageSyncCode: () => Promise<PostMessagePairingRequest>
     preferredNetwork: NetworkType
   }
   closeButtonCallback?(): void
@@ -37,13 +35,9 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
 
 const timeout: Record<string, number | undefined> = {}
 
-const formatQR = (dataString: string, pairingPayload: string): string => {
+const addQR = (dataString: string): string => {
   if (typeof dataString === 'string') {
-    const uri = getTzip10Link('tezos://', pairingPayload)
-    const qr = getQrData(uri, 'svg')
-    const qrString = qr.replace('<svg', `<svg class="beacon-alert__image"`)
-
-    return `<div id="beacon--qr__container">${qrString}<div id="beacon--qr__copy__container"><button class="beacon-modal__button--outline" id="beacon--qr__copy">Copy</button></div></div>${dataString}`
+    return `<div id="beacon--qr__container"><div id="beacon--qr__copy__container"><button class="beacon-modal__button--outline" id="beacon--qr__copy">Copy</button></div></div>${dataString}`
   }
 
   return dataString
@@ -54,7 +48,7 @@ const formatAlert = (
   body: string,
   title: string,
   buttons: AlertButton[],
-  pairingPayload?: string
+  hasPairingPayload?: boolean
 ): {
   style: string
   html: string
@@ -69,7 +63,7 @@ const formatAlert = (
 
   let allStyles = alertTemplates.default.css
 
-  if (pairingPayload) {
+  if (hasPairingPayload) {
     allStyles += alertTemplates.pair.css
   }
 
@@ -78,7 +72,7 @@ const formatAlert = (
   alertContainer = replaceInTemplate(
     alertContainer,
     'main',
-    pairingPayload ? alertTemplates.pair.html : alertTemplates.default.html
+    hasPairingPayload ? alertTemplates.pair.html : alertTemplates.default.html
   )
 
   alertContainer = replaceInTemplate(alertContainer, 'callToAction', callToAction)
@@ -86,8 +80,6 @@ const formatAlert = (
 
   alertContainer = replaceInTemplate(alertContainer, 'body', body)
   alertContainer = replaceInTemplate(alertContainer, 'id', id)
-
-  alertContainer = replaceInTemplate(alertContainer, 'payload', pairingPayload ?? '')
 
   if (alertContainer.indexOf('{{') >= 0) {
     const start = alertContainer.indexOf('{{')
@@ -195,15 +187,14 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     })) ?? [])
   ]
 
-  const formattedBody =
-    body && pairingPayload ? formatQR(body, pairingPayload?.p2pSyncCode) : body ?? ''
+  const formattedBody = addQR(body ?? '')
 
   const { style, html } = formatAlert(
     id,
     formattedBody,
     title,
     buttons,
-    pairingPayload?.p2pSyncCode
+    !!pairingPayload?.p2pSyncCode
   )
   wrapper.innerHTML = html
 

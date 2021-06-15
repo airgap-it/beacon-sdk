@@ -279,7 +279,6 @@ export class DAppClient extends Client {
         resolve(await super.init(await this.transport))
       } else {
         const activeAccount = await this.getActiveAccount()
-
         const stopListening = () => {
           if (this.postMessageTransport) {
             this.postMessageTransport.stopListeningForNewPeers().catch(console.error)
@@ -296,7 +295,6 @@ export class DAppClient extends Client {
         }
 
         this.postMessageTransport.connect().then().catch(console.error)
-        this.p2pTransport.connect().then().catch(console.error)
 
         if (activeAccount && activeAccount.origin) {
           const origin = activeAccount.origin.type
@@ -342,8 +340,11 @@ export class DAppClient extends Client {
             .then(async () => {
               this.events
                 .emit(BeaconEvent.PAIR_INIT, {
-                  p2pPeerInfo: await p2pTransport.getPairingRequestInfo(),
-                  postmessagePeerInfo: await postMessageTransport.getPairingRequestInfo(),
+                  p2pPeerInfo: () => {
+                    p2pTransport.connect().then().catch(console.error)
+                    return p2pTransport.getPairingRequestInfo()
+                  },
+                  postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
                   preferredNetwork: this.preferredNetwork,
                   abortedHandler: () => {
                     this._initPromise = undefined
