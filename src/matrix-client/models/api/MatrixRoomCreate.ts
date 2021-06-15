@@ -1,4 +1,5 @@
 export interface MatrixRoomCreateRequest {
+  room_version?: '5'
   visibility?: 'public' | 'private'
   room_alias_name?: string
   name?: string

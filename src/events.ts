@@ -24,6 +24,7 @@ import {
   NetworkType,
   AcknowledgeResponse
 } from '.'
+import { isMobile } from './utils/platform'
 
 const logger = new Logger('BeaconEvents')
 const serializer = new Serializer()
@@ -69,7 +70,9 @@ export enum BeaconEvent {
 
 export interface WalletInfo {
   name: string
+  type?: 'extension' | 'mobile' | 'web' | 'desktop'
   icon?: string
+  deeplink?: string
 }
 
 export interface ExtraInfo {
@@ -144,33 +147,54 @@ export interface BeaconEventType {
  * Show a "Request sent" toast
  */
 const showSentToast = async (data: RequestSentInfo): Promise<void> => {
+  let openWalletAction
+  const actions: ToastAction[] = []
+  if (data.walletInfo.deeplink) {
+    if (
+      data.walletInfo.type === 'web' ||
+      (data.walletInfo.type === 'mobile' && isMobile(window)) ||
+      (data.walletInfo.type === 'desktop' && !isMobile(window))
+    ) {
+      const link = data.walletInfo.deeplink
+      openWalletAction = async (): Promise<void> => {
+        const a = document.createElement('a')
+        a.setAttribute('href', link)
+        a.setAttribute('target', '_blank')
+        a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
+      }
+    }
+  }
+  actions.push({
+    text: `<strong>No answer from your wallet received yet. Please make sure the wallet is open.</strong>`
+  })
+  actions.push({
+    text: 'Did you make a mistake?',
+    actionText: 'Cancel Request',
+    actionCallback: async (): Promise<void> => {
+      await closeToast()
+    }
+  })
+  actions.push({
+    text: 'Wallet not receiving request?',
+    actionText: 'Reset Connection',
+    actionCallback: async (): Promise<void> => {
+      await closeToast()
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const resetCallback = data.extraInfo.resetCallback
+      if (resetCallback) {
+        logger.log('showSentToast', 'resetCallback invoked')
+        await resetCallback()
+      }
+    }
+  })
+
   openToast({
-    body: `Request sent to&nbsp;{{wallet}}`,
+    body: `<span class="beacon-toast__wallet__outer">Request sent to&nbsp;{{wallet}}<span>`,
     walletInfo: data.walletInfo,
     forceNew: true,
     state: 'loading',
-    actions: [
-      {
-        text: 'Did you make a mistake?',
-        actionText: 'Cancel Request',
-        actionCallback: async (): Promise<void> => {
-          await closeToast()
-        }
-      },
-      {
-        text: 'Wallet not receiving request?',
-        actionText: 'Reset Connection',
-        actionCallback: async (): Promise<void> => {
-          await closeToast()
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          const resetCallback = data.extraInfo.resetCallback
-          if (resetCallback) {
-            logger.log('showSentToast', 'resetCallback invoked')
-            await resetCallback()
-          }
-        }
-      }
-    ]
+    actions,
+    openWalletAction
   }).catch((toastError) => console.error(toastError))
 }
 
@@ -180,7 +204,8 @@ const showAcknowledgedToast = async (data: {
   walletInfo: WalletInfo
 }): Promise<void> => {
   openToast({
-    body: 'Awaiting confirmation in&nbsp;{{wallet}}',
+    body:
+      '<span class="beacon-toast__wallet__outer">Awaiting confirmation in&nbsp;{{wallet}}<span>',
     state: 'acknowledge',
     walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
