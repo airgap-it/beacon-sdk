@@ -33,6 +33,7 @@ jobs:
 
       - name: Copy files
         run: |
+          mkdir -p public
           mv examples/* public/
 
       # Deploy the site with netlify-cli
