@@ -47,7 +47,6 @@ import {
   Transport,
   DappP2PTransport,
   DappPostMessageTransport,
-  PeerManager,
   AppMetadataManager,
   AppMetadata
 } from '../..'
@@ -117,7 +116,6 @@ export class DAppClient extends Client {
 
   private _initPromise: Promise<TransportType> | undefined
 
-  private readonly activePeerLoaded: Promise<void>
   private readonly activeAccountLoaded: Promise<void>
 
   private readonly appMetadataManager: AppMetadataManager
@@ -145,28 +143,6 @@ export class DAppClient extends Client {
       .catch(async (storageError) => {
         await this.setActiveAccount(undefined)
         console.error(storageError)
-      })
-
-    this.activePeerLoaded = this.storage
-      .get(StorageKey.ACTIVE_PEER)
-      .then(async (activePeerPublicKey) => {
-        if (activePeerPublicKey) {
-          const p2pPeerManager = new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_DAPP)
-          const postmessagePeerManager = new PeerManager(
-            this.storage,
-            StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
-          )
-          const peer =
-            (await p2pPeerManager.getPeer(activePeerPublicKey)) ??
-            (await postmessagePeerManager.getPeer(activePeerPublicKey))
-          await this.setActivePeer(peer as any)
-        } else {
-          await this.setActivePeer(undefined)
-        }
-      })
-      .catch(async (storageError) => {
-        await this.setActiveAccount(undefined)
-        logger.error(storageError)
       })
 
     this.handleResponse = async (
@@ -259,11 +235,6 @@ export class DAppClient extends Client {
 
     try {
       await this.activeAccountLoaded
-    } catch {
-      //
-    }
-    try {
-      await this.activePeerLoaded
     } catch {
       //
     }
@@ -780,8 +751,6 @@ export class DAppClient extends Client {
       }
     }
 
-    await this.storage.set(StorageKey.ACTIVE_PEER, peer ? peer.publicKey : undefined)
-
     return
   }
 
@@ -870,6 +839,19 @@ export class DAppClient extends Client {
 
       const peer = await this.getPeer()
       const activeAccount = await this.getActiveAccount()
+
+      // If we sent a permission request, received an error and there is no active account, we need to reset the DAppClient.
+      // This most likely means that the user rejected the first permission request after pairing a wallet, so we "forget" the paired wallet to allow the user to pair again.
+      if (
+        request.type === BeaconMessageType.PermissionRequest &&
+        (await this.getActiveAccount()) === undefined
+      ) {
+        this._initPromise = undefined
+        this.postMessageTransport = undefined
+        this.p2pTransport = undefined
+        await this.setTransport()
+        await this.setActivePeer()
+      }
 
       this.events
         .emit(
@@ -987,13 +969,13 @@ export class DAppClient extends Client {
     let peer: PeerInfo | undefined
 
     if (account) {
-      logger.log('', 'We have an account', account)
+      logger.log('getPeer', 'We have an account', account)
       const postMessagePeers: ExtendedPostMessagePairingResponse[] =
         (await this.postMessageTransport?.getPeers()) ?? []
       const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
       const peers = [...postMessagePeers, ...p2pPeers]
 
-      logger.log('', 'Found peers', peers, account)
+      logger.log('getPeer', 'Found peers', peers, account)
 
       peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
       if (!peer) {
@@ -1002,7 +984,7 @@ export class DAppClient extends Client {
       }
     } else {
       peer = await this._activePeer.promise
-      logger.log('', 'Active peer', peer)
+      logger.log('getPeer', 'Active peer', peer)
     }
 
     if (!peer) {

@@ -171,10 +171,9 @@ describe(`DAppClient`, () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: storage })
     await (<any>dAppClient).handleResponse(message, contextInfo)
 
-    expect(storageStub.callCount).to.equal(3)
+    expect(storageStub.callCount).to.equal(2)
     expect(storageStub.firstCall.args[0]).to.equal(StorageKey.BEACON_SDK_SECRET_SEED)
     expect(storageStub.secondCall.args[0]).to.equal(StorageKey.ACTIVE_ACCOUNT)
-    expect(storageStub.thirdCall.args[0]).to.equal(StorageKey.ACTIVE_PEER)
     expect(setActiveAccountStub.callCount).to.equal(1)
     expect(setActiveAccountStub.firstCall.args[0]).to.be.undefined
   })
@@ -210,10 +209,6 @@ describe(`DAppClient`, () => {
       }, 1000)
 
       const storage = new LocalStorage()
-      await storage.set(
-        StorageKey.ACTIVE_PEER,
-        '48d79c808e9c6adcef4343fee74599ac7f3c766be6798143235c8cb939acf19f'
-      )
       await storage.set(StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP, [
         {
           id: 'c21fcf96-53d5-c30c-0cf1-7105e046b8ac',
@@ -221,17 +216,18 @@ describe(`DAppClient`, () => {
           name: 'Spire',
           version: '2',
           publicKey: '48d79c808e9c6adcef4343fee74599ac7f3c766be6798143235c8cb939acf19f',
-          senderId: '2CnDdXvxhEC9d',
+          senderId: 'sender1',
           extensionId: 'pmaikkbanoioekgijdjfmaifipnbmgmc'
         }
       ] as any)
+      await storage.set(StorageKey.ACCOUNTS, [account1])
+      await storage.set(StorageKey.ACTIVE_ACCOUNT, account1.accountIdentifier)
 
       const dAppClient = new DAppClient({ name: 'Test', storage: storage })
 
       await dAppClient.init()
       await dAppClient.ready
 
-      await storage.delete(StorageKey.ACTIVE_PEER)
       await storage.delete(StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP)
 
       clearTimeout(timeout)
@@ -490,9 +486,9 @@ describe(`DAppClient`, () => {
       expect(eventsStub.firstCall.args[1]).to.equal(undefined)
       expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.INTERNAL_ERROR)
       expect(eventsStub.secondCall.args[1]).to.equal('No active account set!')
-      // expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET) // Called in the constructor
-      // expect(eventsStub.thirdCall.args[1]).to.equal(undefined)
-      expect(eventsStub.callCount).to.equal(2)
+      expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET) // Called in the constructor
+      expect(eventsStub.thirdCall.args[1]).to.equal(undefined)
+      expect(eventsStub.callCount).to.equal(3)
       expect(e.message).to.equal('No active account set!')
     }
   })
@@ -863,9 +859,11 @@ describe(`DAppClient`, () => {
       await (<any>dAppClient).sendInternalError('some-message')
       throw new Error('Should not happen')
     } catch (e) {
-      expect(eventsStub.callCount).to.equal(1)
+      expect(eventsStub.callCount).to.equal(2)
       expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.INTERNAL_ERROR)
       expect(eventsStub.firstCall.args[1]).to.equal('some-message')
+      expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+      expect(eventsStub.secondCall.args[1]).to.equal(undefined)
       expect(e.message).to.equal('some-message')
     }
   })
@@ -934,13 +932,15 @@ describe(`DAppClient`, () => {
     } catch (e) {
       expect(walletInfoStub.callCount, 'walletInfoStub').to.equal(1)
 
-      expect(eventsStub.callCount).to.equal(3)
       expect(eventsStub.getCall(0).args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
       expect(eventsStub.getCall(0).args[1]).to.equal(undefined)
-      expect(eventsStub.getCall(1).args[0]).to.equal(BeaconEvent.PERMISSION_REQUEST_ERROR)
-      expect(eventsStub.getCall(1).args[1]).to.deep.eq({ errorResponse: error, walletInfo: {} })
-      expect(eventsStub.getCall(2).args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET)
+      expect(eventsStub.getCall(1).args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET)
+      expect(eventsStub.getCall(1).args[1]).to.equal(undefined)
+      expect(eventsStub.getCall(2).args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
       expect(eventsStub.getCall(2).args[1]).to.equal(undefined)
+      expect(eventsStub.getCall(3).args[0]).to.equal(BeaconEvent.PERMISSION_REQUEST_ERROR)
+      expect(eventsStub.getCall(3).args[1]).to.deep.eq({ errorResponse: error, walletInfo: {} })
+      expect(eventsStub.callCount).to.equal(4)
       expect(e.description).to.equal(
         'You do not have the necessary permissions to perform this action. Please initiate another permission request and give the necessary permissions.'
       )

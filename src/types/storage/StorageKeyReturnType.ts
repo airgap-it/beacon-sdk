@@ -21,7 +21,6 @@ export interface StorageKeyReturnType {
   [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET]: ExtendedPostMessagePairingResponse[]
   [StorageKey.ACCOUNTS]: AccountInfo[]
   [StorageKey.ACTIVE_ACCOUNT]: AccountIdentifier | undefined
-  [StorageKey.ACTIVE_PEER]: string | undefined
   [StorageKey.BEACON_SDK_SECRET_SEED]: string | undefined
   [StorageKey.APP_METADATA_LIST]: AppMetadata[]
   [StorageKey.PERMISSION_LIST]: PermissionInfo[]
