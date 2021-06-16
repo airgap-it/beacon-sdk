@@ -32,6 +32,9 @@ jobs:
       - name: Test
         run: npm run test
 
+      - name: Test E2E
+        run: npm run e2e
+
       - name: Analyze with SonarCloud
         uses: sonarsource/sonarcloud-github-action@master
         env:
