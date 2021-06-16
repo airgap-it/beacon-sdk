@@ -210,20 +210,10 @@ describe(`DAppClient`, () => {
       }, 1000)
 
       const storage = new LocalStorage()
-      await storage.set(StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP, [
-        {
-          id: 'c21fcf96-53d5-c30c-0cf1-7105e046b8ac',
-          type: 'postmessage-pairing-response',
-          name: 'Spire',
-          version: '2',
-          publicKey: '48d79c808e9c6adcef4343fee74599ac7f3c766be6798143235c8cb939acf19f',
-          senderId: '2CnDdXvxhEC9d',
-          extensionId: 'pmaikkbanoioekgijdjfmaifipnbmgmc'
-        }
-      ] as any)
+      await storage.set(StorageKey.ACCOUNTS, [account1])
+      await storage.set(StorageKey.ACTIVE_ACCOUNT, account1.accountIdentifier)
 
       const dAppClient = new DAppClient({ name: 'Test', storage: storage })
-
       await dAppClient.init()
       await dAppClient.ready
 
