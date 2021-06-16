@@ -172,7 +172,7 @@ describe(`DAppClient`, () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: storage })
     await (<any>dAppClient).handleResponse(message, contextInfo)
 
-    expect(storageStub.callCount).to.equal(3)
+    expect(storageStub.callCount).to.equal(2)
     expect(storageStub.firstCall.args[0]).to.equal(StorageKey.BEACON_SDK_SECRET_SEED)
     expect(storageStub.secondCall.args[0]).to.equal(StorageKey.ACTIVE_ACCOUNT)
     expect(setActiveAccountStub.callCount).to.equal(1)
@@ -319,8 +319,6 @@ describe(`DAppClient`, () => {
       connectedAt: new Date().getTime()
     }
 
-    const getPeersStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
-
     await dAppClient.setActiveAccount(account1)
 
     activeAccount = await dAppClient.getActiveAccount()
@@ -330,8 +328,6 @@ describe(`DAppClient`, () => {
 
     activeAccount = await dAppClient.getActiveAccount()
     expect(activeAccount).to.be.undefined
-
-    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
   })
 
   it(`should get app metadata`, async () => {
@@ -366,8 +362,6 @@ describe(`DAppClient`, () => {
   it(`should remove an account and unset active account`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
-    const getPeersStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
-
     await (<any>dAppClient).accountManager.addAccount(account1)
     await (<any>dAppClient).accountManager.addAccount(account2)
     await dAppClient.setActiveAccount(account1)
@@ -379,14 +373,10 @@ describe(`DAppClient`, () => {
 
     expect(await dAppClient.getAccounts()).to.deep.equal([account2])
     expect(await dAppClient.getActiveAccount()).to.be.undefined
-
-    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
   })
 
   it(`should remove an account and not unset active account`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
-
-    const getPeersStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
 
     await (<any>dAppClient).accountManager.addAccount(account1)
     await (<any>dAppClient).accountManager.addAccount(account2)
@@ -399,14 +389,10 @@ describe(`DAppClient`, () => {
 
     expect(await dAppClient.getAccounts()).to.deep.equal([account1])
     expect(await dAppClient.getActiveAccount()).to.deep.equal(account1)
-
-    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
   })
 
   it(`should remove all accounts and unset active account`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
-
-    const getPeersStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
 
     await (<any>dAppClient).accountManager.addAccount(account1)
     await (<any>dAppClient).accountManager.addAccount(account2)
@@ -419,8 +405,6 @@ describe(`DAppClient`, () => {
 
     expect(await dAppClient.getAccounts()).to.deep.equal([])
     expect(await dAppClient.getActiveAccount()).to.deep.equal(undefined)
-
-    expect(getPeersStub.callCount, 'getPeersStub').to.equal(1)
   })
 
   it(`should remove peer and all its accounts`, async () => {
@@ -591,7 +575,7 @@ describe(`DAppClient`, () => {
 
     const response = await dAppClient.requestPermissions()
 
-    expect(getPeersStub.callCount, 'getPeersStub').to.equal(4)
+    expect(getPeersStub.callCount, 'getPeersStub').to.equal(2)
     expect(notifySuccessStub.callCount, 'notifySuccessStub').to.equal(1)
     expect(makeRequestStub.callCount).to.equal(1)
     expect(makeRequestStub.firstCall.args[0]).to.deep.equal({
@@ -914,30 +898,21 @@ describe(`DAppClient`, () => {
     }
 
     const walletInfoStub = sinon.stub(dAppClient, <any>'getWalletInfo').resolves({})
-
-    ;(<any>dAppClient)._activePeer = ExposedPromise.resolve({
-      id: '',
-      name: '',
-      publicKey: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3',
-      senderId: 'sender-id',
-      version: BEACON_VERSION,
-      type: 'p2p-pairing-request',
-      relayServer: ''
-    })
+    const getPeerStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
 
     try {
       await (<any>dAppClient).handleRequestError(request, error)
       throw new Error('Should not happen')
     } catch (e) {
       expect(walletInfoStub.callCount, 'walletInfoStub').to.equal(1)
-
+      expect(getPeerStub.callCount).to.equal(1)
       expect(eventsStub.callCount).to.equal(3)
-      expect(eventsStub.getCall(0).args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
-      expect(eventsStub.getCall(0).args[1]).to.equal(undefined)
-      expect(eventsStub.getCall(1).args[0]).to.equal(BeaconEvent.PERMISSION_REQUEST_ERROR)
-      expect(eventsStub.getCall(1).args[1]).to.deep.eq({ errorResponse: error, walletInfo: {} })
-      expect(eventsStub.getCall(2).args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET)
-      expect(eventsStub.getCall(2).args[1]).to.equal(undefined)
+      expect(eventsStub.getCall(0).args[0], '1').to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+      expect(eventsStub.getCall(0).args[1], '2').to.equal(undefined)
+      expect(eventsStub.getCall(1).args[0], '3').to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET)
+      expect(eventsStub.getCall(1).args[1], '4').to.equal(undefined)
+      expect(eventsStub.getCall(2).args[0], '5').to.equal(BeaconEvent.PERMISSION_REQUEST_ERROR)
+      expect(eventsStub.getCall(2).args[1], '6').deep.eq({ errorResponse: error, walletInfo: {} })
       expect(e.description).to.equal(
         'You do not have the necessary permissions to perform this action. Please initiate another permission request and give the necessary permissions.'
       )
@@ -958,7 +933,7 @@ describe(`DAppClient`, () => {
       await (<any>dAppClient).handleRequestError(request, error)
       throw new Error('Should not happen')
     } catch (e) {
-      expect(eventsStub.callCount).to.equal(0)
+      expect(eventsStub.callCount).to.equal(1)
       expect(e).to.equal(error)
     }
   })
@@ -972,9 +947,11 @@ describe(`DAppClient`, () => {
     const response = {}
 
     await (<any>dAppClient).notifySuccess(request, response)
-    expect(eventsStub.callCount).to.equal(1)
+    expect(eventsStub.callCount).to.equal(2)
     expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.PERMISSION_REQUEST_SUCCESS)
     expect(eventsStub.firstCall.args[1]).to.equal(response)
+    expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
+    expect(eventsStub.secondCall.args[1]).to.equal(undefined)
   })
 
   it(`should create a request`, async () => {

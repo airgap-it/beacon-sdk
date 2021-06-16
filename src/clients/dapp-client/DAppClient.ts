@@ -805,7 +805,10 @@ export class DAppClient extends Client {
       this.events
         .emit(
           messageEvents[request.type].error,
-          { errorResponse: beaconError, walletInfo: await this.getWalletInfo(peer, activeAccount) },
+          {
+            errorResponse: beaconError,
+            walletInfo: await this.getWalletInfo(peer, activeAccount)
+          },
           buttons
         )
         .catch((emitError) => logger.error('handleRequestError', emitError))
