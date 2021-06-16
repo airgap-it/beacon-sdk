@@ -33,10 +33,7 @@ jobs:
 
       - name: Copy files
         run: |
-          mkdir -p public/dist
-          mv example-dapp.html public/
-          mv example-wallet.html public/
-          mv dist/walletbeacon.min.js public/dist/
+          mv examples/* public/
 
       # Deploy the site with netlify-cli
       - name: Deploy Site
