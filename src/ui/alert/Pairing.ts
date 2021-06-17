@@ -34,6 +34,7 @@ export enum WalletType {
 }
 
 export interface AppBase {
+  key: string
   name: string
   shortName: string
   color: string
@@ -66,6 +67,7 @@ export interface App extends AppBase {
 }
 
 export interface PairingAlertWallet {
+  key: string
   name: string
   shortName?: string
   color?: string
@@ -167,6 +169,7 @@ export class Pairing {
               const ext = extensionList.find((extEl) => extEl.id === app.id)
 
               return {
+                key: ext?.key ?? app.id,
                 name: app.name ?? ext?.name,
                 logo: app.iconUrl ?? ext?.logo,
                 shortName: app.shortName ?? ext?.shortName,
@@ -190,6 +193,7 @@ export class Pairing {
             ...extensionList
               .filter((app) => defaultExtensions.some((extId) => extId === app.id))
               .map((app) => ({
+                key: app.key,
                 name: app.name,
                 shortName: app.shortName,
                 color: app.color,
@@ -206,6 +210,7 @@ export class Pairing {
           type: WalletType.DESKTOP,
           wallets: [
             ...desktopList.map((app) => ({
+              key: app.key,
               name: app.name,
               shortName: app.shortName,
               color: app.color,
@@ -255,6 +260,7 @@ export class Pairing {
           title: 'Mobile Wallets',
           type: WalletType.IOS,
           wallets: iOSList.map((app) => ({
+            key: app.key,
             name: app.name,
             shortName: app.shortName,
             color: app.color,
@@ -319,6 +325,7 @@ export class Pairing {
     network: NetworkType
   ): Promise<PairingAlertWallet[]> {
     return webList.map((app) => ({
+      key: app.key,
       name: app.name,
       shortName: app.shortName,
       color: app.color,

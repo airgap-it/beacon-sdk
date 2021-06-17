@@ -78,9 +78,9 @@ export const preparePairingAlert = async (
 
     list.wallets.forEach(async (wallet) => {
       const altTag = `Open in ${wallet.name}`
-      const randomId = await generateGUID()
+      const walletKey = wallet.key
       const x = `
-			<a tabindex="0" alt="${altTag}" id="wallet_${randomId}"
+			<a tabindex="0" alt="${altTag}" id="wallet_${walletKey}"
 			 target="_blank" class="beacon-selection__list${wallet.enabled ? '' : ' disabled'}">
 			 <div class="beacon-selection__name">${wallet.name}
 			 ${wallet.enabled ? '' : '<p>Not installed</p>'}
@@ -100,7 +100,7 @@ export const preparePairingAlert = async (
 
       listEl.appendChild(el)
 
-      const walletEl = shadowRoot.getElementById(`wallet_${randomId}`)
+      const walletEl = shadowRoot.getElementById(`wallet_${walletKey}`)
 
       if (walletEl) {
         walletEl.addEventListener('click', async () => {
