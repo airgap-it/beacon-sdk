@@ -81,3 +81,9 @@
   filter: grayscale(100%);
   filter: gray;
 }
+
+#beacon--disclaimer {
+  text-align: left;
+  padding-top: 24px;
+  font-size: 0.875rem;
+}

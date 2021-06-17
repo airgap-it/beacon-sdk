@@ -58,6 +58,8 @@ export enum BeaconEvent {
 
   ACTIVE_TRANSPORT_SET = 'ACTIVE_TRANSPORT_SET',
 
+  SHOW_PREPARE = 'SHOW_PREPARE',
+
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
@@ -129,11 +131,13 @@ export interface BeaconEventType {
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
+  [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.PAIR_INIT]: {
     p2pPeerInfo: () => Promise<P2PPairingRequest>
     postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
     preferredNetwork: NetworkType
     abortedHandler?(): void
+    disclaimerText: string | undefined
   }
   [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
   [BeaconEvent.CHANNEL_CLOSED]: string
@@ -205,6 +209,15 @@ const showAcknowledgedToast = async (data: {
     body:
       '<span class="beacon-toast__wallet__outer">Awaiting confirmation in&nbsp;{{wallet}}<span>',
     state: 'acknowledge',
+    walletInfo: data.walletInfo
+  }).catch((toastError) => console.error(toastError))
+}
+
+const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => {
+  const text = data.walletInfo ? `Preparing Request for {{wallet}}...` : 'Preparing Request...'
+  openToast({
+    body: `<span class="beacon-toast__wallet__outer">${text}<span>`,
+    state: 'prepare',
     walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
 }
@@ -329,7 +342,8 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
       preferredNetwork: data.preferredNetwork
     },
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    closeButtonCallback: data.abortedHandler
+    closeButtonCallback: data.abortedHandler,
+    disclaimerText: data.disclaimerText
   }
   await openAlert(alertConfig)
 }
@@ -496,6 +510,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(),
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(),
+  [BeaconEvent.SHOW_PREPARE]: showPrepare,
   [BeaconEvent.PAIR_INIT]: showPairAlert,
   [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
   [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
@@ -529,6 +544,7 @@ export class BeaconEventHandler {
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
     [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
+    [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
     [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
     [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],

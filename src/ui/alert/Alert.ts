@@ -24,6 +24,7 @@ export interface AlertConfig {
     preferredNetwork: NetworkType
   }
   closeButtonCallback?(): void
+  disclaimerText?: string
 }
 
 let lastFocusedElement: Element | undefined | null
@@ -162,6 +163,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const title = alertConfig.title
   const timer = alertConfig.timer
   const pairingPayload = alertConfig.pairingPayload
+  const disclaimer = alertConfig.disclaimerText
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const closeButtonCallback = alertConfig.closeButtonCallback
 
@@ -218,6 +220,13 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
       closeButtonCallback()
     }
     await closeAlert(id)
+  }
+
+  if (disclaimer) {
+    const disclaimerContainer = shadowRoot.getElementById(`beacon--disclaimer`)
+    if (disclaimerContainer) {
+      disclaimerContainer.innerHTML = disclaimer
+    }
   }
 
   const colorMode = getColorMode()

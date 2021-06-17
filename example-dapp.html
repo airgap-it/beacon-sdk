@@ -39,6 +39,10 @@
     <br /><br />
     <button id="sendToSelf">Send 1 mutez to myself</button>
     <br /><br />
+    <button id="sendToSelfWithPrepare">Send 1 mutez to myself (with 1s prepare delay)</button>
+    <br /><br />
+    <button id="showPrepareAndHide">Show prepare and then hide</button>
+    <br /><br />
     <button id="connect">Connect and Delegate</button>
     <br /><br />
     <button id="signPayloadRaw">Sign Payload (Raw)</button>
@@ -98,7 +102,8 @@
     <script>
       // Initiate DAppClient
       const client = new beacon.DAppClient({
-        name: 'Example DApp' // Name of the DApp,
+        name: 'Example DApp', // Name of the DApp,
+        disclaimerText: 'This is an optional <b>disclaimer</b>.'
         // preferredNetwork: beacon.NetworkType.DELPHINET
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
@@ -342,6 +347,22 @@
       // Add event listener to the button
       document.getElementById('sendToSelf').addEventListener('click', () => {
         sendToSelf()
+      })
+
+      // Add event listener to the button
+      document.getElementById('sendToSelfWithPrepare').addEventListener('click', () => {
+        client.showPrepare()
+        setTimeout(() => {
+          sendToSelf()
+        }, 2000)
+      })
+
+      // Add event listener to the button
+      document.getElementById('showPrepareAndHide').addEventListener('click', () => {
+        client.showPrepare()
+        setTimeout(() => {
+          client.hideUI()
+        }, 2000)
       })
 
       // Add event listener to the button
