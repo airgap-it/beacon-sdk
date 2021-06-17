@@ -6,13 +6,15 @@
     <meta http-equiv="Content-Style-Type" content="text/css" />
     <title>Beacon Example Wallet</title>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+
     <script>
       // This will enable the debug mode of beacon
       // This should only be used during development
       window.beaconSdkDebugEnabled = true
     </script>
 
-    <script src="./dist/walletbeacon.min.js"></script>
+    <script src="./walletbeacon.min.js"></script>
   </head>
 
   <body>
@@ -30,6 +32,9 @@
     <br /><br />
     <button id="reset">Reset and Refresh</button>
 
+    <br /><br />
+    Test input: <input id="hidden-input" type="text" />
+
     <script>
       // Initiate DAppClient
       const client = new beacon.WalletClient({
@@ -45,20 +50,31 @@
 
       // Add event listener to the button
       document.getElementById('paste').addEventListener('click', () => {
-        navigator.clipboard.readText().then((clipText) => {
+        const addPeer = (text) => {
           const serializer = new beacon.Serializer()
           serializer
-            .deserialize(clipText)
+            .deserialize(text)
             .then((peer) => {
               console.log('Adding peer', peer)
               setStatus('Connecting...')
               client.addPeer(peer).then(() => {
-                setStatus('')
+                setStatus('Connected')
                 console.log('Peer added')
               })
             })
-            .catch((e) => console.error('not a valid sync code'))
-        })
+            .catch((e) => {
+              console.error('not a valid sync code: ', text)
+              setStatus('not a valid sync code: ' + text)
+            })
+        }
+        const hiddenInput = document.getElementById('hidden-input')
+        if (hiddenInput && hiddenInput.value) {
+          addPeer(hiddenInput.value)
+        } else {
+          navigator.clipboard.readText().then((clipText) => {
+            addPeer(clipText)
+          })
+        }
       })
 
       client.init().then(() => {
