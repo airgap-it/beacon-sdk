@@ -121,6 +121,8 @@ export class DAppClient extends Client {
 
   private readonly appMetadataManager: AppMetadataManager
 
+  private readonly disclaimerText: string | undefined
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -129,6 +131,8 @@ export class DAppClient extends Client {
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
+
+    this.disclaimerText = config.disclaimerText
 
     this.appMetadataManager = new AppMetadataManager(this.storage)
 
@@ -320,7 +324,8 @@ export class DAppClient extends Client {
                   preferredNetwork: this.preferredNetwork,
                   abortedHandler: () => {
                     this._initPromise = undefined
-                  }
+                  },
+                  disclaimerText: this.disclaimerText
                 })
                 .catch((emitError) => console.warn(emitError))
             })
