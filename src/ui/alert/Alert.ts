@@ -225,7 +225,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   if (disclaimer) {
     const disclaimerContainer = shadowRoot.getElementById(`beacon--disclaimer`)
     if (disclaimerContainer) {
-      disclaimerContainer.innerText = disclaimer
+      disclaimerContainer.innerHTML = disclaimer
     }
   }
 
