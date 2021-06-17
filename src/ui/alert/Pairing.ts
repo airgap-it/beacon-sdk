@@ -231,6 +231,7 @@ export class Pairing {
           type: WalletType.IOS,
           wallets: [
             ...iOSList.map((app) => ({
+              key: app.key,
               name: app.name,
               shortName: app.shortName,
               color: app.color,
