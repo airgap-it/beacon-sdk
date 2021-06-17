@@ -1,13 +1,6 @@
 import { Logger } from '../utils/Logger'
 import { ConnectionContext } from '../types/ConnectionContext'
-import {
-  TransportType,
-  TransportStatus,
-  PeerInfo,
-  StorageKey,
-  StorageKeyReturnType,
-  P2PPairingRequest
-} from '..'
+import { TransportType, TransportStatus, PeerInfo, StorageKey, StorageKeyReturnType } from '..'
 import { PeerManager } from '../managers/PeerManager'
 import { ArrayElem } from '../managers/StorageManager'
 import { CommunicationClient } from './clients/CommunicationClient'
@@ -152,26 +145,14 @@ export abstract class Transport<
     return this.peerManager.getPeers() as any // TODO: Fix type
   }
 
-  public async addPeer(newPeer: T): Promise<void> {
-    const peer = await this.peerManager.getPeer(newPeer.publicKey)
-    if (!peer) {
-      logger.log('addPeer', 'adding peer', newPeer)
-      await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
-      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
-    } else if (
-      ((peer as any) as P2PPairingRequest).relayServer !==
-      ((newPeer as any) as P2PPairingRequest).relayServer
-    ) {
-      logger.log('addPeer', 'updating peer', newPeer)
-      await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
-      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
-    } else {
-      logger.log('addPeer', 'peer already added, skipping', newPeer)
-    }
+  public async addPeer(newPeer: T, _sendPairingResponse: boolean = true): Promise<void> {
+    logger.log('addPeer', 'adding peer', newPeer)
+    await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
+    await this.listen(newPeer.publicKey)
   }
 
   public async removePeer(peerToBeRemoved: T): Promise<void> {
-    logger.log('removePeer', '', peerToBeRemoved)
+    logger.log('removePeer', 'removing peer', peerToBeRemoved)
     await this.peerManager.removePeer(peerToBeRemoved.publicKey)
     if (this.client) {
       await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)

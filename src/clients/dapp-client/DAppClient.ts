@@ -47,7 +47,6 @@ import {
   Transport,
   DappP2PTransport,
   DappPostMessageTransport,
-  PeerManager,
   AppMetadataManager,
   AppMetadata,
   RequestEncryptPayloadInput,
@@ -64,7 +63,7 @@ import { getAccountIdentifier } from '../../utils/get-account-identifier'
 import { BlockExplorer } from '../../utils/block-explorer'
 import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
 import { BeaconErrorType } from '../../types/BeaconErrorType'
-import { AlertButton } from '../../ui/alert/Alert'
+import { AlertButton, closeAlerts } from '../../ui/alert/Alert'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import {
   ExtendedPostMessagePairingResponse,
@@ -78,6 +77,8 @@ import { getColorMode, setColorMode } from '../../colorMode'
 import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wallet-lists'
 import { Optional } from '../../utils/utils'
 import { DAppClientOptions } from './DAppClientOptions'
+import { App, DesktopApp, ExtensionApp, WebApp } from '../../ui/alert/Pairing'
+import { closeToast } from '../../ui/toast/Toast'
 
 const logger = new Logger('DAppClient')
 
@@ -123,10 +124,11 @@ export class DAppClient extends Client {
 
   private _initPromise: Promise<TransportType> | undefined
 
-  private readonly activePeerLoaded: Promise<void>
   private readonly activeAccountLoaded: Promise<void>
 
   private readonly appMetadataManager: AppMetadataManager
+
+  private readonly disclaimerText: string | undefined
 
   constructor(config: DAppClientOptions) {
     super({
@@ -136,6 +138,8 @@ export class DAppClient extends Client {
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
+
+    this.disclaimerText = config.disclaimerText
 
     this.appMetadataManager = new AppMetadataManager(this.storage)
 
@@ -151,28 +155,6 @@ export class DAppClient extends Client {
       .catch(async (storageError) => {
         await this.setActiveAccount(undefined)
         console.error(storageError)
-      })
-
-    this.activePeerLoaded = this.storage
-      .get(StorageKey.ACTIVE_PEER)
-      .then(async (activePeerPublicKey) => {
-        if (activePeerPublicKey) {
-          const p2pPeerManager = new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_DAPP)
-          const postmessagePeerManager = new PeerManager(
-            this.storage,
-            StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
-          )
-          const peer =
-            (await p2pPeerManager.getPeer(activePeerPublicKey)) ??
-            (await postmessagePeerManager.getPeer(activePeerPublicKey))
-          await this.setActivePeer(peer as any)
-        } else {
-          await this.setActivePeer(undefined)
-        }
-      })
-      .catch(async (storageError) => {
-        await this.setActiveAccount(undefined)
-        logger.error(storageError)
       })
 
     this.handleResponse = async (
@@ -268,11 +250,6 @@ export class DAppClient extends Client {
     } catch {
       //
     }
-    try {
-      await this.activePeerLoaded
-    } catch {
-      //
-    }
 
     this._initPromise = new Promise(async (resolve) => {
       if (transport) {
@@ -285,7 +262,6 @@ export class DAppClient extends Client {
         resolve(await super.init(await this.transport))
       } else {
         const activeAccount = await this.getActiveAccount()
-
         const stopListening = () => {
           if (this.postMessageTransport) {
             this.postMessageTransport.stopListeningForNewPeers().catch(console.error)
@@ -302,7 +278,6 @@ export class DAppClient extends Client {
         }
 
         this.postMessageTransport.connect().then().catch(console.error)
-        this.p2pTransport.connect().then().catch(console.error)
 
         if (activeAccount && activeAccount.origin) {
           const origin = activeAccount.origin.type
@@ -348,12 +323,16 @@ export class DAppClient extends Client {
             .then(async () => {
               this.events
                 .emit(BeaconEvent.PAIR_INIT, {
-                  p2pPeerInfo: await p2pTransport.getPairingRequestInfo(),
-                  postmessagePeerInfo: await postMessageTransport.getPairingRequestInfo(),
+                  p2pPeerInfo: () => {
+                    p2pTransport.connect().then().catch(console.error)
+                    return p2pTransport.getPairingRequestInfo()
+                  },
+                  postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
                   preferredNetwork: this.preferredNetwork,
                   abortedHandler: () => {
                     this._initPromise = undefined
-                  }
+                  },
+                  disclaimerText: this.disclaimerText
                 })
                 .catch((emitError) => console.warn(emitError))
             })
@@ -437,6 +416,22 @@ export class DAppClient extends Client {
    */
   public async getAppMetadata(): Promise<AppMetadata> {
     return this.getOwnAppMetadata()
+  }
+
+  public async showPrepare(): Promise<void> {
+    const walletInfo = await (async () => {
+      try {
+        return await this.getWalletInfo()
+      } catch {
+        return undefined
+      }
+    })()
+    await this.events.emit(BeaconEvent.SHOW_PREPARE, { walletInfo })
+  }
+
+  public async hideUI(): Promise<void> {
+    await closeAlerts()
+    await closeToast()
   }
 
   /**
@@ -843,8 +838,6 @@ export class DAppClient extends Client {
       }
     }
 
-    await this.storage.set(StorageKey.ACTIVE_PEER, peer ? peer.publicKey : undefined)
-
     return
   }
 
@@ -934,6 +927,19 @@ export class DAppClient extends Client {
       const peer = await this.getPeer()
       const activeAccount = await this.getActiveAccount()
 
+      // If we sent a permission request, received an error and there is no active account, we need to reset the DAppClient.
+      // This most likely means that the user rejected the first permission request after pairing a wallet, so we "forget" the paired wallet to allow the user to pair again.
+      if (
+        request.type === BeaconMessageType.PermissionRequest &&
+        (await this.getActiveAccount()) === undefined
+      ) {
+        this._initPromise = undefined
+        this.postMessageTransport = undefined
+        this.p2pTransport = undefined
+        await this.setTransport()
+        await this.setActivePeer()
+      }
+
       this.events
         .emit(
           messageEvents[request.type].error,
@@ -1013,17 +1019,38 @@ export class DAppClient extends Client {
       }
     }
 
+    let selectedApp: WebApp | App | DesktopApp | ExtensionApp | undefined
+    let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
     // TODO: Remove once all wallets send the icon?
-    const selectedApp =
-      iOSList.find((app) => app.name === walletInfo?.name) ??
-      webList.find((app) => app.name === walletInfo?.name) ??
-      desktopList.find((app) => app.name === walletInfo?.name) ??
-      extensionList.find((app) => app.name === walletInfo?.name)
+    if (iOSList.find((app) => app.name === walletInfo?.name)) {
+      selectedApp = iOSList.find((app) => app.name === walletInfo?.name)
+      type = 'mobile'
+    } else if (webList.find((app) => app.name === walletInfo?.name)) {
+      selectedApp = webList.find((app) => app.name === walletInfo?.name)
+      type = 'web'
+    } else if (desktopList.find((app) => app.name === walletInfo?.name)) {
+      selectedApp = desktopList.find((app) => app.name === walletInfo?.name)
+      type = 'desktop'
+    } else if (extensionList.find((app) => app.name === walletInfo?.name)) {
+      selectedApp = extensionList.find((app) => app.name === walletInfo?.name)
+      type = 'extension'
+    }
 
     if (selectedApp) {
+      let deeplink: string | undefined
+      if (selectedApp.hasOwnProperty('links')) {
+        deeplink = (selectedApp as WebApp).links[
+          selectedAccount?.network.type ?? this.preferredNetwork
+        ]
+      } else if (selectedApp.hasOwnProperty('deepLink')) {
+        deeplink = (selectedApp as App).deepLink
+      }
+
       return {
         name: walletInfo.name,
-        icon: walletInfo.icon ?? selectedApp.logo
+        icon: walletInfo.icon ?? selectedApp.logo,
+        deeplink,
+        type
       }
     }
 
@@ -1034,13 +1061,13 @@ export class DAppClient extends Client {
     let peer: PeerInfo | undefined
 
     if (account) {
-      logger.log('', 'We have an account', account)
+      logger.log('getPeer', 'We have an account', account)
       const postMessagePeers: ExtendedPostMessagePairingResponse[] =
         (await this.postMessageTransport?.getPeers()) ?? []
       const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
       const peers = [...postMessagePeers, ...p2pPeers]
 
-      logger.log('', 'Found peers', peers, account)
+      logger.log('getPeer', 'Found peers', peers, account)
 
       peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
       if (!peer) {
@@ -1049,7 +1076,7 @@ export class DAppClient extends Client {
       }
     } else {
       peer = await this._activePeer.promise
-      logger.log('', 'Active peer', peer)
+      logger.log('getPeer', 'Active peer', peer)
     }
 
     if (!peer) {
@@ -1129,12 +1156,12 @@ export class DAppClient extends Client {
     this.events
       .emit(messageEvents[requestInput.type].sent, {
         walletInfo: {
-          name: walletInfo.name ?? 'Wallet',
-          icon: walletInfo.icon
+          ...walletInfo,
+          name: walletInfo.name ?? 'Wallet'
         },
         extraInfo: {
           resetCallback: async () => {
-            await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
+            this.disconnect()
           }
         }
       })
@@ -1142,6 +1169,12 @@ export class DAppClient extends Client {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed.promise as any // TODO: fix type
+  }
+
+  private async disconnect() {
+    this.postMessageTransport = undefined
+    this.p2pTransport = undefined
+    await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
   }
 
   /**

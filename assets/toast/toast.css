@@ -51,6 +51,13 @@
     right: 8px;
     left: 8px;
   }
+  .beacon-toast__wallet__outer {
+    flex-wrap: wrap;
+  }
+  .beacon-toast__wallet__link {
+    flex: 0 0 100%;
+    margin-left: 0 !important;
+  }
 }
 
 .theme__light.beacon-toast__base {
@@ -107,14 +114,16 @@ hr {
 
 .beacon-toast__content {
   justify-content: space-between;
-  max-height: 56px;
+  min-height: 56px;
+  height: 0;
 }
 
 .beacon-toast__action__item,
 .beacon-toast__powered a,
 .beacon-toast__wallet__container,
 #beacon-text,
-.beacon-toast__action__item p {
+.beacon-toast__action__item p,
+.beacon-toast__wallet__outer {
   align-items: center;
 }
 
@@ -123,7 +132,8 @@ hr {
 .beacon-toast__action__item,
 .beacon-toast__powered a,
 #beacon-text,
-.beacon-toast__wallet__container {
+.beacon-toast__wallet__container,
+.beacon-toast__wallet__outer {
   display: flex;
 }
 
@@ -137,7 +147,12 @@ hr {
 #beacon-text strong {
   display: contents;
 }
-
+.beacon-toast__wallet__link {
+  margin-left: 12px;
+}
+.beacon-toast__wallet__link svg {
+  margin-left: 4px;
+}
 .beacon-toast__powered a {
   margin: 4px 0 12px;
   font-size: 12px;
@@ -173,6 +188,11 @@ hr {
   width: 24px;
   height: 24px;
   margin-right: 4px;
+  image-rendering: -moz-crisp-edges; /* Firefox */
+  image-rendering: -o-crisp-edges; /* Opera */
+  image-rendering: -webkit-optimize-contrast; /* Webkit (non-standard naming) */
+  image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor; /* IE (non-standard property) */
 }
 
 .beacon-toast__more {

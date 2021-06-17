@@ -4,7 +4,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Style-Type" content="text/css" />
-    <title>Beacon Example</title>
+    <title>Beacon Example DApp</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
 
     <script>
       // This will enable the debug mode of beacon
@@ -12,9 +14,10 @@
       window.beaconSdkDebugEnabled = true
     </script>
 
-    <script src="./dist/walletbeacon.min.js"></script>
+    <script src="./walletbeacon.min.js"></script>
 
     <style>
+      /* To test if our UI is affected by global styles */
       div {
         background-color: red;
       }
@@ -38,6 +41,10 @@
     <button id="requestPermission">Request Permission</button>
     <br /><br />
     <button id="sendToSelf">Send 1 mutez to myself</button>
+    <br /><br />
+    <button id="sendToSelfWithPrepare">Send 1 mutez to myself (with 1s prepare delay)</button>
+    <br /><br />
+    <button id="showPrepareAndHide">Show prepare and then hide</button>
     <br /><br />
     <button id="connect">Connect and Delegate</button>
     <br /><br />
@@ -102,7 +109,8 @@
     <script>
       // Initiate DAppClient
       const client = new beacon.DAppClient({
-        name: 'Example DApp' // Name of the DApp,
+        name: 'Example DApp', // Name of the DApp,
+        disclaimerText: 'This is an optional <b>disclaimer</b>.'
         // preferredNetwork: beacon.NetworkType.DELPHINET
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
@@ -367,6 +375,22 @@
       // Add event listener to the button
       document.getElementById('sendToSelf').addEventListener('click', () => {
         sendToSelf()
+      })
+
+      // Add event listener to the button
+      document.getElementById('sendToSelfWithPrepare').addEventListener('click', () => {
+        client.showPrepare()
+        setTimeout(() => {
+          sendToSelf()
+        }, 2000)
+      })
+
+      // Add event listener to the button
+      document.getElementById('showPrepareAndHide').addEventListener('click', () => {
+        client.showPrepare()
+        setTimeout(() => {
+          client.hideUI()
+        }, 2000)
       })
 
       // Add event listener to the button

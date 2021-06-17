@@ -234,8 +234,9 @@ export class MatrixClient {
 
     return this.requiresAuthorization('createRoom', async (accessToken) => {
       const response = await this.roomService.createRoom(accessToken, {
+        room_version: '5',
         invite: members,
-        preset: 'trusted_private_chat',
+        preset: 'public_chat',
         is_direct: true
       })
 

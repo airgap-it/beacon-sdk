@@ -14,9 +14,10 @@ export interface ToastConfig {
   body: string
   timer?: number
   forceNew?: boolean
-  state: 'loading' | 'acknowledge' | 'finished'
+  state: 'prepare' | 'loading' | 'acknowledge' | 'finished'
   actions?: ToastAction[]
   walletInfo?: WalletInfo
+  openWalletAction?(): Promise<void>
 }
 
 let document: Document
@@ -280,6 +281,19 @@ const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
 
   if (list) {
     await addActionsToToast(shadowRoot, toastConfig, list)
+  }
+
+  const openWalletButtonEl = shadowRoot.getElementById('beacon-open-wallet')
+  if (openWalletButtonEl) {
+    if (toastConfig.openWalletAction) {
+      openWalletButtonEl.addEventListener('click', () => {
+        if (toastConfig.openWalletAction) {
+          toastConfig.openWalletAction()
+        }
+      })
+    } else {
+      openWalletButtonEl.classList.add('hide')
+    }
   }
 
   if (globalToastConfig.state === 'loading') {
