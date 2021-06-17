@@ -150,7 +150,7 @@ export const preparePairingAlert = async (
     const platformSwitch: HTMLElement | null = shadowRoot.getElementById(`beacon-switch`)
     if (platformSwitch) {
       platformSwitch.innerHTML =
-        type === 'none' ? 'Pair Wallet on same device' : 'Pair Wallet on different device'
+        type === 'none' ? 'Pair wallet on same device' : 'Pair wallet on other device'
     }
 
     if (mainText && walletList && switchButton && copyButton && qr && titleEl) {

@@ -73,4 +73,9 @@ export interface DAppClientOptions {
    * Set the color mode for the UI elements (alerts and toasts)
    */
   colorMode?: ColorMode
+
+  /**
+   * A disclaimer text that will be displayed in the pairing alert
+   */
+  disclaimerText?: string
 }
