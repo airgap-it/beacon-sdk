@@ -1,8 +1,18 @@
-import { ExtensionMessage, ExtensionMessageTarget, NetworkType, availableTransports } from '../..'
+import { Serializer } from '../../Serializer'
+import {
+  ExtensionMessage,
+  ExtensionMessageTarget,
+  NetworkType,
+  availableTransports,
+  P2PPairingRequest,
+  PostMessagePairingRequest
+} from '../..'
 import { windowRef } from '../../MockWindow'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
+
+const serializer = new Serializer()
 
 const defaultExtensions = [
   'ookjlbkiijinhpmnjffcofjonbfbgaoc', // Thanos
@@ -81,10 +91,13 @@ export interface PairingAlertList {
 export interface PairingAlertInfo {
   walletLists: PairingAlertList[]
   buttons: PairingAlertButton[]
-  qrData: string
 }
 
-export type StatusUpdateHandler = (walletType: WalletType, app?: PairingAlertWallet) => void
+export type StatusUpdateHandler = (
+  walletType: WalletType,
+  app?: PairingAlertWallet,
+  keepOpen?: boolean
+) => void
 
 /**
  * @internalapi
@@ -97,11 +110,12 @@ export class Pairing {
 
   public static async getPairingInfo(
     pairingPayload: {
-      p2pSyncCode: string
-      postmessageSyncCode: string
+      p2pSyncCode: () => Promise<P2PPairingRequest>
+      postmessageSyncCode: () => Promise<PostMessagePairingRequest>
       preferredNetwork: NetworkType
     },
     statusUpdateHandler: StatusUpdateHandler,
+    mobileWalletHandler: (pairingCode: string) => Promise<void>,
     platform?: Platform
   ): Promise<PairingAlertInfo> {
     const activePlatform = platform ?? (await Pairing.getPlatfrom())
@@ -116,6 +130,7 @@ export class Pairing {
           pairingCode,
           statusUpdateHandler,
           postmessageSyncCode,
+          mobileWalletHandler,
           preferredNetwork
         )
       case Platform.IOS:
@@ -129,13 +144,13 @@ export class Pairing {
   }
 
   private static async getDesktopPairingAlert(
-    pairingCode: string,
+    pairingCode: () => Promise<P2PPairingRequest>,
     statusUpdateHandler: StatusUpdateHandler,
-    postmessageSyncCode: string,
+    postmessageSyncCode: () => Promise<PostMessagePairingRequest>,
+    mobileWalletHandler: (pairingCode: string) => Promise<void>,
     network: NetworkType
   ): Promise<PairingAlertInfo> {
     const availableExtensions = await availableTransports.availableExtensions
-    const qrLink = getTzip10Link('tezos://', pairingCode)
 
     availableExtensions.forEach((ext) => {
       const index = defaultExtensions.indexOf(ext.id)
@@ -160,11 +175,12 @@ export class Pairing {
                 shortName: app.shortName ?? ext?.shortName,
                 color: app.color ?? ext?.color,
                 enabled: true,
-                clickHandler(): void {
+                async clickHandler(): Promise<void> {
                   if (postmessageSyncCode) {
+                    const postmessageCode = await serializer.serialize(await postmessageSyncCode())
                     const message: ExtensionMessage<string> = {
                       target: ExtensionMessageTarget.EXTENSION,
-                      payload: postmessageSyncCode,
+                      payload: postmessageCode,
                       targetId: app.id
                     }
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -200,28 +216,45 @@ export class Pairing {
               color: app.color,
               logo: app.logo,
               enabled: true,
-              clickHandler(): void {
-                const link = getTzip10Link(app.deepLink, pairingCode)
+              async clickHandler(): Promise<void> {
+                const code = await serializer.serialize(await pairingCode())
+                const link = getTzip10Link(app.deepLink, code)
                 window.open(link, '_blank')
-                statusUpdateHandler(WalletType.DESKTOP, this)
+                statusUpdateHandler(WalletType.DESKTOP, this, true)
               }
             })),
             ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
           ]
+        },
+        {
+          title: 'Mobile Wallets',
+          type: WalletType.IOS,
+          wallets: [
+            ...iOSList.map((app) => ({
+              key: app.key,
+              name: app.name,
+              shortName: app.shortName,
+              color: app.color,
+              logo: app.logo,
+              enabled: true,
+              async clickHandler(): Promise<void> {
+                const code = await serializer.serialize(await pairingCode())
+                mobileWalletHandler(code)
+                statusUpdateHandler(WalletType.IOS, this, true)
+              }
+            }))
+          ]
         }
       ],
-      buttons: [],
-      qrData: qrLink
+      buttons: []
     }
   }
 
   private static async getIOSPairingAlert(
-    pairingCode: string,
+    pairingCode: () => Promise<P2PPairingRequest>,
     statusUpdateHandler: StatusUpdateHandler,
     network: NetworkType
   ): Promise<PairingAlertInfo> {
-    const qrLink = getTzip10Link('tezos://', pairingCode)
-
     return {
       walletLists: [
         {
@@ -234,8 +267,9 @@ export class Pairing {
             color: app.color,
             logo: app.logo,
             enabled: true,
-            clickHandler(): void {
-              const link = getTzip10Link(app.deepLink ?? app.universalLink, pairingCode)
+            async clickHandler(): Promise<void> {
+              const code = await serializer.serialize(await pairingCode())
+              const link = getTzip10Link(app.deepLink ?? app.universalLink, code)
 
               // iOS does not trigger deeplinks with `window.open(...)`. The only way is using a normal link. So we have to work around that.
               const a = document.createElement('a')
@@ -244,7 +278,7 @@ export class Pairing {
                 new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
               )
 
-              statusUpdateHandler(WalletType.IOS, this)
+              statusUpdateHandler(WalletType.IOS, this, true)
             }
           }))
         },
@@ -254,18 +288,15 @@ export class Pairing {
           wallets: [...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))]
         }
       ],
-      buttons: [],
-      qrData: qrLink
+      buttons: []
     }
   }
 
   private static async getAndroidPairingAlert(
-    pairingCode: string,
+    pairingCode: () => Promise<P2PPairingRequest>,
     statusUpdateHandler: StatusUpdateHandler,
     network: NetworkType
   ): Promise<PairingAlertInfo> {
-    const qrLink = getTzip10Link('tezos://', pairingCode)
-
     return {
       walletLists: [
         {
@@ -278,18 +309,19 @@ export class Pairing {
         {
           title: 'Mobile Wallets',
           text: 'Connect Wallet',
-          clickHandler: (): void => {
+          clickHandler: async (): Promise<void> => {
+            const code = await serializer.serialize(await pairingCode())
+            const qrLink = getTzip10Link('tezos://', code)
             window.open(qrLink, '_blank')
             statusUpdateHandler(WalletType.ANDROID)
           }
         }
-      ],
-      qrData: qrLink
+      ]
     }
   }
 
   private static async getWebList(
-    pairingCode: string,
+    pairingCode: () => Promise<P2PPairingRequest>,
     statusUpdateHandler: StatusUpdateHandler,
     network: NetworkType
   ): Promise<PairingAlertWallet[]> {
@@ -300,13 +332,11 @@ export class Pairing {
       color: app.color,
       logo: app.logo,
       enabled: true,
-      clickHandler(): void {
-        const link = getTzip10Link(
-          app.links[network] ?? app.links[NetworkType.MAINNET],
-          pairingCode
-        )
+      async clickHandler(): Promise<void> {
+        const code = await serializer.serialize(await pairingCode())
+        const link = getTzip10Link(app.links[network] ?? app.links[NetworkType.MAINNET], code)
         window.open(link, '_blank')
-        statusUpdateHandler(WalletType.WEB, this)
+        statusUpdateHandler(WalletType.WEB, this, true)
       }
     }))
   }
