@@ -93,7 +93,8 @@
 .beacon-selection__name,
 .beacon-list__title,
 p,
-button {
+button,
+#beacon--disclaimer {
   font-family: Roboto, Helvetica, sans-serif;
 }
 
@@ -213,8 +214,8 @@ button {
   overflow-wrap: break-word;
   pointer-events: auto;
   text-align: center;
-  border: 2px solid #3880ff;
   border-radius: 4px;
+  border: 2px solid #3880ff;
 }
 
 .beacon-modal__button {
@@ -224,7 +225,8 @@ button {
 
 .beacon-modal__button--outline {
   background: #fff;
-  color: #3880ff;
+  color: #444444;
+  border: 1px solid #444444;
 }
 
 .beacon-alert__image {
