@@ -56,6 +56,10 @@
     <br /><br />
     ---
     <br /><br />
+    <button id="encryptPayload">Encrypt Payload</button>
+    <br /><br />
+    ---
+    <br /><br />
     <button id="getExtensions">Get Extensions</button>
     <br /><br />
     ---
@@ -217,6 +221,27 @@
         })
 
         console.log('signature:', signature)
+      })
+
+      // Add event listener to the button
+      document.getElementById('encryptPayload').addEventListener('click', async () => {
+        const encryptionResponse = await client.requestEncryptPayload({
+          encryptionType: beacon.EncryptionType.ASYMMETRIC,
+          encryptionCryptoOperation: beacon.EncryptionOperation.ENCRYPT,
+          payload: 'my-secret-string'
+        })
+
+        console.log('encrypted payload', encryptionResponse.payload)
+
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+
+        const decryptionResponse = await client.requestEncryptPayload({
+          encryptionType: beacon.EncryptionType.ASYMMETRIC,
+          encryptionCryptoOperation: beacon.EncryptionOperation.DECRYPT,
+          payload: encryptionResponse.payload
+        })
+
+        console.log('decrypted payload', decryptionResponse.payload)
       })
 
       // Add event listener to the button

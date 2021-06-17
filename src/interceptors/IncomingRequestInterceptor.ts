@@ -1,3 +1,4 @@
+import { assertNever } from '../utils/assert-never'
 import {
   BeaconRequestOutputMessage,
   BeaconMessageType,
@@ -5,7 +6,8 @@ import {
   AppMetadata,
   OperationRequestOutput,
   SignPayloadRequestOutput,
-  BroadcastRequestOutput
+  BroadcastRequestOutput,
+  EncryptPayloadRequestOutput
 } from '..'
 import { ConnectionContext } from '../types/ConnectionContext'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
@@ -86,6 +88,19 @@ export class IncomingRequestInterceptor {
           interceptorCallback(request, connectionInfo)
         }
         break
+      case BeaconMessageType.EncryptPayloadRequest:
+        {
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+            appMetadataManager,
+            message.senderId
+          )
+          const request: EncryptPayloadRequestOutput = {
+            appMetadata,
+            ...message
+          }
+          interceptorCallback(request, connectionInfo)
+        }
+        break
       case BeaconMessageType.BroadcastRequest:
         {
           const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
@@ -102,6 +117,7 @@ export class IncomingRequestInterceptor {
 
       default:
         logger.log('intercept', 'Message not handled')
+        assertNever(message)
     }
   }
 
