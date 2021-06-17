@@ -56,7 +56,7 @@ import { getAccountIdentifier } from '../../utils/get-account-identifier'
 import { BlockExplorer } from '../../utils/block-explorer'
 import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
 import { BeaconErrorType } from '../../types/BeaconErrorType'
-import { AlertButton } from '../../ui/alert/Alert'
+import { AlertButton, closeAlerts } from '../../ui/alert/Alert'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import {
   ExtendedPostMessagePairingResponse,
@@ -70,7 +70,8 @@ import { getColorMode, setColorMode } from '../../colorMode'
 import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wallet-lists'
 import { Optional } from '../../utils/utils'
 import { DAppClientOptions } from './DAppClientOptions'
-import { App, DesktopApp, ExtensionApp, WebApp } from 'src/ui/alert/Pairing'
+import { App, DesktopApp, ExtensionApp, WebApp } from '../../ui/alert/Pairing'
+import { closeToast } from '../../ui/toast/Toast'
 
 const logger = new Logger('DAppClient')
 
@@ -403,6 +404,22 @@ export class DAppClient extends Client {
    */
   public async getAppMetadata(): Promise<AppMetadata> {
     return this.getOwnAppMetadata()
+  }
+
+  public async showPrepare(): Promise<void> {
+    const walletInfo = await (async () => {
+      try {
+        return await this.getWalletInfo()
+      } catch {
+        return undefined
+      }
+    })()
+    await this.events.emit(BeaconEvent.SHOW_PREPARE, { walletInfo })
+  }
+
+  public async hideUI(): Promise<void> {
+    await closeAlerts()
+    await closeToast()
   }
 
   /**
