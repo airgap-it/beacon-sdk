@@ -58,11 +58,13 @@ export class MatrixClientEventEmitter extends EventEmitter {
    */
   private emitClientEvent<T extends MatrixClientEventType>(
     eventType: T,
-    content: MatrixClientEventContent<T>
+    content: MatrixClientEventContent<T>,
+    timestamp?: number
   ): void {
     this.emit(eventType, {
       type: eventType,
-      content
+      content,
+      timestamp
     })
   }
 
@@ -91,10 +93,11 @@ export class MatrixClientEventEmitter extends EventEmitter {
   ): void {
     stateChange.rooms
       .filter((room) => room.status === MatrixRoomStatus.INVITED)
-      .map((room) => room.id)
-      .forEach((id) => {
+      .map((room) => [room.id, room.members] as [string, string[]])
+      .forEach(([id, members]) => {
         this.emitClientEvent(eventType, {
-          roomId: id
+          roomId: id,
+          members: members
         })
       })
   }
@@ -123,14 +126,21 @@ export class MatrixClientEventEmitter extends EventEmitter {
     stateChange.rooms
       .filter((room) => room.messages.length > 0)
       .map((room) =>
-        room.messages.map((message) => [room.id, message] as [string, MatrixMessage<any>])
+        room.messages.map(
+          (message) =>
+            [room.id, message, message.timestamp] as [string, MatrixMessage<unknown>, number]
+        )
       )
       .reduce((flatten, toFlatten) => flatten.concat(toFlatten), [])
-      .forEach(([roomId, message]) => {
-        this.emitClientEvent(eventType, {
-          roomId,
-          message
-        })
+      .forEach(([roomId, message, timestamp]) => {
+        this.emitClientEvent(
+          eventType,
+          {
+            roomId,
+            message
+          },
+          timestamp
+        )
       })
   }
 }

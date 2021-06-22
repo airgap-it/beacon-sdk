@@ -84,6 +84,16 @@ export abstract class Transport<
   }
 
   /**
+   * Disconnect the transport
+   */
+  public async disconnect(): Promise<void> {
+    logger.log('disconnect')
+    this._isConnected = TransportStatus.NOT_CONNECTED
+
+    return
+  }
+
+  /**
    * Send a message through the transport
    *
    * @param message The message to send
@@ -135,18 +145,14 @@ export abstract class Transport<
     return this.peerManager.getPeers() as any // TODO: Fix type
   }
 
-  public async addPeer(newPeer: T): Promise<void> {
-    if (!(await this.peerManager.hasPeer(newPeer.publicKey))) {
-      logger.log('addPeer', 'adding peer', newPeer)
-      await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
-      await this.listen(newPeer.publicKey) // TODO: Prevent channels from being opened multiple times
-    } else {
-      logger.log('addPeer', 'peer already added, skipping', newPeer)
-    }
+  public async addPeer(newPeer: T, _sendPairingResponse: boolean = true): Promise<void> {
+    logger.log('addPeer', 'adding peer', newPeer)
+    await this.peerManager.addPeer(newPeer as ArrayElem<StorageKeyReturnType[K]>) // TODO: Fix type
+    await this.listen(newPeer.publicKey)
   }
 
   public async removePeer(peerToBeRemoved: T): Promise<void> {
-    logger.log('removePeer', '', peerToBeRemoved)
+    logger.log('removePeer', 'removing peer', peerToBeRemoved)
     await this.peerManager.removePeer(peerToBeRemoved.publicKey)
     if (this.client) {
       await this.client.unsubscribeFromEncryptedMessage(peerToBeRemoved.publicKey)

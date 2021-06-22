@@ -175,6 +175,13 @@ export abstract class Client extends BeaconClient {
     return (await this.transport).addPeer(peer)
   }
 
+  public async destroy(): Promise<void> {
+    if (this._transport.status === ExposedPromiseStatus.RESOLVED) {
+      await (await this.transport).disconnect()
+    }
+    await super.destroy()
+  }
+
   /**
    * A "setter" for when the transport needs to be changed.
    */

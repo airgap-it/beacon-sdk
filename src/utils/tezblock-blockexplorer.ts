@@ -7,7 +7,9 @@ export class TezblockBlockExplorer extends BlockExplorer {
       [NetworkType.MAINNET]: 'https://tezblock.io',
       [NetworkType.DELPHINET]: 'https://delphinet.tezblock.io',
       [NetworkType.EDONET]: 'https://edonet.tezblock.io',
-      [NetworkType.CUSTOM]: 'https://edonet.tezblock.io'
+      [NetworkType.FLORENCENET]: 'https://florencenet.tezblock.io',
+      [NetworkType.GRANADANET]: 'https://granadanet.tezblock.io',
+      [NetworkType.CUSTOM]: 'https://granadanet.tezblock.io'
     }
   ) {
     super(rpcUrls)

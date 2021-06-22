@@ -5,7 +5,6 @@ import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'
 import { BlockExplorer } from './utils/block-explorer'
 import { Logger } from './utils/Logger'
-import { Serializer } from './Serializer'
 import { shortenString } from './utils/shorten-string'
 import { BeaconErrorType } from './types/BeaconErrorType'
 import {
@@ -22,11 +21,13 @@ import {
   ConnectionContext,
   Transport,
   NetworkType,
-  AcknowledgeResponse
+  AcknowledgeResponse,
+  EncryptPayloadResponseOutput,
+  EncryptionOperation
 } from '.'
+import { isMobile } from './utils/platform'
 
 const logger = new Logger('BeaconEvents')
-const serializer = new Serializer()
 
 const SUCCESS_TIMER: number = 5 * 1000
 
@@ -45,6 +46,9 @@ export enum BeaconEvent {
   SIGN_REQUEST_SENT = 'SIGN_REQUEST_SENT',
   SIGN_REQUEST_SUCCESS = 'SIGN_REQUEST_SUCCESS',
   SIGN_REQUEST_ERROR = 'SIGN_REQUEST_ERROR',
+  ENCRYPT_REQUEST_SENT = 'ENCRYPT_REQUEST_SENT',
+  ENCRYPT_REQUEST_SUCCESS = 'ENCRYPT_REQUEST_SUCCESS',
+  ENCRYPT_REQUEST_ERROR = 'ENCRYPT_REQUEST_ERROR',
   BROADCAST_REQUEST_SENT = 'BROADCAST_REQUEST_SENT',
   BROADCAST_REQUEST_SUCCESS = 'BROADCAST_REQUEST_SUCCESS',
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
@@ -59,6 +63,8 @@ export enum BeaconEvent {
 
   ACTIVE_TRANSPORT_SET = 'ACTIVE_TRANSPORT_SET',
 
+  SHOW_PREPARE = 'SHOW_PREPARE',
+
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
@@ -69,7 +75,9 @@ export enum BeaconEvent {
 
 export interface WalletInfo {
   name: string
+  type?: 'extension' | 'mobile' | 'web' | 'desktop'
   icon?: string
+  deeplink?: string
 }
 
 export interface ExtraInfo {
@@ -110,6 +118,13 @@ export interface BeaconEventType {
     walletInfo: WalletInfo
   }
   [BeaconEvent.SIGN_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
+  [BeaconEvent.ENCRYPT_REQUEST_SENT]: RequestSentInfo
+  [BeaconEvent.ENCRYPT_REQUEST_SUCCESS]: {
+    output: EncryptPayloadResponseOutput
+    connectionContext: ConnectionContext
+    walletInfo: WalletInfo
+  }
+  [BeaconEvent.ENCRYPT_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
   [BeaconEvent.BROADCAST_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
     network: Network
@@ -128,11 +143,13 @@ export interface BeaconEventType {
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
+  [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.PAIR_INIT]: {
-    p2pPeerInfo: P2PPairingRequest
-    postmessagePeerInfo: PostMessagePairingRequest
+    p2pPeerInfo: () => Promise<P2PPairingRequest>
+    postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
     preferredNetwork: NetworkType
     abortedHandler?(): void
+    disclaimerText: string | undefined
   }
   [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
   [BeaconEvent.CHANNEL_CLOSED]: string
@@ -144,33 +161,54 @@ export interface BeaconEventType {
  * Show a "Request sent" toast
  */
 const showSentToast = async (data: RequestSentInfo): Promise<void> => {
+  let openWalletAction
+  const actions: ToastAction[] = []
+  if (data.walletInfo.deeplink) {
+    if (
+      data.walletInfo.type === 'web' ||
+      (data.walletInfo.type === 'mobile' && isMobile(window)) ||
+      (data.walletInfo.type === 'desktop' && !isMobile(window))
+    ) {
+      const link = data.walletInfo.deeplink
+      openWalletAction = async (): Promise<void> => {
+        const a = document.createElement('a')
+        a.setAttribute('href', link)
+        a.setAttribute('target', '_blank')
+        a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
+      }
+    }
+  }
+  actions.push({
+    text: `<strong>No answer from your wallet received yet. Please make sure the wallet is open.</strong>`
+  })
+  actions.push({
+    text: 'Did you make a mistake?',
+    actionText: 'Cancel Request',
+    actionCallback: async (): Promise<void> => {
+      await closeToast()
+    }
+  })
+  actions.push({
+    text: 'Wallet not receiving request?',
+    actionText: 'Reset Connection',
+    actionCallback: async (): Promise<void> => {
+      await closeToast()
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const resetCallback = data.extraInfo.resetCallback
+      if (resetCallback) {
+        logger.log('showSentToast', 'resetCallback invoked')
+        await resetCallback()
+      }
+    }
+  })
+
   openToast({
-    body: `Request sent to&nbsp;{{wallet}}`,
+    body: `<span class="beacon-toast__wallet__outer">Request sent to&nbsp;{{wallet}}<span>`,
     walletInfo: data.walletInfo,
     forceNew: true,
     state: 'loading',
-    actions: [
-      {
-        text: 'Did you make a mistake?',
-        actionText: 'Cancel Request',
-        actionCallback: async (): Promise<void> => {
-          await closeToast()
-        }
-      },
-      {
-        text: 'Wallet not receiving request?',
-        actionText: 'Reset Connection',
-        actionCallback: async (): Promise<void> => {
-          await closeToast()
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          const resetCallback = data.extraInfo.resetCallback
-          if (resetCallback) {
-            logger.log('showSentToast', 'resetCallback invoked')
-            await resetCallback()
-          }
-        }
-      }
-    ]
+    actions,
+    openWalletAction
   }).catch((toastError) => console.error(toastError))
 }
 
@@ -180,8 +218,18 @@ const showAcknowledgedToast = async (data: {
   walletInfo: WalletInfo
 }): Promise<void> => {
   openToast({
-    body: 'Awaiting confirmation in&nbsp;{{wallet}}',
+    body:
+      '<span class="beacon-toast__wallet__outer">Awaiting confirmation in&nbsp;{{wallet}}<span>',
     state: 'acknowledge',
+    walletInfo: data.walletInfo
+  }).catch((toastError) => console.error(toastError))
+}
+
+const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => {
+  const text = data.walletInfo ? `Preparing Request for {{wallet}}...` : 'Preparing Request...'
+  openToast({
+    body: `<span class="beacon-toast__wallet__outer">${text}<span>`,
+    state: 'prepare',
     walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
 }
@@ -297,19 +345,17 @@ const showInternalErrorAlert = async (
  * @param data The data that is emitted by the PAIR_INIT event
  */
 const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Promise<void> => {
-  const p2pBase58encoded = await serializer.serialize(data.p2pPeerInfo)
-  const postmessageBase58encoded = await serializer.serialize(data.postmessagePeerInfo)
-
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
     body: `<p></p>`,
     pairingPayload: {
-      p2pSyncCode: p2pBase58encoded,
-      postmessageSyncCode: postmessageBase58encoded,
+      p2pSyncCode: data.p2pPeerInfo,
+      postmessageSyncCode: data.postmessagePeerInfo,
       preferredNetwork: data.preferredNetwork
     },
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    closeButtonCallback: data.abortedHandler
+    closeButtonCallback: data.abortedHandler,
+    disclaimerText: data.disclaimerText
   }
   await openAlert(alertConfig)
 }
@@ -413,6 +459,42 @@ const showSignSuccessAlert = async (
 }
 
 /**
+ * Show a "Transaction Signed" alert
+ *
+ * @param data The data that is emitted by the ENCRYPT_REQUEST_SUCCESS event
+ */
+const showEncryptSuccessAlert = async (
+  data: BeaconEventType[BeaconEvent.ENCRYPT_REQUEST_SUCCESS]
+): Promise<void> => {
+  const output = data.output
+  await openToast({
+    body: `{{wallet}}&nbsp;successfully ${
+      data.output.cryptoOperation === EncryptionOperation.ENCRYPT ? 'encrypted' : 'decrypted'
+    } payload`,
+    timer: SUCCESS_TIMER,
+    state: 'finished',
+    walletInfo: data.walletInfo,
+    actions: [
+      {
+        text: `Payload: <strong>${shortenString(output.payload)}</strong>`,
+        actionText: 'Copy to clipboard',
+        actionCallback: async (): Promise<void> => {
+          navigator.clipboard.writeText(output.payload).then(
+            () => {
+              logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+            },
+            (err) => {
+              logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+            }
+          )
+          await closeToast()
+        }
+      }
+    ]
+  })
+}
+
+/**
  * Show a "Broadcasted" alert
  *
  * @param data The data that is emitted by the BROADCAST_REQUEST_SUCCESS event
@@ -468,6 +550,9 @@ export const defaultEventCallbacks: {
   [BeaconEvent.SIGN_REQUEST_SENT]: showSentToast,
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: showSignSuccessAlert,
   [BeaconEvent.SIGN_REQUEST_ERROR]: showErrorToast,
+  [BeaconEvent.ENCRYPT_REQUEST_SENT]: showSentToast,
+  [BeaconEvent.ENCRYPT_REQUEST_SUCCESS]: showEncryptSuccessAlert,
+  [BeaconEvent.ENCRYPT_REQUEST_ERROR]: showErrorToast,
   [BeaconEvent.BROADCAST_REQUEST_SENT]: showSentToast,
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: showBroadcastSuccessAlert,
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: showErrorToast,
@@ -476,6 +561,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(),
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(),
+  [BeaconEvent.SHOW_PREPARE]: showPrepare,
   [BeaconEvent.PAIR_INIT]: showPairAlert,
   [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
   [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
@@ -501,6 +587,9 @@ export class BeaconEventHandler {
     [BeaconEvent.SIGN_REQUEST_SENT]: [defaultEventCallbacks.SIGN_REQUEST_SENT],
     [BeaconEvent.SIGN_REQUEST_SUCCESS]: [defaultEventCallbacks.SIGN_REQUEST_SUCCESS],
     [BeaconEvent.SIGN_REQUEST_ERROR]: [defaultEventCallbacks.SIGN_REQUEST_ERROR],
+    [BeaconEvent.ENCRYPT_REQUEST_SENT]: [defaultEventCallbacks.ENCRYPT_REQUEST_SENT],
+    [BeaconEvent.ENCRYPT_REQUEST_SUCCESS]: [defaultEventCallbacks.ENCRYPT_REQUEST_SUCCESS],
+    [BeaconEvent.ENCRYPT_REQUEST_ERROR]: [defaultEventCallbacks.ENCRYPT_REQUEST_ERROR],
     [BeaconEvent.BROADCAST_REQUEST_SENT]: [defaultEventCallbacks.BROADCAST_REQUEST_SENT],
     [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: [defaultEventCallbacks.BROADCAST_REQUEST_SUCCESS],
     [BeaconEvent.BROADCAST_REQUEST_ERROR]: [defaultEventCallbacks.BROADCAST_REQUEST_ERROR],
@@ -509,6 +598,7 @@ export class BeaconEventHandler {
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
     [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
+    [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
     [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
     [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],

@@ -22,7 +22,6 @@ export interface StorageKeyReturnType {
   [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET]: ExtendedPostMessagePairingResponse[]
   [StorageKey.ACCOUNTS]: AccountInfo[]
   [StorageKey.ACTIVE_ACCOUNT]: AccountIdentifier | undefined
-  [StorageKey.ACTIVE_PEER]: string | undefined
   [StorageKey.PUSH_TOKENS]: PushToken[]
   [StorageKey.BEACON_SDK_SECRET_SEED]: string | undefined
   [StorageKey.APP_METADATA_LIST]: AppMetadata[]
@@ -30,4 +29,6 @@ export interface StorageKeyReturnType {
   [StorageKey.BEACON_SDK_VERSION]: string | undefined
   [StorageKey.MATRIX_PRESERVED_STATE]: Partial<MatrixState>
   [StorageKey.MATRIX_PEER_ROOM_IDS]: { [key: string]: string | undefined }
+  [StorageKey.MATRIX_SELECTED_NODE]: string | undefined
+  [StorageKey.MULTI_NODE_SETUP_DONE]: boolean | undefined
 }

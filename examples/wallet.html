@@ -6,17 +6,21 @@
     <meta http-equiv="Content-Style-Type" content="text/css" />
     <title>Beacon Example Wallet</title>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+
     <script>
       // This will enable the debug mode of beacon
       // This should only be used during development
       window.beaconSdkDebugEnabled = true
     </script>
 
-    <script src="./dist/walletbeacon.min.js"></script>
+    <script src="./walletbeacon.min.js"></script>
   </head>
 
   <body>
     Beacon Example Wallet
+    <br /><br />
+    <div id="status"></div>
     <br /><br />
     <button id="paste">Paste Sync Code</button>
     <br /><br />
@@ -28,34 +32,57 @@
     <br /><br />
     <button id="reset">Reset and Refresh</button>
 
+    <br /><br />
+    Test input: <input id="hidden-input" type="text" />
+
     <script>
       // Initiate DAppClient
       const client = new beacon.WalletClient({
-        name: 'Example Wallet', // Name of the DApp
-        matrixNodes: ['matrix.papers.tech']
+        name: 'Example Wallet' // Name of the DApp
+        // matrixNodes: ['matrix.papers.tech']
+        // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['beacon.tztip.me']
       })
 
+      const setStatus = (status) => {
+        document.getElementById('status').innerHTML = status ? 'Status: ' + status : status
+      }
+
       // Add event listener to the button
       document.getElementById('paste').addEventListener('click', () => {
-        navigator.clipboard.readText().then((clipText) => {
+        const addPeer = (text) => {
           const serializer = new beacon.Serializer()
           serializer
-            .deserialize(clipText)
+            .deserialize(text)
             .then((peer) => {
               console.log('Adding peer', peer)
+              setStatus('Connecting...')
               client.addPeer(peer).then(() => {
+                setStatus('Connected')
                 console.log('Peer added')
               })
             })
-            .catch((e) => console.error('not a valid sync code'))
-        })
+            .catch((e) => {
+              console.error('not a valid sync code: ', text)
+              setStatus('not a valid sync code: ' + text)
+            })
+        }
+        const hiddenInput = document.getElementById('hidden-input')
+        if (hiddenInput && hiddenInput.value) {
+          addPeer(hiddenInput.value)
+        } else {
+          navigator.clipboard.readText().then((clipText) => {
+            addPeer(clipText)
+          })
+        }
       })
 
       client.init().then(() => {
         console.log('init')
         client
           .connect(async (message) => {
+            setStatus('Handling request...')
+
             console.log('message', message)
             // Example: Handle PermissionRequest. A wallet should handle all request types
             if (message.type === beacon.BeaconMessageType.PermissionRequest) {
@@ -77,7 +104,8 @@
                 network: message.network, // Use the same network that the user requested
                 scopes: [
                   beacon.PermissionScope.OPERATION_REQUEST,
-                  beacon.PermissionScope.NOTIFICATION
+                  beacon.PermissionScope.NOTIFICATION,
+                  beacon.PermissionScope.ENCRYPT
                 ], // Ignore the scopes that have been requested and instead give only operation permissions
                 id: message.id,
                 publicKey: publicKey,
@@ -95,6 +123,7 @@
               client.respond(response)
             } else {
               console.error('Only permission requests are supported in this demo')
+              console.error('Received: ', message)
 
               const response = {
                 type: beacon.BeaconMessageType.Error,
@@ -103,6 +132,8 @@
               }
               client.respond(response)
             }
+
+            setStatus('')
           })
           .catch((error) => console.error('connect error', error))
       }) // Establish P2P connection

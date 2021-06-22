@@ -74,6 +74,9 @@ describe(`P2PTransport`, () => {
       .throws('listenForNewPeer should not be called')
 
     const startClientStub = sinon.stub(P2PCommunicationClient.prototype, 'start').resolves()
+    const listenForChannelOpeningStub = sinon
+      .stub(P2PCommunicationClient.prototype, 'listenForChannelOpening')
+      .resolves()
     sinon.stub(PeerManager.prototype, 'getPeers').resolves([pairingResponse, pairingResponse])
 
     const listenStub = sinon.stub(transport, <any>'listen').resolves()
@@ -83,6 +86,7 @@ describe(`P2PTransport`, () => {
     await transport.connect()
 
     expect(startClientStub.callCount).to.equal(1)
+    expect(listenForChannelOpeningStub.callCount).to.equal(1)
     expect(listenForNewPeerStub.callCount).to.equal(0)
     expect(listenStub.callCount).to.equal(2)
     expect(transport.connectionStatus).to.equal(TransportStatus.CONNECTED)
@@ -127,7 +131,6 @@ describe(`P2PTransport`, () => {
     const localStorage = new LocalStorage()
     transport = new WalletP2PTransport('Test', keypair, localStorage, []) as any
 
-    const hasPeerStub = sinon.stub(PeerManager.prototype, 'hasPeer').resolves(false)
     const addPeerStub = sinon.stub(PeerManager.prototype, 'addPeer').resolves()
     const listenStub = sinon.stub(transport, <any>'listen').resolves()
     const sendResponseStub = sinon
@@ -136,8 +139,6 @@ describe(`P2PTransport`, () => {
 
     await transport.addPeer(pairingResponse)
 
-    expect(hasPeerStub.callCount, 'hasPeerStub').to.equal(1)
-    expect(hasPeerStub.firstCall.args[0], 'hasPeerStub').to.equal(pairingResponse.publicKey)
     expect(addPeerStub.callCount, 'addPeerStub').to.equal(1)
     expect(addPeerStub.firstCall.args[0], 'addPeerStub').to.equal(pairingResponse)
     expect(listenStub.callCount, 'listenStub').to.equal(1)

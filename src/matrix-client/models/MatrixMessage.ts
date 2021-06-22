@@ -11,9 +11,14 @@ export class MatrixMessage<T> {
    *
    * @param event
    */
-  public static from(event: MatrixStateEvent): MatrixMessage<any> | undefined {
+  public static from(event: MatrixStateEvent): MatrixMessage<unknown> | undefined {
     if (isTextMessageEvent(event)) {
-      return new MatrixMessage(event.content.msgtype, event.sender, event.content.body)
+      return new MatrixMessage(
+        event.content.msgtype,
+        event.sender,
+        event.content.body,
+        event.origin_server_ts
+      )
     }
 
     // for now only text messages are supported
@@ -23,6 +28,7 @@ export class MatrixMessage<T> {
   private constructor(
     public readonly type: MatrixMessageType,
     public readonly sender: string,
-    public readonly content: T
+    public readonly content: T,
+    public readonly timestamp: number
   ) {}
 }

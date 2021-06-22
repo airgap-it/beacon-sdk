@@ -81,6 +81,15 @@ export enum BeaconErrorType {
   SIGNATURE_TYPE_NOT_SUPPORTED = 'SIGNATURE_TYPE_NOT_SUPPORTED',
 
   /**
+   * {@link EncryptionTypeNotSupportedBeaconError}
+   *
+   * Will be returned if the encryption type is not supported.
+   *
+   * Returned by: Encrypt
+   */
+  ENCRYPTION_TYPE_NOT_SUPPORTED = 'ENCRYPTION_TYPE_NOT_SUPPORTED',
+
+  /**
    * {@link AbortedBeaconError}
    *
    * Will be returned if the request was aborted by the user or the wallet.

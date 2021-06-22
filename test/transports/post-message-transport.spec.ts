@@ -167,14 +167,11 @@ describe(`PostMessageTransport`, () => {
   })
 
   it(`should add peer and start to listen`, async () => {
-    const hasPeerStub = sinon.stub(PeerManager.prototype, 'hasPeer').resolves(false)
     const addPeerStub = sinon.stub(PeerManager.prototype, 'addPeer').resolves()
     const listenStub = sinon.stub(transport, <any>'listen').resolves()
 
     await transport.addPeer(pairingResponse)
 
-    expect(hasPeerStub.callCount, 'hasPeerStub').to.equal(1)
-    expect(hasPeerStub.firstCall.args[0], 'hasPeerStub').to.equal(pairingResponse.publicKey)
     expect(addPeerStub.callCount, 'addPeerStub').to.equal(1)
     expect(addPeerStub.firstCall.args[0], 'addPeerStub').to.equal(pairingResponse)
     expect(listenStub.callCount, 'listenStub').to.equal(1)

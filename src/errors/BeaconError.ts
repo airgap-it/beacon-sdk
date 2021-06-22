@@ -11,7 +11,8 @@ import {
   TooManyOperationsBeaconError,
   TransactionInvalidBeaconError,
   SignatureTypeNotSupportedBeaconError,
-  BroadcastBeaconError
+  BroadcastBeaconError,
+  EncryptionTypeNotSupportedBeaconError
 } from '..'
 
 /**
@@ -53,6 +54,8 @@ export abstract class BeaconError implements Error {
         return new TransactionInvalidBeaconError(errorData)
       case BeaconErrorType.SIGNATURE_TYPE_NOT_SUPPORTED:
         return new SignatureTypeNotSupportedBeaconError()
+      case BeaconErrorType.ENCRYPTION_TYPE_NOT_SUPPORTED:
+        return new EncryptionTypeNotSupportedBeaconError()
       case BeaconErrorType.ABORTED_ERROR:
         return new AbortedBeaconError()
       case BeaconErrorType.UNKNOWN_ERROR:

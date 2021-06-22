@@ -4,7 +4,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Style-Type" content="text/css" />
-    <title>Beacon Example</title>
+    <title>Beacon Example DApp</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
 
     <script>
       // This will enable the debug mode of beacon
@@ -12,9 +14,10 @@
       window.beaconSdkDebugEnabled = true
     </script>
 
-    <script src="./dist/walletbeacon.min.js"></script>
+    <script src="./walletbeacon.min.js"></script>
 
     <style>
+      /* To test if our UI is affected by global styles */
       div {
         background-color: red;
       }
@@ -39,6 +42,10 @@
     <br /><br />
     <button id="sendToSelf">Send 1 mutez to myself</button>
     <br /><br />
+    <button id="sendToSelfWithPrepare">Send 1 mutez to myself (with 1s prepare delay)</button>
+    <br /><br />
+    <button id="showPrepareAndHide">Show prepare and then hide</button>
+    <br /><br />
     <button id="connect">Connect and Delegate</button>
     <br /><br />
     <button id="signPayloadRaw">Sign Payload (Raw)</button>
@@ -52,6 +59,10 @@
     <button id="sendNotification">Send notification</button>
     <br /><br />
     <button id="sendNotificationAddress">Send notification to address</button>
+    <br /><br />
+    ---
+    <br /><br />
+    <button id="encryptPayload">Encrypt Payload</button>
     <br /><br />
     ---
     <br /><br />
@@ -92,6 +103,7 @@
     <br /><br />
     <button id="contractCall">Contract Call</button>
     <br /><br />
+    <textarea id="beacon-textbox"></textarea>
     <button id="deserializeData">Deserialize Data</button>
     <br /><br />
     ---
@@ -104,8 +116,11 @@
       // Initiate DAppClient
       const client = new beacon.DAppClient({
         name: 'Example DApp', // Name of the DApp,
+        disclaimerText: 'This is an optional <b>disclaimer</b>.'
         // preferredNetwork: beacon.NetworkType.DELPHINET
-        matrixNodes: ['matrix.papers.tech']
+        // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
+        // matrixNodes: ['beacon-node-0.papers.tech:8448']
+        // matrixNodes: ['matrix.papers.tech']
         // matrixNodes: ['beacon.tztip.me']
       })
 
@@ -212,6 +227,27 @@
         })
 
         console.log('signature:', signature)
+      })
+
+      // Add event listener to the button
+      document.getElementById('encryptPayload').addEventListener('click', async () => {
+        const encryptionResponse = await client.requestEncryptPayload({
+          encryptionType: beacon.EncryptionType.ASYMMETRIC,
+          encryptionCryptoOperation: beacon.EncryptionOperation.ENCRYPT,
+          payload: 'my-secret-string'
+        })
+
+        console.log('encrypted payload', encryptionResponse.payload)
+
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+
+        const decryptionResponse = await client.requestEncryptPayload({
+          encryptionType: beacon.EncryptionType.ASYMMETRIC,
+          encryptionCryptoOperation: beacon.EncryptionOperation.DECRYPT,
+          payload: encryptionResponse.payload
+        })
+
+        console.log('decrypted payload', decryptionResponse.payload)
       })
 
       // Add event listener to the button
@@ -348,6 +384,22 @@
       })
 
       // Add event listener to the button
+      document.getElementById('sendToSelfWithPrepare').addEventListener('click', () => {
+        client.showPrepare()
+        setTimeout(() => {
+          sendToSelf()
+        }, 2000)
+      })
+
+      // Add event listener to the button
+      document.getElementById('showPrepareAndHide').addEventListener('click', () => {
+        client.showPrepare()
+        setTimeout(() => {
+          client.hideUI()
+        }, 2000)
+      })
+
+      // Add event listener to the button
       document.getElementById('color-mode-light').addEventListener('click', () => {
         client.setColorMode('light')
         updateColorMode()
@@ -361,7 +413,9 @@
 
       // Add event listener to the button
       document.getElementById('deserializeData').addEventListener('click', () => {
-        new beacon.Serializer().deserialize('').then(console.log).catch(console.error)
+        const value = document.getElementById('beacon-textbox').value
+        console.log('Deserializing:', value)
+        new beacon.Serializer().deserialize(value).then(console.log).catch(console.error)
       })
 
       // Add event listener to the button
