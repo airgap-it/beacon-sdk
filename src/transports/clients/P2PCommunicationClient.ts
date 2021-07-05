@@ -29,7 +29,11 @@ import { ExposedPromise } from '../../utils/exposed-promise'
 
 const logger = new Logger('P2PCommunicationClient')
 
-const KNOWN_RELAY_SERVERS = ['beacon-node-1.sky.papers.tech', 'beacon-node-0.papers.tech:8448']
+const KNOWN_RELAY_SERVERS = [
+  'beacon-node-1.sky.papers.tech',
+  'beacon-node-0.papers.tech:8448',
+  'beacon-node-2.sky.papers.tech'
+]
 
 const publicKeyToNumber = (arr: Uint8Array, mod: number) => {
   let sum = 0
