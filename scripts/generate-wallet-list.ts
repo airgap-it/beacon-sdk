@@ -40,6 +40,13 @@ export const webList: WebApp[] = [
 
 export const desktopList: DesktopApp[] = [
   {
+    name: 'Umami',
+    shortName: 'Umami',
+    color: '',
+    logo: 'desktop-umami.png',
+    deepLink: 'umami://'
+  },
+  {
     name: 'Galleon',
     shortName: 'Galleon',
     color: '',
