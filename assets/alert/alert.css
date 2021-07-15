@@ -242,7 +242,7 @@ button {
   width: 100%;
 }
 
-.beacon-modal__content {
+#beacon-modal__content {
   padding: 24px;
 }
 

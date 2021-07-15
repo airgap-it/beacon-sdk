@@ -205,7 +205,6 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
   openToast({
     body: `<span class="beacon-toast__wallet__outer">Request sent to&nbsp;{{wallet}}<span>`,
     walletInfo: data.walletInfo,
-    forceNew: true,
     state: 'loading',
     actions,
     openWalletAction
