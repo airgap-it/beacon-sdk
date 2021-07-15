@@ -102,15 +102,27 @@ export const preparePairingAlert = async (
 
       const walletEl = shadowRoot.getElementById(`wallet_${walletKey}`)
 
+      const completeHandler = async (event?: KeyboardEvent) => {
+        if (event && event.key !== 'Enter') {
+          return
+        }
+
+        wallet.clickHandler()
+        const modalEl: HTMLElement | null = shadowRoot.getElementById('beacon-modal__content')
+        if (modalEl) {
+          modalEl.innerHTML = `${
+            wallet.logo
+              ? `<h2>Connecting...</h2><div>
+          <img class="beacon-selection__img" src="${wallet.logo}"/>
+          </div>`
+              : ''
+          }<p>${wallet.name}</p>`
+        }
+      }
+
       if (walletEl) {
-        walletEl.addEventListener('click', async () => {
-          wallet.clickHandler()
-        })
-        walletEl.addEventListener('keydown', async (event) => {
-          if (event.key === 'Enter') {
-            wallet.clickHandler()
-          }
-        })
+        walletEl.addEventListener('click', () => completeHandler())
+        walletEl.addEventListener('keydown', completeHandler)
       }
     })
   })
