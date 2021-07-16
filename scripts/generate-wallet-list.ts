@@ -5,25 +5,28 @@ import { ExtensionApp, WebApp, App, AppBase, DesktopApp } from '../src/ui/alert/
 
 export const extensionList: ExtensionApp[] = [
   {
-    id: 'ookjlbkiijinhpmnjffcofjonbfbgaoc',
-    name: 'Temple Wallet',
-    shortName: 'Temple',
-    color: '',
-    logo: 'extension-temple.png',
-    link: 'https://templewallet.com/'
-  },
-  {
+    key: 'spire_chrome',
     id: 'gpfndedineagiepkpinficbcbbgjoenn',
     name: 'Spire',
     shortName: 'Spire',
     color: '',
     logo: 'extension-spire.png',
     link: 'https://spirewallet.com/'
+  },
+  {
+    key: 'temple_chrome',
+    id: 'ookjlbkiijinhpmnjffcofjonbfbgaoc',
+    name: 'Temple Wallet',
+    shortName: 'Temple',
+    color: '',
+    logo: 'extension-temple.png',
+    link: 'https://templewallet.com/'
   }
 ]
 
 export const webList: WebApp[] = [
   {
+    key: 'kukai_web',
     name: 'Kukai Wallet',
     shortName: 'Kukai',
     color: '',
@@ -40,16 +43,26 @@ export const webList: WebApp[] = [
 
 export const desktopList: DesktopApp[] = [
   {
+    key: 'galleon_desktop',
     name: 'Galleon',
     shortName: 'Galleon',
     color: '',
     logo: 'desktop-galleon.png',
     deepLink: 'galleon://'
+  },
+  {
+    key: 'umami_desktop',
+    name: 'Umami',
+    shortName: 'Umami',
+    color: '',
+    logo: 'desktop-umami.png',
+    deepLink: 'umami://'
   }
 ]
 
 export const iosList: App[] = [
   {
+    key: 'airgap_ios',
     name: 'AirGap Wallet',
     shortName: 'AirGap',
     color: 'rgb(4, 235, 204)',
@@ -57,14 +70,6 @@ export const iosList: App[] = [
     universalLink: 'https://wallet.airgap.it',
     deepLink: 'airgap-wallet://'
   }
-  // {
-  //   name: 'Magma',
-  //   shortName: 'Magma',
-  //   color: '',
-  //   logo: 'ios-magma.png',
-  //   universalLink: 'https://magmawallet.io',
-  //   deepLink: 'magma://'
-  // },
   // {
   //   name: 'Galleon',
   //   shortName: 'Galleon',

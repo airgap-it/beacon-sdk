@@ -15,7 +15,6 @@ export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET]: [],
   [StorageKey.ACCOUNTS]: [],
   [StorageKey.ACTIVE_ACCOUNT]: undefined,
-  [StorageKey.ACTIVE_PEER]: undefined,
   [StorageKey.BEACON_SDK_SECRET_SEED]: undefined,
   [StorageKey.APP_METADATA_LIST]: [],
   [StorageKey.PERMISSION_LIST]: [],
