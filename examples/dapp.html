@@ -156,12 +156,12 @@
 
       // Initiate a delegate operation
       const sendToSelf = () => {
-        client.getActiveAccount().then((activeAccount) => {
-          client.requestOperation({
+        return client.getActiveAccount().then((activeAccount) => {
+          return client.requestOperation({
             operationDetails: [
               {
                 kind: beacon.TezosOperationType.TRANSACTION,
-                destination: activeAccount.address,
+                destination: activeAccount?.address ?? '',
                 amount: '1'
               }
             ]
@@ -381,7 +381,9 @@
       document.getElementById('sendToSelfWithPrepare').addEventListener('click', () => {
         client.showPrepare()
         setTimeout(() => {
-          sendToSelf()
+          sendToSelf().catch((e) => {
+            client.hideUI()
+          })
         }, 2000)
       })
 
