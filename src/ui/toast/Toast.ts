@@ -14,7 +14,7 @@ export interface ToastConfig {
   body: string
   timer?: number
   forceNew?: boolean
-  state: 'loading' | 'acknowledge' | 'finished'
+  state: 'prepare' | 'loading' | 'acknowledge' | 'finished'
   actions?: ToastAction[]
   walletInfo?: WalletInfo
   openWalletAction?(): Promise<void>
