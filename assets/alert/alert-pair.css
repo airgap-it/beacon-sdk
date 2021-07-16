@@ -12,12 +12,13 @@
   padding-bottom: 12px;
   align-items: center;
 }
-
 .beacon-list__title {
   text-align: left;
   font-size: 12px;
 }
-
+.beacon-list__wrapper:nth-child(-n + 3) {
+  padding: 0 0 1rem;
+}
 .theme__light .beacon-list__title {
   color: #7c828b;
 }
