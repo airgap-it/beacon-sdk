@@ -1,0 +1,641 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>@airgap/beacon-sdk - v2.3.0</title>
+	<meta name="description" content="Documentation for @airgap/beacon-sdk - v2.3.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script>
+    let externals = localStorage.getItem('externals')
+    if (externals === null) {
+        localStorage.setItem('externals', false)
+    }
+    let visibility = localStorage.getItem('visibility')
+    if (visibility === null) {
+        localStorage.setItem('visibility', 'public')
+    }
+</script>
+
+	<script async src="assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">@airgap/beacon-sdk - v2.3.0</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Internal Definitions</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>@airgap/beacon-sdk - v2.3.0</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#beacon-sdk" id="beacon-sdk" style="color: inherit; text-decoration: none;">
+					<h1>Beacon SDK</h1>
+				</a>
+				<p><a href="https://www.npmjs.com/package/@airgap/beacon-sdk"><img src="https://img.shields.io/npm/v/@airgap/beacon-sdk.svg?colorB=brightgreen" alt="npm"></a>
+					<a href="https://airgap-it.github.io/beacon-sdk/"><img src="https://img.shields.io/badge/documentation-online-brightgreen.svg" alt="documentation"></a>
+					<a href="https://github.com/airgap-it/beacon-sdk/actions?query=workflow%3A%22Build%2C+Test+and+Analyze%22+branch%3Amain"><img src="https://github.com/airgap-it/beacon-sdk/workflows/Build%2C%20Test%20and%20Analyze/badge.svg" alt="GitHub Action"></a>
+					<a href="https://sonarcloud.io/dashboard?id=airgap-it_beacon-sdk"><img src="https://sonarcloud.io/api/project_badges/measure?project=airgap-it_beacon-sdk&metric=alert_status" alt="Quality Gate Status"></a>
+				<a href="https://github.com/prettier/prettier"><img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square" alt="code style: prettier"></a></p>
+				<blockquote>
+					<p>Connect Wallets with dApps on Tezos</p>
+				</blockquote>
+				<p><a href="https://walletbeacon.io">Beacon</a> is the implementation of the wallet interaction standard <a href="https://gitlab.com/tzip/tzip/blob/master/proposals/tzip-10/tzip-10.md">tzip-10</a> which describes the connnection of a dApp with a wallet.</p>
+				<a href="#intro" id="intro" style="color: inherit; text-decoration: none;">
+					<h2>Intro</h2>
+				</a>
+				<p>The <code>beacon-sdk</code> simplifies and abstracts the communication between dApps and wallets over different transport layers.</p>
+				<p>Developers that plan to develop complex smart contract interactions can use <a href="https://github.com/ecadlabs/taquito">Taquito</a> with the <code>BeaconWallet</code>, which uses this SDK under the hood, but provides helpful methods to interact with contracts.</p>
+				<p>Besides this Typescript SDK, we also provide SDKs for native iOS and Android Wallets:</p>
+				<ul>
+					<li><a href="https://github.com/airgap-it/beacon-android-sdk">Beacon Android SDK (Kotlin)</a></li>
+					<li><a href="https://github.com/airgap-it/beacon-ios-sdk">Beacon iOS SDK (Swift)</a></li>
+				</ul>
+				<a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
+					<h2>Documentation</h2>
+				</a>
+				<p>The documentation can be found <a href="https://docs.walletbeacon.io/">here</a>, technical documentation can be found <a href="https://typedocs.walletbeacon.io/">here</a>.</p>
+				<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+					<h2>Installation</h2>
+				</a>
+				<pre><code><span style="color: #001080">npm</span><span style="color: #000000"> </span><span style="color: #001080">i</span><span style="color: #000000"> --</span><span style="color: #001080">save</span><span style="color: #000000"> @</span><span style="color: #001080">airgap</span><span style="color: #000000">/</span><span style="color: #001080">beacon</span><span style="color: #000000">-</span><span style="color: #001080">sdk</span>
+</code></pre>
+				<a href="#example-dapp-integration" id="example-dapp-integration" style="color: inherit; text-decoration: none;">
+					<h2>Example DApp integration</h2>
+				</a>
+				<pre><code class="language-ts"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">DAppClient</span><span style="color: #000000">({ </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;My Sample DApp&#039;</span><span style="color: #000000"> })</span>
+
+<span style="color: #001080">client</span>
+<span style="color: #000000">  .</span><span style="color: #795E26">requestPermissions</span><span style="color: #000000">() </span><span style="color: #008000">// Send a permission request and automatically show UI to the user to select his favorite wallet</span>
+<span style="color: #000000">  .</span><span style="color: #795E26">then</span><span style="color: #000000">((</span><span style="color: #001080">permissions</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #008000">// Account that has been shared by the wallet</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;got permissions&#039;</span><span style="color: #000000">, </span><span style="color: #001080">permissions</span><span style="color: #000000">)</span>
+<span style="color: #000000">  })</span>
+<span style="color: #000000">  .</span><span style="color: #795E26">catch</span><span style="color: #000000">((</span><span style="color: #001080">error</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">error</span><span style="color: #000000">))</span>
+</code></pre>
+				<p>For a more complete example, take a look at the <code>example-dapp.html</code> file.</p>
+				<a href="#example-wallet-integration" id="example-wallet-integration" style="color: inherit; text-decoration: none;">
+					<h2>Example Wallet integration</h2>
+				</a>
+				<pre><code class="language-ts"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">WalletClient</span><span style="color: #000000">({ </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;My Wallet&#039;</span><span style="color: #000000"> })</span>
+<span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">init</span><span style="color: #000000">() </span><span style="color: #008000">// Establish P2P connection</span>
+
+<span style="color: #001080">client</span>
+<span style="color: #000000">  .</span><span style="color: #795E26">connect</span><span style="color: #000000">(</span><span style="color: #0000FF">async</span><span style="color: #000000"> (</span><span style="color: #001080">message</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #008000">// Example: Handle PermissionRequest. A wallet should handle all request types</span>
+<span style="color: #000000">    </span><span style="color: #AF00DB">if</span><span style="color: #000000"> (</span><span style="color: #001080">message</span><span style="color: #000000">.</span><span style="color: #001080">type</span><span style="color: #000000"> === </span><span style="color: #001080">BeaconMessageType</span><span style="color: #000000">.</span><span style="color: #001080">PermissionRequest</span><span style="color: #000000">) {</span>
+<span style="color: #000000">      </span><span style="color: #008000">// Show a UI to the user where he can confirm sharing an account with the DApp</span>
+
+<span style="color: #000000">      </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">response</span><span style="color: #000000">: </span><span style="color: #267F99">PermissionResponseInput</span><span style="color: #000000"> = {</span>
+<span style="color: #000000">        </span><span style="color: #001080">type:</span><span style="color: #000000"> </span><span style="color: #001080">BeaconMessageType</span><span style="color: #000000">.</span><span style="color: #001080">PermissionResponse</span><span style="color: #000000">,</span>
+<span style="color: #000000">        </span><span style="color: #001080">network:</span><span style="color: #000000"> </span><span style="color: #001080">message</span><span style="color: #000000">.</span><span style="color: #001080">network</span><span style="color: #000000">, </span><span style="color: #008000">// Use the same network that the user requested</span>
+<span style="color: #000000">        </span><span style="color: #001080">scopes:</span><span style="color: #000000"> [</span><span style="color: #001080">PermissionScope</span><span style="color: #000000">.</span><span style="color: #0070C1">OPERATION_REQUEST</span><span style="color: #000000">], </span><span style="color: #008000">// Ignore the scopes that have been requested and instead give only operation permissions</span>
+<span style="color: #000000">        </span><span style="color: #001080">id:</span><span style="color: #000000"> </span><span style="color: #001080">message</span><span style="color: #000000">.</span><span style="color: #001080">id</span><span style="color: #000000">,</span>
+<span style="color: #000000">        </span><span style="color: #001080">publicKey:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;tezos public key&#039;</span>
+<span style="color: #000000">      }</span>
+
+<span style="color: #000000">      </span><span style="color: #008000">// Send response back to DApp</span>
+<span style="color: #000000">      </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">respond</span><span style="color: #000000">(</span><span style="color: #001080">response</span><span style="color: #000000">)</span>
+<span style="color: #000000">    }</span>
+<span style="color: #000000">  })</span>
+<span style="color: #000000">  .</span><span style="color: #795E26">catch</span><span style="color: #000000">((</span><span style="color: #001080">error</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">error</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;connect error&#039;</span><span style="color: #000000">, </span><span style="color: #001080">error</span><span style="color: #000000">))</span>
+</code></pre>
+				<p>For a more complete example, take a look at the <code>example-wallet.html</code> file.</p>
+				<a href="#development" id="development" style="color: inherit; text-decoration: none;">
+					<h2>Development</h2>
+				</a>
+				<pre><code><span style="color: #001080">$</span><span style="color: #000000"> </span><span style="color: #001080">npm</span><span style="color: #000000"> </span><span style="color: #001080">i</span>
+<span style="color: #001080">$</span><span style="color: #000000"> </span><span style="color: #001080">npm</span><span style="color: #000000"> </span><span style="color: #001080">run</span><span style="color: #000000"> </span><span style="color: #001080">build</span>
+<span style="color: #001080">$</span><span style="color: #000000"> </span><span style="color: #001080">npm</span><span style="color: #000000"> </span><span style="color: #001080">run</span><span style="color: #000000"> </span><span style="color: #001080">test</span>
+</code></pre>
+				<p>Once the SDK is built, you can open the <code>example-dapp.html</code> file in your browser and try out the basic functionality. To support browser extensions as well, the file should be viewed over a webserver. You can easily start one with <code>python -m SimpleHTTPServer 8000</code> and then open the file with <code>http://localhost:8000/example-dapp.html</code>.</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-enum">
+						<a href="enums/beaconerrortype.html" class="tsd-kind-icon">Beacon<wbr>Error<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/beaconevent.html" class="tsd-kind-icon">Beacon<wbr>Event</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/beaconmessagetype.html" class="tsd-kind-icon">Beacon<wbr>Message<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/colormode.html" class="tsd-kind-icon">Color<wbr>Mode</a>
+					</li>
+					<li class=" tsd-kind-enum tsd-is-external">
+						<a href="enums/extensionmessagetarget.html" class="tsd-kind-icon">Extension<wbr>Message<wbr>Target</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/networktype.html" class="tsd-kind-icon">Network<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-enum tsd-is-external">
+						<a href="enums/origin.html" class="tsd-kind-icon">Origin</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/permissionscope.html" class="tsd-kind-icon">Permission<wbr>Scope</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/signingtype.html" class="tsd-kind-icon">Signing<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-enum tsd-is-external">
+						<a href="enums/storagekey.html" class="tsd-kind-icon">Storage<wbr>Key</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/tezosoperationtype.html" class="tsd-kind-icon">Tezos<wbr>Operation<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/transportstatus.html" class="tsd-kind-icon">Transport<wbr>Status</a>
+					</li>
+					<li class=" tsd-kind-enum tsd-is-external">
+						<a href="enums/transporttype.html" class="tsd-kind-icon">Transport<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/abortedbeaconerror.html" class="tsd-kind-icon">Aborted<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/accountmanager.html" class="tsd-kind-icon">Account<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/appmetadatamanager.html" class="tsd-kind-icon">App<wbr>Metadata<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/beaconclient.html" class="tsd-kind-icon">Beacon<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/beaconerror.html" class="tsd-kind-icon">Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/beaconeventhandler.html" class="tsd-kind-icon">Beacon<wbr>Event<wbr>Handler</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/blockexplorer.html" class="tsd-kind-icon">Block<wbr>Explorer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/broadcastbeaconerror.html" class="tsd-kind-icon">Broadcast<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/chromestorage.html" class="tsd-kind-icon">Chrome<wbr>Storage</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/client.html" class="tsd-kind-icon">Client</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/dappclient.html" class="tsd-kind-icon">DApp<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/dappp2ptransport.html" class="tsd-kind-icon">Dapp<wbr>P2PTransport</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/dapppostmessagetransport.html" class="tsd-kind-icon">Dapp<wbr>Post<wbr>Message<wbr>Transport</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/localstorage.html" class="tsd-kind-icon">Local<wbr>Storage</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/messagebasedclient.html" class="tsd-kind-icon">Message<wbr>Based<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/networknotsupportedbeaconerror.html" class="tsd-kind-icon">Network<wbr>Not<wbr>Supported<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/noaddressbeaconerror.html" class="tsd-kind-icon">No<wbr>Address<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/noprivatekeybeaconerror.html" class="tsd-kind-icon">No<wbr>Private<wbr>Key<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/notgrantedbeaconerror.html" class="tsd-kind-icon">Not<wbr>Granted<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/p2pcommunicationclient.html" class="tsd-kind-icon">P2PCommunication<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter tsd-is-external">
+						<a href="classes/p2ptransport.html" class="tsd-kind-icon">P2PTransport</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/pairing.html" class="tsd-kind-icon">Pairing</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/parametersinvalidbeaconerror.html" class="tsd-kind-icon">Parameters<wbr>Invalid<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter tsd-is-external">
+						<a href="classes/peermanager.html" class="tsd-kind-icon">Peer<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/permissionmanager.html" class="tsd-kind-icon">Permission<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter tsd-is-external">
+						<a href="classes/postmessagetransport.html" class="tsd-kind-icon">Post<wbr>Message<wbr>Transport</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/serializer.html" class="tsd-kind-icon">Serializer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/signaturetypenotsupportedbeaconerror.html" class="tsd-kind-icon">Signature<wbr>Type<wbr>Not<wbr>Supported<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/storage.html" class="tsd-kind-icon">Storage</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/tezblockblockexplorer.html" class="tsd-kind-icon">Tezblock<wbr>Block<wbr>Explorer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/toomanyoperationsbeaconerror.html" class="tsd-kind-icon">Too<wbr>Many<wbr>Operations<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/transactioninvalidbeaconerror.html" class="tsd-kind-icon">Transaction<wbr>Invalid<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter tsd-is-external">
+						<a href="classes/transport.html" class="tsd-kind-icon">Transport</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/unknownbeaconerror.html" class="tsd-kind-icon">Unknown<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/walletclient.html" class="tsd-kind-icon">Wallet<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/walletp2ptransport.html" class="tsd-kind-icon">Wallet<wbr>P2PTransport</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/walletpostmessagetransport.html" class="tsd-kind-icon">Wallet<wbr>Post<wbr>Message<wbr>Transport</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/accountinfo.html" class="tsd-kind-icon">Account<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/acknowledgeresponse.html" class="tsd-kind-icon">Acknowledge<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/appmetadata.html" class="tsd-kind-icon">App<wbr>Metadata</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/beaconbasemessage.html" class="tsd-kind-icon">Beacon<wbr>Base<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/beaconclientoptions.html" class="tsd-kind-icon">Beacon<wbr>Client<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/broadcastrequest.html" class="tsd-kind-icon">Broadcast<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/broadcastresponse.html" class="tsd-kind-icon">Broadcast<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/clientoptions.html" class="tsd-kind-icon">Client<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/connectioncontext.html" class="tsd-kind-icon">Connection<wbr>Context</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/dappclientoptions.html" class="tsd-kind-icon">DApp<wbr>Client<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/disconnectmessage.html" class="tsd-kind-icon">Disconnect<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter tsd-is-external">
+						<a href="interfaces/encryptedextensionmessage.html" class="tsd-kind-icon">Encrypted<wbr>Extension<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/errorresponse.html" class="tsd-kind-icon">Error<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter tsd-is-external">
+						<a href="interfaces/extensionmessage.html" class="tsd-kind-icon">Extension<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/network.html" class="tsd-kind-icon">Network</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/operationrequest.html" class="tsd-kind-icon">Operation<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/operationresponse.html" class="tsd-kind-icon">Operation<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/p2ppairingrequest.html" class="tsd-kind-icon">P2PPairing<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/peerinfo.html" class="tsd-kind-icon">Peer<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/permissioninfo.html" class="tsd-kind-icon">Permission<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/permissionrequest.html" class="tsd-kind-icon">Permission<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/permissionresponse.html" class="tsd-kind-icon">Permission<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/postmessagepairingrequest.html" class="tsd-kind-icon">Post<wbr>Message<wbr>Pairing<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/requestbroadcastinput.html" class="tsd-kind-icon">Request<wbr>Broadcast<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/requestoperationinput.html" class="tsd-kind-icon">Request<wbr>Operation<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/requestpermissioninput.html" class="tsd-kind-icon">Request<wbr>Permission<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/requestsignpayloadinput.html" class="tsd-kind-icon">Request<wbr>Sign<wbr>Payload<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/signpayloadrequest.html" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/signpayloadresponse.html" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/storagekeyreturntype.html" class="tsd-kind-icon">Storage<wbr>Key<wbr>Return<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosactivateaccountoperation.html" class="tsd-kind-icon">Tezos<wbr>Activate<wbr>Account<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosballotoperation.html" class="tsd-kind-icon">Tezos<wbr>Ballot<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosbaseoperation.html" class="tsd-kind-icon">Tezos<wbr>Base<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosblockheader.html" class="tsd-kind-icon">Tezos<wbr>Block<wbr>Header</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosdelegationoperation.html" class="tsd-kind-icon">Tezos<wbr>Delegation<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosdoublebakingevidenceoperation.html" class="tsd-kind-icon">Tezos<wbr>Double<wbr>Baking<wbr>Evidence<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosdoubleendorsementevidenceoperation.html" class="tsd-kind-icon">Tezos<wbr>Double<wbr>Endorsement<wbr>Evidence<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosendorsementoperation.html" class="tsd-kind-icon">Tezos<wbr>Endorsement<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosoriginationoperation.html" class="tsd-kind-icon">Tezos<wbr>Origination<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosproposaloperation.html" class="tsd-kind-icon">Tezos<wbr>Proposal<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosrevealoperation.html" class="tsd-kind-icon">Tezos<wbr>Reveal<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosseednoncerevelationoperation.html" class="tsd-kind-icon">Tezos<wbr>Seed<wbr>Nonce<wbr>Revelation<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezostransactionoperation.html" class="tsd-kind-icon">Tezos<wbr>Transaction<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezostransactionparameters.html" class="tsd-kind-icon">Tezos<wbr>Transaction<wbr>Parameters</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/threshold.html" class="tsd-kind-icon">Threshold</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/walletclientoptions.html" class="tsd-kind-icon">Wallet<wbr>Client<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#accountidentifier" class="tsd-kind-icon">Account<wbr>Identifier</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#acknowledgeresponseinput" class="tsd-kind-icon">Acknowledge<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconmessage" class="tsd-kind-icon">Beacon<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconrequestinputmessage" class="tsd-kind-icon">Beacon<wbr>Request<wbr>Input<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconrequestmessage" class="tsd-kind-icon">Beacon<wbr>Request<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconrequestoutputmessage" class="tsd-kind-icon">Beacon<wbr>Request<wbr>Output<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconresponseinputmessage" class="tsd-kind-icon">Beacon<wbr>Response<wbr>Input<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconresponsemessage" class="tsd-kind-icon">Beacon<wbr>Response<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconresponseoutputmessage" class="tsd-kind-icon">Beacon<wbr>Response<wbr>Output<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#broadcastrequestinput" class="tsd-kind-icon">Broadcast<wbr>Request<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#broadcastrequestoutput" class="tsd-kind-icon">Broadcast<wbr>Request<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#broadcastresponseinput" class="tsd-kind-icon">Broadcast<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#broadcastresponseoutput" class="tsd-kind-icon">Broadcast<wbr>Response<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#errorresponseinput" class="tsd-kind-icon">Error<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#extendedp2ppairingrequest" class="tsd-kind-icon">Extended<wbr>P2PPairing<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#extendedp2ppairingresponse" class="tsd-kind-icon">Extended<wbr>P2PPairing<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#extendedpeerinfo" class="tsd-kind-icon">Extended<wbr>Peer<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#extendedpostmessagepairingrequest" class="tsd-kind-icon">Extended<wbr>Post<wbr>Message<wbr>Pairing<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#extendedpostmessagepairingresponse" class="tsd-kind-icon">Extended<wbr>Post<wbr>Message<wbr>Pairing<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#michelsonprimitives" class="tsd-kind-icon">Michelson<wbr>Primitives</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#operationrequestinput" class="tsd-kind-icon">Operation<wbr>Request<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#operationrequestoutput" class="tsd-kind-icon">Operation<wbr>Request<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#operationresponseinput" class="tsd-kind-icon">Operation<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#operationresponseoutput" class="tsd-kind-icon">Operation<wbr>Response<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#partialtezosdelegationoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Delegation<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#partialtezosoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#partialtezosoriginationoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Origination<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#partialtezosrevealoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Reveal<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#partialtezostransactionoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Transaction<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#permissionrequestinput" class="tsd-kind-icon">Permission<wbr>Request<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#permissionrequestoutput" class="tsd-kind-icon">Permission<wbr>Request<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#permissionresponseinput" class="tsd-kind-icon">Permission<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#permissionresponseoutput" class="tsd-kind-icon">Permission<wbr>Response<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#signpayloadrequestinput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Request<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#signpayloadrequestoutput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Request<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#signpayloadresponseinput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#signpayloadresponseoutput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Response<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#storagekeyreturndefaults" class="tsd-kind-icon">Storage<wbr>Key<wbr>Return<wbr>Defaults</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#tezosoperation" class="tsd-kind-icon">Tezos<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#beacon_version" class="tsd-kind-icon">BEACON_<wbr>VERSION</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#sdk_version" class="tsd-kind-icon">SDK_<wbr>VERSION</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#availabletransports" class="tsd-kind-icon">available<wbr>Transports</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#defaulteventcallbacks" class="tsd-kind-icon">default<wbr>Event<wbr>Callbacks</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-external">
+						<a href="modules.html#getaccountidentifier" class="tsd-kind-icon">get<wbr>Account<wbr>Identifier</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#getaddressfrompublickey" class="tsd-kind-icon">get<wbr>Address<wbr>From<wbr>Public<wbr>Key</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#getdebugenabled" class="tsd-kind-icon">get<wbr>Debug<wbr>Enabled</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-external">
+						<a href="modules.html#getsenderid" class="tsd-kind-icon">get<wbr>Sender<wbr>Id</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#getstorage" class="tsd-kind-icon">get<wbr>Storage</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#setdebugenabled" class="tsd-kind-icon">set<wbr>Debug<wbr>Enabled</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

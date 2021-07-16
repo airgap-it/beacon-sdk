@@ -1,0 +1,1395 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>@airgap/beacon-sdk - v2.3.0</title>
+	<meta name="description" content="Documentation for @airgap/beacon-sdk - v2.3.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script>
+    let externals = localStorage.getItem('externals')
+    if (externals === null) {
+        localStorage.setItem('externals', false)
+    }
+    let visibility = localStorage.getItem('visibility')
+    if (visibility === null) {
+        localStorage.setItem('visibility', 'public')
+    }
+</script>
+
+	<script async src="assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">@airgap/beacon-sdk - v2.3.0</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Internal Definitions</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>@airgap/beacon-sdk - v2.3.0</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>General docs</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Other Enumerations</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-enum"><a href="enums/beaconerrortype.html" class="tsd-kind-icon">Beacon<wbr>Error<wbr>Type</a></li>
+								<li class="tsd-kind-enum"><a href="enums/beaconevent.html" class="tsd-kind-icon">Beacon<wbr>Event</a></li>
+								<li class="tsd-kind-enum"><a href="enums/beaconmessagetype.html" class="tsd-kind-icon">Beacon<wbr>Message<wbr>Type</a></li>
+								<li class="tsd-kind-enum"><a href="enums/colormode.html" class="tsd-kind-icon">Color<wbr>Mode</a></li>
+								<li class="tsd-kind-enum tsd-is-external"><a href="enums/extensionmessagetarget.html" class="tsd-kind-icon">Extension<wbr>Message<wbr>Target</a></li>
+								<li class="tsd-kind-enum"><a href="enums/networktype.html" class="tsd-kind-icon">Network<wbr>Type</a></li>
+								<li class="tsd-kind-enum tsd-is-external"><a href="enums/origin.html" class="tsd-kind-icon">Origin</a></li>
+								<li class="tsd-kind-enum"><a href="enums/permissionscope.html" class="tsd-kind-icon">Permission<wbr>Scope</a></li>
+								<li class="tsd-kind-enum"><a href="enums/signingtype.html" class="tsd-kind-icon">Signing<wbr>Type</a></li>
+								<li class="tsd-kind-enum tsd-is-external"><a href="enums/storagekey.html" class="tsd-kind-icon">Storage<wbr>Key</a></li>
+								<li class="tsd-kind-enum"><a href="enums/transportstatus.html" class="tsd-kind-icon">Transport<wbr>Status</a></li>
+								<li class="tsd-kind-enum tsd-is-external"><a href="enums/transporttype.html" class="tsd-kind-icon">Transport<wbr>Type</a></li>
+							</ul>
+							<h3>Tezos Enumerations</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-enum"><a href="enums/tezosoperationtype.html" class="tsd-kind-icon">Tezos<wbr>Operation<wbr>Type</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>DApp Classes</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-class"><a href="classes/dappclient.html" class="tsd-kind-icon">DApp<wbr>Client</a></li>
+							</ul>
+							<h3>Wallet Classes</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-class"><a href="classes/walletclient.html" class="tsd-kind-icon">Wallet<wbr>Client</a></li>
+							</ul>
+							<h3>Error Classes</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-class"><a href="classes/abortedbeaconerror.html" class="tsd-kind-icon">Aborted<wbr>Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/beaconerror.html" class="tsd-kind-icon">Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/broadcastbeaconerror.html" class="tsd-kind-icon">Broadcast<wbr>Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/networknotsupportedbeaconerror.html" class="tsd-kind-icon">Network<wbr>Not<wbr>Supported<wbr>Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/noaddressbeaconerror.html" class="tsd-kind-icon">No<wbr>Address<wbr>Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/noprivatekeybeaconerror.html" class="tsd-kind-icon">No<wbr>Private<wbr>Key<wbr>Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/notgrantedbeaconerror.html" class="tsd-kind-icon">Not<wbr>Granted<wbr>Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/parametersinvalidbeaconerror.html" class="tsd-kind-icon">Parameters<wbr>Invalid<wbr>Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/signaturetypenotsupportedbeaconerror.html" class="tsd-kind-icon">Signature<wbr>Type<wbr>Not<wbr>Supported<wbr>Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/toomanyoperationsbeaconerror.html" class="tsd-kind-icon">Too<wbr>Many<wbr>Operations<wbr>Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/transactioninvalidbeaconerror.html" class="tsd-kind-icon">Transaction<wbr>Invalid<wbr>Beacon<wbr>Error</a></li>
+								<li class="tsd-kind-class"><a href="classes/unknownbeaconerror.html" class="tsd-kind-icon">Unknown<wbr>Beacon<wbr>Error</a></li>
+							</ul>
+							<h3>Other Classes</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/accountmanager.html" class="tsd-kind-icon">Account<wbr>Manager</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/appmetadatamanager.html" class="tsd-kind-icon">App<wbr>Metadata<wbr>Manager</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/beaconclient.html" class="tsd-kind-icon">Beacon<wbr>Client</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/beaconeventhandler.html" class="tsd-kind-icon">Beacon<wbr>Event<wbr>Handler</a></li>
+								<li class="tsd-kind-class"><a href="classes/blockexplorer.html" class="tsd-kind-icon">Block<wbr>Explorer</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/chromestorage.html" class="tsd-kind-icon">Chrome<wbr>Storage</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/client.html" class="tsd-kind-icon">Client</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/dappp2ptransport.html" class="tsd-kind-icon">Dapp<wbr>P2PTransport</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/dapppostmessagetransport.html" class="tsd-kind-icon">Dapp<wbr>Post<wbr>Message<wbr>Transport</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/localstorage.html" class="tsd-kind-icon">Local<wbr>Storage</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/messagebasedclient.html" class="tsd-kind-icon">Message<wbr>Based<wbr>Client</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/p2pcommunicationclient.html" class="tsd-kind-icon">P2PCommunication<wbr>Client</a></li>
+								<li class="tsd-kind-class tsd-has-type-parameter tsd-is-external"><a href="classes/p2ptransport.html" class="tsd-kind-icon">P2PTransport</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/pairing.html" class="tsd-kind-icon">Pairing</a></li>
+								<li class="tsd-kind-class tsd-has-type-parameter tsd-is-external"><a href="classes/peermanager.html" class="tsd-kind-icon">Peer<wbr>Manager</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/permissionmanager.html" class="tsd-kind-icon">Permission<wbr>Manager</a></li>
+								<li class="tsd-kind-class tsd-has-type-parameter tsd-is-external"><a href="classes/postmessagetransport.html" class="tsd-kind-icon">Post<wbr>Message<wbr>Transport</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/serializer.html" class="tsd-kind-icon">Serializer</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/storage.html" class="tsd-kind-icon">Storage</a></li>
+								<li class="tsd-kind-class"><a href="classes/tezblockblockexplorer.html" class="tsd-kind-icon">Tezblock<wbr>Block<wbr>Explorer</a></li>
+								<li class="tsd-kind-class tsd-has-type-parameter tsd-is-external"><a href="classes/transport.html" class="tsd-kind-icon">Transport</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/walletp2ptransport.html" class="tsd-kind-icon">Wallet<wbr>P2PTransport</a></li>
+								<li class="tsd-kind-class tsd-is-external"><a href="classes/walletpostmessagetransport.html" class="tsd-kind-icon">Wallet<wbr>Post<wbr>Message<wbr>Transport</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>DApp Interfaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-interface"><a href="interfaces/dappclientoptions.html" class="tsd-kind-icon">DApp<wbr>Client<wbr>Options</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/requestbroadcastinput.html" class="tsd-kind-icon">Request<wbr>Broadcast<wbr>Input</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/requestoperationinput.html" class="tsd-kind-icon">Request<wbr>Operation<wbr>Input</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/requestpermissioninput.html" class="tsd-kind-icon">Request<wbr>Permission<wbr>Input</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/requestsignpayloadinput.html" class="tsd-kind-icon">Request<wbr>Sign<wbr>Payload<wbr>Input</a></li>
+							</ul>
+							<h3>Wallet Interfaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-interface"><a href="interfaces/walletclientoptions.html" class="tsd-kind-icon">Wallet<wbr>Client<wbr>Options</a></li>
+							</ul>
+							<h3>Message Interfaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-interface"><a href="interfaces/acknowledgeresponse.html" class="tsd-kind-icon">Acknowledge<wbr>Response</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/beaconbasemessage.html" class="tsd-kind-icon">Beacon<wbr>Base<wbr>Message</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/broadcastrequest.html" class="tsd-kind-icon">Broadcast<wbr>Request</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/broadcastresponse.html" class="tsd-kind-icon">Broadcast<wbr>Response</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/disconnectmessage.html" class="tsd-kind-icon">Disconnect<wbr>Message</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/errorresponse.html" class="tsd-kind-icon">Error<wbr>Response</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/operationrequest.html" class="tsd-kind-icon">Operation<wbr>Request</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/operationresponse.html" class="tsd-kind-icon">Operation<wbr>Response</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/permissionrequest.html" class="tsd-kind-icon">Permission<wbr>Request</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/permissionresponse.html" class="tsd-kind-icon">Permission<wbr>Response</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/signpayloadrequest.html" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Request</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/signpayloadresponse.html" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Response</a></li>
+							</ul>
+							<h3>Other Interfaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-interface"><a href="interfaces/accountinfo.html" class="tsd-kind-icon">Account<wbr>Info</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/appmetadata.html" class="tsd-kind-icon">App<wbr>Metadata</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/beaconclientoptions.html" class="tsd-kind-icon">Beacon<wbr>Client<wbr>Options</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/clientoptions.html" class="tsd-kind-icon">Client<wbr>Options</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/connectioncontext.html" class="tsd-kind-icon">Connection<wbr>Context</a></li>
+								<li class="tsd-kind-interface tsd-has-type-parameter tsd-is-external"><a href="interfaces/encryptedextensionmessage.html" class="tsd-kind-icon">Encrypted<wbr>Extension<wbr>Message</a></li>
+								<li class="tsd-kind-interface tsd-has-type-parameter tsd-is-external"><a href="interfaces/extensionmessage.html" class="tsd-kind-icon">Extension<wbr>Message</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/network.html" class="tsd-kind-icon">Network</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/p2ppairingrequest.html" class="tsd-kind-icon">P2PPairing<wbr>Request</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/peerinfo.html" class="tsd-kind-icon">Peer<wbr>Info</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/permissioninfo.html" class="tsd-kind-icon">Permission<wbr>Info</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/postmessagepairingrequest.html" class="tsd-kind-icon">Post<wbr>Message<wbr>Pairing<wbr>Request</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/storagekeyreturntype.html" class="tsd-kind-icon">Storage<wbr>Key<wbr>Return<wbr>Type</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/threshold.html" class="tsd-kind-icon">Threshold</a></li>
+							</ul>
+							<h3>Tezos Interfaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosactivateaccountoperation.html" class="tsd-kind-icon">Tezos<wbr>Activate<wbr>Account<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosballotoperation.html" class="tsd-kind-icon">Tezos<wbr>Ballot<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosbaseoperation.html" class="tsd-kind-icon">Tezos<wbr>Base<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosblockheader.html" class="tsd-kind-icon">Tezos<wbr>Block<wbr>Header</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosdelegationoperation.html" class="tsd-kind-icon">Tezos<wbr>Delegation<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosdoublebakingevidenceoperation.html" class="tsd-kind-icon">Tezos<wbr>Double<wbr>Baking<wbr>Evidence<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosdoubleendorsementevidenceoperation.html" class="tsd-kind-icon">Tezos<wbr>Double<wbr>Endorsement<wbr>Evidence<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosendorsementoperation.html" class="tsd-kind-icon">Tezos<wbr>Endorsement<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosoriginationoperation.html" class="tsd-kind-icon">Tezos<wbr>Origination<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosproposaloperation.html" class="tsd-kind-icon">Tezos<wbr>Proposal<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosrevealoperation.html" class="tsd-kind-icon">Tezos<wbr>Reveal<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezosseednoncerevelationoperation.html" class="tsd-kind-icon">Tezos<wbr>Seed<wbr>Nonce<wbr>Revelation<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezostransactionoperation.html" class="tsd-kind-icon">Tezos<wbr>Transaction<wbr>Operation</a></li>
+								<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/tezostransactionparameters.html" class="tsd-kind-icon">Tezos<wbr>Transaction<wbr>Parameters</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>DApp Type aliases</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#beaconrequestinputmessage" class="tsd-kind-icon">Beacon<wbr>Request<wbr>Input<wbr>Message</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#beaconresponseoutputmessage" class="tsd-kind-icon">Beacon<wbr>Response<wbr>Output<wbr>Message</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#broadcastrequestinput" class="tsd-kind-icon">Broadcast<wbr>Request<wbr>Input</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#broadcastresponseoutput" class="tsd-kind-icon">Broadcast<wbr>Response<wbr>Output</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#operationrequestinput" class="tsd-kind-icon">Operation<wbr>Request<wbr>Input</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#operationresponseoutput" class="tsd-kind-icon">Operation<wbr>Response<wbr>Output</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#permissionrequestinput" class="tsd-kind-icon">Permission<wbr>Request<wbr>Input</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#permissionresponseoutput" class="tsd-kind-icon">Permission<wbr>Response<wbr>Output</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#signpayloadrequestinput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Request<wbr>Input</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#signpayloadresponseoutput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Response<wbr>Output</a></li>
+							</ul>
+							<h3>Wallet Type aliases</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-type-alias"><a href="modules.html#acknowledgeresponseinput" class="tsd-kind-icon">Acknowledge<wbr>Response<wbr>Input</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#beaconrequestoutputmessage" class="tsd-kind-icon">Beacon<wbr>Request<wbr>Output<wbr>Message</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#beaconresponseinputmessage" class="tsd-kind-icon">Beacon<wbr>Response<wbr>Input<wbr>Message</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#broadcastrequestoutput" class="tsd-kind-icon">Broadcast<wbr>Request<wbr>Output</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#broadcastresponseinput" class="tsd-kind-icon">Broadcast<wbr>Response<wbr>Input</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#errorresponseinput" class="tsd-kind-icon">Error<wbr>Response<wbr>Input</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#operationrequestoutput" class="tsd-kind-icon">Operation<wbr>Request<wbr>Output</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#operationresponseinput" class="tsd-kind-icon">Operation<wbr>Response<wbr>Input</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#permissionrequestoutput" class="tsd-kind-icon">Permission<wbr>Request<wbr>Output</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#permissionresponseinput" class="tsd-kind-icon">Permission<wbr>Response<wbr>Input</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#signpayloadrequestoutput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Request<wbr>Output</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#signpayloadresponseinput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Response<wbr>Input</a></li>
+							</ul>
+							<h3>Other Type aliases</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-type-alias"><a href="modules.html#accountidentifier" class="tsd-kind-icon">Account<wbr>Identifier</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#beaconmessage" class="tsd-kind-icon">Beacon<wbr>Message</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#beaconrequestmessage" class="tsd-kind-icon">Beacon<wbr>Request<wbr>Message</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#beaconresponsemessage" class="tsd-kind-icon">Beacon<wbr>Response<wbr>Message</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#extendedp2ppairingrequest" class="tsd-kind-icon">Extended<wbr>P2PPairing<wbr>Request</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#extendedp2ppairingresponse" class="tsd-kind-icon">Extended<wbr>P2PPairing<wbr>Response</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#extendedpeerinfo" class="tsd-kind-icon">Extended<wbr>Peer<wbr>Info</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#extendedpostmessagepairingrequest" class="tsd-kind-icon">Extended<wbr>Post<wbr>Message<wbr>Pairing<wbr>Request</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#extendedpostmessagepairingresponse" class="tsd-kind-icon">Extended<wbr>Post<wbr>Message<wbr>Pairing<wbr>Response</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#storagekeyreturndefaults" class="tsd-kind-icon">Storage<wbr>Key<wbr>Return<wbr>Defaults</a></li>
+							</ul>
+							<h3>Tezos Type aliases</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#michelsonprimitives" class="tsd-kind-icon">Michelson<wbr>Primitives</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#partialtezosdelegationoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Delegation<wbr>Operation</a></li>
+								<li class="tsd-kind-type-alias"><a href="modules.html#partialtezosoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Operation</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#partialtezosoriginationoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Origination<wbr>Operation</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#partialtezosrevealoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Reveal<wbr>Operation</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#partialtezostransactionoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Transaction<wbr>Operation</a></li>
+								<li class="tsd-kind-type-alias tsd-is-external"><a href="modules.html#tezosoperation" class="tsd-kind-icon">Tezos<wbr>Operation</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Variables</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-variable"><a href="modules.html#beacon_version" class="tsd-kind-icon">BEACON_<wbr>VERSION</a></li>
+								<li class="tsd-kind-variable"><a href="modules.html#sdk_version" class="tsd-kind-icon">SDK_<wbr>VERSION</a></li>
+								<li class="tsd-kind-variable"><a href="modules.html#availabletransports" class="tsd-kind-icon">available<wbr>Transports</a></li>
+								<li class="tsd-kind-variable"><a href="modules.html#defaulteventcallbacks" class="tsd-kind-icon">default<wbr>Event<wbr>Callbacks</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Functions</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-function tsd-is-external"><a href="modules.html#getaccountidentifier" class="tsd-kind-icon">get<wbr>Account<wbr>Identifier</a></li>
+								<li class="tsd-kind-function"><a href="modules.html#getaddressfrompublickey" class="tsd-kind-icon">get<wbr>Address<wbr>From<wbr>Public<wbr>Key</a></li>
+								<li class="tsd-kind-function"><a href="modules.html#getdebugenabled" class="tsd-kind-icon">get<wbr>Debug<wbr>Enabled</a></li>
+								<li class="tsd-kind-function tsd-is-external"><a href="modules.html#getsenderid" class="tsd-kind-icon">get<wbr>Sender<wbr>Id</a></li>
+								<li class="tsd-kind-function"><a href="modules.html#getstorage" class="tsd-kind-icon">get<wbr>Storage</a></li>
+								<li class="tsd-kind-function"><a href="modules.html#setdebugenabled" class="tsd-kind-icon">set<wbr>Debug<wbr>Enabled</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>DApp Type aliases</h2>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="beaconrequestinputmessage" class="tsd-anchor"></a>
+					<h3>Beacon<wbr>Request<wbr>Input<wbr>Message</h3>
+					<div class="tsd-signature tsd-kind-icon">Beacon<wbr>Request<wbr>Input<wbr>Message<span class="tsd-signature-symbol">:</span> <a href="modules.html#permissionrequestinput" class="tsd-signature-type" data-tsd-kind="Type alias">PermissionRequestInput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#operationrequestinput" class="tsd-signature-type" data-tsd-kind="Type alias">OperationRequestInput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#signpayloadrequestinput" class="tsd-signature-type" data-tsd-kind="Type alias">SignPayloadRequestInput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#broadcastrequestinput" class="tsd-signature-type" data-tsd-kind="Type alias">BroadcastRequestInput</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconRequestInputMessage.ts#L49">types/beacon/messages/BeaconRequestInputMessage.ts:49</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="beaconresponseoutputmessage" class="tsd-anchor"></a>
+					<h3>Beacon<wbr>Response<wbr>Output<wbr>Message</h3>
+					<div class="tsd-signature tsd-kind-icon">Beacon<wbr>Response<wbr>Output<wbr>Message<span class="tsd-signature-symbol">:</span> <a href="modules.html#permissionresponseoutput" class="tsd-signature-type" data-tsd-kind="Type alias">PermissionResponseOutput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#operationresponseoutput" class="tsd-signature-type" data-tsd-kind="Type alias">OperationResponseOutput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#signpayloadresponseoutput" class="tsd-signature-type" data-tsd-kind="Type alias">SignPayloadResponseOutput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#broadcastresponseoutput" class="tsd-signature-type" data-tsd-kind="Type alias">BroadcastResponseOutput</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseOutputMessage.ts#L43">types/beacon/messages/BeaconResponseOutputMessage.ts:43</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="broadcastrequestinput" class="tsd-anchor"></a>
+					<h3>Broadcast<wbr>Request<wbr>Input</h3>
+					<div class="tsd-signature tsd-kind-icon">Broadcast<wbr>Request<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/broadcastrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastRequest</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredRequestInputProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconRequestInputMessage.ts#L43">types/beacon/messages/BeaconRequestInputMessage.ts:43</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="broadcastresponseoutput" class="tsd-anchor"></a>
+					<h3>Broadcast<wbr>Response<wbr>Output</h3>
+					<div class="tsd-signature tsd-kind-icon">Broadcast<wbr>Response<wbr>Output<span class="tsd-signature-symbol">:</span> <a href="interfaces/broadcastresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastResponse</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseOutputMessage.ts#L37">types/beacon/messages/BeaconResponseOutputMessage.ts:37</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="operationrequestinput" class="tsd-anchor"></a>
+					<h3>Operation<wbr>Request<wbr>Input</h3>
+					<div class="tsd-signature tsd-kind-icon">Operation<wbr>Request<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/operationrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationRequest</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredRequestInputProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconRequestInputMessage.ts#L25">types/beacon/messages/BeaconRequestInputMessage.ts:25</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="operationresponseoutput" class="tsd-anchor"></a>
+					<h3>Operation<wbr>Response<wbr>Output</h3>
+					<div class="tsd-signature tsd-kind-icon">Operation<wbr>Response<wbr>Output<span class="tsd-signature-symbol">:</span> <a href="interfaces/operationresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationResponse</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseOutputMessage.ts#L25">types/beacon/messages/BeaconResponseOutputMessage.ts:25</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="permissionrequestinput" class="tsd-anchor"></a>
+					<h3>Permission<wbr>Request<wbr>Input</h3>
+					<div class="tsd-signature tsd-kind-icon">Permission<wbr>Request<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/permissionrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">PermissionRequest</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredRequestInputProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconRequestInputMessage.ts#L20">types/beacon/messages/BeaconRequestInputMessage.ts:20</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="permissionresponseoutput" class="tsd-anchor"></a>
+					<h3>Permission<wbr>Response<wbr>Output</h3>
+					<div class="tsd-signature tsd-kind-icon">Permission<wbr>Response<wbr>Output<span class="tsd-signature-symbol">:</span> <a href="interfaces/permissionresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">PermissionResponse</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>accountInfo<span class="tsd-signature-symbol">: </span><a href="interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">; </span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseOutputMessage.ts#L18">types/beacon/messages/BeaconResponseOutputMessage.ts:18</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="signpayloadrequestinput" class="tsd-anchor"></a>
+					<h3>Sign<wbr>Payload<wbr>Request<wbr>Input</h3>
+					<div class="tsd-signature tsd-kind-icon">Sign<wbr>Payload<wbr>Request<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/signpayloadrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadRequest</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredRequestInputProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconRequestInputMessage.ts#L30">types/beacon/messages/BeaconRequestInputMessage.ts:30</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="signpayloadresponseoutput" class="tsd-anchor"></a>
+					<h3>Sign<wbr>Payload<wbr>Response<wbr>Output</h3>
+					<div class="tsd-signature tsd-kind-icon">Sign<wbr>Payload<wbr>Response<wbr>Output<span class="tsd-signature-symbol">:</span> <a href="interfaces/signpayloadresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadResponse</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseOutputMessage.ts#L29">types/beacon/messages/BeaconResponseOutputMessage.ts:29</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Wallet Type aliases</h2>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="acknowledgeresponseinput" class="tsd-anchor"></a>
+					<h3>Acknowledge<wbr>Response<wbr>Input</h3>
+					<div class="tsd-signature tsd-kind-icon">Acknowledge<wbr>Response<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/acknowledgeresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">AcknowledgeResponse</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredResponseInputProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseInputMessage.ts#L46">types/beacon/messages/BeaconResponseInputMessage.ts:46</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="beaconrequestoutputmessage" class="tsd-anchor"></a>
+					<h3>Beacon<wbr>Request<wbr>Output<wbr>Message</h3>
+					<div class="tsd-signature tsd-kind-icon">Beacon<wbr>Request<wbr>Output<wbr>Message<span class="tsd-signature-symbol">:</span> <a href="modules.html#permissionrequestoutput" class="tsd-signature-type" data-tsd-kind="Type alias">PermissionRequestOutput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#operationrequestoutput" class="tsd-signature-type" data-tsd-kind="Type alias">OperationRequestOutput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#signpayloadrequestoutput" class="tsd-signature-type" data-tsd-kind="Type alias">SignPayloadRequestOutput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#broadcastrequestoutput" class="tsd-signature-type" data-tsd-kind="Type alias">BroadcastRequestOutput</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconRequestOutputMessage.ts#L59">types/beacon/messages/BeaconRequestOutputMessage.ts:59</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="beaconresponseinputmessage" class="tsd-anchor"></a>
+					<h3>Beacon<wbr>Response<wbr>Input<wbr>Message</h3>
+					<div class="tsd-signature tsd-kind-icon">Beacon<wbr>Response<wbr>Input<wbr>Message<span class="tsd-signature-symbol">:</span> <a href="modules.html#permissionresponseinput" class="tsd-signature-type" data-tsd-kind="Type alias">PermissionResponseInput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#operationresponseinput" class="tsd-signature-type" data-tsd-kind="Type alias">OperationResponseInput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#signpayloadresponseinput" class="tsd-signature-type" data-tsd-kind="Type alias">SignPayloadResponseInput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#broadcastresponseinput" class="tsd-signature-type" data-tsd-kind="Type alias">BroadcastResponseInput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#acknowledgeresponseinput" class="tsd-signature-type" data-tsd-kind="Type alias">AcknowledgeResponseInput</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#errorresponseinput" class="tsd-signature-type" data-tsd-kind="Type alias">ErrorResponseInput</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseInputMessage.ts#L56">types/beacon/messages/BeaconResponseInputMessage.ts:56</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="broadcastrequestoutput" class="tsd-anchor"></a>
+					<h3>Broadcast<wbr>Request<wbr>Output</h3>
+					<div class="tsd-signature tsd-kind-icon">Broadcast<wbr>Request<wbr>Output<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/broadcastrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastRequest</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredRequestOutputProperties</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">ExtraResponseOutputProperties</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconRequestOutputMessage.ts#L52">types/beacon/messages/BeaconRequestOutputMessage.ts:52</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="broadcastresponseinput" class="tsd-anchor"></a>
+					<h3>Broadcast<wbr>Response<wbr>Input</h3>
+					<div class="tsd-signature tsd-kind-icon">Broadcast<wbr>Response<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/broadcastresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastResponse</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredResponseInputProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseInputMessage.ts#L42">types/beacon/messages/BeaconResponseInputMessage.ts:42</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="errorresponseinput" class="tsd-anchor"></a>
+					<h3>Error<wbr>Response<wbr>Input</h3>
+					<div class="tsd-signature tsd-kind-icon">Error<wbr>Response<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/errorresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">ErrorResponse</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredResponseInputProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseInputMessage.ts#L50">types/beacon/messages/BeaconResponseInputMessage.ts:50</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="operationrequestoutput" class="tsd-anchor"></a>
+					<h3>Operation<wbr>Request<wbr>Output</h3>
+					<div class="tsd-signature tsd-kind-icon">Operation<wbr>Request<wbr>Output<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/operationrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationRequest</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredRequestOutputProperties</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">ExtraResponseOutputProperties</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconRequestOutputMessage.ts#L31">types/beacon/messages/BeaconRequestOutputMessage.ts:31</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="operationresponseinput" class="tsd-anchor"></a>
+					<h3>Operation<wbr>Response<wbr>Input</h3>
+					<div class="tsd-signature tsd-kind-icon">Operation<wbr>Response<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/operationresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationResponse</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredResponseInputProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseInputMessage.ts#L27">types/beacon/messages/BeaconResponseInputMessage.ts:27</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="permissionrequestoutput" class="tsd-anchor"></a>
+					<h3>Permission<wbr>Request<wbr>Output</h3>
+					<div class="tsd-signature tsd-kind-icon">Permission<wbr>Request<wbr>Output<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/permissionrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">PermissionRequest</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredRequestOutputProperties</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">ExtraResponseOutputProperties</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconRequestOutputMessage.ts#L26">types/beacon/messages/BeaconRequestOutputMessage.ts:26</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="permissionresponseinput" class="tsd-anchor"></a>
+					<h3>Permission<wbr>Response<wbr>Input</h3>
+					<div class="tsd-signature tsd-kind-icon">Permission<wbr>Response<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/permissionresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">PermissionResponse</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredResponseInputProperties</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;appMetadata&quot;</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseInputMessage.ts#L20">types/beacon/messages/BeaconResponseInputMessage.ts:20</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="signpayloadrequestoutput" class="tsd-anchor"></a>
+					<h3>Sign<wbr>Payload<wbr>Request<wbr>Output</h3>
+					<div class="tsd-signature tsd-kind-icon">Sign<wbr>Payload<wbr>Request<wbr>Output<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/signpayloadrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadRequest</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredRequestOutputProperties</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">ExtraResponseOutputProperties</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconRequestOutputMessage.ts#L36">types/beacon/messages/BeaconRequestOutputMessage.ts:36</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="signpayloadresponseinput" class="tsd-anchor"></a>
+					<h3>Sign<wbr>Payload<wbr>Response<wbr>Input</h3>
+					<div class="tsd-signature tsd-kind-icon">Sign<wbr>Payload<wbr>Response<wbr>Input<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/signpayloadresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadResponse</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredResponseInputProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/messages/BeaconResponseInputMessage.ts#L31">types/beacon/messages/BeaconResponseInputMessage.ts:31</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Other Type aliases</h2>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="accountidentifier" class="tsd-anchor"></a>
+					<h3>Account<wbr>Identifier</h3>
+					<div class="tsd-signature tsd-kind-icon">Account<wbr>Identifier<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/AccountInfo.ts#L4">types/AccountInfo.ts:4</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="beaconmessage" class="tsd-anchor"></a>
+					<h3>Beacon<wbr>Message</h3>
+					<div class="tsd-signature tsd-kind-icon">Beacon<wbr>Message<span class="tsd-signature-symbol">:</span> <a href="interfaces/permissionrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">PermissionRequest</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/permissionresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">PermissionResponse</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/operationrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationRequest</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/operationresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationResponse</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/signpayloadrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadRequest</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/signpayloadresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadResponse</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/broadcastrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastRequest</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/broadcastresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastResponse</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/acknowledgeresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">AcknowledgeResponse</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/disconnectmessage.html" class="tsd-signature-type" data-tsd-kind="Interface">DisconnectMessage</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/errorresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">ErrorResponse</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/BeaconMessage.ts#L20">types/beacon/BeaconMessage.ts:20</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="beaconrequestmessage" class="tsd-anchor"></a>
+					<h3>Beacon<wbr>Request<wbr>Message</h3>
+					<div class="tsd-signature tsd-kind-icon">Beacon<wbr>Request<wbr>Message<span class="tsd-signature-symbol">:</span> <a href="interfaces/permissionrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">PermissionRequest</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/operationrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationRequest</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/signpayloadrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadRequest</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/broadcastrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastRequest</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/BeaconRequestMessage.ts#L12">types/beacon/BeaconRequestMessage.ts:12</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="beaconresponsemessage" class="tsd-anchor"></a>
+					<h3>Beacon<wbr>Response<wbr>Message</h3>
+					<div class="tsd-signature tsd-kind-icon">Beacon<wbr>Response<wbr>Message<span class="tsd-signature-symbol">:</span> <a href="interfaces/permissionresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">PermissionResponse</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/operationresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationResponse</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/signpayloadresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadResponse</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/broadcastresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastResponse</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/errorresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">ErrorResponse</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/beacon/BeaconResponseMessage.ts#L13">types/beacon/BeaconResponseMessage.ts:13</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="extendedp2ppairingrequest" class="tsd-anchor"></a>
+					<h3>Extended<wbr>P2PPairing<wbr>Request</h3>
+					<div class="tsd-signature tsd-kind-icon">Extended<wbr>P2PPairing<wbr>Request<span class="tsd-signature-symbol">:</span> <a href="interfaces/p2ppairingrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">P2PPairingRequest</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>senderId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/P2PPairingRequest.ts#L19">types/P2PPairingRequest.ts:19</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="extendedp2ppairingresponse" class="tsd-anchor"></a>
+					<h3>Extended<wbr>P2PPairing<wbr>Response</h3>
+					<div class="tsd-signature tsd-kind-icon">Extended<wbr>P2PPairing<wbr>Response<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">P2PPairingResponse</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>senderId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/P2PPairingResponse.ts#L19">types/P2PPairingResponse.ts:19</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="extendedpeerinfo" class="tsd-anchor"></a>
+					<h3>Extended<wbr>Peer<wbr>Info</h3>
+					<div class="tsd-signature tsd-kind-icon">Extended<wbr>Peer<wbr>Info<span class="tsd-signature-symbol">:</span> <a href="interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>senderId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/PeerInfo.ts#L7">types/PeerInfo.ts:7</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="extendedpostmessagepairingrequest" class="tsd-anchor"></a>
+					<h3>Extended<wbr>Post<wbr>Message<wbr>Pairing<wbr>Request</h3>
+					<div class="tsd-signature tsd-kind-icon">Extended<wbr>Post<wbr>Message<wbr>Pairing<wbr>Request<span class="tsd-signature-symbol">:</span> <a href="interfaces/postmessagepairingrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">PostMessagePairingRequest</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>senderId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/PostMessagePairingRequest.ts#L18">types/PostMessagePairingRequest.ts:18</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="extendedpostmessagepairingresponse" class="tsd-anchor"></a>
+					<h3>Extended<wbr>Post<wbr>Message<wbr>Pairing<wbr>Response</h3>
+					<div class="tsd-signature tsd-kind-icon">Extended<wbr>Post<wbr>Message<wbr>Pairing<wbr>Response<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">PostMessagePairingResponse</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>extensionId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>senderId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/PostMessagePairingResponse.ts#L18">types/PostMessagePairingResponse.ts:18</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="storagekeyreturndefaults" class="tsd-anchor"></a>
+					<h3>Storage<wbr>Key<wbr>Return<wbr>Defaults</h3>
+					<div class="tsd-signature tsd-kind-icon">Storage<wbr>Key<wbr>Return<wbr>Defaults<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><span class="tsd-signature-symbol">[ </span><span class="tsd-signature-type">key</span><span class="tsd-signature-symbol"> in </span><a href="enums/storagekey.html" class="tsd-signature-type" data-tsd-kind="Enumeration">StorageKey</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">: </span><a href="interfaces/storagekeyreturntype.html" class="tsd-signature-type" data-tsd-kind="Interface">StorageKeyReturnType</a><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">key</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> }</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/storage/StorageKeyReturnDefaults.ts#L6">types/storage/StorageKeyReturnDefaults.ts:6</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Tezos Type aliases</h2>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="michelsonprimitives" class="tsd-anchor"></a>
+					<h3>Michelson<wbr>Primitives</h3>
+					<div class="tsd-signature tsd-kind-icon">Michelson<wbr>Primitives<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;ADD&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;IF_NONE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SWAP&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;set&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;nat&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;CHECK_SIGNATURE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;IF_LEFT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;LAMBDA&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Elt&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;CREATE_CONTRACT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;NEG&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;big_map&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;map&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;or&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;BLAKE2B&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bytes&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SHA256&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SET_DELEGATE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;CONTRACT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;LSL&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SUB&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;IMPLICIT_ACCOUNT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;PACK&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;list&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;PAIR&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Right&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;contract&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;GT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;LEFT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;STEPS_TO_QUOTA&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;storage&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;TRANSFER_TOKENS&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;CDR&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SLICE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;PUSH&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;False&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SHA512&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;CHAIN_ID&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;BALANCE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;signature&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;DUG&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SELF&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;EMPTY_BIG_MAP&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;LSR&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;OR&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;XOR&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;lambda&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;COMPARE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;key&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;option&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Unit&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Some&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;UNPACK&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;NEQ&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;INT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;pair&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;AMOUNT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;DIP&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;ABS&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;ISNAT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;EXEC&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;NOW&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;LOOP&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;chain_id&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;string&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;MEM&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;MAP&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;None&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;address&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;CONCAT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;EMPTY_SET&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;MUL&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;LOOP_LEFT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;timestamp&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;LT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;UPDATE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;DUP&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SOURCE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;mutez&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SENDER&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;IF_CONS&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;RIGHT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;CAR&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;CONS&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;LE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;NONE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;IF&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SOME&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;GET&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Left&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;CAST&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;int&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SIZE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;key_hash&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;unit&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;DROP&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;EMPTY_MAP&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;NIL&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;DIG&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;APPLY&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;bool&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;RENAME&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;operation&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;True&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;FAILWITH&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;parameter&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;HASH_KEY&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;EQ&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;NOT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;UNIT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Pair&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;ADDRESS&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;EDIV&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;CREATE_ACCOUNT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;GE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;ITER&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;code&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;AND&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/tezos/MichelsonPrimitives.ts#L5">types/tezos/MichelsonPrimitives.ts:5</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="partialtezosdelegationoperation" class="tsd-anchor"></a>
+					<h3>Partial<wbr>Tezos<wbr>Delegation<wbr>Operation</h3>
+					<div class="tsd-signature tsd-kind-icon">Partial<wbr>Tezos<wbr>Delegation<wbr>Operation<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/tezosdelegationoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosDelegationOperation</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">omittedProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/tezos/PartialTezosOperation.ts#L23">types/tezos/PartialTezosOperation.ts:23</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="partialtezosoperation" class="tsd-anchor"></a>
+					<h3>Partial<wbr>Tezos<wbr>Operation</h3>
+					<div class="tsd-signature tsd-kind-icon">Partial<wbr>Tezos<wbr>Operation<span class="tsd-signature-symbol">:</span> <a href="interfaces/tezosactivateaccountoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosActivateAccountOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosballotoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosBallotOperation</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#partialtezosdelegationoperation" class="tsd-signature-type" data-tsd-kind="Type alias">PartialTezosDelegationOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosdoublebakingevidenceoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosDoubleBakingEvidenceOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosendorsementoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosEndorsementOperation</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#partialtezosoriginationoperation" class="tsd-signature-type" data-tsd-kind="Type alias">PartialTezosOriginationOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosproposaloperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosProposalOperation</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#partialtezosrevealoperation" class="tsd-signature-type" data-tsd-kind="Type alias">PartialTezosRevealOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosseednoncerevelationoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosSeedNonceRevelationOperation</a><span class="tsd-signature-symbol"> | </span><a href="modules.html#partialtezostransactionoperation" class="tsd-signature-type" data-tsd-kind="Type alias">PartialTezosTransactionOperation</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/tezos/PartialTezosOperation.ts#L50">types/tezos/PartialTezosOperation.ts:50</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="partialtezosoriginationoperation" class="tsd-anchor"></a>
+					<h3>Partial<wbr>Tezos<wbr>Origination<wbr>Operation</h3>
+					<div class="tsd-signature tsd-kind-icon">Partial<wbr>Tezos<wbr>Origination<wbr>Operation<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/tezosoriginationoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosOriginationOperation</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">omittedProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/tezos/PartialTezosOperation.ts#L28">types/tezos/PartialTezosOperation.ts:28</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="partialtezosrevealoperation" class="tsd-anchor"></a>
+					<h3>Partial<wbr>Tezos<wbr>Reveal<wbr>Operation</h3>
+					<div class="tsd-signature tsd-kind-icon">Partial<wbr>Tezos<wbr>Reveal<wbr>Operation<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/tezosrevealoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosRevealOperation</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">omittedProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/tezos/PartialTezosOperation.ts#L36">types/tezos/PartialTezosOperation.ts:36</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="partialtezostransactionoperation" class="tsd-anchor"></a>
+					<h3>Partial<wbr>Tezos<wbr>Transaction<wbr>Operation</h3>
+					<div class="tsd-signature tsd-kind-icon">Partial<wbr>Tezos<wbr>Transaction<wbr>Operation<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/tezostransactionoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosTransactionOperation</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">omittedProperties</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/tezos/PartialTezosOperation.ts#L41">types/tezos/PartialTezosOperation.ts:41</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
+					<a name="tezosoperation" class="tsd-anchor"></a>
+					<h3>Tezos<wbr>Operation</h3>
+					<div class="tsd-signature tsd-kind-icon">Tezos<wbr>Operation<span class="tsd-signature-symbol">:</span> <a href="interfaces/tezosactivateaccountoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosActivateAccountOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosballotoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosBallotOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosdelegationoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosDelegationOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosdoublebakingevidenceoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosDoubleBakingEvidenceOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosendorsementoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosEndorsementOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosoriginationoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosOriginationOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosproposaloperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosProposalOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosrevealoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosRevealOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezosseednoncerevelationoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosSeedNonceRevelationOperation</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/tezostransactionoperation.html" class="tsd-signature-type" data-tsd-kind="Interface">TezosTransactionOperation</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/types/tezos/TezosOperation.ts#L18">types/tezos/TezosOperation.ts:18</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Variables</h2>
+				<section class="tsd-panel tsd-member tsd-kind-variable">
+					<a name="beacon_version" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> BEACON_<wbr>VERSION</h3>
+					<div class="tsd-signature tsd-kind-icon">BEACON_<wbr>VERSION<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &#x27;2&#x27;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/constants.ts#L2">constants.ts:2</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-variable">
+					<a name="sdk_version" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> SDK_<wbr>VERSION</h3>
+					<div class="tsd-signature tsd-kind-icon">SDK_<wbr>VERSION<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &#x27;2.3.0&#x27;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/constants.ts#L1">constants.ts:1</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-variable">
+					<a name="availabletransports" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> available<wbr>Transports</h3>
+					<div class="tsd-signature tsd-kind-icon">available<wbr>Transports<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>availableExtensions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Extension</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>extension<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/utils/available-transports.ts#L6">utils/available-transports.ts:6</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>An object with promises to indicate whether or not that transport is available.</p>
+						</div>
+					</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter">
+								<h5>available<wbr>Extensions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Extension</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5>extension<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-variable">
+					<a name="defaulteventcallbacks" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> default<wbr>Event<wbr>Callbacks</h3>
+					<div class="tsd-signature tsd-kind-icon">default<wbr>Event<wbr>Callbacks<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><span class="tsd-signature-symbol">[ </span><span class="tsd-signature-type">key</span><span class="tsd-signature-symbol"> in </span><a href="enums/beaconevent.html" class="tsd-signature-type" data-tsd-kind="Enumeration">BeaconEvent</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BeaconEventHandlerFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">BeaconEventType</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">key</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/events.ts#L550">events.ts:550</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The default event handlers</p>
+						</div>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Functions</h2>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external">
+					<a name="getaccountidentifier" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>Account<wbr>Identifier</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-is-external">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Account<wbr>Identifier<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, network<span class="tsd-signature-symbol">: </span><a href="interfaces/network.html" class="tsd-signature-type" data-tsd-kind="Interface">Network</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/utils/get-account-identifier.ts#L13">utils/get-account-identifier.ts:13</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>address: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>network: <a href="interfaces/network.html" class="tsd-signature-type" data-tsd-kind="Interface">Network</a></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function">
+					<a name="getaddressfrompublickey" class="tsd-anchor"></a>
+					<h3>get<wbr>Address<wbr>From<wbr>Public<wbr>Key</h3>
+					<ul class="tsd-signatures tsd-kind-function">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Address<wbr>From<wbr>Public<wbr>Key<span class="tsd-signature-symbol">(</span>publicKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/utils/crypto.ts#L128">utils/crypto.ts:128</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get an address from the public key</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>publicKey: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function">
+					<a name="getdebugenabled" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>Debug<wbr>Enabled</h3>
+					<ul class="tsd-signatures tsd-kind-function">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Debug<wbr>Enabled<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/debug.ts#L16">debug.ts:16</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-is-external">
+					<a name="getsenderid" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>Sender<wbr>Id</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-is-external">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Sender<wbr>Id<span class="tsd-signature-symbol">(</span>publicKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/utils/get-sender-id.ts#L11">utils/get-sender-id.ts:11</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>publicKey: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function">
+					<a name="getstorage" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>Storage</h3>
+					<ul class="tsd-signatures tsd-kind-function">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Storage<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="classes/storage.html" class="tsd-signature-type" data-tsd-kind="Class">Storage</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/storage/getStorage.ts#L9">storage/getStorage.ts:9</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get a supported storage on this platform</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="classes/storage.html" class="tsd-signature-type" data-tsd-kind="Class">Storage</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function">
+					<a name="setdebugenabled" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> set<wbr>Debug<wbr>Enabled</h3>
+					<ul class="tsd-signatures tsd-kind-function">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Debug<wbr>Enabled<span class="tsd-signature-symbol">(</span>enabled<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/debug.ts#L12">debug.ts:12</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>enabled: <span class="tsd-signature-type">boolean</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="current ">
+						<a href="modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-enum">
+						<a href="enums/beaconerrortype.html" class="tsd-kind-icon">Beacon<wbr>Error<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/beaconevent.html" class="tsd-kind-icon">Beacon<wbr>Event</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/beaconmessagetype.html" class="tsd-kind-icon">Beacon<wbr>Message<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/colormode.html" class="tsd-kind-icon">Color<wbr>Mode</a>
+					</li>
+					<li class=" tsd-kind-enum tsd-is-external">
+						<a href="enums/extensionmessagetarget.html" class="tsd-kind-icon">Extension<wbr>Message<wbr>Target</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/networktype.html" class="tsd-kind-icon">Network<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-enum tsd-is-external">
+						<a href="enums/origin.html" class="tsd-kind-icon">Origin</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/permissionscope.html" class="tsd-kind-icon">Permission<wbr>Scope</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/signingtype.html" class="tsd-kind-icon">Signing<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-enum tsd-is-external">
+						<a href="enums/storagekey.html" class="tsd-kind-icon">Storage<wbr>Key</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/tezosoperationtype.html" class="tsd-kind-icon">Tezos<wbr>Operation<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/transportstatus.html" class="tsd-kind-icon">Transport<wbr>Status</a>
+					</li>
+					<li class=" tsd-kind-enum tsd-is-external">
+						<a href="enums/transporttype.html" class="tsd-kind-icon">Transport<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/abortedbeaconerror.html" class="tsd-kind-icon">Aborted<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/accountmanager.html" class="tsd-kind-icon">Account<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/appmetadatamanager.html" class="tsd-kind-icon">App<wbr>Metadata<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/beaconclient.html" class="tsd-kind-icon">Beacon<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/beaconerror.html" class="tsd-kind-icon">Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/beaconeventhandler.html" class="tsd-kind-icon">Beacon<wbr>Event<wbr>Handler</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/blockexplorer.html" class="tsd-kind-icon">Block<wbr>Explorer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/broadcastbeaconerror.html" class="tsd-kind-icon">Broadcast<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/chromestorage.html" class="tsd-kind-icon">Chrome<wbr>Storage</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/client.html" class="tsd-kind-icon">Client</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/dappclient.html" class="tsd-kind-icon">DApp<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/dappp2ptransport.html" class="tsd-kind-icon">Dapp<wbr>P2PTransport</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/dapppostmessagetransport.html" class="tsd-kind-icon">Dapp<wbr>Post<wbr>Message<wbr>Transport</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/localstorage.html" class="tsd-kind-icon">Local<wbr>Storage</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/messagebasedclient.html" class="tsd-kind-icon">Message<wbr>Based<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/networknotsupportedbeaconerror.html" class="tsd-kind-icon">Network<wbr>Not<wbr>Supported<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/noaddressbeaconerror.html" class="tsd-kind-icon">No<wbr>Address<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/noprivatekeybeaconerror.html" class="tsd-kind-icon">No<wbr>Private<wbr>Key<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/notgrantedbeaconerror.html" class="tsd-kind-icon">Not<wbr>Granted<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/p2pcommunicationclient.html" class="tsd-kind-icon">P2PCommunication<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter tsd-is-external">
+						<a href="classes/p2ptransport.html" class="tsd-kind-icon">P2PTransport</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/pairing.html" class="tsd-kind-icon">Pairing</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/parametersinvalidbeaconerror.html" class="tsd-kind-icon">Parameters<wbr>Invalid<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter tsd-is-external">
+						<a href="classes/peermanager.html" class="tsd-kind-icon">Peer<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/permissionmanager.html" class="tsd-kind-icon">Permission<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter tsd-is-external">
+						<a href="classes/postmessagetransport.html" class="tsd-kind-icon">Post<wbr>Message<wbr>Transport</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/serializer.html" class="tsd-kind-icon">Serializer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/signaturetypenotsupportedbeaconerror.html" class="tsd-kind-icon">Signature<wbr>Type<wbr>Not<wbr>Supported<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/storage.html" class="tsd-kind-icon">Storage</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/tezblockblockexplorer.html" class="tsd-kind-icon">Tezblock<wbr>Block<wbr>Explorer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/toomanyoperationsbeaconerror.html" class="tsd-kind-icon">Too<wbr>Many<wbr>Operations<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/transactioninvalidbeaconerror.html" class="tsd-kind-icon">Transaction<wbr>Invalid<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter tsd-is-external">
+						<a href="classes/transport.html" class="tsd-kind-icon">Transport</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/unknownbeaconerror.html" class="tsd-kind-icon">Unknown<wbr>Beacon<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/walletclient.html" class="tsd-kind-icon">Wallet<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/walletp2ptransport.html" class="tsd-kind-icon">Wallet<wbr>P2PTransport</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-external">
+						<a href="classes/walletpostmessagetransport.html" class="tsd-kind-icon">Wallet<wbr>Post<wbr>Message<wbr>Transport</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/accountinfo.html" class="tsd-kind-icon">Account<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/acknowledgeresponse.html" class="tsd-kind-icon">Acknowledge<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/appmetadata.html" class="tsd-kind-icon">App<wbr>Metadata</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/beaconbasemessage.html" class="tsd-kind-icon">Beacon<wbr>Base<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/beaconclientoptions.html" class="tsd-kind-icon">Beacon<wbr>Client<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/broadcastrequest.html" class="tsd-kind-icon">Broadcast<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/broadcastresponse.html" class="tsd-kind-icon">Broadcast<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/clientoptions.html" class="tsd-kind-icon">Client<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/connectioncontext.html" class="tsd-kind-icon">Connection<wbr>Context</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/dappclientoptions.html" class="tsd-kind-icon">DApp<wbr>Client<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/disconnectmessage.html" class="tsd-kind-icon">Disconnect<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter tsd-is-external">
+						<a href="interfaces/encryptedextensionmessage.html" class="tsd-kind-icon">Encrypted<wbr>Extension<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/errorresponse.html" class="tsd-kind-icon">Error<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter tsd-is-external">
+						<a href="interfaces/extensionmessage.html" class="tsd-kind-icon">Extension<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/network.html" class="tsd-kind-icon">Network</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/operationrequest.html" class="tsd-kind-icon">Operation<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/operationresponse.html" class="tsd-kind-icon">Operation<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/p2ppairingrequest.html" class="tsd-kind-icon">P2PPairing<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/peerinfo.html" class="tsd-kind-icon">Peer<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/permissioninfo.html" class="tsd-kind-icon">Permission<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/permissionrequest.html" class="tsd-kind-icon">Permission<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/permissionresponse.html" class="tsd-kind-icon">Permission<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/postmessagepairingrequest.html" class="tsd-kind-icon">Post<wbr>Message<wbr>Pairing<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/requestbroadcastinput.html" class="tsd-kind-icon">Request<wbr>Broadcast<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/requestoperationinput.html" class="tsd-kind-icon">Request<wbr>Operation<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/requestpermissioninput.html" class="tsd-kind-icon">Request<wbr>Permission<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/requestsignpayloadinput.html" class="tsd-kind-icon">Request<wbr>Sign<wbr>Payload<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/signpayloadrequest.html" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/signpayloadresponse.html" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/storagekeyreturntype.html" class="tsd-kind-icon">Storage<wbr>Key<wbr>Return<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosactivateaccountoperation.html" class="tsd-kind-icon">Tezos<wbr>Activate<wbr>Account<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosballotoperation.html" class="tsd-kind-icon">Tezos<wbr>Ballot<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosbaseoperation.html" class="tsd-kind-icon">Tezos<wbr>Base<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosblockheader.html" class="tsd-kind-icon">Tezos<wbr>Block<wbr>Header</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosdelegationoperation.html" class="tsd-kind-icon">Tezos<wbr>Delegation<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosdoublebakingevidenceoperation.html" class="tsd-kind-icon">Tezos<wbr>Double<wbr>Baking<wbr>Evidence<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosdoubleendorsementevidenceoperation.html" class="tsd-kind-icon">Tezos<wbr>Double<wbr>Endorsement<wbr>Evidence<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosendorsementoperation.html" class="tsd-kind-icon">Tezos<wbr>Endorsement<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosoriginationoperation.html" class="tsd-kind-icon">Tezos<wbr>Origination<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosproposaloperation.html" class="tsd-kind-icon">Tezos<wbr>Proposal<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosrevealoperation.html" class="tsd-kind-icon">Tezos<wbr>Reveal<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezosseednoncerevelationoperation.html" class="tsd-kind-icon">Tezos<wbr>Seed<wbr>Nonce<wbr>Revelation<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezostransactionoperation.html" class="tsd-kind-icon">Tezos<wbr>Transaction<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/tezostransactionparameters.html" class="tsd-kind-icon">Tezos<wbr>Transaction<wbr>Parameters</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/threshold.html" class="tsd-kind-icon">Threshold</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/walletclientoptions.html" class="tsd-kind-icon">Wallet<wbr>Client<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#accountidentifier" class="tsd-kind-icon">Account<wbr>Identifier</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#acknowledgeresponseinput" class="tsd-kind-icon">Acknowledge<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconmessage" class="tsd-kind-icon">Beacon<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconrequestinputmessage" class="tsd-kind-icon">Beacon<wbr>Request<wbr>Input<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconrequestmessage" class="tsd-kind-icon">Beacon<wbr>Request<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconrequestoutputmessage" class="tsd-kind-icon">Beacon<wbr>Request<wbr>Output<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconresponseinputmessage" class="tsd-kind-icon">Beacon<wbr>Response<wbr>Input<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconresponsemessage" class="tsd-kind-icon">Beacon<wbr>Response<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#beaconresponseoutputmessage" class="tsd-kind-icon">Beacon<wbr>Response<wbr>Output<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#broadcastrequestinput" class="tsd-kind-icon">Broadcast<wbr>Request<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#broadcastrequestoutput" class="tsd-kind-icon">Broadcast<wbr>Request<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#broadcastresponseinput" class="tsd-kind-icon">Broadcast<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#broadcastresponseoutput" class="tsd-kind-icon">Broadcast<wbr>Response<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#errorresponseinput" class="tsd-kind-icon">Error<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#extendedp2ppairingrequest" class="tsd-kind-icon">Extended<wbr>P2PPairing<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#extendedp2ppairingresponse" class="tsd-kind-icon">Extended<wbr>P2PPairing<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#extendedpeerinfo" class="tsd-kind-icon">Extended<wbr>Peer<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#extendedpostmessagepairingrequest" class="tsd-kind-icon">Extended<wbr>Post<wbr>Message<wbr>Pairing<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#extendedpostmessagepairingresponse" class="tsd-kind-icon">Extended<wbr>Post<wbr>Message<wbr>Pairing<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#michelsonprimitives" class="tsd-kind-icon">Michelson<wbr>Primitives</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#operationrequestinput" class="tsd-kind-icon">Operation<wbr>Request<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#operationrequestoutput" class="tsd-kind-icon">Operation<wbr>Request<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#operationresponseinput" class="tsd-kind-icon">Operation<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#operationresponseoutput" class="tsd-kind-icon">Operation<wbr>Response<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#partialtezosdelegationoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Delegation<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#partialtezosoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#partialtezosoriginationoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Origination<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#partialtezosrevealoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Reveal<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#partialtezostransactionoperation" class="tsd-kind-icon">Partial<wbr>Tezos<wbr>Transaction<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#permissionrequestinput" class="tsd-kind-icon">Permission<wbr>Request<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#permissionrequestoutput" class="tsd-kind-icon">Permission<wbr>Request<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#permissionresponseinput" class="tsd-kind-icon">Permission<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#permissionresponseoutput" class="tsd-kind-icon">Permission<wbr>Response<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#signpayloadrequestinput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Request<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#signpayloadrequestoutput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Request<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#signpayloadresponseinput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Response<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#signpayloadresponseoutput" class="tsd-kind-icon">Sign<wbr>Payload<wbr>Response<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#storagekeyreturndefaults" class="tsd-kind-icon">Storage<wbr>Key<wbr>Return<wbr>Defaults</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#tezosoperation" class="tsd-kind-icon">Tezos<wbr>Operation</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#beacon_version" class="tsd-kind-icon">BEACON_<wbr>VERSION</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#sdk_version" class="tsd-kind-icon">SDK_<wbr>VERSION</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#availabletransports" class="tsd-kind-icon">available<wbr>Transports</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#defaulteventcallbacks" class="tsd-kind-icon">default<wbr>Event<wbr>Callbacks</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-external">
+						<a href="modules.html#getaccountidentifier" class="tsd-kind-icon">get<wbr>Account<wbr>Identifier</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#getaddressfrompublickey" class="tsd-kind-icon">get<wbr>Address<wbr>From<wbr>Public<wbr>Key</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#getdebugenabled" class="tsd-kind-icon">get<wbr>Debug<wbr>Enabled</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-external">
+						<a href="modules.html#getsenderid" class="tsd-kind-icon">get<wbr>Sender<wbr>Id</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#getstorage" class="tsd-kind-icon">get<wbr>Storage</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#setdebugenabled" class="tsd-kind-icon">set<wbr>Debug<wbr>Enabled</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

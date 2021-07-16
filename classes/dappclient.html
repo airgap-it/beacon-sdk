@@ -1,0 +1,2029 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>DAppClient | @airgap/beacon-sdk - v2.3.0</title>
+	<meta name="description" content="Documentation for @airgap/beacon-sdk - v2.3.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="../index.html" class="title">@airgap/beacon-sdk - v2.3.0</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Internal Definitions</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../modules.html">@airgap/beacon-sdk - v2.3.0</a>
+				</li>
+				<li>
+					<a href="dappclient.html">DAppClient</a>
+				</li>
+			</ul>
+			<h1>Class DAppClient</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<a href="client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a>
+						<ul class="tsd-hierarchy">
+							<li>
+								<span class="target">DAppClient</span>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Constructors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#constructor" class="tsd-kind-icon">constructor</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#_activeaccount" class="tsd-kind-icon">_active<wbr>Account</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#_activepeer" class="tsd-kind-icon">_active<wbr>Peer</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#_beaconid" class="tsd-kind-icon">_beacon<wbr>Id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#_initpromise" class="tsd-kind-icon">_init<wbr>Promise</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#_keypair" class="tsd-kind-icon">_key<wbr>Pair</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#_transport" class="tsd-kind-icon">_transport</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#accountmanager" class="tsd-kind-icon">account<wbr>Manager</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#activeaccountloaded" class="tsd-kind-icon">active<wbr>Account<wbr>Loaded</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#appmetadatamanager" class="tsd-kind-icon">app<wbr>Metadata<wbr>Manager</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#appurl" class="tsd-kind-icon">app<wbr>Url</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="dappclient.html#blockexplorer" class="tsd-kind-icon">block<wbr>Explorer</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#disclaimertext" class="tsd-kind-icon">disclaimer<wbr>Text</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#events" class="tsd-kind-icon">events</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#handleresponse" class="tsd-kind-icon">handle<wbr>Response</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#iconurl" class="tsd-kind-icon">icon<wbr>Url</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#matrixnodes" class="tsd-kind-icon">matrix<wbr>Nodes</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#name" class="tsd-kind-icon">name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#openrequests" class="tsd-kind-icon">open<wbr>Requests</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="dappclient.html#p2ptransport" class="tsd-kind-icon">p2p<wbr>Transport</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="dappclient.html#postmessagetransport" class="tsd-kind-icon">post<wbr>Message<wbr>Transport</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="dappclient.html#preferrednetwork" class="tsd-kind-icon">preferred<wbr>Network</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#ratelimit" class="tsd-kind-icon">rate<wbr>Limit</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#ratelimitwindowinseconds" class="tsd-kind-icon">rate<wbr>Limit<wbr>Window<wbr>InSeconds</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#requestcounter" class="tsd-kind-icon">request<wbr>Counter</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#storage" class="tsd-kind-icon">storage</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Accessors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#beaconid" class="tsd-kind-icon">beacon<wbr>Id</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#connectionstatus" class="tsd-kind-icon">connection<wbr>Status</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#keypair" class="tsd-kind-icon">key<wbr>Pair</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#ready" class="tsd-kind-icon">ready</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#transport" class="tsd-kind-icon">transport</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#addlistener" class="tsd-kind-icon">add<wbr>Listener</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#addopenrequest" class="tsd-kind-icon">add<wbr>Open<wbr>Request</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#addpeer" class="tsd-kind-icon">add<wbr>Peer</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#addrequestandcheckifratelimited" class="tsd-kind-icon">add<wbr>Request<wbr>And<wbr>Check<wbr>IfRate<wbr>Limited</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#checkpermissions" class="tsd-kind-icon">check<wbr>Permissions</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#clearactiveaccount" class="tsd-kind-icon">clear<wbr>Active<wbr>Account</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#destroy" class="tsd-kind-icon">destroy</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#disconnect" class="tsd-kind-icon">disconnect</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#getaccount" class="tsd-kind-icon">get<wbr>Account</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#getaccounts" class="tsd-kind-icon">get<wbr>Accounts</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#getactiveaccount" class="tsd-kind-icon">get<wbr>Active<wbr>Account</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#getappmetadata" class="tsd-kind-icon">get<wbr>App<wbr>Metadata</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#getcolormode" class="tsd-kind-icon">get<wbr>Color<wbr>Mode</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#getownappmetadata" class="tsd-kind-icon">get<wbr>Own<wbr>App<wbr>Metadata</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#getpeer" class="tsd-kind-icon">get<wbr>Peer</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="dappclient.html#getpeers" class="tsd-kind-icon">get<wbr>Peers</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#getwalletinfo" class="tsd-kind-icon">get<wbr>Wallet<wbr>Info</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#handlerequesterror" class="tsd-kind-icon">handle<wbr>Request<wbr>Error</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#hideui" class="tsd-kind-icon">hideUI</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="dappclient.html#init" class="tsd-kind-icon">init</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#initinternaltransports" class="tsd-kind-icon">init<wbr>Internal<wbr>Transports</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private"><a href="dappclient.html#makerequest" class="tsd-kind-icon">make<wbr>Request</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#notifysuccess" class="tsd-kind-icon">notify<wbr>Success</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="dappclient.html#removeaccount" class="tsd-kind-icon">remove<wbr>Account</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#removeaccountsforpeers" class="tsd-kind-icon">remove<wbr>Accounts<wbr>For<wbr>Peers</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="dappclient.html#removeallaccounts" class="tsd-kind-icon">remove<wbr>All<wbr>Accounts</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#removeallpeers" class="tsd-kind-icon">remove<wbr>All<wbr>Peers</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#removepeer" class="tsd-kind-icon">remove<wbr>Peer</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#requestbroadcast" class="tsd-kind-icon">request<wbr>Broadcast</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#requestoperation" class="tsd-kind-icon">request<wbr>Operation</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#requestpermissions" class="tsd-kind-icon">request<wbr>Permissions</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#requestsignpayload" class="tsd-kind-icon">request<wbr>Sign<wbr>Payload</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="dappclient.html#senddisconnecttopeer" class="tsd-kind-icon">send<wbr>Disconnect<wbr>ToPeer</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="dappclient.html#sendinternalerror" class="tsd-kind-icon">send<wbr>Internal<wbr>Error</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#setactiveaccount" class="tsd-kind-icon">set<wbr>Active<wbr>Account</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><a href="dappclient.html#setactivepeer" class="tsd-kind-icon">set<wbr>Active<wbr>Peer</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#setcolormode" class="tsd-kind-icon">set<wbr>Color<wbr>Mode</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected"><a href="dappclient.html#settransport" class="tsd-kind-icon">set<wbr>Transport</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="dappclient.html#showprepare" class="tsd-kind-icon">show<wbr>Prepare</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="dappclient.html#subscribetoevent" class="tsd-kind-icon">subscribe<wbr>ToEvent</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">new DApp<wbr>Client<span class="tsd-signature-symbol">(</span>config<span class="tsd-signature-symbol">: </span><a href="../interfaces/dappclientoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">DAppClientOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="dappclient.html" class="tsd-signature-type" data-tsd-kind="Class">DAppClient</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#constructor">constructor</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L130">clients/dapp-client/DAppClient.ts:130</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>config: <a href="../interfaces/dappclientoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">DAppClientOptions</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="dappclient.html" class="tsd-signature-type" data-tsd-kind="Class">DAppClient</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private">
+					<a name="_activeaccount" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> _active<wbr>Account</h3>
+					<div class="tsd-signature tsd-kind-icon">_active<wbr>Account<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ExposedPromise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L115">clients/dapp-client/DAppClient.ts:115</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The currently active account. For all requests that are associated to a specific request (operation request, signing request),
+							the active account is used to determine the network and destination wallet</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private">
+					<a name="_activepeer" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> _active<wbr>Peer</h3>
+					<div class="tsd-signature tsd-kind-icon">_active<wbr>Peer<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ExposedPromise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../modules.html#extendedpostmessagepairingresponse" class="tsd-signature-type" data-tsd-kind="Type alias">ExtendedPostMessagePairingResponse</a><span class="tsd-signature-symbol"> | </span><a href="../modules.html#extendedp2ppairingresponse" class="tsd-signature-type" data-tsd-kind="Type alias">ExtendedP2PPairingResponse</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L120">clients/dapp-client/DAppClient.ts:120</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The currently active peer. This is used to address a peer in case the active account is not set. (Eg. for permission requests)</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="_beaconid" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _beacon<wbr>Id</h3>
+					<div class="tsd-signature tsd-kind-icon">_beacon<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ExposedPromise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#_beaconid">_beaconId</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/beacon-client/BeaconClient.ts#L36">clients/beacon-client/BeaconClient.ts:36</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The beaconId is a public key that is used to identify one specific application (dapp or wallet).
+							This is used inside a message to specify the sender, for example.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private">
+					<a name="_initpromise" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> _init<wbr>Promise</h3>
+					<div class="tsd-signature tsd-kind-icon">_init<wbr>Promise<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/transporttype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">TransportType</a><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L124">clients/dapp-client/DAppClient.ts:124</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="_keypair" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _key<wbr>Pair</h3>
+					<div class="tsd-signature tsd-kind-icon">_key<wbr>Pair<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ExposedPromise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">KeyPair</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#_keypair">_keyPair</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/beacon-client/BeaconClient.ts#L48">clients/beacon-client/BeaconClient.ts:48</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The local keypair that is used for the communication encryption</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="_transport" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _transport</h3>
+					<div class="tsd-signature tsd-kind-icon">_transport<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ExposedPromise</span><span class="tsd-signature-symbol">&lt;</span><a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#_transport">_transport</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L59">clients/client/Client.ts:59</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="accountmanager" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> account<wbr>Manager</h3>
+					<div class="tsd-signature tsd-kind-icon">account<wbr>Manager<span class="tsd-signature-symbol">:</span> <a href="accountmanager.html" class="tsd-signature-type" data-tsd-kind="Class">AccountManager</a></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#accountmanager">accountManager</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L34">clients/client/Client.ts:34</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private">
+					<a name="activeaccountloaded" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> active<wbr>Account<wbr>Loaded</h3>
+					<div class="tsd-signature tsd-kind-icon">active<wbr>Account<wbr>Loaded<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L126">clients/dapp-client/DAppClient.ts:126</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private">
+					<a name="appmetadatamanager" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> app<wbr>Metadata<wbr>Manager</h3>
+					<div class="tsd-signature tsd-kind-icon">app<wbr>Metadata<wbr>Manager<span class="tsd-signature-symbol">:</span> <a href="appmetadatamanager.html" class="tsd-signature-type" data-tsd-kind="Class">AppMetadataManager</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L128">clients/dapp-client/DAppClient.ts:128</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+					<a name="appurl" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> app<wbr>Url</h3>
+					<div class="tsd-signature tsd-kind-icon">app<wbr>Url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#appurl">appUrl</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/beacon-client/BeaconClient.ts#L31">clients/beacon-client/BeaconClient.ts:31</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The URL of the dApp.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="blockexplorer" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> block<wbr>Explorer</h3>
+					<div class="tsd-signature tsd-kind-icon">block<wbr>Explorer<span class="tsd-signature-symbol">:</span> <a href="blockexplorer.html" class="tsd-signature-type" data-tsd-kind="Class">BlockExplorer</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L96">clients/dapp-client/DAppClient.ts:96</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The block explorer used by the SDK</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private">
+					<a name="disclaimertext" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> disclaimer<wbr>Text</h3>
+					<div class="tsd-signature tsd-kind-icon">disclaimer<wbr>Text<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L130">clients/dapp-client/DAppClient.ts:130</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="events" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> events</h3>
+					<div class="tsd-signature tsd-kind-icon">events<span class="tsd-signature-symbol">:</span> <a href="beaconeventhandler.html" class="tsd-signature-type" data-tsd-kind="Class">BeaconEventHandler</a></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#events">events</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L55">clients/client/Client.ts:55</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="handleresponse" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> handle<wbr>Response</h3>
+					<div class="tsd-signature tsd-kind-icon">handle<wbr>Response<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>_event<span class="tsd-signature-symbol">: </span><a href="../modules.html#beaconrequestmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconRequestMessage</a>, connectionInfo<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#handleresponse">handleResponse</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L36">clients/client/Client.ts:36</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-signature">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-class">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>_event<span class="tsd-signature-symbol">: </span><a href="../modules.html#beaconrequestmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconRequestMessage</a>, connectionInfo<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5>_event: <a href="../modules.html#beaconrequestmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconRequestMessage</a></h5>
+											</li>
+											<li>
+												<h5>connectionInfo: <a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+					<a name="iconurl" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> icon<wbr>Url</h3>
+					<div class="tsd-signature tsd-kind-icon">icon<wbr>Url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#iconurl">iconUrl</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/beacon-client/BeaconClient.ts#L26">clients/beacon-client/BeaconClient.ts:26</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The URL of the dApp Icon. This can be used to display the icon of the dApp on in the wallet</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="matrixnodes" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> matrix<wbr>Nodes</h3>
+					<div class="tsd-signature tsd-kind-icon">matrix<wbr>Nodes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#matrixnodes">matrixNodes</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L57">clients/client/Client.ts:57</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+					<a name="name" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> name</h3>
+					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#name">name</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/beacon-client/BeaconClient.ts#L21">clients/beacon-client/BeaconClient.ts:21</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The name of the client</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private">
+					<a name="openrequests" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> open<wbr>Requests</h3>
+					<div class="tsd-signature tsd-kind-icon">open<wbr>Requests<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">ExposedPromise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>connectionInfo<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>message<span class="tsd-signature-symbol">: </span><a href="../modules.html#beaconmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconMessage</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/errorresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">ErrorResponse</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L106">clients/dapp-client/DAppClient.ts:106</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>A map of requests that are currently &quot;open&quot;, meaning we have sent them to a wallet and are still awaiting a response.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
+					<a name="p2ptransport" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> p2p<wbr>Transport</h3>
+					<div class="tsd-signature tsd-kind-icon">p2p<wbr>Transport<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="dappp2ptransport.html" class="tsd-signature-type" data-tsd-kind="Class">DappP2PTransport</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L101">clients/dapp-client/DAppClient.ts:101</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
+					<a name="postmessagetransport" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> post<wbr>Message<wbr>Transport</h3>
+					<div class="tsd-signature tsd-kind-icon">post<wbr>Message<wbr>Transport<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="dapppostmessagetransport.html" class="tsd-signature-type" data-tsd-kind="Class">DappPostMessageTransport</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L100">clients/dapp-client/DAppClient.ts:100</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="preferrednetwork" class="tsd-anchor"></a>
+					<h3>preferred<wbr>Network</h3>
+					<div class="tsd-signature tsd-kind-icon">preferred<wbr>Network<span class="tsd-signature-symbol">:</span> <a href="../enums/networktype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">NetworkType</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L98">clients/dapp-client/DAppClient.ts:98</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="ratelimit" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> rate<wbr>Limit</h3>
+					<div class="tsd-signature tsd-kind-icon">rate<wbr>Limit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 2</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#ratelimit">rateLimit</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L44">clients/client/Client.ts:44</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>How many requests can be sent after another</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="ratelimitwindowinseconds" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> rate<wbr>Limit<wbr>Window<wbr>InSeconds</h3>
+					<div class="tsd-signature tsd-kind-icon">rate<wbr>Limit<wbr>Window<wbr>InSeconds<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 5</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#ratelimitwindowinseconds">rateLimitWindowInSeconds</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L48">clients/client/Client.ts:48</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The time window in seconds in which the &quot;rateLimit&quot; is checked</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="requestcounter" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> request<wbr>Counter</h3>
+					<div class="tsd-signature tsd-kind-icon">request<wbr>Counter<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#requestcounter">requestCounter</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L53">clients/client/Client.ts:53</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Stores the times when requests have been made to determine if the rate limit has been reached</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="storage" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> storage</h3>
+					<div class="tsd-signature tsd-kind-icon">storage<span class="tsd-signature-symbol">:</span> <a href="storage.html" class="tsd-signature-type" data-tsd-kind="Class">Storage</a></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#storage">storage</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/beacon-client/BeaconClient.ts#L41">clients/beacon-client/BeaconClient.ts:41</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Accessors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+					<a name="beaconid" class="tsd-anchor"></a>
+					<h3>beacon<wbr>Id</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> beaconId<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/beacon-client/BeaconClient.ts#L37">clients/beacon-client/BeaconClient.ts:37</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+					<a name="connectionstatus" class="tsd-anchor"></a>
+					<h3>connection<wbr>Status</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> connectionStatus<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../enums/transportstatus.html" class="tsd-signature-type" data-tsd-kind="Enumeration">TransportStatus</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L67">clients/client/Client.ts:67</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the connection status of the Client</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <a href="../enums/transportstatus.html" class="tsd-signature-type" data-tsd-kind="Enumeration">TransportStatus</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="keypair" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> key<wbr>Pair</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> keyPair<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">KeyPair</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/beacon-client/BeaconClient.ts#L49">clients/beacon-client/BeaconClient.ts:49</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">KeyPair</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+					<a name="ready" class="tsd-anchor"></a>
+					<h3>ready</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> ready<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L74">clients/client/Client.ts:74</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns whether or not the transaport is ready</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="transport" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> transport</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> transport<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L60">clients/client/Client.ts:60</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="addlistener" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> add<wbr>Listener</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Listener<span class="tsd-signature-symbol">(</span>transport<span class="tsd-signature-symbol">: </span><a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#addlistener">addListener</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L206">clients/client/Client.ts:206</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>transport: <a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a name="addopenrequest" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> add<wbr>Open<wbr>Request</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Open<wbr>Request<span class="tsd-signature-symbol">(</span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, promise<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ExposedPromise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>connectionInfo<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>message<span class="tsd-signature-symbol">: </span><a href="../modules.html#beaconmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconMessage</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/errorresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">ErrorResponse</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L1194">clients/dapp-client/DAppClient.ts:1194</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds a requests to the &quot;openRequests&quot; set so we know what messages have already been answered/handled.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>id: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The ID of the message</p>
+									</div>
+								</li>
+								<li>
+									<h5>promise: <span class="tsd-signature-type">ExposedPromise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>connectionInfo<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>message<span class="tsd-signature-symbol">: </span><a href="../modules.html#beaconmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconMessage</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/errorresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">ErrorResponse</a><span class="tsd-signature-symbol">&gt;</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>A promise that resolves once the response for that specific message is received</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="addpeer" class="tsd-anchor"></a>
+					<h3>add<wbr>Peer</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Peer<span class="tsd-signature-symbol">(</span>peer<span class="tsd-signature-symbol">: </span><a href="../interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#addpeer">addPeer</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L174">clients/client/Client.ts:174</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Add a new peer to the known peers</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>peer: <a href="../interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The new peer to add</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="addrequestandcheckifratelimited" class="tsd-anchor"></a>
+					<h3>add<wbr>Request<wbr>And<wbr>Check<wbr>IfRate<wbr>Limited</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Request<wbr>And<wbr>Check<wbr>IfRate<wbr>Limited<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#addrequestandcheckifratelimited">addRequestAndCheckIfRateLimited</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L125">clients/client/Client.ts:125</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Add a new request (current timestamp) to the pending requests, remove old ones and check if we are above the limit</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="checkpermissions" class="tsd-anchor"></a>
+					<h3>check<wbr>Permissions</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">check<wbr>Permissions<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><a href="../enums/beaconmessagetype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">BeaconMessageType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L520">clients/dapp-client/DAppClient.ts:520</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Check if we have permissions to send the specific message type to the active account.
+									If no active account is set, only permission requests are allowed.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>type: <a href="../enums/beaconmessagetype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">BeaconMessageType</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The type of the message</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="clearactiveaccount" class="tsd-anchor"></a>
+					<h3>clear<wbr>Active<wbr>Account</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">clear<wbr>Active<wbr>Account<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L399">clients/dapp-client/DAppClient.ts:399</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Clear the active account</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="destroy" class="tsd-anchor"></a>
+					<h3>destroy</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">destroy<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#destroy">destroy</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L178">clients/client/Client.ts:178</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a name="disconnect" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> disconnect</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">disconnect<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L1182">clients/dapp-client/DAppClient.ts:1182</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="getaccount" class="tsd-anchor"></a>
+					<h3>get<wbr>Account</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Account<span class="tsd-signature-symbol">(</span>accountIdentifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#getaccount">getAccount</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L103">clients/client/Client.ts:103</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Return the account by ID</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>accountIdentifier: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The ID of an account</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="getaccounts" class="tsd-anchor"></a>
+					<h3>get<wbr>Accounts</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Accounts<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#getaccounts">getAccounts</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L95">clients/client/Client.ts:95</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Return all locally known accounts</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="getactiveaccount" class="tsd-anchor"></a>
+					<h3>get<wbr>Active<wbr>Account</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Active<wbr>Account<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L352">clients/dapp-client/DAppClient.ts:352</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the active account</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="getappmetadata" class="tsd-anchor"></a>
+					<h3>get<wbr>App<wbr>Metadata</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>App<wbr>Metadata<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/appmetadata.html" class="tsd-signature-type" data-tsd-kind="Interface">AppMetadata</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L416">clients/dapp-client/DAppClient.ts:416</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><p>Use getOwnAppMetadata instead</p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/appmetadata.html" class="tsd-signature-type" data-tsd-kind="Interface">AppMetadata</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="getcolormode" class="tsd-anchor"></a>
+					<h3>get<wbr>Color<wbr>Mode</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Color<wbr>Mode<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/colormode.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ColorMode</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L407">clients/dapp-client/DAppClient.ts:407</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/colormode.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ColorMode</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="getownappmetadata" class="tsd-anchor"></a>
+					<h3>get<wbr>Own<wbr>App<wbr>Metadata</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Own<wbr>App<wbr>Metadata<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/appmetadata.html" class="tsd-signature-type" data-tsd-kind="Interface">AppMetadata</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#getownappmetadata">getOwnAppMetadata</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L155">clients/client/Client.ts:155</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the metadata of this DApp</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/appmetadata.html" class="tsd-signature-type" data-tsd-kind="Interface">AppMetadata</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a name="getpeer" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> get<wbr>Peer</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Peer<span class="tsd-signature-symbol">(</span>account<span class="tsd-signature-symbol">?: </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L1068">clients/dapp-client/DAppClient.ts:1068</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> account: <a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="getpeers" class="tsd-anchor"></a>
+					<h3>get<wbr>Peers</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Peers<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#getpeers">getPeers</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L166">clients/client/Client.ts:166</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Return all known peers</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a name="getwalletinfo" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> get<wbr>Wallet<wbr>Info</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Wallet<wbr>Info<span class="tsd-signature-symbol">(</span>peer<span class="tsd-signature-symbol">?: </span><a href="../interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a>, account<span class="tsd-signature-symbol">?: </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">WalletInfo</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L1003">clients/dapp-client/DAppClient.ts:1003</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> peer: <a href="../interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> account: <a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">WalletInfo</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a name="handlerequesterror" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> handle<wbr>Request<wbr>Error</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">handle<wbr>Request<wbr>Error<span class="tsd-signature-symbol">(</span>request<span class="tsd-signature-symbol">: </span><a href="../modules.html#beaconrequestinputmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconRequestInputMessage</a>, beaconError<span class="tsd-signature-symbol">: </span><a href="../interfaces/errorresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">ErrorResponse</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L899">clients/dapp-client/DAppClient.ts:899</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This message handles errors that we receive from the wallet.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>request: <a href="../modules.html#beaconrequestinputmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconRequestInputMessage</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The request we sent</p>
+									</div>
+								</li>
+								<li>
+									<h5>beaconError: <a href="../interfaces/errorresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">ErrorResponse</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The error we received</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="hideui" class="tsd-anchor"></a>
+					<h3>hideUI</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">hideUI<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L431">clients/dapp-client/DAppClient.ts:431</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a name="init" class="tsd-anchor"></a>
+					<h3>init</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+						<li class="tsd-signature tsd-kind-icon">init<span class="tsd-signature-symbol">(</span>transport<span class="tsd-signature-symbol">?: </span><a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/transporttype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">TransportType</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Overrides <a href="client.html">Client</a>.<a href="client.html#init">init</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L242">clients/dapp-client/DAppClient.ts:242</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> transport: <a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/transporttype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">TransportType</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="initinternaltransports" class="tsd-anchor"></a>
+					<h3>init<wbr>Internal<wbr>Transports</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">init<wbr>Internal<wbr>Transports<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L221">clients/dapp-client/DAppClient.ts:221</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private">
+					<a name="makerequest" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> make<wbr>Request</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">make<wbr>Request&lt;T, U&gt;<span class="tsd-signature-symbol">(</span>requestInput<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredRequestInputProperties</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>connectionInfo<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">U</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L1105">clients/dapp-client/DAppClient.ts:1105</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method handles sending of requests to the DApp. It makes sure that the DAppClient is initialized and connected
+										to the transport. After that rate limits and permissions will be checked, an ID is attached and the request is sent
+									to the DApp over the transport.</p>
+								</div>
+							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>T<span class="tsd-signature-symbol">: </span><a href="../modules.html#beaconrequestinputmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconRequestInputMessage</a></h4>
+								</li>
+								<li>
+									<h4>U<span class="tsd-signature-symbol">: </span><a href="../modules.html#beaconmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconMessage</a></h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>requestInput: <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">IgnoredRequestInputProperties</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The BeaconMessage to be sent to the wallet</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>connectionInfo<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">U</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a name="notifysuccess" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> notify<wbr>Success</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">notify<wbr>Success<span class="tsd-signature-symbol">(</span>request<span class="tsd-signature-symbol">: </span><a href="../modules.html#beaconrequestinputmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconRequestInputMessage</a>, response<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>account<span class="tsd-signature-symbol">: </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">; </span>blockExplorer<span class="tsd-signature-symbol">: </span><a href="blockexplorer.html" class="tsd-signature-type" data-tsd-kind="Class">BlockExplorer</a><span class="tsd-signature-symbol">; </span>connectionContext<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>output<span class="tsd-signature-symbol">: </span><a href="../modules.html#permissionresponseoutput" class="tsd-signature-type" data-tsd-kind="Type alias">PermissionResponseOutput</a><span class="tsd-signature-symbol">; </span>walletInfo<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WalletInfo</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>account<span class="tsd-signature-symbol">: </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">; </span>blockExplorer<span class="tsd-signature-symbol">: </span><a href="blockexplorer.html" class="tsd-signature-type" data-tsd-kind="Class">BlockExplorer</a><span class="tsd-signature-symbol">; </span>connectionContext<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>output<span class="tsd-signature-symbol">: </span><a href="../interfaces/operationresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationResponse</a><span class="tsd-signature-symbol">; </span>walletInfo<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WalletInfo</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>connectionContext<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>output<span class="tsd-signature-symbol">: </span><a href="../interfaces/signpayloadresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadResponse</a><span class="tsd-signature-symbol">; </span>walletInfo<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WalletInfo</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>blockExplorer<span class="tsd-signature-symbol">: </span><a href="blockexplorer.html" class="tsd-signature-type" data-tsd-kind="Class">BlockExplorer</a><span class="tsd-signature-symbol">; </span>connectionContext<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>network<span class="tsd-signature-symbol">: </span><a href="../interfaces/network.html" class="tsd-signature-type" data-tsd-kind="Interface">Network</a><span class="tsd-signature-symbol">; </span>output<span class="tsd-signature-symbol">: </span><a href="../interfaces/broadcastresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastResponse</a><span class="tsd-signature-symbol">; </span>walletInfo<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WalletInfo</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L963">clients/dapp-client/DAppClient.ts:963</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This message will send an event when we receive a successful response to one of the requests we sent.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>request: <a href="../modules.html#beaconrequestinputmessage" class="tsd-signature-type" data-tsd-kind="Type alias">BeaconRequestInputMessage</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The request we sent</p>
+									</div>
+								</li>
+								<li>
+									<h5>response: <span class="tsd-signature-symbol">{ </span>account<span class="tsd-signature-symbol">: </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">; </span>blockExplorer<span class="tsd-signature-symbol">: </span><a href="blockexplorer.html" class="tsd-signature-type" data-tsd-kind="Class">BlockExplorer</a><span class="tsd-signature-symbol">; </span>connectionContext<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>output<span class="tsd-signature-symbol">: </span><a href="../modules.html#permissionresponseoutput" class="tsd-signature-type" data-tsd-kind="Type alias">PermissionResponseOutput</a><span class="tsd-signature-symbol">; </span>walletInfo<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WalletInfo</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>account<span class="tsd-signature-symbol">: </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">; </span>blockExplorer<span class="tsd-signature-symbol">: </span><a href="blockexplorer.html" class="tsd-signature-type" data-tsd-kind="Class">BlockExplorer</a><span class="tsd-signature-symbol">; </span>connectionContext<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>output<span class="tsd-signature-symbol">: </span><a href="../interfaces/operationresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationResponse</a><span class="tsd-signature-symbol">; </span>walletInfo<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WalletInfo</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>connectionContext<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>output<span class="tsd-signature-symbol">: </span><a href="../interfaces/signpayloadresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadResponse</a><span class="tsd-signature-symbol">; </span>walletInfo<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WalletInfo</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>blockExplorer<span class="tsd-signature-symbol">: </span><a href="blockexplorer.html" class="tsd-signature-type" data-tsd-kind="Class">BlockExplorer</a><span class="tsd-signature-symbol">; </span>connectionContext<span class="tsd-signature-symbol">: </span><a href="../interfaces/connectioncontext.html" class="tsd-signature-type" data-tsd-kind="Interface">ConnectionContext</a><span class="tsd-signature-symbol">; </span>network<span class="tsd-signature-symbol">: </span><a href="../interfaces/network.html" class="tsd-signature-type" data-tsd-kind="Interface">Network</a><span class="tsd-signature-symbol">; </span>output<span class="tsd-signature-symbol">: </span><a href="../interfaces/broadcastresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastResponse</a><span class="tsd-signature-symbol">; </span>walletInfo<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WalletInfo</span><span class="tsd-signature-symbol"> }</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The response we received</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a name="removeaccount" class="tsd-anchor"></a>
+					<h3>remove<wbr>Account</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+						<li class="tsd-signature tsd-kind-icon">remove<wbr>Account<span class="tsd-signature-symbol">(</span>accountIdentifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Overrides <a href="client.html">Client</a>.<a href="client.html#removeaccount">removeAccount</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L440">clients/dapp-client/DAppClient.ts:440</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Will remove the account from the local storage and set a new active account if necessary.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>accountIdentifier: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>ID of the account</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a name="removeaccountsforpeers" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> remove<wbr>Accounts<wbr>For<wbr>Peers</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">remove<wbr>Accounts<wbr>For<wbr>Peers<span class="tsd-signature-symbol">(</span>peersToRemove<span class="tsd-signature-symbol">: </span><a href="../modules.html#extendedpeerinfo" class="tsd-signature-type" data-tsd-kind="Type alias">ExtendedPeerInfo</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L870">clients/dapp-client/DAppClient.ts:870</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method will remove all accounts associated with a specific peer.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>peersToRemove: <a href="../modules.html#extendedpeerinfo" class="tsd-signature-type" data-tsd-kind="Type alias">ExtendedPeerInfo</a><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>An array of peers for which accounts should be removed</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a name="removeallaccounts" class="tsd-anchor"></a>
+					<h3>remove<wbr>All<wbr>Accounts</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+						<li class="tsd-signature tsd-kind-icon">remove<wbr>All<wbr>Accounts<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Overrides <a href="client.html">Client</a>.<a href="client.html#removeallaccounts">removeAllAccounts</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L454">clients/dapp-client/DAppClient.ts:454</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Remove all accounts and set active account to undefined</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="removeallpeers" class="tsd-anchor"></a>
+					<h3>remove<wbr>All<wbr>Peers</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">remove<wbr>All<wbr>Peers<span class="tsd-signature-symbol">(</span>sendDisconnectToPeers<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L484">clients/dapp-client/DAppClient.ts:484</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Remove all peers and all accounts that have been connected through those peers</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>sendDisconnectToPeers: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="removepeer" class="tsd-anchor"></a>
+					<h3>remove<wbr>Peer</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">remove<wbr>Peer<span class="tsd-signature-symbol">(</span>peer<span class="tsd-signature-symbol">: </span><a href="../modules.html#extendedpeerinfo" class="tsd-signature-type" data-tsd-kind="Type alias">ExtendedPeerInfo</a>, sendDisconnectToPeer<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L464">clients/dapp-client/DAppClient.ts:464</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Removes a peer and all the accounts that have been connected through that peer</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>peer: <a href="../modules.html#extendedpeerinfo" class="tsd-signature-type" data-tsd-kind="Type alias">ExtendedPeerInfo</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Peer to be removed</p>
+									</div>
+								</li>
+								<li>
+									<h5>sendDisconnectToPeer: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="requestbroadcast" class="tsd-anchor"></a>
+					<h3>request<wbr>Broadcast</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">request<wbr>Broadcast<span class="tsd-signature-symbol">(</span>input<span class="tsd-signature-symbol">: </span><a href="../interfaces/requestbroadcastinput.html" class="tsd-signature-type" data-tsd-kind="Interface">RequestBroadcastInput</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/broadcastresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastResponse</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L790">clients/dapp-client/DAppClient.ts:790</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Sends a &quot;BroadcastRequest&quot; to the wallet. This method can be used to inject an already signed transaction
+									to the network.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>input: <a href="../interfaces/requestbroadcastinput.html" class="tsd-signature-type" data-tsd-kind="Interface">RequestBroadcastInput</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The message details we need to prepare the BroadcastRequest message.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/broadcastresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">BroadcastResponse</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="requestoperation" class="tsd-anchor"></a>
+					<h3>request<wbr>Operation</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">request<wbr>Operation<span class="tsd-signature-symbol">(</span>input<span class="tsd-signature-symbol">: </span><a href="../interfaces/requestoperationinput.html" class="tsd-signature-type" data-tsd-kind="Interface">RequestOperationInput</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/operationresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationResponse</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L751">clients/dapp-client/DAppClient.ts:751</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method sends an OperationRequest to the wallet. This method should be used for all kinds of operations,
+										eg. transaction or delegation. Not all properties have to be provided. Data like &quot;counter&quot; and fees will be
+									fetched and calculated by the wallet (but they can still be provided if required).</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>input: <a href="../interfaces/requestoperationinput.html" class="tsd-signature-type" data-tsd-kind="Interface">RequestOperationInput</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The message details we need to prepare the OperationRequest message.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/operationresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">OperationResponse</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="requestpermissions" class="tsd-anchor"></a>
+					<h3>request<wbr>Permissions</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">request<wbr>Permissions<span class="tsd-signature-symbol">(</span>input<span class="tsd-signature-symbol">?: </span><a href="../interfaces/requestpermissioninput.html" class="tsd-signature-type" data-tsd-kind="Interface">RequestPermissionInput</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../modules.html#permissionresponseoutput" class="tsd-signature-type" data-tsd-kind="Type alias">PermissionResponseOutput</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L555">clients/dapp-client/DAppClient.ts:555</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Send a permission request to the DApp. This should be done as the first step. The wallet will respond
+										with an publicKey and permissions that were given. The account returned will be set as the &quot;activeAccount&quot;
+									and will be used for the following requests.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> input: <a href="../interfaces/requestpermissioninput.html" class="tsd-signature-type" data-tsd-kind="Interface">RequestPermissionInput</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The message details we need to prepare the PermissionRequest message.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../modules.html#permissionresponseoutput" class="tsd-signature-type" data-tsd-kind="Type alias">PermissionResponseOutput</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="requestsignpayload" class="tsd-anchor"></a>
+					<h3>request<wbr>Sign<wbr>Payload</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">request<wbr>Sign<wbr>Payload<span class="tsd-signature-symbol">(</span>input<span class="tsd-signature-symbol">: </span><a href="../interfaces/requestsignpayloadinput.html" class="tsd-signature-type" data-tsd-kind="Interface">RequestSignPayloadInput</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/signpayloadresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadResponse</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L620">clients/dapp-client/DAppClient.ts:620</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method will send a &quot;SignPayloadRequest&quot; to the wallet. This method is meant to be used to sign
+									arbitrary data (eg. a string). It will return the signature in the format of &quot;edsig...&quot;</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>input: <a href="../interfaces/requestsignpayloadinput.html" class="tsd-signature-type" data-tsd-kind="Interface">RequestSignPayloadInput</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The message details we need to prepare the SignPayloadRequest message.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/signpayloadresponse.html" class="tsd-signature-type" data-tsd-kind="Interface">SignPayloadResponse</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="senddisconnecttopeer" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> send<wbr>Disconnect<wbr>ToPeer</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+						<li class="tsd-signature tsd-kind-icon">send<wbr>Disconnect<wbr>ToPeer<span class="tsd-signature-symbol">(</span>peer<span class="tsd-signature-symbol">: </span><a href="../interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a>, transport<span class="tsd-signature-symbol">?: </span><a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="client.html">Client</a>.<a href="client.html#senddisconnecttopeer">sendDisconnectToPeer</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/client/Client.ts#L219">clients/client/Client.ts:219</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>peer: <a href="../interfaces/peerinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">PeerInfo</a></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> transport: <a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a name="sendinternalerror" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> send<wbr>Internal<wbr>Error</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">send<wbr>Internal<wbr>Error<span class="tsd-signature-symbol">(</span>errorMessage<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L860">clients/dapp-client/DAppClient.ts:860</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This method will emit an internal error message.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>errorMessage: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The error message to send.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="setactiveaccount" class="tsd-anchor"></a>
+					<h3>set<wbr>Active<wbr>Account</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Active<wbr>Account<span class="tsd-signature-symbol">(</span>account<span class="tsd-signature-symbol">?: </span><a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L361">clients/dapp-client/DAppClient.ts:361</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Sets the active account</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> account: <a href="../interfaces/accountinfo.html" class="tsd-signature-type" data-tsd-kind="Interface">AccountInfo</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The account that will be set as the active account</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-protected">
+					<a name="setactivepeer" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> set<wbr>Active<wbr>Peer</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-protected">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Active<wbr>Peer<span class="tsd-signature-symbol">(</span>peer<span class="tsd-signature-symbol">?: </span><a href="../modules.html#extendedpostmessagepairingresponse" class="tsd-signature-type" data-tsd-kind="Type alias">ExtendedPostMessagePairingResponse</a><span class="tsd-signature-symbol"> | </span><a href="../modules.html#extendedp2ppairingresponse" class="tsd-signature-type" data-tsd-kind="Type alias">ExtendedP2PPairingResponse</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L820">clients/dapp-client/DAppClient.ts:820</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> peer: <a href="../modules.html#extendedpostmessagepairingresponse" class="tsd-signature-type" data-tsd-kind="Type alias">ExtendedPostMessagePairingResponse</a><span class="tsd-signature-symbol"> | </span><a href="../modules.html#extendedp2ppairingresponse" class="tsd-signature-type" data-tsd-kind="Type alias">ExtendedP2PPairingResponse</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="setcolormode" class="tsd-anchor"></a>
+					<h3>set<wbr>Color<wbr>Mode</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Color<wbr>Mode<span class="tsd-signature-symbol">(</span>colorMode<span class="tsd-signature-symbol">: </span><a href="../enums/colormode.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ColorMode</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L403">clients/dapp-client/DAppClient.ts:403</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>colorMode: <a href="../enums/colormode.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ColorMode</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+					<a name="settransport" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> set<wbr>Transport</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Transport<span class="tsd-signature-symbol">(</span>transport<span class="tsd-signature-symbol">?: </span><a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Overrides <a href="client.html">Client</a>.<a href="client.html#settransport">setTransport</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L847">clients/dapp-client/DAppClient.ts:847</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>A &quot;setter&quot; for when the transport needs to be changed.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> transport: <a href="transport.html" class="tsd-signature-type" data-tsd-kind="Class">Transport</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="showprepare" class="tsd-anchor"></a>
+					<h3>show<wbr>Prepare</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">show<wbr>Prepare<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L420">clients/dapp-client/DAppClient.ts:420</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
+					<a name="subscribetoevent" class="tsd-anchor"></a>
+					<h3>subscribe<wbr>ToEvent</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
+						<li class="tsd-signature tsd-kind-icon">subscribe<wbr>ToEvent&lt;K&gt;<span class="tsd-signature-symbol">(</span>internalEvent<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">K</span>, eventCallback<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BeaconEventHandlerFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">BeaconEventType</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/airgap-it/beacon-sdk/blob/f836f33/src/clients/dapp-client/DAppClient.ts#L507">clients/dapp-client/DAppClient.ts:507</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Allows the user to subscribe to specific events that are fired in the SDK</p>
+								</div>
+							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>K<span class="tsd-signature-symbol">: </span><a href="../enums/beaconevent.html" class="tsd-signature-type" data-tsd-kind="Enumeration">BeaconEvent</a></h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>internalEvent: <span class="tsd-signature-type">K</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The event to subscribe to</p>
+									</div>
+								</li>
+								<li>
+									<h5>eventCallback: <span class="tsd-signature-type">BeaconEventHandlerFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">BeaconEventType</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The callback that will be called when the event occurs</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class">
+						<a href="dappclient.html" class="tsd-kind-icon">DApp<wbr>Client</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#_activeaccount" class="tsd-kind-icon">_active<wbr>Account</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#_activepeer" class="tsd-kind-icon">_active<wbr>Peer</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#_beaconid" class="tsd-kind-icon">_beacon<wbr>Id</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#_initpromise" class="tsd-kind-icon">_init<wbr>Promise</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#_keypair" class="tsd-kind-icon">_key<wbr>Pair</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#_transport" class="tsd-kind-icon">_transport</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#accountmanager" class="tsd-kind-icon">account<wbr>Manager</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#activeaccountloaded" class="tsd-kind-icon">active<wbr>Account<wbr>Loaded</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#appmetadatamanager" class="tsd-kind-icon">app<wbr>Metadata<wbr>Manager</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#appurl" class="tsd-kind-icon">app<wbr>Url</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="dappclient.html#blockexplorer" class="tsd-kind-icon">block<wbr>Explorer</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#disclaimertext" class="tsd-kind-icon">disclaimer<wbr>Text</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#events" class="tsd-kind-icon">events</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#handleresponse" class="tsd-kind-icon">handle<wbr>Response</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#iconurl" class="tsd-kind-icon">icon<wbr>Url</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#matrixnodes" class="tsd-kind-icon">matrix<wbr>Nodes</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#name" class="tsd-kind-icon">name</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#openrequests" class="tsd-kind-icon">open<wbr>Requests</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
+								<a href="dappclient.html#p2ptransport" class="tsd-kind-icon">p2p<wbr>Transport</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
+								<a href="dappclient.html#postmessagetransport" class="tsd-kind-icon">post<wbr>Message<wbr>Transport</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="dappclient.html#preferrednetwork" class="tsd-kind-icon">preferred<wbr>Network</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#ratelimit" class="tsd-kind-icon">rate<wbr>Limit</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#ratelimitwindowinseconds" class="tsd-kind-icon">rate<wbr>Limit<wbr>Window<wbr>InSeconds</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#requestcounter" class="tsd-kind-icon">request<wbr>Counter</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#storage" class="tsd-kind-icon">storage</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#beaconid" class="tsd-kind-icon">beacon<wbr>Id</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#connectionstatus" class="tsd-kind-icon">connection<wbr>Status</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#keypair" class="tsd-kind-icon">key<wbr>Pair</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#ready" class="tsd-kind-icon">ready</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#transport" class="tsd-kind-icon">transport</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#addlistener" class="tsd-kind-icon">add<wbr>Listener</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#addopenrequest" class="tsd-kind-icon">add<wbr>Open<wbr>Request</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#addpeer" class="tsd-kind-icon">add<wbr>Peer</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#addrequestandcheckifratelimited" class="tsd-kind-icon">add<wbr>Request<wbr>And<wbr>Check<wbr>IfRate<wbr>Limited</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#checkpermissions" class="tsd-kind-icon">check<wbr>Permissions</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#clearactiveaccount" class="tsd-kind-icon">clear<wbr>Active<wbr>Account</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#destroy" class="tsd-kind-icon">destroy</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#disconnect" class="tsd-kind-icon">disconnect</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#getaccount" class="tsd-kind-icon">get<wbr>Account</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#getaccounts" class="tsd-kind-icon">get<wbr>Accounts</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#getactiveaccount" class="tsd-kind-icon">get<wbr>Active<wbr>Account</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#getappmetadata" class="tsd-kind-icon">get<wbr>App<wbr>Metadata</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#getcolormode" class="tsd-kind-icon">get<wbr>Color<wbr>Mode</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#getownappmetadata" class="tsd-kind-icon">get<wbr>Own<wbr>App<wbr>Metadata</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#getpeer" class="tsd-kind-icon">get<wbr>Peer</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="dappclient.html#getpeers" class="tsd-kind-icon">get<wbr>Peers</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#getwalletinfo" class="tsd-kind-icon">get<wbr>Wallet<wbr>Info</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#handlerequesterror" class="tsd-kind-icon">handle<wbr>Request<wbr>Error</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#hideui" class="tsd-kind-icon">hideUI</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+								<a href="dappclient.html#init" class="tsd-kind-icon">init</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#initinternaltransports" class="tsd-kind-icon">init<wbr>Internal<wbr>Transports</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private">
+								<a href="dappclient.html#makerequest" class="tsd-kind-icon">make<wbr>Request</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#notifysuccess" class="tsd-kind-icon">notify<wbr>Success</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+								<a href="dappclient.html#removeaccount" class="tsd-kind-icon">remove<wbr>Account</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#removeaccountsforpeers" class="tsd-kind-icon">remove<wbr>Accounts<wbr>For<wbr>Peers</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+								<a href="dappclient.html#removeallaccounts" class="tsd-kind-icon">remove<wbr>All<wbr>Accounts</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#removeallpeers" class="tsd-kind-icon">remove<wbr>All<wbr>Peers</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#removepeer" class="tsd-kind-icon">remove<wbr>Peer</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#requestbroadcast" class="tsd-kind-icon">request<wbr>Broadcast</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#requestoperation" class="tsd-kind-icon">request<wbr>Operation</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#requestpermissions" class="tsd-kind-icon">request<wbr>Permissions</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#requestsignpayload" class="tsd-kind-icon">request<wbr>Sign<wbr>Payload</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="dappclient.html#senddisconnecttopeer" class="tsd-kind-icon">send<wbr>Disconnect<wbr>ToPeer</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+								<a href="dappclient.html#sendinternalerror" class="tsd-kind-icon">send<wbr>Internal<wbr>Error</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#setactiveaccount" class="tsd-kind-icon">set<wbr>Active<wbr>Account</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-protected">
+								<a href="dappclient.html#setactivepeer" class="tsd-kind-icon">set<wbr>Active<wbr>Peer</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#setcolormode" class="tsd-kind-icon">set<wbr>Color<wbr>Mode</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+								<a href="dappclient.html#settransport" class="tsd-kind-icon">set<wbr>Transport</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="dappclient.html#showprepare" class="tsd-kind-icon">show<wbr>Prepare</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
+								<a href="dappclient.html#subscribetoevent" class="tsd-kind-icon">subscribe<wbr>ToEvent</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
