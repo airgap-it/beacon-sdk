@@ -4,7 +4,7 @@ import { generateGUID } from '../../utils/generate-uuid'
 import { Logger } from '../../utils/Logger'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { closeAlerts } from './Alert'
-import { Pairing } from './Pairing'
+import { Pairing, WalletType } from './Pairing'
 import { getQrData } from '../../utils/qr'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 
@@ -111,7 +111,7 @@ export const preparePairingAlert = async (
 
         wallet.clickHandler()
         const modalEl: HTMLElement | null = shadowRoot.getElementById('beacon-modal__content')
-        if (modalEl && wallet.enabled) {
+        if (modalEl && list.type !== WalletType.EXTENSION) {
           modalEl.innerHTML = `${
             wallet.logo
               ? `<p class="beacon-alert__title">Establishing Connection..</p>
