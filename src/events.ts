@@ -64,6 +64,7 @@ export enum BeaconEvent {
   ACTIVE_TRANSPORT_SET = 'ACTIVE_TRANSPORT_SET',
 
   SHOW_PREPARE = 'SHOW_PREPARE',
+  HIDE_UI = 'HIDE_UI',
 
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
@@ -144,6 +145,7 @@ export interface BeaconEventType {
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
+  [BeaconEvent.HIDE_UI]: undefined
   [BeaconEvent.PAIR_INIT]: {
     p2pPeerInfo: () => Promise<P2PPairingRequest>
     postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
@@ -231,6 +233,11 @@ const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => 
     state: 'prepare',
     walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
+}
+
+const hideUI = async (): Promise<void> => {
+  closeToast()
+  closeAlerts()
 }
 
 /**
@@ -561,6 +568,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(),
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(),
   [BeaconEvent.SHOW_PREPARE]: showPrepare,
+  [BeaconEvent.HIDE_UI]: hideUI,
   [BeaconEvent.PAIR_INIT]: showPairAlert,
   [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
   [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
@@ -598,6 +606,7 @@ export class BeaconEventHandler {
     [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
     [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
+    [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
     [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
     [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],

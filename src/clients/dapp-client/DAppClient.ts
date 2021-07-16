@@ -63,7 +63,7 @@ import { getAccountIdentifier } from '../../utils/get-account-identifier'
 import { BlockExplorer } from '../../utils/block-explorer'
 import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
 import { BeaconErrorType } from '../../types/BeaconErrorType'
-import { AlertButton, closeAlerts } from '../../ui/alert/Alert'
+import { AlertButton } from '../../ui/alert/Alert'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import {
   ExtendedPostMessagePairingResponse,
@@ -78,7 +78,6 @@ import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wal
 import { Optional } from '../../utils/utils'
 import { DAppClientOptions } from './DAppClientOptions'
 import { App, DesktopApp, ExtensionApp, WebApp } from '../../ui/alert/Pairing'
-import { closeToast } from '../../ui/toast/Toast'
 
 const logger = new Logger('DAppClient')
 
@@ -430,8 +429,7 @@ export class DAppClient extends Client {
   }
 
   public async hideUI(): Promise<void> {
-    await closeAlerts()
-    await closeToast()
+    await this.events.emit(BeaconEvent.HIDE_UI)
   }
 
   /**
@@ -686,7 +684,7 @@ export class DAppClient extends Client {
   }
 
   /**
-   * This method will send a "EncryptPayloadRequest" to the wallet. This method is meant to be used to encrypt or decrypt
+   * This method will send an "EncryptPayloadRequest" to the wallet. This method is meant to be used to encrypt or decrypt
    * arbitrary data (eg. a string). It will return the encrypted or decrypted payload
    *
    * @param input The message details we need to prepare the EncryptPayloadRequest message.
