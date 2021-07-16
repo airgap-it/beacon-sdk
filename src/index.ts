@@ -40,7 +40,7 @@ import { ExtensionMessageTarget } from './types/ExtensionMessageTarget'
 import { TezosOperation } from './types/tezos/TezosOperation'
 import { Client } from './clients/client/Client'
 import { WalletClient } from './clients/wallet-client/WalletClient'
-import { DAppClient } from './clients/dapp-client/DAppClient'
+import { DAppClient, signMessage } from './clients/dapp-client/DAppClient'
 import { BeaconError } from './errors/BeaconError'
 import { BeaconErrorType } from './types/BeaconErrorType'
 import { BroadcastBeaconError } from './errors/BroadcastBeaconError'
@@ -349,7 +349,7 @@ export {
 export { BlockExplorer, TezblockBlockExplorer }
 
 // Others
-export { ConnectionContext, Serializer, availableTransports, ColorMode }
+export { ConnectionContext, Serializer, availableTransports, ColorMode, signMessage }
 
 // Debug
 export { setDebugEnabled, getDebugEnabled }

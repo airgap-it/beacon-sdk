@@ -15,8 +15,8 @@ import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
 const serializer = new Serializer()
 
 const defaultExtensions = [
-  'ookjlbkiijinhpmnjffcofjonbfbgaoc', // Thanos
-  'gpfndedineagiepkpinficbcbbgjoenn' // Beacon
+  'ookjlbkiijinhpmnjffcofjonbfbgaoc', // Temple
+  'gpfndedineagiepkpinficbcbbgjoenn' // Spire
 ]
 
 export enum Platform {
