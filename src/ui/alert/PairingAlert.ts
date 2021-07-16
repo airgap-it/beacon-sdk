@@ -112,11 +112,15 @@ export const preparePairingAlert = async (
         if (modalEl) {
           modalEl.innerHTML = `${
             wallet.logo
-              ? `<h2>Connecting...</h2><div>
-          <img class="beacon-selection__img" src="${wallet.logo}"/>
-          </div>`
+              ? `<p class="beacon-alert__title">Establishing Connection..</p>
+              <div id="beacon-toast-loader" class="progress-line"></div>
+              <div class="beacon--selected__container">
+               <img class="beacon-selection__img" src="${wallet.logo}"/>
+               <div class="beacon--selection__name__lg">${wallet.name}</div>
+              </div>`
               : ''
-          }<p>${wallet.name}</p>`
+          }
+          `
         }
       }
 
@@ -162,7 +166,7 @@ export const preparePairingAlert = async (
     const platformSwitch: HTMLElement | null = shadowRoot.getElementById(`beacon-switch`)
     if (platformSwitch) {
       platformSwitch.innerHTML =
-        type === 'none' ? 'Pair wallet on same device' : 'Pair wallet on other device'
+        type === 'none' ? 'Pair wallet on same device' : 'Pair wallet on another device'
     }
 
     if (mainText && walletList && switchButton && copyButton && qr && titleEl) {

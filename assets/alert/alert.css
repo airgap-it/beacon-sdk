@@ -88,16 +88,6 @@
   height: 100%;
 }
 
-.beacon-alert__text,
-.beacon-alert__title,
-.beacon-selection__name,
-.beacon-list__title,
-p,
-button,
-#beacon--disclaimer {
-  font-family: Roboto, Helvetica, sans-serif;
-}
-
 a,
 button {
   cursor: pointer;
@@ -158,6 +148,7 @@ button {
   text-align: center;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  font-family: Roboto, Helvetica, sans-serif;
 }
 
 .beacon-alert__base::-webkit-scrollbar {
