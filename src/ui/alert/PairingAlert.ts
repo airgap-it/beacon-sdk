@@ -66,6 +66,8 @@ export const preparePairingAlert = async (
 
   info.walletLists.forEach((list) => {
     const listWrapperEl = document.createElement('div')
+    listWrapperEl.classList.add('beacon-list__wrapper')
+
     container.appendChild(listWrapperEl)
 
     const listTitleEl = document.createElement('div')
@@ -109,7 +111,7 @@ export const preparePairingAlert = async (
 
         wallet.clickHandler()
         const modalEl: HTMLElement | null = shadowRoot.getElementById('beacon-modal__content')
-        if (modalEl) {
+        if (modalEl && wallet.enabled) {
           modalEl.innerHTML = `${
             wallet.logo
               ? `<p class="beacon-alert__title">Establishing Connection..</p>
