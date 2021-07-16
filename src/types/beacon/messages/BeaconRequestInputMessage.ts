@@ -3,7 +3,7 @@ import {
   PermissionRequest,
   OperationRequest,
   SignPayloadRequest,
-  EncryptPayloadRequest,
+  // EncryptPayloadRequest,
   BroadcastRequest
 } from '../../..'
 
@@ -32,10 +32,10 @@ export type SignPayloadRequestInput = Optional<SignPayloadRequest, IgnoredReques
  * @internalapi
  * @category DApp
  */
-export type EncryptPayloadRequestInput = Optional<
-  EncryptPayloadRequest,
-  IgnoredRequestInputProperties
->
+// export type EncryptPayloadRequestInput = Optional<
+//   EncryptPayloadRequest,
+//   IgnoredRequestInputProperties
+// >
 /**
  * @internalapi
  * @category DApp
@@ -49,6 +49,6 @@ export type BroadcastRequestInput = Optional<BroadcastRequest, IgnoredRequestInp
 export type BeaconRequestInputMessage =
   | PermissionRequestInput
   | OperationRequestInput
-  | EncryptPayloadRequestInput
+  // | EncryptPayloadRequestInput
   | SignPayloadRequestInput
   | BroadcastRequestInput

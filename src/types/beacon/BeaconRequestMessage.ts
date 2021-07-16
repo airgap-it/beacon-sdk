@@ -2,8 +2,8 @@ import {
   PermissionRequest,
   OperationRequest,
   SignPayloadRequest,
-  BroadcastRequest,
-  EncryptPayloadRequest
+  BroadcastRequest
+  // EncryptPayloadRequest
 } from '../..'
 
 /**
@@ -13,5 +13,5 @@ export type BeaconRequestMessage =
   | PermissionRequest
   | OperationRequest
   | SignPayloadRequest
-  | EncryptPayloadRequest
+  // | EncryptPayloadRequest
   | BroadcastRequest

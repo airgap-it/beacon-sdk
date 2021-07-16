@@ -1,3 +1,4 @@
-export enum EncryptionType {
-  ASYMMETRIC = 0
-}
+// TODO: ENCRYPTION
+// export enum EncryptionType {
+//   ASYMMETRIC = 0
+// }

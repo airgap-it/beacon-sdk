@@ -2,7 +2,7 @@ import {
   PermissionResponse,
   OperationResponse,
   SignPayloadResponse,
-  EncryptPayloadResponse,
+  // EncryptPayloadResponse,
   BroadcastResponse,
   AccountInfo
 } from '../../..'
@@ -30,7 +30,7 @@ export type SignPayloadResponseOutput = SignPayloadResponse
 /**
  * @category DApp
  */
-export type EncryptPayloadResponseOutput = EncryptPayloadResponse
+// export type EncryptPayloadResponseOutput = EncryptPayloadResponse
 /**
  * @category DApp
  */
@@ -44,5 +44,5 @@ export type BeaconResponseOutputMessage =
   | PermissionResponseOutput
   | OperationResponseOutput
   | SignPayloadResponseOutput
-  | EncryptPayloadResponseOutput
+  // | EncryptPayloadResponseOutput
   | BroadcastResponseOutput

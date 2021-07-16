@@ -3,6 +3,7 @@ import {
   OperationResponse,
   SignPayloadResponse,
   BroadcastResponse
+  // EncryptPayloadResponse
 } from '../..'
 import { ErrorResponse } from './messages/ErrorResponse'
 
@@ -13,5 +14,6 @@ export type BeaconResponseMessage =
   | PermissionResponse
   | OperationResponse
   | SignPayloadResponse
+  // | EncryptPayloadResponse
   | BroadcastResponse
   | ErrorResponse

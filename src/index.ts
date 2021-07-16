@@ -70,13 +70,13 @@ import { BeaconMessage } from './types/beacon/BeaconMessage'
 import { Serializer } from './Serializer'
 import { RequestPermissionInput } from './types/RequestPermissionInput'
 import { RequestSignPayloadInput } from './types/RequestSignPayloadInput'
-import { RequestEncryptPayloadInput } from './types/RequestEncryptPayloadInput'
+// import { RequestEncryptPayloadInput } from './types/RequestEncryptPayloadInput'
 import { RequestOperationInput } from './types/RequestOperationInput'
 import { RequestBroadcastInput } from './types/RequestBroadcastInput'
 import {
   PermissionResponseInput,
   SignPayloadResponseInput,
-  EncryptPayloadResponseInput,
+  // EncryptPayloadResponseInput,
   OperationResponseInput,
   BroadcastResponseInput,
   BeaconResponseInputMessage,
@@ -86,7 +86,7 @@ import {
 import {
   PermissionResponseOutput,
   SignPayloadResponseOutput,
-  EncryptPayloadResponseOutput,
+  // EncryptPayloadResponseOutput,
   OperationResponseOutput,
   BroadcastResponseOutput,
   BeaconResponseOutputMessage
@@ -94,7 +94,7 @@ import {
 import {
   PermissionRequestInput,
   SignPayloadRequestInput,
-  EncryptPayloadRequestInput,
+  // EncryptPayloadRequestInput,
   OperationRequestInput,
   BroadcastRequestInput,
   BeaconRequestInputMessage
@@ -102,7 +102,7 @@ import {
 import {
   PermissionRequestOutput,
   SignPayloadRequestOutput,
-  EncryptPayloadRequestOutput,
+  // EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,
   BeaconRequestOutputMessage
@@ -155,12 +155,12 @@ import { BlockExplorer } from './utils/block-explorer'
 import { TezblockBlockExplorer } from './utils/tezblock-blockexplorer'
 import { setDebugEnabled, getDebugEnabled } from './debug'
 import { ColorMode } from './types/ColorMode'
-import { EncryptPayloadRequest } from './types/beacon/messages/EncryptPayloadRequest'
-import { EncryptPayloadResponse } from './types/beacon/messages/EncryptPayloadResponse'
+// import { EncryptPayloadRequest } from './types/beacon/messages/EncryptPayloadRequest'
+// import { EncryptPayloadResponse } from './types/beacon/messages/EncryptPayloadResponse'
 import { EncryptionTypeNotSupportedBeaconError } from './errors/EncryptionTypeNotSupportedBeaconError'
 import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotSupportedBeaconError'
-import { EncryptionType } from './types/EncryptionType'
-import { EncryptionOperation } from './types/EncryptionOperation'
+// import { EncryptionType } from './types/EncryptionType'
+// import { EncryptionOperation } from './types/EncryptionOperation'
 
 // Tezos
 export {
@@ -217,9 +217,9 @@ export {
   OperationRequest,
   OperationResponse,
   SignPayloadRequest,
-  EncryptPayloadRequest,
+  // EncryptPayloadRequest,
   SignPayloadResponse,
-  EncryptPayloadResponse,
+  // EncryptPayloadResponse,
   BroadcastRequest,
   BroadcastResponse,
   AcknowledgeResponse,
@@ -231,14 +231,14 @@ export {
   AccountInfo,
   Threshold,
   SigningType,
-  EncryptionType,
-  EncryptionOperation,
+  // EncryptionType,
+  // EncryptionOperation,
   ExtensionMessageTarget,
   ExtensionMessage,
   EncryptedExtensionMessage,
   RequestPermissionInput,
   RequestSignPayloadInput,
-  RequestEncryptPayloadInput,
+  // RequestEncryptPayloadInput,
   RequestOperationInput,
   RequestBroadcastInput,
   PermissionInfo
@@ -247,24 +247,24 @@ export {
 export {
   PermissionResponseInput,
   SignPayloadResponseInput,
-  EncryptPayloadResponseInput,
+  // EncryptPayloadResponseInput,
   OperationResponseInput,
   BroadcastResponseInput,
   AcknowledgeResponseInput,
   ErrorResponseInput,
   PermissionResponseOutput,
   SignPayloadResponseOutput,
-  EncryptPayloadResponseOutput,
+  // EncryptPayloadResponseOutput,
   OperationResponseOutput,
   BroadcastResponseOutput,
   PermissionRequestInput,
   SignPayloadRequestInput,
-  EncryptPayloadRequestInput,
+  // EncryptPayloadRequestInput,
   OperationRequestInput,
   BroadcastRequestInput,
   PermissionRequestOutput,
   SignPayloadRequestOutput,
-  EncryptPayloadRequestOutput,
+  // EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,
   BeaconRequestInputMessage,

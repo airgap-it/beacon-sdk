@@ -48,15 +48,15 @@ import {
   DappP2PTransport,
   DappPostMessageTransport,
   AppMetadataManager,
-  AppMetadata,
-  RequestEncryptPayloadInput,
-  EncryptPayloadResponseOutput,
-  EncryptPayloadResponse,
-  EncryptPayloadRequest
+  AppMetadata
+  // RequestEncryptPayloadInput,
+  // EncryptPayloadResponseOutput,
+  // EncryptPayloadResponse,
+  // EncryptPayloadRequest
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
 import {
-  EncryptPayloadRequestInput,
+  // EncryptPayloadRequestInput,
   IgnoredRequestInputProperties
 } from '../../types/beacon/messages/BeaconRequestInputMessage'
 import { getAccountIdentifier } from '../../utils/get-account-identifier'
@@ -535,8 +535,9 @@ export class DAppClient extends Client {
         return permissions.includes(PermissionScope.OPERATION_REQUEST)
       case BeaconMessageType.SignPayloadRequest:
         return permissions.includes(PermissionScope.SIGN)
-      case BeaconMessageType.EncryptPayloadRequest:
-        return permissions.includes(PermissionScope.ENCRYPT)
+      // TODO: ENCRYPTION
+      // case BeaconMessageType.EncryptPayloadRequest:
+      //   return permissions.includes(PermissionScope.ENCRYPT)
       case BeaconMessageType.BroadcastRequest:
         return true
       default:
@@ -689,55 +690,56 @@ export class DAppClient extends Client {
    *
    * @param input The message details we need to prepare the EncryptPayloadRequest message.
    */
-  public async requestEncryptPayload(
-    input: RequestEncryptPayloadInput
-  ): Promise<EncryptPayloadResponseOutput> {
-    if (!input.payload) {
-      throw await this.sendInternalError('Payload must be provided')
-    }
-    const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
-    if (!activeAccount) {
-      throw await this.sendInternalError('No active account!')
-    }
+  // TODO: ENCRYPTION
+  // public async requestEncryptPayload(
+  //   input: RequestEncryptPayloadInput
+  // ): Promise<EncryptPayloadResponseOutput> {
+  //   if (!input.payload) {
+  //     throw await this.sendInternalError('Payload must be provided')
+  //   }
+  //   const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
+  //   if (!activeAccount) {
+  //     throw await this.sendInternalError('No active account!')
+  //   }
 
-    const payload = input.payload
+  //   const payload = input.payload
 
-    if (typeof payload !== 'string') {
-      throw new Error('Payload must be a string')
-    }
+  //   if (typeof payload !== 'string') {
+  //     throw new Error('Payload must be a string')
+  //   }
 
-    if (typeof input.encryptionCryptoOperation === 'undefined') {
-      throw new Error('encryptionCryptoOperation must be defined')
-    }
+  //   if (typeof input.encryptionCryptoOperation === 'undefined') {
+  //     throw new Error('encryptionCryptoOperation must be defined')
+  //   }
 
-    if (typeof input.encryptionType === 'undefined') {
-      throw new Error('encryptionType must be defined')
-    }
+  //   if (typeof input.encryptionType === 'undefined') {
+  //     throw new Error('encryptionType must be defined')
+  //   }
 
-    const request: EncryptPayloadRequestInput = {
-      type: BeaconMessageType.EncryptPayloadRequest,
-      cryptoOperation: input.encryptionCryptoOperation,
-      encryptionType: input.encryptionType,
-      payload,
-      sourceAddress: input.sourceAddress || activeAccount.address
-    }
+  //   const request: EncryptPayloadRequestInput = {
+  //     type: BeaconMessageType.EncryptPayloadRequest,
+  //     cryptoOperation: input.encryptionCryptoOperation,
+  //     encryptionType: input.encryptionType,
+  //     payload,
+  //     sourceAddress: input.sourceAddress || activeAccount.address
+  //   }
 
-    const { message, connectionInfo } = await this.makeRequest<
-      EncryptPayloadRequest,
-      EncryptPayloadResponse
-    >(request).catch(async (requestError: ErrorResponse) => {
-      throw await this.handleRequestError(request, requestError)
-    })
+  //   const { message, connectionInfo } = await this.makeRequest<
+  //     EncryptPayloadRequest,
+  //     EncryptPayloadResponse
+  //   >(request).catch(async (requestError: ErrorResponse) => {
+  //     throw await this.handleRequestError(request, requestError)
+  //   })
 
-    await this.notifySuccess(request, {
-      account: activeAccount,
-      output: message,
-      connectionContext: connectionInfo,
-      walletInfo: await this.getWalletInfo()
-    })
+  //   await this.notifySuccess(request, {
+  //     account: activeAccount,
+  //     output: message,
+  //     connectionContext: connectionInfo,
+  //     walletInfo: await this.getWalletInfo()
+  //   })
 
-    return message
-  }
+  //   return message
+  // }
 
   /**
    * This method sends an OperationRequest to the wallet. This method should be used for all kinds of operations,
@@ -980,11 +982,11 @@ export class DAppClient extends Client {
           connectionContext: ConnectionContext
           walletInfo: WalletInfo
         }
-      | {
-          output: EncryptPayloadResponseOutput
-          connectionContext: ConnectionContext
-          walletInfo: WalletInfo
-        }
+      // | {
+      //     output: EncryptPayloadResponseOutput
+      //     connectionContext: ConnectionContext
+      //     walletInfo: WalletInfo
+      // }
       | {
           network: Network
           output: BroadcastResponseOutput

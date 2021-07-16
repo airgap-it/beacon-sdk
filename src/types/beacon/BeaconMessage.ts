@@ -5,8 +5,8 @@ import {
   OperationResponse,
   SignPayloadRequest,
   SignPayloadResponse,
-  EncryptPayloadRequest,
-  EncryptPayloadResponse,
+  // EncryptPayloadRequest,
+  // EncryptPayloadResponse,
   BroadcastRequest,
   BroadcastResponse,
   AcknowledgeResponse,
@@ -24,8 +24,8 @@ export type BeaconMessage =
   | OperationResponse
   | SignPayloadRequest
   | SignPayloadResponse
-  | EncryptPayloadRequest
-  | EncryptPayloadResponse
+  // | EncryptPayloadRequest
+  // | EncryptPayloadResponse
   | BroadcastRequest
   | BroadcastResponse
   | AcknowledgeResponse

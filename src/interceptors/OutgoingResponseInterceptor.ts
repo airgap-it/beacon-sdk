@@ -10,8 +10,8 @@ import {
   BroadcastResponse,
   PermissionInfo,
   AcknowledgeResponse,
-  AppMetadata,
-  EncryptPayloadResponse
+  AppMetadata
+  // EncryptPayloadResponse
 } from '..'
 import { PermissionManager } from '../managers/PermissionManager'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
@@ -148,16 +148,17 @@ export class OutgoingResponseInterceptor {
           interceptorCallbackWrapper(response)
         }
         break
-      case BeaconMessageType.EncryptPayloadResponse:
-        {
-          const response: EncryptPayloadResponse = {
-            senderId,
-            version: BEACON_VERSION,
-            ...message
-          }
-          interceptorCallbackWrapper(response)
-        }
-        break
+      // TODO: ENCRYPTION
+      // case BeaconMessageType.EncryptPayloadResponse:
+      //   {
+      //     const response: EncryptPayloadResponse = {
+      //       senderId,
+      //       version: BEACON_VERSION,
+      //       ...message
+      //     }
+      //     interceptorCallbackWrapper(response)
+      //   }
+      //   break
       case BeaconMessageType.BroadcastResponse:
         {
           const response: BroadcastResponse = {
