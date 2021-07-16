@@ -1019,20 +1019,28 @@ export class DAppClient extends Client {
       }
     }
 
+    const lowerCaseCompare = (str1?: string, str2?: string): boolean => {
+      if (str1 && str2) {
+        return str1.toLowerCase() === str2.toLowerCase()
+      }
+
+      return false
+    }
+
     let selectedApp: WebApp | App | DesktopApp | ExtensionApp | undefined
     let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
     // TODO: Remove once all wallets send the icon?
-    if (iOSList.find((app) => app.name === walletInfo?.name)) {
-      selectedApp = iOSList.find((app) => app.name === walletInfo?.name)
+    if (iOSList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = iOSList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
       type = 'mobile'
-    } else if (webList.find((app) => app.name === walletInfo?.name)) {
-      selectedApp = webList.find((app) => app.name === walletInfo?.name)
+    } else if (webList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = webList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
       type = 'web'
-    } else if (desktopList.find((app) => app.name === walletInfo?.name)) {
-      selectedApp = desktopList.find((app) => app.name === walletInfo?.name)
+    } else if (desktopList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = desktopList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
       type = 'desktop'
-    } else if (extensionList.find((app) => app.name === walletInfo?.name)) {
-      selectedApp = extensionList.find((app) => app.name === walletInfo?.name)
+    } else if (extensionList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = extensionList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
       type = 'extension'
     }
 
