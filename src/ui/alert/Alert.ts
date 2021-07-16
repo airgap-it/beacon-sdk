@@ -36,12 +36,12 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
 
 const timeout: Record<string, number | undefined> = {}
 
-const addQR = (dataString: string): string => {
+const addQR = (dataString?: string): string => {
   if (typeof dataString === 'string') {
     return `<div id="beacon--qr__container"><div id="beacon--qr__copy__container"><button class="beacon-modal__button--outline" id="beacon--qr__copy">Copy</button></div></div>${dataString}`
   }
 
-  return dataString
+  return ''
 }
 
 const formatAlert = (
@@ -189,7 +189,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     })) ?? [])
   ]
 
-  const formattedBody = addQR(body ?? '')
+  const formattedBody = pairingPayload ? addQR(body) : body ?? ''
 
   const { style, html } = formatAlert(
     id,
