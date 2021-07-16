@@ -21,7 +21,8 @@
 .theme__light .beacon-list__title {
   color: #7c828b;
 }
-.theme__dark .beacon-list__title {
+.theme__dark .beacon-list__title,
+.theme__dark #beacon--disclaimer {
   color: #7c99d6;
 }
 
