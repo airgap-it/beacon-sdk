@@ -127,7 +127,7 @@ export class DAppClient extends Client {
 
   private readonly appMetadataManager: AppMetadataManager
 
-  private readonly disclaimerText: string | undefined
+  private readonly disclaimerText?: string
 
   constructor(config: DAppClientOptions) {
     super({
