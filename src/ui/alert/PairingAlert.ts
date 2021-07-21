@@ -111,7 +111,7 @@ export const preparePairingAlert = async (
 
         wallet.clickHandler()
         const modalEl: HTMLElement | null = shadowRoot.getElementById('beacon-modal__content')
-        if (modalEl && list.type !== WalletType.EXTENSION) {
+        if (modalEl && list.type !== WalletType.EXTENSION && list.type !== WalletType.IOS) {
           modalEl.innerHTML = `${
             wallet.logo
               ? `<p class="beacon-alert__title">Establishing Connection..</p>
