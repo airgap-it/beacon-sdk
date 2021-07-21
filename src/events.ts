@@ -153,7 +153,7 @@ export interface BeaconEventType {
     postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
     preferredNetwork: NetworkType
     abortedHandler?(): void
-    disclaimerText: string | undefined
+    disclaimerText?: string
   }
   [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
   [BeaconEvent.CHANNEL_CLOSED]: string
