@@ -1,7 +1,7 @@
-import * as chai from 'chai'
-import * as chaiAsPromised from 'chai-as-promised'
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
 import 'mocha'
-import * as sinon from 'sinon'
+import sinon from 'sinon'
 
 import { ChromeStorage, StorageKey } from '../../src'
 
