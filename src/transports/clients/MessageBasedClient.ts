@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { BEACON_VERSION } from '../../constants'
 import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
 import { PostMessagePairingResponse } from '../../types/PostMessagePairingResponse'

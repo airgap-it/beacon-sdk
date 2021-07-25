@@ -1,5 +1,5 @@
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 
 /**
  * Generate a random GUID

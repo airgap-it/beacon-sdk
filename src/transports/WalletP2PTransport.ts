@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { Storage, StorageKey, P2PTransport, P2PPairingRequest } from '..'
 
 // const logger = new Logger('DappP2PTransport')

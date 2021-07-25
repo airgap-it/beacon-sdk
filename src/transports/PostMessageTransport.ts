@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { windowRef } from '../MockWindow'
 import { Logger } from '../utils/Logger'
 import { PeerManager } from '../managers/PeerManager'

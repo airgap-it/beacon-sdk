@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { TransportStatus, StorageKey, PostMessageTransport, Storage } from '..'
 import { Logger } from '../utils/Logger'
 import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'

@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { ExposedPromise } from '../../utils/exposed-promise'
 import { generateGUID } from '../../utils/generate-uuid'
 import { getKeypairFromSeed, toHex } from '../../utils/crypto'

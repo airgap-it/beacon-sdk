@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": false /* Can't get strict mode to work in tests because type imports don't work */,
     "noImplicitAny": false,
-    "esModuleInterop": false
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true
   }
 }
