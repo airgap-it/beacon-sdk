@@ -1,8 +1,6 @@
 {
   "extends": "./tsconfig-cjs.json",
   "compilerOptions": {
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
     "outDir": "./dist/browserify"
   }
 }
