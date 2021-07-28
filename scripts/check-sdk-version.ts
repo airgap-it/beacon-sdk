@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs'
-import { SDK_VERSION } from '../src/constants'
+import { SDK_VERSION } from '../packages/beacon-core/src/constants'
 
 const packageJson = './package.json'
 const packageLockJson = './package-lock.json'
