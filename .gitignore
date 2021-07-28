@@ -73,6 +73,7 @@ combined.webm
 
 examples/walletbeacon.min.js
 
+lib
 docs
 
 src/ui/alert/alert-templates.ts
