@@ -1,21 +1,20 @@
 import * as sodium from 'libsodium-wrappers'
 import { windowRef } from '../../MockWindow'
+import { Serializer } from '../..'
+
+import { openCryptobox } from '../../utils/crypto'
+import { getSenderId } from '../../utils/get-sender-id'
+import { MessageBasedClient } from './MessageBasedClient'
 import {
   ExtensionMessage,
   ExtensionMessageTarget,
   Origin,
-  Serializer,
-  ConnectionContext
-} from '../..'
-import {
+  ConnectionContext,
   ExtendedPostMessagePairingResponse,
-  PostMessagePairingResponse
-} from '../../types/PostMessagePairingResponse'
-import { EncryptedExtensionMessage } from '../../types/ExtensionMessage'
-import { openCryptobox } from '../../utils/crypto'
-import { getSenderId } from '../../utils/get-sender-id'
-import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
-import { MessageBasedClient } from './MessageBasedClient'
+  PostMessagePairingResponse,
+  EncryptedExtensionMessage,
+  PostMessagePairingRequest
+} from '@airgap/beacon-types'
 
 /**
  * @internalapi

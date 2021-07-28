@@ -4,7 +4,7 @@ import {
   SignPayloadRequest,
   BroadcastRequest
   // EncryptPayloadRequest
-} from '../..'
+} from '@airgap/beacon-types'
 
 /**
  * @internalapi

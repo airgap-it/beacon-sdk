@@ -1,4 +1,4 @@
-import { Optional } from '../../../utils/utils'
+import { Optional } from '@airgap/beacon-types'
 import {
   PermissionResponse,
   OperationResponse,
@@ -7,7 +7,7 @@ import {
   BroadcastResponse,
   AcknowledgeResponse,
   ErrorResponse
-} from '../../..'
+} from '@airgap/beacon-types'
 
 /**
  * @category Wallet

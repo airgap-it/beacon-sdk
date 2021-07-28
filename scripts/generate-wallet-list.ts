@@ -1,7 +1,13 @@
 import * as path from 'path'
 import * as fs from 'fs'
-import { NetworkType } from '../src/types/beacon/NetworkType'
-import { ExtensionApp, WebApp, App, AppBase, DesktopApp } from '../src/ui/alert/Pairing'
+import { NetworkType } from '../packages/beacon-types/src/types/beacon/NetworkType'
+import {
+  ExtensionApp,
+  WebApp,
+  App,
+  AppBase,
+  DesktopApp
+} from '../packages/beacon-core/src/ui/alert/Pairing'
 
 export const extensionList: ExtensionApp[] = [
   {

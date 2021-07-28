@@ -6,12 +6,12 @@ import {
   AppMetadata,
   OperationRequestOutput,
   SignPayloadRequestOutput,
-  BroadcastRequestOutput
+  BroadcastRequestOutput,
+  ConnectionContext,
+  BeaconRequestMessage
   // EncryptPayloadRequestOutput
-} from '..'
-import { ConnectionContext } from '../types/ConnectionContext'
+} from '@airgap/beacon-types'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
-import { BeaconRequestMessage } from '../types/beacon/BeaconRequestMessage'
 import { Logger } from '../utils/Logger'
 
 const logger = new Logger('IncomingRequestInterceptor')

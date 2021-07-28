@@ -1,4 +1,4 @@
-import { Storage, StorageKey, StorageKeyReturnType } from '..'
+import { Storage, StorageKey, StorageKeyReturnType } from '@airgap/beacon-types'
 import { StorageManager, ArrayElem } from './StorageManager'
 
 /**

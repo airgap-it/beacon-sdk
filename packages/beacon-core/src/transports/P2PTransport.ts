@@ -1,18 +1,17 @@
 import * as sodium from 'libsodium-wrappers'
 import { Logger } from '../utils/Logger'
-import { ConnectionContext } from '../types/ConnectionContext'
 import {
+  ConnectionContext,
+  ExtendedP2PPairingResponse,
   Storage,
   StorageKey,
   TransportStatus,
-  Transport,
   TransportType,
-  P2PCommunicationClient,
   Origin,
   P2PPairingRequest
-} from '..'
+} from '@airgap/beacon-types'
+import { Transport, P2PCommunicationClient } from '..'
 import { PeerManager } from '../managers/PeerManager'
-import { ExtendedP2PPairingResponse } from '../types/P2PPairingResponse'
 
 const logger = new Logger('P2PTransport')
 

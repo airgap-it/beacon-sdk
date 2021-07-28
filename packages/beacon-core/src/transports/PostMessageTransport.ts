@@ -2,18 +2,21 @@ import * as sodium from 'libsodium-wrappers'
 import { windowRef } from '../MockWindow'
 import { Logger } from '../utils/Logger'
 import { PeerManager } from '../managers/PeerManager'
-import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
-import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'
 import { ExposedPromise } from '../utils/exposed-promise'
-import { Extension } from '../types/Extension'
-import { StorageKey } from '../types/storage/StorageKey'
-import { TransportType } from '../types/transport/TransportType'
-import { ExtensionMessage } from '../types/ExtensionMessage'
-import { ExtensionMessageTarget } from '../types/ExtensionMessageTarget'
-import { TransportStatus } from '../types/transport/TransportStatus'
-import { ConnectionContext } from '../types/ConnectionContext'
-import { Origin } from '../types/Origin'
-import { Storage } from '../storage/Storage'
+
+import {
+  PostMessagePairingRequest,
+  ExtendedPostMessagePairingResponse,
+  Extension,
+  StorageKey,
+  TransportType,
+  ExtensionMessage,
+  ExtensionMessageTarget,
+  TransportStatus,
+  ConnectionContext,
+  Origin
+} from '@airgap/beacon-types'
+import { Storage } from '@airgap/beacon-types'
 import { PostMessageClient } from './clients/PostMessageClient'
 import { Transport } from './Transport'
 

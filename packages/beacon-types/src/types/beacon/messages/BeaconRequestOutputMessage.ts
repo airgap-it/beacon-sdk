@@ -1,4 +1,4 @@
-import { Optional } from '../../../utils/utils'
+import { Optional } from '@airgap/beacon-types'
 import {
   AppMetadata,
   PermissionRequest,
@@ -6,7 +6,7 @@ import {
   SignPayloadRequest,
   // EncryptPayloadRequest,
   BroadcastRequest
-} from '../../..'
+} from '@airgap/beacon-types'
 
 /**
  * @category Wallet

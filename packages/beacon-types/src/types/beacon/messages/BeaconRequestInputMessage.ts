@@ -1,11 +1,11 @@
-import { Optional } from '../../../utils/utils'
+import { Optional } from '@airgap/beacon-types'
 import {
   PermissionRequest,
   OperationRequest,
   SignPayloadRequest,
   // EncryptPayloadRequest,
   BroadcastRequest
-} from '../../..'
+} from '@airgap/beacon-types'
 
 /**
  * @internalapi

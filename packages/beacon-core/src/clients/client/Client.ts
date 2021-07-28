@@ -1,21 +1,20 @@
 import { ExposedPromise, ExposedPromiseStatus } from '../../utils/exposed-promise'
-import { ConnectionContext } from '../../types/ConnectionContext'
 import {
-  Serializer,
+  ConnectionContext,
   TransportType,
   TransportStatus,
   BeaconBaseMessage,
   AccountInfo,
   PeerInfo,
-  Transport,
   BeaconMessageType,
   DisconnectMessage,
-  AppMetadata
-} from '../..'
+  AppMetadata,
+  BeaconRequestMessage
+} from '@airgap/beacon-types'
+import { Serializer, Transport } from '../..'
 import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
-import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
 import { generateGUID } from '../../utils/generate-uuid'
 import { BEACON_VERSION } from '../../constants'
 import { getSenderId } from '../../utils/get-sender-id'

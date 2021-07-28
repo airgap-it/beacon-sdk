@@ -6,7 +6,7 @@ import {
   AppMetadata,
   PermissionInfo
 } from '../..'
-import { MatrixState } from '../../matrix-client/MatrixClientStore'
+// TODO: MOVE TYPE import { MatrixState } from '../../matrix-client/MatrixClientStore'
 import { ExtendedP2PPairingResponse } from '../P2PPairingResponse'
 import { PostMessagePairingRequest } from '../PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from '../PostMessagePairingResponse'
@@ -25,7 +25,7 @@ export interface StorageKeyReturnType {
   [StorageKey.APP_METADATA_LIST]: AppMetadata[]
   [StorageKey.PERMISSION_LIST]: PermissionInfo[]
   [StorageKey.BEACON_SDK_VERSION]: string | undefined
-  [StorageKey.MATRIX_PRESERVED_STATE]: Partial<MatrixState>
+  [StorageKey.MATRIX_PRESERVED_STATE]: any // TODO: TYPE Partial<MatrixState>
   [StorageKey.MATRIX_PEER_ROOM_IDS]: { [key: string]: string | undefined }
   [StorageKey.MATRIX_SELECTED_NODE]: string | undefined
   [StorageKey.MULTI_NODE_SETUP_DONE]: boolean | undefined

@@ -1,30 +1,27 @@
+import { Serializer, Client, WalletClientOptions, LocalStorage, WalletP2PTransport } from '../..'
+import { PermissionManager } from '../../managers/PermissionManager'
+import { AppMetadataManager } from '../../managers/AppMetadataManager'
 import {
-  Serializer,
-  Client,
-  BeaconMessage,
-  WalletClientOptions,
-  LocalStorage,
+  ConnectionContext,
+  BeaconRequestMessage,
+  BeaconMessageType,
+  AcknowledgeResponseInput,
+  ExtendedP2PPairingResponse,
+  ExtendedPeerInfo,
+  PeerInfo,
+  DisconnectMessage,
   TransportType,
   BeaconRequestOutputMessage,
   BeaconResponseInputMessage,
   AppMetadata,
   PermissionInfo,
   TransportStatus,
-  WalletP2PTransport,
-  DisconnectMessage
-} from '../..'
-import { PermissionManager } from '../../managers/PermissionManager'
-import { AppMetadataManager } from '../../managers/AppMetadataManager'
-import { ConnectionContext } from '../../types/ConnectionContext'
+  BeaconMessage
+} from '@airgap/beacon-types'
 import { IncomingRequestInterceptor } from '../../interceptors/IncomingRequestInterceptor'
 import { OutgoingResponseInterceptor } from '../../interceptors/OutgoingResponseInterceptor'
-import { BeaconRequestMessage } from '../../types/beacon/BeaconRequestMessage'
-import { BeaconMessageType } from '../../types/beacon/BeaconMessageType'
-import { AcknowledgeResponseInput } from '../../types/beacon/messages/BeaconResponseInputMessage'
 import { getSenderId } from '../../utils/get-sender-id'
-import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { ExposedPromise } from '../../utils/exposed-promise'
-import { ExtendedPeerInfo, PeerInfo } from '../../types/PeerInfo'
 import { Logger } from '../../utils/Logger'
 
 const logger = new Logger('WalletClient')

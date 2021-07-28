@@ -1,4 +1,4 @@
-import { NetworkType } from '../..'
+import { NetworkType } from '@airgap/beacon-types'
 
 export interface Network {
   type: NetworkType

@@ -12,7 +12,7 @@ import {
   AcknowledgeResponse,
   DisconnectMessage,
   ErrorResponse
-} from '../..'
+} from '@airgap/beacon-types'
 
 /**
  * @internalapi

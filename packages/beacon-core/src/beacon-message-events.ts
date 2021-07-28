@@ -1,5 +1,5 @@
 import { BeaconEvent } from './events'
-import { BeaconMessageType } from '.'
+import { BeaconMessageType } from '@airgap/beacon-types'
 
 export const messageEvents: {
   [key in BeaconMessageType]: { sent: BeaconEvent; success: BeaconEvent; error: BeaconEvent }

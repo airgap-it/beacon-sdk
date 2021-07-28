@@ -1,4 +1,4 @@
-import { Storage } from '../..'
+import { Storage } from '@airgap/beacon-types'
 import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../../events'
 
 /**

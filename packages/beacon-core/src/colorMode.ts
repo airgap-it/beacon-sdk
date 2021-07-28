@@ -1,4 +1,4 @@
-import { ColorMode } from './types/ColorMode'
+import { ColorMode } from '@airgap/beacon-types'
 
 let colorMode: ColorMode = ColorMode.LIGHT
 

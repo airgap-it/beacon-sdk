@@ -17,11 +17,16 @@ import {
 } from '../../matrix-client/models/MatrixClientEvent'
 import { MatrixMessageType } from '../../matrix-client/models/MatrixMessage'
 import { MatrixRoom } from '../../matrix-client/models/MatrixRoom'
-import { Storage } from '../../storage/Storage'
-import { P2PPairingRequest, PeerManager, StorageKey } from '../..'
+import {
+  Storage,
+  P2PPairingRequest,
+  StorageKey,
+  ExtendedP2PPairingResponse,
+  P2PPairingResponse
+} from '@airgap/beacon-types'
+import { PeerManager } from '../..'
 import { BEACON_VERSION } from '../../constants'
 import { generateGUID } from '../../utils/generate-uuid'
-import { ExtendedP2PPairingResponse, P2PPairingResponse } from '../../types/P2PPairingResponse'
 import { getSenderId } from '../../utils/get-sender-id'
 import { Logger } from '../../utils/Logger'
 import { CommunicationClient } from './CommunicationClient'

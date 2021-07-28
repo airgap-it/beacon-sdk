@@ -4,7 +4,7 @@ import {
   SignPayloadResponse,
   BroadcastResponse
   // EncryptPayloadResponse
-} from '../..'
+} from '@airgap/beacon-types'
 import { ErrorResponse } from './messages/ErrorResponse'
 
 /**

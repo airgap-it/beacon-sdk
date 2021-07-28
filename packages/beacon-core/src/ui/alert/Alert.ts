@@ -1,6 +1,6 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
-import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '../..'
+import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
 import { getColorMode } from '../../colorMode'
 import { generateGUID } from '../../utils/generate-uuid'
 import { replaceInTemplate } from '../../utils/replace-in-template'

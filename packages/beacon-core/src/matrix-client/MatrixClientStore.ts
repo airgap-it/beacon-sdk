@@ -1,7 +1,6 @@
 import { keys } from '../utils/utils'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
-import { Storage } from '../storage/Storage'
-import { StorageKey } from '..'
+import { Storage, StorageKey } from '@airgap/beacon-types'
 
 type OnStateChangedListener = (
   oldState: MatrixStateStore,

@@ -1,8 +1,10 @@
 import * as sodium from 'libsodium-wrappers'
-import { P2PPairingRequest } from '../..'
-import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
-import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'
-import { ExtendedPostMessagePairingResponse } from '../../types/PostMessagePairingResponse'
+import {
+  P2PPairingRequest,
+  ExtendedP2PPairingResponse,
+  PostMessagePairingRequest,
+  ExtendedPostMessagePairingResponse
+} from '@airgap/beacon-types'
 import { toHex, getHexHash, sealCryptobox } from '../../utils/crypto'
 
 /**

@@ -4,7 +4,7 @@ import {
   PermissionScope,
   AppMetadata,
   Network
-} from '../../..'
+} from '@airgap/beacon-types'
 
 /**
  * @category Message

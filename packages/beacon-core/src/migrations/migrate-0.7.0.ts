@@ -6,7 +6,7 @@ import {
   P2PPairingRequest,
   StorageKey,
   AccountInfo
-} from '..'
+} from '@airgap/beacon-types'
 
 export interface AccountInfoOld {
   accountIdentifier: AccountIdentifier

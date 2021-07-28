@@ -1,4 +1,4 @@
-import { Network, NetworkType } from '..'
+import { Network, NetworkType } from '@airgap/beacon-types'
 import { BlockExplorer } from './block-explorer'
 
 export class TezblockBlockExplorer extends BlockExplorer {

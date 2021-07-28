@@ -10,16 +10,16 @@ import {
   BroadcastResponse,
   PermissionInfo,
   AcknowledgeResponse,
-  AppMetadata
+  AppMetadata,
+  BeaconRequestMessage,
+  BeaconErrorType
   // EncryptPayloadResponse
-} from '..'
+} from '@airgap/beacon-types'
 import { PermissionManager } from '../managers/PermissionManager'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
 import { BEACON_VERSION } from '../constants'
 import { getAddressFromPublicKey } from '../utils/crypto'
 import { getAccountIdentifier } from '../utils/get-account-identifier'
-import { BeaconRequestMessage } from '../types/beacon/BeaconRequestMessage'
-import { BeaconErrorType } from '../types/BeaconErrorType'
 import { Logger } from '../utils/Logger'
 
 interface OutgoingResponseInterceptorOptions {

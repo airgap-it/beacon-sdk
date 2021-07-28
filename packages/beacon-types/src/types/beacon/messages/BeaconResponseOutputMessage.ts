@@ -5,7 +5,7 @@ import {
   // EncryptPayloadResponse,
   BroadcastResponse,
   AccountInfo
-} from '../../..'
+} from '@airgap/beacon-types'
 
 /**
  * @category DApp

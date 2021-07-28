@@ -1,5 +1,5 @@
 import { Serializer } from '../../Serializer'
-import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '../..'
+import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
 import { generateGUID } from '../../utils/generate-uuid'
 import { Logger } from '../../utils/Logger'
 import { isAndroid, isIOS } from '../../utils/platform'

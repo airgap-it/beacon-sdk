@@ -3,10 +3,10 @@ import {
   ExtensionMessage,
   ExtensionMessageTarget,
   NetworkType,
-  availableTransports,
   P2PPairingRequest,
   PostMessagePairingRequest
-} from '../..'
+} from '@airgap/beacon-types'
+import { availableTransports } from '../..'
 import { windowRef } from '../../MockWindow'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'

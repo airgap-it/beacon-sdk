@@ -1,27 +1,31 @@
 import { openAlert, AlertButton, AlertConfig, closeAlerts } from './ui/alert/Alert'
 import { closeToast, openToast, ToastAction } from './ui/toast/Toast'
-import { ExtendedP2PPairingResponse } from './types/P2PPairingResponse'
-import { PostMessagePairingRequest } from './types/PostMessagePairingRequest'
-import { ExtendedPostMessagePairingResponse } from './types/PostMessagePairingResponse'
+
 import { BlockExplorer } from './utils/block-explorer'
 import { Logger } from './utils/Logger'
 import { shortenString } from './utils/shorten-string'
-import { BeaconErrorType } from './types/BeaconErrorType'
 import {
+  BeaconErrorType,
+  ExtendedPostMessagePairingResponse,
+  PostMessagePairingRequest,
+  ExtendedP2PPairingResponse,
   P2PPairingRequest,
   AccountInfo,
   ErrorResponse,
-  UnknownBeaconError,
   PermissionResponseOutput,
   OperationResponseOutput,
   BroadcastResponseOutput,
   SignPayloadResponseOutput,
   Network,
-  BeaconError,
   ConnectionContext,
-  Transport,
   NetworkType,
   AcknowledgeResponse
+} from '@airgap/beacon-types'
+import {
+  UnknownBeaconError,
+  BeaconError,
+  Transport
+
   // EncryptPayloadResponseOutput,
   // EncryptionOperation
 } from '.'

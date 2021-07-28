@@ -1,4 +1,4 @@
-import { Storage, StorageKey, AppMetadata } from '..'
+import { Storage, StorageKey, AppMetadata } from '@airgap/beacon-types'
 import { StorageManager } from './StorageManager'
 
 /**

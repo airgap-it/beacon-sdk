@@ -5,7 +5,7 @@ import {
   Network,
   PermissionScope,
   Threshold
-} from '../../..'
+} from '@airgap/beacon-types'
 
 /**
  * @category Message

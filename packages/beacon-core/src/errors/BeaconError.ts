@@ -1,7 +1,6 @@
 import { assertNever } from '../utils/assert-never'
 import {
   AbortedBeaconError,
-  BeaconErrorType,
   UnknownBeaconError,
   NetworkNotSupportedBeaconError,
   NoAddressBeaconError,
@@ -14,6 +13,7 @@ import {
   BroadcastBeaconError
   // EncryptionTypeNotSupportedBeaconError
 } from '..'
+import { BeaconErrorType } from '@airgap/beacon-types'
 
 /**
  * @category Error

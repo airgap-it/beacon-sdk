@@ -1,6 +1,12 @@
 import { Logger } from '../utils/Logger'
-import { ConnectionContext } from '../types/ConnectionContext'
-import { TransportType, TransportStatus, PeerInfo, StorageKey, StorageKeyReturnType } from '..'
+import {
+  TransportType,
+  TransportStatus,
+  PeerInfo,
+  StorageKey,
+  StorageKeyReturnType,
+  ConnectionContext
+} from '@airgap/beacon-types'
 import { PeerManager } from '../managers/PeerManager'
 import { ArrayElem } from '../managers/StorageManager'
 import { CommunicationClient } from './clients/CommunicationClient'

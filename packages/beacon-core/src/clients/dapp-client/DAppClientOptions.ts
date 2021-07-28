@@ -1,7 +1,6 @@
-import { NetworkType, Storage } from '../..'
 import { BeaconEvent, BeaconEventType, BeaconEventHandlerFunction } from '../../events'
-import { ColorMode } from '../../types/ColorMode'
 import { BlockExplorer } from '../../utils/block-explorer'
+import { Storage, NetworkType, ColorMode } from '@airgap/beacon-types'
 
 /**
  * @category DApp

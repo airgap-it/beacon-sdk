@@ -1,4 +1,4 @@
-import { Storage, StorageKey, AccountInfo, BeaconMessage } from '..'
+import { Storage, StorageKey, AccountInfo, BeaconMessage } from '@airgap/beacon-types'
 import { StorageManager } from './StorageManager'
 import { PermissionValidator } from './PermissionValidator'
 

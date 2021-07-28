@@ -1,7 +1,12 @@
 import * as sodium from 'libsodium-wrappers'
-import { TransportStatus, StorageKey, PostMessageTransport, Storage } from '..'
+import {
+  TransportStatus,
+  StorageKey,
+  Storage,
+  ExtendedPostMessagePairingResponse
+} from '@airgap/beacon-types'
 import { Logger } from '../utils/Logger'
-import { ExtendedPostMessagePairingResponse } from '../types/PostMessagePairingResponse'
+import { PostMessageTransport } from '..'
 
 const logger = new Logger('DappPostMessageTransport')
 

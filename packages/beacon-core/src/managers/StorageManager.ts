@@ -1,4 +1,4 @@
-import { StorageKey, Storage, StorageKeyReturnType } from '..'
+import { StorageKey, Storage, StorageKeyReturnType } from '@airgap/beacon-types'
 
 /** Type workaround for https://github.com/Microsoft/TypeScript/issues/7294#issuecomment-465794460 */
 export type ArrayElem<A> = A extends (infer Elem)[] ? Elem : never

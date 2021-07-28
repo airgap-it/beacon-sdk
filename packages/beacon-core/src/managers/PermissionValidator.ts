@@ -1,5 +1,9 @@
-import { BeaconMessage, BeaconMessageType, PermissionScope } from '..'
-import { PermissionEntity } from '../types/PermissionEntity'
+import {
+  BeaconMessage,
+  BeaconMessageType,
+  PermissionScope,
+  PermissionEntity
+} from '@airgap/beacon-types'
 import { getAccountIdentifier } from '../utils/get-account-identifier'
 
 /**

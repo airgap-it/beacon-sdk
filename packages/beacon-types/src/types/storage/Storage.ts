@@ -1,5 +1,4 @@
-import { StorageKey } from '../types/storage/StorageKey'
-import { StorageKeyReturnType } from '../types/storage/StorageKeyReturnType'
+import { StorageKey, StorageKeyReturnType } from '@airgap/beacon-types'
 
 /**
  * @internalapi

@@ -5,10 +5,9 @@ import { generateGUID } from '../../utils/generate-uuid'
 import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType, WalletInfo } from '../../events'
 import { BEACON_VERSION } from '../../constants'
 import { getAddressFromPublicKey } from '../../utils/crypto'
-import { ConnectionContext } from '../../types/ConnectionContext'
 import {
+  ConnectionContext,
   AccountInfo,
-  Client,
   TransportType,
   StorageKey,
   BeaconMessageType,
@@ -28,8 +27,6 @@ import {
   RequestOperationInput,
   RequestBroadcastInput,
   PermissionRequest,
-  Serializer,
-  LocalStorage,
   PermissionResponseOutput,
   PermissionRequestInput,
   SignPayloadResponseOutput,
@@ -40,42 +37,43 @@ import {
   BroadcastRequestInput,
   BeaconRequestInputMessage,
   Network,
-  BeaconError,
   Origin,
-  PostMessageTransport,
   PeerInfo,
-  Transport,
-  DappP2PTransport,
-  DappPostMessageTransport,
-  AppMetadataManager,
-  AppMetadata
+  BeaconErrorType,
+  AppMetadata,
+  ExtendedP2PPairingResponse,
+  ExtendedPostMessagePairingResponse,
+  PostMessagePairingResponse,
+  SigningType,
+  ExtendedPeerInfo,
+  Optional,
+  ColorMode,
+  IgnoredRequestInputProperties
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
   // EncryptPayloadResponse,
   // EncryptPayloadRequest
+} from '@airgap/beacon-types'
+import {
+  Client,
+  Transport,
+  DappP2PTransport,
+  DappPostMessageTransport,
+  BeaconError,
+  PostMessageTransport,
+  AppMetadataManager,
+  Serializer,
+  LocalStorage
 } from '../..'
 import { messageEvents } from '../../beacon-message-events'
-import {
-  // EncryptPayloadRequestInput,
-  IgnoredRequestInputProperties
-} from '../../types/beacon/messages/BeaconRequestInputMessage'
 import { getAccountIdentifier } from '../../utils/get-account-identifier'
 import { BlockExplorer } from '../../utils/block-explorer'
 import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
-import { BeaconErrorType } from '../../types/BeaconErrorType'
 import { AlertButton } from '../../ui/alert/Alert'
-import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
-import {
-  ExtendedPostMessagePairingResponse,
-  PostMessagePairingResponse
-} from '../../types/PostMessagePairingResponse'
 import { getSenderId } from '../../utils/get-sender-id'
-import { SigningType } from '../../types/beacon/SigningType'
-import { ExtendedPeerInfo } from '../../types/PeerInfo'
-import { ColorMode } from '../../types/ColorMode'
+
 import { getColorMode, setColorMode } from '../../colorMode'
 import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wallet-lists'
-import { Optional } from '../../utils/utils'
 import { DAppClientOptions } from './DAppClientOptions'
 import { App, DesktopApp, ExtensionApp, WebApp } from '../../ui/alert/Pairing'
 

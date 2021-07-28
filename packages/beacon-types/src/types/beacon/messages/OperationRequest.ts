@@ -1,4 +1,4 @@
-import { BeaconBaseMessage, BeaconMessageType, Network } from '../../..'
+import { BeaconBaseMessage, BeaconMessageType, Network } from '@airgap/beacon-types'
 import { PartialTezosOperation } from '../../tezos/PartialTezosOperation'
 
 /**

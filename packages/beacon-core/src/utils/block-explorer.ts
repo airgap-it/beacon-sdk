@@ -1,4 +1,4 @@
-import { Network, NetworkType } from '..'
+import { Network, NetworkType } from '@airgap/beacon-types'
 
 export abstract class BlockExplorer {
   constructor(public readonly rpcUrls: { [key in NetworkType]: string }) {}
