@@ -1,4 +1,4 @@
-import { Serializer } from '../../Serializer'
+import { Serializer } from '@airgap/beacon-core'
 import {
   ExtensionMessage,
   ExtensionMessageTarget,
@@ -6,8 +6,7 @@ import {
   P2PPairingRequest,
   PostMessagePairingRequest
 } from '@airgap/beacon-types'
-import { availableTransports } from '../..'
-import { windowRef } from '../../MockWindow'
+import { availableTransports, windowRef } from '@airgap/beacon-core'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'

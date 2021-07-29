@@ -12,7 +12,6 @@ import {
   BeaconRequestMessage
 } from '@airgap/beacon-types'
 import { Serializer, Transport } from '../..'
-import { BeaconEventHandler, BeaconEvent } from '../../events'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { generateGUID } from '../../utils/generate-uuid'
@@ -51,8 +50,6 @@ export abstract class Client extends BeaconClient {
    */
   protected requestCounter: number[] = []
 
-  protected readonly events: BeaconEventHandler
-
   protected readonly matrixNodes: string[]
 
   protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
@@ -77,7 +74,6 @@ export abstract class Client extends BeaconClient {
   constructor(config: ClientOptions) {
     super(config)
 
-    this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
     this.accountManager = new AccountManager(config.storage)
     this.matrixNodes = config.matrixNodes ?? []
 
@@ -198,8 +194,6 @@ export abstract class Client extends BeaconClient {
         this._transport = new ExposedPromise()
       }
     }
-
-    await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport)
   }
 
   protected async addListener(transport: Transport<any>): Promise<void> {

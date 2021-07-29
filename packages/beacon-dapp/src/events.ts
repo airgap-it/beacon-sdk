@@ -1,9 +1,13 @@
-import { openAlert, AlertButton, AlertConfig, closeAlerts } from './ui/alert/Alert'
-import { closeToast, openToast, ToastAction } from './ui/toast/Toast'
-
-import { BlockExplorer } from './utils/block-explorer'
-import { Logger } from './utils/Logger'
-import { shortenString } from './utils/shorten-string'
+import {
+  BlockExplorer,
+  openAlert,
+  AlertButton,
+  AlertConfig,
+  closeAlerts,
+  closeToast,
+  openToast,
+  ToastAction
+} from '@airgap/beacon-dapp'
 import {
   BeaconErrorType,
   ExtendedPostMessagePairingResponse,
@@ -24,11 +28,12 @@ import {
 import {
   UnknownBeaconError,
   BeaconError,
-  Transport
-
+  Transport,
+  Logger
   // EncryptPayloadResponseOutput,
   // EncryptionOperation
-} from '.'
+} from '@airgap/beacon-core'
+import { shortenString } from './utils/shorten-string'
 import { isMobile } from './utils/platform'
 
 const logger = new Logger('BeaconEvents')

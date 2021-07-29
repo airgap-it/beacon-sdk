@@ -3,7 +3,6 @@ import { ExposedPromise } from '../../utils/exposed-promise'
 import { generateGUID } from '../../utils/generate-uuid'
 import { getKeypairFromSeed, toHex } from '../../utils/crypto'
 import { Storage, StorageKey } from '@airgap/beacon-types'
-import { BeaconEventHandler } from '../../events'
 import { SDK_VERSION } from '../../constants'
 import { windowRef } from '../../MockWindow'
 import { BeaconClientOptions } from './BeaconClientOptions'
@@ -39,8 +38,6 @@ export abstract class BeaconClient {
   }
 
   protected storage: Storage
-
-  protected readonly events: BeaconEventHandler = new BeaconEventHandler()
 
   /**
    * The local keypair that is used for the communication encryption

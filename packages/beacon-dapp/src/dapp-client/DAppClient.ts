@@ -1,10 +1,4 @@
-import { ExposedPromise } from '../../utils/exposed-promise'
-
-import { Logger } from '../../utils/Logger'
-import { generateGUID } from '../../utils/generate-uuid'
-import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType, WalletInfo } from '../../events'
-import { BEACON_VERSION } from '../../constants'
-import { getAddressFromPublicKey } from '../../utils/crypto'
+import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType, WalletInfo } from '../events'
 import {
   ConnectionContext,
   AccountInfo,
@@ -63,19 +57,25 @@ import {
   PostMessageTransport,
   AppMetadataManager,
   Serializer,
-  LocalStorage
-} from '../..'
-import { messageEvents } from '../../beacon-message-events'
-import { getAccountIdentifier } from '../../utils/get-account-identifier'
-import { BlockExplorer } from '../../utils/block-explorer'
-import { TezblockBlockExplorer } from '../../utils/tezblock-blockexplorer'
-import { AlertButton } from '../../ui/alert/Alert'
-import { getSenderId } from '../../utils/get-sender-id'
+  LocalStorage,
+  getAddressFromPublicKey,
+  getAccountIdentifier,
+  getSenderId,
+  BEACON_VERSION,
+  Logger,
+  ExposedPromise,
+  generateGUID
+} from '@airgap/beacon-core'
+import { messageEvents } from '../beacon-message-events'
+import { BlockExplorer } from '../utils/block-explorer'
+import { TezblockBlockExplorer } from '../utils/tezblock-blockexplorer'
+import { AlertButton } from '../ui/alert/Alert'
 
-import { getColorMode, setColorMode } from '../../colorMode'
-import { desktopList, extensionList, iOSList, webList } from '../../ui/alert/wallet-lists'
+import { getColorMode, setColorMode } from '../colorMode'
+import { desktopList, extensionList, iOSList, webList } from '../ui/alert/wallet-lists'
 import { DAppClientOptions } from './DAppClientOptions'
-import { App, DesktopApp, ExtensionApp, WebApp } from '../../ui/alert/Pairing'
+import { App, DesktopApp, ExtensionApp, WebApp } from '../ui/alert/Pairing'
+import { BeaconEventHandler } from 'src/events'
 
 const logger = new Logger('DAppClient')
 
@@ -94,6 +94,8 @@ export class DAppClient extends Client {
   public readonly blockExplorer: BlockExplorer
 
   public preferredNetwork: NetworkType
+
+  protected readonly events: BeaconEventHandler = new BeaconEventHandler()
 
   protected postMessageTransport: DappPostMessageTransport | undefined
   protected p2pTransport: DappP2PTransport | undefined
@@ -132,6 +134,7 @@ export class DAppClient extends Client {
       storage: config && config.storage ? config.storage : new LocalStorage(),
       ...config
     })
+    this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
     this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
@@ -847,7 +850,11 @@ export class DAppClient extends Client {
       this._initPromise = undefined
     }
 
-    return super.setTransport(transport)
+    const result = super.setTransport(transport)
+
+    await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport)
+
+    return result
   }
 
   /**

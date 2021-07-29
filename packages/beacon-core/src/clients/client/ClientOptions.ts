@@ -1,5 +1,4 @@
 import { Storage } from '@airgap/beacon-types'
-import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../../events'
 
 /**
  * @internalapi
@@ -24,23 +23,6 @@ export interface ClientOptions {
    * The storage that will be used by the SDK
    */
   storage: Storage
-
-  /**
-   * An object that will be used to overwrite default event handler behaviour.
-   *
-   * If you plan to overwrite all default events, use "disableDefaultEvents" instead.
-   *
-   * This will overwrite the default event handler, so this can lead to unexpected behavior in some cases.
-   * We recommend that you overwrite all handlers if you want to use your own UI.
-   *
-   * If you simply want to be notified of events happening, but do not want to overwrite the default behavior,
-   * please use `subscribeToEvent()` on the DAppClient instead.
-   */
-  eventHandlers?: {
-    [key in BeaconEvent]?: {
-      handler: BeaconEventHandlerFunction<BeaconEventType[key]>
-    }
-  }
 
   /**
    * Disable all default Events and UI elements. If passed together with "eventHandlers",

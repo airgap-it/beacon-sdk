@@ -1,5 +1,5 @@
 import qrcode from 'qrcode-generator'
-import { Logger } from './Logger'
+import { Logger } from '@airgap/beacon-core'
 
 const logger = new Logger('QR')
 

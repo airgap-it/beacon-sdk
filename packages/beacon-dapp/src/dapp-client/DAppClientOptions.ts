@@ -1,5 +1,5 @@
-import { BeaconEvent, BeaconEventType, BeaconEventHandlerFunction } from '../../events'
-import { BlockExplorer } from '../../utils/block-explorer'
+import { BeaconEvent, BeaconEventType, BeaconEventHandlerFunction } from '../events'
+import { BlockExplorer } from '../utils/block-explorer'
 import { Storage, NetworkType, ColorMode } from '@airgap/beacon-types'
 
 /**

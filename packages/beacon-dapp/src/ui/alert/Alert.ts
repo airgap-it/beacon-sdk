@@ -2,7 +2,7 @@
 
 import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
 import { getColorMode } from '../../colorMode'
-import { generateGUID } from '../../utils/generate-uuid'
+import { generateGUID } from '@airgap/beacon-core'
 import { replaceInTemplate } from '../../utils/replace-in-template'
 import { alertTemplates } from './alert-templates'
 import { preparePairingAlert } from './PairingAlert'

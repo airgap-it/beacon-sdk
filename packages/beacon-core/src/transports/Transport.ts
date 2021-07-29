@@ -196,5 +196,5 @@ export abstract class Transport<
     return
   }
 
-  abstract async listen(publicKey: string): Promise<void>
+  abstract listen(publicKey: string): Promise<void>
 }

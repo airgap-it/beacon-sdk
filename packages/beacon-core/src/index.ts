@@ -4,7 +4,6 @@
  */
 import { P2PCommunicationClient } from './transports/clients/P2PCommunicationClient'
 import { Client } from './clients/client/Client'
-import { DAppClient } from './clients/dapp-client/DAppClient'
 import { BeaconError } from './errors/BeaconError'
 import { BroadcastBeaconError } from './errors/BroadcastBeaconError'
 import { NetworkNotSupportedBeaconError } from './errors/NetworkNotSupportedBeaconError'
@@ -24,12 +23,10 @@ import { getStorage } from './storage/getStorage'
 import { Serializer } from './Serializer'
 // import { RequestEncryptPayloadInput } from './types/RequestEncryptPayloadInput'
 import { ClientOptions } from './clients/client/ClientOptions'
-import { DAppClientOptions } from './clients/dapp-client/DAppClientOptions'
 import { SDK_VERSION, BEACON_VERSION } from './constants'
 import { AccountManager } from './managers/AccountManager'
 import { AppMetadataManager } from './managers/AppMetadataManager'
 import { PermissionManager } from './managers/PermissionManager'
-import { BeaconEvent, BeaconEventHandler, defaultEventCallbacks } from './events'
 import { getAddressFromPublicKey } from './utils/crypto'
 import { BeaconClient } from './clients/beacon-client/BeaconClient'
 import { BeaconClientOptions } from './clients/beacon-client/BeaconClientOptions'
@@ -43,9 +40,6 @@ import { WalletPostMessageTransport } from './transports/WalletPostMessageTransp
 import { getSenderId } from './utils/get-sender-id'
 import { PeerManager } from './managers/PeerManager'
 import { MessageBasedClient } from './transports/clients/MessageBasedClient'
-import { Pairing } from './ui/alert/Pairing'
-import { BlockExplorer } from './utils/block-explorer'
-import { TezblockBlockExplorer } from './utils/tezblock-blockexplorer'
 import { setDebugEnabled, getDebugEnabled } from './debug'
 // import { EncryptPayloadRequest } from './types/beacon/messages/EncryptPayloadRequest'
 // import { EncryptPayloadResponse } from './types/beacon/messages/EncryptPayloadResponse'
@@ -55,19 +49,13 @@ import { Logger } from './utils/Logger'
 import { IncomingRequestInterceptor } from './interceptors/IncomingRequestInterceptor'
 import { OutgoingResponseInterceptor } from './interceptors/OutgoingResponseInterceptor'
 import { ExposedPromise } from './utils/exposed-promise'
+import { generateGUID } from './utils/generate-uuid'
+import { windowRef } from './MockWindow'
 // import { EncryptionType } from './types/EncryptionType'
 // import { EncryptionOperation } from './types/EncryptionOperation'
 
 // Clients
-export {
-  BeaconClient,
-  BeaconClientOptions,
-  Client,
-  ClientOptions,
-  DAppClient,
-  DAppClientOptions,
-  P2PCommunicationClient
-}
+export { BeaconClient, BeaconClientOptions, Client, ClientOptions, P2PCommunicationClient }
 
 // Errors
 export {
@@ -95,12 +83,8 @@ export {
   WalletPostMessageTransport,
   DappP2PTransport,
   DappPostMessageTransport,
-  MessageBasedClient,
-  Pairing
+  MessageBasedClient
 }
-
-// Events
-export { BeaconEvent, BeaconEventHandler, defaultEventCallbacks }
 
 // Storage
 export { ChromeStorage, LocalStorage, getStorage }
@@ -112,12 +96,7 @@ export { PeerManager, AccountManager, AppMetadataManager, PermissionManager }
 export { SDK_VERSION, BEACON_VERSION }
 
 // Utils
-export { getSenderId, getAccountIdentifier, getAddressFromPublicKey }
-
-// Pairing
-
-// BlockExplorer
-export { BlockExplorer, TezblockBlockExplorer }
+export { getSenderId, getAccountIdentifier, getAddressFromPublicKey, generateGUID, windowRef }
 
 // Others
 export {
