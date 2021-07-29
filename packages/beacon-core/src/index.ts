@@ -4,7 +4,6 @@
  */
 import { P2PCommunicationClient } from './transports/clients/P2PCommunicationClient'
 import { Client } from './clients/client/Client'
-import { WalletClient } from './clients/wallet-client/WalletClient'
 import { DAppClient } from './clients/dapp-client/DAppClient'
 import { BeaconError } from './errors/BeaconError'
 import { BroadcastBeaconError } from './errors/BroadcastBeaconError'
@@ -26,7 +25,6 @@ import { Serializer } from './Serializer'
 // import { RequestEncryptPayloadInput } from './types/RequestEncryptPayloadInput'
 import { ClientOptions } from './clients/client/ClientOptions'
 import { DAppClientOptions } from './clients/dapp-client/DAppClientOptions'
-import { WalletClientOptions } from './clients/wallet-client/WalletClientOptions'
 import { SDK_VERSION, BEACON_VERSION } from './constants'
 import { AccountManager } from './managers/AccountManager'
 import { AppMetadataManager } from './managers/AppMetadataManager'
@@ -53,6 +51,10 @@ import { setDebugEnabled, getDebugEnabled } from './debug'
 // import { EncryptPayloadResponse } from './types/beacon/messages/EncryptPayloadResponse'
 // import { EncryptionTypeNotSupportedBeaconError } from './errors/EncryptionTypeNotSupportedBeaconError'
 import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotSupportedBeaconError'
+import { Logger } from './utils/Logger'
+import { IncomingRequestInterceptor } from './interceptors/IncomingRequestInterceptor'
+import { OutgoingResponseInterceptor } from './interceptors/OutgoingResponseInterceptor'
+import { ExposedPromise } from './utils/exposed-promise'
 // import { EncryptionType } from './types/EncryptionType'
 // import { EncryptionOperation } from './types/EncryptionOperation'
 
@@ -64,8 +66,6 @@ export {
   ClientOptions,
   DAppClient,
   DAppClientOptions,
-  WalletClient,
-  WalletClientOptions,
   P2PCommunicationClient
 }
 
@@ -120,7 +120,14 @@ export { getSenderId, getAccountIdentifier, getAddressFromPublicKey }
 export { BlockExplorer, TezblockBlockExplorer }
 
 // Others
-export { Serializer, availableTransports }
+export {
+  Serializer,
+  availableTransports,
+  IncomingRequestInterceptor,
+  OutgoingResponseInterceptor,
+  ExposedPromise,
+  Logger
+}
 
 // Debug
 export { setDebugEnabled, getDebugEnabled }

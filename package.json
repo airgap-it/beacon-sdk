@@ -57,6 +57,7 @@
     "qrcode-generator": "1.4.4"
   },
   "devDependencies": {
+    "@types/bs58check": "^2.1.0",
     "@types/chai-as-promised": "7.1.2",
     "@types/mocha": "7.0.2",
     "@types/node": "14.0.1",
