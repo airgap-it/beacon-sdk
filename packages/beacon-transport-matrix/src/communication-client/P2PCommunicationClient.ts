@@ -8,15 +8,15 @@ import {
   openCryptobox,
   encryptCryptoboxPayload,
   decryptCryptoboxPayload
-} from '../../utils/crypto'
-import { MatrixClient } from '../../matrix-client/MatrixClient'
+} from '@airgap/beacon-utils'
+import { MatrixClient } from '../matrix-client/MatrixClient'
 import {
   MatrixClientEvent,
   MatrixClientEventType,
   MatrixClientEventMessageContent
-} from '../../matrix-client/models/MatrixClientEvent'
-import { MatrixMessageType } from '../../matrix-client/models/MatrixMessage'
-import { MatrixRoom } from '../../matrix-client/models/MatrixRoom'
+} from '../matrix-client/models/MatrixClientEvent'
+import { MatrixMessageType } from '../matrix-client/models/MatrixMessage'
+import { MatrixRoom } from '../matrix-client/models/MatrixRoom'
 import {
   Storage,
   P2PPairingRequest,
@@ -24,13 +24,15 @@ import {
   ExtendedP2PPairingResponse,
   P2PPairingResponse
 } from '@airgap/beacon-types'
-import { PeerManager } from '../..'
-import { BEACON_VERSION } from '../../constants'
-import { generateGUID } from '../../utils/generate-uuid'
-import { getSenderId } from '../../utils/get-sender-id'
-import { Logger } from '../../utils/Logger'
-import { CommunicationClient } from './CommunicationClient'
-import { ExposedPromise } from '../../utils/exposed-promise'
+import {
+  PeerManager,
+  BEACON_VERSION,
+  generateGUID,
+  getSenderId,
+  Logger,
+  CommunicationClient
+} from '@airgap/beacon-core'
+import { ExposedPromise } from '@airgap/beacon-utils'
 
 const logger = new Logger('P2PCommunicationClient')
 

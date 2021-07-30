@@ -5,7 +5,7 @@ import {
   PostMessagePairingRequest,
   ExtendedPostMessagePairingResponse
 } from '@airgap/beacon-types'
-import { toHex, getHexHash, sealCryptobox } from '../../utils/crypto'
+import { toHex, getHexHash, sealCryptobox } from '@airgap/beacon-utils'
 
 /**
  * @internalapi
@@ -100,10 +100,10 @@ export abstract class CommunicationClient {
     return sealCryptobox(message, Buffer.from(recipientPublicKey, 'hex'))
   }
 
-  abstract async unsubscribeFromEncryptedMessages(): Promise<void>
-  abstract async unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void>
-  // abstract async send(message: string, recipient?: string): Promise<void>
-  public abstract async sendMessage(
+  abstract unsubscribeFromEncryptedMessages(): Promise<void>
+  abstract unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void>
+  // abstract send(message: string, recipient?: string): Promise<void>
+  public abstract sendMessage(
     message: string,
     peer?:
       | P2PPairingRequest

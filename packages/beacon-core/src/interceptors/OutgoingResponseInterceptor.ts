@@ -18,7 +18,7 @@ import {
 import { PermissionManager } from '../managers/PermissionManager'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
 import { BEACON_VERSION } from '../constants'
-import { getAddressFromPublicKey } from '../utils/crypto'
+import { getAddressFromPublicKey } from '@airgap/beacon-utils'
 import { getAccountIdentifier } from '../utils/get-account-identifier'
 import { Logger } from '../utils/Logger'
 

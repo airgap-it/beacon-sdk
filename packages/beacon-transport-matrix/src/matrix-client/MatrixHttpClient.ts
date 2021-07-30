@@ -1,6 +1,6 @@
 import axios, { AxiosResponse, CancelTokenSource, Method as HttpMethod } from 'axios'
 
-import { keys } from '../utils/utils'
+import { keys } from '@airgap/beacon-utils'
 import { MatrixRequest, MatrixRequestParams } from './models/api/MatrixRequest'
 
 interface HttpOptions {

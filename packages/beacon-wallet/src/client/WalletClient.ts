@@ -2,15 +2,15 @@ import {
   Serializer,
   Client,
   LocalStorage,
-  WalletP2PTransport,
   PermissionManager,
   AppMetadataManager,
   IncomingRequestInterceptor,
   OutgoingResponseInterceptor,
   getSenderId,
-  ExposedPromise,
   Logger
 } from '@airgap/beacon-core'
+
+import { ExposedPromise } from '@airgap/beacon-utils'
 
 import {
   ConnectionContext,
@@ -30,6 +30,7 @@ import {
   BeaconMessage
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
+import { WalletP2PTransport } from 'src/transports/WalletP2PTransport'
 
 const logger = new Logger('WalletClient')
 

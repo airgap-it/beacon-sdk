@@ -10,7 +10,8 @@ import {
   Origin,
   P2PPairingRequest
 } from '@airgap/beacon-types'
-import { Transport, P2PCommunicationClient } from '..'
+import { Transport } from '..'
+import { P2PCommunicationClient } from '@airgap/beacon-transport-matrix'
 import { PeerManager } from '../managers/PeerManager'
 
 const logger = new Logger('P2PTransport')

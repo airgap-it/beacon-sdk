@@ -1,4 +1,4 @@
-import { ExposedPromise, ExposedPromiseStatus } from '../../utils/exposed-promise'
+import { ExposedPromise, ExposedPromiseStatus } from '@airgap/beacon-utils'
 import {
   ConnectionContext,
   TransportType,

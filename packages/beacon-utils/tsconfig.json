@@ -1,20 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./lib",
-    "baseUrl": ".",
-    "paths": {
-      "@airgap/beacon-core": ["../beacon-core/src"],
-      "@airgap/beacon-dapp": ["../beacon-dapp/src"],
-      "@airgap/beacon-protocol-substrate": ["../beacon-protocol-substrate/src"],
-      "@airgap/beacon-protocol-tezos": ["../beacon-protocol-tezos/src"],
-      "@airgap/beacon-transport-matrix": ["../beacon-transport-matrix/src"],
-      "@airgap/beacon-transport-postmessage": ["../beacon-transport-postmessage/src"],
-      "@airgap/beacon-types": ["../beacon-types/src"],
-      "@airgap/beacon-ui": ["../beacon-ui/src"],
-      "@airgap/beacon-utils": ["../beacon-utils/src"],
-      "@airgap/beacon-wallet": ["../beacon-wallet/src"]
-    }
+    "outDir": "./lib"
   },
   "include": ["./src"]
 }

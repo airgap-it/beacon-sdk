@@ -58,14 +58,13 @@ import {
   AppMetadataManager,
   Serializer,
   LocalStorage,
-  getAddressFromPublicKey,
   getAccountIdentifier,
   getSenderId,
   BEACON_VERSION,
   Logger,
-  ExposedPromise,
   generateGUID
 } from '@airgap/beacon-core'
+import { getAddressFromPublicKey, ExposedPromise } from '@airgap/beacon-utils'
 import { messageEvents } from '../beacon-message-events'
 import { BlockExplorer } from '../utils/block-explorer'
 import { TezblockBlockExplorer } from '../utils/tezblock-blockexplorer'

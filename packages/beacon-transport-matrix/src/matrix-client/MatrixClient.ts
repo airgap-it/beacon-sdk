@@ -1,6 +1,6 @@
 import { Storage } from '@airgap/beacon-types'
-import { Logger } from '../utils/Logger'
-import { ExposedPromise } from '../utils/exposed-promise'
+import { Logger } from '@airgap/beacon-core'
+import { ExposedPromise } from '@airgap/beacon-utils'
 import { MatrixClientStore } from './MatrixClientStore'
 import { MatrixHttpClient } from './MatrixHttpClient'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'

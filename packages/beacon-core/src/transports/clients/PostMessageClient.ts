@@ -2,7 +2,7 @@ import * as sodium from 'libsodium-wrappers'
 import { windowRef } from '../../MockWindow'
 import { Serializer } from '../..'
 
-import { openCryptobox } from '../../utils/crypto'
+import { openCryptobox } from '@airgap/beacon-utils'
 import { getSenderId } from '../../utils/get-sender-id'
 import { MessageBasedClient } from './MessageBasedClient'
 import {

@@ -2,7 +2,7 @@ import * as sodium from 'libsodium-wrappers'
 import { windowRef } from '../MockWindow'
 import { Logger } from '../utils/Logger'
 import { PeerManager } from '../managers/PeerManager'
-import { ExposedPromise } from '../utils/exposed-promise'
+import { ExposedPromise } from '@airgap/beacon-utils'
 
 import {
   PostMessagePairingRequest,

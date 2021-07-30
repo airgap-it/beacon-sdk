@@ -1,4 +1,4 @@
-import { keys } from '../utils/utils'
+import { keys } from '@airgap/beacon-utils'
 import { MatrixRoom, MatrixRoomStatus } from './models/MatrixRoom'
 import { Storage, StorageKey } from '@airgap/beacon-types'
 

@@ -2,7 +2,6 @@
  * General docs
  * @module public
  */
-import { P2PCommunicationClient } from './transports/clients/P2PCommunicationClient'
 import { Client } from './clients/client/Client'
 import { BeaconError } from './errors/BeaconError'
 import { BroadcastBeaconError } from './errors/BroadcastBeaconError'
@@ -27,7 +26,6 @@ import { SDK_VERSION, BEACON_VERSION } from './constants'
 import { AccountManager } from './managers/AccountManager'
 import { AppMetadataManager } from './managers/AppMetadataManager'
 import { PermissionManager } from './managers/PermissionManager'
-import { getAddressFromPublicKey } from './utils/crypto'
 import { BeaconClient } from './clients/beacon-client/BeaconClient'
 import { BeaconClientOptions } from './clients/beacon-client/BeaconClientOptions'
 import { getAccountIdentifier } from './utils/get-account-identifier'
@@ -35,8 +33,6 @@ import { AbortedBeaconError } from './errors/AbortedBeaconError'
 import { availableTransports } from './utils/available-transports'
 import { DappP2PTransport } from './transports/DappP2PTransport'
 import { DappPostMessageTransport } from './transports/DappPostMessageTransport'
-import { WalletP2PTransport } from './transports/WalletP2PTransport'
-import { WalletPostMessageTransport } from './transports/WalletPostMessageTransport'
 import { getSenderId } from './utils/get-sender-id'
 import { PeerManager } from './managers/PeerManager'
 import { MessageBasedClient } from './transports/clients/MessageBasedClient'
@@ -48,14 +44,14 @@ import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotS
 import { Logger } from './utils/Logger'
 import { IncomingRequestInterceptor } from './interceptors/IncomingRequestInterceptor'
 import { OutgoingResponseInterceptor } from './interceptors/OutgoingResponseInterceptor'
-import { ExposedPromise } from './utils/exposed-promise'
 import { generateGUID } from './utils/generate-uuid'
 import { windowRef } from './MockWindow'
+import { CommunicationClient } from './transports/clients/CommunicationClient'
 // import { EncryptionType } from './types/EncryptionType'
 // import { EncryptionOperation } from './types/EncryptionOperation'
 
 // Clients
-export { BeaconClient, BeaconClientOptions, Client, ClientOptions, P2PCommunicationClient }
+export { BeaconClient, BeaconClientOptions, Client, ClientOptions }
 
 // Errors
 export {
@@ -79,11 +75,10 @@ export {
   Transport,
   PostMessageTransport,
   P2PTransport,
-  WalletP2PTransport,
-  WalletPostMessageTransport,
   DappP2PTransport,
   DappPostMessageTransport,
-  MessageBasedClient
+  MessageBasedClient,
+  CommunicationClient
 }
 
 // Storage
@@ -96,7 +91,7 @@ export { PeerManager, AccountManager, AppMetadataManager, PermissionManager }
 export { SDK_VERSION, BEACON_VERSION }
 
 // Utils
-export { getSenderId, getAccountIdentifier, getAddressFromPublicKey, generateGUID, windowRef }
+export { getSenderId, getAccountIdentifier, generateGUID, windowRef }
 
 // Others
 export {
@@ -104,7 +99,6 @@ export {
   availableTransports,
   IncomingRequestInterceptor,
   OutgoingResponseInterceptor,
-  ExposedPromise,
   Logger
 }
 
