@@ -6,10 +6,11 @@ import {
   P2PPairingRequest,
   PostMessagePairingRequest
 } from '@airgap/beacon-types'
-import { availableTransports, windowRef } from '@airgap/beacon-core'
+import { windowRef } from '@airgap/beacon-core'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
+import { availableTransports } from 'src/utils/available-transports'
 
 const serializer = new Serializer()
 

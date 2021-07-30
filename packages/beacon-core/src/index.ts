@@ -13,9 +13,7 @@ import { ParametersInvalidBeaconError } from './errors/ParametersInvalidBeaconEr
 import { TooManyOperationsBeaconError } from './errors/TooManyOperationsBeaconError'
 import { TransactionInvalidBeaconError } from './errors/TransactionInvalidBeaconError'
 import { UnknownBeaconError } from './errors/UnknownBeaconError'
-import { PostMessageTransport } from './transports/PostMessageTransport'
 import { Transport } from './transports/Transport'
-import { P2PTransport } from './transports/P2PTransport'
 import { ChromeStorage } from './storage/ChromeStorage'
 import { LocalStorage } from './storage/LocalStorage'
 import { getStorage } from './storage/getStorage'
@@ -30,9 +28,6 @@ import { BeaconClient } from './clients/beacon-client/BeaconClient'
 import { BeaconClientOptions } from './clients/beacon-client/BeaconClientOptions'
 import { getAccountIdentifier } from './utils/get-account-identifier'
 import { AbortedBeaconError } from './errors/AbortedBeaconError'
-import { availableTransports } from './utils/available-transports'
-import { DappP2PTransport } from './transports/DappP2PTransport'
-import { DappPostMessageTransport } from './transports/DappPostMessageTransport'
 import { getSenderId } from './utils/get-sender-id'
 import { PeerManager } from './managers/PeerManager'
 import { MessageBasedClient } from './transports/clients/MessageBasedClient'
@@ -71,15 +66,7 @@ export {
 }
 
 // Transport
-export {
-  Transport,
-  PostMessageTransport,
-  P2PTransport,
-  DappP2PTransport,
-  DappPostMessageTransport,
-  MessageBasedClient,
-  CommunicationClient
-}
+export { Transport, MessageBasedClient, CommunicationClient }
 
 // Storage
 export { ChromeStorage, LocalStorage, getStorage }
@@ -94,13 +81,7 @@ export { SDK_VERSION, BEACON_VERSION }
 export { getSenderId, getAccountIdentifier, generateGUID, windowRef }
 
 // Others
-export {
-  Serializer,
-  availableTransports,
-  IncomingRequestInterceptor,
-  OutgoingResponseInterceptor,
-  Logger
-}
+export { Serializer, IncomingRequestInterceptor, OutgoingResponseInterceptor, Logger }
 
 // Debug
 export { setDebugEnabled, getDebugEnabled }

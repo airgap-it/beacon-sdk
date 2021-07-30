@@ -1,6 +1,6 @@
 import * as sodium from 'libsodium-wrappers'
 import { StorageKey, Storage, PostMessagePairingRequest } from '@airgap/beacon-types'
-import { PostMessageTransport } from '@airgap/beacon-core'
+import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 
 // const logger = new Logger('WalletPostMessageTransport')
 

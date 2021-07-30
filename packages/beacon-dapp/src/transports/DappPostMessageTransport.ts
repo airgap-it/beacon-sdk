@@ -5,8 +5,8 @@ import {
   Storage,
   ExtendedPostMessagePairingResponse
 } from '@airgap/beacon-types'
-import { Logger } from '../utils/Logger'
-import { PostMessageTransport } from '..'
+import { Logger } from '@airgap/beacon-core'
+import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 
 const logger = new Logger('DappPostMessageTransport')
 

@@ -5,8 +5,8 @@ import {
   TransportStatus,
   ExtendedP2PPairingResponse
 } from '@airgap/beacon-types'
-import { P2PTransport } from '..'
-import { Logger } from '../utils/Logger'
+import { Logger } from '@airgap/beacon-core'
+import { P2PTransport } from '@airgap/beacon-transport-matrix'
 
 const logger = new Logger('DappP2PTransport')
 

@@ -1,7 +1,7 @@
 import * as sodium from 'libsodium-wrappers'
-import { windowRef } from '../MockWindow'
-import { Logger } from '../utils/Logger'
-import { PeerManager } from '../managers/PeerManager'
+import { windowRef } from '../../beacon-core/src/MockWindow'
+import { Logger } from '../../beacon-core/src/utils/Logger'
+import { PeerManager } from '../../beacon-core/src/managers/PeerManager'
 import { ExposedPromise } from '@airgap/beacon-utils'
 
 import {
@@ -17,8 +17,8 @@ import {
   Origin
 } from '@airgap/beacon-types'
 import { Storage } from '@airgap/beacon-types'
-import { PostMessageClient } from './clients/PostMessageClient'
-import { Transport } from './Transport'
+import { PostMessageClient } from '../../beacon-core/src/transports/clients/PostMessageClient'
+import { Transport } from '../../beacon-core/src/transports/Transport'
 
 const logger = new Logger('PostMessageTransport')
 
