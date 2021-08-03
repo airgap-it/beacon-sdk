@@ -11,7 +11,17 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@airgap/beacon-sdk": ["./src/index.ts"]
+      "@airgap/beacon-sdk": ["./src/index.ts"],
+      "@airgap/beacon-core": ["./src/beacon-core/src"],
+      "@airgap/beacon-dapp": ["./src/beacon-dapp/src"],
+      "@airgap/beacon-protocol-kusama": ["./src/beacon-protocol-kusama/src"],
+      "@airgap/beacon-protocol-tezos": ["./src/beacon-protocol-tezos/src"],
+      "@airgap/beacon-transport-matrix": ["./src/beacon-transport-matrix/src"],
+      "@airgap/beacon-transport-postmessage": ["./src/beacon-transport-postmessage/src"],
+      "@airgap/beacon-types": ["./src/beacon-types/src"],
+      "@airgap/beacon-ui": ["./src/beacon-ui/src"],
+      "@airgap/beacon-utils": ["./src/beacon-utils/src"],
+      "@airgap/beacon-wallet": ["./src/beacon-wallet/src"]
     },
     /* Strict Type-Checking Options */
     "strict": true /* Enable all strict type-checking options. */,

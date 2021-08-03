@@ -15,12 +15,12 @@ const replaceInFile: (file: string, src: string, dest: string) => void = (
  */
 
 replaceInFile(
-  './src/utils/qr.ts',
+  './packages/beacon-dapp/src/utils/qr.ts',
   `import qrcode from 'qrcode-generator'`,
   `import * as qrcode from 'qrcode-generator'`
 )
 replaceInFile(
-  './src/utils/qr.ts',
+  './packages/beacon-dapp/src/utils/qr.ts',
   `const qr = qrcode(typeNumber, errorCorrectionLevel)`,
   `const qr = (qrcode as any)(typeNumber, errorCorrectionLevel)`
 )
