@@ -1,10 +1,7 @@
 import * as sodium from 'libsodium-wrappers'
-import { windowRef } from '../../MockWindow'
-import { Serializer } from '../..'
+import { windowRef, Serializer, getSenderId, MessageBasedClient } from '@airgap/beacon-core'
 
 import { openCryptobox } from '@airgap/beacon-utils'
-import { getSenderId } from '../../utils/get-sender-id'
-import { MessageBasedClient } from './MessageBasedClient'
 import {
   ExtensionMessage,
   ExtensionMessageTarget,

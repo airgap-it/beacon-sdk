@@ -10,19 +10,6 @@
     "typeRoots": ["./node_modules/@types", "./src/typings"],
     "sourceMap": true,
     "baseUrl": ".",
-    "paths": {
-      "@airgap/beacon-sdk": ["./src/index.ts"],
-      "@airgap/beacon-core": ["./src/beacon-core/src"],
-      "@airgap/beacon-dapp": ["./src/beacon-dapp/src"],
-      "@airgap/beacon-protocol-kusama": ["./src/beacon-protocol-kusama/src"],
-      "@airgap/beacon-protocol-tezos": ["./src/beacon-protocol-tezos/src"],
-      "@airgap/beacon-transport-matrix": ["./src/beacon-transport-matrix/src"],
-      "@airgap/beacon-transport-postmessage": ["./src/beacon-transport-postmessage/src"],
-      "@airgap/beacon-types": ["./src/beacon-types/src"],
-      "@airgap/beacon-ui": ["./src/beacon-ui/src"],
-      "@airgap/beacon-utils": ["./src/beacon-utils/src"],
-      "@airgap/beacon-wallet": ["./src/beacon-wallet/src"]
-    },
     /* Strict Type-Checking Options */
     "strict": true /* Enable all strict type-checking options. */,
     "noImplicitAny": true /* Raise error on expressions and declarations with an implied 'any' type. */,
@@ -38,5 +25,28 @@
     "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
     "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */
   },
-  "include": ["src/**/*.ts"]
+  "paths": {
+    "beacon-core": ["packages/beacon-core/lib/beacon-core", "packages/beacon-core/lib"],
+    "beacon-dapp": ["packages/beacon-dapp/lib/beacon-dapp", "packages/beacon-dapp/lib"],
+    "beacon-protocol-kusama": [
+      "packages/beacon-protocol-kusama/lib/beacon-protocol-kusama",
+      "packages/beacon-protocol-kusama/lib"
+    ],
+    "beacon-protocol-tezos": [
+      "packages/beacon-protocol-tezos/lib/beacon-protocol-tezos",
+      "packages/beacon-protocol-tezos/lib"
+    ],
+    "beacon-transport-matrix": [
+      "packages/beacon-transport-matrix/lib/beacon-transport-matrix",
+      "packages/beacon-transport-matrix/lib"
+    ],
+    "beacon-transport-postmessage": [
+      "packages/beacon-transport-postmessage/lib/beacon-transport-postmessage",
+      "packages/beacon-transport-postmessage/lib"
+    ],
+    "beacon-types": ["packages/beacon-types/lib/beacon-types", "packages/beacon-types/lib"],
+    "beacon-ui": ["packages/beacon-ui/lib/beacon-ui", "packages/beacon-ui/lib"],
+    "beacon-utils": ["packages/beacon-utils/lib/beacon-utils", "packages/beacon-utils/lib"],
+    "beacon-wallet": ["packages/beacon-wallet/lib/beacon-wallet", "packages/beacon-wallet/lib"]
+  }
 }

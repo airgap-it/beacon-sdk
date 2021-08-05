@@ -4,10 +4,7 @@
     "outDir": "./lib",
     "baseUrl": ".",
     "paths": {
-      "@airgap/beacon-transport-matrix": ["../beacon-transport-matrix/src"],
-      "@airgap/beacon-core": ["../beacon-core/src"],
-      "@airgap/beacon-types": ["../beacon-types/src"],
-      "@airgap/beacon-utils": ["../beacon-utils/src"]
+      "@airgap/beacon-transport-matrix": ["./src"]
     }
   },
   "include": ["./src"]
