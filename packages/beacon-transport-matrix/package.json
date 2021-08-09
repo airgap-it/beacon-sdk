@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@airgap/beacon-core": "^0.0.1-beta.0",
-    "@airgap/beacon-utils": "^0.0.1-beta.0"
+    "@airgap/beacon-utils": "^0.0.1-beta.0",
+    "axios": "0.21.1"
   }
 }

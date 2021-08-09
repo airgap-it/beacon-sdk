@@ -64,14 +64,7 @@
     "@airgap/beacon-types": "file:packages/beacon-types",
     "@airgap/beacon-ui": "file:packages/beacon-ui",
     "@airgap/beacon-utils": "file:packages/beacon-utils",
-    "@airgap/beacon-wallet": "file:packages/beacon-wallet",
-    "@types/chrome": "0.0.115",
-    "@types/libsodium-wrappers": "0.7.7",
-    "axios": "0.21.1",
-    "bignumber.js": "9.0.0",
-    "bs58check": "2.1.2",
-    "libsodium-wrappers": "0.7.8",
-    "qrcode-generator": "1.4.4"
+    "@airgap/beacon-wallet": "file:packages/beacon-wallet"
   },
   "devDependencies": {
     "@types/bs58check": "^2.1.0",

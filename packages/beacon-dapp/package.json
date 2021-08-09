@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@airgap/beacon-core": "^0.0.1-beta.0",
-    "@airgap/beacon-transport-postmessage": "^0.0.1-beta.0"
+    "@airgap/beacon-transport-postmessage": "^0.0.1-beta.0",
+    "qrcode-generator": "1.4.4"
   }
 }
