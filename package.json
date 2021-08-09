@@ -23,7 +23,7 @@
   },
   "scripts": {
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
-    "build": "npm run pretest && lerna run tsc && npm run posttest && cp ./dist/walletbeacon.min.js ./examples/walletbeacon.min.js",
+    "build": "npm run pretest && lerna run tsc && npm run posttest",
     "browserify-build": "tsc -p ./tsconfig-browserify.json && browserify ./dist/browserify/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js && rm -rf dist/browserify",
     "prettier": "prettier --write 'src/**/*' '**/src/**/*' 'docs/**/*.md' 'example-dapp.html' 'example-wallet.html'",
     "lint": "eslint 'src/**/*.ts'",
