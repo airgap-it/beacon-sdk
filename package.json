@@ -46,7 +46,12 @@
     "typedoc": "typedoc src/index.ts --includeVersion --internal-aliases publicapi --external-aliases internalapi --logLevel Verbose --listInvalidSymbolLinks && ts-node --project tsconfig-cjs.json scripts/process-docs.ts",
     "publish": "lerna run tsc && lerna publish",
     "build-old": "npm run pretest && tsc -p tsconfig.json && tsc -p ./tsconfig-cjs.json && npm run browserify && npm run posttest && cp ./dist/walletbeacon.min.js ./examples/walletbeacon.min.js",
-    "browserify-old": "npm run pretest && tsc -p ./tsconfig-browserify.json && npm run posttest && browserify ./dist/browserify/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js && rm -rf dist/browserify"
+    "browserify-old": "npm run pretest && tsc -p ./tsconfig-browserify.json && npm run posttest && browserify ./dist/browserify/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js && rm -rf dist/browserify",
+    "bump:version": "lerna version --no-git-tag-version",
+    "bump:major": "lerna version --no-git-tag-version major --yes",
+    "bump:minor": "lerna version --no-git-tag-version minor --yes",
+    "bump:patch": "lerna version --no-git-tag-version patch --yes",
+    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --yes"
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
