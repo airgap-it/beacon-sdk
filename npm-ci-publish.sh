@@ -8,10 +8,10 @@ VERSION=$(node -pe 'JSON.parse(process.argv[1]).version.indexOf("beta")' "$(cat 
 
 if [ "$VERSION" = "-1" ]
 then
-  npx lerna publish from-package --contents dist --yes
+  npx lerna publish from-package --contents lib --yes
 else
   echo "version is beta, using --tag next"
-  npx lerna publish from-package --contents dist --dist-tag next --yes
+  npx lerna publish from-package --contents lib --dist-tag next --yes
 fi
 
 rm .npmrc

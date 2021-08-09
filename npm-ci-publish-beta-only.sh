@@ -11,7 +11,7 @@ then
   echo "cannot publish non-beta version"
 else
   echo "version is beta, using --tag next"
-  npx lerna publish from-package --contents dist --dist-tag next --yes
+  npx lerna publish from-package --contents lib --dist-tag next --yes
 fi
 
 rm .npmrc
