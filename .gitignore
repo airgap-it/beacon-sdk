@@ -76,6 +76,6 @@ examples/walletbeacon.min.js
 lib
 docs
 
-src/ui/alert/alert-templates.ts
-src/ui/toast/toast-templates.ts
-src/ui/alert/wallet-lists.ts
+packages/beacon-dapp/src/ui/alert/alert-templates.ts
+packages/beacon-dapp/src/ui/toast/toast-templates.ts
+packages/beacon-dapp/src/ui/alert/wallet-lists.ts
