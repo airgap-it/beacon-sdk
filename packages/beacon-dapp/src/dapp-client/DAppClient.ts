@@ -71,9 +71,9 @@ import { getColorMode, setColorMode } from '../colorMode'
 import { desktopList, extensionList, iOSList, webList } from '../ui/alert/wallet-lists'
 import { DAppClientOptions } from './DAppClientOptions'
 import { App, DesktopApp, ExtensionApp, WebApp } from '../ui/alert/Pairing'
-import { BeaconEventHandler } from 'src/events'
-import { DappPostMessageTransport } from 'src/transports/DappPostMessageTransport'
-import { DappP2PTransport } from 'src/transports/DappP2PTransport'
+import { BeaconEventHandler } from '@airgap/beacon-dapp'
+import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
+import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 
 const logger = new Logger('DAppClient')

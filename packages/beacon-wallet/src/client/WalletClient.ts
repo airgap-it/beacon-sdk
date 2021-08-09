@@ -30,7 +30,7 @@ import {
   BeaconMessage
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
-import { WalletP2PTransport } from 'src/transports/WalletP2PTransport'
+import { WalletP2PTransport } from '../transports/WalletP2PTransport'
 
 const logger = new Logger('WalletClient')
 
