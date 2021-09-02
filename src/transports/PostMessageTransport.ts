@@ -87,8 +87,6 @@ export class PostMessageTransport<
       windowRef.addEventListener('message', fn)
 
       setTimeout(() => {
-        // TODO: Should we allow extensions to register after the timeout has passed?
-        windowRef.removeEventListener('message', fn)
         if (extensions) {
           extensions.resolve(localExtensions)
         }
