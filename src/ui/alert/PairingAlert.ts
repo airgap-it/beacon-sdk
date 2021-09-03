@@ -20,6 +20,7 @@ const logger = new Logger('Alert')
 const serializer = new Serializer()
 
 export const preparePairingAlert = async (
+  id: string,
   shadowRoot: ShadowRoot,
   pairingPayload: {
     p2pSyncCode: () => Promise<P2PPairingRequest>
@@ -163,7 +164,15 @@ export const preparePairingAlert = async (
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const closeFn = (event: any): void => {
+    if (event.data === `closeAlert-${id}`) {
+      windowRef.removeEventListener('message', messageFn)
+    }
+  }
+
   windowRef.addEventListener('message', messageFn)
+  windowRef.addEventListener('message', closeFn)
 
   const qr: HTMLElement | null = shadowRoot.getElementById(`beacon--qr__container`)
   const copyButton: HTMLElement | null = shadowRoot.getElementById(`beacon--qr__copy`)
