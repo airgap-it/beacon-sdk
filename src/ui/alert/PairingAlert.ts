@@ -165,9 +165,12 @@ export const preparePairingAlert = async (
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const closeFn = (event: any): void => {
+  let closeFn: (event: any) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  closeFn = (event: any): void => {
     if (event.data === `closeAlert-${id}`) {
       windowRef.removeEventListener('message', messageFn)
+      windowRef.removeEventListener('message', closeFn)
     }
   }
 
