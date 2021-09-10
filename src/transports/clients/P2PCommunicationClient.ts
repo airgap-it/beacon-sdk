@@ -126,37 +126,11 @@ export class P2PCommunicationClient extends CommunicationClient {
       this.relayServer = new ExposedPromise()
     }
 
-    // MIGRATION: If a relay server is set, it's all good and we don't have to do any migration
     const node = await this.storage.get(StorageKey.MATRIX_SELECTED_NODE)
     if (node && node.length > 0) {
       this.relayServer.resolve(node)
       return node
-    } else if (KNOWN_RELAY_SERVERS === this.KNOWN_RELAY_SERVERS) {
-      // Migration start
-      // Only if the array of nodes is the default we do the migration, otherwise we leave it.
-      // If NO relay server is set, we have 3 possibilities:
-
-      const hasDoneMigration = await this.storage.get(StorageKey.MULTI_NODE_SETUP_DONE)
-      if (!hasDoneMigration) {
-        // If this migration has run before, we can skip it.
-        const preservedState = await this.storage.get(StorageKey.MATRIX_PRESERVED_STATE)
-        console.log('PRESERVED STATE', preservedState)
-        if (preservedState.syncToken || preservedState.rooms) {
-          // If migration has NOT run and we have a sync state, we know have been previously connected. So we set the old default relayServer as our current node.
-          const node = 'matrix.papers.tech' // 2.2.7 Migration: This will default to the old default to avoid peers from losing their relayServer.
-          this.storage
-            .set(StorageKey.MATRIX_SELECTED_NODE, node)
-            .catch((error) => logger.log(error))
-          this.relayServer.resolve(node)
-          return node
-        }
-
-        this.storage.set(StorageKey.MULTI_NODE_SETUP_DONE, true).catch((error) => logger.log(error))
-        // Migration end
-      }
     }
-
-    console.log('GET RELAY SERVER')
 
     const startIndex = publicKeyToNumber(this.keyPair.publicKey, this.KNOWN_RELAY_SERVERS.length)
     let offset = 0

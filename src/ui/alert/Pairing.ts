@@ -3,13 +3,13 @@ import {
   ExtensionMessage,
   ExtensionMessageTarget,
   NetworkType,
-  availableTransports,
   P2PPairingRequest,
   PostMessagePairingRequest
 } from '../..'
 import { windowRef } from '../../MockWindow'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
+import { PostMessageTransport } from '../../transports/PostMessageTransport'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
 
 const serializer = new Serializer()
@@ -150,7 +150,7 @@ export class Pairing {
     mobileWalletHandler: (pairingCode: string) => Promise<void>,
     network: NetworkType
   ): Promise<PairingAlertInfo> {
-    const availableExtensions = await availableTransports.availableExtensions
+    const availableExtensions = await PostMessageTransport.getAvailableExtensions()
 
     availableExtensions.forEach((ext) => {
       const index = defaultExtensions.indexOf(ext.id)
