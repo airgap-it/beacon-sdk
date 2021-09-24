@@ -229,7 +229,7 @@ const showAcknowledgedToast = async (data: {
 }
 
 const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => {
-  const text = data.walletInfo ? `Preparing Request for {{wallet}}...` : 'Preparing Request...'
+  const text = data.walletInfo ? `Preparing Request for&nbsp;{{wallet}}...` : 'Preparing Request...'
   openToast({
     body: `<span class="beacon-toast__wallet__outer">${text}<span>`,
     state: 'prepare',
