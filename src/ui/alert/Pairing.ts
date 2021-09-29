@@ -53,6 +53,7 @@ export interface WebApp extends AppBase {
     [NetworkType.EDONET]?: string
     [NetworkType.FLORENCENET]?: string
     [NetworkType.GRANADANET]?: string
+    [NetworkType.HANGZHOUNET]?: string
     [NetworkType.CUSTOM]?: string
   }
 }
@@ -339,11 +340,26 @@ export class Pairing {
         color: app.color,
         logo: app.logo,
         enabled: true,
-        async clickHandler(): Promise<void> {
-          const code = await serializer.serialize(await pairingCode())
-          const link = getTzip10Link(app.links[network] ?? app.links[NetworkType.MAINNET], code)
-          window.open(link, '_blank')
-          statusUpdateHandler(WalletType.WEB, this, true)
+        clickHandler(): void {
+          const newTab = window.open('', '_blank')
+
+          pairingCode()
+            .then((code) => serializer.serialize(code))
+            .then((code) => {
+              const link = getTzip10Link(app.links[network] ?? app.links[NetworkType.MAINNET], code)
+
+              if (newTab) {
+                newTab.location.href = link
+              } else {
+                window.open(link, '_blank')
+              }
+
+              statusUpdateHandler(WalletType.WEB, this, true)
+            })
+            .catch((error) => {
+              // eslint-disable-next-line no-console
+              console.error(error)
+            })
         }
       }))
       .sort((a, b) => a.key.localeCompare(b.key))
