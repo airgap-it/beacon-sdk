@@ -485,7 +485,7 @@ describe(`DAppClient`, () => {
       expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET) // Called in the constructor
       expect(eventsStub.firstCall.args[1]).to.equal(undefined)
       expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.INTERNAL_ERROR)
-      expect(eventsStub.secondCall.args[1]).to.equal('No active account set!')
+      expect(eventsStub.secondCall.args[1]).to.deep.equal({ text: 'No active account set!' })
       expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET) // Called in the constructor
       expect(eventsStub.thirdCall.args[1]).to.equal(undefined)
       expect(eventsStub.callCount).to.equal(3)
@@ -861,7 +861,7 @@ describe(`DAppClient`, () => {
     } catch (e) {
       expect(eventsStub.callCount).to.equal(2)
       expect(eventsStub.firstCall.args[0]).to.equal(BeaconEvent.INTERNAL_ERROR)
-      expect(eventsStub.firstCall.args[1]).to.equal('some-message')
+      expect(eventsStub.firstCall.args[1]).to.deep.equal({ text: 'some-message' })
       expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
       expect(eventsStub.secondCall.args[1]).to.equal(undefined)
       expect(e.message).to.equal('some-message')
