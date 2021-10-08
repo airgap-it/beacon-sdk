@@ -430,7 +430,6 @@ export class DAppClient extends Client {
   }
 
   public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
-    console.log('HIDE UI')
     await this.events.emit(BeaconEvent.HIDE_UI, elements)
   }
 
