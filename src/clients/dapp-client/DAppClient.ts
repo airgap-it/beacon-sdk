@@ -1163,7 +1163,8 @@ export class DAppClient extends Client {
       await (await this.transport).send(payload, peer)
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
-        text: 'Unable to send message. If this problem persists, please reset the connection.',
+        text:
+          'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
         buttons: [
           {
             text: 'Reset Connection',
