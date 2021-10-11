@@ -211,7 +211,6 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     walletInfo: data.walletInfo,
     state: 'loading',
     actions,
-    forceNew: true,
     openWalletAction
   }).catch((toastError) => console.error(toastError))
 }

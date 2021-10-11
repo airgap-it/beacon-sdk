@@ -351,9 +351,23 @@ const updateToast = async (toastConfig: ToastConfig): Promise<void> => {
     }, EXPAND_AFTER)
   }
 
-  const toastTextEl = shadowRoot.getElementById('beacon-text')
+  const toastTextEl = shadowRoot.getElementById('beacon-text-content')
   if (toastTextEl) {
     toastTextEl.innerHTML = formatToastText(toastConfig.body)
+  }
+
+  const openWalletButtonEl = shadowRoot.getElementById('beacon-open-wallet')
+  if (openWalletButtonEl) {
+    if (toastConfig.openWalletAction) {
+      openWalletButtonEl.classList.remove('hide')
+      openWalletButtonEl.addEventListener('click', () => {
+        if (toastConfig.openWalletAction) {
+          toastConfig.openWalletAction()
+        }
+      })
+    } else {
+      openWalletButtonEl.classList.add('hide')
+    }
   }
 
   if (timer) {
