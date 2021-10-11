@@ -173,10 +173,10 @@ const hideLoader = (shadowRoot: ShadowRoot): void => {
   showElement(shadowRoot, 'beacon-toast-loader-placeholder')
 }
 
-// const showToggle = (): void => {
-//   showElement('beacon-toast-button-expand')
-//   hideElement('beacon-toast-button-close')
-// }
+const showExpand = (shadowRoot: ShadowRoot): void => {
+  showElement(shadowRoot, 'beacon-toast-button-expand')
+  hideElement(shadowRoot, 'beacon-toast-button-close')
+}
 
 const showClose = (shadowRoot: ShadowRoot): void => {
   showElement(shadowRoot, 'beacon-toast-button-close')
@@ -238,6 +238,7 @@ const addActionsToToast = async (
     poweredByBeacon.innerHTML = toastTemplates.default.poweredByBeacon
 
     list.appendChild(poweredByBeacon)
+    showExpand(shadowRoot)
   } else {
     showClose(shadowRoot)
     collapseList(shadowRoot)
@@ -341,9 +342,32 @@ const updateToast = async (toastConfig: ToastConfig): Promise<void> => {
     await addActionsToToast(shadowRoot, toastConfig, list)
   }
 
-  const toastTextEl = shadowRoot.getElementById('beacon-text')
+  if (globalToastConfig.state === 'loading') {
+    expandTimeout = window.setTimeout(async () => {
+      const expandButton = shadowRoot.getElementById('beacon-toast-button-expand')
+      if (expandButton && !expandButton.classList.contains('beacon-toast__upside_down')) {
+        expandOrCollapseList(shadowRoot)
+      }
+    }, EXPAND_AFTER)
+  }
+
+  const toastTextEl = shadowRoot.getElementById('beacon-text-content')
   if (toastTextEl) {
     toastTextEl.innerHTML = formatToastText(toastConfig.body)
+  }
+
+  const openWalletButtonEl = shadowRoot.getElementById('beacon-open-wallet')
+  if (openWalletButtonEl) {
+    if (toastConfig.openWalletAction) {
+      openWalletButtonEl.classList.remove('hide')
+      openWalletButtonEl.addEventListener('click', () => {
+        if (toastConfig.openWalletAction) {
+          toastConfig.openWalletAction()
+        }
+      })
+    } else {
+      openWalletButtonEl.classList.add('hide')
+    }
   }
 
   if (timer) {
