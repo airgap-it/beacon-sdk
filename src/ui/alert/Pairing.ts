@@ -3,13 +3,13 @@ import {
   ExtensionMessage,
   ExtensionMessageTarget,
   NetworkType,
-  availableTransports,
   P2PPairingRequest,
   PostMessagePairingRequest
 } from '../..'
 import { windowRef } from '../../MockWindow'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
+import { PostMessageTransport } from '../../transports/PostMessageTransport'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
 
 const serializer = new Serializer()
@@ -53,6 +53,7 @@ export interface WebApp extends AppBase {
     [NetworkType.EDONET]?: string
     [NetworkType.FLORENCENET]?: string
     [NetworkType.GRANADANET]?: string
+    [NetworkType.HANGZHOUNET]?: string
     [NetworkType.CUSTOM]?: string
   }
 }
@@ -150,7 +151,7 @@ export class Pairing {
     mobileWalletHandler: (pairingCode: string) => Promise<void>,
     network: NetworkType
   ): Promise<PairingAlertInfo> {
-    const availableExtensions = await availableTransports.availableExtensions
+    const availableExtensions = await PostMessageTransport.getAvailableExtensions()
 
     availableExtensions.forEach((ext) => {
       const index = defaultExtensions.indexOf(ext.id)
@@ -339,11 +340,26 @@ export class Pairing {
         color: app.color,
         logo: app.logo,
         enabled: true,
-        async clickHandler(): Promise<void> {
-          const code = await serializer.serialize(await pairingCode())
-          const link = getTzip10Link(app.links[network] ?? app.links[NetworkType.MAINNET], code)
-          window.open(link, '_blank')
-          statusUpdateHandler(WalletType.WEB, this, true)
+        clickHandler(): void {
+          const newTab = window.open('', '_blank')
+
+          pairingCode()
+            .then((code) => serializer.serialize(code))
+            .then((code) => {
+              const link = getTzip10Link(app.links[network] ?? app.links[NetworkType.MAINNET], code)
+
+              if (newTab) {
+                newTab.location.href = link
+              } else {
+                window.open(link, '_blank')
+              }
+
+              statusUpdateHandler(WalletType.WEB, this, true)
+            })
+            .catch((error) => {
+              // eslint-disable-next-line no-console
+              console.error(error)
+            })
         }
       }))
       .sort((a, b) => a.key.localeCompare(b.key))

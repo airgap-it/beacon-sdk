@@ -147,7 +147,7 @@ export interface BeaconEventType {
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
-  [BeaconEvent.HIDE_UI]: undefined
+  [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
   [BeaconEvent.PAIR_INIT]: {
     p2pPeerInfo: () => Promise<P2PPairingRequest>
     postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
@@ -157,7 +157,7 @@ export interface BeaconEventType {
   }
   [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
   [BeaconEvent.CHANNEL_CLOSED]: string
-  [BeaconEvent.INTERNAL_ERROR]: string
+  [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[] }
   [BeaconEvent.UNKNOWN]: undefined
 }
 
@@ -229,7 +229,7 @@ const showAcknowledgedToast = async (data: {
 }
 
 const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => {
-  const text = data.walletInfo ? `Preparing Request for {{wallet}}...` : 'Preparing Request...'
+  const text = data.walletInfo ? `Preparing Request for&nbsp;{{wallet}}...` : 'Preparing Request...'
   openToast({
     body: `<span class="beacon-toast__wallet__outer">${text}<span>`,
     state: 'prepare',
@@ -237,9 +237,17 @@ const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => 
   }).catch((toastError) => console.error(toastError))
 }
 
-const hideUI = async (): Promise<void> => {
-  closeToast()
-  closeAlerts()
+const hideUI = async (elements?: ('alert' | 'toast')[]): Promise<void> => {
+  if (elements) {
+    if (elements.includes('alert')) {
+      closeAlerts()
+    }
+    if (elements.includes('toast')) {
+      closeToast()
+    }
+  } else {
+    closeToast()
+  }
 }
 
 /**
@@ -339,10 +347,14 @@ const showChannelClosedAlert = async (): Promise<void> => {
 const showInternalErrorAlert = async (
   data: BeaconEventType[BeaconEvent.INTERNAL_ERROR]
 ): Promise<void> => {
+  const buttons: AlertButton[] = [...(data.buttons ?? [])]
+
+  buttons.push({ text: 'Done', style: 'outline' })
+
   const alertConfig: AlertConfig = {
     title: 'Internal Error',
-    body: `${data}`,
-    buttons: [{ text: 'Done', style: 'outline' }]
+    body: data.text,
+    buttons
   }
   await openAlert(alertConfig)
 }
