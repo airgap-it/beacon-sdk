@@ -29,18 +29,27 @@ import { ExposedPromise } from '../../utils/exposed-promise'
 
 const logger = new Logger('P2PCommunicationClient')
 
-const KNOWN_RELAY_SERVERS = [
+export const KNOWN_RELAY_SERVERS = [
   'beacon-node-1.sky.papers.tech',
   'beacon-node-0.papers.tech:8448',
   'beacon-node-2.sky.papers.tech'
 ]
-
-const publicKeyToNumber = (arr: Uint8Array, mod: number) => {
+export const publicKeyToNumber = (arr: Uint8Array, mod: number) => {
   let sum = 0
   for (let i = 0; i < arr.length; i++) {
     sum += arr[i] + i
   }
   return Math.floor(sum % mod)
+}
+
+export const deterministicShuffle = (arr: string[], keypair: sodium.KeyPair) => {
+  const arrCopy: string[] = JSON.parse(JSON.stringify(arr))
+  const newArr: string[] = []
+  while (arrCopy.length > 0) {
+    const position = publicKeyToNumber(keypair.publicKey, arrCopy.length)
+    newArr.push(...arrCopy.splice(position, 1))
+  }
+  return newArr
 }
 
 /**
@@ -56,7 +65,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     | ((event: MatrixClientEvent<MatrixClientEventType.MESSAGE>) => void)
     | undefined
 
-  private readonly KNOWN_RELAY_SERVERS: string[]
+  private readonly ENABLED_RELAY_SERVERS: string[]
   public relayServer: ExposedPromise<string> | undefined
 
   private readonly activeListeners: Map<string, (event: MatrixClientEvent<any>) => void> = new Map()
@@ -76,7 +85,8 @@ export class P2PCommunicationClient extends CommunicationClient {
     super(keyPair)
 
     logger.log('constructor', 'P2PCommunicationClient created')
-    this.KNOWN_RELAY_SERVERS = matrixNodes.length > 0 ? matrixNodes : KNOWN_RELAY_SERVERS
+    const nodes = matrixNodes.length > 0 ? matrixNodes : KNOWN_RELAY_SERVERS
+    this.ENABLED_RELAY_SERVERS = deterministicShuffle(nodes, keyPair)
   }
 
   public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
@@ -132,12 +142,12 @@ export class P2PCommunicationClient extends CommunicationClient {
       return node
     }
 
-    const startIndex = publicKeyToNumber(this.keyPair.publicKey, this.KNOWN_RELAY_SERVERS.length)
+    const startIndex = publicKeyToNumber(this.keyPair.publicKey, this.ENABLED_RELAY_SERVERS.length)
     let offset = 0
 
-    while (offset < this.KNOWN_RELAY_SERVERS.length) {
-      const serverIndex = (startIndex + offset) % this.KNOWN_RELAY_SERVERS.length
-      const server = this.KNOWN_RELAY_SERVERS[serverIndex]
+    while (offset < this.ENABLED_RELAY_SERVERS.length) {
+      const serverIndex = (startIndex + offset) % this.ENABLED_RELAY_SERVERS.length
+      const server = this.ENABLED_RELAY_SERVERS[serverIndex]
 
       try {
         await axios.get(`https://${server}/_matrix/client/versions`)
@@ -234,7 +244,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       console.log('ERROR, RETRYING')
       await this.reset() // If we can't log in, let's reset
       console.log('TRYING AGAIN')
-      if (this.loginCounter <= this.KNOWN_RELAY_SERVERS.length) {
+      if (this.loginCounter <= this.ENABLED_RELAY_SERVERS.length) {
         this.loginCounter++
         this.start()
         return
