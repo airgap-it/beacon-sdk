@@ -87,7 +87,7 @@
     "typedoc": "^0.20.30",
     "typedoc-plugin-internal-external": "^2.2.0",
     "typescript": "3.9.2",
-    "uglify-js": "3.9.4"
+    "uglify-js": "^3.14.3"
   },
   "files": [
     "/dist"
