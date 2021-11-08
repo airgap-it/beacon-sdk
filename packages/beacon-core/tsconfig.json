@@ -1,8 +1,10 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./lib",
     "baseUrl": ".",
+    "target": "es5",
+    "module": "commonjs",
+    "outDir": "./dist/cjs",
     "paths": {
       "@airgap/beacon-core": ["./src"]
     }
