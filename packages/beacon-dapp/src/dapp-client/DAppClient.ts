@@ -75,6 +75,7 @@ import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
+import { closeToast } from '../ui/toast/Toast'
 
 const logger = new Logger('DAppClient')
 
@@ -428,8 +429,8 @@ export class DAppClient extends Client {
     await this.events.emit(BeaconEvent.SHOW_PREPARE, { walletInfo })
   }
 
-  public async hideUI(): Promise<void> {
-    await this.events.emit(BeaconEvent.HIDE_UI)
+  public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
+    await this.events.emit(BeaconEvent.HIDE_UI, elements)
   }
 
   /**
@@ -862,7 +863,7 @@ export class DAppClient extends Client {
    * @param errorMessage The error message to send.
    */
   private async sendInternalError(errorMessage: string): Promise<void> {
-    await this.events.emit(BeaconEvent.INTERNAL_ERROR, errorMessage)
+    await this.events.emit(BeaconEvent.INTERNAL_ERROR, { text: errorMessage })
     throw new Error(errorMessage)
   }
 
@@ -1162,7 +1163,25 @@ export class DAppClient extends Client {
 
     logger.log('makeRequest', 'sending message', request)
     console.timeLog(messageId, 'sending')
-    await (await this.transport).send(payload, peer)
+    try {
+      await (await this.transport).send(payload, peer)
+    } catch (sendError) {
+      this.events.emit(BeaconEvent.INTERNAL_ERROR, {
+        text:
+          'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
+        buttons: [
+          {
+            text: 'Reset Connection',
+            actionCallback: async (): Promise<void> => {
+              await closeToast()
+              this.disconnect()
+            }
+          }
+        ]
+      })
+      console.timeLog(messageId, 'send error')
+      throw sendError
+    }
     console.timeLog(messageId, 'sent')
 
     this.events

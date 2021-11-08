@@ -2,7 +2,7 @@
 
 import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
 import { getColorMode } from '../../colorMode'
-import { generateGUID } from '@airgap/beacon-core'
+import { generateGUID, windowRef } from '@airgap/beacon-core'
 import { replaceInTemplate } from '../../utils/replace-in-template'
 import { alertTemplates } from './alert-templates'
 import { preparePairingAlert } from './PairingAlert'
@@ -100,8 +100,10 @@ const formatAlert = (
  *
  * @param id ID of alert
  */
-const closeAlert = (id: string): Promise<void> =>
-  new Promise((resolve) => {
+const closeAlert = (id: string): Promise<void> => {
+  windowRef.postMessage(`closeAlert-${id}`)
+
+  return new Promise((resolve) => {
     const wrapper = document.getElementById(`beacon-alert-wrapper-${id}`)
     if (!wrapper) {
       return resolve()
@@ -133,6 +135,7 @@ const closeAlert = (id: string): Promise<void> =>
       resolve()
     }
   })
+}
 
 /**
  * Close all alerts
@@ -271,7 +274,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   })
 
   if (pairingPayload) {
-    await preparePairingAlert(shadowRoot, pairingPayload)
+    await preparePairingAlert(id, shadowRoot, pairingPayload)
   }
 
   return id
