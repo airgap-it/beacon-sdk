@@ -23,16 +23,14 @@
   },
   "scripts": {
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
-    "build": "npm run pretest && lerna run tsc && npm run posttest",
+    "build": "lerna run tsc",
     "browserify-build": "tsc -p ./tsconfig-browserify.json && browserify ./dist/browserify/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js && rm -rf dist/browserify",
     "prettier": "prettier --write 'src/**/*' '**/src/**/*' 'docs/**/*.md' 'example-dapp.html' 'example-wallet.html'",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "lint-ci": "eslint 'src/**/*.ts' -f json -o lintReport.json || true",
-    "pretest": "ts-node --project tsconfig-node.json scripts/change-files-before-tests.ts",
     "bootstrap": "lerna bootstrap",
     "test": "lerna run test --stream",
-    "posttest": " ts-node --project tsconfig-node.json scripts/change-files-after-tests.ts",
     "test-ci": "nyc --reporter=lcov npm test",
     "e2e": "ts-node --project tsconfig-node.json e2e/permission-request.ts",
     "e2e-prepare-ffmpeg": "ts-node --project tsconfig-node.json e2e/generate-ffmpeg-file.ts",
@@ -103,7 +101,7 @@
     "typedoc": "^0.20.30",
     "typedoc-plugin-internal-external": "^2.2.0",
     "typescript": "3.9.2",
-    "uglify-js": "3.9.4"
+    "uglify-js": "3.14.3"
   },
   "files": [
     "/dist"

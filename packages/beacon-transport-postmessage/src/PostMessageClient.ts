@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { windowRef, Serializer, getSenderId, MessageBasedClient } from '@airgap/beacon-core'
 
 import { openCryptobox } from '@airgap/beacon-utils'

@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { BEACON_VERSION } from '../../constants'
 import { decryptCryptoboxPayload, encryptCryptoboxPayload } from '@airgap/beacon-utils'
 import { generateGUID } from '../../utils/generate-uuid'
