@@ -40,14 +40,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
         id: setup-ffmpeg
 
-      - name: Test E2E
-        run: npm run e2e:all
+      # - name: Test E2E
+      #   run: npm run e2e:all
 
-      - name: Upload
-        uses: actions/upload-artifact@v1
-        with:
-          name: video
-          path: e2e/output/combined.webm
+      # - name: Upload
+      #   uses: actions/upload-artifact@v1
+      #   with:
+      #     name: video
+      #     path: e2e/output/combined.webm
 
       - name: Analyze with SonarCloud
         uses: sonarsource/sonarcloud-github-action@master
