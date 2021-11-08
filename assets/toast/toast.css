@@ -55,8 +55,8 @@
     flex-wrap: wrap;
   }
   .beacon-toast__wallet__link {
-    flex: 0 0 100%;
-    margin-left: 0 !important;
+    display: flex;
+    margin-left: 12px !important;
   }
 }
 
@@ -148,7 +148,7 @@ hr {
   display: contents;
 }
 .beacon-toast__wallet__link {
-  margin-left: 12px;
+  margin-left: 8px;
 }
 .beacon-toast__wallet__link svg {
   margin-left: 4px;
@@ -219,6 +219,11 @@ a:hover {
 
 #beacon-text {
   padding-right: 24px;
+}
+
+#beacon-text-content {
+  display: flex;
+  align-items: center;
 }
 
 .progress-line,
