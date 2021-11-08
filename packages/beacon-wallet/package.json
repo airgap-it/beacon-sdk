@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@airgap/beacon-core": "^0.0.1-beta.3",
+    "@airgap/beacon-transport-matrix": "^0.0.1-beta.3",
     "@airgap/beacon-transport-postmessage": "^0.0.1-beta.3"
   }
 }
