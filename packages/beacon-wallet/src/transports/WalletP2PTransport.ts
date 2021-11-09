@@ -1,4 +1,4 @@
-import sodium from 'libsodium-wrappers'
+import * as sodium from 'libsodium-wrappers'
 import { Storage, StorageKey, P2PPairingRequest } from '@airgap/beacon-types'
 import { P2PTransport } from '@airgap/beacon-transport-matrix'
 

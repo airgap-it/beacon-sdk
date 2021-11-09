@@ -1,4 +1,4 @@
-import sodium from 'libsodium-wrappers'
+import * as sodium from 'libsodium-wrappers'
 import { Logger, Transport, PeerManager } from '@airgap/beacon-core'
 import {
   ConnectionContext,

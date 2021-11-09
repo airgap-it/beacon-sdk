@@ -1,5 +1,5 @@
 import * as bs58check from 'bs58check'
-import sodium from 'libsodium-wrappers'
+import * as sodium from 'libsodium-wrappers'
 
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 

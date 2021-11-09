@@ -1,4 +1,4 @@
-import sodium from 'libsodium-wrappers'
+import * as sodium from 'libsodium-wrappers'
 import { ExposedPromise } from '@airgap/beacon-utils'
 import { generateGUID } from '../../utils/generate-uuid'
 import { getKeypairFromSeed, toHex } from '@airgap/beacon-utils'
