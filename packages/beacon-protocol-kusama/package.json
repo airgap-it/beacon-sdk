@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-protocol-kusama",
-  "version": "0.0.1-beta.7",
+  "version": "0.0.1-beta.8",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <andreas@andreasgassmann.ch>",
   "homepage": "https://walletbeacon.io",
