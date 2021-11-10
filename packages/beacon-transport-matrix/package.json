@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-transport-matrix",
-  "version": "0.0.1-beta.9",
+  "version": "0.0.1-beta.10",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <andreas@andreasgassmann.ch>",
   "homepage": "https://walletbeacon.io",
@@ -37,8 +37,8 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "^0.0.1-beta.9",
-    "@airgap/beacon-utils": "^0.0.1-beta.9",
+    "@airgap/beacon-core": "^0.0.1-beta.10",
+    "@airgap/beacon-utils": "^0.0.1-beta.10",
     "axios": "0.21.1"
   }
 }
