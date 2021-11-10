@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-transport-postmessage",
-  "version": "0.0.1-beta.11",
+  "version": "0.0.1-beta.12",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <andreas@andreasgassmann.ch>",
   "homepage": "https://walletbeacon.io",
@@ -37,9 +37,9 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "^0.0.1-beta.11",
-    "@airgap/beacon-types": "^0.0.1-beta.11",
-    "@airgap/beacon-utils": "^0.0.1-beta.11",
+    "@airgap/beacon-core": "^0.0.1-beta.12",
+    "@airgap/beacon-types": "^0.0.1-beta.12",
+    "@airgap/beacon-utils": "^0.0.1-beta.12",
     "@types/libsodium-wrappers": "0.7.9",
     "libsodium-wrappers": "0.7.9"
   }
