@@ -4,7 +4,7 @@ export enum ExposedPromiseStatus {
   REJECTED = 'rejected'
 }
 
-type Resolve<T> = (value?: T) => void
+type Resolve<T> = (value: T) => void
 type Reject<U> = (reason?: U) => void
 
 const notInitialized = (): never => {
@@ -45,7 +45,7 @@ export class ExposedPromise<T = unknown, U = unknown> {
 
   constructor() {
     this._promise = new Promise<T>((innerResolve: Resolve<T>, innerReject: Reject<U>): void => {
-      this._resolve = (value?: T): void => {
+      this._resolve = (value: T): void => {
         if (this.isSettled()) {
           return
         }
@@ -74,7 +74,7 @@ export class ExposedPromise<T = unknown, U = unknown> {
     })
   }
 
-  public static resolve<T>(value?: T): ExposedPromise<T> {
+  public static resolve<T>(value: T): ExposedPromise<T> {
     const promise = new ExposedPromise<T>()
     promise.resolve(value)
 

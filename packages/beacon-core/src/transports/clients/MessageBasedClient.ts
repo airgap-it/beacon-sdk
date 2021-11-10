@@ -19,7 +19,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
   /**
    * The listeners that will be notified of new messages
    */
-  protected abstract readonly activeListeners: Map<string, unknown> = new Map()
+  protected abstract readonly activeListeners: Map<string, unknown>
 
   constructor(protected readonly name: string, keyPair: KeyPair) {
     super(keyPair)
@@ -122,5 +122,5 @@ export abstract class MessageBasedClient extends CommunicationClient {
   /**
    * Initialize the connection
    */
-  public abstract async init(): Promise<void>
+  public abstract init(): Promise<void>
 }

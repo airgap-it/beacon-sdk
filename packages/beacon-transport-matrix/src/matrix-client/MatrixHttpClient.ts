@@ -102,7 +102,7 @@ export class MatrixHttpClient {
         cancelToken: this.cancelTokenSource.token
       })
     } catch (axiosError) {
-      throw axiosError.response.data
+      throw (axiosError as any).response.data
     }
 
     return response.data

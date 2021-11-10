@@ -185,7 +185,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     try {
       await (await this.client.promise).joinRooms(roomId)
     } catch (error) {
-      if (retry <= 10 && error.errcode === 'M_FORBIDDEN') {
+      if (retry <= 10 && (error as any).errcode === 'M_FORBIDDEN') {
         // If we join the room too fast after receiving the invite, the server can accidentally reject our join. This seems to be a problem only when using a federated multi-node setup. Usually waiting for a couple milliseconds solves the issue, but to handle lag, we will keep retrying for 2 seconds.
         logger.log(`Retrying to join...`, error)
         setTimeout(async () => {
