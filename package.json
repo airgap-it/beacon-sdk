@@ -4,6 +4,9 @@
   "description": "The beacon-sdk allows you to easily connect DApps with Wallets through P2P communication or a chrome extension.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
+  "es2015": "dist/esm/index.js",
+  "esm2015": "dist/esm/index.js",
+  "fesm2015": "dist/esm/index.js",
   "unpkg": "dist/walletbeacon.min.js",
   "types": "dist/esm/index.d.ts",
   "keywords": [
