@@ -54,6 +54,7 @@ export interface WebApp extends AppBase {
     [NetworkType.FLORENCENET]?: string
     [NetworkType.GRANADANET]?: string
     [NetworkType.HANGZHOUNET]?: string
+    [NetworkType.IDIAZABALNET]?: string
     [NetworkType.CUSTOM]?: string
   }
 }

@@ -10,6 +10,7 @@ export class TezblockBlockExplorer extends BlockExplorer {
       [NetworkType.FLORENCENET]: 'https://florencenet.tezblock.io',
       [NetworkType.GRANADANET]: 'https://granadanet.tezblock.io',
       [NetworkType.HANGZHOUNET]: 'https://hangzhounet.tezblock.io',
+      [NetworkType.IDIAZABALNET]: 'https://idiazabalnet.tezblock.io',
       [NetworkType.CUSTOM]: 'https://granadanet.tezblock.io'
     }
   ) {
