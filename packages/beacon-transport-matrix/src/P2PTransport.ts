@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import { KeyPair } from 'libsodium-wrappers'
 import { Logger, Transport, PeerManager } from '@airgap/beacon-core'
 import {
   ConnectionContext,
@@ -27,7 +27,7 @@ export class P2PTransport<
 
   constructor(
     name: string,
-    keyPair: sodium.KeyPair,
+    keyPair: KeyPair,
     storage: Storage,
     matrixNodes: string[],
     storageKey: K,

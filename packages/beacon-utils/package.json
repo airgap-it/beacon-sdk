@@ -7,8 +7,13 @@
   "license": "ISC",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    "require": "./dist/cjs/index.js",
+    "import": "./dist/esm/index.js"
+  },
   "directories": {
-    "lib": "dist/cjs",
+    "lib": "dist/esm",
     "test": "__tests__"
   },
   "files": [

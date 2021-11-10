@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import { ready, crypto_generichash } from 'libsodium-wrappers'
 import * as bs58check from 'bs58check'
 import { Network } from '@airgap/beacon-types'
 
@@ -19,9 +19,9 @@ export const getAccountIdentifier = async (address: string, network: Network): P
     data.push(`rpc:${network.rpcUrl}`)
   }
 
-  await sodium.ready
+  await ready
 
-  const buffer = Buffer.from(sodium.crypto_generichash(10, data.join('-')))
+  const buffer = Buffer.from(crypto_generichash(10, data.join('-')))
 
   return bs58check.encode(buffer)
 }

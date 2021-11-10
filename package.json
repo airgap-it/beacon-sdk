@@ -24,7 +24,7 @@
   "scripts": {
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
     "build": "lerna run tsc",
-    "browserify-build": "tsc -p ./tsconfig-browserify.json && browserify ./dist/browserify/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js && rm -rf dist/browserify",
+    "browserify": "browserify ./packages/beacon-dapp/dist/cjs/index.js -s beacon | uglifyjs > ./walletbeacon.min.js && cp ./walletbeacon.min.js ./examples/walletbeacon.min.js",
     "prettier": "prettier --write 'src/**/*' '**/src/**/*' 'docs/**/*.md' 'example-dapp.html' 'example-wallet.html'",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
@@ -43,8 +43,6 @@
     "check-version": "ts-node --project tsconfig-cjs.json scripts/check-sdk-version.ts",
     "typedoc": "typedoc src/index.ts --includeVersion --internal-aliases publicapi --external-aliases internalapi --logLevel Verbose --listInvalidSymbolLinks && ts-node --project tsconfig-cjs.json scripts/process-docs.ts",
     "publish": "lerna run tsc && lerna publish",
-    "build-old": "npm run pretest && tsc -p tsconfig.json && tsc -p ./tsconfig-cjs.json && npm run browserify && npm run posttest && cp ./dist/walletbeacon.min.js ./examples/walletbeacon.min.js",
-    "browserify-old": "npm run pretest && tsc -p ./tsconfig-browserify.json && npm run posttest && browserify ./dist/browserify/index.js -s beacon | uglifyjs > ./dist/walletbeacon.min.js && rm -rf dist/browserify",
     "bump:version": "lerna version --no-git-tag-version",
     "bump:major": "lerna version --no-git-tag-version major --yes",
     "bump:minor": "lerna version --no-git-tag-version minor --yes",

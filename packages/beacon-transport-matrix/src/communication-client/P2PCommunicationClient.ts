@@ -1,5 +1,12 @@
-import * as sodium from 'libsodium-wrappers'
-
+import {
+  KeyPair,
+  ready,
+  crypto_generichash,
+  from_string,
+  crypto_sign_detached,
+  crypto_secretbox_NONCEBYTES,
+  crypto_secretbox_MACBYTES
+} from 'libsodium-wrappers'
 import axios from 'axios'
 import {
   getHexHash,
@@ -49,7 +56,7 @@ export const publicKeyToNumber = (arr: Uint8Array, mod: number) => {
   return Math.floor(sum % mod)
 }
 
-export const deterministicShuffle = (arr: string[], keypair: sodium.KeyPair) => {
+export const deterministicShuffle = (arr: string[], keypair: KeyPair) => {
   const arrCopy: string[] = JSON.parse(JSON.stringify(arr))
   const newArr: string[] = []
   while (arrCopy.length > 0) {
@@ -82,7 +89,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
   constructor(
     private readonly name: string,
-    keyPair: sodium.KeyPair,
+    keyPair: KeyPair,
     public readonly replicationCount: number,
     private readonly storage: Storage,
     matrixNodes: string[],
@@ -193,13 +200,13 @@ export class P2PCommunicationClient extends CommunicationClient {
   public async start(): Promise<void> {
     logger.log('start', 'starting client')
 
-    await sodium.ready
+    await ready
 
-    const loginRawDigest = sodium.crypto_generichash(
+    const loginRawDigest = crypto_generichash(
       32,
-      sodium.from_string(`login:${Math.floor(Date.now() / 1000 / (5 * 60))}`)
+      from_string(`login:${Math.floor(Date.now() / 1000 / (5 * 60))}`)
     )
-    const rawSignature = sodium.crypto_sign_detached(loginRawDigest, this.keyPair.privateKey)
+    const rawSignature = crypto_sign_detached(loginRawDigest, this.keyPair.privateKey)
 
     logger.log('start', `connecting to server`)
 
@@ -307,10 +314,7 @@ export class P2PCommunicationClient extends CommunicationClient {
         } catch {
           /* */
         }
-        if (
-          payload &&
-          payload.length >= sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
-        ) {
+        if (payload && payload.length >= crypto_secretbox_NONCEBYTES + crypto_secretbox_MACBYTES) {
           try {
             const decryptedMessage = await decryptCryptoboxPayload(payload, sharedRx)
 
@@ -469,10 +473,7 @@ export class P2PCommunicationClient extends CommunicationClient {
         const splits = event.content.message.content.split(':')
         const payload = Buffer.from(splits[splits.length - 1], 'hex')
 
-        if (
-          payload.length >=
-          sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
-        ) {
+        if (payload.length >= crypto_secretbox_NONCEBYTES + crypto_secretbox_MACBYTES) {
           try {
             const pairingResponse: P2PPairingResponse = JSON.parse(
               await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)

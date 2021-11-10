@@ -1,4 +1,9 @@
-import * as sodium from 'libsodium-wrappers'
+import {
+  ready,
+  KeyPair,
+  crypto_secretbox_NONCEBYTES,
+  crypto_secretbox_MACBYTES
+} from 'libsodium-wrappers'
 import { BEACON_VERSION } from '../../constants'
 import { decryptCryptoboxPayload, encryptCryptoboxPayload } from '@airgap/beacon-utils'
 import { generateGUID } from '../../utils/generate-uuid'
@@ -16,7 +21,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
    */
   protected abstract readonly activeListeners: Map<string, unknown> = new Map()
 
-  constructor(protected readonly name: string, keyPair: sodium.KeyPair) {
+  constructor(protected readonly name: string, keyPair: KeyPair) {
     super(keyPair)
     this.init().catch(console.error)
   }
@@ -25,7 +30,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
    * start the client and make sure all dependencies are ready
    */
   public async start(): Promise<void> {
-    await sodium.ready
+    await ready
   }
 
   /**
@@ -88,10 +93,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
 
     const hexPayload = Buffer.from(payload, 'hex')
 
-    if (
-      hexPayload.length >=
-      sodium.crypto_secretbox_NONCEBYTES + sodium.crypto_secretbox_MACBYTES
-    ) {
+    if (hexPayload.length >= crypto_secretbox_NONCEBYTES + crypto_secretbox_MACBYTES) {
       try {
         return await decryptCryptoboxPayload(hexPayload, sharedRx)
       } catch (decryptionError) {

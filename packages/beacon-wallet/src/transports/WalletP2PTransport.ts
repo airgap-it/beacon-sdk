@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import { KeyPair } from 'libsodium-wrappers'
 import { Storage, StorageKey, P2PPairingRequest } from '@airgap/beacon-types'
 import { P2PTransport } from '@airgap/beacon-transport-matrix'
 
@@ -15,7 +15,7 @@ export class WalletP2PTransport extends P2PTransport<
 > {
   constructor(
     name: string,
-    keyPair: sodium.KeyPair,
+    keyPair: KeyPair,
     storage: Storage,
     matrixNodes: string[],
     iconUrl?: string,
