@@ -5,15 +5,10 @@ import * as sinon from 'sinon'
 
 import {
   AccountInfo,
-  AccountManager,
   BeaconErrorType,
-  BeaconEvent,
   BeaconMessageType,
-  BEACON_VERSION,
   BroadcastResponse,
   ConnectionContext,
-  DAppClient,
-  LocalStorage,
   NetworkType,
   OperationResponse,
   Origin,
@@ -25,18 +20,25 @@ import {
   StorageKey,
   TezosOperationType,
   TransportStatus,
-  PostMessageTransport,
-  DappPostMessageTransport,
-  getSenderId,
-  Transport,
   ExtendedP2PPairingRequest
-} from '../../src'
+} from '@airgap/beacon-types'
 
-import { MockTransport } from '../test-utils/MockTransport'
-import { availableTransports } from '../../src/utils/available-transports'
-import { ExposedPromise } from '../../src/utils/exposed-promise'
-import { Logger } from '../../src/utils/Logger'
-import { windowRef } from '../../src/MockWindow'
+import { MockTransport } from '../../../test/test-utils/MockTransport'
+import { availableTransports } from '../src/utils/available-transports'
+import { ExposedPromise } from '@airgap/beacon-utils'
+import {
+  windowRef,
+  Logger,
+  BEACON_VERSION,
+  LocalStorage,
+  getSenderId,
+  AccountManager,
+  Transport
+} from '@airgap/beacon-core'
+
+import { DAppClient, BeaconEvent } from '../src'
+import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
+import { DappPostMessageTransport } from '../src/transports/DappPostMessageTransport'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -135,7 +137,7 @@ describe(`DAppClient`, () => {
       const dAppClient = new DAppClient({} as any)
       expect(dAppClient).to.be.undefined
     } catch (e) {
-      expect(e.message).to.equal('Name not set')
+      expect((e as any).message).to.equal('Name not set')
     }
   })
 
@@ -489,7 +491,7 @@ describe(`DAppClient`, () => {
       expect(eventsStub.thirdCall.args[0]).to.equal(BeaconEvent.ACTIVE_ACCOUNT_SET) // Called in the constructor
       expect(eventsStub.thirdCall.args[1]).to.equal(undefined)
       expect(eventsStub.callCount).to.equal(3)
-      expect(e.message).to.equal('No active account set!')
+      expect((e as any).message).to.equal('No active account set!')
     }
   })
 
@@ -603,7 +605,7 @@ describe(`DAppClient`, () => {
       network: { type: 'mainnet' },
       scopes: ['operation_request', 'sign']
     })
-    delete response.accountInfo
+    delete (response as any).accountInfo
     expect(response).to.deep.equal({
       appMetadata: {
         senderId: 'sender-id',
@@ -698,7 +700,7 @@ describe(`DAppClient`, () => {
       })
       throw new Error('should not get here' + responseFailure)
     } catch (e) {
-      expect(e.message).to.equal(
+      expect((e as any).message).to.equal(
         `When using signing type "OPERATION", the payload must start with prefix "03"`
       )
     }
@@ -716,7 +718,7 @@ describe(`DAppClient`, () => {
       })
       throw new Error('should not get here' + responseFailure)
     } catch (e) {
-      expect(e.message).to.equal(
+      expect((e as any).message).to.equal(
         `When using signing type "MICHELINE", the payload must start with prefix "05"`
       )
     }
@@ -864,7 +866,7 @@ describe(`DAppClient`, () => {
       expect(eventsStub.firstCall.args[1]).to.deep.equal({ text: 'some-message' })
       expect(eventsStub.secondCall.args[0]).to.equal(BeaconEvent.ACTIVE_TRANSPORT_SET)
       expect(eventsStub.secondCall.args[1]).to.equal(undefined)
-      expect(e.message).to.equal('some-message')
+      expect((e as any).message).to.equal('some-message')
     }
   })
 
@@ -941,7 +943,7 @@ describe(`DAppClient`, () => {
       expect(eventsStub.getCall(3).args[0]).to.equal(BeaconEvent.PERMISSION_REQUEST_ERROR)
       expect(eventsStub.getCall(3).args[1]).to.deep.eq({ errorResponse: error, walletInfo: {} })
       expect(eventsStub.callCount).to.equal(4)
-      expect(e.description).to.equal(
+      expect((e as any).description).to.equal(
         'You do not have the necessary permissions to perform this action. Please initiate another permission request and give the necessary permissions.'
       )
     }

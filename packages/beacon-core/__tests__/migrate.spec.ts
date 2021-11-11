@@ -2,10 +2,11 @@ import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 
-import { FileStorage, writeLocalFile } from '../test-utils/FileStorage'
-import { NetworkType, Origin, Storage, StorageKey, SDK_VERSION } from '../../src'
-import { migrate } from '../../src/migrations/migrations'
-import { AccountInfoOld, P2PPairingRequestOld } from '../../src/migrations/migrate-0.7.0'
+import { FileStorage, writeLocalFile } from '../../../test/test-utils/FileStorage'
+import { NetworkType, Origin, Storage, StorageKey } from '@airgap/beacon-types'
+import { migrate } from '../src/migrations/migrations'
+import { AccountInfoOld, P2PPairingRequestOld } from '../src/migrations/migrate-0.7.0'
+import { SDK_VERSION } from '../src'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)

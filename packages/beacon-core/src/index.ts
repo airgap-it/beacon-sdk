@@ -39,7 +39,6 @@ import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotS
 import { Logger } from './utils/Logger'
 import { IncomingRequestInterceptor } from './interceptors/IncomingRequestInterceptor'
 import { OutgoingResponseInterceptor } from './interceptors/OutgoingResponseInterceptor'
-import { generateGUID } from './utils/generate-uuid'
 import { windowRef } from './MockWindow'
 import { CommunicationClient } from './transports/clients/CommunicationClient'
 // import { EncryptionType } from './types/EncryptionType'
@@ -78,7 +77,7 @@ export { PeerManager, AccountManager, AppMetadataManager, PermissionManager }
 export { SDK_VERSION, BEACON_VERSION }
 
 // Utils
-export { getSenderId, getAccountIdentifier, generateGUID, windowRef }
+export { getSenderId, getAccountIdentifier, windowRef }
 
 // Others
 export { Serializer, IncomingRequestInterceptor, OutgoingResponseInterceptor, Logger }

@@ -1,7 +1,6 @@
 import { KeyPair } from 'libsodium-wrappers'
 import { ExposedPromise } from '@airgap/beacon-utils'
-import { generateGUID } from '../../utils/generate-uuid'
-import { getKeypairFromSeed, toHex } from '@airgap/beacon-utils'
+import { getKeypairFromSeed, toHex, generateGUID } from '@airgap/beacon-utils'
 import { Storage, StorageKey } from '@airgap/beacon-types'
 import { SDK_VERSION } from '../../constants'
 import { windowRef } from '../../MockWindow'

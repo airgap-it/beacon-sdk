@@ -3,14 +3,13 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import * as sinon from 'sinon'
 
-import { LocalStorage, P2PCommunicationClient } from '../../src'
-import { BeaconEventHandler } from '../../src/events'
+import { P2PCommunicationClient } from '../src'
 import {
   deterministicShuffle,
   publicKeyToNumber
-} from '../../src/transports/clients/P2PCommunicationClient'
-import { getKeypairFromSeed } from '../../src/utils/crypto'
-import { generateGUID } from '../../src/utils/generate-uuid'
+} from '../src/communication-client/P2PCommunicationClient'
+import { getKeypairFromSeed, generateGUID } from '@airgap/beacon-utils'
+import { LocalStorage } from '@airgap/beacon-core'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -26,8 +25,6 @@ describe.only(`P2PCommunicationClient`, () => {
 
     const keypair = await getKeypairFromSeed(SEED)
     const localStorage = new LocalStorage()
-    const eventHandler = new BeaconEventHandler()
-    sinon.stub(eventHandler, 'emit').resolves()
 
     client = new P2PCommunicationClient('Test', keypair, 2, localStorage, [])
   })

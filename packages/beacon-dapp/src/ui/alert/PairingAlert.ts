@@ -1,5 +1,6 @@
-import { Serializer, generateGUID, Logger, windowRef } from '@airgap/beacon-core'
+import { Serializer, Logger, windowRef } from '@airgap/beacon-core'
 import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
+import { generateGUID } from '@airgap/beacon-utils'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { getQrData } from '../../utils/qr'
 import { getTzip10Link } from '../../utils/get-tzip10-link'

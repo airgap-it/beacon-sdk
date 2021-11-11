@@ -5,8 +5,11 @@ import {
   crypto_secretbox_MACBYTES
 } from 'libsodium-wrappers'
 import { BEACON_VERSION } from '../../constants'
-import { decryptCryptoboxPayload, encryptCryptoboxPayload } from '@airgap/beacon-utils'
-import { generateGUID } from '../../utils/generate-uuid'
+import {
+  decryptCryptoboxPayload,
+  encryptCryptoboxPayload,
+  generateGUID
+} from '@airgap/beacon-utils'
 import { CommunicationClient } from './CommunicationClient'
 import { PostMessagePairingRequest, PostMessagePairingResponse } from '@airgap/beacon-types'
 

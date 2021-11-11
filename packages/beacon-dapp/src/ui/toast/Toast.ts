@@ -1,7 +1,7 @@
 import { getColorMode } from '../../colorMode'
 import { WalletInfo } from '../../events'
 import { replaceInTemplate } from '../../utils/replace-in-template'
-import { generateGUID } from '@airgap/beacon-core'
+import { generateGUID } from '@airgap/beacon-utils'
 import { toastTemplates } from './toast-templates'
 
 export interface ToastAction {

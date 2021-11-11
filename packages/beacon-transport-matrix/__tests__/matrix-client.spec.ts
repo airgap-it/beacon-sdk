@@ -1,12 +1,12 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
-import { LocalStorage } from '../../src'
-import { MatrixClient } from '../../src/matrix-client/MatrixClient'
+import { LocalStorage } from '@airgap/beacon-core'
+import { MatrixClient } from '../src/matrix-client/MatrixClient'
 import * as sinon from 'sinon'
-import { MatrixRoomStatus } from '../../src/matrix-client/models/MatrixRoom'
-import { MatrixHttpClient } from '../../src/matrix-client/MatrixHttpClient'
-import { MatrixClientEventType } from '../../src/matrix-client/models/MatrixClientEvent'
+import { MatrixRoomStatus } from '../src/matrix-client/models/MatrixRoom'
+import { MatrixHttpClient } from '../src/matrix-client/MatrixHttpClient'
+import { MatrixClientEventType } from '../src/matrix-client/models/MatrixClientEvent'
 
 MatrixClient
 // use chai-as-promised plugin
@@ -129,7 +129,7 @@ describe(`MatrixClient`, () => {
         deviceId: 'pubkey'
       })
     } catch (e) {
-      expect(e.message).to.equal('expected error')
+      expect((e as any).message).to.equal('expected error')
       expect(storeStub.callCount).to.equal(1)
       expect(sendStub.callCount).to.equal(1)
       expect(pollStub.callCount).to.equal(1)
@@ -343,12 +343,13 @@ describe(`MatrixClient`, () => {
     const getStub = sinon.stub((<any>client).store, 'get').returns(myToken)
 
     return new Promise(async (resolve, _reject) => {
-      const cb = (token) => {
+      const cb = (token: string) => {
         expect(token).to.equal(myToken)
         expect(getStub.callCount).to.equal(1)
 
         resolve()
       }
+
       await (<any>client).requiresAuthorization('my-name', cb)
     })
   })

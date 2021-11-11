@@ -11,3 +11,4 @@ export {
   openCryptobox,
   recipientString
 } from './utils/crypto'
+export { generateGUID } from './utils/generate-uuid'

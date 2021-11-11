@@ -3,7 +3,9 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import * as sinon from 'sinon'
 
-import { ChromeStorage, StorageKey } from '../../src'
+import { StorageKey } from '@airgap/beacon-types'
+
+import { ChromeStorage } from '../../src'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)

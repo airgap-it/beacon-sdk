@@ -1,4 +1,4 @@
-import { ExposedPromise, ExposedPromiseStatus } from '@airgap/beacon-utils'
+import { ExposedPromise, ExposedPromiseStatus, generateGUID } from '@airgap/beacon-utils'
 import {
   ConnectionContext,
   TransportType,
@@ -14,7 +14,6 @@ import {
 import { Serializer, Transport } from '../..'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
-import { generateGUID } from '../../utils/generate-uuid'
 import { BEACON_VERSION } from '../../constants'
 import { getSenderId } from '../../utils/get-sender-id'
 import { Logger } from '../../utils/Logger'

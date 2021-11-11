@@ -2,7 +2,7 @@ import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 
-import { Serializer } from '../../src/Serializer'
+import { Serializer } from '../src/Serializer'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -98,7 +98,7 @@ describe(`serializer - Custom Tests`, () => {
       const deserialized = await serializer.deserialize({} as any)
       expect(deserialized).to.be.undefined
     } catch (e) {
-      expect(e.message).to.equal(`Encoded payload needs to be a string`)
+      expect((e as any).message).to.equal(`Encoded payload needs to be a string`)
     }
   })
 })

@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
-import { ExposedPromise, ExposedPromiseStatus } from '../../src/utils/exposed-promise'
+import { ExposedPromise, ExposedPromiseStatus } from '../src/utils/exposed-promise'
 
 process.on('unhandledRejection', (reason, p) => {
   console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
@@ -117,7 +117,7 @@ describe(`ExposedPromise`, () => {
   })
 
   it(`should create a resolved ExposedPromise when calling the static resolve`, async () => {
-    const exposed = ExposedPromise.resolve()
+    const exposed = ExposedPromise.resolve(undefined)
 
     const promises = getExpectedPromiseOutcome(exposed, ExposedPromiseStatus.RESOLVED)
 

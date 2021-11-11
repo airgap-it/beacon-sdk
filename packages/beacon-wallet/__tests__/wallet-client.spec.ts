@@ -1,30 +1,34 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
-import {
-  PermissionRequest,
-  BeaconMessageType,
-  ConnectionContext,
-  LocalStorage,
-  NetworkType,
-  P2PTransport,
-  BEACON_VERSION,
-  Origin,
-  PermissionResponseInput,
-  AppMetadataManager,
-  PermissionManager,
-  PermissionInfo,
-  PermissionScope,
-  Serializer,
-  getSenderId,
-  BeaconErrorType,
-  BeaconResponseInputMessage
-} from '../../src'
 import * as sinon from 'sinon'
 
-import { WalletClient } from '../../src/clients/wallet-client/WalletClient'
-import { ExtendedP2PPairingRequest } from '../../src/types/P2PPairingRequest'
-import { windowRef } from '../../src/MockWindow'
+import {
+  BeaconErrorType,
+  BeaconMessageType,
+  ConnectionContext,
+  NetworkType,
+  Origin,
+  PermissionScope,
+  ExtendedP2PPairingRequest,
+  PermissionRequest,
+  PermissionInfo,
+  PermissionResponseInput,
+  BeaconResponseInputMessage
+} from '@airgap/beacon-types'
+
+import {
+  AppMetadataManager,
+  PermissionManager,
+  windowRef,
+  BEACON_VERSION,
+  LocalStorage,
+  getSenderId,
+  Serializer
+} from '@airgap/beacon-core'
+
+import { P2PTransport } from '@airgap/beacon-transport-matrix'
+import { WalletClient } from '../src'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -85,7 +89,7 @@ describe(`WalletClient`, () => {
       const walletClient = new WalletClient({} as any)
       expect(walletClient).to.be.undefined
     } catch (e) {
-      expect(e.message).to.equal('Name not set')
+      expect((e as any).message).to.equal('Name not set')
     }
   })
 
@@ -152,7 +156,7 @@ describe(`WalletClient`, () => {
       await walletClient.respond(message)
       throw new Error('Should not work!')
     } catch (error) {
-      expect(error.message).to.equal('No matching request found!')
+      expect((error as any).message).to.equal('No matching request found!')
     }
   })
 

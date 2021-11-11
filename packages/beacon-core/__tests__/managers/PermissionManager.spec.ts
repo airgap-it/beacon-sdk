@@ -3,8 +3,8 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { PermissionManager } from '../../src/managers/PermissionManager'
 
-import { NetworkType, PermissionInfo, PermissionScope } from '../../src'
-import { FileStorage, writeLocalFile } from '../test-utils/FileStorage'
+import { PermissionInfo, NetworkType, PermissionScope } from '@airgap/beacon-types'
+import { FileStorage, writeLocalFile } from '../../../../test/test-utils/FileStorage'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)

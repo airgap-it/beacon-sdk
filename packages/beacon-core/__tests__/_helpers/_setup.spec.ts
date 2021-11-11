@@ -1,4 +1,4 @@
-import { MockLocalStorage } from '../test-utils/MockLocalStorage'
+import { MockLocalStorage } from '../../../../test/test-utils/MockLocalStorage'
 ;(global as any).localStorage = new MockLocalStorage()
 
 import Axios from 'axios'

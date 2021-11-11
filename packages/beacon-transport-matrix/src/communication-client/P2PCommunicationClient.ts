@@ -34,12 +34,11 @@ import {
 import {
   PeerManager,
   BEACON_VERSION,
-  generateGUID,
   getSenderId,
   Logger,
   CommunicationClient
 } from '@airgap/beacon-core'
-import { ExposedPromise } from '@airgap/beacon-utils'
+import { ExposedPromise, generateGUID } from '@airgap/beacon-utils'
 
 const logger = new Logger('P2PCommunicationClient')
 

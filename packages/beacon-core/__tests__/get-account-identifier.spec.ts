@@ -1,8 +1,8 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
-import { getAccountIdentifier } from '../../src/utils/get-account-identifier'
-import { Network, NetworkType } from '../../src'
+import { getAccountIdentifier } from '../src/utils/get-account-identifier'
+import { Network, NetworkType } from '@airgap/beacon-types'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)

@@ -10,13 +10,10 @@ chai.use(chaiAsPromised)
 const expect = chai.expect
 
 describe(`Storage`, () => {
-  it(`should not get a storage by default`, async () => {
-    try {
-      const storage = await getStorage()
-      expect(storage).to.be.undefined
-    } catch (e) {
-      expect(e.message).to.equal('no storage type supported')
-    }
+  it(`should get a storage by default`, async () => {
+    const storage = await getStorage()
+    console.log('STORAGE', storage)
+    expect(storage).to.not.be.undefined
   })
 
   it(`should get the ChromeStorage`, async () => {

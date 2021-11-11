@@ -3,7 +3,9 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import * as sinon from 'sinon'
 
-import { LocalStorage, StorageKey } from '../../src'
+import { StorageKey } from '@airgap/beacon-types'
+
+import { LocalStorage } from '../../src'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
@@ -21,9 +23,9 @@ describe(`LocalStorage`, () => {
     deleteSpy = sinon.spy(localStorage, 'removeItem')
   })
 
-  it(`should not be supported`, async () => {
+  it(`should be supported`, async () => {
     const isSupported = await LocalStorage.isSupported()
-    expect(isSupported).to.be.false
+    expect(isSupported).to.be.true
   })
 
   it(`should be supported`, async () => {
