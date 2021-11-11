@@ -60,9 +60,12 @@ export class WalletClient extends Client {
   private pendingRequests: [BeaconRequestMessage, ConnectionContext][] = []
 
   constructor(config: WalletClientOptions) {
-    super({ storage: new LocalStorage(), ...config })
-    this.permissionManager = new PermissionManager(new LocalStorage())
-    this.appMetadataManager = new AppMetadataManager(new LocalStorage())
+    super({
+      storage: config && config.storage ? config.storage : new LocalStorage(),
+      ...config
+    })
+    this.permissionManager = new PermissionManager(this.storage)
+    this.appMetadataManager = new AppMetadataManager(this.storage)
   }
 
   public async init(): Promise<TransportType> {
