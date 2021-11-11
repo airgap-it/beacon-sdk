@@ -1,12 +1,8 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "2.3.6",
   "description": "The beacon-sdk allows you to easily connect DApps with Wallets through P2P communication or a chrome extension.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "es2015": "dist/esm/index.js",
-  "esm2015": "dist/esm/index.js",
-  "fesm2015": "dist/esm/index.js",
   "unpkg": "dist/walletbeacon.min.js",
   "types": "dist/esm/index.d.ts",
   "keywords": [
@@ -26,8 +22,11 @@
   },
   "scripts": {
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
-    "build": "lerna run tsc",
-    "browserify": "browserify ./packages/beacon-dapp/dist/cjs/index.js -s beacon | uglifyjs > ./walletbeacon.min.js && cp ./walletbeacon.min.js ./examples/walletbeacon.min.js",
+    "build": "npm run check-version && lerna run tsc",
+    "browserify:all": "npm run browserify:sdk && npm run browserify:dapp && npm run browserify:wallet",
+    "browserify:sdk": "browserify ./packages/beacon-dapp/dist/cjs/index.js -s beacon | uglifyjs > ./walletbeacon.min.js && cp ./walletbeacon.min.js ./examples/walletbeacon.min.js",
+    "browserify:dapp": "browserify ./packages/beacon-dapp/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-wallet/dist/walletbeacon.dapp.min.js",
+    "browserify:wallet": "browserify ./packages/beacon-wallet/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-wallet/dist/walletbeacon.wallet.min.js",
     "prettier": "prettier --write 'src/**/*' '**/src/**/*' 'docs/**/*.md' 'example-dapp.html' 'example-wallet.html'",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
