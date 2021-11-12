@@ -44,7 +44,7 @@ describe.only(`P2PCommunicationClient`, () => {
         results[result] = temp + 1
       }
 
-      const margin = 0.04 * maxNumber
+      const margin = 0.05 * maxNumber
       const expectedAmount = Math.floor(numberOfIterations / maxNumber)
 
       const upperLimit = expectedAmount * (1 + margin)
