@@ -234,6 +234,9 @@ export const preparePairingAlert = async (
           break
         default:
           if (!qrShown) {
+            // If we have previously triggered the load, do not load it again (this can lead to multiple QRs being added if "pairingPayload.p2pSyncCode()" is slow)
+            qrShown = true
+
             const code = await serializer.serialize(await pairingPayload.p2pSyncCode())
             const uri = getTzip10Link('tezos://', code)
             const qrSVG = getQrData(uri, 'svg')
@@ -245,7 +248,6 @@ export const preparePairingAlert = async (
             if (qr) {
               qr.addEventListener('click', clipboardFn)
             }
-            qrShown = true
           }
 
           // QR code

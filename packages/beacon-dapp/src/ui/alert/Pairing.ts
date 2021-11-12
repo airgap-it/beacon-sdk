@@ -15,8 +15,8 @@ import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
 const serializer = new Serializer()
 
 const defaultExtensions = [
-  'ookjlbkiijinhpmnjffcofjonbfbgaoc', // Thanos
-  'gpfndedineagiepkpinficbcbbgjoenn' // Beacon
+  'ookjlbkiijinhpmnjffcofjonbfbgaoc', // Temple
+  'gpfndedineagiepkpinficbcbbgjoenn' // Spire
 ]
 
 export enum Platform {
@@ -176,7 +176,14 @@ export class Pairing {
                 shortName: app.shortName ?? ext?.shortName,
                 color: app.color ?? ext?.color,
                 enabled: true,
+                clicked: false,
                 async clickHandler(): Promise<void> {
+                  if (this.clicked) {
+                    return
+                  }
+
+                  this.clicked = true
+
                   if (postmessageSyncCode) {
                     const postmessageCode = await serializer.serialize(await postmessageSyncCode())
                     const message: ExtensionMessage<string> = {
@@ -217,7 +224,14 @@ export class Pairing {
               color: app.color,
               logo: app.logo,
               enabled: true,
+              clicked: false,
               async clickHandler(): Promise<void> {
+                if (this.clicked) {
+                  return
+                }
+
+                this.clicked = true
+
                 const code = await serializer.serialize(await pairingCode())
                 const link = getTzip10Link(app.deepLink, code)
                 window.open(link, '_blank')
@@ -238,7 +252,14 @@ export class Pairing {
               color: app.color,
               logo: app.logo,
               enabled: true,
+              clicked: false,
               async clickHandler(): Promise<void> {
+                if (this.clicked) {
+                  return
+                }
+
+                this.clicked = true
+
                 const code = await serializer.serialize(await pairingCode())
                 mobileWalletHandler(code)
                 statusUpdateHandler(WalletType.IOS, this, true)
@@ -269,7 +290,14 @@ export class Pairing {
               color: app.color,
               logo: app.logo,
               enabled: true,
+              clicked: false,
               async clickHandler(): Promise<void> {
+                if (this.clicked) {
+                  return
+                }
+
+                this.clicked = true
+
                 const code = await serializer.serialize(await pairingCode())
                 const link = getTzip10Link(app.deepLink ?? app.universalLink, code)
 
@@ -340,7 +368,14 @@ export class Pairing {
         color: app.color,
         logo: app.logo,
         enabled: true,
+        clicked: false,
         clickHandler(): void {
+          if (this.clicked) {
+            return
+          }
+
+          this.clicked = true
+
           const newTab = window.open('', '_blank')
 
           pairingCode()

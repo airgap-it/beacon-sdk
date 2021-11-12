@@ -25,7 +25,7 @@
     "build": "npm run check-version && lerna run tsc && npm run browserify:all",
     "browserify:all": "npm run browserify:sdk && npm run browserify:dapp && npm run browserify:wallet",
     "browserify:sdk": "browserify ./packages/beacon-dapp/dist/cjs/index.js -s beacon | uglifyjs > ./walletbeacon.min.js && cp ./walletbeacon.min.js ./examples/walletbeacon.min.js",
-    "browserify:dapp": "browserify ./packages/beacon-dapp/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-wallet/dist/walletbeacon.dapp.min.js",
+    "browserify:dapp": "browserify ./packages/beacon-dapp/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-dapp/dist/walletbeacon.dapp.min.js",
     "browserify:wallet": "browserify ./packages/beacon-wallet/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-wallet/dist/walletbeacon.wallet.min.js",
     "prettier": "prettier --write 'src/**/*' '**/src/**/*' 'docs/**/*.md' 'example-dapp.html' 'example-wallet.html'",
     "lint": "eslint 'src/**/*.ts'",
