@@ -27,13 +27,13 @@
   "paths": {
     "beacon-core": ["packages/beacon-core/lib/beacon-core", "packages/beacon-core/lib"],
     "beacon-dapp": ["packages/beacon-dapp/lib/beacon-dapp", "packages/beacon-dapp/lib"],
-    "beacon-protocol-kusama": [
-      "packages/beacon-protocol-kusama/lib/beacon-protocol-kusama",
-      "packages/beacon-protocol-kusama/lib"
+    "beacon-blockchain-kusama": [
+      "packages/beacon-blockchain-kusama/lib/beacon-blockchain-kusama",
+      "packages/beacon-blockchain-kusama/lib"
     ],
-    "beacon-protocol-tezos": [
-      "packages/beacon-protocol-tezos/lib/beacon-protocol-tezos",
-      "packages/beacon-protocol-tezos/lib"
+    "beacon-blockchain-tezos": [
+      "packages/beacon-blockchain-tezos/lib/beacon-blockchain-tezos",
+      "packages/beacon-blockchain-tezos/lib"
     ],
     "beacon-transport-matrix": [
       "packages/beacon-transport-matrix/lib/beacon-transport-matrix",

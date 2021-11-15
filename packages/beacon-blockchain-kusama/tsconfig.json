@@ -4,7 +4,7 @@
     "outDir": "./dist/esm",
     "baseUrl": ".",
     "paths": {
-      "@airgap/beacon-protocol-tezos": ["./src"]
+      "@airgap/beacon-blockchain-kusama": ["./src"]
     }
   },
   "include": ["./src"]

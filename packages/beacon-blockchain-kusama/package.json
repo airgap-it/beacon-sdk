@@ -1,5 +1,5 @@
 {
-  "name": "@airgap/beacon-protocol-kusama",
+  "name": "@airgap/beacon-blockchain-kusama",
   "version": "0.0.1-beta.14",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <andreas@andreasgassmann.ch>",

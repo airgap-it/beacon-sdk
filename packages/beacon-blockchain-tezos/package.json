@@ -1,5 +1,5 @@
 {
-  "name": "@airgap/beacon-protocol-tezos",
+  "name": "@airgap/beacon-blockchain-tezos",
   "version": "0.0.1-beta.14",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <andreas@andreasgassmann.ch>",

@@ -2,6 +2,6 @@
 
 const beaconProtocolkusama = require('..')
 
-describe('@airgap/beacon-protocol-kusama', () => {
+describe('@airgap/beacon-blockchain-kusama', () => {
   it('needs tests')
 })

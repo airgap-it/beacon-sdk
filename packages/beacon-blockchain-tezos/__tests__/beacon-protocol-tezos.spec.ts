@@ -2,6 +2,6 @@
 
 const beaconProtocolTezos = require('..')
 
-describe('@airgap/beacon-protocol-tezos', () => {
+describe('@airgap/beacon-blockchain-tezos', () => {
   it('needs tests')
 })
