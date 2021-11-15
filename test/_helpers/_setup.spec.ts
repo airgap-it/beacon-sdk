@@ -241,7 +241,7 @@ mock
   .onGet('https://beacon-node-0.papers.tech:8448/_matrix/client/r0/sync')
   .reply(200, getSync())
   .onAny()
-  .reply((config) => {
+  .reply((config: any) => {
     console.log('UNMOCKED URL, RETURNING ERROR 500', `${config.baseURL}${config.url}`)
 
     return [500, {}]

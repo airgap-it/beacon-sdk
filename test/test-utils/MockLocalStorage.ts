@@ -4,13 +4,13 @@ export class MockLocalStorage {
   constructor() {
     this.storage = new Map()
   }
-  setItem(key, value) {
+  setItem(key: any, value: any) {
     this.storage.set(key, value)
   }
-  getItem(key) {
+  getItem(key: any) {
     return this.storage.get(key)
   }
-  removeItem(key) {
+  removeItem(key: any) {
     this.storage.delete(key)
   }
   clear() {

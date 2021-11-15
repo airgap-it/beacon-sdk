@@ -1,7 +1,13 @@
 import * as path from 'path'
 import * as fs from 'fs'
-import { NetworkType } from '../src/types/beacon/NetworkType'
-import { ExtensionApp, WebApp, App, AppBase, DesktopApp } from '../src/ui/alert/Pairing'
+import { NetworkType } from '../packages/beacon-types/src/types/beacon/NetworkType'
+import {
+  ExtensionApp,
+  WebApp,
+  App,
+  AppBase,
+  DesktopApp
+} from '../packages/beacon-dapp/src/ui/alert/Pairing'
 
 export const extensionList: ExtensionApp[] = [
   {
@@ -127,7 +133,7 @@ const convert = <T extends AppBase>(list: T[]): Promise<T[]> => {
 }
 
 const createLists = async () => {
-  const ALERT_DEST_DIR = path.join(PKG_DIR, 'src', 'ui', 'alert')
+  const ALERT_DEST_DIR = path.join(PKG_DIR, 'packages', 'beacon-dapp', 'src', 'ui', 'alert')
 
   const extensionListWithInlinedLogo = await convert(extensionList)
   const desktopListWithInlinedLogo = await convert(desktopList)
@@ -169,7 +175,7 @@ const createLists = async () => {
 
 const createAlert = async () => {
   const ALERT_SRC_DIR = path.join(PKG_DIR, 'assets', 'alert')
-  const ALERT_DEST_DIR = path.join(PKG_DIR, 'src', 'ui', 'alert')
+  const ALERT_DEST_DIR = path.join(PKG_DIR, 'packages', 'beacon-dapp', 'src', 'ui', 'alert')
 
   const css = (await readFile(path.join(ALERT_SRC_DIR, 'alert.css'))).toString('utf-8')
   const pairCss = (await readFile(path.join(ALERT_SRC_DIR, 'alert-pair.css'))).toString('utf-8')
@@ -201,7 +207,7 @@ const createAlert = async () => {
 
 const createToast = async () => {
   const TOAST_SRC_DIR = path.join(PKG_DIR, 'assets', 'toast')
-  const TOAST_DEST_DIR = path.join(PKG_DIR, 'src', 'ui', 'toast')
+  const TOAST_DEST_DIR = path.join(PKG_DIR, 'packages', 'beacon-dapp', 'src', 'ui', 'toast')
 
   const css = (await readFile(path.join(TOAST_SRC_DIR, 'toast.css'))).toString('utf-8')
 
