@@ -1,5 +1,5 @@
-import * as chai from 'chai'
-import * as chaiAsPromised from 'chai-as-promised'
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import {
   PermissionRequest,
@@ -20,7 +20,7 @@ import {
   BeaconErrorType,
   BeaconResponseInputMessage
 } from '../../src'
-import * as sinon from 'sinon'
+import sinon from 'sinon'
 
 import { WalletClient } from '../../src/clients/wallet-client/WalletClient'
 import { ExtendedP2PPairingRequest } from '../../src/types/P2PPairingRequest'

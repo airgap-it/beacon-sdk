@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { StorageKey, PostMessageTransport, Storage } from '..'
 import { PostMessagePairingRequest } from '../types/PostMessagePairingRequest'
 

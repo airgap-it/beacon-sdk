@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { P2PPairingRequest } from '../..'
 import { ExtendedP2PPairingResponse } from '../../types/P2PPairingResponse'
 import { PostMessagePairingRequest } from '../../types/PostMessagePairingRequest'

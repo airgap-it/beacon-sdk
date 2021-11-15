@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { Storage, StorageKey, P2PTransport, TransportStatus } from '..'
 import { ExtendedP2PPairingResponse } from '../types/P2PPairingResponse'
 import { Logger } from '../utils/Logger'

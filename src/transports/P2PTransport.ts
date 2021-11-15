@@ -1,4 +1,4 @@
-import * as sodium from 'libsodium-wrappers'
+import sodium from 'libsodium-wrappers'
 import { Logger } from '../utils/Logger'
 import { ConnectionContext } from '../types/ConnectionContext'
 import {
