@@ -1,5 +1,5 @@
-import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
+import * as chai from 'chai'
+import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { LocalStorage } from '@airgap/beacon-core'
 import { MatrixClient } from '../src/matrix-client/MatrixClient'
