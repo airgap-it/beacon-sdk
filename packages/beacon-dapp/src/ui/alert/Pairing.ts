@@ -54,6 +54,7 @@ export interface WebApp extends AppBase {
     [NetworkType.FLORENCENET]?: string
     [NetworkType.GRANADANET]?: string
     [NetworkType.HANGZHOUNET]?: string
+    [NetworkType.IDIAZABALNET]?: string
     [NetworkType.CUSTOM]?: string
   }
 }
@@ -316,9 +317,9 @@ export class Pairing {
         {
           title: 'Web Wallets',
           type: WalletType.WEB,
-          wallets: [
-            ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
-          ].sort((a, b) => a.key.localeCompare(b.key))
+          wallets: [...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))].sort(
+            (a, b) => a.key.localeCompare(b.key)
+          )
         }
       ],
       buttons: []
@@ -335,9 +336,9 @@ export class Pairing {
         {
           title: 'Web Wallets',
           type: WalletType.WEB,
-          wallets: [
-            ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
-          ].sort((a, b) => a.key.localeCompare(b.key))
+          wallets: [...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))].sort(
+            (a, b) => a.key.localeCompare(b.key)
+          )
         }
       ],
       buttons: [
