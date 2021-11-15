@@ -1,8 +1,8 @@
 {
   "name": "@airgap/beacon-blockchain-tezos",
-  "version": "0.0.1-beta.14",
+  "version": "2.4.0-beta.0",
   "description": "> TODO: description",
-  "author": "Andreas Gassmann <andreas@andreasgassmann.ch>",
+  "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
   "license": "ISC",
   "main": "dist/cjs/index.js",
