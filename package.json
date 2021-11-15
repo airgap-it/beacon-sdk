@@ -24,7 +24,7 @@
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
     "build": "npm run check-version && lerna run tsc && npm run browserify:all",
     "browserify:all": "npm run browserify:sdk && npm run browserify:dapp && npm run browserify:wallet",
-    "browserify:sdk": "browserify ./packages/beacon-sdk/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-sdk/walletbeacon.min.js && cp ./packages/beacon-sdk/walletbeacon.min.js ./examples/walletbeacon.min.js",
+    "browserify:sdk": "browserify ./packages/beacon-sdk/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-sdk/dist/walletbeacon.min.js && cp ./packages/beacon-sdk/dist/walletbeacon.min.js ./examples/walletbeacon.min.js",
     "browserify:dapp": "browserify ./packages/beacon-dapp/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-dapp/dist/walletbeacon.dapp.min.js",
     "browserify:wallet": "browserify ./packages/beacon-wallet/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-wallet/dist/walletbeacon.wallet.min.js",
     "prettier": "prettier --write 'src/**/*' '**/src/**/*' 'docs/**/*.md' 'example-dapp.html' 'example-wallet.html'",
