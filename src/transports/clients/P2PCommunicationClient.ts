@@ -30,32 +30,18 @@ import { ExposedPromise } from '../../utils/exposed-promise'
 const logger = new Logger('P2PCommunicationClient')
 
 export const KNOWN_RELAY_SERVERS = [
+  'beacon-node-1.diamond.papers.tech',
   'beacon-node-1.sky.papers.tech',
-  'beacon-node-0.papers.tech:8448',
-  'beacon-node-2.sky.papers.tech'
+  'beacon-node-2.sky.papers.tech',
+  'beacon-node-1.hope.papers.tech',
+  'beacon-node-1.hope-2.papers.tech',
+  'beacon-node-1.hope-3.papers.tech',
+  'beacon-node-1.hope-4.papers.tech',
+  'beacon-node-0.papers.tech:8448'
 ]
-export const publicKeyToNumber = (arr: Uint8Array, mod: number) => {
-  let sum = 0
-  for (let i = 0; i < arr.length; i++) {
-    sum += arr[i] + i
-  }
-  return Math.floor(sum % mod)
-}
-
-export const deterministicShuffle = (arr: string[], keypair: sodium.KeyPair) => {
-  const arrCopy: string[] = JSON.parse(JSON.stringify(arr))
-  const newArr: string[] = []
-  while (arrCopy.length > 0) {
-    const position = publicKeyToNumber(keypair.publicKey, arrCopy.length)
-    newArr.push(...arrCopy.splice(position, 1))
-  }
-  return newArr
-}
 
 /**
  * @internalapi
- *
- *
  */
 export class P2PCommunicationClient extends CommunicationClient {
   private client: ExposedPromise<MatrixClient> = new ExposedPromise()
@@ -86,7 +72,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     logger.log('constructor', 'P2PCommunicationClient created')
     const nodes = matrixNodes.length > 0 ? matrixNodes : KNOWN_RELAY_SERVERS
-    this.ENABLED_RELAY_SERVERS = deterministicShuffle(nodes, keyPair)
+    this.ENABLED_RELAY_SERVERS = nodes
   }
 
   public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
@@ -142,12 +128,11 @@ export class P2PCommunicationClient extends CommunicationClient {
       return node
     }
 
-    const startIndex = publicKeyToNumber(this.keyPair.publicKey, this.ENABLED_RELAY_SERVERS.length)
-    let offset = 0
+    const nodes = [...this.ENABLED_RELAY_SERVERS]
 
-    while (offset < this.ENABLED_RELAY_SERVERS.length) {
-      const serverIndex = (startIndex + offset) % this.ENABLED_RELAY_SERVERS.length
-      const server = this.ENABLED_RELAY_SERVERS[serverIndex]
+    while (nodes.length > 0) {
+      const index = Math.floor(Math.random() * nodes.length)
+      const server = nodes[index]
 
       try {
         await axios.get(`https://${server}/_matrix/client/versions`)
@@ -159,7 +144,7 @@ export class P2PCommunicationClient extends CommunicationClient {
         return server
       } catch (relayError) {
         logger.log(`Ignoring server "${server}", trying another one...`)
-        offset++
+        nodes.splice(index, 1)
       }
     }
 
