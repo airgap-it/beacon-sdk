@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "2.4.0-beta.2",
+  "version": "2.4.0-beta.3",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -35,15 +35,15 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-blockchain-kusama": "^2.4.0-beta.2",
-    "@airgap/beacon-blockchain-tezos": "^2.4.0-beta.2",
-    "@airgap/beacon-core": "^2.4.0-beta.2",
-    "@airgap/beacon-dapp": "^2.4.0-beta.2",
-    "@airgap/beacon-transport-matrix": "^2.4.0-beta.2",
-    "@airgap/beacon-transport-postmessage": "^2.4.0-beta.2",
-    "@airgap/beacon-types": "^2.4.0-beta.2",
-    "@airgap/beacon-ui": "^2.4.0-beta.2",
-    "@airgap/beacon-utils": "^2.4.0-beta.2",
-    "@airgap/beacon-wallet": "^2.4.0-beta.2"
+    "@airgap/beacon-blockchain-kusama": "^2.4.0-beta.3",
+    "@airgap/beacon-blockchain-tezos": "^2.4.0-beta.3",
+    "@airgap/beacon-core": "^2.4.0-beta.3",
+    "@airgap/beacon-dapp": "^2.4.0-beta.3",
+    "@airgap/beacon-transport-matrix": "^2.4.0-beta.3",
+    "@airgap/beacon-transport-postmessage": "^2.4.0-beta.3",
+    "@airgap/beacon-types": "^2.4.0-beta.3",
+    "@airgap/beacon-ui": "^2.4.0-beta.3",
+    "@airgap/beacon-utils": "^2.4.0-beta.3",
+    "@airgap/beacon-wallet": "^2.4.0-beta.3"
   }
 }
