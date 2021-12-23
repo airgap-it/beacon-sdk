@@ -80,7 +80,7 @@ export const iosList: App[] = [
   },
   {
     key: 'naan_ios',
-    name: 'Naan - A Tasty Tezos Wallet',
+    name: 'Naan Wallet',
     shortName: 'Naan',
     color: 'rgb(129, 100, 100)',
     logo: 'ios-naan.png',
