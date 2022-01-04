@@ -116,6 +116,7 @@ import { ColorMode } from './types/ColorMode'
 import { Optional } from './types/utils/Optional'
 import { Extension } from './types/Extension'
 import { PermissionEntity } from './types/PermissionEntity'
+import { PermissionRequestV3 } from './types/beaconV3/PermissionRequest'
 
 // Tezos
 export {
@@ -251,3 +252,5 @@ export { ConnectionContext, ColorMode }
 // TS helpers
 
 export { Optional }
+
+export { PermissionRequestV3 }

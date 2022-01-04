@@ -43,6 +43,7 @@ import {
   Optional,
   ColorMode,
   IgnoredRequestInputProperties
+  // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
   // EncryptPayloadResponse,
@@ -75,6 +76,16 @@ import { DappPostMessageTransport } from '../transports/DappPostMessageTransport
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { closeToast } from '../ui/toast/Toast'
+import {
+  BeaconBaseMessage,
+  BeaconMessageWrapper,
+  Blockchain,
+  BlockchainMessage,
+  BlockchainRequestV3,
+  BlockchainResponseV3,
+  PermissionRequestV3,
+  PermissionResponseV3
+} from './new'
 
 const logger = new Logger('DAppClient')
 
@@ -543,6 +554,126 @@ export class DAppClient extends Client {
       default:
         return false
     }
+  }
+
+  private blockchains: Map<string, Blockchain> = new Map()
+
+  addBlockchain(chain: Blockchain) {
+    this.blockchains.set(chain.identifier, chain)
+  }
+
+  removeBlockchain(chainIdentifier: string) {
+    this.blockchains.delete(chainIdentifier)
+  }
+
+  /** Generic messages */
+  public async permissionRequest(
+    input: PermissionRequestV3<string>
+  ): Promise<PermissionResponseV3<string>> {
+    console.log('PERMISSION REQUEST')
+    const blockchain = this.blockchains.get(input.blockchainIdentifier)
+    if (!blockchain) {
+      throw new Error(`Blockchain "${input.blockchainIdentifier}" not supported by dAppClient`)
+    }
+
+    // this.permissionRequest({
+    //   blockchainIdentifier: 'tezos',
+    //   type: BeaconMessageType.PermissionRequest,
+    //   chainData: {
+    //     appMetadata: {} as any,
+    //     scopes: []
+    //   }
+    // })
+
+    const request: PermissionRequestV3<string> = {
+      ...input,
+      type: BeaconMessageType.PermissionRequest,
+      chainData: {
+        ...input.chainData,
+        appMetadata: await this.getOwnAppMetadata()
+      }
+    }
+
+    console.log('REQUESTION PERMIMISSION V3', 'xxx', request)
+
+    const { message: response, connectionInfo } = await this.makeRequestV3<
+      PermissionRequestV3<string>,
+      BeaconMessageWrapper<PermissionResponseV3<string>>
+    >(request).catch(async (_requestError: ErrorResponse) => {
+      throw new Error('TODO')
+      // throw await this.handleRequestError(request, requestError)
+    })
+
+    const address = await blockchain.getAddressFromPermissionResponse(response.message)
+
+    // const accountInfo: AccountInfo = {
+    const accountInfo: any = {
+      accountIdentifier: response.message.accountId,
+      senderId: response.senderId,
+      origin: {
+        type: connectionInfo.origin,
+        id: connectionInfo.id
+      },
+      address,
+      publicKey: '',
+      scopes: response.message.chainData.scopes as any,
+      connectedAt: new Date().getTime(),
+      chainData: response.message.chainData
+    }
+
+    await this.accountManager.addAccount(accountInfo)
+    await this.setActiveAccount(accountInfo)
+
+    await blockchain.handleResponse({
+      request,
+      account: accountInfo,
+      output: response,
+      blockExplorer: this.blockExplorer,
+      connectionContext: connectionInfo,
+      walletInfo: await this.getWalletInfo()
+    })
+
+    // return output
+    return response.message
+  }
+
+  public async request(input: BlockchainRequestV3<string>): Promise<BlockchainResponseV3<string>> {
+    const blockchain = this.blockchains.get(input.blockchainIdentifier)
+    if (!blockchain) {
+      throw new Error(`Blockchain "${blockchain}" not supported by dAppClient`)
+    }
+
+    await blockchain.validateRequest(input)
+
+    const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
+    if (!activeAccount) {
+      throw await this.sendInternalError('No active account!')
+    }
+
+    const request: BlockchainRequestV3<string> = {
+      ...input,
+      type: BeaconMessageType.OperationRequest,
+      accountId: activeAccount.accountIdentifier
+    }
+
+    const { message: response, connectionInfo } = await this.makeRequestV3<
+      BlockchainRequestV3<string>,
+      BeaconMessageWrapper<BlockchainResponseV3<string>>
+    >(request).catch(async (_requestError: ErrorResponse) => {
+      throw new Error('TODO')
+      // throw await this.handleRequestError(request, requestError)
+    })
+
+    await blockchain.handleResponse({
+      request,
+      account: activeAccount,
+      output: response,
+      blockExplorer: this.blockExplorer,
+      connectionContext: connectionInfo,
+      walletInfo: await this.getWalletInfo()
+    })
+
+    return response.message
   }
 
   /**
@@ -1166,8 +1297,7 @@ export class DAppClient extends Client {
       await (await this.transport).send(payload, peer)
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
-        text:
-          'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
+        text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
         buttons: [
           {
             text: 'Reset Connection',
@@ -1185,6 +1315,112 @@ export class DAppClient extends Client {
 
     this.events
       .emit(messageEvents[requestInput.type].sent, {
+        walletInfo: {
+          ...walletInfo,
+          name: walletInfo.name ?? 'Wallet'
+        },
+        extraInfo: {
+          resetCallback: async () => {
+            this.disconnect()
+          }
+        }
+      })
+      .catch((emitError) => console.warn(emitError))
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return exposed.promise as any // TODO: fix type
+  }
+
+  /**
+   * This method handles sending of requests to the DApp. It makes sure that the DAppClient is initialized and connected
+   * to the transport. After that rate limits and permissions will be checked, an ID is attached and the request is sent
+   * to the DApp over the transport.
+   *
+   * @param requestInput The BeaconMessage to be sent to the wallet
+   * @param account The account that the message will be sent to
+   */
+  private async makeRequestV3<
+    T extends BlockchainMessage<string>,
+    U extends BeaconMessageWrapper<BlockchainMessage<string>>
+  >(
+    requestInput: T
+  ): Promise<{
+    message: U
+    connectionInfo: ConnectionContext
+  }> {
+    const messageId = await generateGUID()
+    console.time(messageId)
+    logger.log('makeRequest', 'starting')
+    await this.init()
+    console.timeLog(messageId, 'init done')
+    logger.log('makeRequest', 'after init')
+
+    if (await this.addRequestAndCheckIfRateLimited()) {
+      this.events
+        .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
+        .catch((emitError) => console.warn(emitError))
+
+      throw new Error('rate limit reached')
+    }
+
+    if (!(await this.checkPermissions(requestInput.type as BeaconMessageType))) {
+      this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
+
+      throw new Error('No permissions to send this request to wallet!')
+    }
+
+    if (!this.beaconId) {
+      throw await this.sendInternalError('BeaconID not defined')
+    }
+
+    const request: BeaconMessageWrapper<BeaconBaseMessage> = {
+      id: messageId,
+      version: '3', // TODO: BEACON_VERSION,
+      senderId: await getSenderId(await this.beaconId),
+      message: requestInput
+    }
+
+    const exposed = new ExposedPromise<
+      { message: BeaconMessage; connectionInfo: ConnectionContext },
+      ErrorResponse
+    >()
+
+    this.addOpenRequest(request.id, exposed)
+
+    const payload = await new Serializer().serialize(request)
+
+    const account = await this.getActiveAccount()
+
+    const peer = await this.getPeer(account)
+
+    const walletInfo = await this.getWalletInfo(peer, account)
+
+    logger.log('makeRequest', 'sending message', request)
+    console.timeLog(messageId, 'sending')
+    try {
+      await (await this.transport).send(payload, peer)
+    } catch (sendError) {
+      this.events.emit(BeaconEvent.INTERNAL_ERROR, {
+        text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
+        buttons: [
+          {
+            text: 'Reset Connection',
+            actionCallback: async (): Promise<void> => {
+              await closeToast()
+              this.disconnect()
+            }
+          }
+        ]
+      })
+      console.timeLog(messageId, 'send error')
+      throw sendError
+    }
+    console.timeLog(messageId, 'sent')
+
+    const index = requestInput.type as any as BeaconMessageType
+
+    this.events
+      .emit(messageEvents[index].sent, {
         walletInfo: {
           ...walletInfo,
           name: walletInfo.name ?? 'Wallet'
