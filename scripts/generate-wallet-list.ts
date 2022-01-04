@@ -71,6 +71,24 @@ export const iosList: App[] = [
     logo: 'ios-airgap.png',
     universalLink: 'https://wallet.airgap.it',
     deepLink: 'airgap-wallet://'
+  },
+  {
+    key: 'naan_ios',
+    name: 'Naan Wallet',
+    shortName: 'Naan',
+    color: 'rgb(129, 100, 100)',
+    logo: 'ios-naan.png',
+    universalLink: 'https://naanwallet.com',
+    deepLink: 'naan://'
+  },
+  {
+    key: 'autonomy-app',
+    name: 'Autonomy',
+    shortName: 'Autonomy',
+    color: '',
+    logo: 'ios-autonomy.png',
+    universalLink: 'https://au.bitmark.com/apps/tezos',
+    deepLink: 'autonomy-tezos://'
   }
   // {
   //   name: 'Galleon',
