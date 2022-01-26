@@ -96,11 +96,9 @@ export class BridgeTransport<
           id: context.id
         }
 
-        this.notifyListeners(message, connectionContext as any /* TODO: Remove as any */).catch(
-          (error) => {
-            throw error
-          }
-        )
+        this.notifyListeners(message, connectionContext).catch((error) => {
+          throw error
+        })
       })
       .catch((error: any) => {
         throw error

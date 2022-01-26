@@ -23,7 +23,6 @@
   "scripts": {
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
     "build": "npm run check-version && lerna run tsc && npm run browserify:all",
-    "build-in-sequence": "lerna run tsc --scope @airgap/beacon-types",
     "browserify:all": "npm run browserify:sdk && npm run browserify:dapp && npm run browserify:wallet",
     "browserify:sdk": "browserify ./packages/beacon-sdk/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-sdk/dist/walletbeacon.min.js && cp ./packages/beacon-sdk/dist/walletbeacon.min.js ./examples/walletbeacon.min.js",
     "browserify:dapp": "browserify ./packages/beacon-dapp/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-dapp/dist/walletbeacon.dapp.min.js",
@@ -87,7 +86,7 @@
     "husky": "4.2.5",
     "jsdom": "18.0.1",
     "jsdom-global": "3.0.2",
-    "lerna": "^4.0.0",
+    "lerna": "4.0.0",
     "mocha": "9.1.3",
     "nyc": "15.1.0",
     "prettier": "2.4.1",

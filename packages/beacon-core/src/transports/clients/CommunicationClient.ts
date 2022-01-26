@@ -10,7 +10,9 @@ import {
   PostMessagePairingRequest,
   ExtendedPostMessagePairingResponse,
   P2PPairingRequest,
-  ExtendedP2PPairingResponse
+  ExtendedP2PPairingResponse,
+  BridgePairingRequest,
+  ExtendedBridgePairingResponse
 } from '@airgap/beacon-types'
 import { toHex, getHexHash, sealCryptobox } from '@airgap/beacon-utils'
 
@@ -113,6 +115,8 @@ export abstract class CommunicationClient {
     peer?:
       | PostMessagePairingRequest
       | ExtendedPostMessagePairingResponse
+      | BridgePairingRequest
+      | ExtendedBridgePairingResponse
       | P2PPairingRequest
       | ExtendedP2PPairingResponse
   ): Promise<void>
