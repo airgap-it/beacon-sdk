@@ -85,7 +85,7 @@ import {
   BlockchainResponseV3,
   PermissionRequestV3,
   PermissionResponseV3
-} from './new'
+} from './beacon-messages-new'
 
 const logger = new Logger('DAppClient')
 

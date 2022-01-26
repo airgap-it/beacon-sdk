@@ -4,6 +4,16 @@ import { BeaconMessageType } from '@airgap/beacon-types'
 export const messageEvents: {
   [key in BeaconMessageType]: { sent: BeaconEvent; success: BeaconEvent; error: BeaconEvent }
 } = {
+  [BeaconMessageType.BlockchainRequest]: {
+    sent: BeaconEvent.UNKNOWN,
+    success: BeaconEvent.UNKNOWN,
+    error: BeaconEvent.UNKNOWN
+  },
+  [BeaconMessageType.BlockchainResponse]: {
+    sent: BeaconEvent.UNKNOWN,
+    success: BeaconEvent.UNKNOWN,
+    error: BeaconEvent.UNKNOWN
+  },
   [BeaconMessageType.PermissionRequest]: {
     sent: BeaconEvent.PERMISSION_REQUEST_SENT,
     success: BeaconEvent.PERMISSION_REQUEST_SUCCESS,

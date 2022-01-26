@@ -1,12 +1,5 @@
 import { WalletInfo } from 'src/events'
-import {
-  AccountInfo,
-  AppMetadata,
-  BlockExplorer,
-  BeaconErrorType,
-  BeaconMessageType,
-  ConnectionContext
-} from '../'
+import { AccountInfo, AppMetadata, BlockExplorer, BeaconMessageType, ConnectionContext } from '../'
 
 interface ResponseInput {
   request: BlockchainMessage
@@ -65,7 +58,7 @@ export class SubstrateBlockchain implements Blockchain {
   async getAddressFromPermissionResponse(
     permissionResponse: SubstratePermissionResponse
   ): Promise<string> {
-    return `${permissionResponse.chainData.accounts}`
+    return `${permissionResponse.blockchainData.accounts}`
   }
 }
 
@@ -83,13 +76,13 @@ export interface BeaconBaseMessage {
 export interface BlockchainMessage<T extends string = string> {
   blockchainIdentifier: T
   type: unknown
-  chainData: unknown
+  blockchainData: unknown
 }
 
 export interface PermissionRequestV3<T extends string = string> extends BlockchainMessage<T> {
   blockchainIdentifier: T
   type: BeaconMessageType.PermissionRequest
-  chainData: {
+  blockchainData: {
     appMetadata: AppMetadata // Some additional information about the DApp
     scopes: number[]
   }
@@ -98,7 +91,7 @@ export interface PermissionResponseV3<T extends string = string> extends Blockch
   blockchainIdentifier: T
   type: BeaconMessageType.PermissionResponse
   accountId: string
-  chainData: {
+  blockchainData: {
     appMetadata: AppMetadata // Some additional information about the Wallet
     scopes: number[] // Permissions that have been granted for this specific address / account
   }
@@ -106,31 +99,30 @@ export interface PermissionResponseV3<T extends string = string> extends Blockch
 
 export interface BlockchainRequestV3<T extends string = string> extends BlockchainMessage<T> {
   blockchainIdentifier: T
-  type: unknown
-  scope: unknown
+  type: BeaconMessageType.BlockchainRequest
   accountId: string
-  chainData: unknown
+  blockchainData: {
+    type: string
+    scope: number
+  }
 }
 
 export interface BlockchainResponseV3<T extends string = string> extends BlockchainMessage<T> {
   blockchainIdentifier: T
-  type: unknown
-  accountId: string
-  chainData: unknown
+  type: BeaconMessageType.BlockchainResponse
+  // accountId is not present, because it can be fetched from the request
+  blockchainData: unknown
 }
 
 // Error (Blockchain)
 export interface BlockchainErrorResponse<T extends string = string> extends BlockchainMessage<T> {
   blockchainIdentifier: T
   type: BeaconMessageType.Error
-  errorType: unknown
-  errorData: unknown
-}
-
-// Error (Generic)
-export interface ErrorResponse extends BeaconBaseMessage {
-  type: BeaconMessageType.Error
-  errorType: BeaconErrorType
+  error: {
+    type: unknown
+    data?: unknown
+  }
+  description?: string
 }
 
 // Acknowledge
@@ -156,28 +148,28 @@ export enum SubstratePermissionScope {
 }
 
 export interface SubstratePermissionRequest extends PermissionRequestV3<'substrate'> {
-  chainData: {
+  blockchainData: {
     appMetadata: AppMetadata
     scopes: SubstratePermissionScope[]
-    network?: SubstrateNetwork[] // Array to "whitelist" certain networks
+    networks?: SubstrateNetwork[] // Array to "whitelist" certain networks
   }
 }
 export interface SubstratePermissionResponse extends PermissionResponseV3<'substrate'> {
-  chainData: {
+  blockchainData: {
     appMetadata: AppMetadata
     scopes: SubstratePermissionScope[]
     accounts: {
       network: SubstrateNetwork
       addressPrefix: number
       publicKey: string
-      // Replace with address?
-      // Prefer address, but ask if we can verify signatures with addresses with other curves
+      // should we add a curve type here?
     }[]
   }
 }
 
 export interface SubstrateTransferRequest extends BlockchainRequestV3<'substrate'> {
-  chainData: {
+  blockchainData: {
+    type: ''
     scope: SubstratePermissionScope.TRANSFER
     sourceAddress: string
     amount: string
@@ -186,8 +178,8 @@ export interface SubstrateTransferRequest extends BlockchainRequestV3<'substrate
     mode: 'broadcast' | 'broadcast-and-return' | 'return' // TODO: Wording
   }
 }
-export interface SubstrateTransferResponse extends BlockchainRequestV3<'substrate'> {
-  chainData:
+export interface SubstrateTransferResponse extends BlockchainResponseV3<'substrate'> {
+  blockchainData:
     | {
         transactionHash: string
       }
@@ -202,18 +194,18 @@ export interface SubstrateTransferResponse extends BlockchainRequestV3<'substrat
 
 export interface SubstrateSignRequest extends BlockchainRequestV3<'substrate'> {
   scope: SubstratePermissionScope.SIGN_STRING | SubstratePermissionScope.SIGN_RAW
-  accountId: string // Used to match account
   // Is the Wallet allowed to alter this request (eg. tip?). If yes, payload needs to be sent back
-  metadata: {
-    genesisHash: string // Do we need this?
+  network: SubstrateNetwork
+  runtimeSpec: {
     runtimeVersion: string // Wallet should check if it's the latest version
     transactionVersion: string
   }
   payload: string // SCALE encoded payload
   mode: 'broadcast' | 'broadcast-and-return' | 'return' // TODO: Wording
 }
-export interface SubstrateSignResponse extends BlockchainRequestV3<'substrate'> {
-  chainData:
+
+export interface SubstrateSignResponse extends BlockchainResponseV3<'substrate'> {
+  blockchainData:
     | {
         signature: string
       }
