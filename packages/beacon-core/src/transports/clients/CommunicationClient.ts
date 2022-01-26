@@ -7,10 +7,12 @@ import {
   crypto_kx_client_session_keys
 } from 'libsodium-wrappers'
 import {
-  P2PPairingRequest,
-  ExtendedP2PPairingResponse,
   PostMessagePairingRequest,
-  ExtendedPostMessagePairingResponse
+  ExtendedPostMessagePairingResponse,
+  BridgePairingRequest,
+  ExtendedBridgePairingResponse,
+  P2PPairingRequest,
+  ExtendedP2PPairingResponse
 } from '@airgap/beacon-types'
 import { toHex, getHexHash, sealCryptobox } from '@airgap/beacon-utils'
 
@@ -111,9 +113,11 @@ export abstract class CommunicationClient {
   public abstract sendMessage(
     message: string,
     peer?:
-      | P2PPairingRequest
-      | ExtendedP2PPairingResponse
       | PostMessagePairingRequest
       | ExtendedPostMessagePairingResponse
+      | BridgePairingRequest
+      | ExtendedBridgePairingResponse
+      | P2PPairingRequest
+      | ExtendedP2PPairingResponse
   ): Promise<void>
 }

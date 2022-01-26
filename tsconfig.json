@@ -43,6 +43,10 @@
       "packages/beacon-transport-postmessage/lib/beacon-transport-postmessage",
       "packages/beacon-transport-postmessage/lib"
     ],
+    "beacon-transport-bridge": [
+      "packages/beacon-transport-bridge/lib/beacon-transport-bridge",
+      "packages/beacon-transport-bridge/lib"
+    ],
     "beacon-types": ["packages/beacon-types/lib/beacon-types", "packages/beacon-types/lib"],
     "beacon-ui": ["packages/beacon-ui/lib/beacon-ui", "packages/beacon-ui/lib"],
     "beacon-utils": ["packages/beacon-utils/lib/beacon-utils", "packages/beacon-utils/lib"],

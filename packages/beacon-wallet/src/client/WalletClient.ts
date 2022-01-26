@@ -21,7 +21,7 @@ import {
   ExtendedPeerInfo,
   PeerInfo,
   DisconnectMessage,
-  TransportType,
+  // TransportType,
   BeaconRequestOutputMessage,
   BeaconResponseInputMessage,
   AppMetadata,
@@ -31,6 +31,7 @@ import {
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
 import { WalletP2PTransport } from '../transports/WalletP2PTransport'
+import { WalletBridgeTransport } from '../transports/WalletBridgeTransport'
 
 const logger = new Logger('WalletClient')
 
@@ -68,7 +69,7 @@ export class WalletClient extends Client {
     this.appMetadataManager = new AppMetadataManager(this.storage)
   }
 
-  public async init(): Promise<TransportType> {
+  public async init(): Promise<any /* TODO: Remove any */> {
     const keyPair = await this.keyPair // We wait for keypair here so the P2P Transport creation is not delayed and causing issues
 
     const p2pTransport = new WalletP2PTransport(
@@ -79,8 +80,11 @@ export class WalletClient extends Client {
       this.iconUrl,
       this.appUrl
     )
+    p2pTransport // TODO: Remove
 
-    return super.init(p2pTransport)
+    const bridgeTransport = new WalletBridgeTransport(this.name, keyPair, this.storage)
+
+    return super.init(bridgeTransport as any /* TODO: Remove as any */)
   }
 
   /**
@@ -122,7 +126,7 @@ export class WalletClient extends Client {
 
         await IncomingRequestInterceptor.intercept({
           message,
-          connectionInfo: connectionContext,
+          connectionInfo: connectionContext as any /* TODO: Remove as any */,
           appMetadataManager: this.appMetadataManager,
           interceptorCallback: newMessageCallback
         })
@@ -145,7 +149,10 @@ export class WalletClient extends Client {
             const deserializedMessage = (await new Serializer().deserialize(
               message
             )) as BeaconRequestMessage
-            this.handleResponse(deserializedMessage, connectionInfo)
+            this.handleResponse(
+              deserializedMessage,
+              connectionInfo as any /* TODO: Remove as any */
+            )
           }
         })
         .catch((error) => logger.log('_connect', error))

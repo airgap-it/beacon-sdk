@@ -1,5 +1,5 @@
 {
-  "name": "@airgap/beacon-wallet",
+  "name": "@airgap/beacon-transport-bridge",
   "version": "2.4.0-beta.2",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
@@ -7,7 +7,6 @@
   "license": "ISC",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "unpkg": "dist/walletbeacon.wallet.min.js",
   "types": "dist/esm/index.d.ts",
   "exports": {
     "require": "./dist/cjs/index.js",
@@ -36,8 +35,9 @@
   },
   "dependencies": {
     "@airgap/beacon-core": "^2.4.0-beta.2",
-    "@airgap/beacon-transport-matrix": "^2.4.0-beta.2",
-    "@airgap/beacon-transport-postmessage": "^2.4.0-beta.2",
-    "@airgap/beacon-transport-bridge": "^2.4.0-beta.2"
+    "@airgap/beacon-types": "^2.4.0-beta.2",
+    "@airgap/beacon-utils": "^2.4.0-beta.2",
+    "@types/libsodium-wrappers": "0.7.9",
+    "libsodium-wrappers": "0.7.9"
   }
 }

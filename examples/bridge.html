@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Beacon Bridge</title>
+
+    <script src="./channel.min.js"></script>
+  </head>
+
+  <body>
+    <script>
+      // Read the parent URL from the query string
+      const urlParams = new URLSearchParams(window.location.search)
+      const parentOrigin = urlParams.get('parent')
+
+      const channel = new window.BroadcastChannel2('beacon')
+
+      const receiveMessage = (evt) => {
+        console.log('[BRIDGE]: event received', evt)
+
+        // Make sure the parent window sent us the message
+        if (evt.source !== parent) {
+          console.log('[BRIDGE]: Event source is not parent')
+          return
+        }
+        if (evt.origin !== parentOrigin) {
+          throw new Error("[BRIDGE]: Origin doesn't match parent url parameter")
+        }
+
+        channel.postMessage(evt.data)
+      }
+
+      const sendMessage = (message, type = 'message') => {
+        var data = {
+          type,
+          payload: message
+        }
+
+        console.log('[BRIDGE]: SENDING', data, parentOrigin)
+        parent.postMessage(JSON.stringify(data), parentOrigin)
+      }
+
+      channel.onmessage = sendMessage
+
+      if (window.addEventListener) {
+        // Listen to postMessage messages
+        window.addEventListener('message', receiveMessage, false)
+      } else {
+        // In case "addEventListener" is not available
+        window.attachEvent('onmessage', receiveMessage)
+      }
+
+      const loadingComplete = () => {
+        sendMessage('', 'ready')
+      }
+
+      loadingComplete()
+    </script>
+  </body>
+</html>
