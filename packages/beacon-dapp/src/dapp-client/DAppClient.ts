@@ -588,8 +588,8 @@ export class DAppClient extends Client {
     const request: PermissionRequestV3<string> = {
       ...input,
       type: BeaconMessageType.PermissionRequest,
-      chainData: {
-        ...input.chainData,
+      blockchainData: {
+        ...input.blockchainData,
         appMetadata: await this.getOwnAppMetadata()
       }
     }
@@ -616,9 +616,9 @@ export class DAppClient extends Client {
       },
       address,
       publicKey: '',
-      scopes: response.message.chainData.scopes as any,
+      scopes: response.message.blockchainData.scopes as any,
       connectedAt: new Date().getTime(),
-      chainData: response.message.chainData
+      chainData: response.message.blockchainData
     }
 
     await this.accountManager.addAccount(accountInfo)
@@ -652,7 +652,7 @@ export class DAppClient extends Client {
 
     const request: BlockchainRequestV3<string> = {
       ...input,
-      type: BeaconMessageType.OperationRequest,
+      type: BeaconMessageType.BlockchainRequest,
       accountId: activeAccount.accountIdentifier
     }
 
