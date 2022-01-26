@@ -35,6 +35,10 @@
       "packages/beacon-blockchain-tezos/lib/beacon-blockchain-tezos",
       "packages/beacon-blockchain-tezos/lib"
     ],
+    "beacon-transport-bridge": [
+      "packages/beacon-transport-bridge/lib/beacon-transport-bridge",
+      "packages/beacon-transport-bridge/lib"
+    ],
     "beacon-transport-matrix": [
       "packages/beacon-transport-matrix/lib/beacon-transport-matrix",
       "packages/beacon-transport-matrix/lib"
@@ -42,10 +46,6 @@
     "beacon-transport-postmessage": [
       "packages/beacon-transport-postmessage/lib/beacon-transport-postmessage",
       "packages/beacon-transport-postmessage/lib"
-    ],
-    "beacon-transport-bridge": [
-      "packages/beacon-transport-bridge/lib/beacon-transport-bridge",
-      "packages/beacon-transport-bridge/lib"
     ],
     "beacon-types": ["packages/beacon-types/lib/beacon-types", "packages/beacon-types/lib"],
     "beacon-ui": ["packages/beacon-ui/lib/beacon-ui", "packages/beacon-ui/lib"],
