@@ -61,10 +61,7 @@ export class BridgeClient extends MessageBasedClient {
     this.activeListeners.set(senderPublicKey, callbackFunction)
   }
 
-  public async sendMessage(
-    message: string,
-    peer: BridgePairingRequest | ExtendedBridgePairingResponse
-  ): Promise<void> {
+  public async sendMessage(message: string, peer: any /* TODO: remove any */): Promise<void> {
     const payload = await this.encryptMessage(peer.publicKey, message)
 
     const targetId = (peer as ExtendedBridgePairingResponse)?.extensionId
@@ -150,8 +147,8 @@ export class BridgeClient extends MessageBasedClient {
    * Get the pairing response information. This will be shared with the peer during the connection setup
    */
   public async getPairingResponseInfo(
-    request: BridgePairingRequest
-  ): Promise<BridgePairingResponse> {
+    request: any /* TODO: remove any */
+  ): Promise<any /* TODO: remove any */> {
     const info: any = await super.getPairingResponseInfo(request)
     info.type = 'bridge-pairing-response'
     return info

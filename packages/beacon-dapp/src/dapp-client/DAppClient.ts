@@ -38,7 +38,6 @@ import {
   ExtendedP2PPairingResponse,
   ExtendedPostMessagePairingResponse,
   PostMessagePairingResponse,
-  ExtendedBridgeResponse,
   SigningType,
   ExtendedPeerInfo,
   Optional,
@@ -198,7 +197,7 @@ export class DAppClient extends Client {
           const relevantTransport =
             connectionInfo.origin === Origin.P2P
               ? this.p2pTransport
-              : connectionInfo.origin === Origin.BRIDGE
+              : connectionInfo.origin === ('bridge' as any) /* TODO: remove any */ // Origin.BRIDGE
               ? this.bridgeTransport
               : this.postMessageTransport ?? (await this.transport)
 
@@ -295,7 +294,7 @@ export class DAppClient extends Client {
           // Select the transport that matches the active account
           if (origin === Origin.EXTENSION) {
             resolve(await super.init(this.postMessageTransport))
-          } else if (origin === Origin.BRIDGE) {
+          } else if (origin === ('bridge' as any) /* TODO: remove any */ /* Origin.BRIDGE */) {
             resolve(await super.init(this.bridgeTransport as any /* TODO: remove as any */))
           } else if (origin === Origin.P2P) {
             resolve(await super.init(this.p2pTransport))
@@ -331,7 +330,7 @@ export class DAppClient extends Client {
                 console.error
               )
               stopListening()
-              resolve(TransportType.BRIDGE)
+              resolve('bridge' as any /* TODO: remove any */ /* TransportType.BRIDGE */)
             })
             .catch(console.error)
 
@@ -404,7 +403,7 @@ export class DAppClient extends Client {
       // Select the transport that matches the active account
       if (origin === Origin.EXTENSION) {
         await this.setTransport(this.postMessageTransport)
-      } else if (origin === Origin.BRIDGE) {
+      } else if (origin === ('bridge' as any) /* TODO: remove any */ /* Origin.BRIDGE */) {
         await this.setTransport(this.bridgeTransport as any /* TODO: Remove as any */)
       } else if (origin === Origin.P2P) {
         await this.setTransport(this.p2pTransport)
@@ -851,7 +850,7 @@ export class DAppClient extends Client {
   }
 
   protected async setActivePeer(
-    peer?: ExtendedPostMessagePairingResponse | ExtendedBridgeResponse | ExtendedP2PPairingResponse
+    peer?: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
   ): Promise<void> {
     if (this._activePeer.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
@@ -866,7 +865,7 @@ export class DAppClient extends Client {
       await this.initInternalTransports()
       if (peer.type === 'postmessage-pairing-response') {
         await this.setTransport(this.postMessageTransport)
-      } else if (peer.type === 'bridge-pairing-response') {
+      } else if (peer.type === ('bridge-pairing-response' as any) /* TODO: remove any */) {
         await this.setTransport(this.bridgeTransport as any /* TODO: Remove as any */)
       } else if (peer.type === 'p2p-pairing-response') {
         await this.setTransport(this.p2pTransport)

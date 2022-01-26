@@ -46,8 +46,8 @@ export class BridgeTransport<
   K extends
     | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
     | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
-> extends Transport<T, K, BridgeClient> {
-  public readonly type: any /* Remove any */ = TransportType.BRIDGE
+> extends Transport<T, K, any> {
+  public readonly type: any /* Remove  */ = TransportType.BRIDGE
 
   constructor(name: string, keyPair: KeyPair, storage: Storage, storageKey: K) {
     super(name, new BridgeClient(name, keyPair, iFrame), new PeerManager<K>(storage, storageKey))
@@ -102,7 +102,7 @@ export class BridgeTransport<
           }
         )
       })
-      .catch((error) => {
+      .catch((error: any) => {
         throw error
       })
   }

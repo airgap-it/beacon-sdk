@@ -9,8 +9,6 @@ import {
 import {
   PostMessagePairingRequest,
   ExtendedPostMessagePairingResponse,
-  BridgePairingRequest,
-  ExtendedBridgePairingResponse,
   P2PPairingRequest,
   ExtendedP2PPairingResponse
 } from '@airgap/beacon-types'
@@ -115,8 +113,6 @@ export abstract class CommunicationClient {
     peer?:
       | PostMessagePairingRequest
       | ExtendedPostMessagePairingResponse
-      | BridgePairingRequest
-      | ExtendedBridgePairingResponse
       | P2PPairingRequest
       | ExtendedP2PPairingResponse
   ): Promise<void>
