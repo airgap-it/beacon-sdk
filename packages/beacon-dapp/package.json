@@ -35,12 +35,10 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
+    "@airgap/beacon-core": "2.4.0-beta.4",
+    "@airgap/beacon-transport-bridge": "2.4.0-beta.4",
+    "@airgap/beacon-transport-matrix": "2.4.0-beta.4",
+    "@airgap/beacon-transport-postmessage": "2.4.0-beta.4",
     "qrcode-generator": "1.4.4"
-  },
-  "peerDependencies": {
-    "@airgap/beacon-core": "*",
-    "@airgap/beacon-transport-bridge": "*",
-    "@airgap/beacon-transport-matrix": "*",
-    "@airgap/beacon-transport-postmessage": "*"
   }
 }
