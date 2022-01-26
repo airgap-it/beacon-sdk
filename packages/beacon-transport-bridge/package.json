@@ -34,9 +34,9 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "^2.4.0-beta.2",
-    "@airgap/beacon-types": "^2.4.0-beta.2",
-    "@airgap/beacon-utils": "^2.4.0-beta.2",
+    "@airgap/beacon-core": "*",
+    "@airgap/beacon-types": "*",
+    "@airgap/beacon-utils": "*",
     "@types/libsodium-wrappers": "0.7.9",
     "libsodium-wrappers": "0.7.9"
   }

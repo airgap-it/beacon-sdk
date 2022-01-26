@@ -76,6 +76,7 @@ import { DappBridgeTransport } from '../transports/DappBridgeTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { closeToast } from '../ui/toast/Toast'
+import { ExtendedBridgePairingResponse } from '@airgap/beacon-types'
 
 const logger = new Logger('DAppClient')
 
@@ -119,7 +120,10 @@ export class DAppClient extends Client {
    * The currently active peer. This is used to address a peer in case the active account is not set. (Eg. for permission requests)
    */
   private _activePeer: ExposedPromise<
-    ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
+    | ExtendedPostMessagePairingResponse
+    | ExtendedBridgePairingResponse
+    | ExtendedP2PPairingResponse
+    | undefined
   > = new ExposedPromise()
 
   private _initPromise: Promise<TransportType> | undefined
@@ -850,12 +854,18 @@ export class DAppClient extends Client {
   }
 
   protected async setActivePeer(
-    peer?: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
+    peer?:
+      | ExtendedPostMessagePairingResponse
+      | ExtendedBridgePairingResponse
+      | ExtendedP2PPairingResponse
   ): Promise<void> {
     if (this._activePeer.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
       this._activePeer = ExposedPromise.resolve<
-        ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
+        | ExtendedPostMessagePairingResponse
+        | ExtendedBridgePairingResponse
+        | ExtendedP2PPairingResponse
+        | undefined
       >(peer)
     } else {
       this._activePeer.resolve(peer)
@@ -865,7 +875,7 @@ export class DAppClient extends Client {
       await this.initInternalTransports()
       if (peer.type === 'postmessage-pairing-response') {
         await this.setTransport(this.postMessageTransport)
-      } else if (peer.type === ('bridge-pairing-response' as any) /* TODO: remove any */) {
+      } else if (peer.type === 'bridge-pairing-response') {
         await this.setTransport(this.bridgeTransport as any /* TODO: Remove as any */)
       } else if (peer.type === 'p2p-pairing-response') {
         await this.setTransport(this.p2pTransport)
