@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-wallet",
-  "version": "2.4.0-beta.2",
+  "version": "2.4.0-beta.4",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -36,8 +36,8 @@
   },
   "dependencies": {
     "@airgap/beacon-core": "*",
+    "@airgap/beacon-transport-bridge": "*",
     "@airgap/beacon-transport-matrix": "*",
-    "@airgap/beacon-transport-postmessage": "*",
-    "@airgap/beacon-transport-bridge": "*"
+    "@airgap/beacon-transport-postmessage": "*"
   }
 }
