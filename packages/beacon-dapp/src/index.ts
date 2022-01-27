@@ -1,3 +1,9 @@
+export * from '@airgap/beacon-core'
+export * from '@airgap/beacon-transport-matrix'
+export * from '@airgap/beacon-transport-postmessage'
+export * from '@airgap/beacon-types'
+export * from '@airgap/beacon-utils'
+
 import { DAppClient } from './dapp-client/DAppClient'
 import { DAppClientOptions } from './dapp-client/DAppClientOptions'
 import { BeaconEvent, BeaconEventHandler, defaultEventCallbacks } from './events'
