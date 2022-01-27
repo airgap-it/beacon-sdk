@@ -576,15 +576,6 @@ export class DAppClient extends Client {
       throw new Error(`Blockchain "${input.blockchainIdentifier}" not supported by dAppClient`)
     }
 
-    // this.permissionRequest({
-    //   blockchainIdentifier: 'tezos',
-    //   type: BeaconMessageType.PermissionRequest,
-    //   chainData: {
-    //     appMetadata: {} as any,
-    //     scopes: []
-    //   }
-    // })
-
     const request: PermissionRequestV3<string> = {
       ...input,
       type: BeaconMessageType.PermissionRequest,
@@ -603,6 +594,8 @@ export class DAppClient extends Client {
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
     })
+
+    console.log('RESPONSE V3', response, connectionInfo)
 
     const address = await blockchain.getAddressFromPermissionResponse(response.message)
 

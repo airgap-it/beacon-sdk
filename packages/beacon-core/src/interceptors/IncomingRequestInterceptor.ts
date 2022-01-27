@@ -13,6 +13,11 @@ import {
 } from '@airgap/beacon-types'
 import { AppMetadataManager } from '../managers/AppMetadataManager'
 import { Logger } from '../utils/Logger'
+import {
+  BeaconMessageWrapper,
+  BlockchainRequestV3,
+  PermissionRequestV3
+} from './beacon-messages-new'
 
 const logger = new Logger('IncomingRequestInterceptor')
 
@@ -35,6 +40,28 @@ export class IncomingRequestInterceptor {
    * @param config
    */
   public static async intercept(config: IncomingRequestInterceptorOptions): Promise<void> {
+    console.log('INTERCEPTING REQUEST', config.message)
+
+    if (config.message.version === '2') {
+      IncomingRequestInterceptor.handleV2Message(config)
+    } else if (config.message.version === '3') {
+      IncomingRequestInterceptor.handleV3Message(config)
+    }
+  }
+
+  private static async getAppMetadata(
+    appMetadataManager: AppMetadataManager,
+    senderId: string
+  ): Promise<AppMetadata> {
+    const appMetadata: AppMetadata | undefined = await appMetadataManager.getAppMetadata(senderId)
+    if (!appMetadata) {
+      throw new Error('AppMetadata not found')
+    }
+
+    return appMetadata
+  }
+
+  private static async handleV2Message(config: IncomingRequestInterceptorOptions) {
     const {
       message,
       connectionInfo,
@@ -42,15 +69,10 @@ export class IncomingRequestInterceptor {
       interceptorCallback
     }: IncomingRequestInterceptorOptions = config
 
-    // TODO: Remove v1 compatibility in later version
-    if ((message as any).beaconId && !message.senderId) {
-      message.senderId = (message as any).beaconId
-      delete (message as any).beaconId
-    }
-
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
         {
+          console.log('PERMISSION REQUEST V*', message)
           // TODO: Remove v1 compatibility in later version
           if ((message.appMetadata as any).beaconId && !message.appMetadata.senderId) {
             message.appMetadata.senderId = (message.appMetadata as any).beaconId
@@ -122,15 +144,50 @@ export class IncomingRequestInterceptor {
     }
   }
 
-  private static async getAppMetadata(
-    appMetadataManager: AppMetadataManager,
-    senderId: string
-  ): Promise<AppMetadata> {
-    const appMetadata: AppMetadata | undefined = await appMetadataManager.getAppMetadata(senderId)
-    if (!appMetadata) {
-      throw new Error('AppMetadata not found')
-    }
+  private static async handleV3Message(config: IncomingRequestInterceptorOptions) {
+    const {
+      message: msg,
+      connectionInfo,
+      appMetadataManager,
+      interceptorCallback
+    }: IncomingRequestInterceptorOptions = config
 
-    return appMetadata
+    const wrappedMessage:
+      | BeaconMessageWrapper<PermissionRequestV3<string>>
+      | BeaconMessageWrapper<BlockchainRequestV3<string>> = msg as any
+
+    const v3Message: PermissionRequestV3<string> | BlockchainRequestV3<string> =
+      wrappedMessage.message
+
+    console.log('LOGGING V3', v3Message, connectionInfo, appMetadataManager)
+
+    switch (v3Message.type) {
+      case BeaconMessageType.PermissionRequest:
+        {
+          await appMetadataManager.addAppMetadata({
+            ...v3Message.blockchainData.appMetadata,
+            senderId: msg.senderId
+          }) // Make sure we use the actual senderId, not what the dApp told us
+          const request: any /* PermissionRequestOutput */ = wrappedMessage
+          interceptorCallback(request, connectionInfo)
+        }
+        break
+      case BeaconMessageType.BlockchainRequest:
+        {
+          // const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+          //   appMetadataManager,
+          //   msg.senderId
+          // )
+          const request: any /* BeaconMessageWrapper<BlockchainRequestV3<string>> */ = {
+            ...wrappedMessage
+          }
+          interceptorCallback(request, connectionInfo)
+        }
+        break
+
+      default:
+        logger.log('intercept', 'Message not handled')
+        assertNever(v3Message)
+    }
   }
 }

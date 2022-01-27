@@ -1,13 +1,23 @@
-import { WalletInfo } from '../events'
-import { AccountInfo, AppMetadata, BlockExplorer, BeaconMessageType, ConnectionContext } from '../'
+/*
+
+TODO: This is a duplicated file during development. Remove before release
+
+*/
+
+import {
+  AccountInfo,
+  AppMetadata,
+  BeaconMessageType,
+  ConnectionContext
+} from '@airgap/beacon-types'
 
 interface ResponseInput {
   request: BlockchainMessage
   account: AccountInfo
   output: BeaconMessageWrapper<BeaconBaseMessage>
-  blockExplorer: BlockExplorer
+  blockExplorer: any
   connectionContext: ConnectionContext
-  walletInfo: WalletInfo
+  walletInfo: any // WalletInfo
 }
 
 export interface Blockchain {
