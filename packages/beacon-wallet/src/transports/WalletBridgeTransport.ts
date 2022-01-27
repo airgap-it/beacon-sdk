@@ -1,6 +1,6 @@
 import { KeyPair } from 'libsodium-wrappers'
 import { StorageKey, Storage, PostMessagePairingRequest } from '@airgap/beacon-types'
-import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
+import { BridgeTransport } from '@airgap/beacon-transport-bridge'
 
 // const logger = new Logger('WalletPostMessageTransport')
 
@@ -9,7 +9,7 @@ import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
  *
  *
  */
-export class WalletPostMessageTransport extends PostMessageTransport<
+export class WalletBridgeTransport extends BridgeTransport<
   PostMessagePairingRequest,
   StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
 > {
@@ -23,7 +23,7 @@ export class WalletPostMessageTransport extends PostMessageTransport<
   ): Promise<void> {
     await super.addPeer(newPeer)
     if (sendPairingResponse) {
-      // await this.client.sendPairingResponse(newPeer) // TODO: Should we have a confirmation here?
+      await this.client.sendPairingResponse(newPeer) // TODO: Should we have a confirmation here?
     }
   }
 }

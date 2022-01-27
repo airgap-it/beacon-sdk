@@ -116,6 +116,8 @@ import { ColorMode } from './types/ColorMode'
 import { Optional } from './types/utils/Optional'
 import { Extension } from './types/Extension'
 import { PermissionEntity } from './types/PermissionEntity'
+import { BridgePairingRequest, ExtendedBridgePairingRequest } from './types/BridgePairingRequest'
+import { BridgePairingResponse, ExtendedBridgePairingResponse } from './types/BridgePairingResponse'
 
 // Tezos
 export {
@@ -237,6 +239,10 @@ export {
   PostMessagePairingResponse,
   ExtendedPostMessagePairingRequest,
   ExtendedPostMessagePairingResponse,
+  BridgePairingRequest,
+  BridgePairingResponse,
+  ExtendedBridgePairingRequest,
+  ExtendedBridgePairingResponse,
   P2PPairingRequest,
   P2PPairingResponse,
   ExtendedP2PPairingRequest,

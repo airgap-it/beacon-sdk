@@ -23,7 +23,7 @@ export class P2PTransport<
   T extends P2PPairingRequest | ExtendedP2PPairingResponse,
   K extends StorageKey.TRANSPORT_P2P_PEERS_DAPP | StorageKey.TRANSPORT_P2P_PEERS_WALLET
 > extends Transport<T, K, P2PCommunicationClient> {
-  public readonly type: TransportType = TransportType.P2P
+  public readonly type: any /* TODO: Remove any */ = TransportType.P2P
 
   constructor(
     name: string,
@@ -90,9 +90,11 @@ export class P2PTransport<
           id: publicKey
         }
 
-        this.notifyListeners(message, connectionContext).catch((error) => {
-          throw error
-        })
+        this.notifyListeners(message, connectionContext as any /* TODO: Remove as any */).catch(
+          (error) => {
+            throw error
+          }
+        )
       })
       .catch((error) => {
         throw error

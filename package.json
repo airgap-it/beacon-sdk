@@ -41,7 +41,6 @@
     "e2e:all": "npm run e2e && npm run e2e-prepare-ffmpeg && npm run e2e-create-videos && npm run e2e-combine-videos",
     "audit-ci": "npm audit --json > audit.json && node scripts/dependency-scanning.js",
     "sonar-scanner": "sonar-scanner",
-    "prepare": "npm run build",
     "check-version": "ts-node --project tsconfig-cjs.json scripts/check-sdk-version.ts",
     "typedoc": "typedoc src/index.ts --includeVersion --internal-aliases publicapi --external-aliases internalapi --logLevel Verbose --listInvalidSymbolLinks && ts-node --project tsconfig-cjs.json scripts/process-docs.ts",
     "publish": "lerna run tsc && lerna publish",
@@ -49,7 +48,8 @@
     "bump:major": "lerna version --no-git-tag-version major --yes",
     "bump:minor": "lerna version --no-git-tag-version minor --yes",
     "bump:patch": "lerna version --no-git-tag-version patch --yes",
-    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --yes"
+    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --yes",
+    "clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' +"
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
@@ -57,6 +57,7 @@
     "@airgap/beacon-blockchain-tezos": "file:packages/beacon-blockchain-tezos",
     "@airgap/beacon-core": "file:packages/beacon-core",
     "@airgap/beacon-dapp": "file:packages/beacon-dapp",
+    "@airgap/beacon-transport-bridge": "file:packages/beacon-transport-bridge",
     "@airgap/beacon-transport-matrix": "file:packages/beacon-transport-matrix",
     "@airgap/beacon-transport-postmessage": "file:packages/beacon-transport-postmessage",
     "@airgap/beacon-types": "file:packages/beacon-types",

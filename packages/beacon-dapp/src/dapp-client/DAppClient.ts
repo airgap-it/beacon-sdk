@@ -42,7 +42,8 @@ import {
   ExtendedPeerInfo,
   Optional,
   ColorMode,
-  IgnoredRequestInputProperties
+  IgnoredRequestInputProperties,
+  ExtendedBridgePairingResponse
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
   // EncryptPayloadResponse,
@@ -72,6 +73,7 @@ import { DAppClientOptions } from './DAppClientOptions'
 import { App, DesktopApp, ExtensionApp, WebApp } from '../ui/alert/Pairing'
 import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
+import { DappBridgeTransport } from '../transports/DappBridgeTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { closeToast } from '../ui/toast/Toast'
@@ -97,6 +99,7 @@ export class DAppClient extends Client {
   protected readonly events: BeaconEventHandler = new BeaconEventHandler()
 
   protected postMessageTransport: DappPostMessageTransport | undefined
+  protected bridgeTransport: DappBridgeTransport | undefined
   protected p2pTransport: DappP2PTransport | undefined
 
   /**
@@ -117,7 +120,10 @@ export class DAppClient extends Client {
    * The currently active peer. This is used to address a peer in case the active account is not set. (Eg. for permission requests)
    */
   private _activePeer: ExposedPromise<
-    ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
+    | ExtendedPostMessagePairingResponse
+    | ExtendedBridgePairingResponse
+    | ExtendedP2PPairingResponse
+    | undefined
   > = new ExposedPromise()
 
   private _initPromise: Promise<TransportType> | undefined
@@ -195,6 +201,8 @@ export class DAppClient extends Client {
           const relevantTransport =
             connectionInfo.origin === Origin.P2P
               ? this.p2pTransport
+              : connectionInfo.origin === Origin.BRIDGE
+              ? this.bridgeTransport
               : this.postMessageTransport ?? (await this.transport)
 
           if (relevantTransport) {
@@ -221,9 +229,12 @@ export class DAppClient extends Client {
   public async initInternalTransports(): Promise<void> {
     const keyPair = await this.keyPair
 
-    if (this.postMessageTransport || this.p2pTransport) {
+    if (this.postMessageTransport || this.bridgeTransport || this.p2pTransport) {
       return
     }
+
+    this.bridgeTransport = new DappBridgeTransport(this.name, keyPair, this.storage)
+    await this.addListener(this.bridgeTransport)
 
     this.postMessageTransport = new DappPostMessageTransport(this.name, keyPair, this.storage)
     await this.addListener(this.postMessageTransport)
@@ -265,6 +276,9 @@ export class DAppClient extends Client {
           if (this.postMessageTransport) {
             this.postMessageTransport.stopListeningForNewPeers().catch(console.error)
           }
+          if (this.bridgeTransport) {
+            this.bridgeTransport.stopListeningForNewPeers().catch(console.error)
+          }
           if (this.p2pTransport) {
             this.p2pTransport.stopListeningForNewPeers().catch(console.error)
           }
@@ -272,10 +286,11 @@ export class DAppClient extends Client {
 
         await this.initInternalTransports()
 
-        if (!this.postMessageTransport || !this.p2pTransport) {
+        if (!this.postMessageTransport || !this.bridgeTransport || !this.p2pTransport) {
           return
         }
 
+        this.bridgeTransport.connect().then().catch(console.error) // TODO: Do this only when this transport is selected
         this.postMessageTransport.connect().then().catch(console.error)
 
         if (activeAccount && activeAccount.origin) {
@@ -283,12 +298,15 @@ export class DAppClient extends Client {
           // Select the transport that matches the active account
           if (origin === Origin.EXTENSION) {
             resolve(await super.init(this.postMessageTransport))
+          } else if (origin === Origin.BRIDGE) {
+            resolve(await super.init(this.bridgeTransport))
           } else if (origin === Origin.P2P) {
             resolve(await super.init(this.p2pTransport))
           }
         } else {
-          const p2pTransport = this.p2pTransport
           const postMessageTransport = this.postMessageTransport
+          const bridgeTransport = this.bridgeTransport
+          const p2pTransport = this.p2pTransport
 
           postMessageTransport
             .listenForNewPeer((peer) => {
@@ -301,6 +319,20 @@ export class DAppClient extends Client {
               this.setTransport(this.postMessageTransport).catch(console.error)
               stopListening()
               resolve(TransportType.POST_MESSAGE)
+            })
+            .catch(console.error)
+
+          bridgeTransport
+            .listenForNewPeer((peer) => {
+              logger.log('init', 'bridge transport peer connected', peer)
+              this.events
+                .emit(BeaconEvent.PAIR_SUCCESS, peer)
+                .catch((emitError) => console.warn(emitError))
+
+              this.setActivePeer(peer).catch(console.error)
+              this.setTransport(this.bridgeTransport).catch(console.error)
+              stopListening()
+              resolve(TransportType.BRIDGE)
             })
             .catch(console.error)
 
@@ -373,6 +405,8 @@ export class DAppClient extends Client {
       // Select the transport that matches the active account
       if (origin === Origin.EXTENSION) {
         await this.setTransport(this.postMessageTransport)
+      } else if (origin === Origin.BRIDGE) {
+        await this.setTransport(this.bridgeTransport)
       } else if (origin === Origin.P2P) {
         await this.setTransport(this.p2pTransport)
       }
@@ -818,12 +852,18 @@ export class DAppClient extends Client {
   }
 
   protected async setActivePeer(
-    peer?: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
+    peer?:
+      | ExtendedPostMessagePairingResponse
+      | ExtendedBridgePairingResponse
+      | ExtendedP2PPairingResponse
   ): Promise<void> {
     if (this._activePeer.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
       this._activePeer = ExposedPromise.resolve<
-        ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
+        | ExtendedPostMessagePairingResponse
+        | ExtendedBridgePairingResponse
+        | ExtendedP2PPairingResponse
+        | undefined
       >(peer)
     } else {
       this._activePeer.resolve(peer)
@@ -833,6 +873,8 @@ export class DAppClient extends Client {
       await this.initInternalTransports()
       if (peer.type === 'postmessage-pairing-response') {
         await this.setTransport(this.postMessageTransport)
+      } else if (peer.type === 'bridge-pairing-response') {
+        await this.setTransport(this.bridgeTransport)
       } else if (peer.type === 'p2p-pairing-response') {
         await this.setTransport(this.p2pTransport)
       }
@@ -939,6 +981,7 @@ export class DAppClient extends Client {
       ) {
         this._initPromise = undefined
         this.postMessageTransport = undefined
+        this.bridgeTransport = undefined
         this.p2pTransport = undefined
         await this.setTransport()
         await this.setActivePeer()
@@ -1076,8 +1119,10 @@ export class DAppClient extends Client {
       logger.log('getPeer', 'We have an account', account)
       const postMessagePeers: ExtendedPostMessagePairingResponse[] =
         (await this.postMessageTransport?.getPeers()) ?? []
+      const bridgePeers: ExtendedPostMessagePairingResponse[] =
+        (await this.bridgeTransport?.getPeers()) ?? []
       const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
-      const peers = [...postMessagePeers, ...p2pPeers]
+      const peers = [...postMessagePeers, ...bridgePeers, ...p2pPeers]
 
       logger.log('getPeer', 'Found peers', peers, account)
 
@@ -1163,11 +1208,11 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'sending message', request)
     console.timeLog(messageId, 'sending')
     try {
+      console.log('this.transport', this.transport)
       await (await this.transport).send(payload, peer)
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
-        text:
-          'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
+        text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
         buttons: [
           {
             text: 'Reset Connection',
@@ -1203,6 +1248,7 @@ export class DAppClient extends Client {
 
   private async disconnect() {
     this.postMessageTransport = undefined
+    this.bridgeTransport = undefined
     this.p2pTransport = undefined
     await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
   }
