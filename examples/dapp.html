@@ -171,15 +171,18 @@
 
       // Initiate a permission request
       const requestPermission = (callback) => {
-        const tezosBlockchain = new beacon.TezosBlockchain()
-        client.addBlockchain(tezosBlockchain)
+        const substrateBlockchain = new beacon.SubstrateBlockchain()
+        client.addBlockchain(substrateBlockchain)
         client
           .permissionRequest({
-            blockchainIdentifier: 'xtz',
+            blockchainIdentifier: 'substrate',
             type: 'permission_request',
             blockchainData: {
-              appMetadata: {},
-              scopes: []
+              appMetadata: {
+                name: 'Test dApp'
+              },
+              scopes: [0],
+              networks: [{ genesisHash: 'xxx' }]
             }
           })
           .then((res) => {

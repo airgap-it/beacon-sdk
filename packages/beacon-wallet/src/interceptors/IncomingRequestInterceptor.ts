@@ -1,4 +1,3 @@
-import { assertNever } from '../utils/assert-never'
 import {
   BeaconRequestOutputMessage,
   BeaconMessageType,
@@ -9,10 +8,10 @@ import {
   BroadcastRequestOutput,
   ConnectionContext,
   BeaconRequestMessage
+
   // EncryptPayloadRequestOutput
 } from '@airgap/beacon-types'
-import { AppMetadataManager } from '../managers/AppMetadataManager'
-import { Logger } from '../utils/Logger'
+import { AppMetadataManager, Logger } from '@airgap/beacon-core'
 import {
   BeaconMessageWrapper,
   BlockchainRequestV3,
@@ -190,4 +189,7 @@ export class IncomingRequestInterceptor {
         assertNever(v3Message)
     }
   }
+}
+function assertNever(_message: never) {
+  throw new Error('Function not implemented.')
 }

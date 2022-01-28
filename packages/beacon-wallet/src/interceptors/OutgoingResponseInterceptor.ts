@@ -1,4 +1,10 @@
-import { assertNever } from '../utils/assert-never'
+import {
+  AppMetadataManager,
+  BEACON_VERSION,
+  getAccountIdentifier,
+  Logger,
+  PermissionManager
+} from '@airgap/beacon-core'
 import {
   ErrorResponse,
   BeaconMessage,
@@ -15,12 +21,7 @@ import {
   BeaconErrorType
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
-import { PermissionManager } from '../managers/PermissionManager'
-import { AppMetadataManager } from '../managers/AppMetadataManager'
-import { BEACON_VERSION } from '../constants'
 import { getAddressFromPublicKey } from '@airgap/beacon-utils'
-import { getAccountIdentifier } from '../utils/get-account-identifier'
-import { Logger } from '../utils/Logger'
 
 interface OutgoingResponseInterceptorOptions {
   senderId: string
@@ -175,4 +176,7 @@ export class OutgoingResponseInterceptor {
         assertNever(message)
     }
   }
+}
+function assertNever(_message: never) {
+  throw new Error('Function not implemented.')
 }

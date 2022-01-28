@@ -4,8 +4,6 @@ import {
   LocalStorage,
   PermissionManager,
   AppMetadataManager,
-  IncomingRequestInterceptor,
-  OutgoingResponseInterceptor,
   getSenderId,
   Logger
 } from '@airgap/beacon-core'
@@ -31,6 +29,8 @@ import {
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
 import { WalletP2PTransport } from '../transports/WalletP2PTransport'
+import { IncomingRequestInterceptor } from '../interceptors/IncomingRequestInterceptor'
+import { OutgoingResponseInterceptor } from '../interceptors/OutgoingResponseInterceptor'
 
 const logger = new Logger('WalletClient')
 
