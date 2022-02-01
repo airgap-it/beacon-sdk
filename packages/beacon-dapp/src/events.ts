@@ -23,7 +23,8 @@ import {
   Network,
   ConnectionContext,
   NetworkType,
-  AcknowledgeResponse
+  AcknowledgeResponse,
+  WalletInfo
 } from '@airgap/beacon-types'
 import {
   UnknownBeaconError,
@@ -34,7 +35,7 @@ import {
   // EncryptionOperation
 } from '@airgap/beacon-core'
 import { shortenString } from './utils/shorten-string'
-import { isMobile } from './utils/platform'
+import { isMobile } from '@airgap/beacon-ui'
 
 const logger = new Logger('BeaconEvents')
 
@@ -82,13 +83,6 @@ export enum BeaconEvent {
 
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   UNKNOWN = 'UNKNOWN'
-}
-
-export interface WalletInfo {
-  name: string
-  type?: 'extension' | 'mobile' | 'web' | 'desktop'
-  icon?: string
-  deeplink?: string
 }
 
 export interface ExtraInfo {
@@ -230,8 +224,7 @@ const showAcknowledgedToast = async (data: {
   walletInfo: WalletInfo
 }): Promise<void> => {
   openToast({
-    body:
-      '<span class="beacon-toast__wallet__outer">Awaiting confirmation in&nbsp;{{wallet}}<span>',
+    body: '<span class="beacon-toast__wallet__outer">Awaiting confirmation in&nbsp;{{wallet}}<span>',
     state: 'acknowledge',
     walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
@@ -697,13 +690,11 @@ export class BeaconEventHandler {
    *
    * @param eventsToOverride An object with the events to override
    */
-  private overrideDefaults(
-    eventsToOverride: {
-      [key in BeaconEvent]?: {
-        handler: BeaconEventHandlerFunction<BeaconEventType[key]>
-      }
+  private overrideDefaults(eventsToOverride: {
+    [key in BeaconEvent]?: {
+      handler: BeaconEventHandlerFunction<BeaconEventType[key]>
     }
-  ): void {
+  }): void {
     Object.keys(eventsToOverride).forEach((untypedEvent: string) => {
       const eventType: BeaconEvent = untypedEvent as BeaconEvent
       const event = eventsToOverride[eventType]

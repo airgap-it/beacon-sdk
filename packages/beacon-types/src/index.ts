@@ -117,6 +117,7 @@ import { Optional } from './types/utils/Optional'
 import { Extension } from './types/Extension'
 import { PermissionEntity } from './types/PermissionEntity'
 import { PermissionRequestV3 } from './types/beaconV3/PermissionRequest'
+import { WalletInfo } from './types/WalletInfo'
 
 // Tezos
 export {
@@ -247,7 +248,7 @@ export {
 export { IgnoredRequestInputProperties, defaultValues }
 
 // Others
-export { ConnectionContext, ColorMode }
+export { ConnectionContext, ColorMode, WalletInfo }
 
 // TS helpers
 

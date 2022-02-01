@@ -1,12 +1,12 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
 import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
-import { getColorMode } from '../../colorMode'
 import { windowRef } from '@airgap/beacon-core'
 import { generateGUID } from '@airgap/beacon-utils'
 import { replaceInTemplate } from '../../utils/replace-in-template'
 import { alertTemplates } from './alert-templates'
 import { preparePairingAlert } from './PairingAlert'
+import { getColorMode } from '../../utils/colorMode'
 
 export interface AlertButton {
   text: string

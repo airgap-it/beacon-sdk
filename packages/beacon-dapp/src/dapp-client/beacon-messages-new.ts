@@ -1,4 +1,4 @@
-import { WalletInfo } from '../events'
+import { WalletInfo } from '@airgap/beacon-types'
 import { AccountInfo, AppMetadata, BlockExplorer, BeaconMessageType, ConnectionContext } from '../'
 
 interface ResponseInput {

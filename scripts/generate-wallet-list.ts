@@ -6,7 +6,7 @@ import {
   App,
   AppBase,
   DesktopApp
-} from '../packages/beacon-dapp/src/ui/alert/Pairing'
+} from '../packages/beacon-ui/src/ui/alert/Pairing'
 // import {
 //   tezosDesktopList,
 //   tezosExtensionList,
@@ -175,7 +175,7 @@ const generateForBlockchains = (
 
 // generateForBlockchains('beacon-dapp', tezosExtensionList, tezosDesktopList, tezosWebList, tezosIosList)
 generateForBlockchains(
-  'beacon-dapp',
+  'beacon-ui',
   substrateExtensionList,
   substrateDesktopList,
   substrateWebList,
