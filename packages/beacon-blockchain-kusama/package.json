@@ -32,5 +32,9 @@
   },
   "bugs": {
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
+  },
+  "dependencies": {
+    "@airgap/beacon-types": "^2.5.0-beta.0",
+    "@airgap/beacon-ui": "^2.5.0-beta.0"
   }
 }

@@ -7,18 +7,21 @@ import {
   AppBase,
   DesktopApp
 } from '../packages/beacon-ui/src/ui/alert/Pairing'
-// import {
-//   tezosDesktopList,
-//   tezosExtensionList,
-//   tezosIosList,
-//   tezosWebList
-// } from './blockchains/tezos'
+
 import {
   substrateExtensionList,
   substrateDesktopList,
   substrateWebList,
   substrateIosList
 } from './blockchains/substrate'
+
+import {
+  tezosDesktopList,
+  tezosExtensionList,
+  tezosIosList,
+  tezosWebList
+} from './blockchains/tezos'
+
 const resizeImg = require('resize-img')
 
 const readFile = (path: string): Promise<Buffer> => {
@@ -78,7 +81,7 @@ const generateForBlockchains = (
     const webListWithInlinedLogo = await convert(webList)
     const iosListWithInlinedLogo = await convert(iosList)
 
-    let out = `import { App, DesktopApp, ExtensionApp, WebApp } from './Pairing'`
+    let out = `import { App, DesktopApp, ExtensionApp, WebApp } from '@airgap/beacon-ui'`
     out += `
   
   `
@@ -173,7 +176,23 @@ const generateForBlockchains = (
   createToast()
 }
 
-// generateForBlockchains('beacon-dapp', tezosExtensionList, tezosDesktopList, tezosWebList, tezosIosList)
+generateForBlockchains(
+  'beacon-blockchain-tezos',
+  tezosExtensionList,
+  tezosDesktopList,
+  tezosWebList,
+  tezosIosList
+)
+
+generateForBlockchains(
+  'beacon-blockchain-kusama',
+  substrateExtensionList,
+  substrateDesktopList,
+  substrateWebList,
+  substrateIosList
+)
+
+// TODO: This is necessary for backwards compatibility, but has to be removed before a release
 generateForBlockchains(
   'beacon-ui',
   substrateExtensionList,

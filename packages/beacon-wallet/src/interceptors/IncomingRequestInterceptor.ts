@@ -7,16 +7,13 @@ import {
   SignPayloadRequestOutput,
   BroadcastRequestOutput,
   ConnectionContext,
-  BeaconRequestMessage
-
-  // EncryptPayloadRequestOutput
-} from '@airgap/beacon-types'
-import { AppMetadataManager, Logger } from '@airgap/beacon-core'
-import {
+  BeaconRequestMessage,
   BeaconMessageWrapper,
   BlockchainRequestV3,
   PermissionRequestV3
-} from './beacon-messages-new'
+  // EncryptPayloadRequestOutput
+} from '@airgap/beacon-types'
+import { AppMetadataManager, Logger } from '@airgap/beacon-core'
 
 const logger = new Logger('IncomingRequestInterceptor')
 

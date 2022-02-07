@@ -76,6 +76,12 @@ examples/walletbeacon.min.js
 lib
 docs
 
+packages/beacon-blockchain-tezos/src/ui/alert/alert-templates.ts
+packages/beacon-blockchain-tezos/src/ui/alert/wallet-lists.ts
+packages/beacon-blockchain-tezos/src/ui/toast/toast-templates.ts
+packages/beacon-blockchain-kusama/src/ui/alert/alert-templates.ts
+packages/beacon-blockchain-kusama/src/ui/alert/wallet-lists.ts
+packages/beacon-blockchain-kusama/src/ui/toast/toast-templates.ts
 packages/beacon-dapp/src/ui/alert/alert-templates.ts
 packages/beacon-dapp/src/ui/alert/wallet-lists.ts
 packages/beacon-dapp/src/ui/toast/toast-templates.ts

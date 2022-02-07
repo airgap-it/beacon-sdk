@@ -1,3 +1,5 @@
+import { PermissionResponseV3 } from '@airgap/beacon-types'
+
 export interface NewPermissionRequest<T extends string> {
   blockchainIdentifier: T
 }
@@ -18,7 +20,7 @@ export interface SubstratePermissionRequest extends NewPermissionRequest<'ksm'> 
     }[] // Array to "whitelist" certain networks? (optional)
   }
 }
-export interface SubstratePermissionResponse {
+export interface SubstratePermissionResponse extends PermissionResponseV3<'substrate'> {
   payload: {
     scopes: string[] // enum
     accounts: {

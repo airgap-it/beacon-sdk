@@ -43,7 +43,15 @@ import {
   Optional,
   ColorMode,
   IgnoredRequestInputProperties,
-  WalletInfo
+  WalletInfo,
+  BeaconBaseMessage,
+  BeaconMessageWrapper,
+  Blockchain,
+  BlockchainMessage,
+  BlockchainRequestV3,
+  BlockchainResponseV3,
+  PermissionRequestV3,
+  PermissionResponseV3
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -73,16 +81,6 @@ import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
-import {
-  BeaconBaseMessage,
-  BeaconMessageWrapper,
-  Blockchain,
-  BlockchainMessage,
-  BlockchainRequestV3,
-  BlockchainResponseV3,
-  PermissionRequestV3,
-  PermissionResponseV3
-} from './beacon-messages-new'
 import { getColorMode, setColorMode } from '@airgap/beacon-ui'
 
 const logger = new Logger('DAppClient')
@@ -1368,7 +1366,7 @@ export class DAppClient extends Client {
       id: messageId,
       version: '3', // TODO: BEACON_VERSION,
       senderId: await getSenderId(await this.beaconId),
-      message: requestInput
+      message: requestInput as any // TODO: REMOVE ANY
     }
 
     const exposed = new ExposedPromise<
