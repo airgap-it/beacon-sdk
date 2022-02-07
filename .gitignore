@@ -82,6 +82,6 @@ packages/beacon-blockchain-tezos/src/ui/toast/toast-templates.ts
 packages/beacon-blockchain-kusama/src/ui/alert/alert-templates.ts
 packages/beacon-blockchain-kusama/src/ui/alert/wallet-lists.ts
 packages/beacon-blockchain-kusama/src/ui/toast/toast-templates.ts
-packages/beacon-dapp/src/ui/alert/alert-templates.ts
-packages/beacon-dapp/src/ui/alert/wallet-lists.ts
-packages/beacon-dapp/src/ui/toast/toast-templates.ts
+packages/beacon-ui/src/ui/alert/alert-templates.ts
+packages/beacon-ui/src/ui/alert/wallet-lists.ts
+packages/beacon-ui/src/ui/toast/toast-templates.ts

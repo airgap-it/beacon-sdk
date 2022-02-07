@@ -18,9 +18,3 @@ export { BeaconEvent, BeaconEventHandler, defaultEventCallbacks }
 
 // BlockExplorer
 export { BlockExplorer, TezblockBlockExplorer }
-
-// Tezos
-export { TezosBlockchain } from './dapp-client/beacon-messages-new'
-
-// Substrate
-export { SubstrateBlockchain } from './dapp-client/beacon-messages-new'

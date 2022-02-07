@@ -4,7 +4,7 @@ import {
   ExtensionApp,
   WebApp
 } from '../../packages/beacon-ui/src/ui/alert/Pairing'
-import { NetworkType } from '../../packages/beacon-dapp/src'
+import { NetworkType } from '../../packages/beacon-types/src'
 
 export const tezosExtensionList: ExtensionApp[] = [
   {
