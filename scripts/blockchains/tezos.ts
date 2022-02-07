@@ -4,7 +4,18 @@ import {
   ExtensionApp,
   WebApp
 } from '../../packages/beacon-ui/src/ui/alert/Pairing'
-import { NetworkType } from '../../packages/beacon-types/src'
+
+// TODO: Temporary build fix
+export enum NetworkType {
+  MAINNET = 'mainnet',
+  DELPHINET = 'delphinet',
+  EDONET = 'edonet',
+  FLORENCENET = 'florencenet',
+  GRANADANET = 'granadanet',
+  HANGZHOUNET = 'hangzhounet',
+  IDIAZABALNET = 'idiazabalnet',
+  CUSTOM = 'custom'
+}
 
 export const tezosExtensionList: ExtensionApp[] = [
   {
