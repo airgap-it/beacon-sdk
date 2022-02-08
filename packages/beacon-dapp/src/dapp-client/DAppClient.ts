@@ -171,13 +171,16 @@ export class DAppClient extends Client {
 
       logger.log('handleResponse', 'Received message', message, connectionInfo)
 
-      if (openRequest && message.type === BeaconMessageType.Acknowledge) {
+      if (
+        (openRequest && message.type === BeaconMessageType.Acknowledge) ||
+        (message as any).message.type === BeaconMessageType.Acknowledge // TODO: TYPE
+      ) {
         logger.log(`acknowledge message received for ${message.id}`)
         console.timeLog(message.id, 'acknowledge')
 
         this.events
           .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
-            message,
+            message: (message as any).message ?? message, // TODO: Types
             extraInfo: {},
             walletInfo: await this.getWalletInfo()
           })
@@ -198,7 +201,10 @@ export class DAppClient extends Client {
         }
         this.openRequests.delete(message.id)
       } else {
-        if (message.type === BeaconMessageType.Disconnect) {
+        if (
+          message.type === BeaconMessageType.Disconnect ||
+          (message as any).message.type === BeaconMessageType.Disconnect // TODO: TYPE
+        ) {
           const relevantTransport =
             connectionInfo.origin === Origin.P2P
               ? this.p2pTransport
@@ -572,12 +578,13 @@ export class DAppClient extends Client {
       throw new Error(`Blockchain "${input.blockchainIdentifier}" not supported by dAppClient`)
     }
 
+    const metadata = await this.getOwnAppMetadata()
     const request: PermissionRequestV3<string> = {
       ...input,
       type: BeaconMessageType.PermissionRequest,
       blockchainData: {
         ...input.blockchainData,
-        appMetadata: await this.getOwnAppMetadata()
+        appMetadata: { ...metadata, senderID: metadata.senderId } as any // TODO: REMOVE
       }
     }
 
@@ -598,7 +605,7 @@ export class DAppClient extends Client {
     // const accountInfo: AccountInfo = {
     const accountInfo: any = {
       accountIdentifier: response.message.accountId,
-      senderId: response.senderId,
+      senderId: response.senderID, // TODO: RENAME
       origin: {
         type: connectionInfo.origin,
         id: connectionInfo.id
@@ -1362,11 +1369,11 @@ export class DAppClient extends Client {
       throw await this.sendInternalError('BeaconID not defined')
     }
 
-    const request: BeaconMessageWrapper<BeaconBaseMessage> = {
+    const request: BeaconMessageWrapper<BlockchainMessage> = {
       id: messageId,
       version: '3', // TODO: BEACON_VERSION,
-      senderId: await getSenderId(await this.beaconId),
-      message: requestInput as any // TODO: REMOVE ANY
+      senderID: await getSenderId(await this.beaconId),
+      message: requestInput
     }
 
     const exposed = new ExposedPromise<

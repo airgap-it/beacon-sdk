@@ -1,5 +1,5 @@
-// export * from '@airgap/beacon-blockchain-kusama'
-// export * from '@airgap/beacon-blockchain-tezos'
+export * from '@airgap/beacon-blockchain-kusama'
+export * from '@airgap/beacon-blockchain-tezos'
 export * from '@airgap/beacon-core'
 export * from '@airgap/beacon-dapp'
 export * from '@airgap/beacon-transport-matrix'

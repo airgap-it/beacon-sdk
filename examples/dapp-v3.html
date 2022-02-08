@@ -171,18 +171,36 @@
 
       // Initiate a permission request
       const requestPermission = (callback) => {
+        const substrateBlockchain = new beacon.SubstrateBlockchain()
+        client.addBlockchain(substrateBlockchain)
         client
-          .requestPermissions(/*{ network: { type: beacon.NetworkType.DELPHINET } }*/)
-          .then((permissions) => {
-            console.log('permissions', permissions)
-            if (callback) {
-              callback(permissions)
+          .permissionRequest({
+            blockchainIdentifier: 'substrate',
+            type: 'permission_request',
+            blockchainData: {
+              appMetadata: {
+                name: 'Test dApp'
+              },
+              scopes: ['transfer'],
+              networks: [{ genesisHash: 'xxx' }]
             }
-            updateActiveAccount()
           })
-          .catch((error) => {
-            console.log('error during permission request', error)
+          .then((res) => {
+            console.log('res', res)
           })
+
+        // client
+        //   .requestPermissions(/*{ network: { type: beacon.NetworkType.DELPHINET } }*/)
+        //   .then((permissions) => {
+        //     console.log('permissions', permissions)
+        //     if (callback) {
+        //       callback(permissions)
+        //     }
+        //     updateActiveAccount()
+        //   })
+        //   .catch((error) => {
+        //     console.log('error during permission request', error)
+        //   })
       }
 
       // Add event listener to the button
