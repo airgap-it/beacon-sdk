@@ -577,13 +577,12 @@ export class DAppClient extends Client {
       throw new Error(`Blockchain "${input.blockchainIdentifier}" not supported by dAppClient`)
     }
 
-    const metadata = await this.getOwnAppMetadata()
     const request: PermissionRequestV3<string> = {
       ...input,
       type: BeaconMessageType.PermissionRequest,
       blockchainData: {
         ...input.blockchainData,
-        appMetadata: { ...metadata, senderID: metadata.senderId } as any // TODO: REMOVE
+        appMetadata: await this.getOwnAppMetadata()
       }
     }
 
@@ -604,7 +603,7 @@ export class DAppClient extends Client {
     // const accountInfo: AccountInfo = {
     const accountInfo: any = {
       accountIdentifier: response.message.accountId,
-      senderId: response.senderID, // TODO: RENAME
+      senderId: response.senderId,
       origin: {
         type: connectionInfo.origin,
         id: connectionInfo.id
@@ -1371,7 +1370,7 @@ export class DAppClient extends Client {
     const request: BeaconMessageWrapper<BlockchainMessage> = {
       id: messageId,
       version: '3', // TODO: BEACON_VERSION,
-      senderID: await getSenderId(await this.beaconId),
+      senderId: await getSenderId(await this.beaconId),
       message: requestInput
     }
 

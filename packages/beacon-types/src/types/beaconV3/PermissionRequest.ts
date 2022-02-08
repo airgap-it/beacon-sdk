@@ -26,7 +26,7 @@ export interface Blockchain {
 export interface BeaconMessageWrapper<T extends BeaconBaseMessage> {
   id: string // ID of the message. The same ID is used in the request and response
   version: string
-  senderID: string // ID of the sender. This is used to identify the // TODO: Rename to senderId
+  senderId: string // ID of the sender. This is used to identify the
   message: T
 }
 
