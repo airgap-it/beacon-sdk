@@ -44,7 +44,6 @@ import {
   ColorMode,
   IgnoredRequestInputProperties,
   WalletInfo,
-  BeaconBaseMessage,
   BeaconMessageWrapper,
   Blockchain,
   BlockchainMessage,
