@@ -1,4 +1,4 @@
-import { PermissionResponseV3 } from '@airgap/beacon-types'
+import { AppMetadata, BlockchainMessage, PermissionResponseV3 } from '@airgap/beacon-types'
 
 export interface NewPermissionRequest<T extends string> {
   blockchainIdentifier: T
@@ -11,8 +11,8 @@ export enum SubstratePermissionScope {
   'transfer'
 }
 
-export interface SubstratePermissionRequest extends NewPermissionRequest<'ksm'> {
-  payload: {
+export interface SubstratePermissionRequest extends NewPermissionRequest<'substrate'> {
+  blockchainData: {
     scopes?: string[] // enum
     network?: {
       genesisHash: string // Wallet shows only those accounts
@@ -21,7 +21,8 @@ export interface SubstratePermissionRequest extends NewPermissionRequest<'ksm'> 
   }
 }
 export interface SubstratePermissionResponse extends PermissionResponseV3<'substrate'> {
-  payload: {
+  blockchainData: {
+    appMetadata: AppMetadata
     scopes: string[] // enum
     accounts: {
       network: {
@@ -36,16 +37,18 @@ export interface SubstratePermissionResponse extends PermissionResponseV3<'subst
   }
 }
 
-export interface SubstrateTransferReq {
-  scope: SubstratePermissionScope.transfer
-  sourceAddress: string
-  amount: string
-  recipient: string
-  network: {
-    genesisHash: string
-    rpc?: string
+export interface SubstrateTransferReq extends BlockchainMessage<'substrate'> {
+  blockchainData: {
+    scope: SubstratePermissionScope.transfer
+    sourceAddress: string
+    amount: string
+    recipient: string
+    network: {
+      genesisHash: string
+      rpc?: string
+    }
+    mode: 'broadcast' | 'broadcast-and-return' | 'return' // TODO: Wording
   }
-  mode: 'broadcast' | 'broadcast-and-return' | 'return' // TODO: Wording
 }
 export type SubstrateTransferResponse =
   | {
@@ -59,17 +62,19 @@ export type SubstrateTransferResponse =
       payload: string
     }
 
-export interface SubstrateSignRequest {
-  scope: SubstratePermissionScope.signString | SubstratePermissionScope.signRaw
-  address: string // Used to match account
-  // Is the Wallet allowed to alter this request (eg. tip?). If yes, payload needs to be sent back
-  metadata: {
-    genesisHash: string // Do we need this?
-    runtimeVersion: string // Wallet should check if it's the latest version
-    transactionVersion: string
+export interface SubstrateSignRequest extends BlockchainMessage<'substrate'> {
+  blockchainData: {
+    scope: SubstratePermissionScope.signString | SubstratePermissionScope.signRaw
+    address: string // Used to match account
+    // Is the Wallet allowed to alter this request (eg. tip?). If yes, payload needs to be sent back
+    metadata: {
+      genesisHash: string // Do we need this?
+      runtimeVersion: string // Wallet should check if it's the latest version
+      transactionVersion: string
+    }
+    payload: string // SCALE encoded payload
+    mode: 'broadcast' | 'broadcast-and-return' | 'return' // TODO: Wording
   }
-  payload: string // SCALE encoded payload
-  mode: 'broadcast' | 'broadcast-and-return' | 'return' // TODO: Wording
 }
 export interface SubstrateSignResponse {
   signature: string

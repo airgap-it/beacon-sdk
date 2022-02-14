@@ -13,9 +13,9 @@ export interface SubstrateNetwork {
 
 // Those are example permissions
 export enum SubstratePermissionScope {
-  TRANSFER = 0,
-  SIGN_RAW = 1,
-  SIGN_STRING = 2
+  TRANSFER = 'transfer',
+  SIGN_RAW = 'sign_raw',
+  SIGN_STRING = 'sign_string'
 }
 
 export interface SubstratePermissionRequest extends PermissionRequestV3<'substrate'> {

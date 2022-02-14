@@ -598,17 +598,19 @@ export class DAppClient extends Client {
 
     console.log('RESPONSE V3', response, connectionInfo)
 
-    const address = await blockchain.getAddressFromPermissionResponse(response.message)
+    const addresses = await blockchain.getAddressFromPermissionResponse(response.message)
 
     // const accountInfo: AccountInfo = {
     const accountInfo: any = {
-      accountIdentifier: response.message.accountId,
+      accountIdentifier: Array.isArray(response.message.accountId)
+        ? response.message.accountId[0]
+        : response.message.accountId,
       senderId: response.senderId,
       origin: {
         type: connectionInfo.origin,
         id: connectionInfo.id
       },
-      address,
+      address: addresses[0], // Store all addresses
       publicKey: '',
       scopes: response.message.blockchainData.scopes as any,
       connectedAt: new Date().getTime(),
@@ -627,11 +629,24 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
+    await this.notifySuccess(request as any, {
+      account: accountInfo,
+      output: {
+        address: addresses[0],
+        network: { type: NetworkType.MAINNET },
+        scopes: [PermissionScope.OPERATION_REQUEST]
+      } as any,
+      blockExplorer: this.blockExplorer,
+      connectionContext: connectionInfo,
+      walletInfo: await this.getWalletInfo()
+    })
+
     // return output
     return response.message
   }
 
   public async request(input: BlockchainRequestV3<string>): Promise<BlockchainResponseV3<string>> {
+    console.log('REQUEST', input)
     const blockchain = this.blockchains.get(input.blockchainIdentifier)
     if (!blockchain) {
       throw new Error(`Blockchain "${blockchain}" not supported by dAppClient`)
@@ -653,7 +668,8 @@ export class DAppClient extends Client {
     const { message: response, connectionInfo } = await this.makeRequestV3<
       BlockchainRequestV3<string>,
       BeaconMessageWrapper<BlockchainResponseV3<string>>
-    >(request).catch(async (_requestError: ErrorResponse) => {
+    >(request).catch(async (requestError: ErrorResponse) => {
+      console.error(requestError)
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
     })
@@ -1265,7 +1281,7 @@ export class DAppClient extends Client {
     const request: Optional<T, IgnoredRequestInputProperties> &
       Pick<U, IgnoredRequestInputProperties> = {
       id: messageId,
-      version: BEACON_VERSION,
+      version: '2', // This is the old version
       senderId: await getSenderId(await this.beaconId),
       ...requestInput
     }
@@ -1357,11 +1373,11 @@ export class DAppClient extends Client {
       throw new Error('rate limit reached')
     }
 
-    if (!(await this.checkPermissions(requestInput.type as BeaconMessageType))) {
-      this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
+    // if (!(await this.checkPermissions(requestInput.type as BeaconMessageType))) {
+    //   this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
 
-      throw new Error('No permissions to send this request to wallet!')
-    }
+    //   throw new Error('No permissions to send this request to wallet!')
+    // }
 
     if (!this.beaconId) {
       throw await this.sendInternalError('BeaconID not defined')
@@ -1369,7 +1385,7 @@ export class DAppClient extends Client {
 
     const request: BeaconMessageWrapper<BlockchainMessage> = {
       id: messageId,
-      version: '3', // TODO: BEACON_VERSION,
+      version: BEACON_VERSION,
       senderId: await getSenderId(await this.beaconId),
       message: requestInput
     }
