@@ -6,8 +6,7 @@ export interface NewPermissionRequest<T extends string> {
 
 // Those are example permissions
 export enum SubstratePermissionScope {
-  'signRaw',
-  'signString',
+  'sign_raw',
   'transfer'
 }
 
@@ -64,7 +63,7 @@ export type SubstrateTransferResponse =
 
 export interface SubstrateSignRequest extends BlockchainMessage<'substrate'> {
   blockchainData: {
-    scope: SubstratePermissionScope.signString | SubstratePermissionScope.signRaw
+    scope: SubstratePermissionScope.sign_raw
     address: string // Used to match account
     // Is the Wallet allowed to alter this request (eg. tip?). If yes, payload needs to be sent back
     metadata: {
