@@ -12,3 +12,4 @@ export {
   recipientString
 } from './utils/crypto'
 export { generateGUID } from './utils/generate-uuid'
+export { BeaconErrorHandler } from './utils/error-handler'
