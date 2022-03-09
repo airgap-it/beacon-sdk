@@ -7,8 +7,8 @@ export interface NewPermissionRequest<T extends string> {
 // Those are example permissions
 export enum SubstratePermissionScope {
   'transfer',
-  'sign_payload',
-  'sign_raw'
+  'sign_payload_json',
+  'sign_payload_raw'
 }
 
 export interface SubstratePermissionRequest extends NewPermissionRequest<'substrate'> {
@@ -29,10 +29,8 @@ export interface SubstratePermissionResponse extends PermissionResponseV3<'subst
         genesisHash: string
         rpc?: string
       }
-      addressPrefix: number
       publicKey: string
-      // Replace with address?
-      // Prefer address, but ask if we can verify signatures with addresses with other curves
+      address: string
     }[]
   }
 }
@@ -47,7 +45,7 @@ export interface SubstrateTransferRequest extends BlockchainMessage<'substrate'>
       genesisHash: string
       rpc?: string
     }
-    mode: 'broadcast' | 'broadcast-and-return' | 'return' // TODO: Wording
+    mode: 'submit' | 'submit-and-return' | 'return' // TODO: Wording
   }
 }
 export type SubstrateTransferResponse =
@@ -57,22 +55,20 @@ export type SubstrateTransferResponse =
   | {
       transactionHash: string
       signature: string
-      payload: string
+      payload?: string
     }
   | {
       signature: string
-      payload: string
+      payload?: string
     }
 
 export interface SubstrateSignPayloadRequest extends BlockchainMessage<'substrate'> {
   blockchainData: {
-    scope: SubstratePermissionScope.sign_payload
-    mode: 'broadcast' | 'broadcast-and-return' | 'return' // TODO: Wording
+    scope: SubstratePermissionScope.sign_payload_json
+    mode: 'submit' | 'submit-and-return' | 'return' // TODO: Wording
 
     // This type is the same as the "SignerPayloadJSON" of polkadot.js https://github.com/polkadot-js/api/blob/f169ca08a80ea9c3865dc545e03e921c50f0d284/packages/types/src/types/extrinsic.ts#L32
     data: {
-      scope: SubstratePermissionScope.sign_payload
-
       /**
        * @description The ss-58 encoded address
        */
@@ -142,28 +138,36 @@ export type SubstrateSignPayloadResponse =
   | {
       transactionHash: string
       signature: string
-      payload: string
+      payload?: string
     }
   | {
       signature: string
-      payload: string
+      payload?: string
     }
 
 export interface SubstrateSignRequest extends BlockchainMessage<'substrate'> {
   blockchainData: {
-    scope: SubstratePermissionScope.sign_raw
-    address: string // Used to match account
-    // Is the Wallet allowed to alter this request (eg. tip?). If yes, payload needs to be sent back
-    metadata: {
-      genesisHash: string // Do we need this?
-      runtimeVersion: string // Wallet should check if it's the latest version
-      transactionVersion: string
+    scope: SubstratePermissionScope.sign_payload_raw
+
+    payload: {
+      isMutable: boolean
+      type: 'bytes' | 'payload'
+      data: string
     }
-    payload: string // SCALE encoded payload
-    mode: 'broadcast' | 'broadcast-and-return' | 'return' // TODO: Wording
+
+    mode: 'submit' | 'submit-and-return' | 'return' // TODO: Wording
   }
 }
-export interface SubstrateSignResponse {
-  signature: string
-  payload?: string
-}
+export type SubstrateSignResponse =
+  | {
+      transactionHash: string
+    }
+  | {
+      transactionHash: string
+      signature: string
+      payload?: string
+    }
+  | {
+      signature: string
+      payload?: string
+    }
