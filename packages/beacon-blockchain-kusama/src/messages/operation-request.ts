@@ -41,8 +41,8 @@ export interface SubstratePermissionResponse extends PermissionResponseV3<'subst
 
 export interface SubstrateTransferRequest extends BlockchainMessage<'substrate'> {
   blockchainData: {
-    scope: SubstratePermissionScope.transfer
     type: SubstrateMessageType.transfer_request
+    scope: SubstratePermissionScope.transfer
     sourceAddress: string
     amount: string
     recipient: string
