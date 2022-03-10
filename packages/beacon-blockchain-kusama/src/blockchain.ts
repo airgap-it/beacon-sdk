@@ -21,6 +21,6 @@ export class SubstrateBlockchain implements Blockchain {
     permissionResponse: SubstratePermissionResponse
   ): Promise<string[]> {
     // TODO: Handle multiple accounts
-    return permissionResponse.blockchainData.accounts.map((account) => `${account.publicKey}`)
+    return permissionResponse.blockchainData.accounts.map((account) => `${account.address}`)
   }
 }
