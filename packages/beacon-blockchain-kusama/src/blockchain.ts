@@ -1,5 +1,5 @@
 import { Blockchain, BlockchainMessage, ResponseInput } from '@airgap/beacon-types'
-import { SubstratePermissionResponse } from './messages/operation-request'
+import { SubstratePermissionResponse } from './types'
 
 export class SubstrateBlockchain implements Blockchain {
   public readonly identifier: string = 'substrate'
@@ -17,10 +17,13 @@ export class SubstrateBlockchain implements Blockchain {
     }
   }
 
-  async getAddressFromPermissionResponse(
+  async getAccountInfosFromPermissionResponse(
     permissionResponse: SubstratePermissionResponse
-  ): Promise<string[]> {
-    // TODO: Handle multiple accounts
-    return permissionResponse.blockchainData.accounts.map((account) => `${account.address}`)
+  ): Promise<{ accountId: string; address: string; publicKey: string }[]> {
+    return permissionResponse.blockchainData.accounts.map((account) => ({
+      accountId: account.accountId,
+      address: account.address,
+      publicKey: account.publicKey
+    }))
   }
 }

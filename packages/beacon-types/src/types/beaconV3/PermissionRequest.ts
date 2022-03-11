@@ -20,7 +20,9 @@ export interface Blockchain {
   validateRequest(input: BlockchainMessage): Promise<void>
   handleResponse(input: ResponseInput): Promise<void>
 
-  getAddressFromPermissionResponse(permissionResponse: PermissionResponseV3): Promise<string[]>
+  getAccountInfosFromPermissionResponse(
+    permissionResponse: PermissionResponseV3
+  ): Promise<{ accountId: string; address: string; publicKey: string }[]>
 }
 
 export interface BeaconMessageWrapper<T extends BeaconBaseMessage> {
@@ -51,7 +53,6 @@ export interface PermissionRequestV3<T extends string = string> extends Blockcha
 export interface PermissionResponseV3<T extends string = string> extends BlockchainMessage<T> {
   blockchainIdentifier: T
   type: BeaconMessageType.PermissionResponse
-  accountId: string
   blockchainData: {
     appMetadata: AppMetadata // Some additional information about the Wallet
     scopes: string[] // Permissions that have been granted for this specific address / account

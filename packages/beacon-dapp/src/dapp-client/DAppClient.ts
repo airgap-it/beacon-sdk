@@ -598,20 +598,20 @@ export class DAppClient extends Client {
 
     console.log('RESPONSE V3', response, connectionInfo)
 
-    const addresses = await blockchain.getAddressFromPermissionResponse(response.message)
+    const partialAccountInfos = await blockchain.getAccountInfosFromPermissionResponse(
+      response.message
+    )
 
     // const accountInfo: AccountInfo = {
     const accountInfo: any = {
-      accountIdentifier: Array.isArray(response.message.accountId)
-        ? response.message.accountId[0]
-        : response.message.accountId,
+      accountIdentifier: partialAccountInfos[0].accountId,
       senderId: response.senderId,
       origin: {
         type: connectionInfo.origin,
         id: connectionInfo.id
       },
-      address: addresses[0], // Store all addresses
-      publicKey: '',
+      address: partialAccountInfos[0].address, // Store all addresses
+      publicKey: partialAccountInfos[0].publicKey,
       scopes: response.message.blockchainData.scopes as any,
       connectedAt: new Date().getTime(),
       chainData: response.message.blockchainData
@@ -632,7 +632,7 @@ export class DAppClient extends Client {
     await this.notifySuccess(request as any, {
       account: accountInfo,
       output: {
-        address: addresses[0],
+        address: partialAccountInfos[0].address,
         network: { type: NetworkType.MAINNET },
         scopes: [PermissionScope.OPERATION_REQUEST]
       } as any,

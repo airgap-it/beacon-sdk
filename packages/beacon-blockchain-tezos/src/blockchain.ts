@@ -20,9 +20,9 @@ export class TezosBlockchain implements Blockchain {
     }
   }
 
-  async getAddressFromPermissionResponse(
+  async getAccountInfosFromPermissionResponse(
     _permissionResponse: PermissionResponseV3<'tezos'>
-  ): Promise<string[]> {
-    return [''] // getAddressFromPublicKey(permissionResponse.publicKey)
+  ): Promise<{ accountId: string; address: string; publicKey: string }[]> {
+    return [{ accountId: '', address: '', publicKey: '' }]
   }
 }
