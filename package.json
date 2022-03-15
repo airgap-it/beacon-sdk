@@ -53,7 +53,7 @@
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
-    "@airgap/beacon-blockchain-kusama": "file:packages/beacon-blockchain-kusama",
+    "@airgap/beacon-blockchain-substrate": "file:packages/beacon-blockchain-substrate",
     "@airgap/beacon-blockchain-tezos": "file:packages/beacon-blockchain-tezos",
     "@airgap/beacon-core": "file:packages/beacon-core",
     "@airgap/beacon-dapp": "file:packages/beacon-dapp",

@@ -185,7 +185,7 @@ generateForBlockchains(
 )
 
 generateForBlockchains(
-  'beacon-blockchain-kusama',
+  'beacon-blockchain-substrate',
   substrateExtensionList,
   substrateDesktopList,
   substrateWebList,
