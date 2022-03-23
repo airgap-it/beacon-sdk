@@ -1,5 +1,5 @@
 import { Blockchain, BlockchainMessage, ResponseInput } from '@airgap/beacon-types'
-import { SubstratePermissionResponse } from './types'
+import { SubstratePermissionResponse } from './types/messages/permission-response'
 
 export class SubstrateBlockchain implements Blockchain {
   public readonly identifier: string = 'substrate'
