@@ -1,6 +1,6 @@
 'use strict'
 
-const beaconProtocolkusama = require('..')
+const beaconProtocolSubstrate = require('..')
 
 describe('@airgap/beacon-blockchain-substrate', () => {
   it('needs tests')

@@ -5,7 +5,7 @@
 ## Usage
 
 ```
-const beaconProtocolkusama = require('@airgap/beacon-blockchain-substrate');
+const beaconProtocolSubstrate = require('@airgap/beacon-blockchain-substrate');
 
 // TODO: DEMONSTRATE API
 ```

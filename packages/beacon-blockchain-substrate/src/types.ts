@@ -1,23 +1,29 @@
-import { AppMetadata, BlockchainMessage, PermissionResponseV3 } from '@airgap/beacon-types'
+import {
+  AppMetadata,
+  BlockchainMessage,
+  PermissionRequestV3,
+  PermissionResponseV3
+} from '@airgap/beacon-types'
 
 export interface NewPermissionRequest<T extends string> {
   blockchainIdentifier: T
 }
 
 export enum SubstratePermissionScope {
-  'transfer',
-  'sign_payload_json',
-  'sign_payload_raw'
+  'transfer' = 'transfer',
+  'sign_payload_json' = 'sign_payload_json',
+  'sign_payload_raw' = 'sign_payload_raw'
 }
 
 export enum SubstrateMessageType {
-  'transfer_request',
-  'sign_payload_request'
+  'transfer_request' = 'transfer_request',
+  'sign_payload_request' = 'sign_payload_request'
 }
 
-export interface SubstratePermissionRequest extends NewPermissionRequest<'substrate'> {
+export interface SubstratePermissionRequest extends PermissionRequestV3<'substrate'> {
   blockchainData: {
-    scopes?: string[] // enum
+    scopes: SubstratePermissionScope[] // enum
+    appMetadata: AppMetadata
     network?: {
       genesisHash: string // Wallet shows only those accounts
       rpc?: string // For development nodes?
@@ -27,10 +33,10 @@ export interface SubstratePermissionRequest extends NewPermissionRequest<'substr
 export interface SubstratePermissionResponse extends PermissionResponseV3<'substrate'> {
   blockchainData: {
     appMetadata: AppMetadata
-    scopes: string[] // enum
+    scopes: SubstratePermissionScope[] // enum
     accounts: {
       accountId: string
-      network: {
+      network?: {
         genesisHash: string
         rpc?: string
       }
