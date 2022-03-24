@@ -39,5 +39,5 @@
 
 
 <!--- these standard labels will be added to this issue, leave it as it is --->
-/label ~"type::feature" ~"proj::airgap"
+/label ~"type::feature" ~"proj::airgap" ~"proj::beacon"
 
