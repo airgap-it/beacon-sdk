@@ -120,6 +120,8 @@ import { WalletInfo } from './types/WalletInfo'
 
 export * from './types/beaconV3/PermissionRequest'
 
+export * from './types/ui'
+
 // Tezos
 export {
   TezosBaseOperation,

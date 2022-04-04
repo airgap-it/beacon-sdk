@@ -6,7 +6,7 @@ import {
   App,
   AppBase,
   DesktopApp
-} from '../packages/beacon-ui/src/ui/alert/Pairing'
+} from '../packages/beacon-types/src/types/ui'
 
 import {
   substrateExtensionList,
@@ -81,7 +81,7 @@ const generateForBlockchains = (
     const webListWithInlinedLogo = await convert(webList)
     const iosListWithInlinedLogo = await convert(iosList)
 
-    let out = `import { App, DesktopApp, ExtensionApp, WebApp } from '@airgap/beacon-ui'`
+    let out = `import { App, DesktopApp, ExtensionApp, WebApp } from '@airgap/beacon-types'`
     out += `
   
   `
@@ -195,8 +195,8 @@ generateForBlockchains(
 // TODO: This is necessary for backwards compatibility, but has to be removed before a release
 generateForBlockchains(
   'beacon-ui',
-  substrateExtensionList,
-  substrateDesktopList,
-  substrateWebList,
-  substrateIosList
+  tezosExtensionList,
+  tezosDesktopList,
+  tezosWebList,
+  tezosIosList
 )

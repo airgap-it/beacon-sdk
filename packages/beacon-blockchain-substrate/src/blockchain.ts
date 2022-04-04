@@ -1,5 +1,14 @@
-import { Blockchain, BlockchainMessage, ResponseInput } from '@airgap/beacon-types'
+import {
+  Blockchain,
+  BlockchainMessage,
+  ResponseInput,
+  ExtensionApp,
+  DesktopApp,
+  WebApp,
+  App
+} from '@airgap/beacon-types'
 import { SubstratePermissionResponse } from './types/messages/permission-response'
+import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-lists'
 
 export class SubstrateBlockchain implements Blockchain {
   public readonly identifier: string = 'substrate'
@@ -14,6 +23,20 @@ export class SubstrateBlockchain implements Blockchain {
     // TODO: Validation
     if (input) {
       return
+    }
+  }
+
+  async getWalletLists(): Promise<{
+    extensionList: ExtensionApp[]
+    desktopList: DesktopApp[]
+    webList: WebApp[]
+    iOSList: App[]
+  }> {
+    return {
+      extensionList: extensionList,
+      desktopList: desktopList,
+      webList: webList,
+      iOSList: iOSList
     }
   }
 

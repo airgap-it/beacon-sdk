@@ -11,6 +11,47 @@ import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
+import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
+
+/**
+ * Initialize with tezos wallets for backwards compatibility
+ */
+let localDesktopList: DesktopApp[] = desktopList
+let localExtensionList: ExtensionApp[] = extensionList
+let localWebList: WebApp[] = webList
+let localiOSList: App[] = iOSList
+
+export const getDesktopList = (): DesktopApp[] => {
+  return localDesktopList
+}
+
+export const setDesktopList = (desktopList: DesktopApp[]): void => {
+  localDesktopList = desktopList
+}
+
+export const getExtensionList = (): ExtensionApp[] => {
+  return localExtensionList
+}
+
+export const setExtensionList = (extensionList: ExtensionApp[]): void => {
+  localExtensionList = extensionList
+}
+
+export const getWebList = (): WebApp[] => {
+  return localWebList
+}
+
+export const setWebList = (webList: WebApp[]): void => {
+  localWebList = webList
+}
+
+export const getiOSList = (): App[] => {
+  return localiOSList
+}
+
+export const setiOSList = (iosList: App[]): void => {
+  localiOSList = iosList
+}
 
 const serializer = new Serializer()
 
@@ -31,41 +72,6 @@ export enum WalletType {
   EXTENSION = 'extension',
   DESKTOP = 'desktop',
   WEB = 'web'
-}
-
-export interface AppBase {
-  key: string
-  name: string
-  shortName: string
-  color: string
-  logo: string
-}
-
-export interface ExtensionApp extends AppBase {
-  id: string
-  link: string
-}
-
-export interface WebApp extends AppBase {
-  links: {
-    [NetworkType.MAINNET]: string
-    [NetworkType.DELPHINET]?: string
-    [NetworkType.EDONET]?: string
-    [NetworkType.FLORENCENET]?: string
-    [NetworkType.GRANADANET]?: string
-    [NetworkType.HANGZHOUNET]?: string
-    [NetworkType.ITHACANET]?: string
-    [NetworkType.CUSTOM]?: string
-  }
-}
-
-export interface DesktopApp extends AppBase {
-  deepLink: string
-}
-
-export interface App extends AppBase {
-  universalLink: string
-  deepLink?: string
 }
 
 export interface PairingAlertWallet {
@@ -163,13 +169,13 @@ export class Pairing {
 
     const walletLists: PairingAlertList[] = []
 
-    if (extensionList.length > 0) {
+    if (getExtensionList().length > 0) {
       walletLists.push({
         title: 'Browser Extensions',
         type: WalletType.EXTENSION,
         wallets: [
           ...availableExtensions.map((app) => {
-            const ext = extensionList.find((extEl) => extEl.id === app.id)
+            const ext = getExtensionList().find((extEl) => extEl.id === app.id)
 
             return {
               key: ext?.key ?? app.id,
@@ -200,7 +206,7 @@ export class Pairing {
               }
             }
           }),
-          ...extensionList
+          ...getExtensionList()
             .filter((app) => defaultExtensions.some((extId) => extId === app.id))
             .map((app) => ({
               key: app.key,
@@ -216,12 +222,12 @@ export class Pairing {
         ].sort((a, b) => a.key.localeCompare(b.key))
       })
     }
-    if (desktopList.length > 0) {
+    if (getDesktopList().length > 0) {
       walletLists.push({
         title: 'Desktop & Web Wallets',
         type: WalletType.DESKTOP,
         wallets: [
-          ...desktopList.map((app) => ({
+          ...getDesktopList().map((app) => ({
             key: app.key,
             name: app.name,
             shortName: app.shortName,
@@ -246,12 +252,12 @@ export class Pairing {
         ].sort((a, b) => a.key.localeCompare(b.key))
       })
     }
-    if (iOSList.length > 0) {
+    if (getiOSList().length > 0) {
       walletLists.push({
         title: 'Mobile Wallets',
         type: WalletType.IOS,
         wallets: [
-          ...iOSList.map((app) => ({
+          ...getiOSList().map((app) => ({
             key: app.key,
             name: app.name,
             shortName: app.shortName,
@@ -291,7 +297,7 @@ export class Pairing {
         {
           title: 'Mobile Wallets',
           type: WalletType.IOS,
-          wallets: iOSList
+          wallets: getiOSList()
             .map((app) => ({
               key: app.key,
               name: app.name,
@@ -325,9 +331,9 @@ export class Pairing {
         {
           title: 'Web Wallets',
           type: WalletType.WEB,
-          wallets: [
-            ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
-          ].sort((a, b) => a.key.localeCompare(b.key))
+          wallets: [...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))].sort(
+            (a, b) => a.key.localeCompare(b.key)
+          )
         }
       ],
       buttons: []
@@ -344,9 +350,9 @@ export class Pairing {
         {
           title: 'Web Wallets',
           type: WalletType.WEB,
-          wallets: [
-            ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
-          ].sort((a, b) => a.key.localeCompare(b.key))
+          wallets: [...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))].sort(
+            (a, b) => a.key.localeCompare(b.key)
+          )
         }
       ],
       buttons: [
@@ -369,7 +375,7 @@ export class Pairing {
     statusUpdateHandler: StatusUpdateHandler,
     network: NetworkType
   ): Promise<PairingAlertWallet[]> {
-    return webList
+    return getWebList()
       .map((app) => ({
         key: app.key,
         name: app.name,

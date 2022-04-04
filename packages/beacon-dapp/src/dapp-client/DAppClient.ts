@@ -52,8 +52,11 @@ import {
   PermissionRequestV3,
   PermissionResponseV3,
   BeaconBaseMessage,
-  AcknowledgeResponse
-
+  AcknowledgeResponse,
+  App,
+  DesktopApp,
+  ExtensionApp,
+  WebApp
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -83,7 +86,18 @@ import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
-import { getColorMode, setColorMode } from '@airgap/beacon-ui'
+import {
+  getColorMode,
+  setColorMode,
+  setDesktopList,
+  setExtensionList,
+  setWebList,
+  setiOSList,
+  getDesktopList,
+  getExtensionList,
+  getWebList,
+  getiOSList
+} from '@airgap/beacon-ui'
 
 const logger = new Logger('DAppClient')
 
@@ -630,6 +644,12 @@ export class DAppClient extends Client {
 
   addBlockchain(chain: Blockchain) {
     this.blockchains.set(chain.identifier, chain)
+    chain.getWalletLists().then((walletLists) => {
+      setDesktopList(walletLists.desktopList)
+      setExtensionList(walletLists.extensionList)
+      setWebList(walletLists.webList)
+      setiOSList(walletLists.iOSList)
+    })
   }
 
   removeBlockchain(chainIdentifier: string) {
@@ -1233,48 +1253,48 @@ export class DAppClient extends Client {
       }
     }
 
-    // const lowerCaseCompare = (str1?: string, str2?: string): boolean => {
-    //   if (str1 && str2) {
-    //     return str1.toLowerCase() === str2.toLowerCase()
-    //   }
+    const lowerCaseCompare = (str1?: string, str2?: string): boolean => {
+      if (str1 && str2) {
+        return str1.toLowerCase() === str2.toLowerCase()
+      }
 
-    //   return false
-    // }
+      return false
+    }
 
-    // let selectedApp: WebApp | App | DesktopApp | ExtensionApp | undefined
-    // let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
-    // // TODO: Remove once all wallets send the icon?
-    // if (iOSList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-    //   selectedApp = iOSList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
-    //   type = 'mobile'
-    // } else if (webList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-    //   selectedApp = webList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
-    //   type = 'web'
-    // } else if (desktopList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-    //   selectedApp = desktopList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
-    //   type = 'desktop'
-    // } else if (extensionList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-    //   selectedApp = extensionList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
-    //   type = 'extension'
-    // }
+    let selectedApp: WebApp | App | DesktopApp | ExtensionApp | undefined
+    let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
+    // TODO: Remove once all wallets send the icon?
+    if (getiOSList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = getiOSList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+      type = 'mobile'
+    } else if (getWebList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = getWebList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+      type = 'web'
+    } else if (getDesktopList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = getDesktopList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+      type = 'desktop'
+    } else if (getExtensionList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = getExtensionList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+      type = 'extension'
+    }
 
-    // if (selectedApp) {
-    //   let deeplink: string | undefined
-    //   if (selectedApp.hasOwnProperty('links')) {
-    //     deeplink = (selectedApp as WebApp).links[
-    //       selectedAccount?.network.type ?? this.preferredNetwork
-    //     ]
-    //   } else if (selectedApp.hasOwnProperty('deepLink')) {
-    //     deeplink = (selectedApp as App).deepLink
-    //   }
+    if (selectedApp) {
+      let deeplink: string | undefined
+      if (selectedApp.hasOwnProperty('links')) {
+        deeplink = (selectedApp as WebApp).links[
+          selectedAccount?.network.type ?? this.preferredNetwork
+        ]
+      } else if (selectedApp.hasOwnProperty('deepLink')) {
+        deeplink = (selectedApp as App).deepLink
+      }
 
-    //   return {
-    //     name: walletInfo.name,
-    //     icon: walletInfo.icon ?? selectedApp.logo,
-    //     deeplink,
-    //     type
-    //   }
-    // }
+      return {
+        name: walletInfo.name,
+        icon: walletInfo.icon ?? selectedApp.logo,
+        deeplink,
+        type
+      }
+    }
 
     return walletInfo
   }

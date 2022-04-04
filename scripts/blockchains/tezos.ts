@@ -1,10 +1,5 @@
-import {
-  App,
-  DesktopApp,
-  ExtensionApp,
-  WebApp
-} from '../../packages/beacon-ui/src/ui/alert/Pairing'
-
+import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src/types/ui'
+// import { NetworkType } from 'packages/beacon-types/src/types'
 // TODO: Temporary build fix
 export enum NetworkType {
   MAINNET = 'mainnet',

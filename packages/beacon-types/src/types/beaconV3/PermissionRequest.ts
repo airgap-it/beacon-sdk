@@ -3,7 +3,11 @@ import {
   AppMetadata,
   BeaconMessageType,
   ConnectionContext,
-  WalletInfo
+  WalletInfo,
+  ExtensionApp,
+  DesktopApp,
+  WebApp,
+  App
 } from '@airgap/beacon-types'
 
 export interface ResponseInput {
@@ -19,6 +23,13 @@ export interface Blockchain {
   readonly identifier: string
   validateRequest(input: BlockchainMessage): Promise<void>
   handleResponse(input: ResponseInput): Promise<void>
+
+  getWalletLists(): Promise<{
+    extensionList: ExtensionApp[]
+    desktopList: DesktopApp[]
+    webList: WebApp[]
+    iOSList: App[]
+  }>
 
   getAccountInfosFromPermissionResponse(
     permissionResponse: PermissionResponseV3
