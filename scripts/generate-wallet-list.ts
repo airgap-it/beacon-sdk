@@ -192,7 +192,6 @@ generateForBlockchains(
   substrateIosList
 )
 
-// TODO: This is necessary for backwards compatibility, but has to be removed before a release
 generateForBlockchains(
   'beacon-ui',
   tezosExtensionList,
