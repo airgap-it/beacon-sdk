@@ -59,7 +59,10 @@ export class WalletClient extends Client {
   /**
    * This array stores pending requests, meaning requests we received and have not yet handled / sent a response.
    */
-  private pendingRequests: [BeaconRequestMessage, ConnectionContext][] = []
+  private pendingRequests: [
+    BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage>,
+    ConnectionContext
+  ][] = []
 
   constructor(config: WalletClientOptions) {
     super({
@@ -108,7 +111,18 @@ export class WalletClient extends Client {
           return this.disconnect(typedMessage.senderId)
         }
 
-        await this.sendAcknowledgeResponse(typedMessage, connectionContext)
+        if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
+          this.pendingRequests.push([typedMessage, connectionContext])
+
+          await this.sendAcknowledgeResponse(typedMessage, connectionContext)
+
+          await IncomingRequestInterceptor.intercept({
+            message: typedMessage,
+            connectionInfo: connectionContext,
+            appMetadataManager: this.appMetadataManager,
+            interceptorCallback: newMessageCallback
+          })
+        }
       } else {
         const typedMessage = message as BeaconRequestMessage | DisconnectMessage
 

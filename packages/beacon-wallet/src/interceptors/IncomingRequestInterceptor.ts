@@ -10,7 +10,8 @@ import {
   BeaconRequestMessage,
   BeaconMessageWrapper,
   BlockchainRequestV3,
-  PermissionRequestV3
+  PermissionRequestV3,
+  BeaconBaseMessage
   // EncryptPayloadRequestOutput
 } from '@airgap/beacon-types'
 import { AppMetadataManager, Logger } from '@airgap/beacon-core'
@@ -18,12 +19,19 @@ import { AppMetadataManager, Logger } from '@airgap/beacon-core'
 const logger = new Logger('IncomingRequestInterceptor')
 
 interface IncomingRequestInterceptorOptions {
-  message: BeaconRequestMessage
+  message: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage>
   connectionInfo: ConnectionContext
   appMetadataManager: AppMetadataManager
   interceptorCallback(message: BeaconRequestOutputMessage, connectionInfo: ConnectionContext): void
 }
 
+interface IncomingRequestInterceptorOptionsV2 extends IncomingRequestInterceptorOptions {
+  message: BeaconRequestMessage
+}
+
+interface IncomingRequestInterceptorOptionsV3 extends IncomingRequestInterceptorOptions {
+  message: BeaconMessageWrapper<BeaconBaseMessage>
+}
 /**
  * @internalapi
  *
@@ -39,9 +47,9 @@ export class IncomingRequestInterceptor {
     console.log('INTERCEPTING REQUEST', config.message)
 
     if (config.message.version === '2') {
-      IncomingRequestInterceptor.handleV2Message(config)
+      IncomingRequestInterceptor.handleV2Message(config as IncomingRequestInterceptorOptionsV2)
     } else if (config.message.version === '3') {
-      IncomingRequestInterceptor.handleV3Message(config)
+      IncomingRequestInterceptor.handleV3Message(config as IncomingRequestInterceptorOptionsV3)
     }
   }
 
@@ -57,13 +65,13 @@ export class IncomingRequestInterceptor {
     return appMetadata
   }
 
-  private static async handleV2Message(config: IncomingRequestInterceptorOptions) {
+  private static async handleV2Message(config: IncomingRequestInterceptorOptionsV2) {
     const {
       message,
       connectionInfo,
       appMetadataManager,
       interceptorCallback
-    }: IncomingRequestInterceptorOptions = config
+    }: IncomingRequestInterceptorOptionsV2 = config
 
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
@@ -140,22 +148,20 @@ export class IncomingRequestInterceptor {
     }
   }
 
-  private static async handleV3Message(config: IncomingRequestInterceptorOptions) {
+  private static async handleV3Message(config: IncomingRequestInterceptorOptionsV3) {
     const {
       message: msg,
       connectionInfo,
       appMetadataManager,
       interceptorCallback
-    }: IncomingRequestInterceptorOptions = config
+    }: IncomingRequestInterceptorOptionsV3 = config
 
     const wrappedMessage:
       | BeaconMessageWrapper<PermissionRequestV3<string>>
-      | BeaconMessageWrapper<BlockchainRequestV3<string>> = msg as any
+      | BeaconMessageWrapper<BlockchainRequestV3<string>> = msg as any /* TODO: Remove any */
 
     const v3Message: PermissionRequestV3<string> | BlockchainRequestV3<string> =
       wrappedMessage.message
-
-    console.log('LOGGING V3', v3Message, connectionInfo, appMetadataManager)
 
     switch (v3Message.type) {
       case BeaconMessageType.PermissionRequest:
