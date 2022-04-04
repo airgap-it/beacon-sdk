@@ -9,7 +9,8 @@ import {
   BeaconMessageType,
   DisconnectMessage,
   AppMetadata,
-  BeaconRequestMessage
+  BeaconRequestMessage,
+  BeaconMessageWrapper
 } from '@airgap/beacon-types'
 import { Serializer, Transport } from '../..'
 import { BeaconClient } from '../beacon-client/BeaconClient'
@@ -31,7 +32,7 @@ export abstract class Client extends BeaconClient {
   protected readonly accountManager: AccountManager
 
   protected handleResponse: (
-    _event: BeaconRequestMessage,
+    _event: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage>,
     connectionInfo: ConnectionContext
   ) => void
 
@@ -76,7 +77,10 @@ export abstract class Client extends BeaconClient {
     this.accountManager = new AccountManager(config.storage)
     this.matrixNodes = config.matrixNodes ?? []
 
-    this.handleResponse = (message: BeaconBaseMessage, connectionInfo: ConnectionContext): void => {
+    this.handleResponse = (
+      message: BeaconBaseMessage | BeaconMessageWrapper<BeaconBaseMessage>,
+      connectionInfo: ConnectionContext
+    ): void => {
       throw new Error(
         `not overwritten${JSON.stringify(message)} - ${JSON.stringify(connectionInfo)}`
       )

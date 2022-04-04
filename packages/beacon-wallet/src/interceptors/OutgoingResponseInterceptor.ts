@@ -21,14 +21,15 @@ import {
   BeaconErrorType,
   BeaconMessageWrapper,
   BlockchainResponseV3,
-  PermissionResponseV3
+  PermissionResponseV3,
+  BeaconBaseMessage
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
 import { getAddressFromPublicKey } from '@airgap/beacon-utils'
 
 interface OutgoingResponseInterceptorOptions {
   senderId: string
-  request: BeaconRequestMessage
+  request: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage>
   message: BeaconResponseInputMessage
   ownAppMetadata: AppMetadata
   permissionManager: PermissionManager

@@ -50,7 +50,13 @@ import {
   BlockchainRequestV3,
   BlockchainResponseV3,
   PermissionRequestV3,
-  PermissionResponseV3
+  PermissionResponseV3,
+  BeaconBaseMessage,
+  AcknowledgeResponse,
+  App,
+  DesktopApp,
+  ExtensionApp,
+  WebApp
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -80,7 +86,18 @@ import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
-import { getColorMode, setColorMode } from '@airgap/beacon-ui'
+import {
+  getColorMode,
+  setColorMode,
+  setDesktopList,
+  setExtensionList,
+  setWebList,
+  setiOSList,
+  getDesktopList,
+  getExtensionList,
+  getWebList,
+  getiOSList
+} from '@airgap/beacon-ui'
 
 const logger = new Logger('DAppClient')
 
@@ -110,7 +127,13 @@ export class DAppClient extends Client {
    */
   private readonly openRequests = new Map<
     string,
-    ExposedPromise<{ message: BeaconMessage; connectionInfo: ConnectionContext }, ErrorResponse>
+    ExposedPromise<
+      {
+        message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>
+        connectionInfo: ConnectionContext
+      },
+      ErrorResponse
+    >
   >()
 
   /**
@@ -163,68 +186,128 @@ export class DAppClient extends Client {
       })
 
     this.handleResponse = async (
-      message: BeaconMessage,
+      message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
       const openRequest = this.openRequests.get(message.id)
 
       logger.log('handleResponse', 'Received message', message, connectionInfo)
 
-      if (
-        (openRequest && message.type === BeaconMessageType.Acknowledge) ||
-        (message as any).message.type === BeaconMessageType.Acknowledge // TODO: TYPE
-      ) {
-        logger.log(`acknowledge message received for ${message.id}`)
-        console.timeLog(message.id, 'acknowledge')
+      if (message.version === '3') {
+        const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
-        this.events
-          .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
-            message: (message as any).message ?? message, // TODO: Types
-            extraInfo: {},
-            walletInfo: await this.getWalletInfo()
-          })
-          .catch(console.error)
-      } else if (openRequest) {
-        if (message.type === BeaconMessageType.PermissionResponse && message.appMetadata) {
-          await this.appMetadataManager.addAppMetadata(message.appMetadata)
-        }
+        if (openRequest && typedMessage.message.type === BeaconMessageType.Acknowledge) {
+          logger.log(`acknowledge message received for ${message.id}`)
+          console.timeLog(message.id, 'acknowledge')
 
-        console.timeLog(message.id, 'response')
-        console.timeEnd(message.id)
-
-        if (message.type === BeaconMessageType.Error || (message as any).errorType) {
-          // TODO: Remove "any" once we remove support for v1 wallets
-          openRequest.reject(message as any)
-        } else {
-          openRequest.resolve({ message, connectionInfo })
-        }
-        this.openRequests.delete(message.id)
-      } else {
-        if (
-          message.type === BeaconMessageType.Disconnect ||
-          (message as any).message.type === BeaconMessageType.Disconnect // TODO: TYPE
-        ) {
-          const relevantTransport =
-            connectionInfo.origin === Origin.P2P
-              ? this.p2pTransport
-              : this.postMessageTransport ?? (await this.transport)
-
-          if (relevantTransport) {
-            // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
-            const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
-            const peer: ExtendedPeerInfo | undefined = peers.find(
-              (peerEl) => peerEl.senderId === message.senderId
-            )
-            if (peer) {
-              await relevantTransport.removePeer(peer as any)
-              await this.removeAccountsForPeers([peer])
-              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-            } else {
-              logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
-            }
+          this.events
+            .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
+              message: typedMessage.message as AcknowledgeResponse,
+              extraInfo: {},
+              walletInfo: await this.getWalletInfo()
+            })
+            .catch(console.error)
+        } else if (openRequest) {
+          const appMetadata: AppMetadata | undefined = (
+            typedMessage.message as unknown /* Why is this unkown cast needed? */ as PermissionResponseV3<string>
+          ).blockchainData.appMetadata
+          if (typedMessage.message.type === BeaconMessageType.PermissionResponse && appMetadata) {
+            await this.appMetadataManager.addAppMetadata(appMetadata)
           }
+
+          console.timeLog(typedMessage.id, 'response')
+          console.timeEnd(typedMessage.id)
+
+          if (typedMessage.message.type === BeaconMessageType.Error) {
+            openRequest.reject(typedMessage.message as ErrorResponse)
+          } else {
+            openRequest.resolve({ message, connectionInfo })
+          }
+          this.openRequests.delete(typedMessage.id)
         } else {
-          logger.error('handleResponse', 'no request found for id ', message.id)
+          if (typedMessage.message.type === BeaconMessageType.Disconnect) {
+            const relevantTransport =
+              connectionInfo.origin === Origin.P2P
+                ? this.p2pTransport
+                : this.postMessageTransport ?? (await this.transport)
+
+            if (relevantTransport) {
+              // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
+              const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
+              const peer: ExtendedPeerInfo | undefined = peers.find(
+                (peerEl) => peerEl.senderId === message.senderId
+              )
+              if (peer) {
+                await relevantTransport.removePeer(peer as any)
+                await this.removeAccountsForPeers([peer])
+                await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+              } else {
+                logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
+              }
+            }
+          } else {
+            logger.error('handleResponse', 'no request found for id ', message.id)
+          }
+        }
+      } else {
+        const typedMessage = message as BeaconMessage
+
+        if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
+          logger.log(`acknowledge message received for ${message.id}`)
+          console.timeLog(message.id, 'acknowledge')
+
+          this.events
+            .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
+              message: typedMessage,
+              extraInfo: {},
+              walletInfo: await this.getWalletInfo()
+            })
+            .catch(console.error)
+        } else if (openRequest) {
+          if (
+            typedMessage.type === BeaconMessageType.PermissionResponse &&
+            typedMessage.appMetadata
+          ) {
+            await this.appMetadataManager.addAppMetadata(typedMessage.appMetadata)
+          }
+
+          console.timeLog(typedMessage.id, 'response')
+          console.timeEnd(typedMessage.id)
+
+          if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
+            // TODO: Remove "any" once we remove support for v1 wallets
+            openRequest.reject(typedMessage as any)
+          } else {
+            openRequest.resolve({ message, connectionInfo })
+          }
+          this.openRequests.delete(typedMessage.id)
+        } else {
+          if (
+            typedMessage.type === BeaconMessageType.Disconnect ||
+            (message as any).typedMessage.type === BeaconMessageType.Disconnect // TODO: TYPE
+          ) {
+            const relevantTransport =
+              connectionInfo.origin === Origin.P2P
+                ? this.p2pTransport
+                : this.postMessageTransport ?? (await this.transport)
+
+            if (relevantTransport) {
+              // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
+              const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
+              const peer: ExtendedPeerInfo | undefined = peers.find(
+                (peerEl) => peerEl.senderId === message.senderId
+              )
+              if (peer) {
+                await relevantTransport.removePeer(peer as any)
+                await this.removeAccountsForPeers([peer])
+                await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+              } else {
+                logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
+              }
+            }
+          } else {
+            logger.error('handleResponse', 'no request found for id ', message.id)
+          }
         }
       }
     }
@@ -561,6 +644,12 @@ export class DAppClient extends Client {
 
   addBlockchain(chain: Blockchain) {
     this.blockchains.set(chain.identifier, chain)
+    chain.getWalletLists().then((walletLists) => {
+      setDesktopList(walletLists.desktopList)
+      setExtensionList(walletLists.extensionList)
+      setWebList(walletLists.webList)
+      setiOSList(walletLists.iOSList)
+    })
   }
 
   removeBlockchain(chainIdentifier: string) {
@@ -1164,48 +1253,48 @@ export class DAppClient extends Client {
       }
     }
 
-    // const lowerCaseCompare = (str1?: string, str2?: string): boolean => {
-    //   if (str1 && str2) {
-    //     return str1.toLowerCase() === str2.toLowerCase()
-    //   }
+    const lowerCaseCompare = (str1?: string, str2?: string): boolean => {
+      if (str1 && str2) {
+        return str1.toLowerCase() === str2.toLowerCase()
+      }
 
-    //   return false
-    // }
+      return false
+    }
 
-    // let selectedApp: WebApp | App | DesktopApp | ExtensionApp | undefined
-    // let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
-    // // TODO: Remove once all wallets send the icon?
-    // if (iOSList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-    //   selectedApp = iOSList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
-    //   type = 'mobile'
-    // } else if (webList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-    //   selectedApp = webList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
-    //   type = 'web'
-    // } else if (desktopList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-    //   selectedApp = desktopList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
-    //   type = 'desktop'
-    // } else if (extensionList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-    //   selectedApp = extensionList.find((app) => lowerCaseCompare(app.name, walletInfo?.name))
-    //   type = 'extension'
-    // }
+    let selectedApp: WebApp | App | DesktopApp | ExtensionApp | undefined
+    let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
+    // TODO: Remove once all wallets send the icon?
+    if (getiOSList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = getiOSList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+      type = 'mobile'
+    } else if (getWebList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = getWebList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+      type = 'web'
+    } else if (getDesktopList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = getDesktopList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+      type = 'desktop'
+    } else if (getExtensionList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
+      selectedApp = getExtensionList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+      type = 'extension'
+    }
 
-    // if (selectedApp) {
-    //   let deeplink: string | undefined
-    //   if (selectedApp.hasOwnProperty('links')) {
-    //     deeplink = (selectedApp as WebApp).links[
-    //       selectedAccount?.network.type ?? this.preferredNetwork
-    //     ]
-    //   } else if (selectedApp.hasOwnProperty('deepLink')) {
-    //     deeplink = (selectedApp as App).deepLink
-    //   }
+    if (selectedApp) {
+      let deeplink: string | undefined
+      if (selectedApp.hasOwnProperty('links')) {
+        deeplink = (selectedApp as WebApp).links[
+          selectedAccount?.network.type ?? this.preferredNetwork
+        ]
+      } else if (selectedApp.hasOwnProperty('deepLink')) {
+        deeplink = (selectedApp as App).deepLink
+      }
 
-    //   return {
-    //     name: walletInfo.name,
-    //     icon: walletInfo.icon ?? selectedApp.logo,
-    //     deeplink,
-    //     type
-    //   }
-    // }
+      return {
+        name: walletInfo.name,
+        icon: walletInfo.icon ?? selectedApp.logo,
+        deeplink,
+        type
+      }
+    }
 
     return walletInfo
   }
@@ -1287,7 +1376,10 @@ export class DAppClient extends Client {
     }
 
     const exposed = new ExposedPromise<
-      { message: BeaconMessage; connectionInfo: ConnectionContext },
+      {
+        message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>
+        connectionInfo: ConnectionContext
+      },
       ErrorResponse
     >()
 
@@ -1391,7 +1483,10 @@ export class DAppClient extends Client {
     }
 
     const exposed = new ExposedPromise<
-      { message: BeaconMessage; connectionInfo: ConnectionContext },
+      {
+        message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>
+        connectionInfo: ConnectionContext
+      },
       ErrorResponse
     >()
 
@@ -1462,7 +1557,10 @@ export class DAppClient extends Client {
   private addOpenRequest(
     id: string,
     promise: ExposedPromise<
-      { message: BeaconMessage; connectionInfo: ConnectionContext },
+      {
+        message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>
+        connectionInfo: ConnectionContext
+      },
       ErrorResponse
     >
   ): void {

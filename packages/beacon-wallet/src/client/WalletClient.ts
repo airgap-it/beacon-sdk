@@ -25,7 +25,9 @@ import {
   AppMetadata,
   PermissionInfo,
   TransportStatus,
-  BeaconMessage
+  BeaconMessage,
+  BeaconMessageWrapper,
+  BeaconBaseMessage
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
 import { WalletP2PTransport } from '../transports/WalletP2PTransport'
@@ -57,7 +59,10 @@ export class WalletClient extends Client {
   /**
    * This array stores pending requests, meaning requests we received and have not yet handled / sent a response.
    */
-  private pendingRequests: [BeaconRequestMessage, ConnectionContext][] = []
+  private pendingRequests: [
+    BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage>,
+    ConnectionContext
+  ][] = []
 
   constructor(config: WalletClientOptions) {
     super({
@@ -96,36 +101,49 @@ export class WalletClient extends Client {
     ) => void
   ): Promise<void> {
     this.handleResponse = async (
-      message: BeaconRequestMessage | DisconnectMessage,
+      message: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage> | DisconnectMessage,
       connectionContext: ConnectionContext
     ): Promise<void> => {
-      if (message.type === BeaconMessageType.Disconnect) {
-        const transport = await this.transport
-        const peers: ExtendedPeerInfo[] = await transport.getPeers()
-        const peer: ExtendedPeerInfo | undefined = peers.find(
-          (peerEl) => peerEl.senderId === message.senderId
-        )
+      if (message.version === '3') {
+        const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
-        if (peer) {
-          await this.removePeer(peer as any)
+        if (typedMessage.message.type === BeaconMessageType.Disconnect) {
+          return this.disconnect(typedMessage.senderId)
         }
 
-        return
-      }
+        if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
+          this.pendingRequests.push([typedMessage, connectionContext])
 
-      if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
-        this.pendingRequests.push([message, connectionContext])
+          await this.sendAcknowledgeResponse(typedMessage, connectionContext)
 
-        if (message.version !== '1') {
-          await this.sendAcknowledgeResponse(message, connectionContext)
+          await IncomingRequestInterceptor.intercept({
+            message: typedMessage,
+            connectionInfo: connectionContext,
+            appMetadataManager: this.appMetadataManager,
+            interceptorCallback: newMessageCallback
+          })
+        }
+      } else {
+        const typedMessage = message as BeaconRequestMessage | DisconnectMessage
+
+        if (typedMessage.type === BeaconMessageType.Disconnect) {
+          return this.disconnect(typedMessage.senderId)
         }
 
-        await IncomingRequestInterceptor.intercept({
-          message,
-          connectionInfo: connectionContext,
-          appMetadataManager: this.appMetadataManager,
-          interceptorCallback: newMessageCallback
-        })
+        if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
+          this.pendingRequests.push([typedMessage, connectionContext])
+
+          if (typedMessage.version !== '1') {
+            await this.sendAcknowledgeResponse(typedMessage, connectionContext)
+          }
+
+          await IncomingRequestInterceptor.intercept({
+            message: typedMessage,
+            connectionInfo: connectionContext,
+            appMetadataManager: this.appMetadataManager,
+            interceptorCallback: newMessageCallback
+          })
+        }
       }
     }
 
@@ -283,7 +301,7 @@ export class WalletClient extends Client {
    * @param message The message that was received
    */
   private async sendAcknowledgeResponse(
-    request: BeaconRequestMessage,
+    request: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage>,
     connectionContext: ConnectionContext
   ): Promise<void> {
     // Acknowledge the message
@@ -322,5 +340,17 @@ export class WalletClient extends Client {
     } else {
       await (await this.transport).send(serializedMessage)
     }
+  }
+
+  private async disconnect(senderId: string) {
+    const transport = await this.transport
+    const peers: ExtendedPeerInfo[] = await transport.getPeers()
+    const peer: ExtendedPeerInfo | undefined = peers.find((peerEl) => peerEl.senderId === senderId)
+
+    if (peer) {
+      await this.removePeer(peer as any)
+    }
+
+    return
   }
 }
