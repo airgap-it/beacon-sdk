@@ -12,7 +12,9 @@ export const createSanitizedElement = (
 ): HTMLElement => {
   const el = document.createElement(type)
 
-  el.classList.add(...classes.filter((clazz) => !!clazz))
+  if (classes.length > 0) {
+    el.classList.add(...classes.filter((clazz) => !!clazz))
+  }
 
   attributes.forEach((attribute) => {
     el.setAttribute(sanitizeText(attribute[0]), sanitizeText(attribute[1]))
@@ -29,6 +31,44 @@ export const createSanitizedElement = (
   } else {
     // NOOP
   }
+
+  return el
+}
+
+export const createSVGElement = (
+  classes: string[],
+  attributes: [string, string][],
+  element: (SVGPathElement | HTMLElement)[]
+): SVGSVGElement => {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+
+  if (classes.length > 0) {
+    el.classList.add(...classes.filter((clazz) => !!clazz))
+  }
+
+  attributes.forEach((attribute) => {
+    el.setAttribute(sanitizeText(attribute[0]), sanitizeText(attribute[1]))
+  })
+
+  if (typeof element === 'object' && Array.isArray(element)) {
+    element
+      .filter((childEl): childEl is SVGPathElement => !!childEl)
+      .forEach((childEl) => {
+        el.appendChild(childEl)
+      })
+  } else {
+    // NOOP
+  }
+
+  return el
+}
+
+export const createSVGPathElement = (attributes: [string, string][]): SVGPathElement => {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+
+  attributes.forEach((attribute) => {
+    el.setAttribute(sanitizeText(attribute[0]), sanitizeText(attribute[1]))
+  })
 
   return el
 }

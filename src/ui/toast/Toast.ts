@@ -4,6 +4,7 @@ import { replaceInTemplate } from '../../utils/replace-in-template'
 import { generateGUID } from '../../utils/generate-uuid'
 import { toastTemplates } from './toast-templates'
 import { createSanitizedElement } from '../../utils/html-elements'
+import { constructPoweredByBeacon } from '../../utils/templates'
 
 export interface ToastAction {
   text: string
@@ -250,7 +251,7 @@ const addActionsToToast = async (
 
     const poweredByBeacon = document.createElement('small')
     poweredByBeacon.classList.add('beacon-toast__powered')
-    poweredByBeacon.innerHTML = toastTemplates.default.poweredByBeacon
+    poweredByBeacon.appendChild(constructPoweredByBeacon())
 
     list.appendChild(poweredByBeacon)
     showExpand(shadowRoot)

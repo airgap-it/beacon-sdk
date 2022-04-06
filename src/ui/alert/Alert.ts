@@ -39,8 +39,22 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
 const timeout: Record<string, number | undefined> = {}
 
 const addQR = (dataString?: string): string => {
+  console.log('dataString', dataString)
   if (typeof dataString === 'string') {
-    return `<div id="beacon--qr__container"><div id="beacon--qr__copy__container"><button class="beacon-modal__button--outline" id="beacon--qr__copy">Copy</button></div></div>${dataString}`
+    return createSanitizedElement(
+      'div',
+      [],
+      [['id', 'beacon--qr__container']],
+      [
+        createSanitizedElement('div', [], [['id', 'beacon--qr__copy__container']], ''),
+        createSanitizedElement(
+          'button',
+          ['beacon-modal__button--outline'],
+          [['id', 'beacon--qr__copy']],
+          'Copy'
+        )
+      ]
+    ).outerHTML
   }
 
   return ''
