@@ -3,6 +3,7 @@ import { WalletInfo } from '../../events'
 import { replaceInTemplate } from '../../utils/replace-in-template'
 import { generateGUID } from '../../utils/generate-uuid'
 import { toastTemplates } from './toast-templates'
+import { createSanitizedElement } from '../../utils/html-elements'
 
 export interface ToastAction {
   text: string
@@ -38,15 +39,29 @@ const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> 
   const wrapper = document.createElement('div')
   wrapper.classList.add('beacon-toast__action__item')
 
+  removeAllChildNodes(wrapper)
+
   if (actionCallback) {
-    wrapper.innerHTML = text.length > 0 ? `<p>${text}</p>` : ``
-    wrapper.innerHTML += `<p><a id="${id}">${actionText}</a></p>`
+    if (text.length > 0) {
+      wrapper.appendChild(createSanitizedElement('p', [], [], text))
+    }
+    wrapper.appendChild(
+      createSanitizedElement(
+        'p',
+        [],
+        [],
+        [createSanitizedElement('a', [], [['id', id]], actionText)]
+      )
+    )
   } else if (actionText) {
-    wrapper.innerHTML =
-      text.length > 0 ? `<p class="beacon-toast__action__item__subtitle">${text}</p>` : ``
-    wrapper.innerHTML += `<p>${actionText}</p>`
+    if (text.length > 0) {
+      wrapper.appendChild(
+        createSanitizedElement('p', ['beacon-toast__action__item__subtitle'], [], text)
+      )
+    }
+    wrapper.appendChild(createSanitizedElement('p', [], [], actionText))
   } else {
-    wrapper.innerHTML = `<p>${text}</p>`
+    wrapper.appendChild(createSanitizedElement('p', [], [], text))
   }
 
   if (actionCallback) {

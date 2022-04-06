@@ -232,7 +232,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   if (disclaimer) {
     const disclaimerContainer = shadowRoot.getElementById(`beacon--disclaimer`)
     if (disclaimerContainer) {
-      disclaimerContainer.innerHTML = disclaimer
+      disclaimerContainer.innerText = disclaimer
     }
   }
 

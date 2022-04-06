@@ -14,7 +14,11 @@ import {
   PairingAlertWallet,
   WalletType
 } from './Pairing'
-import { createSanitizedElement, createUnsafeElementFromString } from '../../utils/html-elements'
+import {
+  createSanitizedElement,
+  createUnsafeElementFromString,
+  removeAllChildren
+} from '../../utils/html-elements'
 
 const logger = new Logger('Alert')
 
@@ -134,7 +138,7 @@ export const preparePairingAlert = async (
       wallet.clickHandler()
       const modalEl: HTMLElement | null = shadowRoot.getElementById('beacon-modal__content')
       if (modalEl && type !== WalletType.EXTENSION && type !== WalletType.IOS) {
-        modalEl.innerHTML = ''
+        removeAllChildren(modalEl)
         modalEl.appendChild(
           createSanitizedElement('p', ['beacon-alert__title'], [], 'Establishing Connection..')
         )
@@ -173,17 +177,16 @@ export const preparePairingAlert = async (
   const listContainer = document.createElement('span')
   container.appendChild(listContainer)
   const showWalletLists = (walletLists: PairingAlertList[]): void => {
-    listContainer.innerHTML = ''
+    removeAllChildren(listContainer)
     walletLists.forEach((list) => {
       const listWrapperEl = document.createElement('div')
       listWrapperEl.classList.add('beacon-list__wrapper')
 
       listContainer.appendChild(listWrapperEl)
 
-      const listTitleEl = document.createElement('div')
-      listTitleEl.classList.add('beacon-list__title')
-      listTitleEl.innerHTML = list.title
-      listWrapperEl.appendChild(listTitleEl)
+      listWrapperEl.appendChild(
+        createSanitizedElement('div', ['beacon-list__title'], [], list.title)
+      )
 
       const listEl = document.createElement('span')
       listWrapperEl.appendChild(listEl)
@@ -251,7 +254,7 @@ export const preparePairingAlert = async (
   const showPlatform = async (type: 'ios' | 'android' | 'desktop' | 'none'): Promise<void> => {
     const platformSwitch: HTMLElement | null = shadowRoot.getElementById(`beacon-switch`)
     if (platformSwitch) {
-      platformSwitch.innerHTML =
+      platformSwitch.innerText =
         type === 'none' ? 'Pair wallet on same device' : 'Pair wallet on another device'
     }
 

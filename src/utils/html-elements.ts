@@ -8,7 +8,7 @@ export const createSanitizedElement = (
   type: string,
   classes: string[],
   attributes: [string, string][],
-  element: string | (HTMLElement | undefined)[]
+  element: string | (HTMLElement | undefined)[] | undefined
 ): HTMLElement => {
   const el = document.createElement(type)
 
@@ -24,8 +24,10 @@ export const createSanitizedElement = (
       .forEach((childEl) => {
         el.appendChild(childEl)
       })
-  } else {
+  } else if (typeof element === 'string') {
     el.innerText = element
+  } else {
+    // NOOP
   }
 
   return el
@@ -35,4 +37,8 @@ export const sanitizeText = (text: string): string => {
   const div = document.createElement('div')
   div.innerText = text
   return div.innerHTML
+}
+
+export const removeAllChildren = (el: HTMLElement): void => {
+  el.innerHTML = ''
 }
