@@ -134,23 +134,37 @@ export const preparePairingAlert = async (
       wallet.clickHandler()
       const modalEl: HTMLElement | null = shadowRoot.getElementById('beacon-modal__content')
       if (modalEl && type !== WalletType.EXTENSION && type !== WalletType.IOS) {
-        modalEl.innerHTML = `${
-          wallet.logo
-            ? `<p class="beacon-alert__title">Establishing Connection..</p>
-            <div id="beacon-toast-loader" class="progress-line"></div>
-            <div class="beacon--selected__container">
-             <img class="beacon-selection__img" src="${wallet.logo}"/>
-             <div class="beacon--selection__name__lg">${wallet.name}</div>
-            </div>`
-            : ''
-        }
-        `
+        modalEl.innerHTML = ''
+        modalEl.appendChild(
+          createSanitizedElement('p', ['beacon-alert__title'], [], 'Establishing Connection..')
+        )
+        modalEl.appendChild(
+          createSanitizedElement('div', ['progress-line'], [['id', 'beacon-toast-loader']], '')
+        )
+        modalEl.appendChild(
+          createSanitizedElement(
+            'div',
+            ['beacon--selected__container'],
+            [],
+            [
+              ...(wallet.logo
+                ? [
+                    createSanitizedElement(
+                      'img',
+                      ['beacon-selection__img'],
+                      [['src', wallet.logo]],
+                      ''
+                    ),
+                    createSanitizedElement('img', ['beacon--selection__name__lg'], [], wallet.name)
+                  ]
+                : [undefined])
+            ]
+          )
+        )
       }
     }
 
-    console.log('NOT REGISTRING KLICK')
     if (walletEl) {
-      console.log('REGISTRING KLICK')
       walletEl.addEventListener('click', () => completeHandler())
       walletEl.addEventListener('keydown', completeHandler)
     }

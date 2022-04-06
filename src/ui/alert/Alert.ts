@@ -1,5 +1,6 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
+import { createSanitizedElement } from '../../utils/html-elements'
 import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '../..'
 import { getColorMode } from '../../colorMode'
 import { windowRef } from '../../MockWindow'
@@ -56,11 +57,13 @@ const formatAlert = (
   html: string
 } => {
   const callToAction: string = title
-  const buttonsHtml = buttons.map(
-    (button, index: number) =>
-      `<button id="beacon-alert-${id}-${index}" class="beacon-modal__button${
-        button.style === 'outline' ? '--outline' : ''
-      }">${button.text}</button>`
+  const buttonsHtml = buttons.map((button, index: number) =>
+    createSanitizedElement(
+      'button',
+      [`beacon-modal__button${button.style === 'outline' ? '--outline' : ''}`],
+      [['id', `beacon-alert-${id}-${index}`]],
+      button.text
+    )
   )
 
   let allStyles = alertTemplates.default.css

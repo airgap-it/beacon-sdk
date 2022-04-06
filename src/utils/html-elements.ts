@@ -15,7 +15,7 @@ export const createSanitizedElement = (
   el.classList.add(...classes.filter((clazz) => !!clazz))
 
   attributes.forEach((attribute) => {
-    el.setAttribute(attribute[0], attribute[1] /* TODO: We need to sanitize this */)
+    el.setAttribute(sanitizeText(attribute[0]), sanitizeText(attribute[1]))
   })
 
   if (typeof element === 'object' && Array.isArray(element)) {
@@ -29,4 +29,10 @@ export const createSanitizedElement = (
   }
 
   return el
+}
+
+export const sanitizeText = (text: string): string => {
+  const div = document.createElement('div')
+  div.innerText = text
+  return div.innerHTML
 }
