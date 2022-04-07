@@ -124,13 +124,13 @@
       const updateActiveAccount = () => {
         client.getActiveAccount().then((activeAccount) => {
           if (activeAccount) {
-            document.getElementById('activeAccount').innerHTML = activeAccount.address
-            document.getElementById('activeAccountNetwork').innerHTML = activeAccount.network.type
-            document.getElementById('activeAccountTransport').innerHTML = activeAccount.origin.type
+            document.getElementById('activeAccount').innerText = activeAccount.address
+            document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
+            document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
           } else {
-            document.getElementById('activeAccount').innerHTML = ''
-            document.getElementById('activeAccountNetwork').innerHTML = ''
-            document.getElementById('activeAccountTransport').innerHTML = ''
+            document.getElementById('activeAccount').innerText = ''
+            document.getElementById('activeAccountNetwork').innerText = ''
+            document.getElementById('activeAccountTransport').innerText = ''
           }
         })
       }
@@ -139,7 +139,7 @@
       // Display the active account in the UI
       const updateColorMode = () => {
         client.getColorMode().then((colorMode) => {
-          document.getElementById('activeColorMode').innerHTML = colorMode
+          document.getElementById('activeColorMode').innerText = colorMode
         })
       }
       updateColorMode()
