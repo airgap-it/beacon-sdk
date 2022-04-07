@@ -103,7 +103,7 @@ export class PostMessageTransport<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fn = (event: any): void => {
       if (event.source !== windowRef) {
-        console.debug('[Beacon]: Event received from untrusted origin')
+        // TODO: Add to error handler: console.debug('[Beacon]: Event received from untrusted origin')
         return
       }
 

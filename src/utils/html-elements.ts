@@ -7,20 +7,24 @@ export const createSanitizedElement = (
   const el = document.createElement(type)
 
   if (classes.length > 0) {
-    el.classList.add(...classes.filter((clazz) => !!clazz))
+    // Filter empty classnames and add all classes to element
+    el.classList.add(...classes.filter((clazz) => !!clazz).map((clazz) => sanitizeText(clazz)))
   }
 
+  // Add all attributes to element
   attributes.forEach((attribute) => {
     el.setAttribute(sanitizeText(attribute[0]), sanitizeText(attribute[1]))
   })
 
   if (typeof element === 'object' && Array.isArray(element)) {
+    // If we get a list of elements, add all of them as children
     element
       .filter((childEl): childEl is HTMLElement => !!childEl)
       .forEach((childEl) => {
         el.appendChild(childEl)
       })
   } else if (typeof element === 'string') {
+    // Use `innerText` to assign text to prevent malicious code from being rendered
     el.innerText = element
   } else {
     // NOOP
