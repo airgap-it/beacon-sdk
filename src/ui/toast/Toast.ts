@@ -42,32 +42,34 @@ const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> 
 
   removeAllChildNodes(wrapper)
 
-  const wrapBold = (element: HTMLElement) => {
-    return createSanitizedElement('strong', [], [], [element])
+  const wrapBold = (element: string | HTMLElement[]) => {
+    return createSanitizedElement('strong', [], [], element)
   }
 
   if (actionCallback) {
     if (text.length > 0) {
-      const textEl = createSanitizedElement('p', [], [], text)
-      wrapper.appendChild(isBold ? wrapBold(textEl) : textEl)
+      wrapper.appendChild(createSanitizedElement('p', [], [], text))
     }
+    const textEl = createSanitizedElement('span', [], [], actionText)
     wrapper.appendChild(
       createSanitizedElement(
         'p',
         [],
         [],
-        [createSanitizedElement('a', [], [['id', id]], actionText)]
+        [createSanitizedElement('a', [], [['id', id]], [isBold ? wrapBold([textEl]) : textEl])]
       )
     )
   } else if (actionText) {
     if (text.length > 0) {
-      const textEl = createSanitizedElement('p', ['beacon-toast__action__item__subtitle'], [], text)
-      wrapper.appendChild(isBold ? wrapBold(textEl) : textEl)
+      wrapper.appendChild(
+        createSanitizedElement('p', ['beacon-toast__action__item__subtitle'], [], text)
+      )
     }
-    wrapper.appendChild(createSanitizedElement('p', [], [], actionText))
+    const textEl = createSanitizedElement('span', [], [], actionText)
+    wrapper.appendChild(createSanitizedElement('p', [], [], [isBold ? wrapBold([textEl]) : textEl]))
   } else {
     const textEl = createSanitizedElement('p', [], [], text)
-    wrapper.appendChild(isBold ? wrapBold(textEl) : textEl)
+    wrapper.appendChild(isBold ? wrapBold([textEl]) : textEl)
   }
 
   if (actionCallback) {
