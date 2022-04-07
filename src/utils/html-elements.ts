@@ -32,7 +32,7 @@ export const createSanitizedElement = (
 export const createSVGElement = (
   classes: string[],
   attributes: [string, string][],
-  element: (SVGPathElement | HTMLElement)[]
+  element: (SVGPathElement | SVGGElement | HTMLElement)[]
 ): SVGSVGElement => {
   const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 
@@ -63,6 +63,18 @@ export const createSVGPathElement = (attributes: [string, string][]): SVGPathEle
   attributes.forEach((attribute) => {
     el.setAttribute(sanitizeText(attribute[0]), sanitizeText(attribute[1]))
   })
+
+  return el
+}
+
+export const createSVGGElement = (element: SVGPathElement[]): SVGGElement => {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+
+  element
+    .filter((childEl): childEl is SVGPathElement => !!childEl)
+    .forEach((childEl) => {
+      el.appendChild(childEl)
+    })
 
   return el
 }

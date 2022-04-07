@@ -5,9 +5,9 @@ import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '../..
 import { getColorMode } from '../../colorMode'
 import { windowRef } from '../../MockWindow'
 import { generateGUID } from '../../utils/generate-uuid'
-import { replaceInTemplate } from '../../utils/replace-in-template'
 import { alertTemplates } from './alert-templates'
 import { preparePairingAlert } from './PairingAlert'
+import { constructDefaultAlert, constructPairAlert } from '../../utils/templates'
 
 export interface AlertButton {
   text: string
@@ -38,7 +38,7 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
 
 const timeout: Record<string, number | undefined> = {}
 
-const addQR = (dataString?: string): string => {
+const addQR = (dataString?: string): HTMLElement => {
   console.log('dataString', dataString)
   if (typeof dataString === 'string') {
     return createSanitizedElement(
@@ -54,21 +54,21 @@ const addQR = (dataString?: string): string => {
           'Copy'
         )
       ]
-    ).outerHTML
+    )
   }
 
-  return ''
+  return createSanitizedElement('span', [], [], '')
 }
 
 const formatAlert = (
   id: string,
-  body: string,
+  body: HTMLElement,
   title: string,
   buttons: AlertButton[],
   hasPairingPayload?: boolean
 ): {
   style: string
-  html: string
+  html: HTMLElement
 } => {
   const callToAction: string = title
   const buttonsHtml = buttons.map((button, index: number) =>
@@ -86,30 +86,15 @@ const formatAlert = (
     allStyles += alertTemplates.pair.css
   }
 
-  let alertContainer = alertTemplates.container
+  const callToActionEl = createSanitizedElement('span', [], [], callToAction)
 
-  alertContainer = replaceInTemplate(
-    alertContainer,
-    'main',
-    hasPairingPayload ? alertTemplates.pair.html : alertTemplates.default.html
-  )
-
-  alertContainer = replaceInTemplate(alertContainer, 'callToAction', callToAction)
-  alertContainer = replaceInTemplate(alertContainer, 'buttons', buttonsHtml.join(' '))
-
-  alertContainer = replaceInTemplate(alertContainer, 'body', body)
-  alertContainer = replaceInTemplate(alertContainer, 'id', id)
-
-  if (alertContainer.indexOf('{{') >= 0) {
-    const start = alertContainer.indexOf('{{')
-    const end = alertContainer.indexOf('}}')
-    console.error('Not all placeholders replaced!', alertContainer.substr(start, end - start))
-    throw new Error('Not all placeholders replaced!')
-  }
+  const alertEl = hasPairingPayload
+    ? constructPairAlert(id, [callToActionEl], buttonsHtml, [body])
+    : constructDefaultAlert(id, [callToActionEl], buttonsHtml, [body])
 
   return {
     style: allStyles,
-    html: alertContainer
+    html: alertEl
   }
 }
 
@@ -210,7 +195,9 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     })) ?? [])
   ]
 
-  const formattedBody = pairingPayload ? addQR(body) : body ?? ''
+  const formattedBody = pairingPayload
+    ? addQR(body)
+    : createSanitizedElement('span', [], [], body ?? '')
 
   const { style, html } = formatAlert(
     id,
@@ -219,7 +206,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     buttons,
     !!pairingPayload?.p2pSyncCode
   )
-  wrapper.innerHTML = html
+  wrapper.appendChild(html)
 
   const styleEl = document.createElement('style')
 
