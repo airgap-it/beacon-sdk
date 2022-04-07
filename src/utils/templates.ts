@@ -198,18 +198,17 @@ export const constructAlertContainer = (
                   ['height', '40']
                 ],
                 [
-                  // TODO: Style
-                  /**
-                       <style>
-      .st0 {
-        fill: #3880ff;
-      }
-      .st1 {
-        fill: #fff;
-      }
-    </style> 
-                   
-                   */
+                  createSanitizedElement(
+                    'style',
+                    [],
+                    [],
+                    `.st0 {
+                    fill: #3880ff;
+                  }
+                  .st1 {
+                    fill: #fff;
+                  }`
+                  ),
                   createSVGPathElement([
                     [
                       'd',
