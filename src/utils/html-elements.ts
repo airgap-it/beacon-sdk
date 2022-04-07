@@ -1,3 +1,4 @@
+// TODO: Remove
 export const createUnsafeElementFromString = (el: string): HTMLElement => {
   const div = document.createElement('div')
   div.innerHTML = el.trim()
@@ -8,7 +9,7 @@ export const createSanitizedElement = (
   type: string,
   classes: string[],
   attributes: [string, string][],
-  element: string | (HTMLElement | undefined)[] | undefined
+  element: string | (HTMLElement | Text | SVGSVGElement | undefined)[] | undefined
 ): HTMLElement => {
   const el = document.createElement(type)
 
