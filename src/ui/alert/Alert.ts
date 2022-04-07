@@ -40,7 +40,6 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
 const timeout: Record<string, number | undefined> = {}
 
 const addQR = (dataString?: string): HTMLElement => {
-  console.log('dataString', dataString)
   if (typeof dataString === 'string') {
     return createSanitizedElement(
       'div',

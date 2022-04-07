@@ -158,7 +158,7 @@ export const constructPoweredByBeacon = (): HTMLElement => {
           ])
         ]
       ),
-      document.createTextNode('Beacon') as any
+      document.createTextNode('Beacon')
     ]
   )
 }

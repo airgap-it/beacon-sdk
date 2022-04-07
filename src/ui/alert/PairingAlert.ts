@@ -181,7 +181,7 @@ export const preparePairingAlert = async (
                     ),
                     createSanitizedElement('img', ['beacon--selection__name__lg'], [], wallet.name)
                   ]
-                : [undefined])
+                : [])
             ]
           )
         )
