@@ -1,10 +1,3 @@
-// TODO: Remove
-export const createUnsafeElementFromString = (el: string): HTMLElement => {
-  const div = document.createElement('div')
-  div.innerHTML = el.trim()
-  return div.firstChild as HTMLElement
-}
-
 export const createSanitizedElement = (
   type: string,
   classes: string[],

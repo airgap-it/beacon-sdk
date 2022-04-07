@@ -16,7 +16,8 @@ import {
 } from './Pairing'
 import {
   createSanitizedElement,
-  createUnsafeElementFromString,
+  createSVGElement,
+  createSVGPathElement,
   removeAllChildren
 } from '../../utils/html-elements'
 
@@ -97,8 +98,27 @@ export const preparePairingAlert = async (
           [],
           [createSanitizedElement('img', ['beacon-selection__img'], [['src', wallet.logo]], '')]
         )
-      : createUnsafeElementFromString(
-          '<svg class="beacon-selection__img" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="wallet" class="svg-inline--fa fa-wallet fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"><path d="M376.2,181H152.9c-5.2,0-9.4-4.2-9.4-9.4s4.2-9.4,9.4-9.4h225c5.2,0,9.4-4.2,9.4-9.4c0-15.5-12.6-28.1-28.1-28.1H143.5c-20.7,0-37.5,16.8-37.5,37.5v187.5c0,20.7,16.8,37.5,37.5,37.5h232.7c16.4,0,29.8-12.6,29.8-28.1v-150C406,193.6,392.7,181,376.2,181z M349.8,302.9c-10.4,0-18.8-8.4-18.8-18.8s8.4-18.8,18.8-18.8s18.8,8.4,18.8,18.8S360.1,302.9,349.8,302.9z"/></svg>'
+      : createSVGElement(
+          ['beacon-selection__img', 'svg-inline--fa', 'fa-wallet', 'fa-w-16'],
+          [
+            ['aria-hidden', 'true'],
+            ['focusable', 'false'],
+            ['data-prefix', 'fas'],
+            ['data-icon', 'wallet'],
+            ['role', 'img'],
+            ['xmlns', 'http://www.w3.org/2000/svg'],
+            ['viewBox', '0 0 512 512'],
+            ['style', 'enable-background:new 0 0 512 512;'],
+            ['xml:space', 'preserve']
+          ],
+          [
+            createSVGPathElement([
+              [
+                'd',
+                'M376.2,181H152.9c-5.2,0-9.4-4.2-9.4-9.4s4.2-9.4,9.4-9.4h225c5.2,0,9.4-4.2,9.4-9.4c0-15.5-12.6-28.1-28.1-28.1H143.5c-20.7,0-37.5,16.8-37.5,37.5v187.5c0,20.7,16.8,37.5,37.5,37.5h232.7c16.4,0,29.8-12.6,29.8-28.1v-150C406,193.6,392.7,181,376.2,181z M349.8,302.9c-10.4,0-18.8-8.4-18.8-18.8s8.4-18.8,18.8-18.8s18.8,8.4,18.8,18.8S360.1,302.9,349.8,302.9z'
+              ]
+            ])
+          ]
         )
 
     const nameEl = createSanitizedElement(
@@ -113,7 +133,7 @@ export const preparePairingAlert = async (
 
     const linkEl = createSanitizedElement(
       'a',
-      ['beacon-selection__list', wallet.enabled ? '' : ' disabled'],
+      ['beacon-selection__list', wallet.enabled ? '' : 'disabled'],
       [
         ['tabindex', '0'],
         ['id', `wallet_${walletKey}`],
