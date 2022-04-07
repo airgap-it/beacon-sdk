@@ -183,7 +183,8 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     }
   }
   actions.push({
-    text: `<strong>No answer from your wallet received yet. Please make sure the wallet is open.</strong>`
+    text: `No answer from your wallet received yet. Please make sure the wallet is open.`,
+    isBold: true
   })
   actions.push({
     text: 'Did you make a mistake?',
@@ -274,7 +275,8 @@ const showErrorToast = async (
 
   const actions: ToastAction[] = [
     {
-      text: `<strong>${error.title}</strong>`
+      text: error.title,
+      isBold: true
     },
     {
       text: error.description
@@ -397,7 +399,8 @@ const showPermissionSuccessAlert = async (
     actions: [
       {
         text: 'Address',
-        actionText: `<strong>${shortenString(output.address)}</strong>`
+        actionText: shortenString(output.address),
+        isBold: true
       },
       {
         text: 'Network',
@@ -428,7 +431,8 @@ const showOperationSuccessAlert = async (
     walletInfo: data.walletInfo,
     actions: [
       {
-        text: `<strong>${shortenString(output.transactionHash)}</strong>`,
+        text: shortenString(output.transactionHash),
+        isBold: true,
         actionText: `Open Blockexplorer ${SVG_EXTERNAL}`,
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getTransactionLink(
@@ -459,7 +463,7 @@ const showSignSuccessAlert = async (
     walletInfo: data.walletInfo,
     actions: [
       {
-        text: `Signature: <strong>${shortenString(output.signature)}</strong>`,
+        text: `Signature: ${shortenString(output.signature)}`,
         actionText: 'Copy to clipboard',
         actionCallback: async (): Promise<void> => {
           navigator.clipboard.writeText(output.signature).then(
@@ -531,7 +535,8 @@ const showBroadcastSuccessAlert = async (
     walletInfo: data.walletInfo,
     actions: [
       {
-        text: `<strong>${shortenString(output.transactionHash)}</strong>`,
+        text: shortenString(output.transactionHash),
+        isBold: true,
         actionText: `Open Blockexplorer ${SVG_EXTERNAL}`,
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getTransactionLink(

@@ -7,6 +7,7 @@ import { constructPoweredByBeacon, constructToastContainer } from '../../utils/t
 
 export interface ToastAction {
   text: string
+  isBold?: boolean
   actionText?: string
   actionCallback?(): Promise<void>
 }
@@ -33,7 +34,7 @@ let expandTimeout: number | undefined
 let globalToastConfig: ToastConfig | undefined
 
 const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> => {
-  const { text, actionText, actionCallback } = toastAction
+  const { text, isBold, actionText, actionCallback } = toastAction
 
   const id = await generateGUID()
   const wrapper = document.createElement('div')
@@ -41,9 +42,14 @@ const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> 
 
   removeAllChildNodes(wrapper)
 
+  const wrapBold = (element: HTMLElement) => {
+    return createSanitizedElement('strong', [], [], [element])
+  }
+
   if (actionCallback) {
     if (text.length > 0) {
-      wrapper.appendChild(createSanitizedElement('p', [], [], text))
+      const textEl = createSanitizedElement('p', [], [], text)
+      wrapper.appendChild(isBold ? wrapBold(textEl) : textEl)
     }
     wrapper.appendChild(
       createSanitizedElement(
@@ -55,13 +61,13 @@ const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> 
     )
   } else if (actionText) {
     if (text.length > 0) {
-      wrapper.appendChild(
-        createSanitizedElement('p', ['beacon-toast__action__item__subtitle'], [], text)
-      )
+      const textEl = createSanitizedElement('p', ['beacon-toast__action__item__subtitle'], [], text)
+      wrapper.appendChild(isBold ? wrapBold(textEl) : textEl)
     }
     wrapper.appendChild(createSanitizedElement('p', [], [], actionText))
   } else {
-    wrapper.appendChild(createSanitizedElement('p', [], [], text))
+    const textEl = createSanitizedElement('p', [], [], text)
+    wrapper.appendChild(isBold ? wrapBold(textEl) : textEl)
   }
 
   if (actionCallback) {
