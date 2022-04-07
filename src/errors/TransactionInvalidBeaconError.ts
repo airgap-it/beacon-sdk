@@ -7,12 +7,8 @@ export class TransactionInvalidBeaconError extends BeaconError {
   public name: string = 'TransactionInvalidBeaconError'
   public title: string = 'Transaction Invalid'
 
-  public get fullDescription(): string {
-    return `${this.description}<br /><pre style="text-align: left">${JSON.stringify(
-      this.data,
-      undefined,
-      2
-    )}</pre>`
+  public get fullDescription(): { description: string; data?: string } {
+    return { description: this.description, data: JSON.stringify(this.data, undefined, 2) }
   }
 
   constructor(public readonly data: unknown) {

@@ -295,7 +295,8 @@ const showErrorToast = async (
         await openAlert({
           title: error.title,
           // eslint-disable-next-line @typescript-eslint/unbound-method
-          body: error.fullDescription,
+          body: error.fullDescription.description,
+          data: error.fullDescription.data,
           buttons
         })
       }

@@ -25,8 +25,8 @@ export abstract class BeaconError implements Error {
   public title: string = 'Error' // Visible in the UI
   public description: string // Visible in the UI
 
-  public get fullDescription(): string {
-    return this.description
+  public get fullDescription(): { description: string; data?: string } {
+    return { description: this.description }
   }
 
   constructor(errorType: BeaconErrorType, message: string) {

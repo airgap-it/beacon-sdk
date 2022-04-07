@@ -18,6 +18,7 @@ export interface AlertButton {
 export interface AlertConfig {
   title: string
   body?: string
+  data?: string
   timer?: number
   buttons?: AlertButton[]
   pairingPayload?: {
@@ -166,6 +167,7 @@ const closeAlerts = async (): Promise<void> =>
 // eslint-disable-next-line complexity
 const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const body = alertConfig.body
+  const data = alertConfig.data
   const title = alertConfig.title
   const timer = alertConfig.timer
   const pairingPayload = alertConfig.pairingPayload
@@ -195,9 +197,18 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     })) ?? [])
   ]
 
-  const formattedBody = pairingPayload
+  let formattedBody = pairingPayload
     ? addQR(body)
     : createSanitizedElement('span', [], [], body ?? '')
+
+  if (data) {
+    formattedBody = createSanitizedElement(
+      'span',
+      [],
+      [],
+      [formattedBody, createSanitizedElement('pre', [], [['style', 'text-align: left']], data)]
+    )
+  }
 
   const { style, html } = formatAlert(
     id,
