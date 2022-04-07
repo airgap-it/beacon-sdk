@@ -112,7 +112,7 @@ const formatToastText = (html: string): HTMLElement[] => {
   if (splits.length === 1) {
     return [createSanitizedElement('span', [], [], html)]
   } else {
-    const out = []
+    const out: HTMLElement[] = []
     for (let x = 0; x < splits.length; x++) {
       out.push(createSanitizedElement('span', [], [], splits[x]))
       if (x < splits.length - 1) {
