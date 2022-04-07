@@ -191,22 +191,12 @@ const createAlert = async () => {
 
   const css = (await readFile(path.join(ALERT_SRC_DIR, 'alert.css'))).toString('utf-8')
   const pairCss = (await readFile(path.join(ALERT_SRC_DIR, 'alert-pair.css'))).toString('utf-8')
-  let containerHtml = (await readFile(path.join(ALERT_SRC_DIR, 'alert-container.html'))).toString(
-    'utf-8'
-  )
-  let pairHtml = (await readFile(path.join(ALERT_SRC_DIR, 'alert-pair.html'))).toString('utf-8')
-  let defaultHtml = (await readFile(path.join(ALERT_SRC_DIR, 'alert-default.html'))).toString(
-    'utf-8'
-  )
 
   const x = {
-    container: containerHtml,
     default: {
-      html: defaultHtml,
       css: css
     },
     pair: {
-      html: pairHtml,
       css: pairCss
     }
   }
@@ -223,16 +213,9 @@ const createToast = async () => {
 
   const css = (await readFile(path.join(TOAST_SRC_DIR, 'toast.css'))).toString('utf-8')
 
-  let html = (await readFile(path.join(TOAST_SRC_DIR, 'toast.html'))).toString('utf-8')
-  let poweredByBeacon = (
-    await readFile(path.join(TOAST_SRC_DIR, 'powered-by-beacon.html'))
-  ).toString('utf-8')
-
   const x = {
     default: {
-      html: html,
-      css: css,
-      poweredByBeacon
+      css: css
     }
   }
 
