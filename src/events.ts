@@ -208,7 +208,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
   })
 
   openToast({
-    body: `Request sent to {{wallet}}`,
+    body: `Request sent to\u00A0 {{wallet}}`,
     walletInfo: data.walletInfo,
     state: 'loading',
     actions,
@@ -222,14 +222,16 @@ const showAcknowledgedToast = async (data: {
   walletInfo: WalletInfo
 }): Promise<void> => {
   openToast({
-    body: 'Awaiting confirmation in {{wallet}}',
+    body: 'Awaiting confirmation in\u00A0 {{wallet}}',
     state: 'acknowledge',
     walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
 }
 
 const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => {
-  const text = data.walletInfo ? `Preparing Request for {{wallet}}...` : 'Preparing Request...'
+  const text = data.walletInfo
+    ? `Preparing Request for\u00A0 {{wallet}}...`
+    : 'Preparing Request...'
   openToast({
     body: text,
     state: 'prepare',
@@ -304,7 +306,7 @@ const showErrorToast = async (
   }
 
   await openToast({
-    body: `{{wallet}} has returned an error`,
+    body: `{{wallet}}\u00A0 has returned an error`,
     timer:
       response.errorResponse.errorType === BeaconErrorType.ABORTED_ERROR
         ? SUCCESS_TIMER
@@ -393,7 +395,7 @@ const showPermissionSuccessAlert = async (
   const { output } = data
 
   await openToast({
-    body: `{{wallet}} has granted permission`,
+    body: `{{wallet}}\u00A0 has granted permission`,
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
     state: 'finished',
@@ -426,7 +428,7 @@ const showOperationSuccessAlert = async (
   const { account, output, blockExplorer } = data
 
   await openToast({
-    body: `{{wallet}} successfully submitted operation`,
+    body: `{{wallet}}\u00A0 successfully submitted operation`,
     timer: SUCCESS_TIMER,
     state: 'finished',
     walletInfo: data.walletInfo,
@@ -458,7 +460,7 @@ const showSignSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output
   await openToast({
-    body: `{{wallet}} successfully signed payload`,
+    body: `{{wallet}}\u00A0 successfully signed payload`,
     timer: SUCCESS_TIMER,
     state: 'finished',
     walletInfo: data.walletInfo,
@@ -493,7 +495,7 @@ const showSignSuccessAlert = async (
 // ): Promise<void> => {
 //   const output = data.output
 //   await openToast({
-//     body: `{{wallet}} successfully ${
+//     body: `{{wallet}}\u00A0 successfully ${
 //       data.output.cryptoOperation === EncryptionOperation.ENCRYPT ? 'encrypted' : 'decrypted'
 //     } payload`,
 //     timer: SUCCESS_TIMER,
@@ -530,7 +532,7 @@ const showBroadcastSuccessAlert = async (
   const { network, output, blockExplorer } = data
 
   await openToast({
-    body: `{{wallet}} successfully injected operation`,
+    body: `{{wallet}}\u00A0 successfully injected operation`,
     timer: SUCCESS_TIMER,
     state: 'finished',
     walletInfo: data.walletInfo,
