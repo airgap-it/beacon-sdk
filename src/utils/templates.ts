@@ -318,7 +318,7 @@ export const constructPairAlert = (
           ['beacon-list__title'],
           [['id', 'beacon-title']],
           [
-            document.createTextNode('Scan QR code with a Beacon-compatible wallet.'),
+            document.createTextNode('Scan QR code with a Beacon-compatible wallet.\u00A0'),
             createSanitizedElement(
               'a',
               [],
