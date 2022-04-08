@@ -46,12 +46,18 @@ const addQR = (dataString?: string): HTMLElement => {
       [],
       [['id', 'beacon--qr__container']],
       [
-        createSanitizedElement('div', [], [['id', 'beacon--qr__copy__container']], ''),
         createSanitizedElement(
-          'button',
-          ['beacon-modal__button--outline'],
-          [['id', 'beacon--qr__copy']],
-          'Copy'
+          'div',
+          [],
+          [['id', 'beacon--qr__copy__container']],
+          [
+            createSanitizedElement(
+              'button',
+              ['beacon-modal__button--outline'],
+              [['id', 'beacon--qr__copy']],
+              'Copy'
+            )
+          ]
         )
       ]
     )
