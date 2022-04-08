@@ -2,13 +2,14 @@ import { getColorMode } from '../../colorMode'
 import { WalletInfo } from '../../events'
 import { generateGUID } from '../../utils/generate-uuid'
 import { toastTemplates } from './toast-templates'
-import { createSanitizedElement } from '../../utils/html-elements'
+import { createIconSVGExternal, createSanitizedElement } from '../../utils/html-elements'
 import { constructPoweredByBeacon, constructToastContainer } from '../../utils/templates'
 
 export interface ToastAction {
   text: string
   isBold?: boolean
   actionText?: string
+  actionLogo?: 'external'
   actionCallback?(): Promise<void>
 }
 
@@ -34,7 +35,7 @@ let expandTimeout: number | undefined
 let globalToastConfig: ToastConfig | undefined
 
 const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> => {
-  const { text, isBold, actionText, actionCallback } = toastAction
+  const { text, isBold, actionText, actionLogo, actionCallback } = toastAction
 
   const id = await generateGUID()
   const wrapper = document.createElement('div')
@@ -50,7 +51,15 @@ const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> 
     if (text.length > 0) {
       wrapper.appendChild(createSanitizedElement('p', [], [], text))
     }
-    const textEl = createSanitizedElement('span', [], [], actionText)
+    const textEl = createSanitizedElement(
+      'span',
+      [],
+      [],
+      [
+        createSanitizedElement('span', [], [], actionText),
+        actionLogo && actionLogo === 'external' ? createIconSVGExternal() : undefined
+      ]
+    )
     wrapper.appendChild(
       createSanitizedElement(
         'p',
