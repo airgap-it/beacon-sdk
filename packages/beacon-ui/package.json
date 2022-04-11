@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-ui",
-  "version": "2.4.0-beta.3",
+  "version": "3.0.0-beta.0",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -32,5 +32,11 @@
   },
   "bugs": {
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
+  },
+  "dependencies": {
+    "@airgap/beacon-core": "^3.0.0-beta.0",
+    "@airgap/beacon-transport-postmessage": "^3.0.0-beta.0",
+    "@airgap/beacon-types": "^3.0.0-beta.0",
+    "@airgap/beacon-utils": "^3.0.0-beta.0"
   }
 }

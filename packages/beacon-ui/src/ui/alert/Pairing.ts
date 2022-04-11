@@ -11,6 +11,47 @@ import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
+import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
+
+/**
+ * Initialize with tezos wallets for backwards compatibility
+ */
+let localDesktopList: DesktopApp[] = desktopList
+let localExtensionList: ExtensionApp[] = extensionList
+let localWebList: WebApp[] = webList
+let localiOSList: App[] = iOSList
+
+export const getDesktopList = (): DesktopApp[] => {
+  return localDesktopList
+}
+
+export const setDesktopList = (desktopList: DesktopApp[]): void => {
+  localDesktopList = desktopList
+}
+
+export const getExtensionList = (): ExtensionApp[] => {
+  return localExtensionList
+}
+
+export const setExtensionList = (extensionList: ExtensionApp[]): void => {
+  localExtensionList = extensionList
+}
+
+export const getWebList = (): WebApp[] => {
+  return localWebList
+}
+
+export const setWebList = (webList: WebApp[]): void => {
+  localWebList = webList
+}
+
+export const getiOSList = (): App[] => {
+  return localiOSList
+}
+
+export const setiOSList = (iosList: App[]): void => {
+  localiOSList = iosList
+}
 
 const serializer = new Serializer()
 
@@ -31,41 +72,6 @@ export enum WalletType {
   EXTENSION = 'extension',
   DESKTOP = 'desktop',
   WEB = 'web'
-}
-
-export interface AppBase {
-  key: string
-  name: string
-  shortName: string
-  color: string
-  logo: string
-}
-
-export interface ExtensionApp extends AppBase {
-  id: string
-  link: string
-}
-
-export interface WebApp extends AppBase {
-  links: {
-    [NetworkType.MAINNET]: string
-    [NetworkType.DELPHINET]?: string
-    [NetworkType.EDONET]?: string
-    [NetworkType.FLORENCENET]?: string
-    [NetworkType.GRANADANET]?: string
-    [NetworkType.HANGZHOUNET]?: string
-    [NetworkType.ITHACANET]?: string
-    [NetworkType.CUSTOM]?: string
-  }
-}
-
-export interface DesktopApp extends AppBase {
-  deepLink: string
-}
-
-export interface App extends AppBase {
-  universalLink: string
-  deepLink?: string
 }
 
 export interface PairingAlertWallet {
@@ -161,69 +167,22 @@ export class Pairing {
       }
     })
 
-    return {
-      walletLists: [
-        {
-          title: 'Browser Extensions',
-          type: WalletType.EXTENSION,
-          wallets: [
-            ...availableExtensions.map((app) => {
-              const ext = extensionList.find((extEl) => extEl.id === app.id)
+    const walletLists: PairingAlertList[] = []
 
-              return {
-                key: ext?.key ?? app.id,
-                name: app.name ?? ext?.name,
-                logo: app.iconUrl ?? ext?.logo,
-                shortName: app.shortName ?? ext?.shortName,
-                color: app.color ?? ext?.color,
-                enabled: true,
-                clicked: false,
-                async clickHandler(): Promise<void> {
-                  if (this.clicked) {
-                    return
-                  }
+    if (getExtensionList().length > 0) {
+      walletLists.push({
+        title: 'Browser Extensions',
+        type: WalletType.EXTENSION,
+        wallets: [
+          ...availableExtensions.map((app) => {
+            const ext = getExtensionList().find((extEl) => extEl.id === app.id)
 
-                  this.clicked = true
-
-                  if (postmessageSyncCode) {
-                    const postmessageCode = await serializer.serialize(await postmessageSyncCode())
-                    const message: ExtensionMessage<string> = {
-                      target: ExtensionMessageTarget.EXTENSION,
-                      payload: postmessageCode,
-                      targetId: app.id
-                    }
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    windowRef.postMessage(message as any, windowRef.location.origin)
-                  }
-                  statusUpdateHandler(WalletType.EXTENSION, this)
-                }
-              }
-            }),
-            ...extensionList
-              .filter((app) => defaultExtensions.some((extId) => extId === app.id))
-              .map((app) => ({
-                key: app.key,
-                name: app.name,
-                shortName: app.shortName,
-                color: app.color,
-                logo: app.logo,
-                enabled: false,
-                clickHandler: (): void => {
-                  // Don't do anything
-                }
-              }))
-          ].sort((a, b) => a.key.localeCompare(b.key))
-        },
-        {
-          title: 'Desktop & Web Wallets',
-          type: WalletType.DESKTOP,
-          wallets: [
-            ...desktopList.map((app) => ({
-              key: app.key,
-              name: app.name,
-              shortName: app.shortName,
-              color: app.color,
-              logo: app.logo,
+            return {
+              key: ext?.key ?? app.id,
+              name: app.name ?? ext?.name,
+              logo: app.iconUrl ?? ext?.logo,
+              shortName: app.shortName ?? ext?.shortName,
+              color: app.color ?? ext?.color,
               enabled: true,
               clicked: false,
               async clickHandler(): Promise<void> {
@@ -233,42 +192,97 @@ export class Pairing {
 
                 this.clicked = true
 
-                const code = await serializer.serialize(await pairingCode())
-                const link = getTzip10Link(app.deepLink, code)
-                window.open(link, '_blank')
-                statusUpdateHandler(WalletType.DESKTOP, this, true)
+                if (postmessageSyncCode) {
+                  const postmessageCode = await serializer.serialize(await postmessageSyncCode())
+                  const message: ExtensionMessage<string> = {
+                    target: ExtensionMessageTarget.EXTENSION,
+                    payload: postmessageCode,
+                    targetId: app.id
+                  }
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  windowRef.postMessage(message as any, windowRef.location.origin)
+                }
+                statusUpdateHandler(WalletType.EXTENSION, this)
               }
-            })),
-            ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
-          ].sort((a, b) => a.key.localeCompare(b.key))
-        },
-        {
-          title: 'Mobile Wallets',
-          type: WalletType.IOS,
-          wallets: [
-            ...iOSList.map((app) => ({
+            }
+          }),
+          ...getExtensionList()
+            .filter((app) => defaultExtensions.some((extId) => extId === app.id))
+            .map((app) => ({
               key: app.key,
               name: app.name,
               shortName: app.shortName,
               color: app.color,
               logo: app.logo,
-              enabled: true,
-              clicked: false,
-              async clickHandler(): Promise<void> {
-                if (this.clicked) {
-                  return
-                }
-
-                this.clicked = true
-
-                const code = await serializer.serialize(await pairingCode())
-                mobileWalletHandler(code)
-                statusUpdateHandler(WalletType.IOS, this, true)
+              enabled: false,
+              clickHandler: (): void => {
+                // Don't do anything
               }
             }))
-          ].sort((a, b) => a.key.localeCompare(b.key))
-        }
-      ],
+        ].sort((a, b) => a.key.localeCompare(b.key))
+      })
+    }
+    if (getDesktopList().length > 0) {
+      walletLists.push({
+        title: 'Desktop & Web Wallets',
+        type: WalletType.DESKTOP,
+        wallets: [
+          ...getDesktopList().map((app) => ({
+            key: app.key,
+            name: app.name,
+            shortName: app.shortName,
+            color: app.color,
+            logo: app.logo,
+            enabled: true,
+            clicked: false,
+            async clickHandler(): Promise<void> {
+              if (this.clicked) {
+                return
+              }
+
+              this.clicked = true
+
+              const code = await serializer.serialize(await pairingCode())
+              const link = getTzip10Link(app.deepLink, code)
+              window.open(link, '_blank')
+              statusUpdateHandler(WalletType.DESKTOP, this, true)
+            }
+          })),
+          ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
+        ].sort((a, b) => a.key.localeCompare(b.key))
+      })
+    }
+    if (getiOSList().length > 0) {
+      walletLists.push({
+        title: 'Mobile Wallets',
+        type: WalletType.IOS,
+        wallets: [
+          ...getiOSList().map((app) => ({
+            key: app.key,
+            name: app.name,
+            shortName: app.shortName,
+            color: app.color,
+            logo: app.logo,
+            enabled: true,
+            clicked: false,
+            async clickHandler(): Promise<void> {
+              if (this.clicked) {
+                return
+              }
+
+              this.clicked = true
+
+              const code = await serializer.serialize(await pairingCode())
+              mobileWalletHandler(code)
+              statusUpdateHandler(WalletType.IOS, this, true)
+            }
+          }))
+        ].sort((a, b) => a.key.localeCompare(b.key))
+      })
+    }
+
+    return {
+      walletLists,
       buttons: []
     }
   }
@@ -283,7 +297,7 @@ export class Pairing {
         {
           title: 'Mobile Wallets',
           type: WalletType.IOS,
-          wallets: iOSList
+          wallets: getiOSList()
             .map((app) => ({
               key: app.key,
               name: app.name,
@@ -317,9 +331,9 @@ export class Pairing {
         {
           title: 'Web Wallets',
           type: WalletType.WEB,
-          wallets: [
-            ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
-          ].sort((a, b) => a.key.localeCompare(b.key))
+          wallets: [...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))].sort(
+            (a, b) => a.key.localeCompare(b.key)
+          )
         }
       ],
       buttons: []
@@ -336,9 +350,9 @@ export class Pairing {
         {
           title: 'Web Wallets',
           type: WalletType.WEB,
-          wallets: [
-            ...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))
-          ].sort((a, b) => a.key.localeCompare(b.key))
+          wallets: [...(await Pairing.getWebList(pairingCode, statusUpdateHandler, network))].sort(
+            (a, b) => a.key.localeCompare(b.key)
+          )
         }
       ],
       buttons: [
@@ -361,7 +375,7 @@ export class Pairing {
     statusUpdateHandler: StatusUpdateHandler,
     network: NetworkType
   ): Promise<PairingAlertWallet[]> {
-    return webList
+    return getWebList()
       .map((app) => ({
         key: app.key,
         name: app.name,

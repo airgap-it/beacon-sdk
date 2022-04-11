@@ -1,4 +1,10 @@
-import { assertNever } from '../utils/assert-never'
+import {
+  AppMetadataManager,
+  BEACON_VERSION,
+  getAccountIdentifier,
+  Logger,
+  PermissionManager
+} from '@airgap/beacon-core'
 import {
   ErrorResponse,
   BeaconMessage,
@@ -12,19 +18,18 @@ import {
   AcknowledgeResponse,
   AppMetadata,
   BeaconRequestMessage,
-  BeaconErrorType
+  BeaconErrorType,
+  BeaconMessageWrapper,
+  BlockchainResponseV3,
+  PermissionResponseV3,
+  BeaconBaseMessage
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
-import { PermissionManager } from '../managers/PermissionManager'
-import { AppMetadataManager } from '../managers/AppMetadataManager'
-import { BEACON_VERSION } from '../constants'
 import { getAddressFromPublicKey } from '@airgap/beacon-utils'
-import { getAccountIdentifier } from '../utils/get-account-identifier'
-import { Logger } from '../utils/Logger'
 
 interface OutgoingResponseInterceptorOptions {
   senderId: string
-  request: BeaconRequestMessage
+  request: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage>
   message: BeaconResponseInputMessage
   ownAppMetadata: AppMetadata
   permissionManager: PermissionManager
@@ -41,6 +46,90 @@ const logger = new Logger('OutgoingResponseInterceptor')
  */
 export class OutgoingResponseInterceptor {
   public static async intercept(config: OutgoingResponseInterceptorOptions): Promise<void> {
+    if (config.request.version === '2') {
+      OutgoingResponseInterceptor.handleV2Message(config)
+    } else if (config.request.version === '3') {
+      OutgoingResponseInterceptor.handleV3Message(config)
+    }
+  }
+
+  private static async handleV3Message(config: OutgoingResponseInterceptorOptions) {
+    const {
+      // senderId,
+      // request,
+      message: msg,
+      // ownAppMetadata,
+      // permissionManager,
+      appMetadataManager,
+      interceptorCallback
+    }: OutgoingResponseInterceptorOptions = config
+
+    const wrappedMessage:
+      | BeaconMessageWrapper<PermissionResponseV3<string>>
+      | BeaconMessageWrapper<BlockchainResponseV3<string>> = msg as any
+
+    const v3Message: PermissionResponseV3<string> | BlockchainResponseV3<string> =
+      wrappedMessage.message
+
+    console.log('LOGGING OUTGOING V3', v3Message, appMetadataManager)
+
+    interceptorCallback(msg as any)
+
+    // switch (v3Message.type) {
+    //   case BeaconMessageType.PermissionResponse:
+    //     {
+    //       const response: PermissionResponse = {
+    //         senderId,
+    //         version: BEACON_VERSION,
+    //         appMetadata: ownAppMetadata,
+    //         ...msg
+    //       }
+
+    //       const publicKey = response.publicKey
+
+    //       const address: string = await getAddressFromPublicKey(publicKey)
+    //       const appMetadata = await appMetadataManager.getAppMetadata(request.senderId)
+    //       if (!appMetadata) {
+    //         throw new Error('AppMetadata not found')
+    //       }
+
+    //       const permission: PermissionInfo = {
+    //         accountIdentifier: await getAccountIdentifier(address, response.network),
+    //         senderId: request.senderId,
+    //         appMetadata,
+    //         website: '',
+    //         address,
+    //         publicKey,
+    //         network: response.network,
+    //         scopes: response.scopes,
+    //         connectedAt: new Date().getTime()
+    //       }
+
+    //       permissionManager.addPermission(permission).catch(console.error)
+
+    //       interceptorCallback(response)
+    //     }
+    //     break
+    //   case BeaconMessageType.BlockchainResponse:
+    //     {
+    //       // const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+    //       //   appMetadataManager,
+    //       //   msg.senderId
+    //       // )
+    //       const request: any /* BeaconMessageWrapper<BlockchainRequestV3<string>> */ = {
+    //         ...wrappedMessage
+    //       }
+    //       interceptorCallback(request)
+    //     }
+    //     break
+
+    //   default:
+    //     logger.log('intercept', 'Message not handled')
+    //     assertNever(v3Message)
+    // }
+  }
+
+  private static async handleV2Message(config: OutgoingResponseInterceptorOptions) {
     const {
       senderId,
       request,
@@ -50,13 +139,6 @@ export class OutgoingResponseInterceptor {
       appMetadataManager,
       interceptorCallback
     }: OutgoingResponseInterceptorOptions = config
-
-    // TODO: Remove v1 compatibility in later version
-    const interceptorCallbackWrapper = (msg: BeaconMessage): void => {
-      const untypedMessage: any = msg
-      untypedMessage.beaconId = msg.senderId
-      interceptorCallback(msg)
-    }
 
     switch (message.type) {
       case BeaconMessageType.Error: {
@@ -81,7 +163,7 @@ export class OutgoingResponseInterceptor {
             )
           }
         }
-        interceptorCallbackWrapper(response)
+        interceptorCallback(response)
         break
       }
       case BeaconMessageType.Acknowledge: {
@@ -91,7 +173,7 @@ export class OutgoingResponseInterceptor {
           senderId,
           id: message.id
         }
-        interceptorCallbackWrapper(response)
+        interceptorCallback(response)
         break
       }
       case BeaconMessageType.PermissionResponse: {
@@ -102,8 +184,7 @@ export class OutgoingResponseInterceptor {
           ...message
         }
 
-        // TODO: Migration code. Remove sometime after 1.0.0 release.
-        const publicKey = response.publicKey || (response as any).pubkey || (response as any).pubKey
+        const publicKey = response.publicKey
 
         const address: string = await getAddressFromPublicKey(publicKey)
         const appMetadata = await appMetadataManager.getAppMetadata(request.senderId)
@@ -125,7 +206,7 @@ export class OutgoingResponseInterceptor {
 
         permissionManager.addPermission(permission).catch(console.error)
 
-        interceptorCallbackWrapper(response)
+        interceptorCallback(response)
         break
       }
       case BeaconMessageType.OperationResponse:
@@ -135,7 +216,7 @@ export class OutgoingResponseInterceptor {
             version: BEACON_VERSION,
             ...message
           }
-          interceptorCallbackWrapper(response)
+          interceptorCallback(response)
         }
         break
       case BeaconMessageType.SignPayloadResponse:
@@ -145,7 +226,7 @@ export class OutgoingResponseInterceptor {
             version: BEACON_VERSION,
             ...message
           }
-          interceptorCallbackWrapper(response)
+          interceptorCallback(response)
         }
         break
       // TODO: ENCRYPTION
@@ -156,7 +237,7 @@ export class OutgoingResponseInterceptor {
       //       version: BEACON_VERSION,
       //       ...message
       //     }
-      //     interceptorCallbackWrapper(response)
+      //     interceptorCallback(response)
       //   }
       //   break
       case BeaconMessageType.BroadcastResponse:
@@ -166,7 +247,7 @@ export class OutgoingResponseInterceptor {
             version: BEACON_VERSION,
             ...message
           }
-          interceptorCallbackWrapper(response)
+          interceptorCallback(response)
         }
         break
 
@@ -175,4 +256,7 @@ export class OutgoingResponseInterceptor {
         assertNever(message)
     }
   }
+}
+function assertNever(_message: never) {
+  throw new Error('Function not implemented.')
 }

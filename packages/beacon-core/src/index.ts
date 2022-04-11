@@ -37,8 +37,6 @@ import { setDebugEnabled, getDebugEnabled } from './debug'
 // import { EncryptionTypeNotSupportedBeaconError } from './errors/EncryptionTypeNotSupportedBeaconError'
 import { SignatureTypeNotSupportedBeaconError } from './errors/SignatureTypeNotSupportedBeaconError'
 import { Logger } from './utils/Logger'
-import { IncomingRequestInterceptor } from './interceptors/IncomingRequestInterceptor'
-import { OutgoingResponseInterceptor } from './interceptors/OutgoingResponseInterceptor'
 import { windowRef } from './MockWindow'
 import { CommunicationClient } from './transports/clients/CommunicationClient'
 // import { EncryptionType } from './types/EncryptionType'
@@ -80,7 +78,7 @@ export { SDK_VERSION, BEACON_VERSION }
 export { getSenderId, getAccountIdentifier, windowRef }
 
 // Others
-export { Serializer, IncomingRequestInterceptor, OutgoingResponseInterceptor, Logger }
+export { Serializer, Logger }
 
 // Debug
 export { setDebugEnabled, getDebugEnabled }

@@ -10,7 +10,7 @@ import { getKeypairFromSeed } from '@airgap/beacon-utils'
 import { BEACON_VERSION, PeerManager, LocalStorage } from '@airgap/beacon-core'
 import { clearMockWindowState, windowRef } from '../../beacon-core/src/MockWindow'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
-import { PostMessageClient } from '@airgap/beacon-transport-postmessage/dist/esm/PostMessageClient'
+import { PostMessageClient } from '@airgap/beacon-transport-postmessage/src/PostMessageClient'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)
