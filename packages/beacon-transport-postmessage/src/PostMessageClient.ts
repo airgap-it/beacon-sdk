@@ -81,6 +81,11 @@ export class PostMessageClient extends MessageBasedClient {
   ): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fn = async (event: any): Promise<void> => {
+      if (event.source !== windowRef || event.origin !== windowRef.location.origin) {
+        // TODO: Add to error handler: console.debug('[Beacon]: Event received from untrusted origin')
+        return
+      }
+
       const data = event?.data?.message as ExtensionMessage<string>
 
       if (
@@ -127,6 +132,14 @@ export class PostMessageClient extends MessageBasedClient {
 
   private async subscribeToMessages(): Promise<void> {
     windowRef.addEventListener('message', (message) => {
+      if (
+        (message as any).source !== windowRef ||
+        (message as any).origin !== windowRef.location.origin
+      ) {
+        // TODO: Add to error handler: console.debug('[Beacon]: Event received from untrusted origin')
+        return
+      }
+
       if (typeof message === 'object' && message) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data: {

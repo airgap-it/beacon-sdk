@@ -48,6 +48,8 @@
     <br /><br />
     <button id="connect">Connect and Delegate</button>
     <br /><br />
+    <button id="sendContractCall">Send Contract Call</button>
+    <br /><br />
     <button id="signPayloadRaw">Sign Payload (Raw)</button>
     <br /><br />
     <button id="signPayloadOperation">Sign Payload (Operation)</button>
@@ -122,13 +124,13 @@
       const updateActiveAccount = () => {
         client.getActiveAccount().then((activeAccount) => {
           if (activeAccount) {
-            document.getElementById('activeAccount').innerHTML = activeAccount.address
-            document.getElementById('activeAccountNetwork').innerHTML = activeAccount.network.type
-            document.getElementById('activeAccountTransport').innerHTML = activeAccount.origin.type
+            document.getElementById('activeAccount').innerText = activeAccount.address
+            document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
+            document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
           } else {
-            document.getElementById('activeAccount').innerHTML = ''
-            document.getElementById('activeAccountNetwork').innerHTML = ''
-            document.getElementById('activeAccountTransport').innerHTML = ''
+            document.getElementById('activeAccount').innerText = ''
+            document.getElementById('activeAccountNetwork').innerText = ''
+            document.getElementById('activeAccountTransport').innerText = ''
           }
         })
       }
@@ -137,7 +139,7 @@
       // Display the active account in the UI
       const updateColorMode = () => {
         client.getColorMode().then((colorMode) => {
-          document.getElementById('activeColorMode').innerHTML = colorMode
+          document.getElementById('activeColorMode').innerText = colorMode
         })
       }
       updateColorMode()
@@ -169,6 +171,38 @@
         })
       }
 
+      // send contract call
+      const sendContractCall = () => {
+        return client.getActiveAccount().then(async (activeAccount) => {
+          const TZ_BUTTON_COLORS_CONTRACT = 'KT1RPW5kTX6WFxg8JK34rGEU24gqEEudyfvz'
+          const tokenId = '925'
+
+          // Setting the color of TzButton is only possible if you are currently the leader and own a color
+          // So this call will likely fail
+          try {
+            const result = await client.requestOperation({
+              operationDetails: [
+                {
+                  kind: beacon.TezosOperationType.TRANSACTION,
+                  amount: '0',
+                  destination: TZ_BUTTON_COLORS_CONTRACT,
+                  parameters: {
+                    entrypoint: 'set_color',
+                    value: {
+                      int: tokenId
+                    }
+                  }
+                }
+              ]
+            })
+
+            console.log(result)
+          } catch (error) {
+            console.log(`The contract call failed and the following error was returned:`, error)
+          }
+        })
+      }
+
       // Initiate a permission request
       const requestPermission = (callback) => {
         client
@@ -185,7 +219,6 @@
           })
       }
 
-      // Add event listener to the button
       document.getElementById('connect').addEventListener('click', () => {
         // Check if we have an active account
         client.getActiveAccount().then((activeAccount) => {
@@ -200,6 +233,11 @@
             })
           }
         })
+      })
+
+      // Add event listener to the button
+      document.getElementById('sendContractCall').addEventListener('click', () => {
+        sendContractCall()
       })
 
       // Add event listener to the button
