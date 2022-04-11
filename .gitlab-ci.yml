@@ -75,7 +75,6 @@ publish_beta:
 
 publish:
   stage: publish
-  TODO: Enable again
   only:
     - master
   when: manual
