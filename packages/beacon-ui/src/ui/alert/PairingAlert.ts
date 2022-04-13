@@ -12,6 +12,12 @@ import {
   PairingAlertWallet,
   WalletType
 } from './Pairing'
+import {
+  createSanitizedElement,
+  createSVGElement,
+  createSVGPathElement,
+  removeAllChildren
+} from '../../utils/html-elements'
 
 const logger = new Logger('Alert')
 
@@ -54,21 +60,26 @@ export const preparePairingAlert = async (
   info.buttons.forEach(async (button) => {
     const randomId = await generateGUID()
 
-    const x = `
-    <div class="beacon-list__title">${button.title}</div>
-		<button class="beacon-modal__button connect__btn">${button.text}</button>
-		 `
+    const titleEl = createSanitizedElement('div', ['beacon-list__title'], [], button.title)
+    const buttonEl = createSanitizedElement(
+      'button',
+      ['beacon-modal__button connect__btn'],
+      [],
+      button.text
+    )
 
-    const el = document.createElement('a')
-    el.id = `button_${randomId}`
-    el.innerHTML = x
+    const linkEl = document.createElement('a')
+    linkEl.id = `button_${randomId}`
 
-    buttonListWrapper.appendChild(el)
+    linkEl.appendChild(titleEl)
+    linkEl.appendChild(buttonEl)
 
-    const buttonEl = shadowRoot.getElementById(el.id)
+    buttonListWrapper.appendChild(linkEl)
 
-    if (buttonEl) {
-      buttonEl.addEventListener('click', async () => {
+    const shadowButtonEl = shadowRoot.getElementById(linkEl.id)
+
+    if (shadowButtonEl) {
+      shadowButtonEl.addEventListener('click', async () => {
         button.clickHandler()
       })
     }
@@ -77,24 +88,61 @@ export const preparePairingAlert = async (
   const showWallet = (listEl: HTMLElement, type: WalletType, wallet: PairingAlertWallet) => {
     const altTag = `Open in ${wallet.name}`
     const walletKey = wallet.key
-    const x = `
-    <a tabindex="0" alt="${altTag}" id="wallet_${walletKey}"
-     target="_blank" class="beacon-selection__list${wallet.enabled ? '' : ' disabled'}">
-     <div class="beacon-selection__name">${wallet.name}
-     ${wallet.enabled ? '' : '<p>Not installed</p>'}
-     </div>
-     ${
-       wallet.logo
-         ? `<div>
-     <img class="beacon-selection__img" src="${wallet.logo}"/>
-     </div>`
-         : '<svg class="beacon-selection__img" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="wallet" class="svg-inline--fa fa-wallet fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"><path d="M376.2,181H152.9c-5.2,0-9.4-4.2-9.4-9.4s4.2-9.4,9.4-9.4h225c5.2,0,9.4-4.2,9.4-9.4c0-15.5-12.6-28.1-28.1-28.1H143.5c-20.7,0-37.5,16.8-37.5,37.5v187.5c0,20.7,16.8,37.5,37.5,37.5h232.7c16.4,0,29.8-12.6,29.8-28.1v-150C406,193.6,392.7,181,376.2,181z M349.8,302.9c-10.4,0-18.8-8.4-18.8-18.8s8.4-18.8,18.8-18.8s18.8,8.4,18.8,18.8S360.1,302.9,349.8,302.9z"/></svg>'
-     }
-    </a>
-     `
+
+    const logoEl = wallet.logo
+      ? createSanitizedElement(
+          'div',
+          [],
+          [],
+          [createSanitizedElement('img', ['beacon-selection__img'], [['src', wallet.logo]], '')]
+        )
+      : createSVGElement(
+          ['beacon-selection__img', 'svg-inline--fa', 'fa-wallet', 'fa-w-16'],
+          [
+            ['aria-hidden', 'true'],
+            ['focusable', 'false'],
+            ['data-prefix', 'fas'],
+            ['data-icon', 'wallet'],
+            ['role', 'img'],
+            ['xmlns', 'http://www.w3.org/2000/svg'],
+            ['viewBox', '0 0 512 512'],
+            ['style', 'enable-background:new 0 0 512 512;'],
+            ['xml:space', 'preserve']
+          ],
+          [
+            createSVGPathElement([
+              [
+                'd',
+                'M376.2,181H152.9c-5.2,0-9.4-4.2-9.4-9.4s4.2-9.4,9.4-9.4h225c5.2,0,9.4-4.2,9.4-9.4c0-15.5-12.6-28.1-28.1-28.1H143.5c-20.7,0-37.5,16.8-37.5,37.5v187.5c0,20.7,16.8,37.5,37.5,37.5h232.7c16.4,0,29.8-12.6,29.8-28.1v-150C406,193.6,392.7,181,376.2,181z M349.8,302.9c-10.4,0-18.8-8.4-18.8-18.8s8.4-18.8,18.8-18.8s18.8,8.4,18.8,18.8S360.1,302.9,349.8,302.9z'
+              ]
+            ])
+          ]
+        )
+
+    const nameEl = createSanitizedElement(
+      'div',
+      ['beacon-selection__name'],
+      [],
+      [
+        createSanitizedElement('span', [], [], wallet.name),
+        wallet.enabled ? undefined : createSanitizedElement('p', [], [], 'Not installed')
+      ]
+    )
+
+    const linkEl = createSanitizedElement(
+      'a',
+      ['beacon-selection__list', wallet.enabled ? '' : 'disabled'],
+      [
+        ['tabindex', '0'],
+        ['id', `wallet_${walletKey}`],
+        ['alt', altTag],
+        ['target', '_blank']
+      ],
+      [nameEl, logoEl]
+    )
 
     const el = document.createElement('span')
-    el.innerHTML = x
+    el.appendChild(linkEl)
 
     listEl.appendChild(el)
 
@@ -108,17 +156,33 @@ export const preparePairingAlert = async (
       wallet.clickHandler()
       const modalEl: HTMLElement | null = shadowRoot.getElementById('beacon-modal__content')
       if (modalEl && type !== WalletType.EXTENSION && type !== WalletType.IOS) {
-        modalEl.innerHTML = `${
-          wallet.logo
-            ? `<p class="beacon-alert__title">Establishing Connection..</p>
-            <div id="beacon-toast-loader" class="progress-line"></div>
-            <div class="beacon--selected__container">
-             <img class="beacon-selection__img" src="${wallet.logo}"/>
-             <div class="beacon--selection__name__lg">${wallet.name}</div>
-            </div>`
-            : ''
-        }
-        `
+        removeAllChildren(modalEl)
+        modalEl.appendChild(
+          createSanitizedElement('p', ['beacon-alert__title'], [], 'Establishing Connection..')
+        )
+        modalEl.appendChild(
+          createSanitizedElement('div', ['progress-line'], [['id', 'beacon-toast-loader']], '')
+        )
+        modalEl.appendChild(
+          createSanitizedElement(
+            'div',
+            ['beacon--selected__container'],
+            [],
+            [
+              ...(wallet.logo
+                ? [
+                    createSanitizedElement(
+                      'img',
+                      ['beacon-selection__img'],
+                      [['src', wallet.logo]],
+                      ''
+                    ),
+                    createSanitizedElement('img', ['beacon--selection__name__lg'], [], wallet.name)
+                  ]
+                : [])
+            ]
+          )
+        )
       }
     }
 
@@ -131,17 +195,16 @@ export const preparePairingAlert = async (
   const listContainer = document.createElement('span')
   container.appendChild(listContainer)
   const showWalletLists = (walletLists: PairingAlertList[]): void => {
-    listContainer.innerHTML = ''
+    removeAllChildren(listContainer)
     walletLists.forEach((list) => {
       const listWrapperEl = document.createElement('div')
       listWrapperEl.classList.add('beacon-list__wrapper')
 
       listContainer.appendChild(listWrapperEl)
 
-      const listTitleEl = document.createElement('div')
-      listTitleEl.classList.add('beacon-list__title')
-      listTitleEl.innerHTML = list.title
-      listWrapperEl.appendChild(listTitleEl)
+      listWrapperEl.appendChild(
+        createSanitizedElement('div', ['beacon-list__title'], [], list.title)
+      )
 
       const listEl = document.createElement('span')
       listWrapperEl.appendChild(listEl)
@@ -209,7 +272,7 @@ export const preparePairingAlert = async (
   const showPlatform = async (type: 'ios' | 'android' | 'desktop' | 'none'): Promise<void> => {
     const platformSwitch: HTMLElement | null = shadowRoot.getElementById(`beacon-switch`)
     if (platformSwitch) {
-      platformSwitch.innerHTML =
+      platformSwitch.innerText =
         type === 'none' ? 'Pair wallet on same device' : 'Pair wallet on another device'
     }
 

@@ -1,12 +1,15 @@
-import { replaceInTemplate } from '../../utils/replace-in-template'
 import { generateGUID } from '@airgap/beacon-utils'
+import { WalletInfo } from '@airgap/beacon-types'
 import { toastTemplates } from './toast-templates'
 import { getColorMode } from '../../utils/colorMode'
-import { WalletInfo } from '@airgap/beacon-types'
+import { createIconSVGExternal, createSanitizedElement } from '../../utils/html-elements'
+import { constructPoweredByBeacon, constructToastContainer } from '../../utils/templates'
 
 export interface ToastAction {
   text: string
+  isBold?: boolean
   actionText?: string
+  actionLogo?: 'external'
   actionCallback?(): Promise<void>
 }
 
@@ -32,21 +35,50 @@ let expandTimeout: number | undefined
 let globalToastConfig: ToastConfig | undefined
 
 const createActionItem = async (toastAction: ToastAction): Promise<HTMLElement> => {
-  const { text, actionText, actionCallback } = toastAction
+  const { text, isBold, actionText, actionLogo, actionCallback } = toastAction
 
   const id = await generateGUID()
   const wrapper = document.createElement('div')
   wrapper.classList.add('beacon-toast__action__item')
 
+  removeAllChildNodes(wrapper)
+
+  const wrapBold = (element: string | HTMLElement[]) => {
+    return createSanitizedElement('strong', [], [], element)
+  }
+
   if (actionCallback) {
-    wrapper.innerHTML = text.length > 0 ? `<p>${text}</p>` : ``
-    wrapper.innerHTML += `<p><a id="${id}">${actionText}</a></p>`
+    if (text.length > 0) {
+      wrapper.appendChild(createSanitizedElement('p', [], [], text))
+    }
+    const textEl = createSanitizedElement(
+      'span',
+      [],
+      [],
+      [
+        createSanitizedElement('span', [], [], actionText),
+        actionLogo && actionLogo === 'external' ? createIconSVGExternal() : undefined
+      ]
+    )
+    wrapper.appendChild(
+      createSanitizedElement(
+        'p',
+        [],
+        [],
+        [createSanitizedElement('a', [], [['id', id]], [isBold ? wrapBold([textEl]) : textEl])]
+      )
+    )
   } else if (actionText) {
-    wrapper.innerHTML =
-      text.length > 0 ? `<p class="beacon-toast__action__item__subtitle">${text}</p>` : ``
-    wrapper.innerHTML += `<p>${actionText}</p>`
+    if (text.length > 0) {
+      wrapper.appendChild(
+        createSanitizedElement('p', ['beacon-toast__action__item__subtitle'], [], text)
+      )
+    }
+    const textEl = createSanitizedElement('span', [], [], actionText)
+    wrapper.appendChild(createSanitizedElement('p', [], [], [isBold ? wrapBold([textEl]) : textEl]))
   } else {
-    wrapper.innerHTML = `<p>${text}</p>`
+    const textEl = createSanitizedElement('p', [], [], text)
+    wrapper.appendChild(isBold ? wrapBold([textEl]) : textEl)
   }
 
   if (actionCallback) {
@@ -62,37 +94,62 @@ const removeAllChildNodes = (parent: HTMLElement): void => {
   }
 }
 
-const formatToastText = (html: string): string => {
+const formatToastText = (html: string): HTMLElement[] => {
   const walletIcon = globalToastConfig?.walletInfo?.icon
   const walletName = globalToastConfig?.walletInfo?.name
 
-  let wallet = ''
+  let walletEl: HTMLElement | undefined
+
+  const walletNameEl = createSanitizedElement('strong', [], [], walletName ?? 'Wallet')
+
   if (walletIcon) {
-    wallet += `<span class="beacon-toast__wallet__container"><img class="beacon-toast__content__img" src="${walletIcon}">`
-  }
-  if (walletName) {
-    wallet += `<strong>${walletName}</strong></span>`
+    walletEl = createSanitizedElement(
+      'span',
+      ['beacon-toast__wallet__container'],
+      [],
+      [
+        createSanitizedElement('img', ['beacon-toast__content__img'], [['src', walletIcon]], ''),
+        walletNameEl
+      ]
+    )
   } else {
-    wallet += `Wallet`
+    walletEl = walletNameEl
   }
 
-  return replaceInTemplate(html, 'wallet', wallet)
+  const splits = html.split(`{{wallet}}`)
+
+  if (splits.length === 1) {
+    return [createSanitizedElement('span', [], [], html)]
+  } else {
+    const out: HTMLElement[] = []
+    for (let x = 0; x < splits.length; x++) {
+      out.push(createSanitizedElement('span', [], [], splits[x]))
+      if (x < splits.length - 1) {
+        out.push(walletEl)
+      }
+    }
+
+    return out
+  }
 }
 
 const getToastHTML = (
   config: ToastConfig
 ): {
   style: string
-  html: string
+  html: HTMLElement
 } => {
   const text = config.body
 
-  let html = replaceInTemplate(toastTemplates.default.html, 'text', text)
-  html = formatToastText(html)
+  const elements = formatToastText(text)
+
+  const outerEl = createSanitizedElement('span', ['beacon-toast__wallet__outer'], [], elements)
+
+  const toastContainerEl = constructToastContainer([outerEl])
 
   return {
     style: toastTemplates.default.css,
-    html
+    html: toastContainerEl
   }
 }
 
@@ -235,7 +292,7 @@ const addActionsToToast = async (
 
     const poweredByBeacon = document.createElement('small')
     poweredByBeacon.classList.add('beacon-toast__powered')
-    poweredByBeacon.innerHTML = toastTemplates.default.poweredByBeacon
+    poweredByBeacon.appendChild(constructPoweredByBeacon())
 
     list.appendChild(poweredByBeacon)
     showExpand(shadowRoot)
@@ -255,7 +312,7 @@ const createNewToast = async (toastConfig: ToastConfig): Promise<void> => {
 
   const wrapper = document.createElement('div')
   const { style, html } = getToastHTML(toastConfig)
-  wrapper.innerHTML = html
+  wrapper.appendChild(html)
 
   const styleEl = document.createElement('style')
 
@@ -353,7 +410,15 @@ const updateToast = async (toastConfig: ToastConfig): Promise<void> => {
 
   const toastTextEl = shadowRoot.getElementById('beacon-text-content')
   if (toastTextEl) {
-    toastTextEl.innerHTML = formatToastText(toastConfig.body)
+    removeAllChildNodes(toastTextEl)
+    toastTextEl.appendChild(
+      createSanitizedElement(
+        'span',
+        ['beacon-toast__wallet__outer'],
+        [],
+        formatToastText(toastConfig.body)
+      )
+    )
   }
 
   const openWalletButtonEl = shadowRoot.getElementById('beacon-open-wallet')

@@ -50,7 +50,7 @@ export const KNOWN_RELAY_SERVERS = [
   'beacon-node-1.hope-2.papers.tech',
   'beacon-node-1.hope-3.papers.tech',
   'beacon-node-1.hope-4.papers.tech',
-  'beacon-node-0.papers.tech:8448'
+  'beacon-node-1.hope-5.papers.tech'
 ]
 
 /**
