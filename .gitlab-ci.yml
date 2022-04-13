@@ -75,9 +75,8 @@ publish_beta:
 
 publish:
   stage: publish
-  # TODO: Enable again
-  # only:
-  #   - master
+  only:
+    - master
   when: manual
   script:
     - docker run --env NPM_AUTH_TOKEN --name unit-$CI_COMMIT_SHA $GOOGLE_TAG ./npm-ci-publish.sh
