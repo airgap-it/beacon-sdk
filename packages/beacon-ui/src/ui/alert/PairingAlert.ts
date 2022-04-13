@@ -63,7 +63,7 @@ export const preparePairingAlert = async (
     const titleEl = createSanitizedElement('div', ['beacon-list__title'], [], button.title)
     const buttonEl = createSanitizedElement(
       'button',
-      ['beacon-modal__button connect__btn'],
+      ['beacon-modal__button', 'connect__btn'],
       [],
       button.text
     )
