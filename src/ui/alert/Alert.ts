@@ -1,12 +1,13 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
+import { createSanitizedElement } from '../../utils/html-elements'
 import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '../..'
 import { getColorMode } from '../../colorMode'
 import { windowRef } from '../../MockWindow'
 import { generateGUID } from '../../utils/generate-uuid'
-import { replaceInTemplate } from '../../utils/replace-in-template'
 import { alertTemplates } from './alert-templates'
 import { preparePairingAlert } from './PairingAlert'
+import { constructDefaultAlert, constructPairAlert } from '../../utils/templates'
 
 export interface AlertButton {
   text: string
@@ -17,6 +18,7 @@ export interface AlertButton {
 export interface AlertConfig {
   title: string
   body?: string
+  data?: string
   timer?: number
   buttons?: AlertButton[]
   pairingPayload?: {
@@ -37,30 +39,51 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
 
 const timeout: Record<string, number | undefined> = {}
 
-const addQR = (dataString?: string): string => {
+const addQR = (dataString?: string): HTMLElement => {
   if (typeof dataString === 'string') {
-    return `<div id="beacon--qr__container"><div id="beacon--qr__copy__container"><button class="beacon-modal__button--outline" id="beacon--qr__copy">Copy</button></div></div>${dataString}`
+    return createSanitizedElement(
+      'div',
+      [],
+      [['id', 'beacon--qr__container']],
+      [
+        createSanitizedElement(
+          'div',
+          [],
+          [['id', 'beacon--qr__copy__container']],
+          [
+            createSanitizedElement(
+              'button',
+              ['beacon-modal__button--outline'],
+              [['id', 'beacon--qr__copy']],
+              'Copy'
+            )
+          ]
+        )
+      ]
+    )
   }
 
-  return ''
+  return createSanitizedElement('span', [], [], '')
 }
 
 const formatAlert = (
   id: string,
-  body: string,
+  body: HTMLElement,
   title: string,
   buttons: AlertButton[],
   hasPairingPayload?: boolean
 ): {
   style: string
-  html: string
+  html: HTMLElement
 } => {
   const callToAction: string = title
-  const buttonsHtml = buttons.map(
-    (button, index: number) =>
-      `<button id="beacon-alert-${id}-${index}" class="beacon-modal__button${
-        button.style === 'outline' ? '--outline' : ''
-      }">${button.text}</button>`
+  const buttonsHtml = buttons.map((button, index: number) =>
+    createSanitizedElement(
+      'button',
+      [`beacon-modal__button${button.style === 'outline' ? '--outline' : ''}`],
+      [['id', `beacon-alert-${id}-${index}`]],
+      button.text
+    )
   )
 
   let allStyles = alertTemplates.default.css
@@ -69,30 +92,15 @@ const formatAlert = (
     allStyles += alertTemplates.pair.css
   }
 
-  let alertContainer = alertTemplates.container
+  const callToActionEl = createSanitizedElement('span', [], [], callToAction)
 
-  alertContainer = replaceInTemplate(
-    alertContainer,
-    'main',
-    hasPairingPayload ? alertTemplates.pair.html : alertTemplates.default.html
-  )
-
-  alertContainer = replaceInTemplate(alertContainer, 'callToAction', callToAction)
-  alertContainer = replaceInTemplate(alertContainer, 'buttons', buttonsHtml.join(' '))
-
-  alertContainer = replaceInTemplate(alertContainer, 'body', body)
-  alertContainer = replaceInTemplate(alertContainer, 'id', id)
-
-  if (alertContainer.indexOf('{{') >= 0) {
-    const start = alertContainer.indexOf('{{')
-    const end = alertContainer.indexOf('}}')
-    console.error('Not all placeholders replaced!', alertContainer.substr(start, end - start))
-    throw new Error('Not all placeholders replaced!')
-  }
+  const alertEl = hasPairingPayload
+    ? constructPairAlert(id, [callToActionEl], buttonsHtml, [body])
+    : constructDefaultAlert(id, [callToActionEl], buttonsHtml, [body])
 
   return {
     style: allStyles,
-    html: alertContainer
+    html: alertEl
   }
 }
 
@@ -164,6 +172,7 @@ const closeAlerts = async (): Promise<void> =>
 // eslint-disable-next-line complexity
 const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   const body = alertConfig.body
+  const data = alertConfig.data
   const title = alertConfig.title
   const timer = alertConfig.timer
   const pairingPayload = alertConfig.pairingPayload
@@ -193,7 +202,18 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     })) ?? [])
   ]
 
-  const formattedBody = pairingPayload ? addQR(body) : body ?? ''
+  let formattedBody = pairingPayload
+    ? addQR(body)
+    : createSanitizedElement('span', [], [], body ?? '')
+
+  if (data) {
+    formattedBody = createSanitizedElement(
+      'span',
+      [],
+      [],
+      [formattedBody, createSanitizedElement('pre', [], [['style', 'text-align: left']], data)]
+    )
+  }
 
   const { style, html } = formatAlert(
     id,
@@ -202,7 +222,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     buttons,
     !!pairingPayload?.p2pSyncCode
   )
-  wrapper.innerHTML = html
+  wrapper.appendChild(html)
 
   const styleEl = document.createElement('style')
 
@@ -229,7 +249,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
   if (disclaimer) {
     const disclaimerContainer = shadowRoot.getElementById(`beacon--disclaimer`)
     if (disclaimerContainer) {
-      disclaimerContainer.innerHTML = disclaimer
+      disclaimerContainer.innerText = disclaimer
     }
   }
 

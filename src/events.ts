@@ -31,8 +31,6 @@ const logger = new Logger('BeaconEvents')
 
 const SUCCESS_TIMER: number = 5 * 1000
 
-const SVG_EXTERNAL: string = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="external-link-alt" class="svg-inline--fa fa-external-link-alt fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M432,320H400a16,16,0,0,0-16,16V448H64V128H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V336A16,16,0,0,0,432,320ZM488,0h-128c-21.37,0-32.05,25.91-17,41l35.73,35.73L135,320.37a24,24,0,0,0,0,34L157.67,377a24,24,0,0,0,34,0L435.28,133.32,471,169c15,15,41,4.5,41-17V24A24,24,0,0,0,488,0Z"></path></svg>`
-
 /**
  * The different events that can be emitted by the beacon-sdk
  */
@@ -183,7 +181,8 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     }
   }
   actions.push({
-    text: `<strong>No answer from your wallet received yet. Please make sure the wallet is open.</strong>`
+    text: `No answer from your wallet received yet. Please make sure the wallet is open.`,
+    isBold: true
   })
   actions.push({
     text: 'Did you make a mistake?',
@@ -207,7 +206,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
   })
 
   openToast({
-    body: `<span class="beacon-toast__wallet__outer">Request sent to&nbsp;{{wallet}}<span>`,
+    body: `Request sent to\u00A0 {{wallet}}`,
     walletInfo: data.walletInfo,
     state: 'loading',
     actions,
@@ -221,17 +220,18 @@ const showAcknowledgedToast = async (data: {
   walletInfo: WalletInfo
 }): Promise<void> => {
   openToast({
-    body:
-      '<span class="beacon-toast__wallet__outer">Awaiting confirmation in&nbsp;{{wallet}}<span>',
+    body: 'Awaiting confirmation in\u00A0 {{wallet}}',
     state: 'acknowledge',
     walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
 }
 
 const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => {
-  const text = data.walletInfo ? `Preparing Request for&nbsp;{{wallet}}...` : 'Preparing Request...'
+  const text = data.walletInfo
+    ? `Preparing Request for\u00A0 {{wallet}}...`
+    : 'Preparing Request...'
   openToast({
-    body: `<span class="beacon-toast__wallet__outer">${text}<span>`,
+    body: text,
     state: 'prepare',
     walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
@@ -275,7 +275,8 @@ const showErrorToast = async (
 
   const actions: ToastAction[] = [
     {
-      text: `<strong>${error.title}</strong>`
+      text: error.title,
+      isBold: true
     },
     {
       text: error.description
@@ -294,7 +295,8 @@ const showErrorToast = async (
         await openAlert({
           title: error.title,
           // eslint-disable-next-line @typescript-eslint/unbound-method
-          body: error.fullDescription,
+          body: error.fullDescription.description,
+          data: error.fullDescription.data,
           buttons
         })
       }
@@ -302,7 +304,7 @@ const showErrorToast = async (
   }
 
   await openToast({
-    body: `{{wallet}}&nbsp;has returned an error`,
+    body: `{{wallet}}\u00A0 has returned an error`,
     timer:
       response.errorResponse.errorType === BeaconErrorType.ABORTED_ERROR
         ? SUCCESS_TIMER
@@ -391,14 +393,15 @@ const showPermissionSuccessAlert = async (
   const { output } = data
 
   await openToast({
-    body: `{{wallet}}&nbsp;has granted permission`,
+    body: `{{wallet}}\u00A0 has granted permission`,
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
     state: 'finished',
     actions: [
       {
         text: 'Address',
-        actionText: `<strong>${shortenString(output.address)}</strong>`
+        actionText: shortenString(output.address),
+        isBold: true
       },
       {
         text: 'Network',
@@ -423,14 +426,16 @@ const showOperationSuccessAlert = async (
   const { account, output, blockExplorer } = data
 
   await openToast({
-    body: `{{wallet}}&nbsp;successfully submitted operation`,
+    body: `{{wallet}}\u00A0 successfully submitted operation`,
     timer: SUCCESS_TIMER,
     state: 'finished',
     walletInfo: data.walletInfo,
     actions: [
       {
-        text: `<strong>${shortenString(output.transactionHash)}</strong>`,
-        actionText: `Open Blockexplorer ${SVG_EXTERNAL}`,
+        text: shortenString(output.transactionHash),
+        isBold: true,
+        actionText: `Open Blockexplorer`,
+        actionLogo: 'external',
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getTransactionLink(
             output.transactionHash,
@@ -454,13 +459,13 @@ const showSignSuccessAlert = async (
 ): Promise<void> => {
   const output = data.output
   await openToast({
-    body: `{{wallet}}&nbsp;successfully signed payload`,
+    body: `{{wallet}}\u00A0 successfully signed payload`,
     timer: SUCCESS_TIMER,
     state: 'finished',
     walletInfo: data.walletInfo,
     actions: [
       {
-        text: `Signature: <strong>${shortenString(output.signature)}</strong>`,
+        text: `Signature: ${shortenString(output.signature)}`,
         actionText: 'Copy to clipboard',
         actionCallback: async (): Promise<void> => {
           navigator.clipboard.writeText(output.signature).then(
@@ -489,7 +494,7 @@ const showSignSuccessAlert = async (
 // ): Promise<void> => {
 //   const output = data.output
 //   await openToast({
-//     body: `{{wallet}}&nbsp;successfully ${
+//     body: `{{wallet}}\u00A0 successfully ${
 //       data.output.cryptoOperation === EncryptionOperation.ENCRYPT ? 'encrypted' : 'decrypted'
 //     } payload`,
 //     timer: SUCCESS_TIMER,
@@ -526,14 +531,16 @@ const showBroadcastSuccessAlert = async (
   const { network, output, blockExplorer } = data
 
   await openToast({
-    body: `{{wallet}}&nbsp;successfully injected operation`,
+    body: `{{wallet}}\u00A0 successfully injected operation`,
     timer: SUCCESS_TIMER,
     state: 'finished',
     walletInfo: data.walletInfo,
     actions: [
       {
-        text: `<strong>${shortenString(output.transactionHash)}</strong>`,
-        actionText: `Open Blockexplorer ${SVG_EXTERNAL}`,
+        text: shortenString(output.transactionHash),
+        isBold: true,
+        actionText: `Open Blockexplorer`,
+        actionLogo: 'external',
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getTransactionLink(
             output.transactionHash,
