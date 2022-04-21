@@ -1,6 +1,5 @@
 import { readFile, writeFile } from 'fs'
-import { defaultValues } from '../../src/types/storage/StorageKeyReturnDefaults'
-import { Storage, StorageKey, StorageKeyReturnType } from '../../src'
+import { defaultValues, Storage, StorageKey, StorageKeyReturnType } from '@airgap/beacon-types'
 
 const file: string = './storage.json'
 
