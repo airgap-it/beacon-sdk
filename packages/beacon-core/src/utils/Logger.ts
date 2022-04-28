@@ -98,38 +98,46 @@ import { getDebugEnabled } from '../debug'
 //   }
 // })()
 
+export interface LoggerInterface {
+  debug(method: string, ...args: any[]): void
+  log(method: string, ...args: any[]): void
+  warn(method: string, ...args: any[]): void
+  error(method: string, ...args: any[]): void
+}
+
 /**
  * The logger that is used internally
  */
-export class Logger {
-  private readonly name: string
+export class InternalLogger {
+  constructor() {}
 
-  constructor(service: string) {
-    this.name = service
+  public debug(name: string, method: string, ...args: any[]): void {
+    this._log('debug', name, method, args)
   }
 
-  public debug(method: string, ...args: any[]): void {
-    this._log('debug', method, args)
+  public log(name: string, method: string, ...args: any[]): void {
+    this._log('log', name, method, args)
   }
 
-  public log(method: string, ...args: any[]): void {
-    this._log('log', method, args)
+  public warn(name: string, method: string, ...args: any[]): void {
+    this._log('warn', name, method, args)
   }
 
-  public warn(method: string, ...args: any[]): void {
-    this._log('warn', method, args)
+  public error(name: string, method: string, ...args: any[]): void {
+    this._log('error', name, method, args)
   }
 
-  public error(method: string, ...args: any[]): void {
-    this._log('error', method, args)
-  }
-
-  private _log(type: 'debug' | 'log' | 'warn' | 'error', method: string, args: any[] = []): void {
+  private _log(
+    type: 'debug' | 'log' | 'warn' | 'error',
+    name: string,
+    method: string,
+    args: any[] = []
+  ): void {
     if (!getDebugEnabled()) {
       return
     }
 
-    let groupText = `[BEACON] ${new Date().toISOString()} [${this.name}](${method})`
+    let groupText = `[BEACON] ${new Date().toISOString()} [${name}](${method})`
     let data = args
     if (args[0] && typeof args[0] === 'string') {
       groupText += ` ${args[0]}`
@@ -161,3 +169,36 @@ export class Logger {
     // echo.groupEnd()
   }
 }
+
+export class Logger implements LoggerInterface {
+  private readonly name: string
+
+  constructor(service: string) {
+    this.name = service
+  }
+
+  public debug(method: string, ...args: any[]): void {
+    logger.debug(this.name, method, args)
+  }
+
+  public log(method: string, ...args: any[]): void {
+    logger.log(this.name, method, args)
+  }
+
+  public warn(method: string, ...args: any[]): void {
+    logger.warn(this.name, method, args)
+  }
+
+  public error(method: string, ...args: any[]): void {
+    logger.error(this.name, method, args)
+  }
+}
+
+const loggerWrapper: LoggerInterface = new Logger('')
+let logger: LoggerInterface = new InternalLogger()
+
+export const setLogger = (newLogger: LoggerInterface): void => {
+  logger = newLogger
+}
+
+export const getLogger = (): LoggerInterface => loggerWrapper
