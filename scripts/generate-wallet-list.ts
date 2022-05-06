@@ -22,6 +22,13 @@ import {
   tezosWebList
 } from './blockchains/tezos'
 
+import {
+  tezosSaplingDesktopList,
+  tezosSaplingExtensionList,
+  tezosSaplingIosList,
+  tezosSaplingWebList
+} from './blockchains/tezos-sapling'
+
 const resizeImg = require('resize-img')
 
 const readFile = (path: string): Promise<Buffer> => {
@@ -165,6 +172,14 @@ generateForBlockchains(
   tezosDesktopList,
   tezosWebList,
   tezosIosList
+)
+
+generateForBlockchains(
+  'beacon-blockchain-tezos-sapling',
+  tezosSaplingExtensionList,
+  tezosSaplingDesktopList,
+  tezosSaplingWebList,
+  tezosSaplingIosList
 )
 
 generateForBlockchains(
