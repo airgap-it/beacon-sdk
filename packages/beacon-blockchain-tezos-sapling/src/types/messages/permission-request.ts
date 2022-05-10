@@ -5,5 +5,8 @@ export interface TezosSaplingPermissionRequest extends PermissionRequestV3<'tezo
   blockchainData: {
     scopes: TezosSaplingPermissionScope[] // enum
     appMetadata: AppMetadata
+    network: {
+      contract: string // sapling contract
+    } // Same as tezos
   }
 }

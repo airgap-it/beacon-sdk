@@ -8,6 +8,10 @@ export interface TezosSaplingPermissionResponse extends PermissionResponseV3<'te
     accounts: {
       accountId: string
       address: string
+      viewingKey?: string // If the "viewing key" scope is not set, this value has to be removed by the SDK
+      network: {
+        contract: string // sapling contract
+      } // Same as tezos
     }[]
   }
 }
