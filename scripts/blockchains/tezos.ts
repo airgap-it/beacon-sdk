@@ -100,6 +100,15 @@ export const tezosIosList: App[] = [
     logo: 'ios-autonomy.png',
     universalLink: 'https://au.bitmark.com/apps/tezos',
     deepLink: 'autonomy-tezos://'
+  },
+  {
+    key: 'temple_ios',
+    name: 'Temple Wallet',
+    shortName: 'Temple',
+    color: '',
+    logo: 'ios-temple.png',
+    universalLink: 'https://templewallet.com',
+    deepLink: 'temple://'
   }
   // {
   //   name: 'Galleon',
