@@ -106,7 +106,7 @@ export const tezosIosList: App[] = [
     name: 'Temple Wallet',
     shortName: 'Temple',
     color: '',
-    logo: 'extension-temple.png',
+    logo: 'ios-temple.png',
     universalLink: 'https://templewallet.com',
     deepLink: 'temple://'
   }
