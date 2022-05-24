@@ -1,4 +1,4 @@
-import { AppMetadata, PermissionRequestV3 } from '@airgap/beacon-types'
+import { AppMetadata, NetworkType, PermissionRequestV3 } from '@airgap/beacon-types'
 import { TezosSaplingPermissionScope } from '../permission-scope'
 
 export interface TezosSaplingPermissionRequest extends PermissionRequestV3<'tezos-sapling'> {
@@ -7,6 +7,9 @@ export interface TezosSaplingPermissionRequest extends PermissionRequestV3<'tezo
     appMetadata: AppMetadata
     network: {
       contract: string // sapling contract
-    } // Same as tezos
+      type: NetworkType
+      name?: string
+      rpcUrl?: string
+    }
   }
 }

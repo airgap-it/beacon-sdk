@@ -1,4 +1,4 @@
-import { AppMetadata, PermissionResponseV3 } from '@airgap/beacon-types'
+import { AppMetadata, NetworkType, PermissionResponseV3 } from '@airgap/beacon-types'
 import { TezosSaplingPermissionScope } from '../permission-scope'
 
 export interface TezosSaplingPermissionResponse extends PermissionResponseV3<'tezos-sapling'> {
@@ -11,7 +11,10 @@ export interface TezosSaplingPermissionResponse extends PermissionResponseV3<'te
       viewingKey?: string // If the "viewing key" scope is not set, this value has to be removed by the SDK
       network: {
         contract: string // sapling contract
-      } // Same as tezos
+        type: NetworkType
+        name?: string
+        rpcUrl?: string
+      }
     }[]
   }
 }
