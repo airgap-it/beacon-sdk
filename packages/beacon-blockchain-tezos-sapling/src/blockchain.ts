@@ -13,17 +13,12 @@ import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-
 export class TezosSaplingBlockchain implements Blockchain {
   public readonly identifier: string = 'tezos-sapling'
 
-  async validateRequest(input: BlockchainMessage): Promise<void> {
-    // TODO: Validation
-    if (input) {
-      return
-    }
+  async validateRequest(_input: BlockchainMessage): Promise<void> {
+    // No special validation required
   }
-  async handleResponse(input: ResponseInput): Promise<void> {
-    // TODO: Validation
-    if (input) {
-      return
-    }
+
+  async handleResponse(_input: ResponseInput): Promise<void> {
+    // No special response handling required.
   }
 
   async getWalletLists(): Promise<{
