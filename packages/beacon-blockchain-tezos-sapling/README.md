@@ -4,7 +4,7 @@ This package is part of the `@airgap/beacon-sdk` project. [Read more](https://gi
 
 ## Introduction
 
-This package adds support for `tezos-sapling` based blockchains. It can be used in combination with the `@airgap/beacon-dapp` or `@airgap/beacon-wallet` packages.
+This package adds support for `tezos-sapling`, the sapling integration on the Tezos blockchain. It can be used in combination with the `@airgap/beacon-dapp` or `@airgap/beacon-wallet` packages.
 
 ## Usage
 

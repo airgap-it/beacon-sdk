@@ -4,7 +4,7 @@ This package is part of the `@airgap/beacon-sdk` project. [Read more](https://gi
 
 ## Introduction
 
-This package contains methods to facilitate communication over the beacon network, a decentralised P2P network that is based on the matrix protocol.
+This package contains methods to facilitate communication over the Beacon network, a decentralised P2P network that is based on the matrix protocol.
 
 Unless you need to import types from this package, you probably don't need to add it to your project.
 
