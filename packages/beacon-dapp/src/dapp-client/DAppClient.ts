@@ -72,7 +72,6 @@ import {
   LocalStorage,
   getAccountIdentifier,
   getSenderId,
-  BEACON_VERSION,
   Logger
 } from '@airgap/beacon-core'
 import { getAddressFromPublicKey, ExposedPromise, generateGUID } from '@airgap/beacon-utils'
@@ -1477,7 +1476,7 @@ export class DAppClient extends Client {
 
     const request: BeaconMessageWrapper<BlockchainMessage> = {
       id: messageId,
-      version: BEACON_VERSION,
+      version: '3',
       senderId: await getSenderId(await this.beaconId),
       message: requestInput
     }
