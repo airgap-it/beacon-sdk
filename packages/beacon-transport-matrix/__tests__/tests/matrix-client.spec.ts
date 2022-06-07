@@ -2,11 +2,11 @@ import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { LocalStorage } from '@airgap/beacon-core'
-import { MatrixClient } from '../src/matrix-client/MatrixClient'
+import { MatrixClient } from '../../src/matrix-client/MatrixClient'
 import * as sinon from 'sinon'
-import { MatrixRoomStatus } from '../src/matrix-client/models/MatrixRoom'
-import { MatrixHttpClient } from '../src/matrix-client/MatrixHttpClient'
-import { MatrixClientEventType } from '../src/matrix-client/models/MatrixClientEvent'
+import { MatrixRoomStatus } from '../../src/matrix-client/models/MatrixRoom'
+import { MatrixHttpClient } from '../../src/matrix-client/MatrixHttpClient'
+import { MatrixClientEventType } from '../../src/matrix-client/models/MatrixClientEvent'
 
 MatrixClient
 // use chai-as-promised plugin

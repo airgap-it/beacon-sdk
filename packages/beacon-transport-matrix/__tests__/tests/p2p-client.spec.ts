@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import * as sinon from 'sinon'
 
-import { P2PCommunicationClient } from '../src'
+import { P2PCommunicationClient } from '../../src'
 import { getKeypairFromSeed } from '@airgap/beacon-utils'
 import { LocalStorage } from '@airgap/beacon-core'
 
