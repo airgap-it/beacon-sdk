@@ -163,13 +163,12 @@ describe(`MatrixClient`, () => {
 
   it(`should unsubscribe all events`, async () => {
     const removeStub = sinon.stub((<any>client).eventEmitter, 'removeListener').resolves()
-    const removeAllStub = sinon.stub((<any>client).eventEmitter, 'removeAllListeners').resolves()
 
     client.unsubscribeAll(MatrixClientEventType.MESSAGE)
 
-    expect(removeStub.callCount).to.equal(0)
-    expect(removeAllStub.callCount).to.equal(1)
-    expect(removeAllStub.firstCall.args[0]).to.equal(MatrixClientEventType.MESSAGE)
+    expect(removeStub.callCount).to.equal(1)
+    expect(removeStub.firstCall.args[0]).to.equal(MatrixClientEventType.MESSAGE)
+    expect(removeStub.firstCall.args[1]).to.equal(undefined)
   })
 
   it(`should get a room by id`, async () => {
