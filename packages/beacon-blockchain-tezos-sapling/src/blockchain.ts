@@ -41,7 +41,7 @@ export class TezosSaplingBlockchain implements Blockchain {
     return permissionResponse.blockchainData.accounts.map((account) => ({
       accountId: account.accountId,
       address: account.address,
-      publicKey: '' // Public key or viewing key is not shared in permission request for privacy reasons
+      publicKey: account.viewingKey ?? '' // Public key or viewing key is not shared in permission request for privacy reasons
     }))
   }
 }

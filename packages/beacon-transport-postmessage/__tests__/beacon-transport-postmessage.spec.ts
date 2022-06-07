@@ -1,7 +1,1 @@
-'use strict'
-
-const beaconTransportPostmessage = require('..')
-
-describe('@airgap/beacon-transport-postmessage', () => {
-  it('needs tests')
-})
+// Tests are located in the @airgap/beacon-dapp package
