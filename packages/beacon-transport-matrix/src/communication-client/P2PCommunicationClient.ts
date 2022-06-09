@@ -113,7 +113,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       id: request.id,
       type: 'p2p-pairing-response',
       name: this.name,
-      version: BEACON_VERSION,
+      version: request.version,
       publicKey: await this.getPublicKey(),
       relayServer: await this.getRelayServer()
     }

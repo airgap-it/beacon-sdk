@@ -59,7 +59,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
       id: request.id,
       type: 'postmessage-pairing-response',
       name: this.name,
-      version: BEACON_VERSION,
+      version: request.version,
       publicKey: await this.getPublicKey()
     }
   }

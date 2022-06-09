@@ -1,6 +1,5 @@
 import {
   AppMetadataManager,
-  BEACON_VERSION,
   getAccountIdentifier,
   Logger,
   PermissionManager
@@ -144,7 +143,7 @@ export class OutgoingResponseInterceptor {
       case BeaconMessageType.Error: {
         const response: ErrorResponse = {
           type: message.type,
-          version: BEACON_VERSION,
+          version: '2',
           senderId,
           id: message.id,
           errorType: message.errorType
@@ -169,7 +168,7 @@ export class OutgoingResponseInterceptor {
       case BeaconMessageType.Acknowledge: {
         const response: AcknowledgeResponse = {
           type: message.type,
-          version: BEACON_VERSION,
+          version: '2',
           senderId,
           id: message.id
         }
@@ -179,7 +178,7 @@ export class OutgoingResponseInterceptor {
       case BeaconMessageType.PermissionResponse: {
         const response: PermissionResponse = {
           senderId,
-          version: BEACON_VERSION,
+          version: '2',
           appMetadata: ownAppMetadata,
           ...message
         }
@@ -213,7 +212,7 @@ export class OutgoingResponseInterceptor {
         {
           const response: OperationResponse = {
             senderId,
-            version: BEACON_VERSION,
+            version: '2',
             ...message
           }
           interceptorCallback(response)
@@ -223,7 +222,7 @@ export class OutgoingResponseInterceptor {
         {
           const response: SignPayloadResponse = {
             senderId,
-            version: BEACON_VERSION,
+            version: '2',
             ...message
           }
           interceptorCallback(response)
@@ -244,7 +243,7 @@ export class OutgoingResponseInterceptor {
         {
           const response: BroadcastResponse = {
             senderId,
-            version: BEACON_VERSION,
+            version: '2',
             ...message
           }
           interceptorCallback(response)

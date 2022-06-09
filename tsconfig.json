@@ -35,6 +35,10 @@
       "packages/beacon-blockchain-tezos/lib/beacon-blockchain-tezos",
       "packages/beacon-blockchain-tezos/lib"
     ],
+    "beacon-blockchain-tezos-sapling": [
+      "packages/beacon-blockchain-tezos-sapling/lib/beacon-blockchain-tezos-sapling",
+      "packages/beacon-blockchain-tezos-sapling/lib"
+    ],
     "beacon-transport-matrix": [
       "packages/beacon-transport-matrix/lib/beacon-transport-matrix",
       "packages/beacon-transport-matrix/lib"

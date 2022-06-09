@@ -15,7 +15,6 @@ import {
 import { Serializer, Transport } from '../..'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
-import { BEACON_VERSION } from '../../constants'
 import { getSenderId } from '../../utils/get-sender-id'
 import { Logger } from '../../utils/Logger'
 import { ClientOptions } from './ClientOptions'
@@ -215,7 +214,7 @@ export abstract class Client extends BeaconClient {
   protected async sendDisconnectToPeer(peer: PeerInfo, transport?: Transport<any>): Promise<void> {
     const request: DisconnectMessage = {
       id: await generateGUID(),
-      version: BEACON_VERSION,
+      version: peer.version,
       senderId: await getSenderId(await this.beaconId),
       type: BeaconMessageType.Disconnect
     }
