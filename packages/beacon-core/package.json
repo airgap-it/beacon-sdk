@@ -36,6 +36,8 @@
   "dependencies": {
     "@airgap/beacon-types": "^3.1.1",
     "@airgap/beacon-utils": "^3.1.1",
+    "@stablelib/ed25519": "^1.0.2",
+    "@stablelib/nacl": "^1.0.3",
     "@types/libsodium-wrappers": "0.7.9",
     "bs58check": "2.1.2",
     "libsodium-wrappers": "0.7.9"

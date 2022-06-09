@@ -8,12 +8,13 @@ import {
   randombytes_buf,
   crypto_secretbox_NONCEBYTES,
   crypto_secretbox_easy,
-  crypto_secretbox_open_easy,
   crypto_sign_ed25519_pk_to_curve25519,
   crypto_sign_ed25519_sk_to_curve25519,
   crypto_box_seal,
-  crypto_box_seal_open
+  crypto_box_seal_open,
+  crypto_secretbox_open_easy
 } from 'libsodium-wrappers'
+import { openSecretBox, secretBox } from '@stablelib/nacl'
 
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 
@@ -67,7 +68,18 @@ export async function encryptCryptoboxPayload(
     Buffer.from(crypto_secretbox_easy(Buffer.from(message, 'utf8'), nonce, sharedKey))
   ])
 
-  return toHex(combinedPayload)
+  const combinedPayloadNew = Buffer.concat([
+    nonce,
+    Buffer.from(secretBox(sharedKey, nonce, Buffer.from(message, 'utf8')))
+  ])
+
+  const res1 = toHex(combinedPayloadNew)
+  const res2 = toHex(combinedPayload)
+
+  console.log('ENCRYPT1', res1)
+  console.log('ENCRYPT2', res2)
+
+  return res1
 }
 
 /**
@@ -85,7 +97,20 @@ export async function decryptCryptoboxPayload(
   const nonce = payload.slice(0, crypto_secretbox_NONCEBYTES)
   const ciphertext = payload.slice(crypto_secretbox_NONCEBYTES)
 
-  return Buffer.from(crypto_secretbox_open_easy(ciphertext, nonce, sharedKey)).toString('utf8')
+  const openBox = openSecretBox(sharedKey, nonce, ciphertext)
+
+  if (!openBox) {
+    throw new Error('Decryption failed')
+  }
+  const res1 = Buffer.from(openBox).toString('utf8')
+  const res2 = Buffer.from(crypto_secretbox_open_easy(ciphertext, nonce, sharedKey)).toString(
+    'utf8'
+  )
+
+  console.log('DECRYPT1', res1)
+  console.log('DECRYPT2', res2)
+
+  return res1
 }
 
 /**

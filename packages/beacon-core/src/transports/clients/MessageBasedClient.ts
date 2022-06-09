@@ -92,7 +92,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
    * @param payload
    */
   protected async decryptMessage(senderPublicKey: string, payload: string): Promise<string> {
-    const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
+    const sharedRx = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
 
     const hexPayload = Buffer.from(payload, 'hex')
 
