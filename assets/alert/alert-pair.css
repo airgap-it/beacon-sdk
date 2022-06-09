@@ -73,13 +73,7 @@
 #beacon--qr__container:hover #beacon--qr__copy {
   display: block;
 }
-.disabled {
-  cursor: initial;
-}
-/* .disabled span,
-.disabled img {
-  opacity: 0.48;
-} */
+
 .disabled p {
   text-align: left;
   margin: 0;
@@ -87,14 +81,6 @@
   font-weight: 300;
   opacity: 0.48;
 }
-/* .disabled img {
-  -webkit-filter: grayscale(100%);
-  -moz-filter: grayscale(100%);
-  -ms-filter: grayscale(100%);
-  -o-filter: grayscale(100%);
-  filter: grayscale(100%);
-  filter: gray;
-} */
 
 #beacon--disclaimer {
   text-align: left;
