@@ -292,7 +292,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       `start listening for encrypted messages from publicKey ${senderPublicKey}`
     )
 
-    const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
+    const sharedRx = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
 
     const callbackFunction = async (
       event: MatrixClientEvent<MatrixClientEventType.MESSAGE>
@@ -330,6 +330,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
             messageCallback(decryptedMessage)
           } catch (decryptionError) {
+            console.log('DECRYPTION FAILED 2')
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
         }
@@ -380,7 +381,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     message: string,
     peer: P2PPairingRequest | ExtendedP2PPairingResponse
   ): Promise<void> {
-    const { sharedTx } = await this.createCryptoBoxClient(peer.publicKey, this.keyPair.privateKey)
+    const sharedTx = await this.createCryptoBoxClient(peer.publicKey, this.keyPair.privateKey)
 
     const recipientHash: string = await getHexHash(Buffer.from(peer.publicKey, 'hex'))
     const recipient = recipientString(recipientHash, peer.relayServer)
@@ -498,6 +499,7 @@ export class P2PCommunicationClient extends CommunicationClient {
               senderId: await getSenderId(pairingResponse.publicKey)
             })
           } catch (decryptionError) {
+            console.log('DECRYPTION FAILED')
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
         }

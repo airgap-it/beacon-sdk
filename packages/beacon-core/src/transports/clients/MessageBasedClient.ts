@@ -114,10 +114,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
    * @param message
    */
   protected async encryptMessage(recipientPublicKey: string, message: string): Promise<string> {
-    const { sharedTx } = await this.createCryptoBoxClient(
-      recipientPublicKey,
-      this.keyPair.privateKey
-    )
+    const sharedTx = await this.createCryptoBoxClient(recipientPublicKey, this.keyPair.privateKey)
 
     return encryptCryptoboxPayload(message, sharedTx)
   }
