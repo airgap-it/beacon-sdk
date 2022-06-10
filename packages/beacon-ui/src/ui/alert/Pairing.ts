@@ -216,7 +216,8 @@ export class Pairing {
               logo: app.logo,
               enabled: false,
               clickHandler: (): void => {
-                // Don't do anything
+                // Open wallet page
+                window.open(app.link, '_blank')
               }
             }))
         ].sort((a, b) => a.key.localeCompare(b.key))
