@@ -186,12 +186,6 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     await ready
 
-    const loginRawDigest = crypto_generichash(
-      32,
-      from_string(`login:${Math.floor(Date.now() / 1000 / (5 * 60))}`)
-    )
-    const rawSignature = crypto_sign_detached(loginRawDigest, this.keyPair.privateKey)
-
     logger.log('start', `connecting to server`)
 
     const relayServer = await this.getRelayServer()
@@ -230,7 +224,12 @@ export class P2PCommunicationClient extends CommunicationClient {
       }
     })
 
-    logger.log('start', 'login', await this.getPublicKeyHash(), 'on', relayServer)
+    const loginString = `login:${Math.floor(Date.now() / 1000 / (5 * 60))}`
+
+    logger.log('start', `login ${loginString}, ${await this.getPublicKeyHash()} on ${relayServer}`)
+
+    const loginRawDigest = crypto_generichash(32, from_string(loginString))
+    const rawSignature = crypto_sign_detached(loginRawDigest, this.keyPair.privateKey)
 
     try {
       await client.start({
@@ -239,23 +238,29 @@ export class P2PCommunicationClient extends CommunicationClient {
         deviceId: toHex(this.keyPair.publicKey)
       })
     } catch (error) {
-      console.log('ERROR, RETRYING')
+      logger.error('start', 'Could not log in, retrying')
       await this.reset() // If we can't log in, let's reset
-      console.log('TRYING AGAIN')
       if (this.loginCounter <= this.ENABLED_RELAY_SERVERS.length) {
         this.loginCounter++
         this.start()
         return
       } else {
-        throw new Error('Too many login attempts. Try again later.')
+        logger.error(
+          'start',
+          'Tried to log in to every known beacon node, but no login was successful.'
+        )
+
+        throw new Error('Could not connect to any beacon nodes. Try again later.')
       }
     }
 
-    console.log('client is ready')
+    logger.log('start', 'login successful, client is ready')
     this.client.resolve(client)
   }
 
   public async stop(): Promise<void> {
+    logger.log('stop', 'stopping client')
+
     if (this.client.isResolved()) {
       await (await this.client.promise).stop().catch((error) => logger.error(error))
     }
@@ -263,6 +268,8 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async reset(): Promise<void> {
+    logger.log('reset', 'resetting connection')
+
     await this.storage.delete(StorageKey.MATRIX_PEER_ROOM_IDS).catch((error) => logger.log(error))
     await this.storage.delete(StorageKey.MATRIX_PRESERVED_STATE).catch((error) => logger.log(error))
     await this.storage.delete(StorageKey.MATRIX_SELECTED_NODE).catch((error) => logger.log(error))
@@ -280,6 +287,10 @@ export class P2PCommunicationClient extends CommunicationClient {
     if (this.activeListeners.has(senderPublicKey)) {
       return
     }
+    logger.log(
+      'listenForEncryptedMessage',
+      `start listening for encrypted messages from publicKey ${senderPublicKey}`
+    )
 
     const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
 
@@ -301,6 +312,12 @@ export class P2PCommunicationClient extends CommunicationClient {
         if (payload && payload.length >= crypto_secretbox_NONCEBYTES + crypto_secretbox_MACBYTES) {
           try {
             const decryptedMessage = await decryptCryptoboxPayload(payload, sharedRx)
+
+            logger.log(
+              'listenForEncryptedMessage',
+              `received a message from ${senderPublicKey}`,
+              decryptedMessage
+            )
 
             // logger.log(
             //   'listenForEncryptedMessage',
@@ -375,34 +392,28 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     const encryptedMessage = await encryptCryptoboxPayload(message, sharedTx)
 
-    // logger.log(
-    //   'sendMessage',
-    //   'sending encrypted message',
-    //   peer.publicKey,
-    //   roomId,
-    //   message,
-    //   await new Serializer().deserialize(message)
-    // )
-
+    logger.log('sendMessage', 'sending encrypted message', peer.publicKey, roomId, message)
     ;(await this.client.promise).sendTextMessage(roomId, encryptedMessage).catch(async (error) => {
       if (error.errcode === 'M_FORBIDDEN') {
         // Room doesn't exist
-        logger.log(`sendMessage`, `M_FORBIDDEN`, error)
+        logger.log(`sendMessage`, `M_FORBIDDEN`, roomId, error)
         await this.deleteRoomIdFromRooms(roomId)
         const newRoomId = await this.getRelevantRoom(recipient)
-
+        logger.log(`sendMessage`, `Old room deleted, new room created`, newRoomId)
         ;(await this.client.promise)
           .sendTextMessage(newRoomId, encryptedMessage)
           .catch(async (error2) => {
-            logger.log(`sendMessage`, `inner error`, error2)
+            logger.log(`sendMessage`, `inner error`, newRoomId, error2)
           })
       } else {
-        logger.log(`sendMessage`, `not forbidden`, error)
+        logger.log(`sendMessage`, `unexpected error`, error)
       }
     })
   }
 
   public async updatePeerRoom(sender: string, roomId: string): Promise<void> {
+    logger.log(`updatePeerRoom`, sender, roomId)
+
     // Sender is in the format "@pubkeyhash:relayserver.tld"
     const split = sender.split(':')
     if (split.length < 2 || !split[0].startsWith('@')) {
@@ -413,8 +424,16 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     const room = roomIds[sender]
 
+    if (room === roomId) {
+      logger.debug(`updatePeerRoom`, `rooms are the same, not updating`)
+    }
+
+    logger.debug(`updatePeerRoom`, `current room`, room, 'new room', roomId)
+
     if (room && room[1]) {
       // If we have a room already, let's ignore it. We need to do this, otherwise it will be loaded from the matrix cache.
+      logger.log(`updatePeerRoom`, `adding room "${room[1]}" to ignored array`)
+
       this.ignoredRooms.push(room[1])
     }
 
@@ -447,9 +466,14 @@ export class P2PCommunicationClient extends CommunicationClient {
   public async listenForChannelOpening(
     messageCallback: (pairingResponse: ExtendedP2PPairingResponse) => void
   ): Promise<void> {
+    logger.debug(`listenForChannelOpening`)
     ;(await this.client.promise).subscribe(MatrixClientEventType.MESSAGE, async (event) => {
       if (this.isTextMessage(event.content) && (await this.isChannelOpenMessage(event.content))) {
-        logger.log(`listenForChannelOpening`, `channel opening`, JSON.stringify(event))
+        logger.log(
+          `listenForChannelOpening`,
+          `channel opening received, trying to decrypt`,
+          JSON.stringify(event)
+        )
 
         await this.updateRelayServer(event.content.message.sender)
         await this.updatePeerRoom(event.content.message.sender, event.content.roomId)
@@ -461,6 +485,12 @@ export class P2PCommunicationClient extends CommunicationClient {
           try {
             const pairingResponse: P2PPairingResponse = JSON.parse(
               await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
+            )
+
+            logger.log(
+              `listenForChannelOpening`,
+              `channel opening received and decrypted`,
+              JSON.stringify(pairingResponse)
             )
 
             messageCallback({
@@ -506,17 +536,22 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     // We force room creation here because if we "re-pair", we need to make sure that we don't send it to an old room.
     const roomId = await (await this.client.promise).createTrustedPrivateRoom(recipient)
+    logger.debug(`sendPairingResponse`, `Connecting to room "${roomId}"`)
 
     await this.updatePeerRoom(recipient, roomId)
 
     // Before we send the message, we have to wait for the join to be accepted.
     await this.waitForJoin(roomId) // TODO: This can probably be removed because we are now waiting inside the get room method
 
+    logger.debug(`sendPairingResponse`, `Successfully joined room.`)
+
     // TODO: remove v1 backwards-compatibility
     const message: string =
       typeof pairingRequest.version === 'undefined'
         ? await this.getPublicKey() // v1
         : JSON.stringify(await this.getPairingResponseInfo(pairingRequest)) // v2
+
+    logger.debug(`sendPairingResponse`, `Sending pairing response`, message)
 
     const encryptedMessage: string = await this.encryptMessageAsymmetric(
       pairingRequest.publicKey,
@@ -527,15 +562,15 @@ export class P2PCommunicationClient extends CommunicationClient {
     ;(await this.client.promise).sendTextMessage(roomId, msg).catch(async (error) => {
       if (error.errcode === 'M_FORBIDDEN') {
         // Room doesn't exist
-        logger.log(`sendMessage`, `M_FORBIDDEN`, error)
+        logger.log(`sendPairingResponse`, `M_FORBIDDEN`, roomId, error)
         await this.deleteRoomIdFromRooms(roomId)
         const newRoomId = await this.getRelevantRoom(recipient)
-
+        logger.log(`sendPairingResponse`, `Old room deleted, new room created`, newRoomId)
         ;(await this.client.promise).sendTextMessage(newRoomId, msg).catch(async (error2) => {
-          logger.log(`sendMessage`, `inner error`, error2)
+          logger.log(`sendPairingResponse`, `inner error`, newRoomId, error2)
         })
       } else {
-        logger.log(`sendMessage`, `not forbidden`, error)
+        logger.log(`sendPairingResponse`, `unexpected error`, error)
       }
     })
   }
@@ -547,6 +582,8 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async updateRelayServer(sender: string) {
+    logger.log(`updateRelayServer`, sender)
+
     // Sender is in the format "@pubkeyhash:relayserver.tld"
     const split = sender.split(':')
     if (split.length < 2 || !split[0].startsWith('@')) {

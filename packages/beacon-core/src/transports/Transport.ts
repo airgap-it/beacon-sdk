@@ -125,7 +125,7 @@ export abstract class Transport<
   public async addListener(
     listener: (message: unknown, connectionInfo: ConnectionContext) => void
   ): Promise<void> {
-    logger.debug('addListener', listener)
+    logger.debug('addListener')
 
     this.listeners.push(listener)
 
