@@ -3,6 +3,9 @@ import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src
 // TODO: Temporary build fix
 export enum NetworkType {
   MAINNET = 'mainnet',
+  GHOSTNET = 'ghostnet', // Long running testnet
+  MONDAYNET = 'mondaynet', // Testnet, resets every monday
+  DAILYNET = 'mondaynet', // Testnet, resets every day
   DELPHINET = 'delphinet',
   EDONET = 'edonet',
   FLORENCENET = 'florencenet',
@@ -43,6 +46,9 @@ export const tezosWebList: WebApp[] = [
     logo: 'web-kukai.png',
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
+      [NetworkType.GHOSTNET]: 'https://ghostnet.kukai.app',
+      [NetworkType.MONDAYNET]: 'https://mondaynet.kukai.app',
+      [NetworkType.DAILYNET]: 'https://dailynet.kukai.app',
       [NetworkType.DELPHINET]: 'https://testnet.kukai.app',
       [NetworkType.EDONET]: 'https://edonet.kukai.app',
       [NetworkType.FLORENCENET]: 'https://florencenet.kukai.app',
