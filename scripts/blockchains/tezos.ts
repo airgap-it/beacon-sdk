@@ -13,6 +13,7 @@ export enum NetworkType {
   HANGZHOUNET = 'hangzhounet',
   ITHACANET = 'ithacanet',
   JAKARTANET = 'jakartanet',
+  KATHMANDUNET = 'kathmandunet',
   CUSTOM = 'custom'
 }
 
@@ -55,7 +56,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.GRANADANET]: 'https://granadanet.kukai.app',
       [NetworkType.HANGZHOUNET]: 'https://hangzhounet.kukai.app',
       [NetworkType.ITHACANET]: 'https://ithacanet.kukai.app',
-      [NetworkType.JAKARTANET]: 'https://jakartanet.kukai.app'
+      [NetworkType.JAKARTANET]: 'https://jakartanet.kukai.app',
+      [NetworkType.KATHMANDUNET]: 'https://kathmandunet.kukai.app'
     }
   }
 ]
