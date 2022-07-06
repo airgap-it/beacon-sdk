@@ -15,7 +15,8 @@ export class TezblockBlockExplorer extends BlockExplorer {
       [NetworkType.HANGZHOUNET]: 'https://hangzhounet.tezblock.io',
       [NetworkType.ITHACANET]: 'https://ithacanet.tezblock.io',
       [NetworkType.JAKARTANET]: 'https://jakartanet.tezblock.io',
-      [NetworkType.CUSTOM]: 'https://jakartanet.tezblock.io'
+      [NetworkType.KATHMANDUNET]: 'https://kathmandunet.tezblock.io',
+      [NetworkType.CUSTOM]: 'https://kathmandunet.tezblock.io'
     }
   ) {
     super(rpcUrls)

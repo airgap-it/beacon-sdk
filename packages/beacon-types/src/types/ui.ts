@@ -26,6 +26,7 @@ export interface WebApp extends AppBase {
     [NetworkType.HANGZHOUNET]?: string
     [NetworkType.ITHACANET]?: string
     [NetworkType.JAKARTANET]?: string
+    [NetworkType.KATHMANDUNET]?: string
     [NetworkType.CUSTOM]?: string
   }
 }
