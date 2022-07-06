@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-blockchain-tezos",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -34,7 +34,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-types": "^3.1.2",
-    "@airgap/beacon-ui": "^3.1.2"
+    "@airgap/beacon-types": "^3.1.3",
+    "@airgap/beacon-ui": "^3.1.3"
   }
 }
