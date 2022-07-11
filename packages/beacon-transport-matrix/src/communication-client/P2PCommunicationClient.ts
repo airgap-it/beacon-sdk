@@ -42,16 +42,31 @@ import { ExposedPromise, generateGUID } from '@airgap/beacon-utils'
 
 const logger = new Logger('P2PCommunicationClient')
 
-export const KNOWN_RELAY_SERVERS = [
-  'beacon-node-1.diamond.papers.tech',
-  'beacon-node-1.sky.papers.tech',
-  'beacon-node-2.sky.papers.tech',
-  'beacon-node-1.hope.papers.tech',
-  'beacon-node-1.hope-2.papers.tech',
-  'beacon-node-1.hope-3.papers.tech',
-  'beacon-node-1.hope-4.papers.tech',
-  'beacon-node-1.hope-5.papers.tech'
-]
+enum Region {
+  EU1 = 'eu-1',
+  US1 = 'us-1'
+}
+
+interface Regions {
+  [Region.EU1]: string[]
+  [Region.US1]: string[]
+}
+
+export const REGIONS_AND_SERVERS: Regions = {
+  // TODO: Distribution is just for testing
+  [Region.EU1]: [
+    'beacon-node-1.diamond.papers.tech',
+    'beacon-node-1.sky.papers.tech',
+    'beacon-node-2.sky.papers.tech'
+  ],
+  [Region.US1]: [
+    'beacon-node-1.hope.papers.tech',
+    'beacon-node-1.hope-2.papers.tech',
+    'beacon-node-1.hope-3.papers.tech',
+    'beacon-node-1.hope-4.papers.tech',
+    'beacon-node-1.hope-5.papers.tech'
+  ]
+}
 
 /**
  * @internalapi
@@ -64,7 +79,9 @@ export class P2PCommunicationClient extends CommunicationClient {
     | ((event: MatrixClientEvent<MatrixClientEventType.MESSAGE>) => void)
     | undefined
 
-  private readonly ENABLED_RELAY_SERVERS: string[]
+  private regionSelectedDone: boolean = false
+  private selectedRegion: Region = Region.EU1
+  private readonly ENABLED_RELAY_SERVERS: Regions
   public relayServer: ExposedPromise<string> | undefined
 
   private readonly activeListeners: Map<string, (event: MatrixClientEvent<any>) => void> = new Map()
@@ -84,7 +101,10 @@ export class P2PCommunicationClient extends CommunicationClient {
     super(keyPair)
 
     logger.log('constructor', 'P2PCommunicationClient created')
-    const nodes = matrixNodes.length > 0 ? matrixNodes : KNOWN_RELAY_SERVERS
+    const nodes =
+      matrixNodes.length > 0
+        ? /* TODO: allow setting from outside */ REGIONS_AND_SERVERS
+        : REGIONS_AND_SERVERS
     this.ENABLED_RELAY_SERVERS = nodes
   }
 
@@ -128,6 +148,43 @@ export class P2PCommunicationClient extends CommunicationClient {
     return info
   }
 
+  public async findBestRegion(): Promise<Region> {
+    if (this.regionSelectedDone && this.selectedRegion) {
+      return this.selectedRegion
+    }
+
+    const keys: Region[] = Object.keys(this.ENABLED_RELAY_SERVERS) as any
+
+    const allPromises: Promise<{ region: Region; server: string }>[] = []
+
+    keys.forEach((key) => {
+      const nodes = this.ENABLED_RELAY_SERVERS[key]
+      const index = Math.floor(Math.random() * nodes.length)
+      allPromises.push(
+        axios
+          .get(`https://${nodes[index]}/_matrix/client/versions`)
+          .then(() => ({ region: key, server: nodes[index] }))
+          .catch(
+            (err) =>
+              new Promise((_resolve, reject) => {
+                // This workaround is done because Promise.race stops at the first failure, but we need the first success.
+                // TODO: If all promises have been rejected, let's not wait 2000 and abort earlier.
+                setTimeout(() => reject(err), 2000)
+              })
+          )
+      )
+    })
+
+    const region = await Promise.race(allPromises)
+    this.regionSelectedDone = true
+
+    return region.region
+
+    // Select random server from each region.
+    // Start request to random server from each region
+    // Fastest response wins, region is selected
+  }
+
   public async getRelayServer(): Promise<string> {
     if (this.relayServer) {
       return this.relayServer.promise
@@ -141,7 +198,10 @@ export class P2PCommunicationClient extends CommunicationClient {
       return node
     }
 
-    const nodes = [...this.ENABLED_RELAY_SERVERS]
+    const region = await this.findBestRegion()
+    this.selectedRegion = region
+
+    const nodes = [...this.ENABLED_RELAY_SERVERS[region]]
 
     while (nodes.length > 0) {
       const index = Math.floor(Math.random() * nodes.length)
@@ -240,7 +300,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     } catch (error) {
       logger.error('start', 'Could not log in, retrying')
       await this.reset() // If we can't log in, let's reset
-      if (this.loginCounter <= this.ENABLED_RELAY_SERVERS.length) {
+      if (this.loginCounter <= this.ENABLED_RELAY_SERVERS[this.selectedRegion].length) {
         this.loginCounter++
         this.start()
         return
