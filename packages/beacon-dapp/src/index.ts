@@ -13,6 +13,8 @@ import { TezblockBlockExplorer } from './utils/tezblock-blockexplorer'
 
 export { DAppClient, DAppClientOptions }
 
+export * from './utils/get-instance'
+
 // Events
 export { BeaconEvent, BeaconEventHandler, defaultEventCallbacks }
 
