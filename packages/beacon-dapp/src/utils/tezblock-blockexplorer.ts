@@ -5,6 +5,9 @@ export class TezblockBlockExplorer extends BlockExplorer {
   constructor(
     public readonly rpcUrls: { [key in NetworkType]: string } = {
       [NetworkType.MAINNET]: 'https://tezblock.io',
+      [NetworkType.GHOSTNET]: 'https://ghostnet.tezblock.io',
+      [NetworkType.MONDAYNET]: 'https://mondaynet.tezblock.io',
+      [NetworkType.DAILYNET]: 'https://dailynet.tezblock.io',
       [NetworkType.DELPHINET]: 'https://delphinet.tezblock.io',
       [NetworkType.EDONET]: 'https://edonet.tezblock.io',
       [NetworkType.FLORENCENET]: 'https://florencenet.tezblock.io',
@@ -12,7 +15,8 @@ export class TezblockBlockExplorer extends BlockExplorer {
       [NetworkType.HANGZHOUNET]: 'https://hangzhounet.tezblock.io',
       [NetworkType.ITHACANET]: 'https://ithacanet.tezblock.io',
       [NetworkType.JAKARTANET]: 'https://jakartanet.tezblock.io',
-      [NetworkType.CUSTOM]: 'https://jakartanet.tezblock.io'
+      [NetworkType.KATHMANDUNET]: 'https://kathmandunet.tezblock.io',
+      [NetworkType.CUSTOM]: 'https://kathmandunet.tezblock.io'
     }
   ) {
     super(rpcUrls)

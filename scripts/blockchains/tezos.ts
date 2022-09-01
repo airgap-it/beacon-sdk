@@ -3,6 +3,9 @@ import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src
 // TODO: Temporary build fix
 export enum NetworkType {
   MAINNET = 'mainnet',
+  GHOSTNET = 'ghostnet', // Long running testnet
+  MONDAYNET = 'mondaynet', // Testnet, resets every monday
+  DAILYNET = 'mondaynet', // Testnet, resets every day
   DELPHINET = 'delphinet',
   EDONET = 'edonet',
   FLORENCENET = 'florencenet',
@@ -10,6 +13,7 @@ export enum NetworkType {
   HANGZHOUNET = 'hangzhounet',
   ITHACANET = 'ithacanet',
   JAKARTANET = 'jakartanet',
+  KATHMANDUNET = 'kathmandunet',
   CUSTOM = 'custom'
 }
 
@@ -43,13 +47,17 @@ export const tezosWebList: WebApp[] = [
     logo: 'web-kukai.png',
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
+      [NetworkType.GHOSTNET]: 'https://ghostnet.kukai.app',
+      [NetworkType.MONDAYNET]: 'https://mondaynet.kukai.app',
+      [NetworkType.DAILYNET]: 'https://dailynet.kukai.app',
       [NetworkType.DELPHINET]: 'https://testnet.kukai.app',
       [NetworkType.EDONET]: 'https://edonet.kukai.app',
       [NetworkType.FLORENCENET]: 'https://florencenet.kukai.app',
       [NetworkType.GRANADANET]: 'https://granadanet.kukai.app',
       [NetworkType.HANGZHOUNET]: 'https://hangzhounet.kukai.app',
       [NetworkType.ITHACANET]: 'https://ithacanet.kukai.app',
-      [NetworkType.JAKARTANET]: 'https://jakartanet.kukai.app'
+      [NetworkType.JAKARTANET]: 'https://jakartanet.kukai.app',
+      [NetworkType.KATHMANDUNET]: 'https://kathmandunet.kukai.app'
     }
   }
 ]
@@ -94,11 +102,11 @@ export const tezosIosList: App[] = [
   },
   {
     key: 'autonomy-app',
-    name: 'Autonomy',
+    name: 'Autonomy: Digital Art Wallet',
     shortName: 'Autonomy',
     color: '',
     logo: 'ios-autonomy.png',
-    universalLink: 'https://au.bitmark.com/apps/tezos',
+    universalLink: 'https://autonomy.io/apps/tezos',
     deepLink: 'autonomy-tezos://'
   },
   {
