@@ -1541,7 +1541,7 @@ export class DAppClient extends Client {
     return exposed.promise as any // TODO: fix type
   }
 
-  private async disconnect() {
+  public async disconnect() {
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
