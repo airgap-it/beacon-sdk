@@ -1,12 +1,4 @@
-import {
-  KeyPair,
-  ready,
-  crypto_generichash,
-  from_string,
-  crypto_sign_detached,
-  crypto_secretbox_NONCEBYTES,
-  crypto_secretbox_MACBYTES
-} from 'libsodium-wrappers'
+import { sign } from '@stablelib/ed25519'
 import axios from 'axios'
 import {
   getHexHash,
@@ -14,7 +6,9 @@ import {
   recipientString,
   openCryptobox,
   encryptCryptoboxPayload,
-  decryptCryptoboxPayload
+  decryptCryptoboxPayload,
+  secretbox_NONCEBYTES,
+  secretbox_MACBYTES
 } from '@airgap/beacon-utils'
 import { MatrixClient } from '../matrix-client/MatrixClient'
 import {
@@ -39,6 +33,9 @@ import {
   CommunicationClient
 } from '@airgap/beacon-core'
 import { ExposedPromise, generateGUID } from '@airgap/beacon-utils'
+import { KeyPair } from '@stablelib/ed25519'
+import { hash } from '@stablelib/blake2b'
+import { encode } from '@stablelib/utf8'
 
 const logger = new Logger('P2PCommunicationClient')
 
@@ -184,8 +181,6 @@ export class P2PCommunicationClient extends CommunicationClient {
   public async start(): Promise<void> {
     logger.log('start', 'starting client')
 
-    await ready
-
     logger.log('start', `connecting to server`)
 
     const relayServer = await this.getRelayServer()
@@ -228,8 +223,11 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     logger.log('start', `login ${loginString}, ${await this.getPublicKeyHash()} on ${relayServer}`)
 
-    const loginRawDigest = crypto_generichash(32, from_string(loginString))
-    const rawSignature = crypto_sign_detached(loginRawDigest, this.keyPair.privateKey)
+    const loginRawDigest = hash(encode(loginString), 32)
+
+    const secretKey = this.keyPair.secretKey ?? (this.keyPair as any).privateKey
+
+    const rawSignature = sign(secretKey, loginRawDigest)
 
     try {
       await client.start({
@@ -292,7 +290,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       `start listening for encrypted messages from publicKey ${senderPublicKey}`
     )
 
-    const sharedRx = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
+    const sharedKey = await this.createCryptoBoxServer(senderPublicKey, this.keyPair)
 
     const callbackFunction = async (
       event: MatrixClientEvent<MatrixClientEventType.MESSAGE>
@@ -309,9 +307,9 @@ export class P2PCommunicationClient extends CommunicationClient {
         } catch {
           /* */
         }
-        if (payload && payload.length >= crypto_secretbox_NONCEBYTES + crypto_secretbox_MACBYTES) {
+        if (payload && payload.length >= secretbox_NONCEBYTES + secretbox_MACBYTES) {
           try {
-            const decryptedMessage = await decryptCryptoboxPayload(payload, sharedRx)
+            const decryptedMessage = await decryptCryptoboxPayload(payload, sharedKey.receive)
 
             logger.log(
               'listenForEncryptedMessage',
@@ -381,7 +379,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     message: string,
     peer: P2PPairingRequest | ExtendedP2PPairingResponse
   ): Promise<void> {
-    const sharedTx = await this.createCryptoBoxClient(peer.publicKey, this.keyPair.privateKey)
+    const sharedKey = await this.createCryptoBoxClient(peer.publicKey, this.keyPair)
 
     const recipientHash: string = await getHexHash(Buffer.from(peer.publicKey, 'hex'))
     const recipient = recipientString(recipientHash, peer.relayServer)
@@ -391,7 +389,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     // Before we send the message, we have to wait for the join to be accepted.
     await this.waitForJoin(roomId) // TODO: This can probably be removed because we are now waiting inside the get room method
 
-    const encryptedMessage = await encryptCryptoboxPayload(message, sharedTx)
+    const encryptedMessage = await encryptCryptoboxPayload(message, sharedKey.send)
 
     logger.log('sendMessage', 'sending encrypted message', peer.publicKey, roomId, message)
     ;(await this.client.promise).sendTextMessage(roomId, encryptedMessage).catch(async (error) => {
@@ -482,10 +480,10 @@ export class P2PCommunicationClient extends CommunicationClient {
         const splits = event.content.message.content.split(':')
         const payload = Buffer.from(splits[splits.length - 1], 'hex')
 
-        if (payload.length >= crypto_secretbox_NONCEBYTES + crypto_secretbox_MACBYTES) {
+        if (payload.length >= secretbox_NONCEBYTES + secretbox_MACBYTES) {
           try {
             const pairingResponse: P2PPairingResponse = JSON.parse(
-              await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
+              await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.secretKey)
             )
 
             logger.log(
@@ -499,7 +497,7 @@ export class P2PCommunicationClient extends CommunicationClient {
               senderId: await getSenderId(pairingResponse.publicKey)
             })
           } catch (decryptionError) {
-            console.log('DECRYPTION FAILED')
+            console.log('DECRYPTION FAILED', decryptionError)
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
         }

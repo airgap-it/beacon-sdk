@@ -1,12 +1,11 @@
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
-import { ready, randombytes_buf } from 'libsodium-wrappers'
+import { randomBytes } from '@stablelib/random'
 
 /**
  * Generate a random GUID
  */
 export async function generateGUID(): Promise<string> {
-  await ready
-  const buf = randombytes_buf(16)
+  const buf = randomBytes(16)
 
   return [buf.slice(0, 4), buf.slice(4, 6), buf.slice(6, 8), buf.slice(8, 10), buf.slice(10, 16)]
     .map(function (subbuf) {

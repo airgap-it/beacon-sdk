@@ -36,8 +36,6 @@
   "dependencies": {
     "@airgap/beacon-core": "^3.1.4",
     "@airgap/beacon-types": "^3.1.4",
-    "@airgap/beacon-utils": "^3.1.4",
-    "@types/libsodium-wrappers": "0.7.9",
-    "libsodium-wrappers": "0.7.9"
+    "@airgap/beacon-utils": "^3.1.4"
   }
 }

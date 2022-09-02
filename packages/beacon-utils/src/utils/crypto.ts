@@ -1,20 +1,14 @@
 import * as bs58check from 'bs58check'
-import {
-  ready,
-  crypto_generichash,
-  crypto_sign_seed_keypair,
-  from_string,
-  KeyPair,
-  randombytes_buf,
-  crypto_secretbox_NONCEBYTES,
-  crypto_secretbox_easy,
-  crypto_sign_ed25519_pk_to_curve25519,
-  crypto_sign_ed25519_sk_to_curve25519,
-  crypto_box_seal,
-  crypto_box_seal_open,
-  crypto_secretbox_open_easy
-} from 'libsodium-wrappers'
-import { openSecretBox, secretBox } from '@stablelib/nacl'
+import { ready, crypto_box_seal, crypto_box_seal_open } from 'libsodium-wrappers'
+import { box, openBox, openSecretBox, secretBox } from '@stablelib/nacl'
+import { randomBytes } from '@stablelib/random'
+import { encode } from '@stablelib/utf8'
+import { hash } from '@stablelib/blake2b'
+import { generateKeyPairFromSeed } from '@stablelib/ed25519'
+import { convertPublicKeyToX25519, convertSecretKeyToX25519, KeyPair } from '@stablelib/ed25519'
+
+export const secretbox_NONCEBYTES = 24 // crypto_secretbox_NONCEBYTES
+export const secretbox_MACBYTES = 16 // crypto_secretbox_MACBYTES
 
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 
@@ -34,9 +28,11 @@ export function toHex(value: any): string {
  * @param key
  */
 export async function getHexHash(key: string | Buffer | Uint8Array): Promise<string> {
-  await ready
+  if (typeof key === 'string') {
+    return toHex(hash(encode(key), 32))
+  }
 
-  return toHex(crypto_generichash(32, key))
+  return toHex(hash(key, 32))
 }
 
 /**
@@ -45,9 +41,7 @@ export async function getHexHash(key: string | Buffer | Uint8Array): Promise<str
  * @param seed
  */
 export async function getKeypairFromSeed(seed: string): Promise<KeyPair> {
-  await ready
-
-  return crypto_sign_seed_keypair(crypto_generichash(32, from_string(seed)))
+  return generateKeyPairFromSeed(hash(encode(seed), 32))
 }
 
 /**
@@ -60,26 +54,14 @@ export async function encryptCryptoboxPayload(
   message: string,
   sharedKey: Uint8Array
 ): Promise<string> {
-  await ready
+  const nonce = Buffer.from(randomBytes(secretbox_NONCEBYTES))
 
-  const nonce = Buffer.from(randombytes_buf(crypto_secretbox_NONCEBYTES))
   const combinedPayload = Buffer.concat([
-    nonce,
-    Buffer.from(crypto_secretbox_easy(Buffer.from(message, 'utf8'), nonce, sharedKey))
-  ])
-
-  const combinedPayloadNew = Buffer.concat([
     nonce,
     Buffer.from(secretBox(sharedKey, nonce, Buffer.from(message, 'utf8')))
   ])
 
-  const res1 = toHex(combinedPayloadNew)
-  const res2 = toHex(combinedPayload)
-
-  console.log('ENCRYPT1', res1)
-  console.log('ENCRYPT2', res2)
-
-  return res1
+  return toHex(combinedPayload)
 }
 
 /**
@@ -92,25 +74,16 @@ export async function decryptCryptoboxPayload(
   payload: Uint8Array,
   sharedKey: Uint8Array
 ): Promise<string> {
-  await ready
-
-  const nonce = payload.slice(0, crypto_secretbox_NONCEBYTES)
-  const ciphertext = payload.slice(crypto_secretbox_NONCEBYTES)
+  const nonce = payload.slice(0, secretbox_NONCEBYTES)
+  const ciphertext = payload.slice(secretbox_NONCEBYTES)
 
   const openBox = openSecretBox(sharedKey, nonce, ciphertext)
 
   if (!openBox) {
     throw new Error('Decryption failed')
   }
-  const res1 = Buffer.from(openBox).toString('utf8')
-  const res2 = Buffer.from(crypto_secretbox_open_easy(ciphertext, nonce, sharedKey)).toString(
-    'utf8'
-  )
 
-  console.log('DECRYPT1', res1)
-  console.log('DECRYPT2', res2)
-
-  return res1
+  return Buffer.from(openBox).toString('utf8')
 }
 
 /**
@@ -124,8 +97,9 @@ export async function sealCryptobox(
   publicKey: Uint8Array
 ): Promise<string> {
   await ready
+  console.log('---------YYYY----------')
 
-  const kxSelfPublicKey = crypto_sign_ed25519_pk_to_curve25519(Buffer.from(publicKey)) // Secret bytes to scalar bytes
+  const kxSelfPublicKey = convertPublicKeyToX25519(Buffer.from(publicKey)) // Secret bytes to scalar bytes
   const encryptedMessage = crypto_box_seal(payload, kxSelfPublicKey)
 
   return toHex(encryptedMessage)
@@ -144,9 +118,12 @@ export async function openCryptobox(
   privateKey: Uint8Array
 ): Promise<string> {
   await ready
+  console.log('---------AAAAA----------')
 
-  const kxSelfPrivateKey = crypto_sign_ed25519_sk_to_curve25519(Buffer.from(privateKey)) // Secret bytes to scalar bytes
-  const kxSelfPublicKey = crypto_sign_ed25519_pk_to_curve25519(Buffer.from(publicKey)) // Secret bytes to scalar bytes
+  const kxSelfPrivateKey = convertSecretKeyToX25519(Buffer.from(privateKey)) // Secret bytes to scalar bytes
+  const kxSelfPublicKey = convertPublicKeyToX25519(Buffer.from(publicKey)) // Secret bytes to scalar bytes
+
+  // box(kxSelfPublicKey, kxSelfPrivateKey, new Uint8Array([1]), encryptedPayload)
 
   const decryptedMessage = crypto_box_seal_open(encryptedPayload, kxSelfPublicKey, kxSelfPrivateKey)
 
@@ -201,7 +178,7 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
     throw new Error(`invalid publicKey: ${publicKey}`)
   }
 
-  const payload: Uint8Array = crypto_generichash(20, Buffer.from(plainPublicKey, 'hex'))
+  const payload: Uint8Array = hash(Buffer.from(plainPublicKey, 'hex'), 20)
 
   return bs58check.encode(Buffer.concat([prefix, Buffer.from(payload)]))
 }
