@@ -1,11 +1,12 @@
 import * as bs58check from 'bs58check'
-import { ready, crypto_box_seal, crypto_box_seal_open } from 'libsodium-wrappers'
-import { box, openBox, openSecretBox, secretBox } from '@stablelib/nacl'
+import { box, generateKeyPair, openBox, openSecretBox, secretBox } from '@stablelib/nacl'
 import { randomBytes } from '@stablelib/random'
 import { encode } from '@stablelib/utf8'
 import { hash } from '@stablelib/blake2b'
 import { generateKeyPairFromSeed } from '@stablelib/ed25519'
 import { convertPublicKeyToX25519, convertSecretKeyToX25519, KeyPair } from '@stablelib/ed25519'
+import { BLAKE2b } from '@stablelib/blake2b'
+import { concat } from '@stablelib/bytes'
 
 export const secretbox_NONCEBYTES = 24 // crypto_secretbox_NONCEBYTES
 export const secretbox_MACBYTES = 16 // crypto_secretbox_MACBYTES
@@ -94,15 +95,20 @@ export async function decryptCryptoboxPayload(
  */
 export async function sealCryptobox(
   payload: string | Buffer,
-  publicKey: Uint8Array
+  otherPublicKey: Uint8Array
 ): Promise<string> {
-  await ready
-  console.log('---------YYYY----------')
+  const kxOtherPublicKey = convertPublicKeyToX25519(Buffer.from(otherPublicKey)) // Secret bytes to scalar bytes
 
-  const kxSelfPublicKey = convertPublicKeyToX25519(Buffer.from(publicKey)) // Secret bytes to scalar bytes
-  const encryptedMessage = crypto_box_seal(payload, kxSelfPublicKey)
+  const keypair = generateKeyPair()
 
-  return toHex(encryptedMessage)
+  const state = new BLAKE2b(24)
+  const nonce = state.update(keypair.publicKey, 32).update(kxOtherPublicKey, 32).digest()
+
+  const bytesPayload = typeof payload === 'string' ? encode(payload) : payload
+
+  const encryptedMessage = box(kxOtherPublicKey, keypair.secretKey, nonce, bytesPayload)
+
+  return toHex(concat(keypair.publicKey, encryptedMessage))
 }
 
 /**
@@ -117,17 +123,25 @@ export async function openCryptobox(
   publicKey: Uint8Array,
   privateKey: Uint8Array
 ): Promise<string> {
-  await ready
-  console.log('---------AAAAA----------')
-
   const kxSelfPrivateKey = convertSecretKeyToX25519(Buffer.from(privateKey)) // Secret bytes to scalar bytes
   const kxSelfPublicKey = convertPublicKeyToX25519(Buffer.from(publicKey)) // Secret bytes to scalar bytes
 
-  // box(kxSelfPublicKey, kxSelfPrivateKey, new Uint8Array([1]), encryptedPayload)
+  const bytesPayload =
+    typeof encryptedPayload === 'string' ? encode(encryptedPayload) : encryptedPayload
 
-  const decryptedMessage = crypto_box_seal_open(encryptedPayload, kxSelfPublicKey, kxSelfPrivateKey)
+  const epk = bytesPayload.slice(0, 32)
+  const ciphertext = bytesPayload.slice(32)
 
-  return Buffer.from(decryptedMessage).toString()
+  const state = new BLAKE2b(24)
+  const nonce = state.update(epk, 32).update(kxSelfPublicKey, 32).digest()
+
+  const decryptedMessage2 = openBox(epk, kxSelfPrivateKey, nonce, ciphertext)
+
+  if (!decryptedMessage2) {
+    throw new Error('Decryption failed')
+  }
+
+  return Buffer.from(decryptedMessage2).toString()
 }
 
 /**
@@ -136,8 +150,6 @@ export async function openCryptobox(
  * @param publicKey
  */
 export async function getAddressFromPublicKey(publicKey: string): Promise<string> {
-  await ready
-
   const prefixes = {
     // tz1...
     edpk: {
