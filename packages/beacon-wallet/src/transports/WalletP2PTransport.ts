@@ -1,5 +1,6 @@
 import { KeyPair } from 'libsodium-wrappers'
 import { Storage, StorageKey, P2PPairingRequest, NodeDistributions } from '@airgap/beacon-types'
+import { P2PTransport } from '@airgap/beacon-transport-matrix'
 
 // const logger = new Logger('DappP2PTransport')
 
