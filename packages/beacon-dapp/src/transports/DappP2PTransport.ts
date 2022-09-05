@@ -24,7 +24,7 @@ export class DappP2PTransport extends P2PTransport<
     name: string,
     keyPair: KeyPair,
     storage: Storage,
-    matrixNodes: Partial<NodeDistributions>[],
+    matrixNodes: Partial<NodeDistributions>,
     iconUrl?: string,
     appUrl?: string
   ) {
