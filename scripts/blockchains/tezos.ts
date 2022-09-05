@@ -102,11 +102,11 @@ export const tezosIosList: App[] = [
   },
   {
     key: 'autonomy-app',
-    name: 'Autonomy',
+    name: 'Autonomy: Digital Art Wallet',
     shortName: 'Autonomy',
     color: '',
     logo: 'ios-autonomy.png',
-    universalLink: 'https://au.bitmark.com/apps/tezos',
+    universalLink: 'https://autonomy.io/apps/tezos',
     deepLink: 'autonomy-tezos://'
   },
   {

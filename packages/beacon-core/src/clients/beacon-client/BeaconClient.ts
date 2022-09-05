@@ -58,9 +58,9 @@ export abstract class BeaconClient {
     this.appUrl = config.appUrl
     this.storage = config.storage
 
-    // TODO: This is a temporary "fix" to prevent users from creating multiple Client instances
+    // TODO: This is a temporary "workaround" to prevent users from creating multiple Client instances
     if ((windowRef as any).beaconCreatedClientInstance) {
-      console.warn(
+      console.error(
         '[BEACON] It looks like you created multiple Beacon SDK Client instances. This can lead to problems. Only create one instance and re-use it everywhere.'
       )
     } else {
