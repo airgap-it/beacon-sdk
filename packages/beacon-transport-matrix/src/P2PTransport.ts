@@ -8,7 +8,8 @@ import {
   TransportStatus,
   TransportType,
   Origin,
-  P2PPairingRequest
+  P2PPairingRequest,
+  NodeDistributions
 } from '@airgap/beacon-types'
 import { P2PCommunicationClient } from '@airgap/beacon-transport-matrix'
 
@@ -29,7 +30,7 @@ export class P2PTransport<
     name: string,
     keyPair: KeyPair,
     storage: Storage,
-    matrixNodes: string[],
+    matrixNodes: Partial<NodeDistributions>,
     storageKey: K,
     iconUrl?: string,
     appUrl?: string

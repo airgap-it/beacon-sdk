@@ -29,7 +29,9 @@ import {
   P2PPairingRequest,
   StorageKey,
   ExtendedP2PPairingResponse,
-  P2PPairingResponse
+  P2PPairingResponse,
+  NodeDistributions,
+  Regions
 } from '@airgap/beacon-types'
 import {
   PeerManager,
@@ -42,24 +44,14 @@ import { ExposedPromise, generateGUID } from '@airgap/beacon-utils'
 
 const logger = new Logger('P2PCommunicationClient')
 
-enum Region {
-  EU1 = 'eu-1',
-  US1 = 'us-1'
-}
-
-interface Regions {
-  [Region.EU1]: string[]
-  [Region.US1]: string[]
-}
-
-export const REGIONS_AND_SERVERS: Regions = {
+const REGIONS_AND_SERVERS: NodeDistributions = {
   // TODO: Distribution is just for testing
-  [Region.EU1]: [
+  [Regions.EU1]: [
     'beacon-node-1.diamond.papers.tech',
     'beacon-node-1.sky.papers.tech',
     'beacon-node-2.sky.papers.tech'
   ],
-  [Region.US1]: [
+  [Regions.US1]: [
     'beacon-node-1.hope.papers.tech',
     'beacon-node-1.hope-2.papers.tech',
     'beacon-node-1.hope-3.papers.tech',
@@ -80,8 +72,8 @@ export class P2PCommunicationClient extends CommunicationClient {
     | undefined
 
   private regionSelectedDone: boolean = false
-  private selectedRegion: Region = Region.EU1
-  private readonly ENABLED_RELAY_SERVERS: Regions
+  private selectedRegion: Regions = Regions.EU1
+  private readonly ENABLED_RELAY_SERVERS: NodeDistributions
   public relayServer: ExposedPromise<string> | undefined
 
   private readonly activeListeners: Map<string, (event: MatrixClientEvent<any>) => void> = new Map()
@@ -94,18 +86,22 @@ export class P2PCommunicationClient extends CommunicationClient {
     keyPair: KeyPair,
     public readonly replicationCount: number,
     private readonly storage: Storage,
-    matrixNodes: string[],
+    matrixNodes?: Partial<NodeDistributions>,
     private readonly iconUrl?: string,
     private readonly appUrl?: string
   ) {
     super(keyPair)
 
     logger.log('constructor', 'P2PCommunicationClient created')
-    const nodes =
-      matrixNodes.length > 0
-        ? /* TODO: allow setting from outside */ REGIONS_AND_SERVERS
-        : REGIONS_AND_SERVERS
-    this.ENABLED_RELAY_SERVERS = nodes
+
+    this.ENABLED_RELAY_SERVERS = REGIONS_AND_SERVERS
+
+    if (matrixNodes) {
+      this.ENABLED_RELAY_SERVERS = {
+        ...REGIONS_AND_SERVERS,
+        ...matrixNodes
+      }
+    }
   }
 
   public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
@@ -148,14 +144,14 @@ export class P2PCommunicationClient extends CommunicationClient {
     return info
   }
 
-  public async findBestRegion(): Promise<Region> {
+  public async findBestRegion(): Promise<Regions> {
     if (this.regionSelectedDone && this.selectedRegion) {
       return this.selectedRegion
     }
 
-    const keys: Region[] = Object.keys(this.ENABLED_RELAY_SERVERS) as any
+    const keys: Regions[] = Object.keys(this.ENABLED_RELAY_SERVERS) as any
 
-    const allPromises: Promise<{ region: Region; server: string }>[] = []
+    const allPromises: Promise<{ region: Regions; server: string }>[] = []
 
     keys.forEach((key) => {
       const nodes = this.ENABLED_RELAY_SERVERS[key]

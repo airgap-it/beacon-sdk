@@ -1,4 +1,4 @@
-import { Storage } from '@airgap/beacon-types'
+import { Storage, NodeDistributions } from '@airgap/beacon-types'
 
 /**
  * @internalapi
@@ -34,7 +34,7 @@ export interface ClientOptions {
    * A list of matrix nodes to connect to. If a non-empty array is passed, the default options will be overwritten.
    * One node will be randomly selected based on the local keypair and the other nodes will be used as a fallback in case the primary node goes down.
    *
-   * Only provide the hostname, no https:// prefix. Eg. ['matrix.example.com']
+   * Only provide the hostname, no https:// prefix. Eg. { [Regions.EU1]: ['matrix.example.com'] }
    */
-  matrixNodes?: string[]
+  matrixNodes?: Partial<NodeDistributions>
 }
