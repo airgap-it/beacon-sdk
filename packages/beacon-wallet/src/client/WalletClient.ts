@@ -1,3 +1,4 @@
+import axios from 'axios'
 import {
   Serializer,
   Client,
@@ -5,7 +6,8 @@ import {
   PermissionManager,
   AppMetadataManager,
   getSenderId,
-  Logger
+  Logger,
+  NOTIFICATION_ORACLE_URL
 } from '@airgap/beacon-core'
 
 import { ExposedPromise } from '@airgap/beacon-utils'
@@ -27,12 +29,15 @@ import {
   TransportStatus,
   BeaconMessage,
   BeaconMessageWrapper,
-  BeaconBaseMessage
+  BeaconBaseMessage,
+  StorageKey,
+  PushToken
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
 import { WalletP2PTransport } from '../transports/WalletP2PTransport'
 import { IncomingRequestInterceptor } from '../interceptors/IncomingRequestInterceptor'
 import { OutgoingResponseInterceptor } from '../interceptors/OutgoingResponseInterceptor'
+import { signMessage } from '@airgap/beacon-utils'
 
 const logger = new Logger('WalletClient')
 
@@ -148,6 +153,57 @@ export class WalletClient extends Client {
     }
 
     return this._connect()
+  }
+
+  public async registerPush(
+    backendUrl: string,
+    accountPublicKey: string,
+    oracleUrl: string = NOTIFICATION_ORACLE_URL
+  ): Promise<PushToken> {
+    const tokens = await this.storage.get(StorageKey.PUSH_TOKENS)
+    const token = tokens.find(
+      (el) => el.publicKey === accountPublicKey && el.backendUrl === backendUrl
+    )
+    if (token) {
+      return token
+    }
+
+    // Check if account is already registered
+    const challenge = (await axios.get(`${oracleUrl}/challenge`)).data
+
+    const keypair = await this.keyPair
+
+    const constructedString = [
+      challenge.id,
+      challenge.timestamp,
+      accountPublicKey,
+      backendUrl
+    ].join(':')
+
+    const signature = await signMessage(constructedString, {
+      privateKey: Buffer.from(keypair.privateKey)
+    })
+
+    const register = (
+      await axios.post(`${oracleUrl}/register`, {
+        name: this.name,
+        challenge,
+        accountPublicKey,
+        signature,
+        backendUrl
+      })
+    ).data
+
+    tokens.push({
+      publicKey: accountPublicKey,
+      backendUrl,
+      accessToken: register.accessToken,
+      managementToken: register.managementToken
+    })
+
+    await this.storage.set(StorageKey.PUSH_TOKENS, tokens)
+
+    return register
   }
 
   /**

@@ -8,6 +8,7 @@ export enum StorageKey {
   TRANSPORT_POSTMESSAGE_PEERS_WALLET = 'beacon:postmessage-peers-wallet',
   ACCOUNTS = 'beacon:accounts',
   ACTIVE_ACCOUNT = 'beacon:active-account',
+  PUSH_TOKENS = 'beacon:push-tokens',
   BEACON_SDK_SECRET_SEED = 'beacon:sdk-secret-seed',
   APP_METADATA_LIST = 'beacon:app-metadata-list',
   PERMISSION_LIST = 'beacon:permissions',

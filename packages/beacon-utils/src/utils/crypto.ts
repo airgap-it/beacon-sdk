@@ -12,7 +12,8 @@ import {
   crypto_sign_ed25519_pk_to_curve25519,
   crypto_sign_ed25519_sk_to_curve25519,
   crypto_box_seal,
-  crypto_box_seal_open
+  crypto_box_seal_open,
+  crypto_sign_detached
 } from 'libsodium-wrappers'
 
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
@@ -189,6 +190,51 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
  */
 export function recipientString(recipientHash: string, relayServer: string): string {
   return `@${recipientHash}:${relayServer}`
+}
+
+const toBuffer = async (message: string): Promise<Uint8Array> => {
+  if (message.length % 2 !== 0) {
+    return from_string(message)
+  }
+
+  let adjustedMessage = message
+
+  if (message.startsWith('0x')) {
+    adjustedMessage = message.slice(2)
+  }
+
+  const buffer = Buffer.from(adjustedMessage, 'hex')
+
+  if (buffer.length === adjustedMessage.length / 2) {
+    return buffer
+  }
+
+  return from_string(message)
+}
+
+const coinlibhash = async (message: Uint8Array, size: number = 32): Promise<Uint8Array> => {
+  await ready
+
+  return crypto_generichash(size, message)
+}
+
+export const signMessage = async (
+  message: string,
+  keypair: { privateKey: Buffer }
+): Promise<string> => {
+  await ready
+
+  const bufferMessage: Uint8Array = await toBuffer(message)
+
+  const edsigPrefix: Uint8Array = new Uint8Array([9, 245, 205, 134, 18])
+
+  const hash: Uint8Array = await coinlibhash(bufferMessage)
+  const rawSignature: Uint8Array = crypto_sign_detached(hash, keypair.privateKey)
+  const signature: string = bs58check.encode(
+    Buffer.concat([Buffer.from(edsigPrefix), Buffer.from(rawSignature)])
+  )
+
+  return signature
 }
 
 /* eslint-enable prefer-arrow/prefer-arrow-functions */

@@ -6,6 +6,7 @@ import {
   PermissionScope,
   Threshold
 } from '@airgap/beacon-types'
+import { Notification } from '../../Notification'
 
 /**
  * @category Message
@@ -17,4 +18,5 @@ export interface PermissionResponse extends BeaconBaseMessage {
   network: Network // Network on which the permissions have been granted
   scopes: PermissionScope[] // Permissions that have been granted for this specific address / account
   threshold?: Threshold
+  notification?: Notification
 }

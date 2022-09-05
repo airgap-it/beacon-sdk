@@ -82,3 +82,5 @@ export { Serializer, Logger, setLogger, getLogger }
 
 // Debug
 export { setDebugEnabled, getDebugEnabled }
+
+export { NOTIFICATION_ORACLE_URL } from './constants'
