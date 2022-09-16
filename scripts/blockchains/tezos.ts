@@ -69,7 +69,6 @@ export const tezosDesktopList: DesktopApp[] = [
     shortName: 'Infinity Wallet',
     color: 'rgb(52, 147, 218)',
     logo: 'infinity-wallet.png',
-    universalLink: 'https://infinitywallet.io',
     deepLink: 'infinity://'
   },
   {
