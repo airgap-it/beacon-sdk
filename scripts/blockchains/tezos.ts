@@ -64,6 +64,15 @@ export const tezosWebList: WebApp[] = [
 
 export const tezosDesktopList: DesktopApp[] = [
   {
+    key: 'infinity_wallet',
+    name: 'Infinity Wallet',
+    shortName: 'Infinity Wallet',
+    color: 'rgb(52, 147, 218)',
+    logo: 'infinity-wallet.png',
+    universalLink: 'https://infinitywallet.io',
+    deepLink: 'infinity://'
+  },
+  {
     key: 'galleon_desktop',
     name: 'Galleon',
     shortName: 'Galleon',
