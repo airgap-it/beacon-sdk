@@ -328,7 +328,6 @@ export class P2PCommunicationClient extends CommunicationClient {
 
             messageCallback(decryptedMessage)
           } catch (decryptionError) {
-            console.log('DECRYPTION FAILED 2')
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
         }
@@ -497,7 +496,6 @@ export class P2PCommunicationClient extends CommunicationClient {
               senderId: await getSenderId(pairingResponse.publicKey)
             })
           } catch (decryptionError) {
-            console.log('DECRYPTION FAILED', decryptionError)
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
         }
