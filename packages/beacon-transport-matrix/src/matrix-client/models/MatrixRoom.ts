@@ -21,7 +21,11 @@ export class MatrixRoom {
    *
    * @param roomSync
    */
-  public static fromSync(roomSync: MatrixSyncRooms): MatrixRoom[] {
+  public static fromSync(roomSync?: MatrixSyncRooms): MatrixRoom[] {
+    if (!roomSync) {
+      return []
+    }
+
     function create<T>(
       rooms: { [key: string]: T },
       creator: (id: string, room: T) => MatrixRoom
@@ -30,9 +34,9 @@ export class MatrixRoom {
     }
 
     return [
-      ...create(roomSync.join, MatrixRoom.fromJoined),
-      ...create(roomSync.invite, MatrixRoom.fromInvited),
-      ...create(roomSync.leave, MatrixRoom.fromLeft)
+      ...create(roomSync.join ?? {}, MatrixRoom.fromJoined),
+      ...create(roomSync.invite ?? {}, MatrixRoom.fromInvited),
+      ...create(roomSync.leave ?? {}, MatrixRoom.fromLeft)
     ]
   }
 
