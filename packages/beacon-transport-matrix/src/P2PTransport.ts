@@ -1,4 +1,3 @@
-import { KeyPair } from 'libsodium-wrappers'
 import { Logger, Transport, PeerManager } from '@airgap/beacon-core'
 import {
   ConnectionContext,
@@ -12,6 +11,7 @@ import {
   NodeDistributions
 } from '@airgap/beacon-types'
 import { P2PCommunicationClient } from '@airgap/beacon-transport-matrix'
+import { KeyPair } from '@stablelib/ed25519'
 
 const logger = new Logger('P2PTransport')
 
