@@ -109,6 +109,10 @@
     <button id="deserializeData">Deserialize Data</button>
     <br /><br />
     ---
+    <textarea id="beacon-textbox-serialize"></textarea>
+    <button id="serializeData">Serialize Data</button>
+    <br /><br />
+    ---
     <br /><br />
     <button id="reset">Reset and Refresh</button>
     <br /><br />
@@ -156,7 +160,7 @@
       beacon.setLogger(x)
 
       // Initiate DAppClient
-      const client = new beacon.DAppClient({
+      const client = beacon.getDAppClientInstance({
         name: 'Example DApp', // Name of the DApp,
         disclaimerText: 'This is an optional <b>disclaimer</b>.'
         // preferredNetwork: beacon.NetworkType.DELPHINET
@@ -495,7 +499,22 @@
       document.getElementById('deserializeData').addEventListener('click', () => {
         const value = document.getElementById('beacon-textbox').value
         console.log('Deserializing:', value)
-        new beacon.Serializer().deserialize(value).then(console.log).catch(console.error)
+
+        new beacon.Serializer()
+          .deserialize(value)
+          .then((res) => {
+            console.log(res), console.log(JSON.stringify(res))
+          })
+          .catch(console.error)
+      })
+
+      // Add event listener to the button
+      document.getElementById('serializeData').addEventListener('click', () => {
+        const value = document.getElementById('beacon-textbox-serialize').value
+        console.log('Serializing:', value)
+        const parsed = JSON.parse(value)
+        console.log(parsed)
+        new beacon.Serializer().serialize(parsed).then(console.log).catch(console.error)
       })
 
       // Add event listener to the button
