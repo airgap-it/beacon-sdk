@@ -57,6 +57,12 @@ const REGIONS_AND_SERVERS: NodeDistributions = {
   ]
 }
 
+interface BeaconInfoResponse {
+  region: string
+  known_servers: string[]
+  timestamp: number
+}
+
 /**
  * @internalapi
  */
@@ -71,7 +77,9 @@ export class P2PCommunicationClient extends CommunicationClient {
   private regionSelectedDone: boolean = false
   private selectedRegion: Regions = Regions.EU1
   private readonly ENABLED_RELAY_SERVERS: NodeDistributions
-  public relayServer: ExposedPromise<string> | undefined
+  public relayServer:
+    | ExposedPromise<{ server: string; timestamp: number; localTimestamp: number }>
+    | undefined
 
   private readonly activeListeners: Map<string, (event: MatrixClientEvent<any>) => void> = new Map()
 
@@ -108,7 +116,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       name: this.name,
       version: BEACON_VERSION,
       publicKey: await this.getPublicKey(),
-      relayServer: await this.getRelayServer()
+      relayServer: (await this.getRelayServer()).server
     }
 
     if (this.iconUrl) {
@@ -128,7 +136,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       name: this.name,
       version: request.version,
       publicKey: await this.getPublicKey(),
-      relayServer: await this.getRelayServer()
+      relayServer: (await this.getRelayServer()).server
     }
 
     if (this.iconUrl) {
@@ -148,15 +156,22 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     const keys: Regions[] = Object.keys(this.ENABLED_RELAY_SERVERS) as any
 
-    const allPromises: Promise<{ region: Regions; server: string }>[] = []
+    const allPromises: Promise<{
+      region: Regions
+      server: string
+      response: BeaconInfoResponse
+    }>[] = []
 
     keys.forEach((key) => {
       const nodes = this.ENABLED_RELAY_SERVERS[key]
       const index = Math.floor(Math.random() * nodes.length)
       allPromises.push(
-        axios
-          .get(`https://${nodes[index]}/_matrix/client/versions`)
-          .then(() => ({ region: key, server: nodes[index] }))
+        this.getBeaconInfo(nodes[index])
+          .then((res) => ({
+            region: key,
+            server: nodes[index],
+            response: res
+          }))
           .catch(
             (err) =>
               new Promise((_resolve, reject) => {
@@ -178,17 +193,35 @@ export class P2PCommunicationClient extends CommunicationClient {
     // Fastest response wins, region is selected
   }
 
-  public async getRelayServer(): Promise<string> {
+  public async getRelayServer(): Promise<{ server: string; timestamp: number }> {
     if (this.relayServer) {
-      return this.relayServer.promise
+      const relayServer = await this.relayServer.promise
+
+      // We make sure the locally cached timestamp is not older than 1 minute, if it is, we refresh it
+      if (Date.now() - relayServer.localTimestamp < 60 * 1000) {
+        return { server: relayServer.server, timestamp: relayServer.timestamp }
+      }
+
+      const info = await this.getBeaconInfo(relayServer.server)
+      this.relayServer.resolve({
+        server: relayServer.server,
+        timestamp: info.timestamp,
+        localTimestamp: new Date().getTime()
+      })
+      return { server: relayServer.server, timestamp: info.timestamp }
     } else {
       this.relayServer = new ExposedPromise()
     }
 
     const node = await this.storage.get(StorageKey.MATRIX_SELECTED_NODE)
     if (node && node.length > 0) {
-      this.relayServer.resolve(node)
-      return node
+      const info = await this.getBeaconInfo(node)
+      this.relayServer.resolve({
+        server: node,
+        timestamp: info.timestamp,
+        localTimestamp: new Date().getTime()
+      })
+      return { server: node, timestamp: info.timestamp }
     }
 
     const region = await this.findBestRegion()
@@ -201,13 +234,17 @@ export class P2PCommunicationClient extends CommunicationClient {
       const server = nodes[index]
 
       try {
-        await axios.get(`https://${server}/_matrix/client/versions`)
+        const response = await this.getBeaconInfo(server)
         this.storage
           .set(StorageKey.MATRIX_SELECTED_NODE, server)
           .catch((error) => logger.log(error))
 
-        this.relayServer.resolve(server)
-        return server
+        this.relayServer.resolve({
+          server,
+          timestamp: response.timestamp,
+          localTimestamp: new Date().getTime()
+        })
+        return { server, timestamp: response.timestamp }
       } catch (relayError) {
         logger.log(`Ignoring server "${server}", trying another one...`)
         nodes.splice(index, 1)
@@ -216,6 +253,16 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     this.relayServer.reject(`No matrix server reachable!`)
     throw new Error(`No matrix server reachable!`)
+  }
+
+  public async getBeaconInfo(server: string): Promise<BeaconInfoResponse> {
+    return axios
+      .get<BeaconInfoResponse>(`https://${server}/_synapse/client/beacon/info`)
+      .then((res) => ({
+        region: res.data.region,
+        known_servers: res.data.known_servers,
+        timestamp: Math.floor(res.data.timestamp)
+      }))
   }
 
   public async tryJoinRooms(roomId: string, retry: number = 1): Promise<void> {
@@ -239,10 +286,10 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     logger.log('start', `connecting to server`)
 
-    const relayServer = await this.getRelayServer()
+    const relayServer: { server: string; timestamp: number } = await this.getRelayServer()
 
     const client = MatrixClient.create({
-      baseUrl: `https://${relayServer}`,
+      baseUrl: `https://${relayServer.server}`,
       storage: this.storage
     })
 
@@ -275,9 +322,18 @@ export class P2PCommunicationClient extends CommunicationClient {
       }
     })
 
-    const loginString = `login:${Math.floor(Date.now() / 1000 / (5 * 60))}`
+    if (!relayServer.timestamp) {
+      throw new Error('No timestamp received from relay server')
+    }
 
-    logger.log('start', `login ${loginString}, ${await this.getPublicKeyHash()} on ${relayServer}`)
+    const time = Math.floor(relayServer.timestamp)
+
+    const loginString = `login:${Math.floor(time / (5 * 60))}`
+
+    logger.log(
+      'start',
+      `login ${loginString}, ${await this.getPublicKeyHash()} on ${relayServer.server}`
+    )
 
     const loginRawDigest = hash(encode(loginString), 32)
 
