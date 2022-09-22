@@ -2,11 +2,11 @@ import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { LocalStorage } from '@airgap/beacon-core'
-import { MatrixClient } from '../src/matrix-client/MatrixClient'
+import { MatrixClient } from '../../src/matrix-client/MatrixClient'
 import * as sinon from 'sinon'
-import { MatrixRoomStatus } from '../src/matrix-client/models/MatrixRoom'
-import { MatrixHttpClient } from '../src/matrix-client/MatrixHttpClient'
-import { MatrixClientEventType } from '../src/matrix-client/models/MatrixClientEvent'
+import { MatrixRoomStatus } from '../../src/matrix-client/models/MatrixRoom'
+import { MatrixHttpClient } from '../../src/matrix-client/MatrixHttpClient'
+import { MatrixClientEventType } from '../../src/matrix-client/models/MatrixClientEvent'
 
 MatrixClient
 // use chai-as-promised plugin
@@ -163,13 +163,12 @@ describe(`MatrixClient`, () => {
 
   it(`should unsubscribe all events`, async () => {
     const removeStub = sinon.stub((<any>client).eventEmitter, 'removeListener').resolves()
-    const removeAllStub = sinon.stub((<any>client).eventEmitter, 'removeAllListeners').resolves()
 
     client.unsubscribeAll(MatrixClientEventType.MESSAGE)
 
-    expect(removeStub.callCount).to.equal(0)
-    expect(removeAllStub.callCount).to.equal(1)
-    expect(removeAllStub.firstCall.args[0]).to.equal(MatrixClientEventType.MESSAGE)
+    expect(removeStub.callCount).to.equal(1)
+    expect(removeStub.firstCall.args[0]).to.equal(MatrixClientEventType.MESSAGE)
+    expect(removeStub.firstCall.args[1]).to.equal(undefined)
   })
 
   it(`should get a room by id`, async () => {

@@ -72,13 +72,12 @@ import {
   LocalStorage,
   getAccountIdentifier,
   getSenderId,
-  BEACON_VERSION,
   Logger
 } from '@airgap/beacon-core'
 import { getAddressFromPublicKey, ExposedPromise, generateGUID } from '@airgap/beacon-utils'
 import { messageEvents } from '../beacon-message-events'
 import { BlockExplorer } from '../utils/block-explorer'
-import { TezblockBlockExplorer } from '../utils/tezblock-blockexplorer'
+import { TzktBlockExplorer } from '../utils/tzkt-blockexplorer'
 
 import { DAppClientOptions } from './DAppClientOptions'
 import { AlertButton, closeToast } from '@airgap/beacon-ui'
@@ -163,7 +162,7 @@ export class DAppClient extends Client {
       ...config
     })
     this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
-    this.blockExplorer = config.blockExplorer ?? new TezblockBlockExplorer()
+    this.blockExplorer = config.blockExplorer ?? new TzktBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
 
@@ -1477,7 +1476,7 @@ export class DAppClient extends Client {
 
     const request: BeaconMessageWrapper<BlockchainMessage> = {
       id: messageId,
-      version: BEACON_VERSION,
+      version: '3',
       senderId: await getSenderId(await this.beaconId),
       message: requestInput
     }
@@ -1542,7 +1541,7 @@ export class DAppClient extends Client {
     return exposed.promise as any // TODO: fix type
   }
 
-  private async disconnect() {
+  public async disconnect() {
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])

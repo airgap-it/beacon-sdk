@@ -1,10 +1,10 @@
-import { KeyPair } from 'libsodium-wrappers'
 import { ExposedPromise } from '@airgap/beacon-utils'
 import { getKeypairFromSeed, toHex, generateGUID } from '@airgap/beacon-utils'
 import { Storage, StorageKey } from '@airgap/beacon-types'
 import { SDK_VERSION } from '../../constants'
 import { windowRef } from '../../MockWindow'
 import { BeaconClientOptions } from './BeaconClientOptions'
+import { KeyPair } from '@stablelib/ed25519'
 
 /**
  * @internalapi
@@ -58,9 +58,9 @@ export abstract class BeaconClient {
     this.appUrl = config.appUrl
     this.storage = config.storage
 
-    // TODO: This is a temporary "fix" to prevent users from creating multiple Client instances
+    // TODO: This is a temporary "workaround" to prevent users from creating multiple Client instances
     if ((windowRef as any).beaconCreatedClientInstance) {
-      console.warn(
+      console.error(
         '[BEACON] It looks like you created multiple Beacon SDK Client instances. This can lead to problems. Only create one instance and re-use it everywhere.'
       )
     } else {

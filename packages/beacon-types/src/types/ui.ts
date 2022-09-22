@@ -16,6 +16,9 @@ export interface ExtensionApp extends AppBase {
 export interface WebApp extends AppBase {
   links: {
     [NetworkType.MAINNET]: string
+    [NetworkType.GHOSTNET]?: string
+    [NetworkType.MONDAYNET]?: string
+    [NetworkType.DAILYNET]?: string
     [NetworkType.DELPHINET]?: string
     [NetworkType.EDONET]?: string
     [NetworkType.FLORENCENET]?: string
@@ -23,6 +26,7 @@ export interface WebApp extends AppBase {
     [NetworkType.HANGZHOUNET]?: string
     [NetworkType.ITHACANET]?: string
     [NetworkType.JAKARTANET]?: string
+    [NetworkType.KATHMANDUNET]?: string
     [NetworkType.CUSTOM]?: string
   }
 }

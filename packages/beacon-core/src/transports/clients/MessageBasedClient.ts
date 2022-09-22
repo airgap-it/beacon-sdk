@@ -1,17 +1,14 @@
-import {
-  ready,
-  KeyPair,
-  crypto_secretbox_NONCEBYTES,
-  crypto_secretbox_MACBYTES
-} from 'libsodium-wrappers'
 import { BEACON_VERSION } from '../../constants'
 import {
   decryptCryptoboxPayload,
   encryptCryptoboxPayload,
-  generateGUID
+  generateGUID,
+  secretbox_NONCEBYTES,
+  secretbox_MACBYTES
 } from '@airgap/beacon-utils'
 import { CommunicationClient } from './CommunicationClient'
 import { PostMessagePairingRequest, PostMessagePairingResponse } from '@airgap/beacon-types'
+import { KeyPair } from '@stablelib/ed25519'
 
 /**
  * @internalapi
@@ -33,7 +30,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
    * start the client and make sure all dependencies are ready
    */
   public async start(): Promise<void> {
-    await ready
+    await Promise.resolve()
   }
 
   /**
@@ -59,7 +56,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
       id: request.id,
       type: 'postmessage-pairing-response',
       name: this.name,
-      version: BEACON_VERSION,
+      version: request.version,
       publicKey: await this.getPublicKey()
     }
   }
@@ -92,13 +89,13 @@ export abstract class MessageBasedClient extends CommunicationClient {
    * @param payload
    */
   protected async decryptMessage(senderPublicKey: string, payload: string): Promise<string> {
-    const { sharedRx } = await this.createCryptoBoxServer(senderPublicKey, this.keyPair.privateKey)
+    const sharedKey = await this.createCryptoBoxServer(senderPublicKey, this.keyPair)
 
     const hexPayload = Buffer.from(payload, 'hex')
 
-    if (hexPayload.length >= crypto_secretbox_NONCEBYTES + crypto_secretbox_MACBYTES) {
+    if (hexPayload.length >= secretbox_NONCEBYTES + secretbox_MACBYTES) {
       try {
-        return await decryptCryptoboxPayload(hexPayload, sharedRx)
+        return await decryptCryptoboxPayload(hexPayload, sharedKey.receive)
       } catch (decryptionError) {
         /* NO-OP. We try to decode every message, but some might not be addressed to us. */
       }
@@ -114,12 +111,9 @@ export abstract class MessageBasedClient extends CommunicationClient {
    * @param message
    */
   protected async encryptMessage(recipientPublicKey: string, message: string): Promise<string> {
-    const { sharedTx } = await this.createCryptoBoxClient(
-      recipientPublicKey,
-      this.keyPair.privateKey
-    )
+    const sharedKey = await this.createCryptoBoxClient(recipientPublicKey, this.keyPair)
 
-    return encryptCryptoboxPayload(message, sharedTx)
+    return encryptCryptoboxPayload(message, sharedKey.send)
   }
 
   /**

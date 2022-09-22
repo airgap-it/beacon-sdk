@@ -1,7 +1,10 @@
-import axios, { AxiosResponse, CancelTokenSource, Method as HttpMethod } from 'axios'
+import axios, { AxiosError, AxiosResponse, CancelTokenSource, Method as HttpMethod } from 'axios'
 
 import { keys } from '@airgap/beacon-utils'
 import { MatrixRequest, MatrixRequestParams } from './models/api/MatrixRequest'
+import { Logger } from '@airgap/beacon-core'
+
+const logger = new Logger('MatrixHttpClient')
 
 interface HttpOptions {
   accessToken?: string
@@ -101,8 +104,10 @@ export class MatrixHttpClient {
         params,
         cancelToken: this.cancelTokenSource.token
       })
-    } catch (axiosError) {
-      throw (axiosError as any).response.data
+    } catch (error) {
+      const axiosError: AxiosError = error as any
+      logger.error('send', axiosError.code, axiosError.message, (axiosError as any).response.data)
+      throw (error as any).response.data
     }
 
     return response.data
