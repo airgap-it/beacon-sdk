@@ -181,7 +181,7 @@ export class WalletClient extends Client {
     ].join(':')
 
     const signature = await signMessage(constructedString, {
-      privateKey: Buffer.from(keypair.secretKey)
+      secretKey: Buffer.from(keypair.secretKey)
     })
 
     const register = (

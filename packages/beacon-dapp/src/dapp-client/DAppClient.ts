@@ -1648,7 +1648,7 @@ export class DAppClient extends Client {
     const constructedString = [recipient, title, body, timestamp, payload].join(':')
 
     const signature = await signMessage(constructedString, {
-      privateKey: Buffer.from(keypair.privateKey)
+      secretKey: Buffer.from(keypair.secretKey)
     })
 
     const notificationResponse = await axios.post(`${url}/send`, {

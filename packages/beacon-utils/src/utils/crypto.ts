@@ -232,14 +232,14 @@ const coinlibhash = async (message: Uint8Array, size: number = 32): Promise<Uint
 
 export const signMessage = async (
   message: string,
-  keypair: { privateKey: Buffer }
+  keypair: { secretKey: Buffer }
 ): Promise<string> => {
   const bufferMessage: Uint8Array = await toBuffer(message)
 
   const edsigPrefix: Uint8Array = new Uint8Array([9, 245, 205, 134, 18])
 
   const hash: Uint8Array = await coinlibhash(bufferMessage)
-  const rawSignature: Uint8Array = sign(keypair.privateKey, hash)
+  const rawSignature: Uint8Array = sign(keypair.secretKey, hash)
   const signature: string = bs58check.encode(
     Buffer.concat([Buffer.from(edsigPrefix), Buffer.from(rawSignature)])
   )
