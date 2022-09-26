@@ -44,11 +44,19 @@ const readFile = (path: string): Promise<Buffer> => {
 
 function writeFile(path: string, data: any) {
   return new Promise((resolve, reject) => {
-    fs.writeFile(path, data, (err: Error | null): void => {
+    // Make sure directory exists
+    const dir = path.split('/').reverse().slice(1).reverse().join('/')
+    fs.mkdir(dir, { recursive: true }, (err) => {
       if (err) {
         reject(err)
+      } else {
+        fs.writeFile(path, data, (err: Error | null): void => {
+          if (err) {
+            reject(err)
+          }
+          resolve(undefined)
+        })
       }
-      resolve(undefined)
     })
   })
 }
@@ -90,7 +98,7 @@ const generateForBlockchains = (
 
     let out = `import { App, DesktopApp, ExtensionApp, WebApp } from '@airgap/beacon-types'`
     out += `
-  
+
   `
 
     out += `export const extensionList: ExtensionApp[] = ${JSON.stringify(
@@ -99,7 +107,7 @@ const generateForBlockchains = (
       2
     )}`
     out += `
-  
+
   `
     out += `export const desktopList: DesktopApp[] = ${JSON.stringify(
       desktopListWithInlinedLogo,
@@ -107,15 +115,15 @@ const generateForBlockchains = (
       2
     )}`
     out += `
-  
+
   `
     out += `export const webList: WebApp[] = ${JSON.stringify(webListWithInlinedLogo, null, 2)}`
     out += `
-  
+
   `
     out += `export const iOSList: App[] = ${JSON.stringify(iosListWithInlinedLogo, null, 2)}`
     out += `
-  
+
   `
 
     writeFile(path.join(ALERT_DEST_DIR, 'wallet-lists.ts'), out)
