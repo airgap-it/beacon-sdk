@@ -58,6 +58,7 @@
     "@airgap/beacon-blockchain-tezos-sapling": "file:packages/beacon-blockchain-tezos-sapling",
     "@airgap/beacon-core": "file:packages/beacon-core",
     "@airgap/beacon-dapp": "file:packages/beacon-dapp",
+    "@airgap/beacon-lambda-transformer": "file:packages/beacon-lambda-transformer",
     "@airgap/beacon-transport-matrix": "file:packages/beacon-transport-matrix",
     "@airgap/beacon-transport-postmessage": "file:packages/beacon-transport-postmessage",
     "@airgap/beacon-types": "file:packages/beacon-types",
