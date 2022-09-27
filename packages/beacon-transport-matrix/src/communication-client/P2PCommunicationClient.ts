@@ -42,13 +42,10 @@ import { encode } from '@stablelib/utf8'
 const logger = new Logger('P2PCommunicationClient')
 
 const REGIONS_AND_SERVERS: NodeDistributions = {
-  // TODO: Distribution is just for testing
   [Regions.EU1]: [
     'beacon-node-1.diamond.papers.tech',
     'beacon-node-1.sky.papers.tech',
-    'beacon-node-2.sky.papers.tech'
-  ],
-  [Regions.US1]: [
+    'beacon-node-2.sky.papers.tech',
     'beacon-node-1.hope.papers.tech',
     'beacon-node-1.hope-2.papers.tech',
     'beacon-node-1.hope-3.papers.tech',
@@ -163,7 +160,8 @@ export class P2PCommunicationClient extends CommunicationClient {
     }>[] = []
 
     keys.forEach((key) => {
-      const nodes = this.ENABLED_RELAY_SERVERS[key]
+      const nodes = this.ENABLED_RELAY_SERVERS[key] ?? []
+
       const index = Math.floor(Math.random() * nodes.length)
       allPromises.push(
         this.getBeaconInfo(nodes[index])
@@ -227,7 +225,12 @@ export class P2PCommunicationClient extends CommunicationClient {
     const region = await this.findBestRegion()
     this.selectedRegion = region
 
-    const nodes = [...this.ENABLED_RELAY_SERVERS[region]]
+    const regionNodes = this.ENABLED_RELAY_SERVERS[region]
+    if (!regionNodes) {
+      throw new Error(`No servers found for region ${region}`)
+    }
+
+    const nodes = [...regionNodes]
 
     while (nodes.length > 0) {
       const index = Math.floor(Math.random() * nodes.length)
@@ -350,7 +353,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     } catch (error) {
       logger.error('start', 'Could not log in, retrying')
       await this.reset() // If we can't log in, let's reset
-      if (this.loginCounter <= this.ENABLED_RELAY_SERVERS[this.selectedRegion].length) {
+      if (this.loginCounter <= (this.ENABLED_RELAY_SERVERS[this.selectedRegion] ?? []).length) {
         this.loginCounter++
         this.start()
         return

@@ -4,6 +4,6 @@ export enum Regions {
 }
 
 export interface NodeDistributions {
-  [Regions.EU1]: string[]
-  [Regions.US1]: string[]
+  [Regions.EU1]?: string[]
+  [Regions.US1]?: string[]
 }
