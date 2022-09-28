@@ -60,8 +60,6 @@
     <br /><br />
     <button id="sendNotification">Send notification</button>
     <br /><br />
-    <button id="sendNotificationAddress">Send notification to address</button>
-    <br /><br />
     ---
     <br /><br />
     <button id="encryptPayload">Encrypt Payload</button>
@@ -520,14 +518,7 @@
       // Add event listener to the button
       document.getElementById('sendNotification').addEventListener('click', () => {
         client
-          .sendNotificationWithAccessToken('Test', 'Message', '')
-          .then((res) => console.log('Notification Response', res))
-      })
-
-      // Add event listener to the button
-      document.getElementById('sendNotificationAddress').addEventListener('click', () => {
-        client
-          .sendNotificationToAddress('tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ', 'Test', 'Message', '')
+          .sendNotificationWithAccessToken('Beacon Test', 'Message', '', 'xtz')
           .then((res) => console.log('Notification Response', res))
       })
     </script>

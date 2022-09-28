@@ -74,8 +74,7 @@ import {
   LocalStorage,
   getAccountIdentifier,
   getSenderId,
-  Logger,
-  NOTIFICATION_ORACLE_URL
+  Logger
 } from '@airgap/beacon-core'
 import { getAddressFromPublicKey, ExposedPromise, generateGUID } from '@airgap/beacon-utils'
 import { messageEvents } from '../beacon-message-events'
@@ -647,14 +646,15 @@ export class DAppClient extends Client {
   public async sendNotificationWithAccessToken(
     title: string,
     message: string,
-    payload: string
+    payload: string,
+    protocolIdentifier: string
   ): Promise<string> {
     const activeAccount = await this.getActiveAccount()
 
     if (
       !activeAccount ||
       (activeAccount &&
-        !activeAccount.scopes.includes(PermissionScope.NOTIFIACTION) &&
+        !activeAccount.scopes.includes(PermissionScope.NOTIFICATION) &&
         !activeAccount.notification)
     ) {
       throw new Error('notification permissions not given')
@@ -676,24 +676,8 @@ export class DAppClient extends Client {
       title,
       body: message,
       payload,
-      accessToken: activeAccount.notification?.token,
-      isPublic: false
-    })
-  }
-
-  public async sendNotificationToAddress(
-    address: string,
-    title: string,
-    body: string,
-    payload: string
-  ): Promise<string> {
-    return this.sendNotification({
-      url: NOTIFICATION_ORACLE_URL,
-      recipient: address,
-      title,
-      body,
-      payload,
-      isPublic: true
+      protocolIdentifier,
+      accessToken: activeAccount.notification?.token
     })
   }
 
@@ -875,6 +859,7 @@ export class DAppClient extends Client {
       network: message.network,
       scopes: message.scopes,
       threshold: message.threshold,
+      notification: message.notification,
       connectedAt: new Date().getTime()
     }
 
@@ -1631,10 +1616,10 @@ export class DAppClient extends Client {
     title: string
     body: string
     payload: string
-    accessToken?: string
-    isPublic: boolean
+    protocolIdentifier: string
+    accessToken: string
   }): Promise<string> {
-    const { url, recipient, title, body, payload, accessToken, isPublic } = notification
+    const { url, recipient, title, body, payload, protocolIdentifier, accessToken } = notification
     const timestamp = new Date().toISOString()
 
     const keypair = await this.keyPair
@@ -1658,7 +1643,7 @@ export class DAppClient extends Client {
       timestamp,
       payload,
       accessToken,
-      public: isPublic,
+      protocolIdentifier,
       sender: {
         name: this.name,
         publicKey,

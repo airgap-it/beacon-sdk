@@ -92,8 +92,10 @@
               const publicKey = '3b92229274683b338cf8b040cf91ac0f8e19e410f06eda5537ef077e718e0026'
 
               const res = await client.registerPush(
-                'https://webhook.site/37e64204-3058-41ea-b681-9466ec70a892',
+                'https://webhook.site/37e64204-3058-41ea-b681-9466ec70a892', // TODO: Replace this with your own webhook
                 publicKey,
+                'xtz',
+                Math.random().toString(),
                 URL
               )
 
