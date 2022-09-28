@@ -158,6 +158,8 @@ export class WalletClient extends Client {
   public async registerPush(
     backendUrl: string,
     accountPublicKey: string,
+    protocolIdentifier: string,
+    deviceId: string,
     oracleUrl: string = NOTIFICATION_ORACLE_URL
   ): Promise<PushToken> {
     const tokens = await this.storage.get(StorageKey.PUSH_TOKENS)
@@ -190,7 +192,9 @@ export class WalletClient extends Client {
         challenge,
         accountPublicKey,
         signature,
-        backendUrl
+        backendUrl,
+        protocolIdentifier,
+        deviceId
       })
     ).data
 
