@@ -37,7 +37,6 @@ import { WalletClientOptions } from './WalletClientOptions'
 import { WalletP2PTransport } from '../transports/WalletP2PTransport'
 import { IncomingRequestInterceptor } from '../interceptors/IncomingRequestInterceptor'
 import { OutgoingResponseInterceptor } from '../interceptors/OutgoingResponseInterceptor'
-import { signMessage } from '@airgap/beacon-utils'
 
 const logger = new Logger('WalletClient')
 
