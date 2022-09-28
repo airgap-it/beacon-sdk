@@ -155,7 +155,31 @@ export class WalletClient extends Client {
     return this._connect()
   }
 
+  public async getRegisterPushChallenge(
+    backendUrl: string,
+    accountPublicKey: string,
+    oracleUrl: string = NOTIFICATION_ORACLE_URL
+  ) {
+    // Check if account is already registered
+    const challenge: { id: string; timestamp: string } = (await axios.get(`${oracleUrl}/challenge`))
+      .data
+
+    const constructedString = [
+      challenge.id,
+      challenge.timestamp,
+      accountPublicKey,
+      backendUrl
+    ].join(':')
+
+    return {
+      challenge,
+      payloadToSign: constructedString
+    }
+  }
+
   public async registerPush(
+    challenge: { id: string; timestamp: string },
+    signature: string,
     backendUrl: string,
     accountPublicKey: string,
     protocolIdentifier: string,
@@ -169,22 +193,6 @@ export class WalletClient extends Client {
     if (token) {
       return token
     }
-
-    // Check if account is already registered
-    const challenge = (await axios.get(`${oracleUrl}/challenge`)).data
-
-    const keypair = await this.keyPair
-
-    const constructedString = [
-      challenge.id,
-      challenge.timestamp,
-      accountPublicKey,
-      backendUrl
-    ].join(':')
-
-    const signature = await signMessage(constructedString, {
-      secretKey: Buffer.from(keypair.secretKey)
-    })
 
     const register = (
       await axios.post(`${oracleUrl}/register`, {
