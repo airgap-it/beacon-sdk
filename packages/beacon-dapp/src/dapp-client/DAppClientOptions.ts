@@ -77,4 +77,9 @@ export interface DAppClientOptions {
    * A disclaimer text that will be displayed in the pairing alert
    */
   disclaimerText?: string
+
+  /**
+   * A list of contracts that the DApp is using. Allows to attach human readable error messages for to error codes
+   */
+  errorMessages?: Record<string, Record<string | number, string>>
 }
