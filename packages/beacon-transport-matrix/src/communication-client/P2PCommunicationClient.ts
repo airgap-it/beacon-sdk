@@ -42,7 +42,7 @@ import { encode } from '@stablelib/utf8'
 const logger = new Logger('P2PCommunicationClient')
 
 const REGIONS_AND_SERVERS: NodeDistributions = {
-  [Regions.EU1]: [
+  [Regions.EU_WEST]: [
     'beacon-node-1.diamond.papers.tech',
     'beacon-node-1.sky.papers.tech',
     'beacon-node-2.sky.papers.tech',
@@ -87,7 +87,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     keyPair: KeyPair,
     public readonly replicationCount: number,
     private readonly storage: Storage,
-    matrixNodes?: Partial<NodeDistributions>,
+    matrixNodes?: NodeDistributions,
     private readonly iconUrl?: string,
     private readonly appUrl?: string
   ) {

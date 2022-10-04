@@ -30,7 +30,7 @@ export class P2PTransport<
     name: string,
     keyPair: KeyPair,
     storage: Storage,
-    matrixNodes: Partial<NodeDistributions>,
+    matrixNodes: NodeDistributions,
     storageKey: K,
     iconUrl?: string,
     appUrl?: string

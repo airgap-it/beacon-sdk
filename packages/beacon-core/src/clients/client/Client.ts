@@ -50,7 +50,7 @@ export abstract class Client extends BeaconClient {
    */
   protected requestCounter: number[] = []
 
-  protected readonly matrixNodes: Partial<NodeDistributions>
+  protected readonly matrixNodes: NodeDistributions
 
   protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
   protected get transport(): Promise<Transport<any>> {

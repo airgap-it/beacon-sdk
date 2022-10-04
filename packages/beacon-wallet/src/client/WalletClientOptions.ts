@@ -30,5 +30,5 @@ export interface WalletClientOptions {
    *
    * Only provide the hostname, no https:// prefix. Eg. { [Regions.EU1]: ['matrix.example.com'] }
    */
-  matrixNodes?: Partial<NodeDistributions>
+  matrixNodes?: NodeDistributions
 }
