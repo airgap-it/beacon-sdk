@@ -122,6 +122,8 @@ export * from './types/beaconV3/PermissionRequest'
 
 export * from './types/ui'
 
+export * from './types/Regions'
+
 // Tezos
 export {
   TezosBaseOperation,

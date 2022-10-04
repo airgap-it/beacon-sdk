@@ -159,6 +159,8 @@ export class DAppClient extends Client {
 
   private readonly disclaimerText?: string
 
+  private readonly errorMessages: Record<string, Record<string | number, string>>
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -170,6 +172,8 @@ export class DAppClient extends Client {
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
 
     this.disclaimerText = config.disclaimerText
+
+    this.errorMessages = config.errorMessages ?? {}
 
     this.appMetadataManager = new AppMetadataManager(this.storage)
 
@@ -1219,7 +1223,11 @@ export class DAppClient extends Client {
       this.events
         .emit(
           messageEvents[request.type].error,
-          { errorResponse: beaconError, walletInfo: await this.getWalletInfo(peer, activeAccount) },
+          {
+            errorResponse: beaconError,
+            walletInfo: await this.getWalletInfo(peer, activeAccount),
+            errorMessages: this.errorMessages
+          },
           buttons
         )
         .catch((emitError) => logger.error('handleRequestError', emitError))

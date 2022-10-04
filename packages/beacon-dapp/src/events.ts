@@ -41,6 +41,16 @@ const logger = new Logger('BeaconEvents')
 
 const SUCCESS_TIMER: number = 5 * 1000
 
+type RPCError = {
+  kind: string
+  id: string
+  contract_handle?: string
+  location?: number
+  with?: {
+    string?: string
+    int?: number
+  }
+}
 /**
  * The different events that can be emitted by the beacon-sdk
  */
@@ -113,7 +123,11 @@ export interface BeaconEventType {
     connectionContext: ConnectionContext
     walletInfo: WalletInfo
   }
-  [BeaconEvent.OPERATION_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
+  [BeaconEvent.OPERATION_REQUEST_ERROR]: {
+    errorResponse: ErrorResponse
+    walletInfo: WalletInfo
+    errorMessages: Record<string, Record<string | number, string>>
+  }
   [BeaconEvent.SIGN_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: {
     output: SignPayloadResponseOutput
@@ -269,7 +283,11 @@ const showNoPermissionAlert = async (): Promise<void> => {
  * @param beaconError The beacon error
  */
 const showErrorToast = async (
-  response: { errorResponse: ErrorResponse; walletInfo: WalletInfo },
+  response: {
+    errorResponse: ErrorResponse
+    walletInfo: WalletInfo
+    errorMessages?: Record<string, Record<string | number, string>>
+  },
   buttons?: AlertButton[]
 ): Promise<void> => {
   const error = response.errorResponse.errorType
@@ -280,9 +298,6 @@ const showErrorToast = async (
     {
       text: error.title,
       isBold: true
-    },
-    {
-      text: error.description
     }
   ]
 
@@ -290,6 +305,29 @@ const showErrorToast = async (
     response.errorResponse.errorType === BeaconErrorType.TRANSACTION_INVALID_ERROR &&
     response.errorResponse.errorData
   ) {
+    const err: RPCError[] = response.errorResponse.errorData
+    const errorMessages = response.errorMessages
+
+    let hasHumandReadableError = false
+
+    if (err[0]?.contract_handle && errorMessages && errorMessages?.[err[0].contract_handle]) {
+      const errCode = err[1]?.with?.int ?? err[1]?.with?.string
+      const contractErrors = errorMessages?.[err[0].contract_handle]
+      if (errCode && contractErrors?.[errCode]) {
+        actions.push({
+          text: contractErrors?.[errCode],
+          isBold: true
+        })
+        hasHumandReadableError = true
+      }
+    }
+
+    if (!hasHumandReadableError) {
+      actions.push({
+        text: error.description
+      })
+    }
+
     actions.push({
       text: '',
       actionText: 'Show Details',

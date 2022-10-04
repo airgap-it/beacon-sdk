@@ -160,7 +160,12 @@
       // Initiate DAppClient
       const client = beacon.getDAppClientInstance({
         name: 'Example DApp', // Name of the DApp,
-        disclaimerText: 'This is an optional <b>disclaimer</b>.'
+        disclaimerText: 'This is an optional <b>disclaimer</b>.',
+        errorMessages: {
+          KT1RPW5kTX6WFxg8JK34rGEU24gqEEudyfvz: {
+            NOT_OWNER: 'You are not the owner of this token.'
+          }
+        }
         // preferredNetwork: beacon.NetworkType.DELPHINET
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
