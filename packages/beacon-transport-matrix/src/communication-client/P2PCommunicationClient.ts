@@ -71,8 +71,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     | ((event: MatrixClientEvent<MatrixClientEventType.MESSAGE>) => void)
     | undefined
 
-  private regionSelectedDone: boolean = false
-  private selectedRegion: Regions = Regions.EU1
+  private selectedRegion?: Regions
   private readonly ENABLED_RELAY_SERVERS: NodeDistributions
   public relayServer:
     | ExposedPromise<{ server: string; timestamp: number; localTimestamp: number }>
@@ -147,7 +146,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async findBestRegion(): Promise<Regions> {
-    if (this.regionSelectedDone && this.selectedRegion) {
+    if (this.selectedRegion) {
       return this.selectedRegion
     }
 
@@ -182,7 +181,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     })
 
     const region = await Promise.race(allPromises)
-    this.regionSelectedDone = true
+    this.selectedRegion = region.region
 
     return region.region
 
@@ -223,7 +222,6 @@ export class P2PCommunicationClient extends CommunicationClient {
     }
 
     const region = await this.findBestRegion()
-    this.selectedRegion = region
 
     const regionNodes = this.ENABLED_RELAY_SERVERS[region]
     if (!regionNodes) {
@@ -353,6 +351,9 @@ export class P2PCommunicationClient extends CommunicationClient {
     } catch (error) {
       logger.error('start', 'Could not log in, retrying')
       await this.reset() // If we can't log in, let's reset
+      if (!this.selectedRegion) {
+        throw new Error('No region selected.')
+      }
       if (this.loginCounter <= (this.ENABLED_RELAY_SERVERS[this.selectedRegion] ?? []).length) {
         this.loginCounter++
         this.start()
