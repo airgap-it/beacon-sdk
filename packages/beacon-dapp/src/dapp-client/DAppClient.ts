@@ -1638,7 +1638,7 @@ export class DAppClient extends Client {
 
     const publicKey = bs58check.encode(Buffer.concat([prefix, Buffer.from(rawPublicKey)]))
 
-    const constructedString = [recipient, title, body, timestamp, payload].join(':')
+    const constructedString = [recipient, title, body, timestamp, payload].join(' ')
 
     const signature = await signMessage(constructedString, {
       secretKey: Buffer.from(keypair.secretKey)

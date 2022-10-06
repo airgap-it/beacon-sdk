@@ -10,7 +10,7 @@ import {
   NOTIFICATION_ORACLE_URL
 } from '@airgap/beacon-core'
 
-import { ExposedPromise } from '@airgap/beacon-utils'
+import { ExposedPromise, toHex } from '@airgap/beacon-utils'
 
 import {
   ConnectionContext,
@@ -168,11 +168,14 @@ export class WalletClient extends Client {
       challenge.timestamp,
       accountPublicKey,
       backendUrl
-    ].join(':')
+    ].join(' ')
+
+    const bytes = toHex(constructedString)
+    const payloadBytes = '05' + '0100' + toHex(bytes.length) + bytes
 
     return {
       challenge,
-      payloadToSign: constructedString
+      payloadToSign: payloadBytes
     }
   }
 
@@ -193,7 +196,12 @@ export class WalletClient extends Client {
       return token
     }
 
-    const register = (
+    const register: {
+      accessToken: string
+      managementToken: string
+      message: string
+      success: boolean
+    } = (
       await axios.post(`${oracleUrl}/register`, {
         name: this.name,
         challenge,
@@ -205,16 +213,18 @@ export class WalletClient extends Client {
       })
     ).data
 
-    tokens.push({
+    const newToken = {
       publicKey: accountPublicKey,
       backendUrl,
       accessToken: register.accessToken,
       managementToken: register.managementToken
-    })
+    }
+
+    tokens.push(newToken)
 
     await this.storage.set(StorageKey.PUSH_TOKENS, tokens)
 
-    return register
+    return newToken
   }
 
   /**
