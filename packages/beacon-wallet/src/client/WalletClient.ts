@@ -164,6 +164,7 @@ export class WalletClient extends Client {
       .data
 
     const constructedString = [
+      'Tezos Signed Message: ',
       challenge.id,
       challenge.timestamp,
       accountPublicKey,
@@ -171,7 +172,7 @@ export class WalletClient extends Client {
     ].join(' ')
 
     const bytes = toHex(constructedString)
-    const payloadBytes = '05' + '0100' + toHex(bytes.length) + bytes
+    const payloadBytes = '05' + '01' + bytes.length.toString(16).padStart(8, '0') + bytes
 
     return {
       challenge,

@@ -76,7 +76,7 @@ import {
   getSenderId,
   Logger
 } from '@airgap/beacon-core'
-import { getAddressFromPublicKey, ExposedPromise, generateGUID } from '@airgap/beacon-utils'
+import { getAddressFromPublicKey, ExposedPromise, generateGUID, toHex } from '@airgap/beacon-utils'
 import { messageEvents } from '../beacon-message-events'
 import { BlockExplorer } from '../utils/block-explorer'
 import { TzktBlockExplorer } from '../utils/tzkt-blockexplorer'
@@ -1638,9 +1638,19 @@ export class DAppClient extends Client {
 
     const publicKey = bs58check.encode(Buffer.concat([prefix, Buffer.from(rawPublicKey)]))
 
-    const constructedString = [recipient, title, body, timestamp, payload].join(' ')
+    const constructedString = [
+      'Tezos Signed Message: ',
+      recipient,
+      title,
+      body,
+      timestamp,
+      payload
+    ].join(' ')
 
-    const signature = await signMessage(constructedString, {
+    const bytes = toHex(constructedString)
+    const payloadBytes = '05' + '01' + bytes.length.toString(16).padStart(8, '0') + bytes
+
+    const signature = await signMessage(payloadBytes, {
       secretKey: Buffer.from(keypair.secretKey)
     })
 
