@@ -1,18 +1,19 @@
-import * as path from 'path'
 import * as fs from 'fs'
+import * as path from 'path'
 import {
-  ExtensionApp,
-  WebApp,
   App,
   AppBase,
-  DesktopApp
+  DesktopApp,
+  ExtensionApp,
+  WebApp
 } from '../packages/beacon-types/src/types/ui'
+import { dekuDesktopList, dekuExtensionList, dekuIosList, dekuWebList } from './blockchains/deku'
 
 import {
-  substrateExtensionList,
   substrateDesktopList,
-  substrateWebList,
-  substrateIosList
+  substrateExtensionList,
+  substrateIosList,
+  substrateWebList
 } from './blockchains/substrate'
 
 import {
@@ -188,6 +189,14 @@ generateForBlockchains(
   substrateDesktopList,
   substrateWebList,
   substrateIosList
+)
+
+generateForBlockchains(
+  'beacon-blockchain-deku',
+  dekuExtensionList,
+  dekuDesktopList,
+  dekuWebList,
+  dekuIosList
 )
 
 generateForBlockchains(

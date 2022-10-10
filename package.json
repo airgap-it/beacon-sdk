@@ -53,6 +53,7 @@
   },
   "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
+    "@airgap/beacon-blockchain-deku": "file:packages/beacon-blockchain-deku",
     "@airgap/beacon-blockchain-substrate": "file:packages/beacon-blockchain-substrate",
     "@airgap/beacon-blockchain-tezos": "file:packages/beacon-blockchain-tezos",
     "@airgap/beacon-blockchain-tezos-sapling": "file:packages/beacon-blockchain-tezos-sapling",

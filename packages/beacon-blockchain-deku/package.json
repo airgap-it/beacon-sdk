@@ -1,13 +1,12 @@
 {
-  "name": "@airgap/beacon-sdk",
+  "name": "@airgap/beacon-blockchain-deku",
   "version": "3.2.0",
   "description": "> TODO: description",
-  "author": "Andreas Gassmann <a.gassmann@papers.ch>",
+  "author": "Benjamin Fuentes <benjamin.fuentes@marigold.dev>",
   "homepage": "https://walletbeacon.io",
   "license": "ISC",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "unpkg": "dist/walletbeacon.min.js",
   "types": "dist/esm/index.d.ts",
   "exports": {
     "require": "./dist/cjs/index.js",
@@ -35,16 +34,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-blockchain-deku": "file:../beacon-blockchain-deku",
-    "@airgap/beacon-blockchain-substrate": "^3.2.0",
-    "@airgap/beacon-blockchain-tezos": "^3.2.0",
-    "@airgap/beacon-core": "^3.2.0",
-    "@airgap/beacon-dapp": "^3.2.0",
-    "@airgap/beacon-transport-matrix": "^3.2.0",
-    "@airgap/beacon-transport-postmessage": "^3.2.0",
     "@airgap/beacon-types": "^3.2.0",
-    "@airgap/beacon-ui": "^3.2.0",
-    "@airgap/beacon-utils": "^3.2.0",
-    "@airgap/beacon-wallet": "^3.2.0"
+    "@airgap/beacon-ui": "^3.2.0"
   }
 }

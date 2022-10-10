@@ -27,6 +27,10 @@
   "paths": {
     "beacon-core": ["packages/beacon-core/lib/beacon-core", "packages/beacon-core/lib"],
     "beacon-dapp": ["packages/beacon-dapp/lib/beacon-dapp", "packages/beacon-dapp/lib"],
+    "beacon-blockchain-deku": [
+      "packages/beacon-blockchain-deku/lib/beacon-blockchain-deku",
+      "packages/beacon-blockchain-deku/lib"
+    ],
     "beacon-blockchain-substrate": [
       "packages/beacon-blockchain-substrate/lib/beacon-blockchain-substrate",
       "packages/beacon-blockchain-substrate/lib"
