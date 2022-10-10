@@ -9,10 +9,6 @@ export interface DekuTransferRequest extends BlockchainMessage<'deku'> {
     sourceAddress: string
     amount: string
     recipient: string
-    network: {
-      genesisHash: string
-      rpc?: string
-    }
     mode: 'submit' | 'submit-and-return' | 'return' // TODO: Wording
   }
 }
