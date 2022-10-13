@@ -255,6 +255,8 @@ export { IgnoredRequestInputProperties, defaultValues }
 // Others
 export { ConnectionContext, ColorMode, WalletInfo }
 
+export { PushToken } from './types/PushToken'
+
 // TS helpers
 
 export { Optional }

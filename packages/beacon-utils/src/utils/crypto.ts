@@ -7,6 +7,7 @@ import { generateKeyPairFromSeed } from '@stablelib/ed25519'
 import { convertPublicKeyToX25519, convertSecretKeyToX25519, KeyPair } from '@stablelib/ed25519'
 import { BLAKE2b } from '@stablelib/blake2b'
 import { concat } from '@stablelib/bytes'
+import { sign } from '@stablelib/ed25519'
 
 export const secretbox_NONCEBYTES = 24 // crypto_secretbox_NONCEBYTES
 export const secretbox_MACBYTES = 16 // crypto_secretbox_MACBYTES
@@ -203,6 +204,47 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
  */
 export function recipientString(recipientHash: string, relayServer: string): string {
   return `@${recipientHash}:${relayServer}`
+}
+
+const toBuffer = async (message: string): Promise<Uint8Array> => {
+  if (message.length % 2 !== 0) {
+    return encode(message)
+  }
+
+  let adjustedMessage = message
+
+  if (message.startsWith('0x')) {
+    adjustedMessage = message.slice(2)
+  }
+
+  const buffer = Buffer.from(adjustedMessage, 'hex')
+
+  if (buffer.length === adjustedMessage.length / 2) {
+    return buffer
+  }
+
+  return encode(message)
+}
+
+const coinlibhash = async (message: Uint8Array, size: number = 32): Promise<Uint8Array> => {
+  return hash(message, size)
+}
+
+export const signMessage = async (
+  message: string,
+  keypair: { secretKey: Buffer }
+): Promise<string> => {
+  const bufferMessage: Uint8Array = await toBuffer(message)
+
+  const edsigPrefix: Uint8Array = new Uint8Array([9, 245, 205, 134, 18])
+
+  const hash: Uint8Array = await coinlibhash(bufferMessage)
+  const rawSignature: Uint8Array = sign(keypair.secretKey, hash)
+  const signature: string = bs58check.encode(
+    Buffer.concat([Buffer.from(edsigPrefix), Buffer.from(rawSignature)])
+  )
+
+  return signature
 }
 
 /* eslint-enable prefer-arrow/prefer-arrow-functions */

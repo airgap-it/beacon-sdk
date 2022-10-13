@@ -1,5 +1,6 @@
 import { Origin } from '..'
 import { PermissionEntity } from './PermissionEntity'
+import { Notification } from './Notification'
 
 export type AccountIdentifier = string
 
@@ -12,4 +13,5 @@ export interface AccountInfo extends PermissionEntity {
   }
   publicKey: string
   connectedAt: number
+  notification?: Notification
 }
