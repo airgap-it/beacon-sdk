@@ -1,3 +1,5 @@
+import axios from 'axios'
+import * as bs58check from 'bs58check'
 import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../events'
 import {
   ConnectionContext,
@@ -74,7 +76,7 @@ import {
   getSenderId,
   Logger
 } from '@airgap/beacon-core'
-import { getAddressFromPublicKey, ExposedPromise, generateGUID } from '@airgap/beacon-utils'
+import { getAddressFromPublicKey, ExposedPromise, generateGUID, toHex } from '@airgap/beacon-utils'
 import { messageEvents } from '../beacon-message-events'
 import { BlockExplorer } from '../utils/block-explorer'
 import { TzktBlockExplorer } from '../utils/tzkt-blockexplorer'
@@ -97,6 +99,7 @@ import {
   getWebList,
   getiOSList
 } from '@airgap/beacon-ui'
+import { signMessage } from '@airgap/beacon-utils'
 
 const logger = new Logger('DAppClient')
 
@@ -156,6 +159,8 @@ export class DAppClient extends Client {
 
   private readonly disclaimerText?: string
 
+  private readonly errorMessages: Record<string, Record<string | number, string>>
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -167,6 +172,8 @@ export class DAppClient extends Client {
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
 
     this.disclaimerText = config.disclaimerText
+
+    this.errorMessages = config.errorMessages ?? {}
 
     this.appMetadataManager = new AppMetadataManager(this.storage)
 
@@ -245,7 +252,7 @@ export class DAppClient extends Client {
               }
             }
           } else {
-            logger.error('handleResponse', 'no request found for id ', message.id)
+            logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
         }
       } else {
@@ -305,7 +312,7 @@ export class DAppClient extends Client {
               }
             }
           } else {
-            logger.error('handleResponse', 'no request found for id ', message.id)
+            logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
         }
       }
@@ -423,6 +430,7 @@ export class DAppClient extends Client {
                   postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
                   preferredNetwork: this.preferredNetwork,
                   abortedHandler: () => {
+                    console.log('ABORTED')
                     this._initPromise = undefined
                   },
                   disclaimerText: this.disclaimerText
@@ -639,6 +647,44 @@ export class DAppClient extends Client {
     }
   }
 
+  public async sendNotification(
+    title: string,
+    message: string,
+    payload: string,
+    protocolIdentifier: string
+  ): Promise<string> {
+    const activeAccount = await this.getActiveAccount()
+
+    if (
+      !activeAccount ||
+      (activeAccount &&
+        !activeAccount.scopes.includes(PermissionScope.NOTIFICATION) &&
+        !activeAccount.notification)
+    ) {
+      throw new Error('notification permissions not given')
+    }
+
+    if (!activeAccount.notification?.token) {
+      throw new Error('No AccessToken')
+    }
+
+    const url = activeAccount.notification?.apiUrl
+
+    if (!url) {
+      throw new Error('No Push URL set')
+    }
+
+    return this.sendNotificationWithAccessToken({
+      url,
+      recipient: activeAccount.address,
+      title,
+      body: message,
+      payload,
+      protocolIdentifier,
+      accessToken: activeAccount.notification?.token
+    })
+  }
+
   private blockchains: Map<string, Blockchain> = new Map()
 
   addBlockchain(chain: Blockchain) {
@@ -817,6 +863,7 @@ export class DAppClient extends Client {
       network: message.network,
       scopes: message.scopes,
       threshold: message.threshold,
+      notification: message.notification,
       connectedAt: new Date().getTime()
     }
 
@@ -1176,7 +1223,11 @@ export class DAppClient extends Client {
       this.events
         .emit(
           messageEvents[request.type].error,
-          { errorResponse: beaconError, walletInfo: await this.getWalletInfo(peer, activeAccount) },
+          {
+            errorResponse: beaconError,
+            walletInfo: await this.getWalletInfo(peer, activeAccount),
+            errorMessages: this.errorMessages
+          },
           buttons
         )
         .catch((emitError) => logger.error('handleRequestError', emitError))
@@ -1565,5 +1616,59 @@ export class DAppClient extends Client {
   ): void {
     logger.log('addOpenRequest', this.name, `adding request ${id} and waiting for answer`)
     this.openRequests.set(id, promise)
+  }
+
+  private async sendNotificationWithAccessToken(notification: {
+    url: string
+    recipient: string
+    title: string
+    body: string
+    payload: string
+    protocolIdentifier: string
+    accessToken: string
+  }): Promise<string> {
+    const { url, recipient, title, body, payload, protocolIdentifier, accessToken } = notification
+    const timestamp = new Date().toISOString()
+
+    const keypair = await this.keyPair
+
+    const rawPublicKey = keypair.publicKey
+
+    const prefix = Buffer.from(new Uint8Array([13, 15, 37, 217]))
+
+    const publicKey = bs58check.encode(Buffer.concat([prefix, Buffer.from(rawPublicKey)]))
+
+    const constructedString = [
+      'Tezos Signed Message: ',
+      recipient,
+      title,
+      body,
+      timestamp,
+      payload
+    ].join(' ')
+
+    const bytes = toHex(constructedString)
+    const payloadBytes = '05' + '01' + bytes.length.toString(16).padStart(8, '0') + bytes
+
+    const signature = await signMessage(payloadBytes, {
+      secretKey: Buffer.from(keypair.secretKey)
+    })
+
+    const notificationResponse = await axios.post(`${url}/send`, {
+      recipient,
+      title,
+      body,
+      timestamp,
+      payload,
+      accessToken,
+      protocolIdentifier,
+      sender: {
+        name: this.name,
+        publicKey,
+        signature
+      }
+    })
+
+    return notificationResponse.data
   }
 }

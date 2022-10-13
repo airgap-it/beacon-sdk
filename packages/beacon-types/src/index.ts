@@ -122,6 +122,8 @@ export * from './types/beaconV3/PermissionRequest'
 
 export * from './types/ui'
 
+export * from './types/Regions'
+
 // Tezos
 export {
   TezosBaseOperation,
@@ -252,6 +254,8 @@ export { IgnoredRequestInputProperties, defaultValues }
 
 // Others
 export { ConnectionContext, ColorMode, WalletInfo }
+
+export { PushToken } from './types/PushToken'
 
 // TS helpers
 

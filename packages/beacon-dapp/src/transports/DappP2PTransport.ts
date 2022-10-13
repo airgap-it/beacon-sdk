@@ -2,7 +2,8 @@ import {
   Storage,
   StorageKey,
   TransportStatus,
-  ExtendedP2PPairingResponse
+  ExtendedP2PPairingResponse,
+  NodeDistributions
 } from '@airgap/beacon-types'
 import { Logger } from '@airgap/beacon-core'
 import { P2PTransport } from '@airgap/beacon-transport-matrix'
@@ -23,7 +24,7 @@ export class DappP2PTransport extends P2PTransport<
     name: string,
     keyPair: KeyPair,
     storage: Storage,
-    matrixNodes: string[],
+    matrixNodes: NodeDistributions,
     iconUrl?: string,
     appUrl?: string
   ) {

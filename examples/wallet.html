@@ -88,12 +88,35 @@
             if (message.type === beacon.BeaconMessageType.PermissionRequest) {
               // Show a UI to the user where he can confirm sharing an account with the DApp
 
+              const URL = 'https://beacon-notification-oracle.dev.gke.papers.tech'
+              const publicKey = '3b92229274683b338cf8b040cf91ac0f8e19e410f06eda5537ef077e718e0026'
+
+              const res = await client.registerPush(
+                'https://webhook.site/37e64204-3058-41ea-b681-9466ec70a892', // TODO: Replace this with your own webhook
+                publicKey,
+                'xtz',
+                Math.random().toString(),
+                URL
+              )
+
+              console.log('res', res)
+
               const response = {
                 type: beacon.BeaconMessageType.PermissionResponse,
                 network: message.network, // Use the same network that the user requested
-                scopes: [beacon.PermissionScope.OPERATION_REQUEST, beacon.PermissionScope.ENCRYPT], // Ignore the scopes that have been requested and instead give only operation permissions
+                scopes: [
+                  beacon.PermissionScope.OPERATION_REQUEST,
+                  beacon.PermissionScope.NOTIFICATION,
+                  beacon.PermissionScope.ENCRYPT
+                ], // Ignore the scopes that have been requested and instead give only operation permissions
                 id: message.id,
-                publicKey: '3b92229274683b338cf8b040cf91ac0f8e19e410f06eda5537ef077e718e0024'
+                publicKey: publicKey,
+
+                notification: {
+                  version: 1,
+                  apiUrl: URL,
+                  token: res.accessToken
+                }
               }
 
               // Let's wait a little to make it more natural (to test the UI on the dApp side)
