@@ -1,0 +1,1 @@
+cd ./packages/beacon-sdk; rm -rf node_modules/ dist/ ;  cd ../..; yarn ; yarn build

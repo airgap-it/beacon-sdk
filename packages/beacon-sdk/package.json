@@ -39,7 +39,7 @@
     "@airgap/beacon-blockchain-substrate": "^3.2.0",
     "@airgap/beacon-blockchain-tezos": "^3.2.0",
     "@airgap/beacon-core": "^3.2.0",
-    "@airgap/beacon-dapp": "^3.2.0",
+    "@airgap/beacon-dapp": "file:../beacon-dapp",
     "@airgap/beacon-transport-matrix": "^3.2.0",
     "@airgap/beacon-transport-postmessage": "^3.2.0",
     "@airgap/beacon-types": "^3.2.0",
