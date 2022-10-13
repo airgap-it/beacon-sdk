@@ -523,7 +523,7 @@
       // Add event listener to the button
       document.getElementById('sendNotification').addEventListener('click', () => {
         client
-          .sendNotificationWithAccessToken('Beacon Test', 'Message', '', 'xtz')
+          .sendNotification('Beacon Test', 'Message', '', 'xtz')
           .then((res) => console.log('Notification Response', res))
       })
     </script>

@@ -647,7 +647,7 @@ export class DAppClient extends Client {
     }
   }
 
-  public async sendNotificationWithAccessToken(
+  public async sendNotification(
     title: string,
     message: string,
     payload: string,
@@ -674,7 +674,7 @@ export class DAppClient extends Client {
       throw new Error('No Push URL set')
     }
 
-    return this.sendNotification({
+    return this.sendNotificationWithAccessToken({
       url,
       recipient: activeAccount.address,
       title,
@@ -1618,7 +1618,7 @@ export class DAppClient extends Client {
     this.openRequests.set(id, promise)
   }
 
-  private async sendNotification(notification: {
+  private async sendNotificationWithAccessToken(notification: {
     url: string
     recipient: string
     title: string
