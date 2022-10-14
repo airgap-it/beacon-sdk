@@ -1,7 +1,11 @@
-
 import axios from 'axios'
 import * as bs58check from 'bs58check'
-import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../events'
+import {
+  BeaconEvent,
+  BeaconEventHandler,
+  BeaconEventHandlerFunction,
+  BeaconEventType
+} from '../events'
 import {
   ConnectionContext,
   AccountInfo,
