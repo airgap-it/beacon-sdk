@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -36,15 +36,15 @@
   },
   "dependencies": {
     "@airgap/beacon-blockchain-deku": "file:../beacon-blockchain-deku",
-    "@airgap/beacon-blockchain-substrate": "^3.2.0",
-    "@airgap/beacon-blockchain-tezos": "^3.2.0",
-    "@airgap/beacon-core": "^3.2.0",
+    "@airgap/beacon-blockchain-substrate": "^3.3.0",
+    "@airgap/beacon-blockchain-tezos": "^3.3.0",
+    "@airgap/beacon-core": "^3.3.0",
     "@airgap/beacon-dapp": "file:../beacon-dapp",
-    "@airgap/beacon-transport-matrix": "^3.2.0",
-    "@airgap/beacon-transport-postmessage": "^3.2.0",
-    "@airgap/beacon-types": "^3.2.0",
-    "@airgap/beacon-ui": "^3.2.0",
-    "@airgap/beacon-utils": "^3.2.0",
-    "@airgap/beacon-wallet": "^3.2.0"
+    "@airgap/beacon-transport-matrix": "^3.3.0",
+    "@airgap/beacon-transport-postmessage": "^^3.3.0",
+    "@airgap/beacon-types": "^3.3.0",
+    "@airgap/beacon-ui": "^3.3.0",
+    "@airgap/beacon-utils": "^3.3.0",
+    "@airgap/beacon-wallet": "^3.3.0"
   }
 }

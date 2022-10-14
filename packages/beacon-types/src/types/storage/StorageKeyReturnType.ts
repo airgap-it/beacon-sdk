@@ -10,6 +10,7 @@ import {
 import { ExtendedP2PPairingResponse } from '../P2PPairingResponse'
 import { PostMessagePairingRequest } from '../PostMessagePairingRequest'
 import { ExtendedPostMessagePairingResponse } from '../PostMessagePairingResponse'
+import { PushToken } from '../PushToken'
 
 /**
  * @internalapi
@@ -21,6 +22,7 @@ export interface StorageKeyReturnType {
   [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET]: ExtendedPostMessagePairingResponse[]
   [StorageKey.ACCOUNTS]: AccountInfo[]
   [StorageKey.ACTIVE_ACCOUNT]: AccountIdentifier | undefined
+  [StorageKey.PUSH_TOKENS]: PushToken[]
   [StorageKey.BEACON_SDK_SECRET_SEED]: string | undefined
   [StorageKey.APP_METADATA_LIST]: AppMetadata[]
   [StorageKey.PERMISSION_LIST]: PermissionInfo[]
