@@ -11,6 +11,12 @@ export interface DekuTransferRequest extends BlockchainMessage<'deku'> {
     sourceAddress: string
     amount: string
     recipient: string
-    mode: 'submit' | 'submit-and-return' | 'return' // TODO: Wording
+    mode: 'submit' | 'submit-and-return' | 'return'
+    ticketer: string
+    data: string
+    options: {
+      nonce?: number
+      level?: number
+    }
   }
 }

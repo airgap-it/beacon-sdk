@@ -59,11 +59,11 @@ import {
   PermissionRequestV3,
   PermissionResponseV3,
   BeaconBaseMessage,
-  AcknowledgeResponse,
   App,
   DesktopApp,
   ExtensionApp,
-  WebApp
+  WebApp,
+  AcknowledgeResponse
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -223,6 +223,7 @@ export class DAppClient extends Client {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
         if (openRequest && typedMessage.message.type === BeaconMessageType.Acknowledge) {
+          console.timeLog(message.id, 'acknowledge')
           logger.log(`acknowledge message received for ${message.id}`)
           console.timeLog(message.id, 'acknowledge')
 
@@ -249,6 +250,7 @@ export class DAppClient extends Client {
           console.timeLog(typedMessage.id, 'response')
           console.timeEnd(typedMessage.id)
 
+          await closeToast()
           console.log('ok, resolve')
           openRequest.resolve({ message, connectionInfo })
 
@@ -279,7 +281,7 @@ export class DAppClient extends Client {
           }
         }
       } else {
-        console.log('message V2')
+        console.log('message V2', message)
         const typedMessage = message as BeaconMessage
 
         if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
