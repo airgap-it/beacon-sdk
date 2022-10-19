@@ -308,6 +308,7 @@ export class DAppClient extends Client {
 
           if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
             // TODO: Remove "any" once we remove support for v1 wallets
+            await closeToast()
             openRequest.reject(typedMessage as any)
           } else {
             openRequest.resolve({ message, connectionInfo })
