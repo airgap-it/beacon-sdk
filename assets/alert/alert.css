@@ -235,6 +235,8 @@ button {
 
 #beacon-modal__content {
   padding: 24px;
+  max-height: 340px;
+  overflow-y: auto;
 }
 
 #beacon-switch {
