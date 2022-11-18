@@ -101,6 +101,14 @@ export const tezosIosList: App[] = [
     deepLink: 'naan://'
   },
   {
+    key: 'altme_wallet',
+    name: 'Altme Wallet',
+    shortName: 'Altme',
+    color: '',
+    logo: 'altme.png',
+    universalLink: 'https://app.altme.io/app/download'
+  },
+  {
     key: 'autonomy-app',
     name: 'Autonomy: Digital Art Wallet',
     shortName: 'Autonomy',
