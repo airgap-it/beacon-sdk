@@ -1,5 +1,3 @@
-import { KeyPair } from 'libsodium-wrappers'
-
 import {
   PostMessagePairingRequest,
   ExtendedPostMessagePairingResponse,
@@ -15,6 +13,7 @@ import {
 import { Storage } from '@airgap/beacon-types'
 import { Transport, PeerManager, Logger, windowRef } from '@airgap/beacon-core'
 import { PostMessageClient } from './PostMessageClient'
+import { KeyPair } from '@stablelib/ed25519'
 
 const logger = new Logger('PostMessageTransport')
 

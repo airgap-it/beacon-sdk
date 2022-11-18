@@ -1,6 +1,6 @@
 import { BeaconEvent, BeaconEventType, BeaconEventHandlerFunction } from '../events'
 import { BlockExplorer } from '../utils/block-explorer'
-import { Storage, NetworkType, ColorMode } from '@airgap/beacon-types'
+import { Storage, NetworkType, ColorMode, NodeDistributions } from '@airgap/beacon-types'
 
 /**
  * @category DApp
@@ -53,9 +53,9 @@ export interface DAppClientOptions {
    * A list of matrix nodes to connect to. If a non-empty array is passed, the default options will be overwritten.
    * One node will be randomly selected based on the local keypair and the other nodes will be used as a fallback in case the primary node goes down.
    *
-   * Only provide the hostname, no https:// prefix. Eg. ['matrix.example.com']
+   * Only provide the hostname, no https:// prefix. Eg. { [Regions.EU1]: ['matrix.example.com'] }
    */
-  matrixNodes?: string[]
+  matrixNodes?: NodeDistributions
 
   /**
    * The block explorer used by the SDK
@@ -77,4 +77,9 @@ export interface DAppClientOptions {
    * A disclaimer text that will be displayed in the pairing alert
    */
   disclaimerText?: string
+
+  /**
+   * A list of contracts that the DApp is using. Allows to attach human readable error messages for to error codes
+   */
+  errorMessages?: Record<string, Record<string | number, string>>
 }

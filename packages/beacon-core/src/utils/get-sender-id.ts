@@ -1,4 +1,4 @@
-import { ready, crypto_generichash } from 'libsodium-wrappers'
+import { hash } from '@stablelib/blake2b'
 import * as bs58check from 'bs58check'
 
 /**
@@ -9,9 +9,7 @@ import * as bs58check from 'bs58check'
  * @param publicKey
  */
 export const getSenderId = async (publicKey: string): Promise<string> => {
-  await ready
-
-  const buffer = Buffer.from(crypto_generichash(5, Buffer.from(publicKey, 'hex')))
+  const buffer = Buffer.from(hash(Buffer.from(publicKey, 'hex'), 5))
 
   return bs58check.encode(buffer)
 }

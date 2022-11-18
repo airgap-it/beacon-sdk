@@ -1,3 +1,4 @@
+import axios from 'axios'
 import {
   Serializer,
   Client,
@@ -5,10 +6,11 @@ import {
   PermissionManager,
   AppMetadataManager,
   getSenderId,
-  Logger
+  Logger,
+  NOTIFICATION_ORACLE_URL
 } from '@airgap/beacon-core'
 
-import { ExposedPromise } from '@airgap/beacon-utils'
+import { ExposedPromise, toHex } from '@airgap/beacon-utils'
 
 import {
   ConnectionContext,
@@ -27,7 +29,9 @@ import {
   TransportStatus,
   BeaconMessage,
   BeaconMessageWrapper,
-  BeaconBaseMessage
+  BeaconBaseMessage,
+  StorageKey,
+  PushToken
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
 import { WalletP2PTransport } from '../transports/WalletP2PTransport'
@@ -148,6 +152,80 @@ export class WalletClient extends Client {
     }
 
     return this._connect()
+  }
+
+  public async getRegisterPushChallenge(
+    backendUrl: string,
+    accountPublicKey: string,
+    oracleUrl: string = NOTIFICATION_ORACLE_URL
+  ) {
+    // Check if account is already registered
+    const challenge: { id: string; timestamp: string } = (await axios.get(`${oracleUrl}/challenge`))
+      .data
+
+    const constructedString = [
+      'Tezos Signed Message: ',
+      challenge.id,
+      challenge.timestamp,
+      accountPublicKey,
+      backendUrl
+    ].join(' ')
+
+    const bytes = toHex(constructedString)
+    const payloadBytes = '05' + '01' + bytes.length.toString(16).padStart(8, '0') + bytes
+
+    return {
+      challenge,
+      payloadToSign: payloadBytes
+    }
+  }
+
+  public async registerPush(
+    challenge: { id: string; timestamp: string },
+    signature: string,
+    backendUrl: string,
+    accountPublicKey: string,
+    protocolIdentifier: string,
+    deviceId: string,
+    oracleUrl: string = NOTIFICATION_ORACLE_URL
+  ): Promise<PushToken> {
+    const tokens = await this.storage.get(StorageKey.PUSH_TOKENS)
+    const token = tokens.find(
+      (el) => el.publicKey === accountPublicKey && el.backendUrl === backendUrl
+    )
+    if (token) {
+      return token
+    }
+
+    const register: {
+      accessToken: string
+      managementToken: string
+      message: string
+      success: boolean
+    } = (
+      await axios.post(`${oracleUrl}/register`, {
+        name: this.name,
+        challenge,
+        accountPublicKey,
+        signature,
+        backendUrl,
+        protocolIdentifier,
+        deviceId
+      })
+    ).data
+
+    const newToken = {
+      publicKey: accountPublicKey,
+      backendUrl,
+      accessToken: register.accessToken,
+      managementToken: register.managementToken
+    }
+
+    tokens.push(newToken)
+
+    await this.storage.set(StorageKey.PUSH_TOKENS, tokens)
+
+    return newToken
   }
 
   /**
