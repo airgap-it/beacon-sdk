@@ -1,3 +1,4 @@
 export enum DekuPermissionScope {
-  'transfer' = 'transfer'
+  'transfer' = 'transfer',
+  'sign' = 'sign'
 }

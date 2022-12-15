@@ -970,6 +970,15 @@ export class DAppClient extends Client {
 
           return SigningType.MICHELINE
 
+        case SigningType.DEKU:
+          if (!payload.startsWith('80')) {
+            throw new Error(
+              'When using signing type "DEKU", the payload must start with prefix "80"'
+            )
+          }
+
+          return SigningType.DEKU
+
         case SigningType.RAW:
         default:
           return SigningType.RAW
