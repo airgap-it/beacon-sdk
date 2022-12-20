@@ -27,7 +27,7 @@ export interface StorageKeyReturnType {
   [StorageKey.APP_METADATA_LIST]: AppMetadata[]
   [StorageKey.PERMISSION_LIST]: PermissionInfo[]
   [StorageKey.BEACON_SDK_VERSION]: string | undefined
-  [StorageKey.MATRIX_PRESERVED_STATE]: any // TODO: TYPE Partial<MatrixState>
+  [StorageKey.MATRIX_PRESERVED_STATE]: { [key: string]: unknown } // TODO: TYPE Partial<MatrixState>
   [StorageKey.MATRIX_PEER_ROOM_IDS]: { [key: string]: string | undefined }
   [StorageKey.MATRIX_SELECTED_NODE]: string | undefined
   [StorageKey.MULTI_NODE_SETUP_DONE]: boolean | undefined
