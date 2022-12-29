@@ -14,6 +14,7 @@
 # rm -rf ./packages/beacon-utils/dist
 # rm -rf ./packages/beacon-wallet/dist
 
+rm -rf ./packages/beacon-blockchain-deku/node_modules
 rm -rf ./packages/beacon-blockchain-substrate/node_modules
 rm -rf ./packages/beacon-blockchain-tezos/node_modules
 rm -rf ./packages/beacon-blockchain-tezos-sapling/node_modules

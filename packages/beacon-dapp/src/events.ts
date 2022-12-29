@@ -1,14 +1,4 @@
 import {
-  BlockExplorer,
-  openAlert,
-  AlertButton,
-  AlertConfig,
-  closeAlerts,
-  closeToast,
-  openToast,
-  ToastAction
-} from '@airgap/beacon-dapp'
-import {
   BeaconErrorType,
   ExtendedPostMessagePairingResponse,
   PostMessagePairingRequest,
@@ -35,7 +25,17 @@ import {
   // EncryptionOperation
 } from '@airgap/beacon-core'
 import { shortenString } from './utils/shorten-string'
-import { isMobile } from '@airgap/beacon-ui'
+import {
+  AlertButton,
+  AlertConfig,
+  closeAlerts,
+  closeToast,
+  isMobile,
+  openAlert,
+  openToast,
+  ToastAction
+} from '@airgap/beacon-ui'
+import { BlockExplorer } from './utils/block-explorer'
 
 const logger = new Logger('BeaconEvents')
 
@@ -256,10 +256,10 @@ const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => 
 
 const hideUI = async (elements?: ('alert' | 'toast')[]): Promise<void> => {
   if (elements) {
-    if (elements.includes('alert')) {
+    if (elements.indexOf('alert') > 0) {
       closeAlerts()
     }
-    if (elements.includes('toast')) {
+    if (elements.indexOf('toast') > 0) {
       closeToast()
     }
   } else {

@@ -1,6 +1,11 @@
 import axios from 'axios'
 import * as bs58check from 'bs58check'
-import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../events'
+import {
+  BeaconEvent,
+  BeaconEventHandler,
+  BeaconEventHandlerFunction,
+  BeaconEventType
+} from '../events'
 import {
   ConnectionContext,
   AccountInfo,
@@ -54,11 +59,11 @@ import {
   PermissionRequestV3,
   PermissionResponseV3,
   BeaconBaseMessage,
-  AcknowledgeResponse,
   App,
   DesktopApp,
   ExtensionApp,
-  WebApp
+  WebApp,
+  AcknowledgeResponse
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -83,7 +88,6 @@ import { TzktBlockExplorer } from '../utils/tzkt-blockexplorer'
 
 import { DAppClientOptions } from './DAppClientOptions'
 import { AlertButton, closeToast } from '@airgap/beacon-ui'
-import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
@@ -197,12 +201,29 @@ export class DAppClient extends Client {
     ): Promise<void> => {
       const openRequest = this.openRequests.get(message.id)
 
-      logger.log('handleResponse', 'Received message', message, connectionInfo)
+      console.log(
+        'handleResponse',
+        'Received message',
+        message,
+        'connectionInfo',
+        connectionInfo,
+        'openRequest',
+        openRequest
+      )
 
       if (message.version === '3') {
+        console.log('message V3')
+
+        const messageV3 = message as BeaconMessage
+
+        if (messageV3.type && messageV3.type === BeaconMessageType.Error)
+          return openRequest!.reject(messageV3 as ErrorResponse)
+
+        //in V3 we have extra .message field that is mandatory
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
         if (openRequest && typedMessage.message.type === BeaconMessageType.Acknowledge) {
+          console.timeLog(message.id, 'acknowledge')
           logger.log(`acknowledge message received for ${message.id}`)
           console.timeLog(message.id, 'acknowledge')
 
@@ -214,21 +235,25 @@ export class DAppClient extends Client {
             })
             .catch(console.error)
         } else if (openRequest) {
-          const appMetadata: AppMetadata | undefined = (
-            typedMessage.message as unknown /* Why is this unkown cast needed? */ as PermissionResponseV3<string>
-          ).blockchainData.appMetadata
-          if (typedMessage.message.type === BeaconMessageType.PermissionResponse && appMetadata) {
-            await this.appMetadataManager.addAppMetadata(appMetadata)
+          console.log('openRequest', openRequest)
+          console.log('typedMessage', typedMessage)
+
+          if (typedMessage.message.type === BeaconMessageType.PermissionResponse) {
+            const permissionResponseV3 = typedMessage as unknown as BeaconMessageWrapper<
+              PermissionResponseV3<string>
+            >
+            await this.appMetadataManager.addAppMetadata(
+              permissionResponseV3.message.blockchainData.appMetadata
+            )
           }
 
           console.timeLog(typedMessage.id, 'response')
           console.timeEnd(typedMessage.id)
 
-          if (typedMessage.message.type === BeaconMessageType.Error) {
-            openRequest.reject(typedMessage.message as ErrorResponse)
-          } else {
-            openRequest.resolve({ message, connectionInfo })
-          }
+          await closeToast()
+          console.log('ok, resolve')
+          openRequest.resolve({ message, connectionInfo })
+
           this.openRequests.delete(typedMessage.id)
         } else {
           if (typedMessage.message.type === BeaconMessageType.Disconnect) {
@@ -256,6 +281,7 @@ export class DAppClient extends Client {
           }
         }
       } else {
+        console.log('message V2', message)
         const typedMessage = message as BeaconMessage
 
         if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
@@ -282,6 +308,7 @@ export class DAppClient extends Client {
 
           if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
             // TODO: Remove "any" once we remove support for v1 wallets
+            await closeToast()
             openRequest.reject(typedMessage as any)
           } else {
             openRequest.resolve({ message, connectionInfo })
@@ -634,9 +661,9 @@ export class DAppClient extends Client {
 
     switch (type) {
       case BeaconMessageType.OperationRequest:
-        return permissions.includes(PermissionScope.OPERATION_REQUEST)
+        return permissions.indexOf(PermissionScope.OPERATION_REQUEST) > 0
       case BeaconMessageType.SignPayloadRequest:
-        return permissions.includes(PermissionScope.SIGN)
+        return permissions.indexOf(PermissionScope.SIGN) > 0
       // TODO: ENCRYPTION
       // case BeaconMessageType.EncryptPayloadRequest:
       //   return permissions.includes(PermissionScope.ENCRYPT)
@@ -694,6 +721,11 @@ export class DAppClient extends Client {
       setExtensionList(walletLists.extensionList)
       setWebList(walletLists.webList)
       setiOSList(walletLists.iOSList)
+
+      console.log(
+        'Adding ' + chain.identifier + ' blockchain with ext list ',
+        walletLists.extensionList
+      )
     })
   }
 
@@ -720,14 +752,15 @@ export class DAppClient extends Client {
       }
     }
 
-    console.log('REQUESTION PERMIMISSION V3', 'xxx', request)
+    console.log('REQUESTION PERMISSION V3', request)
 
     const { message: response, connectionInfo } = await this.makeRequestV3<
       PermissionRequestV3<string>,
       BeaconMessageWrapper<PermissionResponseV3<string>>
     >(request).catch(async (_requestError: ErrorResponse) => {
+      console.log(_requestError)
       throw new Error('TODO')
-      // throw await this.handleRequestError(request, requestError)
+      //throw await this.handleRequestError(request, requestError)
     })
 
     console.log('RESPONSE V3', response, connectionInfo)
@@ -804,7 +837,7 @@ export class DAppClient extends Client {
       BeaconMessageWrapper<BlockchainResponseV3<string>>
     >(request).catch(async (requestError: ErrorResponse) => {
       console.error(requestError)
-      throw new Error('TODO')
+      throw new Error(JSON.stringify(requestError))
       // throw await this.handleRequestError(request, requestError)
     })
 
@@ -839,13 +872,16 @@ export class DAppClient extends Client {
           ? input.scopes
           : [PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN]
     }
+    console.log('Beacon is preparing to ask permission ', request)
 
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
       PermissionResponse
     >(request).catch(async (requestError: ErrorResponse) => {
+      console.log('error', requestError)
       throw await this.handleRequestError(request, requestError)
     })
+    console.log('Response from permission', message, connectionInfo)
 
     // TODO: Migration code. Remove sometime after 1.0.0 release.
     const publicKey = message.publicKey || (message as any).pubkey || (message as any).pubKey
@@ -870,11 +906,15 @@ export class DAppClient extends Client {
     await this.accountManager.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)
 
+    console.log('Adding accountinfo', accountInfo)
+
     const output: PermissionResponseOutput = {
       ...message,
       address,
       accountInfo
     }
+
+    console.log('notifySuccess')
 
     await this.notifySuccess(request, {
       account: accountInfo,
@@ -929,6 +969,15 @@ export class DAppClient extends Client {
           }
 
           return SigningType.MICHELINE
+
+        case SigningType.DEKU:
+          if (!payload.startsWith('80')) {
+            throw new Error(
+              'When using signing type "DEKU", the payload must start with prefix "80"'
+            )
+          }
+
+          return SigningType.DEKU
 
         case SigningType.RAW:
         default:
@@ -1152,8 +1201,8 @@ export class DAppClient extends Client {
 
     const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
     // Remove all accounts with origin of the specified peer
-    const accountsToRemove = accounts.filter((account) =>
-      peerIdsToRemove.includes(account.senderId)
+    const accountsToRemove = accounts.filter(
+      (account) => peerIdsToRemove.indexOf(account.senderId) > 0
     )
     const accountIdentifiersToRemove = accountsToRemove.map(
       (accountInfo) => accountInfo.accountIdentifier
@@ -1164,7 +1213,7 @@ export class DAppClient extends Client {
     const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
 
     if (activeAccount) {
-      if (accountIdentifiersToRemove.includes(activeAccount.accountIdentifier)) {
+      if (accountIdentifiersToRemove.indexOf(activeAccount.accountIdentifier) > 0) {
         await this.setActiveAccount(undefined)
       }
     }
