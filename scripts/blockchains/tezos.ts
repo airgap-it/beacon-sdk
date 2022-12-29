@@ -64,6 +64,14 @@ export const tezosWebList: WebApp[] = [
 
 export const tezosDesktopList: DesktopApp[] = [
   {
+    key: 'infinity_wallet',
+    name: 'Infinity Wallet',
+    shortName: 'Infinity Wallet',
+    color: 'rgb(52, 147, 218)',
+    logo: 'infinity-wallet.png',
+    deepLink: 'infinity://'
+  },
+  {
     key: 'galleon_desktop',
     name: 'Galleon',
     shortName: 'Galleon',
@@ -99,6 +107,14 @@ export const tezosIosList: App[] = [
     logo: 'ios-naan.png',
     universalLink: 'https://naanwallet.com',
     deepLink: 'naan://'
+  },
+  {
+    key: 'altme_wallet',
+    name: 'Altme Wallet',
+    shortName: 'Altme',
+    color: '',
+    logo: 'altme.png',
+    universalLink: 'https://app.altme.io/app/download'
   },
   {
     key: 'autonomy-app',
