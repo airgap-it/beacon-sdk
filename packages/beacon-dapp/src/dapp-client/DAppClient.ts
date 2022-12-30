@@ -661,9 +661,9 @@ export class DAppClient extends Client {
 
     switch (type) {
       case BeaconMessageType.OperationRequest:
-        return permissions.indexOf(PermissionScope.OPERATION_REQUEST) > 0
+        return permissions.includes(PermissionScope.OPERATION_REQUEST)
       case BeaconMessageType.SignPayloadRequest:
-        return permissions.indexOf(PermissionScope.SIGN) > 0
+        return permissions.includes(PermissionScope.SIGN)
       // TODO: ENCRYPTION
       // case BeaconMessageType.EncryptPayloadRequest:
       //   return permissions.includes(PermissionScope.ENCRYPT)
@@ -1201,8 +1201,8 @@ export class DAppClient extends Client {
 
     const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
     // Remove all accounts with origin of the specified peer
-    const accountsToRemove = accounts.filter(
-      (account) => peerIdsToRemove.indexOf(account.senderId) > 0
+    const accountsToRemove = accounts.filter((account) =>
+      peerIdsToRemove.includes(account.senderId)
     )
     const accountIdentifiersToRemove = accountsToRemove.map(
       (accountInfo) => accountInfo.accountIdentifier
@@ -1213,7 +1213,7 @@ export class DAppClient extends Client {
     const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
 
     if (activeAccount) {
-      if (accountIdentifiersToRemove.indexOf(activeAccount.accountIdentifier) > 0) {
+      if (accountIdentifiersToRemove.includes(activeAccount.accountIdentifier)) {
         await this.setActiveAccount(undefined)
       }
     }

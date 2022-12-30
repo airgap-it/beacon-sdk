@@ -256,10 +256,10 @@ const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => 
 
 const hideUI = async (elements?: ('alert' | 'toast')[]): Promise<void> => {
   if (elements) {
-    if (elements.indexOf('alert') > 0) {
+    if (elements.includes('alert')) {
       closeAlerts()
     }
-    if (elements.indexOf('toast') > 0) {
+    if (elements.includes('toast')) {
       closeToast()
     }
   } else {
