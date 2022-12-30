@@ -1,4 +1,3 @@
-export * from '@airgap/beacon-blockchain-deku'
 export * from '@airgap/beacon-blockchain-substrate'
 export * from '@airgap/beacon-blockchain-tezos'
 export * from '@airgap/beacon-core'
