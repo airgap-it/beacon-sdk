@@ -14,6 +14,8 @@ export enum NetworkType {
   ITHACANET = 'ithacanet',
   JAKARTANET = 'jakartanet',
   KATHMANDUNET = 'kathmandunet',
+  LIMANET = 'limanet',
+  MUMBAINET = 'mumbainet',
   CUSTOM = 'custom'
 }
 
@@ -57,7 +59,9 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.HANGZHOUNET]: 'https://hangzhounet.kukai.app',
       [NetworkType.ITHACANET]: 'https://ithacanet.kukai.app',
       [NetworkType.JAKARTANET]: 'https://jakartanet.kukai.app',
-      [NetworkType.KATHMANDUNET]: 'https://kathmandunet.kukai.app'
+      [NetworkType.KATHMANDUNET]: 'https://kathmandunet.kukai.app',
+      [NetworkType.LIMANET]: 'https://limanet.kukai.app',
+      [NetworkType.MUMBAINET]: 'https://mumbainet.kukai.app'
     }
   }
 ]
