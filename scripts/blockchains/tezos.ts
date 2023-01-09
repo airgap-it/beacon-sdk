@@ -86,6 +86,14 @@ export const tezosDesktopList: DesktopApp[] = [
     color: '',
     logo: 'desktop-umami.png',
     deepLink: 'umami://'
+  },
+  {
+    key: 'atomex_desktop',
+    name: 'Atomex Wallet',
+    shortName: 'Atomex',
+    color: '',
+    logo: 'desktop-atomex.png',
+    deepLink: 'atomex://'
   }
 ]
 
