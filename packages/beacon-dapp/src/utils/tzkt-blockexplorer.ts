@@ -16,7 +16,9 @@ export class TzktBlockExplorer extends BlockExplorer {
       [NetworkType.ITHACANET]: 'https://ithacanet.tzkt.io',
       [NetworkType.JAKARTANET]: 'https://jakartanet.tzkt.io',
       [NetworkType.KATHMANDUNET]: 'https://kathmandunet.tzkt.io',
-      [NetworkType.CUSTOM]: 'https://kathmandunet.tzkt.io'
+      [NetworkType.LIMANET]: 'https://limanet.tzkt.io',
+      [NetworkType.MUMBAINET]: 'https://mumbainet.tzkt.io',
+      [NetworkType.CUSTOM]: 'https://mumbainet.tzkt.io'
     }
   ) {
     super(rpcUrls)
