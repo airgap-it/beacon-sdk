@@ -44,13 +44,6 @@
   padding: 24px;
 }
 
-@media (min-height: 700px) {
-  .beacon-modal__wrapper {
-    top: 50%;
-    transform: translateY(-50%);
-  }
-}
-
 .theme__light .beacon-modal__base,
 .theme__light .beacon-modal__close__wrapper {
   background: #fff;
