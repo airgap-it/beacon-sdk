@@ -145,7 +145,16 @@ export const tezosIosList: App[] = [
     logo: 'ios-temple.png',
     universalLink: 'https://templewallet.com',
     deepLink: 'temple://'
-  }
+  },
+  {
+    key: 'umami_ios',
+    name: 'Umami Mobile',
+    shortName: 'Umami Mobile',
+    color: '',
+    logo: 'desktop-umami.png',
+    deepLink: 'umami://',
+    universalLink:'https://umamiwallet.com/'
+  },
   // {
   //   name: 'Galleon',
   //   shortName: 'Galleon',
