@@ -145,6 +145,15 @@ export const tezosIosList: App[] = [
     logo: 'ios-temple.png',
     universalLink: 'https://templewallet.com',
     deepLink: 'temple://'
+  },
+  {
+    key: 'atomex_ios',
+    name: 'Atomex Wallet',
+    shortName: 'Atomex',
+    color: '',
+    logo: 'ios-atomex.png',
+    universalLink: 'https://atomex.me',
+    deepLink: 'atomex://'
   }
   // {
   //   name: 'Galleon',
