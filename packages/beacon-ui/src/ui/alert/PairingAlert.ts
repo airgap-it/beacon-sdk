@@ -300,7 +300,7 @@ export const preparePairingAlert = async (
             // If we have previously triggered the load, do not load it again (this can lead to multiple QRs being added if "pairingPayload.p2pSyncCode()" is slow)
             qrShown = true
 
-            const code = await serializer.serialize(await pairingPayload.p2pSyncCode())
+            const code = await serializer.serialize(await pairingPayload.p2pSyncCode()) // TODO JGD QR code
             const uri = getTzip10Link('tezos://', code)
             const qrSVG = getQrData(uri, 'svg')
             const qrString = qrSVG.replace('<svg', `<svg class="beacon-alert__image"`)
@@ -327,7 +327,6 @@ export const preparePairingAlert = async (
   }
 
   switchPlatform()
-
   {
     const platformSwitch: HTMLElement | null = shadowRoot.getElementById(`beacon-switch`)
     if (platformSwitch) {

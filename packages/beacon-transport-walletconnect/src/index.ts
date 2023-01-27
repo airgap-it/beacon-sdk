@@ -1,0 +1,1 @@
+export { WalletConnectTransport } from './WalletConnectTransport'

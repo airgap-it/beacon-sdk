@@ -155,3 +155,15 @@ export const tezosIosList: App[] = [
   //   deepLink: 'galleon://'
   // }
 ]
+
+export const tezosWalletConnectList: App[] = [
+  {
+    key: 'walletconnect',
+    name: 'WalletConnect',
+    shortName: 'WC',
+    color: '',
+    logo: 'ios-temple.png',
+    universalLink: 'https://templewallet.com',
+    deepLink: 'temple://'
+  }
+]

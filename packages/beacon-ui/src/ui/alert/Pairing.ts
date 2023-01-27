@@ -10,9 +10,10 @@ import { windowRef } from '@airgap/beacon-core'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
-import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
+import { desktopList, extensionList, iOSList, walletConnectList, webList } from './wallet-lists'
 import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
-
+import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
+// import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 /**
  * Initialize with tezos wallets for backwards compatibility
  */
@@ -20,6 +21,7 @@ let localDesktopList: DesktopApp[] = desktopList
 let localExtensionList: ExtensionApp[] = extensionList
 let localWebList: WebApp[] = webList
 let localiOSList: App[] = iOSList
+let localWalletConnectList: App[] = walletConnectList
 
 export const getDesktopList = (): DesktopApp[] => {
   return localDesktopList
@@ -51,6 +53,14 @@ export const getiOSList = (): App[] => {
 
 export const setiOSList = (iosList: App[]): void => {
   localiOSList = iosList
+}
+
+export const getWalletConnectList = (): App[] => {
+  return localWalletConnectList
+}
+
+export const setWalletConnectList = (walletConnectList: App[]): void => {
+  localWalletConnectList = walletConnectList
 }
 
 const serializer = new Serializer()
@@ -276,6 +286,41 @@ export class Pairing {
               const code = await serializer.serialize(await pairingCode())
               mobileWalletHandler(code)
               statusUpdateHandler(WalletType.IOS, this, true)
+            }
+          }))
+        ].sort((a, b) => a.key.localeCompare(b.key))
+      })
+    }
+
+    if (getWalletConnectList().length > 0) {
+      walletLists.push({
+        title: 'WalletConnect Wallets',
+        type: WalletType.IOS,
+        wallets: [
+          ...getWalletConnectList().map((app) => ({
+            key: app.key,
+            name: app.name,
+            shortName: app.shortName,
+            color: app.color,
+            logo: app.logo,
+            enabled: true,
+            clicked: false,
+            async clickHandler(): Promise<void> {
+              if (this.clicked) {
+                return
+              }
+
+              this.clicked = true
+
+              console.log('HARI...')
+              const walletConnect = new WalletConnectTransport()
+              walletConnect.init()
+              console.log('...BOL')
+
+              // console.log('pairing code', await pairingCode())
+              // const code = await serializer.serialize(await pairingCode())
+              // mobileWalletHandler(code)
+              // statusUpdateHandler(WalletType.IOS, this, true)
             }
           }))
         ].sort((a, b) => a.key.localeCompare(b.key))
