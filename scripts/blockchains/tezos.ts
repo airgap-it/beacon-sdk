@@ -147,6 +147,14 @@ export const tezosIosList: App[] = [
     deepLink: 'temple://'
   },
   {
+    key: 'atomex_ios',
+    name: 'Atomex Wallet',
+    shortName: 'Atomex',
+    color: '',
+    logo: 'ios-atomex.png',
+    universalLink: 'https://atomex.me',
+    deepLink: 'atomex://'
+  },
     key: 'umami_ios',
     name: 'Umami Mobile',
     shortName: 'Umami Mobile',
@@ -154,7 +162,7 @@ export const tezosIosList: App[] = [
     logo: 'desktop-umami.png',
     deepLink: 'umami://',
     universalLink:'https://umamiwallet.com/'
-  },
+  }
   // {
   //   name: 'Galleon',
   //   shortName: 'Galleon',
