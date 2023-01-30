@@ -1,9 +1,21 @@
-// const path = require('path')
+const path = require('path')
+const webpack = require('webpack')
 
-// module.exports = {
-//   entry: './packages/beacon-sdk/dist/cjs/index.js',
-//   output: {
-//     path: path.resolve(__dirname, 'dist'),
-//     filename: 'webpack-numbers.js'
-//   }
-// }
+module.exports = {
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    library: 'beacon',
+    libraryTarget: 'umd'
+  },
+  resolve: {
+    fallback: {
+      crypto: false,
+      stream: require.resolve('stream-browserify')
+    }
+  },
+  plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer']
+    })
+  ]
+}
