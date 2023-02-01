@@ -66,9 +66,10 @@
     "@airgap/beacon-utils": "file:packages/beacon-utils",
     "@airgap/beacon-wallet": "file:packages/beacon-wallet",
     "@walletconnect/legacy-modal": "^2.0.0-rc.0",
-    "@walletconnect/sign-client": "^2.0.0-rc.4",
+    "@walletconnect/sign-client": "2.2.1",
     "@walletconnect/types": "^2.0.0-rc.4",
     "@walletconnect/utils": "^2.0.0-rc.4",
+    "@web3modal/standalone": "2.0.0",
     "stream-browserify": "^3.0.0"
   },
   "devDependencies": {

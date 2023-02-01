@@ -32,6 +32,7 @@ export const preparePairingAlert = async (
     preferredNetwork: NetworkType
   }
 ): Promise<void> => {
+  let walletConnectUri: undefined | string = undefined
   const getInfo = async (): Promise<PairingAlertInfo> => {
     return Pairing.getPairingInfo(
       pairingPayload,
@@ -153,7 +154,9 @@ export const preparePairingAlert = async (
         return
       }
 
-      wallet.clickHandler()
+      walletConnectUri = await wallet.clickHandler()
+      console.log('####### RECEIVED walletConnectUri ######', walletConnectUri)
+
       const modalEl: HTMLElement | null = shadowRoot.getElementById('beacon-modal__content')
       if (modalEl && type !== WalletType.EXTENSION && type !== WalletType.IOS) {
         removeAllChildren(modalEl)
@@ -251,9 +254,10 @@ export const preparePairingAlert = async (
 
   // if (mainText && walletList && switchButton && copyButton && qr && titleEl) {
   const clipboardFn = async () => {
-    const code = pairingPayload
-      ? await serializer.serialize(await pairingPayload.p2pSyncCode())
-      : ''
+    const code =
+      walletConnectUri ||
+      (pairingPayload ? await serializer.serialize(await pairingPayload.p2pSyncCode()) : '')
+
     navigator.clipboard.writeText(code).then(
       () => {
         if (copyButton) {
@@ -300,8 +304,9 @@ export const preparePairingAlert = async (
             // If we have previously triggered the load, do not load it again (this can lead to multiple QRs being added if "pairingPayload.p2pSyncCode()" is slow)
             qrShown = true
 
-            const code = await serializer.serialize(await pairingPayload.p2pSyncCode()) // TODO JGD QR code
-            const uri = getTzip10Link('tezos://', code)
+            const code = await serializer.serialize(await pairingPayload.p2pSyncCode())
+            const uri = walletConnectUri ?? getTzip10Link('tezos://', code)
+            console.log('####### URI FOR QR ######', uri)
             const qrSVG = getQrData(uri, 'svg')
             const qrString = qrSVG.replace('<svg', `<svg class="beacon-alert__image"`)
             qr.insertAdjacentHTML('afterbegin', qrString)

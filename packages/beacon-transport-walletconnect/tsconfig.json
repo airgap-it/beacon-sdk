@@ -6,6 +6,8 @@
     "paths": {
       "@airgap/beacon-transport-walletconnect": ["./src"]
     }
+    // "lib": ["esnext", "dom"], // TODO JGD remove?
+    // "module": "esnext"
   },
   "include": ["./src"]
 }

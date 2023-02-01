@@ -107,6 +107,14 @@ import {
   PostMessagePairingRequest
 } from './types/PostMessagePairingRequest'
 import {
+  ExtendedWalletConnectPairingResponse,
+  WalletConnectPairingResponse
+} from './types/WalletConnectPairingResponse'
+import {
+  ExtendedWalletConnectPairingRequest,
+  WalletConnectPairingRequest
+} from './types/WalletConnectPairingRequest'
+import {
   ExtendedPostMessagePairingResponse,
   PostMessagePairingResponse
 } from './types/PostMessagePairingResponse'
@@ -247,7 +255,11 @@ export {
   P2PPairingRequest,
   P2PPairingResponse,
   ExtendedP2PPairingRequest,
-  ExtendedP2PPairingResponse
+  ExtendedP2PPairingResponse,
+  WalletConnectPairingResponse,
+  WalletConnectPairingRequest,
+  ExtendedWalletConnectPairingRequest,
+  ExtendedWalletConnectPairingResponse
 }
 
 export { IgnoredRequestInputProperties, defaultValues }

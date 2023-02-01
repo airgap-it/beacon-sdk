@@ -12,7 +12,7 @@ import { isAndroid, isIOS } from '../../utils/platform'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { desktopList, extensionList, iOSList, walletConnectList, webList } from './wallet-lists'
 import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
-import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
+import { WalletConnectCommunicationClient } from '@airgap/beacon-transport-walletconnect'
 // import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 /**
  * Initialize with tezos wallets for backwards compatibility
@@ -91,7 +91,7 @@ export interface PairingAlertWallet {
   color?: string
   logo?: string
   enabled: boolean
-  clickHandler(): void
+  clickHandler(): void | Promise<any> // TODO JGD
 }
 
 export interface PairingAlertButton {
@@ -109,6 +109,7 @@ export interface PairingAlertList {
 export interface PairingAlertInfo {
   walletLists: PairingAlertList[]
   buttons: PairingAlertButton[]
+  walletConnectUri?: string
 }
 
 export type StatusUpdateHandler = (
@@ -176,6 +177,8 @@ export class Pairing {
         defaultExtensions.splice(index, 1)
       }
     })
+
+    let walletConnectUri: string | undefined = undefined
 
     const walletLists: PairingAlertList[] = []
 
@@ -305,22 +308,22 @@ export class Pairing {
             logo: app.logo,
             enabled: true,
             clicked: false,
-            async clickHandler(): Promise<void> {
+            async clickHandler(): Promise<any> {
+              // TODO JGD type
               if (this.clicked) {
                 return
               }
 
               this.clicked = true
 
-              console.log('HARI...')
-              const walletConnect = new WalletConnectTransport()
-              walletConnect.init()
-              console.log('...BOL')
+              const walletConnect = new WalletConnectCommunicationClient() // TODO JGD NEXT Walletconnectclient
+              walletConnectUri = await walletConnect.init()
 
-              // console.log('pairing code', await pairingCode())
-              // const code = await serializer.serialize(await pairingCode())
-              // mobileWalletHandler(code)
-              // statusUpdateHandler(WalletType.IOS, this, true)
+              const code = await serializer.serialize(await pairingCode())
+              mobileWalletHandler(code)
+
+              statusUpdateHandler(WalletType.IOS, this, true)
+              return walletConnectUri
             }
           }))
         ].sort((a, b) => a.key.localeCompare(b.key))
@@ -329,7 +332,8 @@ export class Pairing {
 
     return {
       walletLists,
-      buttons: []
+      buttons: [],
+      walletConnectUri
     }
   }
 

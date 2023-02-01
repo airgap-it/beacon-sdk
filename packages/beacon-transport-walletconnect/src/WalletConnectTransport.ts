@@ -1,5 +1,13 @@
-import { SignClient } from '@walletconnect/sign-client'
-import QRCodeModal from '@walletconnect/legacy-modal'
+import {
+  ExtendedWalletConnectPairingResponse,
+  PeerManager,
+  StorageKey,
+  Transport,
+  WalletConnectPairingRequest
+} from '@airgap/beacon-dapp'
+import { KeyPair } from '@stablelib/ed25519'
+import { WalletConnectCommunicationClient } from './communication-client/WalletConnectCommunicationClient'
+import { Storage } from '@airgap/beacon-types'
 
 /**
  * @internalapi
@@ -7,83 +15,70 @@ import QRCodeModal from '@walletconnect/legacy-modal'
  *
  */
 
-export enum NetworkType {
-  MAINNET = 'mainnet',
-  GHOSTNET = 'ghostnet',
-  MONDAYNET = 'mondaynet',
-  DAILYNET = 'dailynet',
-  KATHMANDUNET = 'kathmandunet',
-  LIMANET = 'limanet'
-}
+export class WalletConnectTransport<
+  T extends WalletConnectPairingRequest | ExtendedWalletConnectPairingResponse,
+  K extends StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP
+> extends Transport<T, K, WalletConnectCommunicationClient> {
+  // public readonly type: TransportType = TransportType.WALLETCONNECT
 
-export interface PermissionScopeParam {
-  networks: NetworkType[]
-  methods: PermissionScopeMethods[]
-  events?: PermissionScopeEvents[]
-}
-export enum PermissionScopeMethods {
-  OPERATION_REQUEST = 'tezos_sendOperations',
-  SIGN = 'tezos_signExpression'
-}
+  constructor(name: string, _keyPair: KeyPair, storage: Storage, storageKey: K) {
+    super(name, new WalletConnectCommunicationClient(), new PeerManager<K>(storage, storageKey))
+  }
 
-export enum PermissionScopeEvents {
-  CHAIN_CHANGED = 'chainChanged',
-  ACCOUNTS_CHANGED = 'accountsChanged'
-}
+  public static async isAvailable(): Promise<boolean> {
+    return Promise.resolve(true)
+  }
 
-const TEZOS_PLACEHOLDER = 'tezos'
+  public async connect(): Promise<void> {
+    // if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
+    //   return
+    // }
 
-export class WalletConnectTransport {
-  constructor() {}
+    // logger.log('connect')
+    // this._isConnected = TransportStatus.CONNECTING
 
-  public async init() {
-    console.log('######## 0 ########')
-    const initParams = {
-      projectId: '97f804b46f0db632c52af0556586a5f3',
-      relayUrl: 'wss://relay.walletconnect.com',
-      logger: 'debug',
-      metadata: {
-        name: 'Kukai Wallet',
-        description:
-          'Manage your digital assets and seamlessly connect with experiences and apps on Tezos.',
-        url: 'https://wallet.kukai.app',
-        icons: []
-      }
-    }
-    const client = await SignClient.init(initParams)
-    console.log(client)
+    // await this.client.start()
 
-    console.log('######## 1 ########')
+    // const knownPeers = await this.getPeers()
 
-    // TODO JGD NEXT show QR modal
+    // if (knownPeers.length > 0) {
+    //   logger.log('connect', `connecting to ${knownPeers.length} peers`)
+    //   const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
+    //   Promise.all(connectionPromises).catch((error) => logger.error('connect', error))
+    // }
 
-    const { uri, approval } = await client.connect({
-      requiredNamespaces: {
-        [TEZOS_PLACEHOLDER]: {
-          chains: [`${TEZOS_PLACEHOLDER}:${NetworkType.MAINNET}`],
-          methods: [PermissionScopeMethods.OPERATION_REQUEST, PermissionScopeMethods.SIGN],
-          events: [PermissionScopeEvents.CHAIN_CHANGED, PermissionScopeEvents.ACCOUNTS_CHANGED]
-        }
-      },
-      pairingTopic: ''
-    })
+    // await this.startOpenChannelListener()
 
-    console.log('######## 2 ########')
+    return super.connect()
+  }
 
-    if (uri) {
-      QRCodeModal.open(
-        uri,
-        () => {
-          // noop
-        },
-        { registryUrl: '' }
-      )
-    }
-    console.log('######## 3 ########')
+  public async disconnect(): Promise<void> {
+    // await this.client.stop()
 
-    const session = await approval()
-    console.log('######## 4 ########')
+    return super.disconnect()
+  }
 
-    console.log(session)
+  public async startOpenChannelListener(): Promise<void> {
+    //
+  }
+
+  public async getPairingRequestInfo(): Promise<any> {
+    // return this.client.getPairingRequestInfo()
+  }
+
+  public async listen(_publicKey: string): Promise<void> {
+    // await this.client
+    //   .listenForEncryptedMessage(publicKey, (message) => {
+    //     const connectionContext: ConnectionContext = {
+    //       origin: Origin.P2P,
+    //       id: publicKey
+    //     }
+    //     this.notifyListeners(message, connectionContext).catch((error) => {
+    //       throw error
+    //     })
+    //   })
+    //   .catch((error) => {
+    //     throw error
+    //   })
   }
 }

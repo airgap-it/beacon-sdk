@@ -24,7 +24,8 @@ export abstract class Transport<
     | StorageKey.TRANSPORT_P2P_PEERS_DAPP
     | StorageKey.TRANSPORT_P2P_PEERS_WALLET
     | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
-    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET = any,
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
+    | StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP = any,
   S extends CommunicationClient = any
 > {
   /**
@@ -106,10 +107,15 @@ export abstract class Transport<
    * @param recipient The recipient of the message
    */
   public async send(message: string, peer?: PeerInfo): Promise<void> {
+    console.log('######## SEND ########', peer)
+    return this.client.sendMessage(message, peer as any)
+
     if (peer) {
       return this.client.sendMessage(message, peer as any)
     } else {
       const knownPeers = await this.getPeers()
+      console.log('######## knownPeers ########', knownPeers)
+
       // A broadcast request has to be sent everywhere.
       const promises = knownPeers.map((peerEl) => this.client.sendMessage(message, peerEl as any))
 
