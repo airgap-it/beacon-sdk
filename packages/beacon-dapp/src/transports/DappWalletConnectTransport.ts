@@ -25,15 +25,16 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
   }
 
   public async startOpenChannelListener(): Promise<void> {
-    // return this.client.listenForChannelOpening(async (peer: ExtendedPostMessagePairingResponse) => {
-    //   logger.log('connect', `received PostMessagePairingResponse`, peer)
-    //   await this.addPeer(peer)
-    //   this._isConnected = TransportStatus.CONNECTED
-    //   if (this.newPeerListener) {
-    //     this.newPeerListener(peer)
-    //     this.newPeerListener = undefined // TODO: Remove this once we use the id
+    // return this.client.listenForChannelOpening(
+    //   async (peer: ExtendedWalletConnectPairingResponse) => {
+    //     await this.addPeer(peer)
+    //     this._isConnected = TransportStatus.CONNECTED
+    //     if (this.newPeerListener) {
+    //       this.newPeerListener(peer)
+    //       this.newPeerListener = undefined // TODO: Remove this once we use the id
+    //     }
     //   }
-    // })
+    // )
   }
 
   public async listenForNewPeer(

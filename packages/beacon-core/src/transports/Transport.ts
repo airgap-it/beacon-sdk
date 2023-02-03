@@ -111,8 +111,6 @@ export abstract class Transport<
       return this.client.sendMessage(message, peer as any)
     } else {
       const knownPeers = await this.getPeers()
-      console.log('######## knownPeers ########', knownPeers)
-
       // A broadcast request has to be sent everywhere.
       const promises = knownPeers.map((peerEl) => this.client.sendMessage(message, peerEl as any))
 

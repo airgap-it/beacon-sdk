@@ -15,6 +15,7 @@ import {
 import {
   AccountInfo,
   BeaconMessageType,
+  ConnectionContext,
   DAppClient,
   DAppClientOptions,
   getDAppClientInstance,
@@ -62,13 +63,19 @@ export enum PermissionScopeEvents {
 // }
 
 export class WalletConnectCommunicationClient extends CommunicationClient {
-  private static instance: WalletConnectCommunicationClient
+  protected readonly activeListeners: Map<
+    string,
+    (message: string, context: ConnectionContext) => void
+  > = new Map()
 
+  private static instance: WalletConnectCommunicationClient
   public signClient: Client | undefined
   private session: SessionTypes.Struct | undefined
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
   private dappClient: DAppClient | undefined
+
+  private currentMessageId: string | undefined
 
   constructor() {
     super()
@@ -79,6 +86,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       WalletConnectCommunicationClient.instance = new WalletConnectCommunicationClient()
     }
     return WalletConnectCommunicationClient.instance
+  }
+
+  public async listenForEncryptedMessage(
+    senderPublicKey: string,
+    messageCallback: (message: string, context: ConnectionContext) => void
+  ): Promise<void> {
+    if (this.activeListeners.has(senderPublicKey)) {
+      return
+    }
+
+    const callbackFunction = async (message: string, context: ConnectionContext): Promise<void> => {
+      messageCallback(message, context)
+    }
+
+    this.activeListeners.set(senderPublicKey, callbackFunction)
   }
 
   async unsubscribeFromEncryptedMessages(): Promise<void> {
@@ -93,6 +115,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const serializer = new Serializer()
     const message = (await serializer.deserialize(_message)) as any
 
+    this.currentMessageId = message.id
+    console.log('currentMessageId', this.currentMessageId)
+
     if (message?.type === BeaconMessageType.OperationRequest) {
       this.sendOperations(message)
     }
@@ -106,7 +131,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // TODO JGD type
 
     const session = this.getSession()
-    console.log('#### SESSION ####', session)
 
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.OPERATION_REQUEST)) {
       throw new MissingRequiredScope(PermissionScopeMethods.OPERATION_REQUEST)
@@ -125,6 +149,22 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         }
       }
     })
+    console.log('#### HARIBOL result ####', hash)
+
+    if (hash) {
+      const serializer = new Serializer()
+      const serialized = await serializer.serialize({
+        type: BeaconMessageType.OperationResponse,
+        transactionHash: hash,
+        id: this.currentMessageId!
+      })
+      this.activeListeners.forEach((listener) => {
+        listener(serialized, {
+          origin: Origin.EXTENSION,
+          id: this.currentMessageId!
+        })
+      })
+    }
     return hash
   }
 
@@ -150,6 +190,36 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       }
     }
     this.signClient = await SignClient.init(initParams)
+
+    this.signClient.on('session_delete', ({ topic }) => {
+      console.log('############# session_delete #############')
+      if (this.session?.topic === topic) {
+        this.session = undefined
+      }
+    })
+
+    this.signClient.on('session_expire', ({ topic }) => {
+      console.log('############# session_expire #############')
+
+      if (this.session?.topic === topic) {
+        this.session = undefined
+      }
+    })
+
+    this.signClient.on('session_update', ({ params, topic }) => {
+      console.log('############# session_update #############')
+
+      if (this.session?.topic === topic) {
+        this.session.namespaces = params.namespaces
+        // TODO determine if we need validation on the namespace here
+      }
+    })
+
+    this.signClient.on('session_event', () => {
+      console.log('############# session_event #############')
+
+      // TODO Do we need to handle other session events, such as "chainChanged", "accountsChanged", etc.
+    })
     const defaultMatrixNode = 'beacon-node-1.sky.papers.tech'
 
     const dappClientOptions: DAppClientOptions = {

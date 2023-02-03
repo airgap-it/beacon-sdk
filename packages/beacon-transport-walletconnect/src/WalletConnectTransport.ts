@@ -7,7 +7,7 @@ import {
 } from '@airgap/beacon-dapp'
 import { KeyPair } from '@stablelib/ed25519'
 import { WalletConnectCommunicationClient } from './communication-client/WalletConnectCommunicationClient'
-import { Storage, TransportStatus } from '@airgap/beacon-types'
+import { ConnectionContext, Origin, Storage, TransportStatus } from '@airgap/beacon-types'
 
 /**
  * @internalapi
@@ -42,6 +42,12 @@ export class WalletConnectTransport<
 
     // await this.client.start()
 
+    const knownPeers = await this.getPeers()
+
+    if (knownPeers.length > 0) {
+      knownPeers.map(async (peer) => this.listen(peer.publicKey))
+    }
+
     await this.startOpenChannelListener()
 
     return super.connect()
@@ -75,19 +81,20 @@ export class WalletConnectTransport<
     // return this.client.getPairingRequestInfo()
   }
 
-  public async listen(_publicKey: string): Promise<void> {
-    // await this.client
-    //   .listenForEncryptedMessage(publicKey, (message) => {
-    //     const connectionContext: ConnectionContext = {
-    //       origin: Origin.P2P,
-    //       id: publicKey
-    //     }
-    //     this.notifyListeners(message, connectionContext).catch((error) => {
-    //       throw error
-    //     })
-    //   })
-    //   .catch((error) => {
-    //     throw error
-    //   })
+  public async listen(publicKey: string): Promise<void> {
+    await this.client
+      .listenForEncryptedMessage(publicKey, (message) => {
+        const connectionContext: ConnectionContext = {
+          origin: Origin.WALLETCONNECT,
+          id: publicKey
+        }
+
+        this.notifyListeners(message, connectionContext).catch((error) => {
+          throw error
+        })
+      })
+      .catch((error) => {
+        throw error
+      })
   }
 }

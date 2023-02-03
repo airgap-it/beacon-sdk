@@ -200,7 +200,10 @@ export class DAppClient extends Client {
     ): Promise<void> => {
       const openRequest = this.openRequests.get(message.id)
 
+      console.log('### openRequest ###', openRequest)
       logger.log('handleResponse', 'Received message', message, connectionInfo)
+      console.log('### message ###', JSON.stringify(message))
+      console.log('### connectionInfo ###', connectionInfo)
 
       if (message.version === '3') {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
@@ -293,7 +296,7 @@ export class DAppClient extends Client {
         } else {
           if (
             typedMessage.type === BeaconMessageType.Disconnect ||
-            (message as any).typedMessage.type === BeaconMessageType.Disconnect // TODO: TYPE
+            (message as any)?.typedMessage.type === BeaconMessageType.Disconnect // TODO: TYPE
           ) {
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
@@ -1046,6 +1049,7 @@ export class DAppClient extends Client {
    *
    * @param input The message details we need to prepare the OperationRequest message.
    */
+  // TODO JGD
   public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
     if (!input.operationDetails) {
       throw await this.sendInternalError('Operation details must be provided')
@@ -1427,8 +1431,6 @@ export class DAppClient extends Client {
     console.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
-    console.log('######## 3 ########')
-
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
@@ -1436,16 +1438,12 @@ export class DAppClient extends Client {
 
       throw new Error('rate limit reached')
     }
-    console.log('######## 0 ########')
-
-    console.log('######## 4 ########')
 
     if (!(await this.checkPermissions(requestInput.type))) {
       this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
 
       throw new Error('No permissions to send this request to wallet!')
     }
-    console.log('######## 5 ########')
 
     if (!this.beaconId) {
       throw await this.sendInternalError('BeaconID not defined')
@@ -1467,21 +1465,23 @@ export class DAppClient extends Client {
       ErrorResponse
     >()
 
+    console.log('#### addOpenRequest ####', request.id)
     this.addOpenRequest(request.id, exposed)
+
+    const openRequest = this.openRequests.get(request.id)
+    console.log('#### openRequest ####', openRequest)
 
     const payload = await new Serializer().serialize(request)
 
     const account = await this.getActiveAccount()
 
     const peer = await this.getPeer(account)
-    console.log('######## 6 ########')
 
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
     console.timeLog(messageId, 'sending')
     try {
-      console.log('######## 7 transport ########', this.transport)
       await (await this.transport).send(payload, peer)
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
