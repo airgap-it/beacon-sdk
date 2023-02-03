@@ -107,9 +107,6 @@ export abstract class Transport<
    * @param recipient The recipient of the message
    */
   public async send(message: string, peer?: PeerInfo): Promise<void> {
-    console.log('######## SEND ########', peer)
-    return this.client.sendMessage(message, peer as any)
-
     if (peer) {
       return this.client.sendMessage(message, peer as any)
     } else {

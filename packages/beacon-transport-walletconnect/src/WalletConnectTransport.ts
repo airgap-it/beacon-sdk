@@ -7,7 +7,7 @@ import {
 } from '@airgap/beacon-dapp'
 import { KeyPair } from '@stablelib/ed25519'
 import { WalletConnectCommunicationClient } from './communication-client/WalletConnectCommunicationClient'
-import { Storage } from '@airgap/beacon-types'
+import { Storage, TransportStatus } from '@airgap/beacon-types'
 
 /**
  * @internalapi
@@ -22,7 +22,11 @@ export class WalletConnectTransport<
   // public readonly type: TransportType = TransportType.WALLETCONNECT
 
   constructor(name: string, _keyPair: KeyPair, storage: Storage, storageKey: K) {
-    super(name, new WalletConnectCommunicationClient(), new PeerManager<K>(storage, storageKey))
+    super(
+      name,
+      WalletConnectCommunicationClient.getInstance(),
+      new PeerManager<K>(storage, storageKey)
+    )
   }
 
   public static async isAvailable(): Promise<boolean> {
@@ -30,26 +34,31 @@ export class WalletConnectTransport<
   }
 
   public async connect(): Promise<void> {
-    // if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
-    //   return
-    // }
+    if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
+      return
+    }
 
-    // logger.log('connect')
-    // this._isConnected = TransportStatus.CONNECTING
+    this._isConnected = TransportStatus.CONNECTING
 
     // await this.client.start()
 
-    // const knownPeers = await this.getPeers()
-
-    // if (knownPeers.length > 0) {
-    //   logger.log('connect', `connecting to ${knownPeers.length} peers`)
-    //   const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
-    //   Promise.all(connectionPromises).catch((error) => logger.error('connect', error))
-    // }
-
-    // await this.startOpenChannelListener()
+    await this.startOpenChannelListener()
 
     return super.connect()
+  }
+
+  public async getPeers(): Promise<T[]> {
+    return [
+      {
+        senderId: '12345678',
+        extensionId: '12345678',
+        id: '12345678',
+        type: 'walletconnect-pairing-response',
+        name: 'HARIBOL',
+        publicKey: '12345678',
+        version: 'first'
+      } as T
+    ]
   }
 
   public async disconnect(): Promise<void> {

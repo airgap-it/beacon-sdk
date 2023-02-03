@@ -316,7 +316,7 @@ export class Pairing {
 
               this.clicked = true
 
-              const walletConnect = new WalletConnectCommunicationClient() // TODO JGD NEXT Walletconnectclient
+              const walletConnect = WalletConnectCommunicationClient.getInstance()
               walletConnectUri = await walletConnect.init()
 
               const code = await serializer.serialize(await pairingCode())

@@ -58,7 +58,8 @@ import {
   App,
   DesktopApp,
   ExtensionApp,
-  WebApp
+  WebApp,
+  ExtendedWalletConnectPairingResponse
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -1090,6 +1091,8 @@ export class DAppClient extends Client {
       throw await this.sendInternalError('Signed transaction must be provided')
     }
 
+    console.log('### HARIBOL ###')
+
     const network = input.network || { type: NetworkType.MAINNET }
 
     const request: BroadcastRequestInput = {
@@ -1379,7 +1382,9 @@ export class DAppClient extends Client {
       const postMessagePeers: ExtendedPostMessagePairingResponse[] =
         (await this.postMessageTransport?.getPeers()) ?? []
       const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
-      const peers = [...postMessagePeers, ...p2pPeers]
+      const walletConnectPeers: ExtendedWalletConnectPairingResponse[] =
+        (await this.walletConnectTransport?.getPeers()) ?? []
+      const peers = [...postMessagePeers, ...p2pPeers, ...walletConnectPeers]
 
       logger.log('getPeer', 'Found peers', peers, account)
 
