@@ -113,11 +113,11 @@ export const tezosIosList: App[] = [
   },
   {
     key: 'naan_ios',
-    name: 'Naan Wallet',
-    shortName: 'Naan',
-    color: 'rgb(129, 100, 100)',
+    name: 'naan - your portal to web3 ',
+    shortName: 'naan',
+    color: '',
     logo: 'ios-naan.png',
-    universalLink: 'https://naanwallet.com',
+    universalLink: 'https://www.naan.app/',
     deepLink: 'naan://'
   },
   {
