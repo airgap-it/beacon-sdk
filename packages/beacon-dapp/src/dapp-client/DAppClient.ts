@@ -151,7 +151,10 @@ export class DAppClient extends Client {
    * The currently active peer. This is used to address a peer in case the active account is not set. (Eg. for permission requests)
    */
   private _activePeer: ExposedPromise<
-    ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
+    | ExtendedPostMessagePairingResponse
+    | ExtendedP2PPairingResponse
+    | ExtendedWalletConnectPairingResponse
+    | undefined
   > = new ExposedPromise()
 
   private _initPromise: Promise<TransportType> | undefined
@@ -235,7 +238,7 @@ export class DAppClient extends Client {
           } else {
             openRequest.resolve({ message, connectionInfo })
           }
-          this.openRequests.delete(typedMessage.id)
+          // this.openRequests.delete(typedMessage.id) // TODO JGD
         } else {
           if (typedMessage.message.type === BeaconMessageType.Disconnect) {
             const relevantTransport =
@@ -292,11 +295,11 @@ export class DAppClient extends Client {
           } else {
             openRequest.resolve({ message, connectionInfo })
           }
-          this.openRequests.delete(typedMessage.id)
+          // this.openRequests.delete(typedMessage.id) // TODO JGD
         } else {
           if (
             typedMessage.type === BeaconMessageType.Disconnect ||
-            (message as any)?.typedMessage.type === BeaconMessageType.Disconnect // TODO: TYPE
+            (message as any)?.typedMessage?.type === BeaconMessageType.Disconnect // TODO: TYPE
           ) {
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
@@ -406,6 +409,7 @@ export class DAppClient extends Client {
         } else {
           const p2pTransport = this.p2pTransport
           const postMessageTransport = this.postMessageTransport
+          const walletConnectTransport = this.walletConnectTransport
 
           postMessageTransport
             .listenForNewPeer((peer) => {
@@ -432,6 +436,20 @@ export class DAppClient extends Client {
               this.setTransport(this.p2pTransport).catch(console.error)
               stopListening()
               resolve(TransportType.P2P)
+            })
+            .catch(console.error)
+
+          walletConnectTransport
+            .listenForNewPeer((peer) => {
+              logger.log('init', 'walletconnect transport peer connected', peer)
+              this.events
+                .emit(BeaconEvent.PAIR_SUCCESS, peer)
+                .catch((emitError) => console.warn(emitError))
+
+              this.setActivePeer(peer).catch(console.error)
+              this.setTransport(this.walletConnectTransport).catch(console.error)
+              stopListening()
+              resolve(TransportType.WALLETCONNECT)
             })
             .catch(console.error)
 
@@ -1123,12 +1141,18 @@ export class DAppClient extends Client {
   }
 
   protected async setActivePeer(
-    peer?: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
+    peer?:
+      | ExtendedPostMessagePairingResponse
+      | ExtendedP2PPairingResponse
+      | ExtendedWalletConnectPairingResponse
   ): Promise<void> {
     if (this._activePeer.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
       this._activePeer = ExposedPromise.resolve<
-        ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
+        | ExtendedPostMessagePairingResponse
+        | ExtendedP2PPairingResponse
+        | ExtendedWalletConnectPairingResponse
+        | undefined
       >(peer)
     } else {
       this._activePeer.resolve(peer)
@@ -1465,11 +1489,7 @@ export class DAppClient extends Client {
       ErrorResponse
     >()
 
-    console.log('#### addOpenRequest ####', request.id)
     this.addOpenRequest(request.id, exposed)
-
-    const openRequest = this.openRequests.get(request.id)
-    console.log('#### openRequest ####', openRequest)
 
     const payload = await new Serializer().serialize(request)
 

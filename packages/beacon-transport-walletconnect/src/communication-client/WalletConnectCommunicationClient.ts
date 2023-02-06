@@ -18,9 +18,11 @@ import {
   ConnectionContext,
   DAppClient,
   DAppClientOptions,
+  ExtendedWalletConnectPairingResponse,
   getDAppClientInstance,
   OperationRequest,
-  Origin
+  Origin,
+  PermissionScope
 } from '@airgap/beacon-dapp'
 
 const TEZOS_PLACEHOLDER = 'tezos'
@@ -49,23 +51,15 @@ export enum PermissionScopeEvents {
   ACCOUNTS_CHANGED = 'accountsChanged'
 }
 
-// class Singleton {
-//   private static instance: Singleton
-
-//   private constructor() {}
-
-//   static getInstance(): Singleton {
-//     if (!Singleton.instance) {
-//       Singleton.instance = new Singleton()
-//     }
-//     return Singleton.instance
-//   }
-// }
-
 export class WalletConnectCommunicationClient extends CommunicationClient {
   protected readonly activeListeners: Map<
     string,
     (message: string, context: ConnectionContext) => void
+  > = new Map()
+
+  protected readonly channelOpeningListeners: Map<
+    string,
+    (pairingResponse: ExtendedWalletConnectPairingResponse) => void
   > = new Map()
 
   private static instance: WalletConnectCommunicationClient
@@ -75,7 +69,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private activeNetwork: string | undefined
   private dappClient: DAppClient | undefined
 
-  private currentMessageId: string | undefined
+  private currentMessageId: string | undefined // TODO JGD we shouldn't need this
 
   constructor() {
     super()
@@ -103,6 +97,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.activeListeners.set(senderPublicKey, callbackFunction)
   }
 
+  public async listenForChannelOpening(
+    messageCallback: (pairingResponse: ExtendedWalletConnectPairingResponse) => void
+  ): Promise<void> {
+    const callbackFunction = async (
+      pairingResponse: ExtendedWalletConnectPairingResponse
+    ): Promise<void> => {
+      messageCallback(pairingResponse)
+    }
+    this.channelOpeningListeners.set('JGD', callbackFunction) // TODO JGD
+  }
+
   async unsubscribeFromEncryptedMessages(): Promise<void> {
     // implementation
   }
@@ -114,12 +119,35 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   async sendMessage(_message: string, _peer?: any): Promise<void> {
     const serializer = new Serializer()
     const message = (await serializer.deserialize(_message)) as any
+    console.log('SEND MESSAGE', message)
 
     this.currentMessageId = message.id
-    console.log('currentMessageId', this.currentMessageId)
+    console.log('❗️❗️❗️❗️❗️currentMessageId❗️❗️❗️❗️❗️', this.currentMessageId)
 
     if (message?.type === BeaconMessageType.OperationRequest) {
       this.sendOperations(message)
+    }
+
+    console.log('🗝️ PAIR', this.keyPair)
+    if (message?.type === BeaconMessageType.PermissionRequest) {
+      const serializer = new Serializer()
+      const serialized = await serializer.serialize({
+        type: BeaconMessageType.PermissionResponse,
+        appMetadata: {
+          senderId: '25GYmjPnLm5HF',
+          name: 'Kukai'
+        },
+        publicKey: '444e1f4ab90c304a5ac003d367747aab63815f583ff2330ce159d12c1ecceba1', // TODO JGD where to get this from?
+        network: NetworkType.GHOSTNET as any,
+        scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
+        id: this.currentMessageId!
+      })
+      this.activeListeners.forEach((listener) => {
+        listener(serialized, {
+          origin: Origin.EXTENSION,
+          id: this.currentMessageId!
+        })
+      })
     }
   }
 
@@ -149,7 +177,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         }
       }
     })
-    console.log('#### HARIBOL result ####', hash)
 
     if (hash) {
       const serializer = new Serializer()
@@ -243,17 +270,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       pairingTopic: connectParams.pairingTopic
     })
 
-    approval().then((session) => {
-      // this.storage.set(se)
+    approval().then(async (session) => {
       this.session = session
-      console.log('#########################################################')
-      console.log('################## ESTABLISHED SESSION ##################')
-      console.log(session)
-      console.log('#########################################################')
       this.validateReceivedNamespace(connectParams.permissionScope, this.session.namespaces)
       this.setDefaultAccountAndNetwork()
-      console.log('activeAccount', this.activeAccount)
-      console.log('activeNetwork', this.activeNetwork)
 
       const accountInfo = {
         accountIdentifier: 'X3yvif1yG6EJi2eNgsG',
@@ -269,7 +289,24 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         connectedAt: 1675249368999
       } as AccountInfo
 
-      this.dappClient?.setActiveAccount(accountInfo)
+      const pairingResponse = {
+        id: '12345678',
+        type: 'walletconnect-pairing-response',
+        name: 'Kukai',
+        publicKey: '',
+        senderId: '25GYmjPnLm5HF', // TODO JGD where do we get this from
+        extensionId: '1c9774ab70053b2d69003570813a70990e90e7f5a64ddb6050ec2fe2eea89c15' // TODO JGD where do we get this from
+      } as any
+
+      this.dappClient?.setActiveAccount(accountInfo) // TODO this shouldn't be necessary
+
+      this.channelOpeningListeners.forEach((listener) => {
+        listener({
+          ...pairingResponse,
+          senderId: '25GYmjPnLm5HF', // TODO await getSenderId(pairingResponse.publicKey),
+          extensionId: '1c9774ab70053b2d69003570813a70990e90e7f5a64ddb6050ec2fe2eea89c15'
+        })
+      })
     })
 
     return uri
@@ -478,7 +515,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   /**
    * @description Access the public key hash of the active account
-   * @error ActiveAccountUnspecified thorwn when there are multiple Tezos account in the session and none is set as the active one
+   * @error ActiveAccountUnspecified thrown when there are multiple Tezos account in the session and none is set as the active one
    */
   async getPKH() {
     if (!this.activeAccount) {

@@ -24,7 +24,8 @@ import {
   ConnectionContext,
   NetworkType,
   AcknowledgeResponse,
-  WalletInfo
+  WalletInfo,
+  ExtendedWalletConnectPairingResponse
 } from '@airgap/beacon-types'
 import {
   UnknownBeaconError,
@@ -170,7 +171,10 @@ export interface BeaconEventType {
     abortedHandler?(): void
     disclaimerText?: string
   }
-  [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
+  [BeaconEvent.PAIR_SUCCESS]:
+    | ExtendedPostMessagePairingResponse
+    | ExtendedP2PPairingResponse
+    | ExtendedWalletConnectPairingResponse
   [BeaconEvent.CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[] }
   [BeaconEvent.UNKNOWN]: undefined
