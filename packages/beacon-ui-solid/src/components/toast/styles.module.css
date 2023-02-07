@@ -1,0 +1,9 @@
+.wrapper {
+  position: fixed;
+  top: 0;
+  right: 0;
+}
+
+.button {
+  background-color: blueviolet;
+}

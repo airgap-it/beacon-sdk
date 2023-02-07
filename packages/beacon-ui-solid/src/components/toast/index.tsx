@@ -1,6 +1,7 @@
 import { Component, createSignal } from 'solid-js'
-import { hydrate, render, renderToString } from 'solid-js/web'
+import { render } from 'solid-js/web'
 import { WalletInfo } from '@airgap/beacon-types'
+import styles from './styles.module.css'
 
 // INTERFACES
 export interface ToastAction {
@@ -25,10 +26,13 @@ export interface ToastConfig {
 export interface ToastProps {}
 
 const Toast: Component<ToastProps> = (props: ToastProps) => {
-  const [state, setState] = createSignal('YES SIR')
+  const [state, setState] = createSignal<number>(0)
   return (
-    <div style={{ position: 'fixed', top: 0 }}>
-      <h1>Toast Component {state()}</h1>
+    <div class={styles.wrapper}>
+      <h1>Counter: {state()}</h1>
+      <button class={styles.button} onClick={() => setState(state() + 1)}>
+        Increment
+      </button>
     </div>
   )
 }
@@ -58,7 +62,6 @@ const openToast = async (toastConfig: ToastConfig): Promise<void> => {
  */
 const closeToast = (): Promise<void> =>
   new Promise((resolve) => {
-    console.log('closeToast')
     if (dispose && isOpen()) {
       dispose()
       document.getElementById('beacon-toast-wrapper')?.remove()

@@ -6,7 +6,8 @@ import withSolid from 'rollup-preset-solid'
 export default withSolid([
   {
     input: 'src/index.ts',
-    output: '.'
+    output: '.',
+    plugins: [postcss()]
   },
   {
     input: 'src/index.ts',
@@ -19,52 +20,16 @@ export default withSolid([
         file: 'dist/esm/index.js',
         format: 'esm'
       }
+    ],
+    plugins: [
+      postcss(),
+      typescript()
+      // typescript({
+      //   tsconfig: 'tsconfig.json',
+      //   include: ['src/**/*.ts'],
+      //   useTsconfigDeclarationDir: true,
+      //   output: ""
+      // })
     ]
   }
-  // output: [
-  //   {
-  //     file: 'dist/cjs/index.js',
-  //     format: 'cjs'
-  //   },
-  //   {
-  //     file: 'dist/esm/index.js',
-  //     format: 'esm'
-  //   }
-  // ],
-  //   plugins: [
-  //     postcss(),
-  //     typescript({
-  //       tsconfig: 'tsconfig.json',
-  //       include: ['src/**/*.ts'],
-  //       useTsconfigDeclarationDir: true
-  //     })
-  //   ]
-  // },
-  // // {
-  // //   input: 'src/index.ts',
-  // //   output: [
-  // //     {
-  // //       file: 'dist/cjs/index.js',
-  // //       format: 'cjs'
-  // //     },
-  // //     {
-  // //       file: 'dist/esm/index.js',
-  // //       format: 'esm'
-  // //     }
-  // //   ],
-  // //   plugins: [
-  // //     postcss()
-  // //     // typescript({
-  // //     //   tsconfig: 'tsconfig.json',
-  // //     //   include: ['src/**/*.ts'],
-  // //     //   useTsconfigDeclarationDir: true,
-  // //     //   output: ""
-  // //     // })
-  // //   ]
-  // // },
-  // {
-  //   input: './dist/dts/index.d.ts',
-  //   output: [{ file: 'dist/esm/index.d.ts', format: 'es' }],
-  //   plugins: [dts()]
-  // }
 ])
