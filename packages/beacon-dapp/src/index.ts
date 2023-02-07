@@ -4,7 +4,7 @@ export * from '@airgap/beacon-transport-postmessage'
 export * from '@airgap/beacon-types'
 export * from '@airgap/beacon-utils'
 export * from '@airgap/beacon-ui'
-export * from '@airgap/beacon-ui-solid'
+// export * from '@airgap/beacon-ui-solid'
 
 import { DAppClient } from './dapp-client/DAppClient'
 import { DAppClientOptions } from './dapp-client/DAppClientOptions'
