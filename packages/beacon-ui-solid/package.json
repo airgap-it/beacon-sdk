@@ -5,15 +5,15 @@
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
   "license": "ISC",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "main": "dist/index/index.js",
+  "module": "dist/index/index.js",
+  "types": "dist/index/index.d.ts",
   "exports": {
-    "require": "./dist/cjs/index.js",
-    "import": "./dist/esm/index.js"
+    "require": "./dist/index/index.js",
+    "import": "./dist/index/index.js"
   },
   "directories": {
-    "lib": "dist/esm",
+    "lib": "dist/index",
     "test": "__tests__"
   },
   "files": [
@@ -43,6 +43,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",
     "rollup": "^3.13.0",
+    "rollup-plugin-dts": "^5.1.1",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-typescript2": "^0.34.1",
     "rollup-preset-solid": "^2.0.1",

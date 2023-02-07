@@ -1,5 +1,5 @@
 import { Component } from 'solid-js'
-import { desktopList, extensionList, iOSList, webList } from '../utils/wallet-lists'
+import { desktopList, extensionList, iOSList, webList } from '../ui/alert/wallet-lists'
 import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
 
 // export interface PairingProps {}
