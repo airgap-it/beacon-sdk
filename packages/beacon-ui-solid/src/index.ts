@@ -1,4 +1,5 @@
-export { openAlert, AlertButton, AlertConfig, closeAlerts } from './components/alert'
+export { openAlert, closeAlerts } from './components/alert'
+export type { AlertButton, AlertConfig } from './components/alert'
 
 export {
   Pairing,
