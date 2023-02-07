@@ -6,30 +6,31 @@ import withSolid from 'rollup-preset-solid'
 export default withSolid([
   {
     input: 'src/index.ts',
-    output: 'dist'
+    output: '.'
+  },
+  {
+    input: 'src/index.ts',
+    output: [
+      {
+        file: 'dist/cjs/index.js',
+        format: 'cjs'
+      },
+      {
+        file: 'dist/esm/index.js',
+        format: 'esm'
+      }
+    ]
   }
-  // {
-  //   input: 'src/index.ts',
-  //   output: [
-  //     {
-  //       file: 'dist/cjs/index.js',
-  //       format: 'cjs'
-  //     },
-  //     {
-  //       file: 'dist/esm/index.js',
-  //       format: 'esm'
-  //     }
-  //   ],
-  //   // output: [
-  //   //   {
-  //   //     file: 'dist/cjs/index.js',
-  //   //     format: 'cjs'
-  //   //   },
-  //   //   {
-  //   //     file: 'dist/esm/index.js',
-  //   //     format: 'esm'
-  //   //   }
-  //   // ],
+  // output: [
+  //   {
+  //     file: 'dist/cjs/index.js',
+  //     format: 'cjs'
+  //   },
+  //   {
+  //     file: 'dist/esm/index.js',
+  //     format: 'esm'
+  //   }
+  // ],
   //   plugins: [
   //     postcss(),
   //     typescript({

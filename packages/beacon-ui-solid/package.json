@@ -5,15 +5,15 @@
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
   "license": "ISC",
-  "main": "dist/index/index.js",
+  "main": "dist/cjs/index.js",
   "module": "dist/index/index.js",
   "types": "dist/index/index.d.ts",
   "exports": {
-    "require": "./dist/index/index.js",
-    "import": "./dist/index/index.js"
+    "require": "./dist/cjs/index.js",
+    "import": "./dist/esm/index.js"
   },
   "directories": {
-    "lib": "dist/index",
+    "lib": "dist/esm",
     "test": "__tests__"
   },
   "files": [
