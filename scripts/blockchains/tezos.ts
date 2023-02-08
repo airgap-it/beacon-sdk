@@ -158,12 +158,12 @@ export const tezosIosList: App[] = [
 
 export const tezosWalletConnectList: App[] = [
   {
-    key: 'walletconnect',
-    name: 'WalletConnect',
-    shortName: 'WC',
+    key: 'trust_ios',
+    name: 'Trust Wallet',
+    shortName: 'Trust',
     color: '',
-    logo: 'ios-temple.png',
-    universalLink: 'https://templewallet.com',
-    deepLink: 'temple://'
+    logo: 'ios-trust.png',
+    universalLink: 'https://trustwallet.com',
+    deepLink: 'trust://'
   }
 ]

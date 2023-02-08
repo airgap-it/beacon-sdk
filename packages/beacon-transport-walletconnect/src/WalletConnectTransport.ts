@@ -54,14 +54,16 @@ export class WalletConnectTransport<
   }
 
   public async getPeers(): Promise<T[]> {
+    const client = WalletConnectCommunicationClient.getInstance()
+    const session = client.getSession()
     return [
       {
-        senderId: '12345678',
-        extensionId: '12345678',
-        id: '12345678',
+        senderId: session.peer.publicKey,
+        extensionId: session.peer.metadata.name,
+        id: session.peer.publicKey,
         type: 'walletconnect-pairing-response',
-        name: 'HARIBOL',
-        publicKey: '12345678',
+        name: 'peer',
+        publicKey: session.peer.publicKey,
         version: 'first'
       } as T
     ]

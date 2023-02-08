@@ -1113,8 +1113,6 @@ export class DAppClient extends Client {
       throw await this.sendInternalError('Signed transaction must be provided')
     }
 
-    console.log('### HARIBOL ###')
-
     const network = input.network || { type: NetworkType.MAINNET }
 
     const request: BroadcastRequestInput = {

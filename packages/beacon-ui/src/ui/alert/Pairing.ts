@@ -297,7 +297,7 @@ export class Pairing {
 
     if (getWalletConnectList().length > 0) {
       walletLists.push({
-        title: 'WalletConnect Wallets',
+        title: '',
         type: WalletType.IOS,
         wallets: [
           ...getWalletConnectList().map((app) => ({

@@ -13,13 +13,9 @@ import {
   NotConnected
 } from '../error'
 import {
-  AccountInfo,
   BeaconMessageType,
   ConnectionContext,
-  DAppClient,
-  DAppClientOptions,
   ExtendedWalletConnectPairingResponse,
-  getDAppClientInstance,
   OperationRequest,
   Origin,
   PermissionScope,
@@ -69,7 +65,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private session: SessionTypes.Struct | undefined
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
-  private dappClient: DAppClient | undefined
 
   private currentMessageId: string | undefined // TODO JGD we shouldn't need this
 
@@ -123,7 +118,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const message = (await serializer.deserialize(_message)) as any
 
     this.currentMessageId = message.id
-    console.log('❗️❗️❗️❗️❗️currentMessageId❗️❗️❗️❗️❗️', this.currentMessageId)
 
     if (message?.type === BeaconMessageType.OperationRequest) {
       this.sendOperations(message)
@@ -133,7 +127,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.signPayload(message)
     }
 
-    console.log('🗝️ PAIR', this.keyPair)
     if (message?.type === BeaconMessageType.PermissionRequest) {
       // TODO JGD refactor
       const serializer = new Serializer()
@@ -298,16 +291,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       // TODO Do we need to handle other session events, such as "chainChanged", "accountsChanged", etc.
     })
-    const defaultMatrixNode = 'beacon-node-1.sky.papers.tech'
 
-    const dappClientOptions: DAppClientOptions = {
-      name: 'WalletConnect DAppClient',
-      matrixNodes: [defaultMatrixNode] as any,
-      preferredNetwork: NetworkType.GHOSTNET // TODO JGD change
-    }
-    this.dappClient = getDAppClientInstance(dappClientOptions)
-
-    console.log(this.dappClient)
     const { uri, approval } = await this.signClient.connect({
       requiredNamespaces: {
         [TEZOS_PLACEHOLDER]: {
@@ -326,36 +310,20 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.validateReceivedNamespace(connectParams.permissionScope, this.session.namespaces)
       this.setDefaultAccountAndNetwork()
 
-      const accountInfo = {
-        accountIdentifier: 'X3yvif1yG6EJi2eNgsG',
-        senderId: '25GYmjPnLm5HF',
-        origin: {
-          type: Origin.WALLETCONNECT,
-          id: '1c9774ab70053b2d69003570813a70990e90e7f5a64ddb6050ec2fe2eea89c15'
-        },
-        address: this.activeAccount,
-        publicKey: '',
-        network: { type: 'mainnet' },
-        scopes: ['sign', 'operation_request'],
-        connectedAt: 1675249368999
-      } as AccountInfo
-
       const pairingResponse = {
-        id: '12345678',
+        id: this.session.peer.publicKey,
         type: 'walletconnect-pairing-response',
         name: 'Kukai',
-        publicKey: '',
-        senderId: '25GYmjPnLm5HF', // TODO JGD where do we get this from
-        extensionId: '1c9774ab70053b2d69003570813a70990e90e7f5a64ddb6050ec2fe2eea89c15' // TODO JGD where do we get this from
+        publicKey: session.peer.publicKey,
+        senderId: this.session.peer.publicKey, // TODO JGD where do we get this from
+        extensionId: this.session.peer.metadata.name // TODO JGD where do we get this from
       } as any
-
-      this.dappClient?.setActiveAccount(accountInfo) // TODO this shouldn't be necessary
 
       this.channelOpeningListeners.forEach((listener) => {
         listener({
           ...pairingResponse,
           senderId: '25GYmjPnLm5HF', // TODO await getSenderId(pairingResponse.publicKey),
-          extensionId: '1c9774ab70053b2d69003570813a70990e90e7f5a64ddb6050ec2fe2eea89c15'
+          extensionId: this.session?.peer.metadata.name
         })
       })
     })
