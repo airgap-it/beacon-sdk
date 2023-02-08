@@ -1,4 +1,4 @@
-import { Component, createSignal } from 'solid-js'
+import { Component, createSignal, onCleanup, onMount } from 'solid-js'
 import { render } from 'solid-js/web'
 import { WalletInfo } from '@airgap/beacon-types'
 import styles from './styles.css'
@@ -22,13 +22,16 @@ export interface ToastConfig {
   openWalletAction?(): Promise<void>
 }
 
+const [isOpen, setIsOpen] = createSignal<boolean>(false)
+
 // COMPONENT
 export interface ToastProps {}
 
 const Toast: Component<ToastProps> = (props: ToastProps) => {
   const [state, setState] = createSignal<number>(0)
+
   return (
-    <div class={'wrapper'}>
+    <div class={isOpen() ? 'wrapper-show' : 'wrapper-hide'}>
       <h1>Counter: {state()}</h1>
       <button class={'button'} onClick={() => setState(state() + 1)}>
         Increment
@@ -40,7 +43,6 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
 // EVENT HANDLERS
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
-const [isOpen, setIsOpen] = createSignal<boolean>(false)
 
 /**
  * Create a new toast
@@ -58,7 +60,9 @@ const openToast = async (toastConfig: ToastConfig): Promise<void> => {
     shadowRoot.appendChild(style)
     dispose = render(() => <Toast />, shadowRoot)
     document.body.prepend(shadowRootEl)
-    setIsOpen(true)
+    setTimeout(() => {
+      setIsOpen(true)
+    }, 50)
   }
 }
 
@@ -68,9 +72,11 @@ const openToast = async (toastConfig: ToastConfig): Promise<void> => {
 const closeToast = (): Promise<void> =>
   new Promise((resolve) => {
     if (dispose && isOpen()) {
-      dispose()
-      document.getElementById('beacon-toast-wrapper')?.remove()
       setIsOpen(false)
+      setTimeout(() => {
+        if (dispose) dispose()
+        document.getElementById('beacon-toast-wrapper')?.remove()
+      }, 500)
     }
     resolve()
   })

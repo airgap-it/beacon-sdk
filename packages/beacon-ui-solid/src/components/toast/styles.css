@@ -1,7 +1,21 @@
-.wrapper {
+.wrapper-show {
+  background-color: white;
   position: fixed;
-  top: 0;
-  right: 0;
+  top: 12px;
+  right: 12px;
+  border-radius: 6px;
+  transition: all ease 0.3s;
+  transform: translateY(0px) scale(1);
+}
+
+.wrapper-hide {
+  background-color: white;
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  border-radius: 6px;
+  transition: all ease 0.3s;
+  transform: translateY(-150px) scale(0.2);
 }
 
 .button {
