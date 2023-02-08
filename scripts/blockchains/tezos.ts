@@ -113,11 +113,11 @@ export const tezosIosList: App[] = [
   },
   {
     key: 'naan_ios',
-    name: 'Naan Wallet',
-    shortName: 'Naan',
-    color: 'rgb(129, 100, 100)',
+    name: 'naan - your portal to web3 ',
+    shortName: 'naan',
+    color: '',
     logo: 'ios-naan.png',
-    universalLink: 'https://naanwallet.com',
+    universalLink: 'https://www.naan.app/',
     deepLink: 'naan://'
   },
   {
@@ -147,13 +147,22 @@ export const tezosIosList: App[] = [
     deepLink: 'temple://'
   },
   {
+    key: 'atomex_ios',
+    name: 'Atomex Wallet',
+    shortName: 'Atomex',
+    color: '',
+    logo: 'ios-atomex.png',
+    universalLink: 'https://atomex.me',
+    deepLink: 'atomex://'
+  },
+  {
     key: 'umami_ios',
     name: 'Umami Mobile',
     shortName: 'Umami Mobile',
     color: '',
     logo: 'desktop-umami.png',
     deepLink: 'umami://',
-    universalLink:'https://umamiwallet.com/'
+    universalLink: 'https://umamiwallet.com/'
   },
   {
     key: 'exodus_mobile',
