@@ -1,5 +1,4 @@
 import postcss from 'rollup-plugin-postcss'
-import dts from 'rollup-plugin-dts'
 import typescript from 'rollup-plugin-typescript2'
 import withSolid from 'rollup-preset-solid'
 
@@ -7,7 +6,7 @@ export default withSolid([
   {
     input: 'src/index.ts',
     output: '.',
-    plugins: [postcss()]
+    plugins: [postcss(), typescript()]
   },
   {
     input: 'src/index.ts',
