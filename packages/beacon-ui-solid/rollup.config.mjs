@@ -21,15 +21,6 @@ export default withSolid([
         format: 'esm'
       }
     ],
-    plugins: [
-      postcss(),
-      typescript()
-      // typescript({
-      //   tsconfig: 'tsconfig.json',
-      //   include: ['src/**/*.ts'],
-      //   useTsconfigDeclarationDir: true,
-      //   output: ""
-      // })
-    ]
+    plugins: [postcss(), typescript()]
   }
 ])
