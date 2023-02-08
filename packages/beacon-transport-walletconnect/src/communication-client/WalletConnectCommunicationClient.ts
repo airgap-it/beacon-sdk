@@ -22,7 +22,9 @@ import {
   getDAppClientInstance,
   OperationRequest,
   Origin,
-  PermissionScope
+  PermissionScope,
+  SignPayloadRequest,
+  SignPayloadResponse
 } from '@airgap/beacon-dapp'
 
 const TEZOS_PLACEHOLDER = 'tezos'
@@ -119,7 +121,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   async sendMessage(_message: string, _peer?: any): Promise<void> {
     const serializer = new Serializer()
     const message = (await serializer.deserialize(_message)) as any
-    console.log('SEND MESSAGE', message)
 
     this.currentMessageId = message.id
     console.log('❗️❗️❗️❗️❗️currentMessageId❗️❗️❗️❗️❗️', this.currentMessageId)
@@ -128,8 +129,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.sendOperations(message)
     }
 
+    if (message?.type === BeaconMessageType.SignPayloadRequest) {
+      this.signPayload(message)
+    }
+
     console.log('🗝️ PAIR', this.keyPair)
     if (message?.type === BeaconMessageType.PermissionRequest) {
+      // TODO JGD refactor
       const serializer = new Serializer()
       const serialized = await serializer.serialize({
         type: BeaconMessageType.PermissionResponse,
@@ -152,7 +158,52 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   /**
-   * @description Once the session is establish, send Tezos operations to be approved, signed and inject by the wallet.
+   * @description Once the session is establish, send payload to be approved and signed by the wallet.
+   * @error MissingRequiredScope is thrown if permission to sign payload was not granted
+   */
+  async signPayload(signPayloadRequest: SignPayloadRequest) {
+    const session = this.getSession()
+    if (!this.getPermittedMethods().includes(PermissionScopeMethods.SIGN)) {
+      throw new MissingRequiredScope(PermissionScopeMethods.SIGN)
+    }
+    const network = this.getActiveNetwork()
+    const account = await this.getPKH()
+    this.validateNetworkAndAccount(network, account)
+
+    const signature = await this.signClient?.request<string>({
+      topic: session.topic,
+      chainId: `${TEZOS_PLACEHOLDER}:${network}`,
+      request: {
+        method: PermissionScopeMethods.SIGN,
+        params: {
+          account: account,
+          expression:
+            '05010000004254657a6f73205369676e6564204d6573736167653a207465737455726c20323032332d30322d30385431303a33363a31382e3435345a2048656c6c6f20576f726c64', // TODO JGD hexify signPayloadRequest.payload,
+          signingType: signPayloadRequest.signingType
+        }
+      }
+    })
+
+    const serializer = new Serializer()
+    const signPayloadResponse = {
+      type: BeaconMessageType.SignPayloadResponse,
+      signingType: signPayloadRequest.signingType,
+      signature,
+      id: this.currentMessageId!
+    } as SignPayloadResponse
+
+    const serialized = await serializer.serialize(signPayloadResponse)
+
+    this.activeListeners.forEach((listener) => {
+      listener(serialized, {
+        origin: Origin.EXTENSION,
+        id: this.currentMessageId!
+      })
+    })
+  }
+
+  /**
+   * @description Once the session is established, send Tezos operations to be approved, signed and inject by the wallet.
    * @error MissingRequiredScope is thrown if permission to send operation was not granted
    */
   async sendOperations(operationRequest: OperationRequest) {

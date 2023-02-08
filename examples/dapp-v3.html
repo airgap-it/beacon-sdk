@@ -250,7 +250,7 @@
       // Add event listener to the button
       document.getElementById('signPayloadRaw').addEventListener('click', async () => {
         const signature = await client.requestSignPayload({
-          payload: 'test'
+          payload: '05444e1f4ab90c304a5ac003d367747aab63815f583ff2330ce159d12c1ecceba1'
         })
 
         console.log('signature:', signature)
