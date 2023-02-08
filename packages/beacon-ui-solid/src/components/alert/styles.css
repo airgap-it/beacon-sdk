@@ -57,13 +57,20 @@
   height: 24px;
   padding: 2px;
   border-radius: 100%;
-  border: 1px solid grey;
+  border: 1px solid #cbd5e1;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  fill: #64748b;
+  transition: all ease 0.2s;
+}
+
+.button-icon:hover {
+  background-color: #475569;
+  fill: #e2e8f0;
 }
 
 .logo {
-  margin: 0px 24px;
+  margin: 0px 2rem;
 }
