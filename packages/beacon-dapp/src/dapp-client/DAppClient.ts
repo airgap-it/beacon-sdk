@@ -81,7 +81,7 @@ import { BlockExplorer } from '../utils/block-explorer'
 import { TezblockBlockExplorer } from '../utils/tezblock-blockexplorer'
 
 import { DAppClientOptions } from './DAppClientOptions'
-import { AlertButton, closeToast } from '@airgap/beacon-ui'
+import { AlertButton, closeToast } from '@airgap/beacon-ui-solid'
 import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
@@ -97,7 +97,7 @@ import {
   getExtensionList,
   getWebList,
   getiOSList
-} from '@airgap/beacon-ui'
+} from '@airgap/beacon-ui-solid'
 
 const logger = new Logger('DAppClient')
 

@@ -35,7 +35,7 @@ import {
   // EncryptionOperation
 } from '@airgap/beacon-core'
 import { shortenString } from './utils/shorten-string'
-import { isMobile } from '@airgap/beacon-ui'
+import { isMobile } from '@airgap/beacon-ui-solid'
 
 const logger = new Logger('BeaconEvents')
 
