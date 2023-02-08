@@ -163,7 +163,16 @@ export const tezosIosList: App[] = [
     logo: 'desktop-umami.png',
     deepLink: 'umami://',
     universalLink: 'https://umamiwallet.com/'
-  }
+  },
+  {
+    key: 'exodus_mobile',
+    name: 'Exodus Mobile',
+    shortName: 'Exodus Mobile',
+    color: '',
+    logo: 'exodus.svg',
+    deepLink: 'exodus://',
+    universalLink:'https://www.exodus.com/'
+  },
   // {
   //   name: 'Galleon',
   //   shortName: 'Galleon',
