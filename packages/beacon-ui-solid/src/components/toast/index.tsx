@@ -2,6 +2,7 @@ import { Component, createSignal, onCleanup, onMount } from 'solid-js'
 import { render } from 'solid-js/web'
 import { WalletInfo } from '@airgap/beacon-types'
 import styles from './styles.css'
+import Loader from '../loader'
 
 // INTERFACES
 export interface ToastAction {
@@ -28,14 +29,10 @@ const [isOpen, setIsOpen] = createSignal<boolean>(false)
 export interface ToastProps {}
 
 const Toast: Component<ToastProps> = (props: ToastProps) => {
-  const [state, setState] = createSignal<number>(0)
-
   return (
     <div class={isOpen() ? 'wrapper-show' : 'wrapper-hide'}>
-      <h1>Counter: {state()}</h1>
-      <button class={'button'} onClick={() => setState(state() + 1)}>
-        Increment
-      </button>
+      <Loader />
+      <p>Toast Example</p>
     </div>
   )
 }

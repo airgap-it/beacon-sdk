@@ -1,8 +1,8 @@
 import { Component, createSignal, onCleanup } from 'solid-js'
 import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
-import styles from './styles.css'
 import { render } from 'solid-js/web'
 import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
+import styles from './styles.css'
 
 export interface AlertProps {}
 
