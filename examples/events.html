@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <title>Beacon Events</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+
+    <script>
+      // This will enable the debug mode of beacon
+      // This should only be used during development
+      window.beaconSdkDebugEnabled = true
+    </script>
+
+    <script src="./walletbeacon.min.js"></script>
+
+    <style>
+      /* To test if our UI is affected by global styles */
+      div {
+        background-color: red;
+      }
+
+      span {
+        background-color: orange;
+      }
+    </style>
+  </head>
+
+  <body>
+    Beacon Events
+    <br /><br />
+
+    <script>
+      // Initiate DAppClient
+      const client = new beacon.DAppClient({
+        name: 'Beacon Events', // Name of the DApp,
+        disclaimerText: 'This is an optional <b>disclaimer</b>.'
+      })
+
+      const events = client.events.callbackMap
+      const eventsKeys = Object.keys(events)
+
+      console.log('eventsKeys', eventsKeys)
+
+      const props = {
+        PERMISSION_REQUEST_SENT: { walletInfo: {} },
+        PERMISSION_REQUEST_SUCCESS: {
+          walletInfo: {},
+          output: { address: '0xSfSfverv323rfrvRe', network: {}, scopes: ['A', 'B', 'C'] }
+        },
+        PERMISSION_REQUEST_ERROR: {
+          errorResponse: {}
+        },
+        OPERATION_REQUEST_SENT: {
+          walletInfo: {}
+        },
+        OPERATION_REQUEST_SUCCESS: {
+          account: {},
+          output: { transactionHash: '0xSfSfverv323rfrvRe' },
+          blockExplorer: {
+            getTransactionLink: () => {
+              return 'https://www.google.com'
+            }
+          }
+        },
+        OPERATION_REQUEST_ERROR: {
+          errorResponse: {}
+        },
+        SIGN_REQUEST_SENT: {
+          walletInfo: {}
+        },
+        SIGN_REQUEST_SUCCESS: {
+          walletInfo: {},
+          output: { signature: '0xSfSfverv323rfrvRe' }
+        },
+        SIGN_REQUEST_ERROR: {
+          errorResponse: {}
+        },
+        BROADCAST_REQUEST_SENT: {
+          walletInfo: {}
+        },
+        BROADCAST_REQUEST_SUCCESS: {
+          output: { transactionHash: '0xSfSfverv323rfrvRe' }
+        },
+        BROADCAST_REQUEST_ERROR: {
+          errorResponse: {}
+        },
+        ACKNOWLEDGE_RECEIVED: {
+          walletInfo: {}
+        },
+        SHOW_PREPARE: {
+          walletInfo: {}
+        },
+        PAIR_INIT: {
+          p2pPeerInfo: () => {}
+        },
+        INTERNAL_ERROR: {
+          buttons: []
+        }
+      }
+      for (let i = 0; i < eventsKeys.length; i++) {
+        const eventKey = eventsKeys[i]
+        const button = document.createElement('button')
+        button.setAttribute('id', eventKey)
+        button.textContent = eventKey
+        button.addEventListener('click', () => {
+          client.events.emit(eventKey, props[eventKey])
+        })
+        const br = document.createElement('br')
+
+        document.body.appendChild(button)
+        document.body.appendChild(br)
+      }
+
+      // // ACKNOWLEDGE RECEIVED
+      // document.getElementById('ACKNOWLEDGE_RECEIVED').addEventListener('click', async () => {
+      //   events.ACKNOWLEDGE_RECEIVED[0]()
+      // })
+    </script>
+  </body>
+</html>
