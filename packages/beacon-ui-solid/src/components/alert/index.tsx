@@ -4,8 +4,6 @@ import { render } from 'solid-js/web'
 import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
 import styles from './styles.css'
 
-export interface AlertProps {}
-
 export interface AlertButton {
   text: string
   style?: 'solid' | 'outline'
@@ -49,7 +47,10 @@ const closeAlert = (id: string): Promise<void> => {
   })
 }
 
+export interface AlertProps {}
+
 const Alert: Component<AlertProps> = (props: AlertProps) => {
+  const [showMore, setShowMore] = createSignal<boolean>(false)
   return (
     <div class={isOpen() ? 'wrapper-show' : 'wrapper-hide'}>
       <div class={isOpen() ? 'modal-show' : 'modal-hide'}>
@@ -64,6 +65,34 @@ const Alert: Component<AlertProps> = (props: AlertProps) => {
             <CloseIcon />
           </div>
         </div>
+        <div class="body">
+          <div class="info">
+            <h3>Connect Wallet</h3>
+            <p>
+              If you don't have a wallet, you can select a provider and create one now. Learn more
+            </p>
+          </div>
+          <div class="wallets-main">
+            <div class="wallet">
+              <h3>Test Wallet 1</h3>
+              <div class="image"></div>
+            </div>
+            <div class="wallet">
+              <h3>Test Wallet 2</h3>
+              <div class="image"></div>
+            </div>
+            <div class="wallet">
+              <h3>Test Wallet 3</h3>
+              <div class="image"></div>
+            </div>
+            <div class="wallet">
+              <h3>Test Wallet 4</h3>
+              <div class="image"></div>
+            </div>
+          </div>
+          <div class={showMore() ? 'wallets-extra-show' : 'wallets-extra-hide'}></div>
+        </div>
+        <div class="Footer">{showMore() ? 'Show more' : 'Show less'}</div>
       </div>
     </div>
   )
