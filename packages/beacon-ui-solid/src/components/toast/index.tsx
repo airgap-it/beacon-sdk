@@ -2,7 +2,7 @@ import { Component, createSignal, onCleanup, onMount } from 'solid-js'
 import { render } from 'solid-js/web'
 import { WalletInfo } from '@airgap/beacon-types'
 import styles from './styles.css'
-import Loader from '../loader'
+import Loader, { styles as stylesLoader } from '../loader'
 
 // INTERFACES
 export interface ToastAction {
@@ -53,7 +53,7 @@ const openToast = async (toastConfig: ToastConfig): Promise<void> => {
     shadowRootEl.style.height = '0px'
     const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })
     const style = document.createElement('style')
-    style.textContent = styles
+    style.textContent = `${styles} ${stylesLoader}`
     shadowRoot.appendChild(style)
     dispose = render(() => <Toast />, shadowRoot)
     document.body.prepend(shadowRootEl)

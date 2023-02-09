@@ -3,8 +3,9 @@ import styles from './styles.css'
 
 interface LoaderProps {}
 
-const Alert: Component<LoaderProps> = (props: LoaderProps) => {
+const Loader: Component<LoaderProps> = (props: LoaderProps) => {
   return <div class="loader"></div>
 }
 
-export default Alert
+export { styles }
+export default Loader

@@ -1,4 +1,8 @@
 .wrapper-show {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0px 12px;
   background-color: white;
   position: fixed;
   top: 12px;
@@ -9,6 +13,10 @@
 }
 
 .wrapper-hide {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0px 12px;
   background-color: white;
   position: fixed;
   top: 12px;
