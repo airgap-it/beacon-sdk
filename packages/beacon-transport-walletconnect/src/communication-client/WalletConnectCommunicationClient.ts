@@ -119,6 +119,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.currentMessageId = message.id
 
+    if (message?.type === BeaconMessageType.PermissionRequest) {
+      this.requestPermissions()
+    }
+
     if (message?.type === BeaconMessageType.OperationRequest) {
       this.sendOperations(message)
     }
@@ -126,28 +130,27 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     if (message?.type === BeaconMessageType.SignPayloadRequest) {
       this.signPayload(message)
     }
+  }
 
-    if (message?.type === BeaconMessageType.PermissionRequest) {
-      // TODO JGD refactor
-      const serializer = new Serializer()
-      const serialized = await serializer.serialize({
-        type: BeaconMessageType.PermissionResponse,
-        appMetadata: {
-          senderId: '25GYmjPnLm5HF',
-          name: 'Kukai'
-        },
-        publicKey: '444e1f4ab90c304a5ac003d367747aab63815f583ff2330ce159d12c1ecceba1', // TODO JGD where to get this from?
-        network: NetworkType.GHOSTNET as any,
-        scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
+  async requestPermissions() {
+    const serializer = new Serializer()
+    const serialized = await serializer.serialize({
+      type: BeaconMessageType.PermissionResponse,
+      appMetadata: {
+        senderId: this.session?.peer.publicKey,
+        name: this.session?.peer.metadata.name
+      },
+      publicKey: this.session?.peer.publicKey,
+      network: NetworkType.GHOSTNET as any,
+      scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
+      id: this.currentMessageId!
+    })
+    this.activeListeners.forEach((listener) => {
+      listener(serialized, {
+        origin: Origin.EXTENSION,
         id: this.currentMessageId!
       })
-      this.activeListeners.forEach((listener) => {
-        listener(serialized, {
-          origin: Origin.EXTENSION,
-          id: this.currentMessageId!
-        })
-      })
-    }
+    })
   }
 
   /**
@@ -200,8 +203,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * @error MissingRequiredScope is thrown if permission to send operation was not granted
    */
   async sendOperations(operationRequest: OperationRequest) {
-    // TODO JGD type
-
     const session = this.getSession()
 
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.OPERATION_REQUEST)) {
@@ -313,7 +314,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const pairingResponse = {
         id: this.session.peer.publicKey,
         type: 'walletconnect-pairing-response',
-        name: 'Kukai',
+        name: session.peer.metadata.name,
         publicKey: session.peer.publicKey,
         senderId: this.session.peer.publicKey, // TODO JGD where do we get this from
         extensionId: this.session.peer.metadata.name // TODO JGD where do we get this from
@@ -322,7 +323,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.channelOpeningListeners.forEach((listener) => {
         listener({
           ...pairingResponse,
-          senderId: '25GYmjPnLm5HF', // TODO await getSenderId(pairingResponse.publicKey),
+          senderId: this.session?.peer.publicKey, // TODO await getSenderId(pairingResponse.publicKey),
           extensionId: this.session?.peer.metadata.name
         })
       })
