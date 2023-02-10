@@ -1,0 +1,33 @@
+.top-wallets-wrapper {
+  margin-bottom: 1.8em;
+}
+
+.top-wallets-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.top-wallets-info h3 {
+  text-align: center;
+  color: #334155;
+  margin: 0px;
+}
+
+.top-wallets-info p {
+  text-align: center;
+  max-width: 400px;
+  font-size: 0.85em;
+  font-weight: 300;
+  color: #94a3b8;
+  line-height: 1.35em;
+  margin: 6px 0px 12px 0px;
+}
+
+.top-wallets-wallets-main {
+  margin-top: 1em;
+  grid-template-columns: repeat(2, 1fr);
+  display: grid;
+  gap: 1em;
+}

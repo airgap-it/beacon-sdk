@@ -1,0 +1,22 @@
+.wallets-button {
+  border-radius: 6px;
+  background-color: transparent;
+  border: 1px solid #3880ff;
+  color: #3880ff;
+  width: 100%;
+  padding: 12px 0px;
+  margin-bottom: 1.8em;
+  transition: all ease 0.2s;
+  cursor: pointer;
+}
+
+.wallets-button:hover {
+  color: white;
+  background-color: #3880ff;
+}
+
+.wallets-list-wrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 1.8em 0px;
+}

@@ -1,0 +1,51 @@
+.info-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  border: 1px solid #aaaaaa42;
+  border-radius: 10px;
+  padding: 1.5em;
+}
+
+.info-icon {
+}
+
+.info-title {
+  text-align: center;
+  color: #334155;
+  margin: 0px;
+}
+
+.info-description {
+  text-align: center;
+  font-size: 0.85em;
+  font-weight: 300;
+  color: #94a3b8;
+  line-height: 1.35em;
+  margin: 6px 0px 12px 0px;
+  margin: 0px;
+}
+
+.info-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.info-button {
+  border-radius: 6px;
+  background-color: #3880ff;
+  border: 1px solid #3880ff;
+  color: white;
+  width: 100%;
+  padding: 0.8em 1.6em;
+  transition: all ease 0.2s;
+  cursor: pointer;
+  margin-top: 1em;
+}
+
+.info-button:hover {
+  color: #3880ff;
+  background-color: transparent;
+}
