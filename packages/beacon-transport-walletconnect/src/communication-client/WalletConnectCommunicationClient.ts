@@ -210,7 +210,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.OPERATION_REQUEST)) {
       throw new MissingRequiredScope(PermissionScopeMethods.OPERATION_REQUEST)
     }
-    const network = this.getActiveNetwork() // TODO JGD
+    const network = this.getActiveNetwork()
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
     const hash = await this.signClient?.request<string>({

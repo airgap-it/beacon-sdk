@@ -1,10 +1,5 @@
 import { NetworkType } from './beacon/NetworkType'
 
-// export enum InteractionStandardType { // TODO JGD module not found
-//   BEACON = 'beacon',
-//   WALLET_CONNECT = 'wallet_connect'
-// }
-
 export interface AppBase {
   key: string
   name: string
@@ -44,6 +39,6 @@ export interface DesktopApp extends AppBase {
 
 export interface App extends AppBase {
   universalLink: string
-  supportedInteractionStandards?: any // TODO JGD convert to mandatory
+  supportedInteractionStandards?: string[] // 'wallet_connect' or 'beacon'
   deepLink?: string
 }

@@ -1,6 +1,5 @@
 import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src/types/ui'
 
-// import { NetworkType } from 'packages/beacon-types/src/types'
 // TODO: Temporary build fix
 export enum NetworkType {
   MAINNET = 'mainnet',
@@ -152,7 +151,7 @@ export const tezosIosList: App[] = [
     name: 'Trust Wallet',
     shortName: 'Trust',
     color: '',
-    supportedInteractionStandards: ['wallet_connect'],
+    supportedInteractionStandards: ['wallet_connect'] as any,
     logo: 'ios-trust.png',
     universalLink: 'https://trustwallet.com',
     deepLink: 'trust://'

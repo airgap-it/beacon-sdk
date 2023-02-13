@@ -99,7 +99,6 @@ export interface PairingAlertList {
 export interface PairingAlertInfo {
   walletLists: PairingAlertList[]
   buttons: PairingAlertButton[]
-  interactionStandard?: string
 }
 
 export type StatusUpdateHandler = (
@@ -279,8 +278,11 @@ export class Pairing {
 
               let interactionStandard = undefined // TODO JGD type
               let code = await serializer.serialize(await pairingCode())
-              if (app?.supportedInteractionStandards?.length > 0) {
-                interactionStandard = app.supportedInteractionStandards[0]
+              if (
+                app?.supportedInteractionStandards &&
+                app?.supportedInteractionStandards?.length > 0
+              ) {
+                interactionStandard = app?.supportedInteractionStandards[0]
                 code = (await walletConnectSyncCode()).uri
               }
 
