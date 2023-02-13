@@ -38,7 +38,7 @@
     "@airgap/beacon-core": "^3.0.0-beta.2",
     "@airgap/beacon-transport-matrix": "^3.0.0-beta.2",
     "@airgap/beacon-transport-postmessage": "^3.0.0-beta.2",
-    "@airgap/beacon-ui": "file:../beacon-ui-solid",
+    "@airgap/beacon-ui": "file:../beacon-ui",
     "qrcode-generator": "1.4.4"
   }
 }
