@@ -96,7 +96,7 @@
 .alert-body-extra-show {
   transition: all ease 0.3s;
   overflow: hidden;
-  max-height: 80vh;
+  max-height: 30vh;
 }
 
 .alert-body-extra-hide {

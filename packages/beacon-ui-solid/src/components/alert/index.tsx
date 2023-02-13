@@ -1,17 +1,19 @@
 import { Component, createSignal, onCleanup } from 'solid-js'
 import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
 import { render } from 'solid-js/web'
+
 import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
 import TopWallets from '../top-wallets'
 import Wallets from '../wallets'
+import Info from '../info'
+import QR from '../qr'
 
 import styles from './styles.css'
 import * as topWalletsStyles from '../top-wallets/styles.css'
 import * as walletsStyles from '../wallets/styles.css'
 import * as walletStyles from '../wallet/styles.css'
 import * as infoStyles from '../info/styles.css'
-import Info from '../info'
-import QR from '../qr'
+import * as qrStyles from '../qr/styles.css'
 
 export interface AlertButton {
   text: string
@@ -81,7 +83,7 @@ const Alert: Component<AlertProps> = (props: AlertProps) => {
             <CloseIcon />
           </div>
         </div>
-        <div class="alert-body">
+        <div class="alert-body" style={{ 'margin-bottom': props.extraContent ? '' : '1.8em' }}>
           {props.content}
           <div class={showMore() ? 'alert-body-extra-show' : 'alert-body-extra-hide'}>
             <div class="alert-divider"></div>
@@ -127,18 +129,21 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
     const style3 = document.createElement('style')
     const style4 = document.createElement('style')
     const style5 = document.createElement('style')
+    const style6 = document.createElement('style')
 
     style.textContent = styles
     style2.textContent = topWalletsStyles.default
     style3.textContent = walletsStyles.default
     style4.textContent = walletStyles.default
     style5.textContent = infoStyles.default
+    style6.textContent = qrStyles.default
 
     shadowRoot.appendChild(style)
     shadowRoot.appendChild(style2)
     shadowRoot.appendChild(style3)
     shadowRoot.appendChild(style4)
     shadowRoot.appendChild(style5)
+    shadowRoot.appendChild(style6)
 
     const wallets = [
       {
@@ -175,7 +180,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
         <Alert
           content={
             isInfo() ? (
-              <>
+              <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
                 <Info
                   title="Install Temple Wallet"
                   description="To connect your Temple Wallet, install the browser extension."
@@ -188,7 +193,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
                   ]}
                 />
                 <QR />
-              </>
+              </div>
             ) : (
               <TopWallets
                 wallets={wallets}

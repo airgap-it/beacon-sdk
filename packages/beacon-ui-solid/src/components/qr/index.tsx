@@ -1692,7 +1692,9 @@ const QR: Component<QRProps> = (props: QRProps) => {
         <h3>Or scan to connect</h3>
         <p>Open Temple Wallet on your mobile phone and scan</p>
 
-        <p class="qr-more-info">Learn more</p>
+        <div style={{ 'margin-top': 'auto' }}>
+          <p class="qr-more-info">Learn more</p>
+        </div>
       </div>
       <div class="qr-right">{tempQR}</div>
     </div>

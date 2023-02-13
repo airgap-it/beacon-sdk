@@ -1,17 +1,47 @@
-.loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  width: 15px;
-  height: 15px;
-  animation: spin 2s linear infinite;
+.qr-wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.5em;
+  border: 1px solid #aaaaaa42;
+  border-radius: 10px;
+  padding: 1.5em;
+  height: 160px;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.qr-left {
+  display: flex;
+  flex-direction: column;
+  max-width: 16em;
+  height: 100%;
+}
+
+.qr-left h3 {
+  color: #334155;
+  margin: 0px;
+  margin-bottom: 1em;
+}
+
+.qr-left p {
+  font-size: 0.85em;
+  font-weight: 300;
+  color: #94a3b8;
+  line-height: 1.35em;
+  margin: 0px;
+}
+
+.qr-more-info {
+  font-size: 0.85em;
+  font-weight: 300;
+  color: #94a3b8;
+  line-height: 1.35em;
+  margin: 6px 0px 12px 0px;
+  margin: 0px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.qr-right svg {
+  height: 160px;
+  width: auto;
 }
