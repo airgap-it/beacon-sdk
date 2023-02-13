@@ -54,7 +54,7 @@ const closeAlert = (id: string): Promise<void> => {
       setIsOpen(false)
       setTimeout(() => {
         if (dispose) dispose()
-        document.getElementById('beacon-toast-wrapper')?.remove()
+        document.getElementById('beacon-alert-wrapper')?.remove()
       }, 500)
     }
     resolve()
@@ -168,7 +168,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
               <TopWallets
                 wallets={wallets}
                 onClickWallet={(id: string) => {
-                  console.log('cllicked on wallet', id)
+                  console.log('clicked on wallet', id)
                   setIsInfo(true)
                 }}
               />
@@ -179,7 +179,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
               <Wallets
                 wallets={wallets}
                 onClickWallet={(id: string) => {
-                  console.log('cllicked on wallet', id)
+                  console.log('clicked on wallet', id)
                   setIsInfo(true)
                 }}
               />
