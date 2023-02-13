@@ -1,4 +1,4 @@
-import { CommunicationClient, Serializer } from '@airgap/beacon-core'
+import { BEACON_VERSION, CommunicationClient, Serializer } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
 import { SessionTypes } from '@walletconnect/types'
@@ -15,13 +15,16 @@ import {
 import {
   BeaconMessageType,
   ConnectionContext,
+  ExtendedWalletConnectPairingRequest,
   ExtendedWalletConnectPairingResponse,
+  generateGUID,
   OperationRequest,
   Origin,
   PermissionScope,
   SignPayloadRequest,
   SignPayloadResponse
 } from '@airgap/beacon-dapp'
+import { WalletConnectConfig } from './WalletConnectConfig'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 
@@ -102,7 +105,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     ): Promise<void> => {
       messageCallback(pairingResponse)
     }
-    this.channelOpeningListeners.set('JGD', callbackFunction) // TODO JGD
+    this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
   async unsubscribeFromEncryptedMessages(): Promise<void> {
@@ -118,6 +121,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const message = (await serializer.deserialize(_message)) as any
 
     this.currentMessageId = message.id
+
+    console.log('######################################')
+    console.log(JSON.stringify(message, null, 2))
+    console.log('######################################')
 
     if (message?.type === BeaconMessageType.PermissionRequest) {
       this.requestPermissions()
@@ -141,7 +148,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         name: this.session?.peer.metadata.name
       },
       publicKey: this.session?.peer.publicKey,
-      network: NetworkType.GHOSTNET as any,
+      network: NetworkType.MAINNET as any,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       id: this.currentMessageId!
     })
@@ -243,55 +250,24 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   public async init(): Promise<string | undefined> {
     const connectParams = {
       permissionScope: {
-        networks: [NetworkType.GHOSTNET],
+        networks: [NetworkType.MAINNET],
         events: [],
         methods: [PermissionScopeMethods.OPERATION_REQUEST, PermissionScopeMethods.SIGN]
       },
       pairingTopic: undefined
     }
+
     const initParams = {
-      projectId: '97f804b46f0db632c52af0556586a5f3',
-      relayUrl: 'wss://relay.walletconnect.com',
-      logger: 'debug',
+      projectId: WalletConnectConfig.PROJECT_ID,
+      relayUrl: WalletConnectConfig.RELAY_URL,
       metadata: {
-        name: 'Kukai Wallet',
-        description:
-          'Manage your digital assets and seamlessly connect with experiences and apps on Tezos.',
-        url: 'https://wallet.kukai.app',
+        name: 'Beacon WalletConnect',
+        description: 'Connect Wallets with dApps on Tezos',
+        url: 'https://docs.walletbeacon.io/',
         icons: []
       }
     }
     this.signClient = await SignClient.init(initParams)
-
-    this.signClient.on('session_delete', ({ topic }) => {
-      console.log('############# session_delete #############')
-      if (this.session?.topic === topic) {
-        this.session = undefined
-      }
-    })
-
-    this.signClient.on('session_expire', ({ topic }) => {
-      console.log('############# session_expire #############')
-
-      if (this.session?.topic === topic) {
-        this.session = undefined
-      }
-    })
-
-    this.signClient.on('session_update', ({ params, topic }) => {
-      console.log('############# session_update #############')
-
-      if (this.session?.topic === topic) {
-        this.session.namespaces = params.namespaces
-        // TODO determine if we need validation on the namespace here
-      }
-    })
-
-    this.signClient.on('session_event', () => {
-      console.log('############# session_event #############')
-
-      // TODO Do we need to handle other session events, such as "chainChanged", "accountsChanged", etc.
-    })
 
     const { uri, approval } = await this.signClient.connect({
       requiredNamespaces: {
@@ -307,7 +283,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     approval().then(async (session) => {
-      this.session = session
+      this.session = this.session ?? session
       this.validateReceivedNamespace(connectParams.permissionScope, this.session.namespaces)
       this.setDefaultAccountAndNetwork()
 
@@ -316,21 +292,45 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         type: 'walletconnect-pairing-response',
         name: session.peer.metadata.name,
         publicKey: session.peer.publicKey,
-        senderId: this.session.peer.publicKey, // TODO JGD where do we get this from
-        extensionId: this.session.peer.metadata.name // TODO JGD where do we get this from
-      } as any
+        senderId: this.session.peer.publicKey,
+        extensionId: this.session.peer.metadata.name,
+        version: '3'
+      } as ExtendedWalletConnectPairingResponse
 
       this.channelOpeningListeners.forEach((listener) => {
-        listener({
-          ...pairingResponse,
-          senderId: this.session?.peer.publicKey, // TODO await getSenderId(pairingResponse.publicKey),
-          extensionId: this.session?.peer.metadata.name
-        })
+        listener(pairingResponse)
       })
     })
 
     return uri
   }
+
+  public async getPairingRequestInfo(): Promise<ExtendedWalletConnectPairingRequest> {
+    const uri = await this.init()
+    console.log('getPairingRequestInfo URI', uri)
+    return {
+      id: await generateGUID(),
+      type: 'walletconnect-pairing-request',
+      name: 'WalletConnect',
+      version: BEACON_VERSION,
+      relayServer: uri!,
+      senderId: '12',
+      publicKey: '12345678' //await this.getPublicKey()
+    }
+  }
+
+  // public async getPairingResponseInfo(request: any): Promise<P2PPairingResponse> {
+  //   const info: WalletConnectPairingResponse = {
+  //     id: request.id,
+  //     type: 'walletconnect-pairing-response',
+  //     name: 'WalletConnect',
+  //     version: request.version,
+  //     publicKey: await this.getPublicKey(),
+  //     relayServer: WalletConnectConfig.RELAY_URL
+  //   }
+
+  //   return info
+  // }
 
   private validateReceivedNamespace(
     scope: PermissionScopeParam,

@@ -16,7 +16,6 @@ const logger = new Logger('DappPostMessageTransport')
  *
  */
 export class DappWalletConnectTransport extends WalletConnectTransport<
-  // TODO JGD
   ExtendedWalletConnectPairingResponse,
   StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP
 > {

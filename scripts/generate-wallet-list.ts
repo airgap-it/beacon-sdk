@@ -12,16 +12,14 @@ import {
   substrateExtensionList,
   substrateDesktopList,
   substrateWebList,
-  substrateIosList,
-  substrateWalletConnectList
+  substrateIosList
 } from './blockchains/substrate'
 
 import {
   tezosDesktopList,
   tezosExtensionList,
   tezosIosList,
-  tezosWebList,
-  tezosWalletConnectList
+  tezosWebList
 } from './blockchains/tezos'
 
 import {
@@ -60,8 +58,7 @@ const generateForBlockchains = (
   extensionList: ExtensionApp[],
   desktopList: DesktopApp[],
   webList: WebApp[],
-  iosList: App[],
-  walletConnectList: App[]
+  iosList: App[]
 ) => {
   const PKG_DIR = path.join(__dirname, '../')
   const REGISTRY_DIR = path.join(PKG_DIR, 'assets', 'logos')
@@ -90,7 +87,6 @@ const generateForBlockchains = (
     const desktopListWithInlinedLogo = await convert(desktopList)
     const webListWithInlinedLogo = await convert(webList)
     const iosListWithInlinedLogo = await convert(iosList)
-    const walletConnectListWithInlinedLogo = await convert(walletConnectList)
 
     let out = `import { App, DesktopApp, ExtensionApp, WebApp } from '@airgap/beacon-types'`
     out += `
@@ -119,15 +115,6 @@ const generateForBlockchains = (
   `
     out += `export const iOSList: App[] = ${JSON.stringify(iosListWithInlinedLogo, null, 2)}`
     out += `
-  
-  `
-    out += `export const walletConnectList: App[] = ${JSON.stringify(
-      walletConnectListWithInlinedLogo,
-      null,
-      2
-    )}`
-    out += `
-
   `
 
     writeFile(path.join(ALERT_DEST_DIR, 'wallet-lists.ts'), out)
@@ -183,8 +170,7 @@ generateForBlockchains(
   tezosExtensionList,
   tezosDesktopList,
   tezosWebList,
-  tezosIosList,
-  tezosWalletConnectList
+  tezosIosList
 )
 
 generateForBlockchains(
@@ -192,8 +178,7 @@ generateForBlockchains(
   tezosSaplingExtensionList,
   tezosSaplingDesktopList,
   tezosSaplingWebList,
-  tezosSaplingIosList,
-  substrateWalletConnectList
+  tezosSaplingIosList
 )
 
 generateForBlockchains(
@@ -201,8 +186,7 @@ generateForBlockchains(
   substrateExtensionList,
   substrateDesktopList,
   substrateWebList,
-  substrateIosList,
-  substrateWalletConnectList
+  substrateIosList
 )
 
 generateForBlockchains(
@@ -210,6 +194,5 @@ generateForBlockchains(
   tezosExtensionList,
   tezosDesktopList,
   tezosWebList,
-  tezosIosList,
-  tezosWalletConnectList
+  tezosIosList
 )

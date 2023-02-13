@@ -40,8 +40,6 @@ export class WalletConnectTransport<
 
     this._isConnected = TransportStatus.CONNECTING
 
-    // await this.client.start()
-
     const knownPeers = await this.getPeers()
 
     if (knownPeers.length > 0) {
@@ -80,7 +78,7 @@ export class WalletConnectTransport<
   }
 
   public async getPairingRequestInfo(): Promise<any> {
-    // return this.client.getPairingRequestInfo()
+    return this.client.getPairingRequestInfo()
   }
 
   public async listen(publicKey: string): Promise<void> {

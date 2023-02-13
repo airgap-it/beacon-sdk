@@ -1,4 +1,5 @@
 import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src/types/ui'
+
 // import { NetworkType } from 'packages/beacon-types/src/types'
 // TODO: Temporary build fix
 export enum NetworkType {
@@ -145,6 +146,16 @@ export const tezosIosList: App[] = [
     logo: 'ios-temple.png',
     universalLink: 'https://templewallet.com',
     deepLink: 'temple://'
+  },
+  {
+    key: 'trust_ios',
+    name: 'Trust Wallet',
+    shortName: 'Trust',
+    color: '',
+    supportedInteractionStandards: ['wallet_connect'],
+    logo: 'ios-trust.png',
+    universalLink: 'https://trustwallet.com',
+    deepLink: 'trust://'
   }
   // {
   //   name: 'Galleon',
@@ -154,16 +165,4 @@ export const tezosIosList: App[] = [
   //   universalLink: 'https://cryptonomic.tech',
   //   deepLink: 'galleon://'
   // }
-]
-
-export const tezosWalletConnectList: App[] = [
-  {
-    key: 'trust_ios',
-    name: 'Trust Wallet',
-    shortName: 'Trust',
-    color: '',
-    logo: 'ios-trust.png',
-    universalLink: 'https://trustwallet.com',
-    deepLink: 'trust://'
-  }
 ]

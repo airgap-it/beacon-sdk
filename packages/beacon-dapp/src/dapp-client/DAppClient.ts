@@ -462,6 +462,7 @@ export class DAppClient extends Client {
                     return p2pTransport.getPairingRequestInfo()
                   },
                   postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
+                  walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
                   preferredNetwork: this.preferredNetwork,
                   abortedHandler: () => {
                     console.log('ABORTED')

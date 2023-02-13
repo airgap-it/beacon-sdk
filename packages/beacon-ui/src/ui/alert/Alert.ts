@@ -1,6 +1,11 @@
 // Taken from https://github.com/WalletConnect/walletconnect-monorepo/blob/master/packages/qrcode-modal/src/browser.ts
 
-import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
+import {
+  NetworkType,
+  P2PPairingRequest,
+  PostMessagePairingRequest,
+  WalletConnectPairingRequest
+} from '@airgap/beacon-types'
 import { windowRef } from '@airgap/beacon-core'
 import { generateGUID } from '@airgap/beacon-utils'
 import { alertTemplates } from './alert-templates'
@@ -24,6 +29,7 @@ export interface AlertConfig {
   pairingPayload?: {
     p2pSyncCode: () => Promise<P2PPairingRequest>
     postmessageSyncCode: () => Promise<PostMessagePairingRequest>
+    walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
     preferredNetwork: NetworkType
   }
   closeButtonCallback?(): void

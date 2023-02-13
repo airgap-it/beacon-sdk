@@ -4,16 +4,15 @@ import {
   ExtensionMessageTarget,
   NetworkType,
   P2PPairingRequest,
-  PostMessagePairingRequest
+  PostMessagePairingRequest,
+  WalletConnectPairingRequest
 } from '@airgap/beacon-types'
 import { windowRef } from '@airgap/beacon-core'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
-import { desktopList, extensionList, iOSList, walletConnectList, webList } from './wallet-lists'
+import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
 import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
-import { WalletConnectCommunicationClient } from '@airgap/beacon-transport-walletconnect'
-// import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 /**
  * Initialize with tezos wallets for backwards compatibility
  */
@@ -21,7 +20,6 @@ let localDesktopList: DesktopApp[] = desktopList
 let localExtensionList: ExtensionApp[] = extensionList
 let localWebList: WebApp[] = webList
 let localiOSList: App[] = iOSList
-let localWalletConnectList: App[] = walletConnectList
 
 export const getDesktopList = (): DesktopApp[] => {
   return localDesktopList
@@ -53,14 +51,6 @@ export const getiOSList = (): App[] => {
 
 export const setiOSList = (iosList: App[]): void => {
   localiOSList = iosList
-}
-
-export const getWalletConnectList = (): App[] => {
-  return localWalletConnectList
-}
-
-export const setWalletConnectList = (walletConnectList: App[]): void => {
-  localWalletConnectList = walletConnectList
 }
 
 const serializer = new Serializer()
@@ -109,7 +99,7 @@ export interface PairingAlertList {
 export interface PairingAlertInfo {
   walletLists: PairingAlertList[]
   buttons: PairingAlertButton[]
-  walletConnectUri?: string
+  interactionStandard?: string
 }
 
 export type StatusUpdateHandler = (
@@ -131,6 +121,7 @@ export class Pairing {
     pairingPayload: {
       p2pSyncCode: () => Promise<P2PPairingRequest>
       postmessageSyncCode: () => Promise<PostMessagePairingRequest>
+      walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
       preferredNetwork: NetworkType
     },
     statusUpdateHandler: StatusUpdateHandler,
@@ -140,6 +131,7 @@ export class Pairing {
     const activePlatform = platform ?? (await Pairing.getPlatfrom())
 
     const pairingCode = pairingPayload.p2pSyncCode
+    const walletConnectSyncCode = pairingPayload.walletConnectSyncCode
     const postmessageSyncCode = pairingPayload.postmessageSyncCode
     const preferredNetwork = pairingPayload.preferredNetwork
 
@@ -149,6 +141,7 @@ export class Pairing {
           pairingCode,
           statusUpdateHandler,
           postmessageSyncCode,
+          walletConnectSyncCode,
           mobileWalletHandler,
           preferredNetwork
         )
@@ -166,9 +159,11 @@ export class Pairing {
     pairingCode: () => Promise<P2PPairingRequest>,
     statusUpdateHandler: StatusUpdateHandler,
     postmessageSyncCode: () => Promise<PostMessagePairingRequest>,
+    walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>,
     mobileWalletHandler: (pairingCode: string) => Promise<void>,
     network: NetworkType
   ): Promise<PairingAlertInfo> {
+    console.log('getDesktopPairingAlert')
     const availableExtensions = await PostMessageTransport.getAvailableExtensions()
 
     availableExtensions.forEach((ext) => {
@@ -177,8 +172,6 @@ export class Pairing {
         defaultExtensions.splice(index, 1)
       }
     })
-
-    let walletConnectUri: string | undefined = undefined
 
     const walletLists: PairingAlertList[] = []
 
@@ -279,51 +272,23 @@ export class Pairing {
             logo: app.logo,
             enabled: true,
             clicked: false,
-            async clickHandler(): Promise<void> {
-              if (this.clicked) {
-                return
-              }
-
-              this.clicked = true
-
-              const code = await serializer.serialize(await pairingCode())
-              mobileWalletHandler(code)
-              statusUpdateHandler(WalletType.IOS, this, true)
-            }
-          }))
-        ].sort((a, b) => a.key.localeCompare(b.key))
-      })
-    }
-
-    if (getWalletConnectList().length > 0) {
-      walletLists.push({
-        title: '',
-        type: WalletType.IOS,
-        wallets: [
-          ...getWalletConnectList().map((app) => ({
-            key: app.key,
-            name: app.name,
-            shortName: app.shortName,
-            color: app.color,
-            logo: app.logo,
-            enabled: true,
-            clicked: false,
             async clickHandler(): Promise<any> {
-              // TODO JGD type
               if (this.clicked) {
                 return
               }
 
+              let interactionStandard = undefined // TODO JGD type
+              let code = await serializer.serialize(await pairingCode())
+              if (app?.supportedInteractionStandards?.length > 0) {
+                interactionStandard = app.supportedInteractionStandards[0]
+                code = (await walletConnectSyncCode()).relayServer // TODO JGD change this to include URI
+              }
+
               this.clicked = true
 
-              const walletConnect = WalletConnectCommunicationClient.getInstance()
-              walletConnectUri = await walletConnect.init()
-
-              const code = await serializer.serialize(await pairingCode())
               mobileWalletHandler(code)
-
               statusUpdateHandler(WalletType.IOS, this, true)
-              return walletConnectUri
+              return interactionStandard
             }
           }))
         ].sort((a, b) => a.key.localeCompare(b.key))
@@ -332,8 +297,7 @@ export class Pairing {
 
     return {
       walletLists,
-      buttons: [],
-      walletConnectUri
+      buttons: []
     }
   }
 

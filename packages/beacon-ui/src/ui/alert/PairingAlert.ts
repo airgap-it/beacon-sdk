@@ -1,5 +1,10 @@
 import { Serializer, Logger, windowRef } from '@airgap/beacon-core'
-import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
+import {
+  NetworkType,
+  P2PPairingRequest,
+  PostMessagePairingRequest,
+  WalletConnectPairingRequest
+} from '@airgap/beacon-types'
 import { generateGUID } from '@airgap/beacon-utils'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { getQrData } from '../../utils/qr'
@@ -29,10 +34,10 @@ export const preparePairingAlert = async (
   pairingPayload: {
     p2pSyncCode: () => Promise<P2PPairingRequest>
     postmessageSyncCode: () => Promise<PostMessagePairingRequest>
+    walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
     preferredNetwork: NetworkType
   }
 ): Promise<void> => {
-  let walletConnectUri: undefined | string = undefined
   const getInfo = async (): Promise<PairingAlertInfo> => {
     return Pairing.getPairingInfo(
       pairingPayload,
@@ -49,6 +54,8 @@ export const preparePairingAlert = async (
   }
 
   const info = await getInfo()
+
+  let interactionStandard: string | undefined = undefined
 
   const container = shadowRoot.getElementById(`pairing-container`)
   if (!container) {
@@ -154,8 +161,7 @@ export const preparePairingAlert = async (
         return
       }
 
-      walletConnectUri = await wallet.clickHandler()
-      console.log('####### RECEIVED walletConnectUri ######', walletConnectUri)
+      interactionStandard = await wallet.clickHandler()
 
       const modalEl: HTMLElement | null = shadowRoot.getElementById('beacon-modal__content')
       if (modalEl && type !== WalletType.EXTENSION && type !== WalletType.IOS) {
@@ -254,9 +260,12 @@ export const preparePairingAlert = async (
 
   // if (mainText && walletList && switchButton && copyButton && qr && titleEl) {
   const clipboardFn = async () => {
-    const code =
-      walletConnectUri ||
-      (pairingPayload ? await serializer.serialize(await pairingPayload.p2pSyncCode()) : '')
+    let code
+    if (interactionStandard === 'wallet_connect') {
+      code = (await pairingPayload.walletConnectSyncCode()).relayServer // TODO JGD change to URI
+    } else {
+      code = pairingPayload ? await serializer.serialize(await pairingPayload.p2pSyncCode()) : ''
+    }
 
     navigator.clipboard.writeText(code).then(
       () => {
@@ -304,8 +313,15 @@ export const preparePairingAlert = async (
             // If we have previously triggered the load, do not load it again (this can lead to multiple QRs being added if "pairingPayload.p2pSyncCode()" is slow)
             qrShown = true
 
-            const code = await serializer.serialize(await pairingPayload.p2pSyncCode())
-            const uri = walletConnectUri ?? getTzip10Link('tezos://', code)
+            let uri
+            console.log('showPlatform interactionStandard', interactionStandard)
+            if (interactionStandard === 'wallet_connect') {
+              uri = (await pairingPayload.walletConnectSyncCode()).relayServer // TODO JGD change to URI
+              console.log('showPlatform URI', uri)
+            } else {
+              const code = await serializer.serialize(await pairingPayload.p2pSyncCode())
+              uri = getTzip10Link('tezos://', code)
+            }
             console.log('####### URI FOR QR ######', uri)
             const qrSVG = getQrData(uri, 'svg')
             const qrString = qrSVG.replace('<svg', `<svg class="beacon-alert__image"`)
