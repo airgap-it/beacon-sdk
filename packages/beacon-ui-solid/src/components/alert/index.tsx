@@ -11,6 +11,7 @@ import * as walletsStyles from '../wallets/styles.css'
 import * as walletStyles from '../wallet/styles.css'
 import * as infoStyles from '../info/styles.css'
 import Info from '../info'
+import QR from '../qr'
 
 export interface AlertButton {
   text: string
@@ -34,6 +35,7 @@ export interface AlertConfig {
 }
 
 const [isOpen, setIsOpen] = createSignal<boolean>(false)
+const [isInfo, setIsInfo] = createSignal<boolean>(false)
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
 
@@ -58,6 +60,7 @@ const closeAlert = (id: string): Promise<void> => {
 export interface AlertProps {
   content: any
   extraContent?: any
+  onBackClick?: () => void
 }
 
 const Alert: Component<AlertProps> = (props: AlertProps) => {
@@ -66,9 +69,11 @@ const Alert: Component<AlertProps> = (props: AlertProps) => {
     <div class={isOpen() ? 'alert-wrapper-show' : 'alert-wrapper-hide'}>
       <div class={isOpen() ? 'alert-modal-show' : 'alert-modal-hide'}>
         <div class="alert-header">
-          <div class="alert-button-icon">
-            <LeftIcon />
-          </div>
+          {props.onBackClick && (
+            <div class="alert-button-icon" onClick={props.onBackClick}>
+              <LeftIcon />
+            </div>
+          )}
           <div class="alert-logo">
             <LogoIcon />
           </div>
@@ -83,9 +88,11 @@ const Alert: Component<AlertProps> = (props: AlertProps) => {
             {props.extraContent}
           </div>
         </div>
-        <div class="alert-footer" onClick={() => setShowMore(!showMore())}>
-          {showMore() ? 'Show less' : 'Show more'}
-        </div>
+        {props.extraContent && (
+          <div class="alert-footer" onClick={() => setShowMore(!showMore())}>
+            {showMore() ? 'Show less' : 'Show more'}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -135,23 +142,27 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
 
     const wallets = [
       {
+        id: 'kukai',
         name: 'Kukai Wallet',
         description: 'Web App',
         image:
           'data:image/png;base64,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'
       },
       {
+        id: 'trust',
         name: 'Trust Wallet',
         description: 'Mobile App',
         image:
           'data:image/png;base64,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'
       },
       {
+        id: 'temple',
         name: 'Temple Wallet',
         description: 'Browser Extenion & Mobile App',
         image: 'https://templewallet.com/logo.png'
       },
       {
+        id: 'umami',
         name: 'Umami',
         description: 'Mobile/Desktop App',
         image:
@@ -159,30 +170,51 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
       }
     ]
 
-    const content = <TopWallets wallets={wallets} />
-    const extraContent = (
-      <>
-        <Wallets wallets={wallets} />
-        <Info title="Install Temple Wallet" />
-        <Info
-          title="Install Temple Wallet"
-          description="To connect your Temple Wallet, install the browser extension."
+    dispose = render(
+      () => (
+        <Alert
+          content={
+            isInfo() ? (
+              <>
+                <Info
+                  title="Install Temple Wallet"
+                  description="To connect your Temple Wallet, install the browser extension."
+                  buttons={[
+                    {
+                      label: 'Install extension',
+                      type: 'primary',
+                      onClick: () => console.log('clicked button')
+                    }
+                  ]}
+                />
+                <QR />
+              </>
+            ) : (
+              <TopWallets
+                wallets={wallets}
+                onClickWallet={(id: string) => {
+                  console.log('cllicked on wallet', id)
+                  setIsInfo(true)
+                }}
+              />
+            )
+          }
+          extraContent={
+            isInfo() ? undefined : (
+              <Wallets
+                wallets={wallets}
+                onClickWallet={(id: string) => {
+                  console.log('cllicked on wallet', id)
+                  setIsInfo(true)
+                }}
+              />
+            )
+          }
+          onBackClick={isInfo() ? () => setIsInfo(false) : undefined}
         />
-        <Info
-          title="Install Temple Wallet"
-          description="To connect your Temple Wallet, install the browser extension."
-          buttons={[
-            {
-              label: 'Install extension',
-              type: 'primary',
-              onClick: () => console.log('clicked button')
-            }
-          ]}
-        />
-      </>
+      ),
+      shadowRoot
     )
-
-    dispose = render(() => <Alert content={content} extraContent={extraContent} />, shadowRoot)
     document.body.prepend(shadowRootEl)
     setTimeout(() => {
       setIsOpen(true)

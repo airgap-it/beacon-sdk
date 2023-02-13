@@ -3,7 +3,8 @@ import Wallet from '../wallet'
 import styles from './styles.css'
 
 interface TopWalletsProps {
-  wallets: { name: string; description: string; image: string }[]
+  wallets: { id: string; name: string; description: string; image: string }[]
+  onClickWallet: (id: string) => void
 }
 
 const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
@@ -16,7 +17,12 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
       <div class="top-wallets-wallets-main">
         <For each={props.wallets}>
           {(wallet) => (
-            <Wallet name={wallet.name} description={wallet.description} image={wallet.image} />
+            <Wallet
+              name={wallet.name}
+              description={wallet.description}
+              image={wallet.image}
+              onClick={() => props.onClickWallet(wallet.id)}
+            />
           )}
         </For>
       </div>

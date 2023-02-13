@@ -3,7 +3,8 @@ import Wallet from '../wallet'
 import styles from './styles.css'
 
 interface WalletProps {
-  wallets: { name: string; description?: string; image: string }[]
+  wallets: { id: string; name: string; description?: string; image: string }[]
+  onClickWallet: (id: string) => void
 }
 
 const Wallets: Component<WalletProps> = (props: WalletProps) => {
@@ -17,6 +18,7 @@ const Wallets: Component<WalletProps> = (props: WalletProps) => {
               description={wallet.description}
               image={wallet.image}
               small
+              onClick={() => props.onClickWallet(wallet.id)}
             />
           )}
         </For>
