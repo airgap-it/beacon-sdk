@@ -1,5 +1,5 @@
-export { openAlert, closeAlerts } from './components/alert'
-export type { AlertButton, AlertConfig } from './components/alert'
+export { openAlert, closeAlerts } from './ui/alert'
+export type { AlertButton, AlertConfig } from './ui/alert'
 
 export {
   Pairing,
@@ -13,8 +13,8 @@ export {
   getiOSList
 } from './components/pairing'
 
-export { closeToast, openToast } from './components/toast'
-export type { ToastAction } from './components/toast'
+export { closeToast, openToast } from './ui/toast'
+export type { ToastAction } from './ui/toast'
 
 export { getColorMode, setColorMode } from './utils/colorMode'
 
