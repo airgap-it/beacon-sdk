@@ -176,8 +176,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         method: PermissionScopeMethods.SIGN,
         params: {
           account: account,
-          expression:
-            '05010000004254657a6f73205369676e6564204d6573736167653a207465737455726c20323032332d30322d30385431303a33363a31382e3435345a2048656c6c6f20576f726c64', // TODO JGD hexify signPayloadRequest.payload,
+          expression: signPayloadRequest.payload,
           signingType: signPayloadRequest.signingType
         }
       }

@@ -1423,10 +1423,6 @@ export class DAppClient extends Client {
       logger.log('getPeer', 'Active peer', peer)
     }
 
-    if (!peer) {
-      // throw new Error('No matching peer found.') // TODO JGD
-    }
-
     return peer
   }
 
@@ -1648,6 +1644,7 @@ export class DAppClient extends Client {
   public async disconnect() {
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
+    this.walletConnectTransport = undefined
     await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
   }
 
