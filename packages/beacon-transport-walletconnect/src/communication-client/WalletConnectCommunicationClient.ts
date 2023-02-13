@@ -122,10 +122,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.currentMessageId = message.id
 
-    console.log('######################################')
-    console.log(JSON.stringify(message, null, 2))
-    console.log('######################################')
-
     if (message?.type === BeaconMessageType.PermissionRequest) {
       this.requestPermissions()
     }
@@ -512,11 +508,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
   }
 
-  getSession() {
+  public currentSession(): SessionTypes.Struct | undefined {
+    return this.session
+  }
+
+  private getSession() {
     if (!this.session) {
       throw new NotConnected()
     }
-    return this.session
+    return this.session!
   }
 
   /**

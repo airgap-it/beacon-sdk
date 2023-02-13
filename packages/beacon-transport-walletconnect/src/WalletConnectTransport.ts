@@ -53,7 +53,10 @@ export class WalletConnectTransport<
 
   public async getPeers(): Promise<T[]> {
     const client = WalletConnectCommunicationClient.getInstance()
-    const session = client.getSession()
+    const session = client.currentSession()
+    if (!session) {
+      return []
+    }
     return [
       {
         senderId: session.peer.publicKey,
