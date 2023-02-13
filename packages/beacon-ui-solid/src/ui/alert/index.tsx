@@ -185,7 +185,7 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
               />
             )
           }
-          onCloseClick={() => setIsOpen(false)}
+          onCloseClick={() => closeAlert('')}
           onBackClick={isInfo() ? () => setIsInfo(false) : undefined}
         />
       ),

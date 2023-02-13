@@ -12,8 +12,18 @@ export interface AlertProps {
 const Alert: Component<AlertProps> = (props: AlertProps) => {
   const [showMore, setShowMore] = createSignal<boolean>(false)
   return (
-    <div class={props.open ? 'alert-wrapper-show' : 'alert-wrapper-hide'}>
-      <div class={props.open ? 'alert-modal-show' : 'alert-modal-hide'}>
+    <div
+      class={props.open ? 'alert-wrapper-show' : 'alert-wrapper-hide'}
+      onClick={() => {
+        props.onCloseClick()
+      }}
+    >
+      <div
+        class={props.open ? 'alert-modal-show' : 'alert-modal-hide'}
+        onClick={(e: any) => {
+          e.stopPropagation()
+        }}
+      >
         <div class="alert-header">
           {props.onBackClick && (
             <div class="alert-button-icon" onClick={props.onBackClick}>
