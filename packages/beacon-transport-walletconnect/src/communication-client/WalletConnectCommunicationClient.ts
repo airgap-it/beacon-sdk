@@ -307,30 +307,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async getPairingRequestInfo(): Promise<ExtendedWalletConnectPairingRequest> {
     const uri = await this.init()
-    console.log('getPairingRequestInfo URI', uri)
     return {
       id: await generateGUID(),
       type: 'walletconnect-pairing-request',
       name: 'WalletConnect',
       version: BEACON_VERSION,
-      relayServer: uri!,
-      senderId: '12',
-      publicKey: '12345678' //await this.getPublicKey()
+      uri: uri!,
+      senderId: await generateGUID(),
+      publicKey: await generateGUID()
     }
   }
-
-  // public async getPairingResponseInfo(request: any): Promise<P2PPairingResponse> {
-  //   const info: WalletConnectPairingResponse = {
-  //     id: request.id,
-  //     type: 'walletconnect-pairing-response',
-  //     name: 'WalletConnect',
-  //     version: request.version,
-  //     publicKey: await this.getPublicKey(),
-  //     relayServer: WalletConnectConfig.RELAY_URL
-  //   }
-
-  //   return info
-  // }
 
   private validateReceivedNamespace(
     scope: PermissionScopeParam,

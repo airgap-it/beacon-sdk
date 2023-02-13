@@ -81,7 +81,7 @@ export interface PairingAlertWallet {
   color?: string
   logo?: string
   enabled: boolean
-  clickHandler(): void | Promise<any> // TODO JGD
+  clickHandler(): void | Promise<any> // TODO JGD type
 }
 
 export interface PairingAlertButton {
@@ -281,7 +281,7 @@ export class Pairing {
               let code = await serializer.serialize(await pairingCode())
               if (app?.supportedInteractionStandards?.length > 0) {
                 interactionStandard = app.supportedInteractionStandards[0]
-                code = (await walletConnectSyncCode()).relayServer // TODO JGD change this to include URI
+                code = (await walletConnectSyncCode()).uri
               }
 
               this.clicked = true

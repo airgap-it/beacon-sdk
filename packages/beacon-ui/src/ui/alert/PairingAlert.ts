@@ -262,7 +262,7 @@ export const preparePairingAlert = async (
   const clipboardFn = async () => {
     let code
     if (interactionStandard === 'wallet_connect') {
-      code = (await pairingPayload.walletConnectSyncCode()).relayServer // TODO JGD change to URI
+      code = (await pairingPayload.walletConnectSyncCode()).uri
     } else {
       code = pairingPayload ? await serializer.serialize(await pairingPayload.p2pSyncCode()) : ''
     }
@@ -316,7 +316,7 @@ export const preparePairingAlert = async (
             let uri
             console.log('showPlatform interactionStandard', interactionStandard)
             if (interactionStandard === 'wallet_connect') {
-              uri = (await pairingPayload.walletConnectSyncCode()).relayServer // TODO JGD change to URI
+              uri = (await pairingPayload.walletConnectSyncCode()).uri
               console.log('showPlatform URI', uri)
             } else {
               const code = await serializer.serialize(await pairingPayload.p2pSyncCode())

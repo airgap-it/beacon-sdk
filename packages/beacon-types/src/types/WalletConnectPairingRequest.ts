@@ -8,7 +8,7 @@ export interface WalletConnectPairingRequest extends PeerInfo {
   type: 'walletconnect-pairing-request'
   name: string
   publicKey: string
-  relayServer: string
+  uri: string
   icon?: string // TODO: Should this be a URL or base64 image?
   appUrl?: string
 }

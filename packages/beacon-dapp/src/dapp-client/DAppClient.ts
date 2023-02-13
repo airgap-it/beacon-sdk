@@ -238,7 +238,7 @@ export class DAppClient extends Client {
           } else {
             openRequest.resolve({ message, connectionInfo })
           }
-          // this.openRequests.delete(typedMessage.id) // TODO JGD
+          this.openRequests.delete(typedMessage.id)
         } else {
           if (typedMessage.message.type === BeaconMessageType.Disconnect) {
             const relevantTransport =
@@ -295,7 +295,7 @@ export class DAppClient extends Client {
           } else {
             openRequest.resolve({ message, connectionInfo })
           }
-          // this.openRequests.delete(typedMessage.id) // TODO JGD
+          this.openRequests.delete(typedMessage.id)
         } else {
           if (
             typedMessage.type === BeaconMessageType.Disconnect ||
@@ -669,7 +669,6 @@ export class DAppClient extends Client {
 
     const permissions = activeAccount.scopes
 
-    // TODO JGD LOG
     switch (type) {
       case BeaconMessageType.OperationRequest:
         return permissions.includes(PermissionScope.OPERATION_REQUEST)
@@ -1068,7 +1067,6 @@ export class DAppClient extends Client {
    *
    * @param input The message details we need to prepare the OperationRequest message.
    */
-  // TODO JGD
   public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
     if (!input.operationDetails) {
       throw await this.sendInternalError('Operation details must be provided')
