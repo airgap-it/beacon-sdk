@@ -53,6 +53,12 @@
   padding-bottom: 0px;
 }
 
+.alert-button-icon-empty {
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+}
+
 .alert-button-icon {
   width: 24px;
   height: 24px;
@@ -69,6 +75,7 @@
 
 .alert-button-icon:hover {
   background-color: #475569;
+  border: 1px solid #475569;
   fill: #e2e8f0;
 }
 

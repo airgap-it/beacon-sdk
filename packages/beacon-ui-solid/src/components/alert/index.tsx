@@ -20,6 +20,7 @@ const Alert: Component<AlertProps> = (props: AlertProps) => {
               <LeftIcon />
             </div>
           )}
+          {!props.onBackClick && <div class="alert-button-icon-empty"></div>}
           <div class="alert-logo">
             <LogoIcon />
           </div>
@@ -30,7 +31,7 @@ const Alert: Component<AlertProps> = (props: AlertProps) => {
         <div class="alert-body" style={{ 'margin-bottom': props.extraContent ? '' : '1.8em' }}>
           {props.content}
           <div class={showMore() ? 'alert-body-extra-show' : 'alert-body-extra-hide'}>
-            <div class="alert-divider"></div>
+            {props.extraContent && <div class="alert-divider"></div>}
             {props.extraContent}
           </div>
         </div>
