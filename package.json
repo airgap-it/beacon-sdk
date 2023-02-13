@@ -61,7 +61,6 @@
     "@airgap/beacon-transport-postmessage": "file:packages/beacon-transport-postmessage",
     "@airgap/beacon-types": "file:packages/beacon-types",
     "@airgap/beacon-ui": "file:packages/beacon-ui",
-    "@airgap/beacon-ui-solid": "file:packages/beacon-ui-solid",
     "@airgap/beacon-utils": "file:packages/beacon-utils",
     "@airgap/beacon-wallet": "file:packages/beacon-wallet"
   },

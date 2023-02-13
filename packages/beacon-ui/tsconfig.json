@@ -1,11 +1,20 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist/esm",
+    "strict": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "types": ["vite/client"],
+    "noEmit": true,
+    "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "@airgap/beacon-ui": ["./src"]
+      "@airgap/beacon-ui-solid": ["./src"]
     }
   },
-  "include": ["./src"]
+  "include": ["src/**/*", "rollup.config.ts"]
 }

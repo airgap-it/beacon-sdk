@@ -182,11 +182,3 @@ generateForBlockchains(
   tezosWebList,
   tezosIosList
 )
-
-generateForBlockchains(
-  'beacon-ui-solid',
-  tezosExtensionList,
-  tezosDesktopList,
-  tezosWebList,
-  tezosIosList
-)

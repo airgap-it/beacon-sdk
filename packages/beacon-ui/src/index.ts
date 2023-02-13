@@ -1,8 +1,5 @@
-export { openAlert, AlertButton, AlertConfig, closeAlerts } from './ui/alert/Alert'
-
-export { closeToast, openToast, ToastAction } from './ui/toast/Toast'
-
-export { isMobile } from './utils/platform'
+export { openAlert, closeAlerts } from './ui/alert'
+export type { AlertButton, AlertConfig } from './ui/alert'
 
 export {
   Pairing,
@@ -14,6 +11,11 @@ export {
   getExtensionList,
   getWebList,
   getiOSList
-} from './ui/alert/Pairing'
+} from './components/pairing'
+
+export { closeToast, openToast } from './ui/toast'
+export type { ToastAction } from './ui/toast'
 
 export { getColorMode, setColorMode } from './utils/colorMode'
+
+export { isMobile } from './utils/platform'

@@ -45,10 +45,6 @@
     ],
     "beacon-types": ["packages/beacon-types/lib/beacon-types", "packages/beacon-types/lib"],
     "beacon-ui": ["packages/beacon-ui/lib/beacon-ui", "packages/beacon-ui/lib"],
-    "beacon-ui-solid": [
-      "packages/beacon-ui-solid/lib/beacon-ui-solid",
-      "packages/beacon-ui-solid/lib"
-    ],
     "beacon-utils": ["packages/beacon-utils/lib/beacon-utils", "packages/beacon-utils/lib"],
     "beacon-wallet": ["packages/beacon-wallet/lib/beacon-wallet", "packages/beacon-wallet/lib"]
   }
