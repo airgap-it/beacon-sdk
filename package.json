@@ -5,6 +5,7 @@
   "module": "dist/esm/index.js",
   "unpkg": "dist/walletbeacon.min.js",
   "types": "dist/esm/index.d.ts",
+  "workspaces": ["packages/*"],
   "keywords": [
     "airgap",
     "beacon",
