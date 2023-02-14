@@ -59,7 +59,8 @@ const closeAlert = (id: string): Promise<void> => {
       setIsOpen(false)
       setTimeout(() => {
         if (dispose) dispose()
-        document.getElementById('beacon-alert-wrapper')?.remove()
+        if (document.getElementById('beacon-alert-wrapper'))
+          (document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
       }, 500)
     }
     resolve()

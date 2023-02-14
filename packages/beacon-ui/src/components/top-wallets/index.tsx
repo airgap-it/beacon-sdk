@@ -30,7 +30,12 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
           )}
         </For>
         {props.otherWallets && (
-          <div class="top-wallets-other-wallets" onClick={() => props.otherWallets?.onClick()}>
+          <div
+            class="top-wallets-other-wallets"
+            onClick={() => {
+              if (props.otherWallets) props.otherWallets.onClick()
+            }}
+          >
             <div class="top-wallets-other-wallets-left">
               <h3>Other Wallets</h3>
               <p>See other wallets you can use to connect</p>

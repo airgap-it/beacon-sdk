@@ -72,7 +72,8 @@ const closeToast = (): Promise<void> =>
       setIsOpen(false)
       setTimeout(() => {
         if (dispose) dispose()
-        document.getElementById('beacon-toast-wrapper')?.remove()
+        if (document.getElementById('beacon-toast-wrapper'))
+          (document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
       }, 500)
     }
     resolve()
