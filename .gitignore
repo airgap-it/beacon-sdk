@@ -79,6 +79,9 @@ docs
 packages/beacon-blockchain-tezos/src/ui/alert/alert-templates.ts
 packages/beacon-blockchain-tezos/src/ui/alert/wallet-lists.ts
 packages/beacon-blockchain-tezos/src/ui/toast/toast-templates.ts
+packages/beacon-blockchain-tezos-sapling/src/ui/alert/alert-templates.ts
+packages/beacon-blockchain-tezos-sapling/src/ui/alert/wallet-lists.ts
+packages/beacon-blockchain-tezos-sapling/src/ui/toast/toast-templates.ts
 packages/beacon-blockchain-substrate/src/ui/alert/alert-templates.ts
 packages/beacon-blockchain-substrate/src/ui/alert/wallet-lists.ts
 packages/beacon-blockchain-substrate/src/ui/toast/toast-templates.ts

@@ -9,6 +9,10 @@ export {
   getHexHash,
   sealCryptobox,
   openCryptobox,
-  recipientString
+  recipientString,
+  signMessage
 } from './utils/crypto'
 export { generateGUID } from './utils/generate-uuid'
+
+export const secretbox_NONCEBYTES = 24 // crypto_secretbox_NONCEBYTES
+export const secretbox_MACBYTES = 16 // crypto_secretbox_MACBYTES

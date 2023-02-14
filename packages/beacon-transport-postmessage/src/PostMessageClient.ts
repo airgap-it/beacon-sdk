@@ -1,8 +1,6 @@
-import { crypto_secretbox_NONCEBYTES, crypto_secretbox_MACBYTES } from 'libsodium-wrappers'
-
 import { windowRef, Serializer, getSenderId, MessageBasedClient } from '@airgap/beacon-core'
 
-import { openCryptobox } from '@airgap/beacon-utils'
+import { openCryptobox, secretbox_NONCEBYTES, secretbox_MACBYTES } from '@airgap/beacon-utils'
 import {
   ExtensionMessage,
   ExtensionMessageTarget,
@@ -95,10 +93,10 @@ export class PostMessageClient extends MessageBasedClient {
       ) {
         const payload = Buffer.from(data.payload, 'hex')
 
-        if (payload.length >= crypto_secretbox_NONCEBYTES + crypto_secretbox_MACBYTES) {
+        if (payload.length >= secretbox_NONCEBYTES + secretbox_MACBYTES) {
           try {
             const pairingResponse: PostMessagePairingResponse = JSON.parse(
-              await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.privateKey)
+              await openCryptobox(payload, this.keyPair.publicKey, this.keyPair.secretKey)
             )
 
             messageCallback({

@@ -25,13 +25,13 @@ export interface MatrixSyncLeftRoom {
 }
 
 export interface MatrixSyncRooms {
-  join: {
+  join?: {
     [key: string]: MatrixSyncJoinedRoom
   }
-  invite: {
+  invite?: {
     [key: string]: MatrixSyncInvitedRoom
   }
-  leave: {
+  leave?: {
     [key: string]: MatrixSyncLeftRoom
   }
 }
@@ -44,5 +44,5 @@ export interface MatrixSyncRequestParams {
 export interface MatrixSyncResponse {
   type?: 'sync'
   next_batch: string
-  rooms: MatrixSyncRooms
+  rooms?: MatrixSyncRooms
 }

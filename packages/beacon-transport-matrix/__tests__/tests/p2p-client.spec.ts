@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import * as sinon from 'sinon'
 
-import { P2PCommunicationClient } from '../src'
+import { P2PCommunicationClient } from '../../src'
 import { getKeypairFromSeed } from '@airgap/beacon-utils'
 import { LocalStorage } from '@airgap/beacon-core'
 
@@ -21,10 +21,14 @@ describe(`P2PCommunicationClient`, () => {
     const keypair = await getKeypairFromSeed(SEED)
     const localStorage = new LocalStorage()
 
-    client = new P2PCommunicationClient('Test', keypair, 2, localStorage, [])
+    client = new P2PCommunicationClient('Test', keypair, 2, localStorage, {})
   })
 
-  it(`should have more than 1 node available`, async () => {
-    expect((client as any).ENABLED_RELAY_SERVERS.length > 1).to.be.true
+  it(`should have more than 1 node per region available`, async () => {
+    const keyValue: [string, string][] = Object.values((client as any).ENABLED_RELAY_SERVERS)
+    expect(keyValue.length >= 1).to.be.true
+    keyValue.forEach((kv) => {
+      expect(kv[1].length >= 1).to.be.true
+    })
   })
 })

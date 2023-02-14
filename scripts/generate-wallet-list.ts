@@ -1,5 +1,6 @@
 import * as path from 'path'
-import * as fs from 'fs'
+import { readFile, writeFile } from 'node:fs/promises'
+
 import {
   ExtensionApp,
   WebApp,
@@ -22,29 +23,14 @@ import {
   tezosWebList
 } from './blockchains/tezos'
 
+import {
+  tezosSaplingDesktopList,
+  tezosSaplingExtensionList,
+  tezosSaplingIosList,
+  tezosSaplingWebList
+} from './blockchains/tezos-sapling'
+
 const resizeImg = require('resize-img')
-
-const readFile = (path: string): Promise<Buffer> => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path, (err, res) => {
-      if (err) {
-        reject(err)
-      }
-      resolve(res)
-    })
-  })
-}
-
-function writeFile(path: string, data: any) {
-  return new Promise((resolve, reject) => {
-    fs.writeFile(path, data, (err: Error | null): void => {
-      if (err) {
-        reject(err)
-      }
-      resolve(undefined)
-    })
-  })
-}
 
 const generateForBlockchains = (
   packagePath: string,
@@ -59,14 +45,23 @@ const generateForBlockchains = (
   const convert = <T extends AppBase>(list: T[]): Promise<T[]> => {
     return Promise.all(
       list.map(async (entry) => {
-        const image = await resizeImg(await readFile(path.join(REGISTRY_DIR, entry.logo)), {
-          width: 64,
-          height: 64
-        })
-
         const ext = path.extname(entry.logo).replace('.', '')
 
-        entry.logo = `data:image/${ext};base64,${image.toString('base64')}`
+        if (!ext) {
+          return entry
+        }
+
+        const imgBuffer = await readFile(path.join(REGISTRY_DIR, entry.logo))
+
+        if (ext === 'svg') {
+          entry.logo = `data:image/svg+xml;base64,${imgBuffer.toString('base64')}`
+        } else {
+          const resizedImage = await resizeImg(imgBuffer, {
+            width: 64,
+            height: 64
+          })
+          entry.logo = `data:image/${ext};base64,${resizedImage.toString('base64')}`
+        }
 
         return entry
       })
@@ -165,6 +160,14 @@ generateForBlockchains(
   tezosDesktopList,
   tezosWebList,
   tezosIosList
+)
+
+generateForBlockchains(
+  'beacon-blockchain-tezos-sapling',
+  tezosSaplingExtensionList,
+  tezosSaplingDesktopList,
+  tezosSaplingWebList,
+  tezosSaplingIosList
 )
 
 generateForBlockchains(

@@ -10,12 +10,12 @@ import {
   DisconnectMessage,
   AppMetadata,
   BeaconRequestMessage,
-  BeaconMessageWrapper
+  BeaconMessageWrapper,
+  NodeDistributions
 } from '@airgap/beacon-types'
 import { Serializer, Transport } from '../..'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
-import { BEACON_VERSION } from '../../constants'
 import { getSenderId } from '../../utils/get-sender-id'
 import { Logger } from '../../utils/Logger'
 import { ClientOptions } from './ClientOptions'
@@ -50,7 +50,7 @@ export abstract class Client extends BeaconClient {
    */
   protected requestCounter: number[] = []
 
-  protected readonly matrixNodes: string[]
+  protected readonly matrixNodes: NodeDistributions
 
   protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
   protected get transport(): Promise<Transport<any>> {
@@ -75,7 +75,7 @@ export abstract class Client extends BeaconClient {
     super(config)
 
     this.accountManager = new AccountManager(config.storage)
-    this.matrixNodes = config.matrixNodes ?? []
+    this.matrixNodes = config.matrixNodes ?? {}
 
     this.handleResponse = (
       message: BeaconBaseMessage | BeaconMessageWrapper<BeaconBaseMessage>,
@@ -215,7 +215,7 @@ export abstract class Client extends BeaconClient {
   protected async sendDisconnectToPeer(peer: PeerInfo, transport?: Transport<any>): Promise<void> {
     const request: DisconnectMessage = {
       id: await generateGUID(),
-      version: BEACON_VERSION,
+      version: peer.version,
       senderId: await getSenderId(await this.beaconId),
       type: BeaconMessageType.Disconnect
     }

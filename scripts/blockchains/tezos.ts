@@ -3,12 +3,19 @@ import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src
 // TODO: Temporary build fix
 export enum NetworkType {
   MAINNET = 'mainnet',
+  GHOSTNET = 'ghostnet', // Long running testnet
+  MONDAYNET = 'mondaynet', // Testnet, resets every monday
+  DAILYNET = 'mondaynet', // Testnet, resets every day
   DELPHINET = 'delphinet',
   EDONET = 'edonet',
   FLORENCENET = 'florencenet',
   GRANADANET = 'granadanet',
   HANGZHOUNET = 'hangzhounet',
   ITHACANET = 'ithacanet',
+  JAKARTANET = 'jakartanet',
+  KATHMANDUNET = 'kathmandunet',
+  LIMANET = 'limanet',
+  MUMBAINET = 'mumbainet',
   CUSTOM = 'custom'
 }
 
@@ -42,17 +49,32 @@ export const tezosWebList: WebApp[] = [
     logo: 'web-kukai.png',
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
+      [NetworkType.GHOSTNET]: 'https://ghostnet.kukai.app',
+      [NetworkType.MONDAYNET]: 'https://mondaynet.kukai.app',
+      [NetworkType.DAILYNET]: 'https://dailynet.kukai.app',
       [NetworkType.DELPHINET]: 'https://testnet.kukai.app',
       [NetworkType.EDONET]: 'https://edonet.kukai.app',
       [NetworkType.FLORENCENET]: 'https://florencenet.kukai.app',
       [NetworkType.GRANADANET]: 'https://granadanet.kukai.app',
       [NetworkType.HANGZHOUNET]: 'https://hangzhounet.kukai.app',
-      [NetworkType.ITHACANET]: 'https://ithacanet.kukai.app'
+      [NetworkType.ITHACANET]: 'https://ithacanet.kukai.app',
+      [NetworkType.JAKARTANET]: 'https://jakartanet.kukai.app',
+      [NetworkType.KATHMANDUNET]: 'https://kathmandunet.kukai.app',
+      [NetworkType.LIMANET]: 'https://limanet.kukai.app',
+      [NetworkType.MUMBAINET]: 'https://mumbainet.kukai.app'
     }
   }
 ]
 
 export const tezosDesktopList: DesktopApp[] = [
+  {
+    key: 'infinity_wallet',
+    name: 'Infinity Wallet',
+    shortName: 'Infinity Wallet',
+    color: 'rgb(52, 147, 218)',
+    logo: 'infinity-wallet.png',
+    deepLink: 'infinity://'
+  },
   {
     key: 'galleon_desktop',
     name: 'Galleon',
@@ -68,6 +90,14 @@ export const tezosDesktopList: DesktopApp[] = [
     color: '',
     logo: 'desktop-umami.png',
     deepLink: 'umami://'
+  },
+  {
+    key: 'atomex_desktop',
+    name: 'Atomex Wallet',
+    shortName: 'Atomex',
+    color: '',
+    logo: 'desktop-atomex.png',
+    deepLink: 'atomex://'
   }
 ]
 
@@ -83,22 +113,66 @@ export const tezosIosList: App[] = [
   },
   {
     key: 'naan_ios',
-    name: 'Naan Wallet',
-    shortName: 'Naan',
-    color: 'rgb(129, 100, 100)',
+    name: 'naan - your portal to web3 ',
+    shortName: 'naan',
+    color: '',
     logo: 'ios-naan.png',
-    universalLink: 'https://naanwallet.com',
+    universalLink: 'https://www.naan.app/',
     deepLink: 'naan://'
   },
   {
+    key: 'altme_wallet',
+    name: 'Altme Wallet',
+    shortName: 'Altme',
+    color: '',
+    logo: 'altme.png',
+    universalLink: 'https://app.altme.io/app/download'
+  },
+  {
     key: 'autonomy-app',
-    name: 'Autonomy',
+    name: 'Autonomy: Digital Art Wallet',
     shortName: 'Autonomy',
     color: '',
     logo: 'ios-autonomy.png',
-    universalLink: 'https://au.bitmark.com/apps/tezos',
+    universalLink: 'https://autonomy.io/apps/tezos',
     deepLink: 'autonomy-tezos://'
-  }
+  },
+  {
+    key: 'temple_ios',
+    name: 'Temple Wallet',
+    shortName: 'Temple',
+    color: '',
+    logo: 'ios-temple.png',
+    universalLink: 'https://templewallet.com',
+    deepLink: 'temple://'
+  },
+  {
+    key: 'atomex_ios',
+    name: 'Atomex Wallet',
+    shortName: 'Atomex',
+    color: '',
+    logo: 'ios-atomex.png',
+    universalLink: 'https://atomex.me',
+    deepLink: 'atomex://'
+  },
+  {
+    key: 'umami_ios',
+    name: 'Umami Mobile',
+    shortName: 'Umami Mobile',
+    color: '',
+    logo: 'desktop-umami.png',
+    deepLink: 'umami://',
+    universalLink: 'https://umamiwallet.com/'
+  },
+  // {
+  //   key: 'exodus_mobile',
+  //   name: 'Exodus Mobile',
+  //   shortName: 'Exodus Mobile',
+  //   color: '',
+  //   logo: 'exodus.svg',
+  //   deepLink: 'exodus://tzip10',
+  //   universalLink:'https://www.exodus.com/'
+  // },
   // {
   //   name: 'Galleon',
   //   shortName: 'Galleon',
