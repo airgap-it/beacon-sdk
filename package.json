@@ -21,6 +21,10 @@
     "type": "git",
     "url": "https://github.com/airgap-it/beacon-sdk"
   },
+  "engines" : {
+    "npm": ">=7.0.0",
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
     "build": "npm run check-version && lerna run tsc && npm run browserify:all",
