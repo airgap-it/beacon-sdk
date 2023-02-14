@@ -45,3 +45,18 @@
   height: 160px;
   width: auto;
 }
+
+@media only screen and (max-width: 800px) {
+  .qr-left h3 {
+    font-size: 1em;
+    line-height: 1em;
+  }
+
+  .qr-left p {
+    font-size: 0.65em;
+  }
+
+  .qr-more-info {
+    font-size: 0.75em;
+  }
+}

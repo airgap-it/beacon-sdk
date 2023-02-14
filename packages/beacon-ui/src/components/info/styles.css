@@ -49,3 +49,18 @@
 .info-button:hover {
   background-color: #166afc;
 }
+
+@media only screen and (max-width: 800px) {
+  .info-title {
+    font-size: 1em;
+    line-height: 1em;
+  }
+
+  .info-description {
+    font-size: 0.65em;
+  }
+
+  .qr-more-info {
+    font-size: 0.75em;
+  }
+}

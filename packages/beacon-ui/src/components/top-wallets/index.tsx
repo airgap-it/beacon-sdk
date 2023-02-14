@@ -5,9 +5,12 @@ import styles from './styles.css'
 interface TopWalletsProps {
   wallets: { id: string; name: string; description: string; image: string }[]
   onClickWallet: (id: string) => void
+  otherWallets?: { images: string[]; onClick: () => void }
 }
 
 const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
+  const isMobile = window.innerWidth <= 800
+
   return (
     <div class="top-wallets-wrapper">
       <div class="top-wallets-info">
@@ -18,6 +21,7 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
         <For each={props.wallets}>
           {(wallet) => (
             <Wallet
+              mobile={isMobile}
               name={wallet.name}
               description={wallet.description}
               image={wallet.image}
@@ -25,6 +29,22 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
             />
           )}
         </For>
+        {props.otherWallets && (
+          <div class="top-wallets-other-wallets" onClick={() => props.otherWallets?.onClick()}>
+            <div class="top-wallets-other-wallets-left">
+              <h3>Other Wallets</h3>
+              <p>See other wallets you can use to connect</p>
+            </div>
+            <div class="top-wallets-other-wallets-right">
+              <img src={props.otherWallets.images[0]} />
+              <img
+                class="top-wallets-other-wallets-center-wallet"
+                src={props.otherWallets.images[1]}
+              />
+              <img src={props.otherWallets.images[2]} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

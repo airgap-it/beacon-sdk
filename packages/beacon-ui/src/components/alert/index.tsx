@@ -11,6 +11,9 @@ export interface AlertProps {
 
 const Alert: Component<AlertProps> = (props: AlertProps) => {
   const [showMore, setShowMore] = createSignal<boolean>(false)
+
+  const isMobile = window.innerWidth <= 800
+
   return (
     <div
       class={props.open ? 'alert-wrapper-show' : 'alert-wrapper-hide'}
@@ -40,12 +43,14 @@ const Alert: Component<AlertProps> = (props: AlertProps) => {
         </div>
         <div class="alert-body" style={{ 'margin-bottom': props.extraContent ? '' : '1.8em' }}>
           {props.content}
-          <div class={showMore() ? 'alert-body-extra-show' : 'alert-body-extra-hide'}>
-            {props.extraContent && <div class="alert-divider"></div>}
-            {props.extraContent}
-          </div>
+          {!isMobile && (
+            <div class={showMore() ? 'alert-body-extra-show' : 'alert-body-extra-hide'}>
+              {props.extraContent && <div class="alert-divider"></div>}
+              {props.extraContent}
+            </div>
+          )}
         </div>
-        {props.extraContent && (
+        {!isMobile && props.extraContent && (
           <div class="alert-footer" onClick={() => setShowMore(!showMore())}>
             {showMore() ? 'Show less' : 'Show more'}
           </div>

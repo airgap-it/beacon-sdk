@@ -41,7 +41,10 @@ export interface AlertConfig {
 
 // State variables
 const [isOpen, setIsOpen] = createSignal<boolean>(false)
-const [isInfo, setIsInfo] = createSignal<boolean>(false)
+const [currentInfo, setCurrentInfo] = createSignal<'top-wallets' | 'wallets' | 'install' | 'help'>(
+  'top-wallets'
+)
+
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
 
@@ -151,12 +154,14 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
       })
     ]
 
+    const isMobile = window.innerWidth <= 800
+
     dispose = render(
       () => (
         <Alert
           open={isOpen()}
           content={
-            isInfo() ? (
+            currentInfo() === 'install' ? (
               <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
                 <Info
                   title="Install Temple Wallet"
@@ -171,29 +176,54 @@ const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
                 />
                 <QR />
               </div>
-            ) : (
-              <TopWallets
-                wallets={wallets}
+            ) : currentInfo() === 'wallets' && isMobile ? (
+              <Wallets
+                wallets={wallets.slice(-(wallets.length - 4))}
                 onClickWallet={(id: string) => {
                   console.log('clicked on wallet', id)
-                  setIsInfo(true)
+                  setCurrentInfo('install')
                 }}
+              />
+            ) : (
+              <TopWallets
+                wallets={isMobile ? wallets.slice(0, 3) : wallets.slice(0, 4)}
+                onClickWallet={(id: string) => {
+                  console.log('clicked on wallet', id)
+                  setCurrentInfo('install')
+                }}
+                otherWallets={
+                  isMobile
+                    ? {
+                        images: [wallets[3].image, wallets[4].image, wallets[5].image],
+                        onClick: () => setCurrentInfo('wallets')
+                      }
+                    : undefined
+                }
               />
             )
           }
           extraContent={
-            isInfo() ? undefined : (
+            currentInfo() !== 'top-wallets' || isMobile ? undefined : (
               <Wallets
-                wallets={wallets}
+                small
+                wallets={wallets.slice(-(wallets.length - 4))}
                 onClickWallet={(id: string) => {
                   console.log('clicked on wallet', id)
-                  setIsInfo(true)
+                  setCurrentInfo('install')
                 }}
               />
             )
           }
           onCloseClick={() => closeAlert('')}
-          onBackClick={isInfo() ? () => setIsInfo(false) : undefined}
+          onBackClick={
+            currentInfo() === 'install' && !isMobile
+              ? () => setCurrentInfo('top-wallets')
+              : currentInfo() === 'install' && isMobile
+              ? () => setCurrentInfo('wallets')
+              : currentInfo() === 'wallets' && isMobile
+              ? () => setCurrentInfo('top-wallets')
+              : undefined
+          }
         />
       ),
       shadowRoot

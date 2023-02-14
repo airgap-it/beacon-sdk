@@ -20,3 +20,11 @@
   grid-template-columns: repeat(4, 1fr);
   margin: 1.8em 0px;
 }
+
+@media only screen and (max-width: 800px) {
+  .wallets-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}

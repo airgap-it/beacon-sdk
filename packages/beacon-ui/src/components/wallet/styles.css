@@ -86,3 +86,30 @@
   font-size: 1em;
   text-align: center;
 }
+
+.wallet-main-mobile {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1em;
+}
+
+.wallet-main-left-mobile {
+  order: 1;
+}
+
+.wallet-main-left-mobile h3 {
+  font-size: 0.85em;
+  text-align: center;
+}
+
+.wallet-main-left-mobile p {
+  font-size: 0.65em;
+  text-align: center;
+}
+
+@media only screen and (max-width: 800px) {
+  .wallet-main {
+    padding: 0.65em 1.25em;
+  }
+}
