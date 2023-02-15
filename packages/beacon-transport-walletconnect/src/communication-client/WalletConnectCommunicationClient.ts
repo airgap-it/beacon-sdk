@@ -43,8 +43,8 @@ export interface PermissionScopeParam {
   events?: PermissionScopeEvents[]
 }
 export enum PermissionScopeMethods {
-  OPERATION_REQUEST = 'tezos_sendOperations',
-  SIGN = 'tezos_signExpression'
+  OPERATION_REQUEST = 'tezos_send',
+  SIGN = 'tezos_sign'
 }
 
 export enum PermissionScopeEvents {
