@@ -3,7 +3,7 @@ import styles from './styles.css'
 
 interface LoaderProps {}
 
-const Loader: Component<LoaderProps> = (props: LoaderProps) => {
+const Loader: Component<LoaderProps> = (_: LoaderProps) => {
   return <div class="loader"></div>
 }
 

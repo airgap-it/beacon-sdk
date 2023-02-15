@@ -1685,7 +1685,7 @@ const tempQR = (
 
 interface QRProps {}
 
-const QR: Component<QRProps> = (props: QRProps) => {
+const QR: Component<QRProps> = (_: QRProps) => {
   return (
     <div class="qr-wrapper">
       <div class="qr-left">

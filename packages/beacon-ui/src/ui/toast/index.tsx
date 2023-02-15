@@ -1,9 +1,8 @@
-import { Component, createSignal, onCleanup, onMount } from 'solid-js'
+import { createSignal } from 'solid-js'
 import { render } from 'solid-js/web'
 import { WalletInfo } from '@airgap/beacon-types'
 
 import Toast from '../../components/toast'
-import Loader from '../../components/loader'
 
 import * as toastStyles from '../../components/toast/styles.css'
 import * as loaderStyles from '../../components/loader/styles.css'
@@ -38,7 +37,7 @@ let dispose: null | VoidFunction = null
  *
  * @param toastConfig Configuration of the toast
  */
-const openToast = async (toastConfig: ToastConfig): Promise<void> => {
+const openToast = async (_: ToastConfig): Promise<void> => {
   if (!isOpen()) {
     const shadowRootEl = document.createElement('div')
     shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')

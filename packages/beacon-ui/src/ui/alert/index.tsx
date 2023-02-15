@@ -1,4 +1,4 @@
-import { Component, createSignal, onCleanup } from 'solid-js'
+import { createSignal } from 'solid-js'
 import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
 import { render } from 'solid-js/web'
 
@@ -53,7 +53,7 @@ let dispose: null | VoidFunction = null
  *
  * @param id ID of alert
  */
-const closeAlert = (id: string): Promise<void> => {
+const closeAlert = (_: string): Promise<void> => {
   return new Promise(async (resolve) => {
     if (dispose && isOpen()) {
       setIsOpen(false)
@@ -82,7 +82,7 @@ const closeAlerts = async (): Promise<void> =>
  * @param alertConfig The configuration of the alert
  */
 // eslint-disable-next-line complexity
-const openAlert = async (alertConfig: AlertConfig): Promise<string> => {
+const openAlert = async (_: AlertConfig): Promise<string> => {
   if (!isOpen()) {
     // Shadow root
     const shadowRootEl = document.createElement('div')
