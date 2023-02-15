@@ -1,5 +1,5 @@
 {
-  "name": "beacon-transport-walletconnect",
+  "name": "@airgap/beacon-transport-walletconnect",
   "version": "3.3.2",
   "description": "Beacon WalletConnect",
   "author": "Papers AG",
