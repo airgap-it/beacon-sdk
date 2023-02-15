@@ -11,6 +11,7 @@ import { windowRef } from '@airgap/beacon-core'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS } from '../../utils/platform'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
+import { WalletConnectConfig } from '@airgap/beacon-transport-walletconnect'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
 import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
 /**
@@ -20,7 +21,6 @@ let localDesktopList: DesktopApp[] = desktopList
 let localExtensionList: ExtensionApp[] = extensionList
 let localWebList: WebApp[] = webList
 let localiOSList: App[] = iOSList
-
 export const getDesktopList = (): DesktopApp[] => {
   return localDesktopList
 }
@@ -46,7 +46,19 @@ export const setWebList = (webList: WebApp[]): void => {
 }
 
 export const getiOSList = (): App[] => {
-  return localiOSList
+  return localiOSList.filter((app) => {
+    if (
+      app.supportedInteractionStandards &&
+      app.supportedInteractionStandards[0] === 'wallet_connect'
+    ) {
+      if (WalletConnectConfig.PROJECT_ID && WalletConnectConfig.RELAY_URL) {
+        return true
+      }
+      return false
+    } else {
+      return true
+    }
+  })
 }
 
 export const setiOSList = (iosList: App[]): void => {
