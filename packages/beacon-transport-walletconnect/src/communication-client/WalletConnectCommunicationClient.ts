@@ -12,19 +12,19 @@ import {
   MissingRequiredScope,
   NotConnected
 } from '../error'
+import { WalletConnectConfig } from './WalletConnectConfig'
 import {
   BeaconMessageType,
   ConnectionContext,
   ExtendedWalletConnectPairingRequest,
   ExtendedWalletConnectPairingResponse,
-  generateGUID,
   OperationRequest,
   Origin,
   PermissionScope,
   SignPayloadRequest,
   SignPayloadResponse
-} from '@airgap/beacon-dapp'
-import { WalletConnectConfig } from './WalletConnectConfig'
+} from '@airgap/beacon-types'
+import { generateGUID } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 
