@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js'
-import { render } from 'solid-js/web'
+import { isServer, render } from 'solid-js/web'
 import { WalletInfo } from '@airgap/beacon-types'
 
 import Toast from '../../components/toast'
@@ -38,6 +38,11 @@ let dispose: null | VoidFunction = null
  * @param toastConfig Configuration of the toast
  */
 const openToast = async (_: ToastConfig): Promise<void> => {
+  if (isServer) {
+    console.log('DO NOT RUN ON SERVER')
+    return
+  }
+
   if (!isOpen()) {
     const shadowRootEl = document.createElement('div')
     shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')
@@ -67,6 +72,10 @@ const openToast = async (_: ToastConfig): Promise<void> => {
  */
 const closeToast = (): Promise<void> =>
   new Promise((resolve) => {
+    if (isServer) {
+      console.log('DO NOT RUN ON SERVER')
+      resolve()
+    }
     if (dispose && isOpen()) {
       setIsOpen(false)
       setTimeout(() => {

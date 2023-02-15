@@ -27,7 +27,7 @@
     "url": "git+https://github.com/airgap-it/beacon-sdk.git"
   },
   "scripts": {
-    "tsc": "rollup -c",
+    "tsc": "rollup -c && ts-node scripts/server-fix.ts",
     "test": "TS_NODE_PROJECT='tsconfig-cjs.json' nyc mocha --require ts-node/register --require source-map-support/register --full-trace --timeout 40000 ./__tests__/**/**.spec.ts"
   },
   "bugs": {

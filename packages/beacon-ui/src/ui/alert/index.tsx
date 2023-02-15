@@ -1,7 +1,6 @@
 import { createSignal } from 'solid-js'
 import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
-import { render } from 'solid-js/web'
-
+import { isServer, render } from 'solid-js/web'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
 
 import Alert from '../../components/alert'
@@ -55,6 +54,11 @@ let dispose: null | VoidFunction = null
  */
 const closeAlert = (_: string): Promise<void> => {
   return new Promise(async (resolve) => {
+    if (isServer) {
+      console.log('DO NOT RUN ON SERVER')
+      resolve()
+    }
+
     if (dispose && isOpen()) {
       setIsOpen(false)
       setTimeout(() => {
@@ -83,6 +87,11 @@ const closeAlerts = async (): Promise<void> =>
  */
 // eslint-disable-next-line complexity
 const openAlert = async (_: AlertConfig): Promise<string> => {
+  if (isServer) {
+    console.log('DO NOT RUN ON SERVER')
+    return ''
+  }
+
   if (!isOpen()) {
     // Shadow root
     const shadowRootEl = document.createElement('div')
