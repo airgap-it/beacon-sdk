@@ -1,13 +1,15 @@
-import {
-  ExtendedWalletConnectPairingResponse,
-  PeerManager,
-  StorageKey,
-  Transport,
-  WalletConnectPairingRequest
-} from '@airgap/beacon-dapp'
 import { KeyPair } from '@stablelib/ed25519'
 import { WalletConnectCommunicationClient } from './communication-client/WalletConnectCommunicationClient'
-import { ConnectionContext, Origin, Storage, TransportStatus } from '@airgap/beacon-types'
+import {
+  ConnectionContext,
+  Origin,
+  Storage,
+  TransportStatus,
+  ExtendedWalletConnectPairingResponse,
+  StorageKey,
+  WalletConnectPairingRequest
+} from '@airgap/beacon-types'
+import { Transport, PeerManager } from '@airgap/beacon-core'
 
 /**
  * @internalapi

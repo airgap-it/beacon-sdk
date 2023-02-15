@@ -36,6 +36,9 @@
   "dependencies": {
     "@walletconnect/sign-client": "2.2.1",
     "@web3modal/standalone": "2.0.0",
-    "@airgap/beacon-types": "^3.3.2"
+    "@airgap/beacon-types": "^3.3.2",
+    "@airgap/beacon-core": "^3.3.2",
+    "@airgap/beacon-utils": "^3.3.2"
+
   }
 }
