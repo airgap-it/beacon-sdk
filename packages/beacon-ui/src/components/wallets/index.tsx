@@ -10,7 +10,7 @@ interface WalletProps {
 
 const Wallets: Component<WalletProps> = (props: WalletProps) => {
   return (
-    <div>
+    <div class="wallets-list-main-wrapper">
       <div class="wallets-list-wrapper">
         <For each={props.wallets}>
           {(wallet) => (

@@ -7,26 +7,37 @@
   border: 1px solid #aaaaaa42;
   border-radius: 10px;
   padding: 1.5em;
-  height: 160px;
+  height: 200px;
 }
 
 .info-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #3880ff;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 28px;
+  margin-bottom: 0.2em;
 }
 
 .info-title {
   text-align: center;
   color: #334155;
   margin: 0px;
+  font-size: 1.1em;
 }
 
 .info-description {
   text-align: center;
-  font-size: 0.85em;
+  font-size: 0.8em;
   font-weight: 300;
   color: #94a3b8;
-  line-height: 1.35em;
+  line-height: 1.25em;
   margin: 6px 0px 12px 0px;
   margin: 0px;
+  max-width: 400px;
 }
 
 .info-buttons {
@@ -40,7 +51,7 @@
   border: 1px solid #3880ff;
   color: white;
   width: 100%;
-  padding: 0.8em 1.6em;
+  padding: 0.6em 1.6em;
   transition: all ease 0.2s;
   cursor: pointer;
   margin-top: 1em;
@@ -52,7 +63,7 @@
 
 @media only screen and (max-width: 800px) {
   .info-title {
-    font-size: 1em;
+    font-size: 0.9em;
     line-height: 1em;
   }
 
@@ -62,5 +73,21 @@
 
   .qr-more-info {
     font-size: 0.75em;
+  }
+
+  .info-wrapper {
+    height: 180px;
+    padding: 1.2em;
+  }
+
+  .info-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1.5em;
+  }
+
+  .info-button {
+    padding: 0.5em 1.6em;
+    font-size: 0.7em;
   }
 }

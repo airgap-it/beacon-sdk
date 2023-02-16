@@ -1683,18 +1683,29 @@ const tempQR = (
   </svg>
 )
 
-interface QRProps {}
+interface QRProps {
+  onClickLearnMore?: () => void
+}
 
-const QR: Component<QRProps> = (_: QRProps) => {
+const QR: Component<QRProps> = (props: QRProps) => {
   return (
     <div class="qr-wrapper">
       <div class="qr-left">
         <h3>Or scan to connect</h3>
         <p>Open Temple Wallet on your mobile phone and scan</p>
 
-        <div style={{ 'margin-top': 'auto' }}>
-          <p class="qr-more-info">Learn more</p>
-        </div>
+        {props.onClickLearnMore && (
+          <div style={{ 'margin-top': 'auto' }}>
+            <p
+              class="qr-more-info"
+              onClick={() => {
+                if (props.onClickLearnMore) props.onClickLearnMore()
+              }}
+            >
+              Learn more
+            </p>
+          </div>
+        )}
       </div>
       <div class="qr-right">{tempQR}</div>
     </div>

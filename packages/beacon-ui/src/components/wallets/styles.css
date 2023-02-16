@@ -15,6 +15,10 @@
   background-color: #3880ff;
 }
 
+.wallets-list-main-wrapper {
+  position: relative;
+}
+
 .wallets-list-wrapper {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -26,5 +30,23 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0.5em;
+    margin-top: 0px;
+  }
+
+  .wallets-list-main-wrapper::before {
+    position: absolute;
+    top: 0px;
+    content: '';
+    left: -24px;
+    width: calc(100% + 48px);
+    background: radial-gradient(
+      circle,
+      rgba(171, 171, 171, 0.7329525560224089) 0%,
+      rgba(193, 193, 193, 0.1279105392156863) 100%
+    );
+    height: 1px;
   }
 }
