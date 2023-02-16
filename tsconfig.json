@@ -23,7 +23,9 @@
     "noUnusedLocals": true /* Report errors on unused locals. */,
     "noUnusedParameters": true /* Report errors on unused parameters. */,
     "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
-    "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */
+    "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
+    /* Additional Settings */
+    "allowSyntheticDefaultImports": true, /* Allows importing modules without a default export without *. */
   },
   "paths": {
     "beacon-core": ["packages/beacon-core/lib/beacon-core", "packages/beacon-core/lib"],
