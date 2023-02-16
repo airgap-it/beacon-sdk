@@ -80,7 +80,7 @@
 }
 
 .alert-logo {
-  margin: 0px 2rem;
+  margin: 0px 6em;
 }
 
 .alert-body {
@@ -119,6 +119,10 @@
 }
 
 @media only screen and (max-width: 800px) {
+  .alert-logo {
+    margin: 0px 2em;
+  }
+
   .alert-wrapper-show {
     align-items: flex-end;
   }

@@ -86,7 +86,9 @@ const closeAlerts = async (): Promise<void> =>
  * @param alertConfig The configuration of the alert
  */
 // eslint-disable-next-line complexity
-const openAlert = async (_: AlertConfig): Promise<string> => {
+const openAlert = async (config: AlertConfig): Promise<string> => {
+  console.log('config', config)
+
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
     return ''
@@ -168,127 +170,167 @@ const openAlert = async (_: AlertConfig): Promise<string> => {
 
     dispose = render(
       () => (
-        <Alert
-          open={isOpen()}
-          content={
-            currentInfo() === 'install' ? (
-              <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
-                <Info
-                  title="Install Temple Wallet"
-                  description="To connect your Temple Wallet, install the browser extension."
-                  buttons={[
-                    {
-                      label: 'Install extension',
-                      type: 'primary',
-                      onClick: () => console.log('clicked button')
+        <>
+          {config.pairingPayload && (
+            <Alert
+              open={isOpen()}
+              content={
+                currentInfo() === 'install' ? (
+                  <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
+                    <Info
+                      border
+                      title="Install Temple Wallet"
+                      description="To connect your Temple Wallet, install the browser extension."
+                      buttons={[
+                        {
+                          label: 'Install extension',
+                          type: 'primary',
+                          onClick: () => console.log('clicked button')
+                        }
+                      ]}
+                    />
+                    <QR onClickLearnMore={() => setCurrentInfo('help')} />
+                  </div>
+                ) : currentInfo() === 'wallets' && isMobile ? (
+                  <Wallets
+                    wallets={wallets.slice(-(wallets.length - 4))}
+                    onClickWallet={(id: string) => {
+                      console.log('clicked on wallet', id)
+                      setCurrentInfo('install')
+                    }}
+                  />
+                ) : currentInfo() === 'help' ? (
+                  <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
+                    <Info
+                      iconBadge
+                      icon={
+                        <svg
+                          fill="currentColor"
+                          stroke-width="0"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          height="1em"
+                          width="1em"
+                          style="overflow: visible;"
+                          color="white"
+                        >
+                          <path d="M16 12h2v4h-2z"></path>
+                          <path d="M20 7V5c0-1.103-.897-2-2-2H5C3.346 3 2 4.346 2 6v12c0 2.201 1.794 3 3 3h15c1.103 0 2-.897 2-2V9c0-1.103-.897-2-2-2zM5 5h13v2H5a1.001 1.001 0 0 1 0-2zm15 14H5.012C4.55 18.988 4 18.805 4 18V8.815c.314.113.647.185 1 .185h15v10z"></path>
+                        </svg>
+                      }
+                      title="What is a wallet?"
+                      description="Wallets let you send, receive, store an interact with digital assets. Your wallet can be used as an easy way to login, instead of having to remember a password."
+                    />
+                    <Info
+                      iconBadge
+                      icon={
+                        <svg
+                          fill="none"
+                          stroke-width="2"
+                          xmlns="http://www.w3.org/2000/svg"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          viewBox="0 0 24 24"
+                          height="1em"
+                          width="1em"
+                          style="overflow: visible;"
+                          color="white"
+                        >
+                          <path stroke="none" d="M0 0h24v24H0z"></path>
+                          <rect width="16" height="16" x="4" y="4" rx="2"></rect>
+                          <path d="M9 12h6M12 9v6"></path>
+                        </svg>
+                      }
+                      title="Not sure where to start?"
+                      description="If you are new to the Web3, we recommend that you start by creating a Kukai wallet. Kukai is a fast way of creating your first wallet using your preffered social account."
+                      buttons={[
+                        {
+                          label: 'Get started',
+                          type: 'primary',
+                          onClick: () => console.log('clicked button')
+                        }
+                      ]}
+                    />{' '}
+                  </div>
+                ) : (
+                  <TopWallets
+                    wallets={isMobile ? wallets.slice(0, 3) : wallets.slice(0, 4)}
+                    onClickWallet={(id: string) => {
+                      console.log('clicked on wallet', id)
+                      setCurrentInfo('install')
+                    }}
+                    otherWallets={
+                      isMobile
+                        ? {
+                            images: [wallets[3].image, wallets[4].image, wallets[5].image],
+                            onClick: () => setCurrentInfo('wallets')
+                          }
+                        : undefined
                     }
-                  ]}
-                />
-                <QR onClickLearnMore={() => setCurrentInfo('help')} />
-              </div>
-            ) : currentInfo() === 'wallets' && isMobile ? (
-              <Wallets
-                wallets={wallets.slice(-(wallets.length - 4))}
-                onClickWallet={(id: string) => {
-                  console.log('clicked on wallet', id)
-                  setCurrentInfo('install')
-                }}
-              />
-            ) : currentInfo() === 'help' ? (
-              <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
+                  />
+                )
+              }
+              extraContent={
+                currentInfo() !== 'top-wallets' || isMobile ? undefined : (
+                  <Wallets
+                    small
+                    wallets={wallets.slice(-(wallets.length - 4))}
+                    onClickWallet={(id: string) => {
+                      console.log('clicked on wallet', id)
+                      setCurrentInfo('install')
+                    }}
+                  />
+                )
+              }
+              onCloseClick={() => closeAlert('')}
+              onBackClick={
+                currentInfo() === 'install' && !isMobile
+                  ? () => setCurrentInfo('top-wallets')
+                  : currentInfo() === 'install' && isMobile
+                  ? () => setCurrentInfo('wallets')
+                  : currentInfo() === 'wallets' && isMobile
+                  ? () => setCurrentInfo('top-wallets')
+                  : currentInfo() === 'help'
+                  ? () => setCurrentInfo('install')
+                  : undefined
+              }
+            />
+          )}
+          {!config.pairingPayload && (
+            <Alert
+              open={isOpen()}
+              content={
                 <Info
                   icon={
                     <svg
+                      color="#334155"
                       fill="currentColor"
                       stroke-width="0"
                       xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
+                      viewBox="0 0 1024 1024"
                       height="1em"
                       width="1em"
                       style="overflow: visible;"
-                      color="white"
                     >
-                      <path d="M16 12h2v4h-2z"></path>
-                      <path d="M20 7V5c0-1.103-.897-2-2-2H5C3.346 3 2 4.346 2 6v12c0 2.201 1.794 3 3 3h15c1.103 0 2-.897 2-2V9c0-1.103-.897-2-2-2zM5 5h13v2H5a1.001 1.001 0 0 1 0-2zm15 14H5.012C4.55 18.988 4 18.805 4 18V8.815c.314.113.647.185 1 .185h15v10z"></path>
+                      <path d="m955.7 856-416-720c-6.2-10.7-16.9-16-27.7-16s-21.6 5.3-27.7 16l-416 720C56 877.4 71.4 904 96 904h832c24.6 0 40-26.6 27.7-48zM480 416c0-4.4 3.6-8 8-8h48c4.4 0 8 3.6 8 8v184c0 4.4-3.6 8-8 8h-48c-4.4 0-8-3.6-8-8V416zm32 352a48.01 48.01 0 0 1 0-96 48.01 48.01 0 0 1 0 96z"></path>
                     </svg>
                   }
-                  title="What is a wallet?"
-                  description="Wallets let you send, receive, store an interact with digital assets. Your wallet can be used as an easy way to login, instead of having to remember a password."
-                />
-                <Info
-                  icon={
-                    <svg
-                      fill="none"
-                      stroke-width="2"
-                      xmlns="http://www.w3.org/2000/svg"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      viewBox="0 0 24 24"
-                      height="1em"
-                      width="1em"
-                      style="overflow: visible;"
-                      color="white"
-                    >
-                      <path stroke="none" d="M0 0h24v24H0z"></path>
-                      <rect width="16" height="16" x="4" y="4" rx="2"></rect>
-                      <path d="M9 12h6M12 9v6"></path>
-                    </svg>
-                  }
-                  title="Not sure where to start?"
-                  description="If you are new to the Web3, we recommend that you start by creating a Kukai wallet. Kukai is a fast way of creating your first wallet using your preffered social account."
+                  title={config.title || 'No title'}
+                  description={config.body || 'No description'}
                   buttons={[
                     {
-                      label: 'Get started',
+                      label: 'Close',
                       type: 'primary',
-                      onClick: () => console.log('clicked button')
+                      onClick: () => closeAlert('')
                     }
                   ]}
-                />{' '}
-              </div>
-            ) : (
-              <TopWallets
-                wallets={isMobile ? wallets.slice(0, 3) : wallets.slice(0, 4)}
-                onClickWallet={(id: string) => {
-                  console.log('clicked on wallet', id)
-                  setCurrentInfo('install')
-                }}
-                otherWallets={
-                  isMobile
-                    ? {
-                        images: [wallets[3].image, wallets[4].image, wallets[5].image],
-                        onClick: () => setCurrentInfo('wallets')
-                      }
-                    : undefined
-                }
-              />
-            )
-          }
-          extraContent={
-            currentInfo() !== 'top-wallets' || isMobile ? undefined : (
-              <Wallets
-                small
-                wallets={wallets.slice(-(wallets.length - 4))}
-                onClickWallet={(id: string) => {
-                  console.log('clicked on wallet', id)
-                  setCurrentInfo('install')
-                }}
-              />
-            )
-          }
-          onCloseClick={() => closeAlert('')}
-          onBackClick={
-            currentInfo() === 'install' && !isMobile
-              ? () => setCurrentInfo('top-wallets')
-              : currentInfo() === 'install' && isMobile
-              ? () => setCurrentInfo('wallets')
-              : currentInfo() === 'wallets' && isMobile
-              ? () => setCurrentInfo('top-wallets')
-              : currentInfo() === 'help'
-              ? () => setCurrentInfo('install')
-              : undefined
-          }
-        />
+                />
+              }
+              onCloseClick={() => closeAlert('')}
+            />
+          )}
+        </>
       ),
       shadowRoot
     )
