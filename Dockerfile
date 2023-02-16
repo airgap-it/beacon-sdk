@@ -9,12 +9,13 @@ WORKDIR /app
 # Bundle app source
 COPY . /app
 
+# set to production
+RUN export NODE_ENV=production
+
 # install dependencies
 RUN npm install
 
 RUN chmod +x ./npm-ci-publish-beta-only.sh
 RUN chmod +x ./npm-ci-publish.sh
 
-# set to production
-RUN export NODE_ENV=production
 CMD ["npm", "run", "test"]
