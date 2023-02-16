@@ -1,4 +1,4 @@
-import { Storage, StorageKey, P2PPairingRequest } from '@airgap/beacon-types'
+import { Storage, StorageKey, P2PPairingRequest, NodeDistributions } from '@airgap/beacon-types'
 import { P2PTransport } from '@airgap/beacon-transport-matrix'
 import { KeyPair } from '@stablelib/ed25519'
 
@@ -17,7 +17,7 @@ export class WalletP2PTransport extends P2PTransport<
     name: string,
     keyPair: KeyPair,
     storage: Storage,
-    matrixNodes: string[],
+    matrixNodes: NodeDistributions,
     iconUrl?: string,
     appUrl?: string
   ) {

@@ -15,16 +15,17 @@
     </script>
 
     <script src="./walletbeacon.min.js"></script>
+    <script src="./walletbeacon.sapling.min.js"></script>
 
     <style>
       /* To test if our UI is affected by global styles */
-      /* div {
+      div {
         background-color: red;
       }
 
       span {
         background-color: orange;
-      } */
+      }
     </style>
   </head>
 
@@ -48,17 +49,11 @@
     <br /><br />
     <button id="connect">Connect and Delegate</button>
     <br /><br />
-    <button id="sendContractCall">Send Contract Call</button>
-    <br /><br />
     <button id="signPayloadRaw">Sign Payload (Raw)</button>
     <br /><br />
     <button id="signPayloadOperation">Sign Payload (Operation)</button>
     <br /><br />
     <button id="signPayloadMicheline">Sign Payload (Micheline)</button>
-    <br /><br />
-    ---
-    <br /><br />
-    <button id="sendNotification">Send notification</button>
     <br /><br />
     ---
     <br /><br />
@@ -107,65 +102,16 @@
     <button id="deserializeData">Deserialize Data</button>
     <br /><br />
     ---
-    <textarea id="beacon-textbox-serialize"></textarea>
-    <button id="serializeData">Serialize Data</button>
-    <br /><br />
-    ---
     <br /><br />
     <button id="reset">Reset and Refresh</button>
-    <br /><br />
-
-    <div id="logger-output"></div>
-
     <br /><br />
     <p style="margin-top: 1000px">End of page</p>
 
     <script>
-      class MyLogger {
-        constructor() {}
-
-        debug(name, method, ...args) {
-          const el = document.createElement('div')
-          el.innerText = `'debug' ${name} ${method} ${args.join(', ')}`
-          el.setAttribute('style', 'background-color: blue')
-          document.getElementById('logger-output').appendChild(el)
-        }
-
-        log(name, method, ...args) {
-          const el = document.createElement('div')
-          el.innerText = `'log' ${name} ${method} ${args.join(', ')}`
-          el.setAttribute('style', 'background-color: green')
-          document.getElementById('logger-output').appendChild(el)
-        }
-
-        warn(name, method, ...args) {
-          const el = document.createElement('div')
-          el.innerText = `'warn' ${name} ${method} ${args.join(', ')}`
-          el.setAttribute('style', 'background-color: orange')
-          document.getElementById('logger-output').appendChild(el)
-        }
-
-        error(name, method, ...args) {
-          const el = document.createElement('div')
-          el.innerText = `'error' ${name} ${method} ${args.join(', ')}`
-          el.setAttribute('style', 'background-color: red')
-          document.getElementById('logger-output').appendChild(el)
-        }
-      }
-
-      const x = new MyLogger()
-
-      beacon.setLogger(x)
-
       // Initiate DAppClient
-      const client = beacon.getDAppClientInstance({
+      const client = new beacon.DAppClient({
         name: 'Example DApp', // Name of the DApp,
-        disclaimerText: 'This is an optional <b>disclaimer</b>.',
-        errorMessages: {
-          KT1RPW5kTX6WFxg8JK34rGEU24gqEEudyfvz: {
-            NOT_OWNER: 'You are not the owner of this token.'
-          }
-        }
+        disclaimerText: 'This is an optional <b>disclaimer</b>.'
         // preferredNetwork: beacon.NetworkType.DELPHINET
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
@@ -173,17 +119,20 @@
         // matrixNodes: ['beacon.tztip.me']
       })
 
+      const substrateBlockchain = new beaconSapling.TezosSaplingBlockchain()
+      client.addBlockchain(substrateBlockchain)
+
       // Display the active account in the UI
       const updateActiveAccount = () => {
         client.getActiveAccount().then((activeAccount) => {
           if (activeAccount) {
-            document.getElementById('activeAccount').innerText = activeAccount.address
-            document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
-            document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
+            document.getElementById('activeAccount').innerHTML = activeAccount.address
+            // document.getElementById('activeAccountNetwork').innerHTML = activeAccount.network.type
+            // document.getElementById('activeAccountTransport').innerHTML = activeAccount.origin.type
           } else {
-            document.getElementById('activeAccount').innerText = ''
-            document.getElementById('activeAccountNetwork').innerText = ''
-            document.getElementById('activeAccountTransport').innerText = ''
+            document.getElementById('activeAccount').innerHTML = ''
+            // document.getElementById('activeAccountNetwork').innerHTML = ''
+            // document.getElementById('activeAccountTransport').innerHTML = ''
           }
         })
       }
@@ -192,7 +141,7 @@
       // Display the active account in the UI
       const updateColorMode = () => {
         client.getColorMode().then((colorMode) => {
-          document.getElementById('activeColorMode').innerText = colorMode
+          document.getElementById('activeColorMode').innerHTML = colorMode
         })
       }
       updateColorMode()
@@ -212,54 +161,40 @@
       // Initiate a delegate operation
       const sendToSelf = () => {
         return client.getActiveAccount().then((activeAccount) => {
-          return client.requestOperation({
-            operationDetails: [
-              {
-                kind: beacon.TezosOperationType.TRANSACTION,
-                destination: activeAccount?.address ?? '',
-                amount: '1'
+          client
+            .request({
+              blockchainIdentifier: 'substrate',
+              type: 'blockchain_request',
+              blockchainData: {
+                type: 'transfer_request',
+                scope: 'transfer',
+                sourceAddress: activeAccount.address,
+                amount: '1',
+                recipient: activeAccount.address,
+                network: {},
+                mode: 'return'
               }
-            ]
-          })
-        })
-      }
-
-      // send contract call
-      const sendContractCall = () => {
-        return client.getActiveAccount().then(async (activeAccount) => {
-          const TZ_BUTTON_COLORS_CONTRACT = 'KT1RPW5kTX6WFxg8JK34rGEU24gqEEudyfvz'
-          const tokenId = '925'
-
-          // Setting the color of TzButton is only possible if you are currently the leader and own a color
-          // So this call will likely fail
-          try {
-            const result = await client.requestOperation({
-              operationDetails: [
-                {
-                  kind: beacon.TezosOperationType.TRANSACTION,
-                  amount: '0',
-                  destination: TZ_BUTTON_COLORS_CONTRACT,
-                  parameters: {
-                    entrypoint: 'set_color',
-                    value: {
-                      int: tokenId
-                    }
-                  }
-                }
-              ]
             })
-
-            console.log(result)
-          } catch (error) {
-            console.log(`The contract call failed and the following error was returned:`, error)
-          }
+            .then((response) => {
+              console.log('response', response)
+            })
         })
       }
 
       // Initiate a permission request
       const requestPermission = (callback) => {
         client
-          .requestPermissions(/*{ network: { type: beacon.NetworkType.DELPHINET } }*/)
+          .permissionRequest({
+            blockchainIdentifier: 'tezos-sapling',
+            type: 'permission_request',
+            blockchainData: {
+              appMetadata: {
+                name: 'Test dApp'
+              },
+              scopes: ['viewing_key', 'transfer'],
+              network: {}
+            }
+          })
           .then((permissions) => {
             console.log('permissions', permissions)
             if (callback) {
@@ -267,11 +202,22 @@
             }
             updateActiveAccount()
           })
-          .catch((error) => {
-            console.log('error during permission request', error)
-          })
+
+        // client
+        //   .requestPermissions(/*{ network: { type: beacon.NetworkType.DELPHINET } }*/)
+        //   .then((permissions) => {
+        //     console.log('permissions', permissions)
+        //     if (callback) {
+        //       callback(permissions)
+        //     }
+        //     updateActiveAccount()
+        //   })
+        //   .catch((error) => {
+        //     console.log('error during permission request', error)
+        //   })
       }
 
+      // Add event listener to the button
       document.getElementById('connect').addEventListener('click', () => {
         // Check if we have an active account
         client.getActiveAccount().then((activeAccount) => {
@@ -286,11 +232,6 @@
             })
           }
         })
-      })
-
-      // Add event listener to the button
-      document.getElementById('sendContractCall').addEventListener('click', () => {
-        sendContractCall()
       })
 
       // Add event listener to the button
@@ -502,29 +443,7 @@
       document.getElementById('deserializeData').addEventListener('click', () => {
         const value = document.getElementById('beacon-textbox').value
         console.log('Deserializing:', value)
-
-        new beacon.Serializer()
-          .deserialize(value)
-          .then((res) => {
-            console.log(res), console.log(JSON.stringify(res))
-          })
-          .catch(console.error)
-      })
-
-      // Add event listener to the button
-      document.getElementById('serializeData').addEventListener('click', () => {
-        const value = document.getElementById('beacon-textbox-serialize').value
-        console.log('Serializing:', value)
-        const parsed = JSON.parse(value)
-        console.log(parsed)
-        new beacon.Serializer().serialize(parsed).then(console.log).catch(console.error)
-      })
-
-      // Add event listener to the button
-      document.getElementById('sendNotification').addEventListener('click', () => {
-        client
-          .sendNotification('Beacon Test', 'Message', '', 'xtz')
-          .then((res) => console.log('Notification Response', res))
+        new beacon.Serializer().deserialize(value).then(console.log).catch(console.error)
       })
     </script>
   </body>
