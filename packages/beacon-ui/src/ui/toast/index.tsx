@@ -37,7 +37,9 @@ let dispose: null | VoidFunction = null
  *
  * @param toastConfig Configuration of the toast
  */
-const openToast = async (_: ToastConfig): Promise<void> => {
+const openToast = async (config: ToastConfig): Promise<void> => {
+  console.log('config', config)
+
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
     return
@@ -59,7 +61,19 @@ const openToast = async (_: ToastConfig): Promise<void> => {
     style2.textContent = loaderStyles.default
     shadowRoot.appendChild(style2)
 
-    dispose = render(() => <Toast open={isOpen()} />, shadowRoot)
+    dispose = render(
+      () => (
+        <Toast
+          label={config.body}
+          open={isOpen()}
+          onClickClose={() => {
+            console.log('clicked close')
+          }}
+          actions={config.actions}
+        />
+      ),
+      shadowRoot
+    )
     document.body.prepend(shadowRootEl)
     setTimeout(() => {
       setIsOpen(true)
