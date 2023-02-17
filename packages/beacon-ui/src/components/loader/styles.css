@@ -1,17 +1,35 @@
 .loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  width: 15px;
-  height: 15px;
-  animation: spin 2s linear infinite;
+  height: 3px;
+  position: relative;
+  background-color: #ddd;
+  position: absolute;
+  width: 100%;
+  left: 0px;
+  bottom: 0px;
 }
 
-@keyframes spin {
+.loader:before {
+  content: '';
+  position: absolute;
+  left: -50%;
+  height: 3px;
+  width: 40%;
+  background-color: #3880ff;
+  -webkit-animation: lineAnim 1s linear infinite;
+  -moz-animation: lineAnim 1s linear infinite;
+  animation: lineAnim 1s linear infinite;
+}
+
+@keyframes lineAnim {
   0% {
-    transform: rotate(0deg);
+    left: -40%;
+  }
+  50% {
+    left: 20%;
+    width: 80%;
   }
   100% {
-    transform: rotate(360deg);
+    left: 100%;
+    width: 100%;
   }
 }
