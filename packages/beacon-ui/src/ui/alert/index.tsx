@@ -15,6 +15,10 @@ import * as walletsStyles from '../../components/wallets/styles.css'
 import * as walletStyles from '../../components/wallet/styles.css'
 import * as infoStyles from '../../components/info/styles.css'
 import * as qrStyles from '../../components/qr/styles.css'
+import { Serializer } from '@airgap/beacon-core'
+import { getTzip10Link } from 'src/utils/get-tzip10-link'
+// import { getTzip10Link } from 'src/utils/get-tzip10-link'
+// import { Serializer } from '@airgap/beacon-core'
 
 // Interfaces
 export interface AlertButton {
@@ -88,6 +92,13 @@ const closeAlerts = async (): Promise<void> =>
 // eslint-disable-next-line complexity
 const openAlert = async (config: AlertConfig): Promise<string> => {
   console.log('config', config)
+
+  let payload = ''
+  if (config.pairingPayload) {
+    const serializer = new Serializer()
+    const code = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
+    payload = getTzip10Link('tezos://', code)
+  }
 
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
@@ -177,19 +188,21 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               content={
                 currentInfo() === 'install' ? (
                   <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
-                    <Info
-                      border
-                      title="Install Temple Wallet"
-                      description="To connect your Temple Wallet, install the browser extension."
-                      buttons={[
-                        {
-                          label: 'Install extension',
-                          type: 'primary',
-                          onClick: () => console.log('clicked button')
-                        }
-                      ]}
-                    />
-                    <QR onClickLearnMore={() => setCurrentInfo('help')} />
+                    {!isMobile && (
+                      <Info
+                        border
+                        title="Install Temple Wallet"
+                        description="To connect your Temple Wallet, install the browser extension."
+                        buttons={[
+                          {
+                            label: 'Install extension',
+                            type: 'primary',
+                            onClick: () => console.log('clicked button')
+                          }
+                        ]}
+                      />
+                    )}
+                    <QR payload={payload} onClickLearnMore={() => setCurrentInfo('help')} />
                   </div>
                 ) : currentInfo() === 'wallets' && isMobile ? (
                   <Wallets

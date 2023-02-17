@@ -94,7 +94,17 @@
           walletInfo: {}
         },
         PAIR_INIT: {
-          p2pPeerInfo: () => {}
+          p2pPeerInfo: () => {
+            return new Promise((resolve) =>
+              resolve({
+                id: 'id',
+                type: 'p2p-pairing-request',
+                name: 'name',
+                publicKey: 'publicKey',
+                relayServer: 'relayServer'
+              })
+            )
+          }
         },
         INTERNAL_ERROR: {
           buttons: []
