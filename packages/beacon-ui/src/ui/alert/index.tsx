@@ -1,5 +1,10 @@
 import { createSignal } from 'solid-js'
-import { NetworkType, P2PPairingRequest, PostMessagePairingRequest } from '@airgap/beacon-types'
+import {
+  NetworkType,
+  P2PPairingRequest,
+  PostMessagePairingRequest,
+  WalletConnectPairingRequest
+} from '@airgap/beacon-types'
 import { isServer, render } from 'solid-js/web'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
 
@@ -36,6 +41,7 @@ export interface AlertConfig {
   pairingPayload?: {
     p2pSyncCode: () => Promise<P2PPairingRequest>
     postmessageSyncCode: () => Promise<PostMessagePairingRequest>
+    walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
     preferredNetwork: NetworkType
   }
   closeButtonCallback?(): void

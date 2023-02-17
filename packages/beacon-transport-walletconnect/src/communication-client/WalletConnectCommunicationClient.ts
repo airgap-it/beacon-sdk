@@ -278,7 +278,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     approval().then(async (session) => {
-      this.session = this.session ?? session
+      this.session = this.session ?? (session as SessionTypes.Struct)
       this.validateReceivedNamespace(connectParams.permissionScope, this.session.namespaces)
       this.setDefaultAccountAndNetwork()
 
@@ -501,7 +501,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     events: string[]
   } {
     if (TEZOS_PLACEHOLDER in this.getSession().requiredNamespaces) {
-      return this.getSession().requiredNamespaces[TEZOS_PLACEHOLDER]
+      return this.getSession().requiredNamespaces[TEZOS_PLACEHOLDER] as {
+        chains: string[]
+        methods: string[]
+        events: string[]
+      }
     } else {
       throw new InvalidSession('Tezos not found in requiredNamespaces')
     }

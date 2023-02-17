@@ -18,4 +18,3 @@ import { App, DesktopApp, ExtensionApp, WebApp } from '@airgap/beacon-types'
   }
 ]
   
-  
