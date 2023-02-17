@@ -100,11 +100,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   console.log('config', config)
 
   let payload = ''
-  if (config.pairingPayload) {
-    const serializer = new Serializer()
-    const code = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
-    payload = getTzip10Link('tezos://', code)
+
+  const setDefaultPayload = async () => {
+    if (config.pairingPayload) {
+      const serializer = new Serializer()
+      const code = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
+      payload = getTzip10Link('tezos://', code)
+    }
   }
+  setDefaultPayload()
 
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
@@ -170,7 +174,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           id: wallet.key,
           name: wallet.shortName,
           image: wallet.logo,
-          description: 'iOS App'
+          description: 'iOS App',
+          supportedInteractionStandards: wallet.supportedInteractionStandards
         }
       }),
       ...webList.map((wallet) => {
@@ -213,7 +218,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 ) : currentInfo() === 'wallets' && isMobile ? (
                   <Wallets
                     wallets={wallets.slice(-(wallets.length - 4))}
-                    onClickWallet={(id: string) => {
+                    onClickWallet={(id: string | undefined) => {
                       console.log('clicked on wallet', id)
                       setCurrentInfo('install')
                     }}
@@ -276,7 +281,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   <TopWallets
                     wallets={isMobile ? wallets.slice(0, 3) : wallets.slice(0, 4)}
                     onClickWallet={(id: string) => {
-                      console.log('clicked on wallet', id)
+                      console.log('clicked on wallet II ', id)
                       setCurrentInfo('install')
                     }}
                     otherWallets={
@@ -295,8 +300,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   <Wallets
                     small
                     wallets={wallets.slice(-(wallets.length - 4))}
-                    onClickWallet={(id: string) => {
-                      console.log('clicked on wallet', id)
+                    onClickWallet={async (id: string | undefined) => {
+                      if (id === 'wallet_connect') {
+                        const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
+                        if (uri) {
+                          payload = uri
+                        }
+                      } else {
+                        setDefaultPayload()
+                      }
+                      console.log('clicked on wallet III', id)
                       setCurrentInfo('install')
                     }}
                   />

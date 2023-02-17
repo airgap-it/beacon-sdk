@@ -3,8 +3,14 @@ import Wallet from '../wallet'
 import styles from './styles.css'
 
 interface WalletProps {
-  wallets: { id: string; name: string; description?: string; image: string }[]
-  onClickWallet: (id: string) => void
+  wallets: {
+    id: string
+    name: string
+    description?: string
+    image: string
+    supportedInteractionStandards?: string[]
+  }[]
+  onClickWallet: (id: string | undefined) => void
   small?: boolean
 }
 
@@ -19,7 +25,13 @@ const Wallets: Component<WalletProps> = (props: WalletProps) => {
               description={wallet.description}
               image={wallet.image}
               small={props.small}
-              onClick={() => props.onClickWallet(wallet.id)}
+              onClick={() => {
+                if (wallet && wallet.supportedInteractionStandards) {
+                  props.onClickWallet(wallet?.supportedInteractionStandards[0])
+                } else {
+                  props.onClickWallet(undefined)
+                }
+              }}
             />
           )}
         </For>
