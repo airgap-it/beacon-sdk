@@ -13,6 +13,7 @@ export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.TRANSPORT_P2P_PEERS_WALLET]: [],
   [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP]: [],
   [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET]: [],
+  [StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP]: [],
   [StorageKey.ACCOUNTS]: [],
   [StorageKey.ACTIVE_ACCOUNT]: undefined,
   [StorageKey.PUSH_TOKENS]: [],

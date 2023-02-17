@@ -103,7 +103,6 @@ const generateForBlockchains = (
   `
     out += `export const iOSList: App[] = ${JSON.stringify(iosListWithInlinedLogo, null, 2)}`
     out += `
-  
   `
 
     writeFile(path.join(ALERT_DEST_DIR, 'wallet-lists.ts'), out)

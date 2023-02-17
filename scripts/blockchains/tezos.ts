@@ -1,5 +1,5 @@
 import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src/types/ui'
-// import { NetworkType } from 'packages/beacon-types/src/types'
+
 // TODO: Temporary build fix
 export enum NetworkType {
   MAINNET = 'mainnet',
@@ -164,15 +164,16 @@ export const tezosIosList: App[] = [
     deepLink: 'umami://',
     universalLink: 'https://umamiwallet.com/'
   },
-  // {
-  //   key: 'exodus_mobile',
-  //   name: 'Exodus Mobile',
-  //   shortName: 'Exodus Mobile',
-  //   color: '',
-  //   logo: 'exodus.svg',
-  //   deepLink: 'exodus://tzip10',
-  //   universalLink:'https://www.exodus.com/'
-  // },
+  {
+    key: 'trust_ios',
+    name: 'Trust Wallet',
+    shortName: 'Trust',
+    color: '',
+    supportedInteractionStandards: ['wallet_connect'] as any,
+    logo: 'ios-trust.png',
+    universalLink: 'https://trustwallet.com',
+    deepLink: 'trust://'
+  }
   // {
   //   name: 'Galleon',
   //   shortName: 'Galleon',
