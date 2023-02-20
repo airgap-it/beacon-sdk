@@ -22,6 +22,38 @@ import * as infoStyles from '../../components/info/styles.css'
 import * as qrStyles from '../../components/qr/styles.css'
 import { Serializer } from '@airgap/beacon-core'
 
+function arrangeTop4(
+  arr: { id: string; name: string; image: string; description: string }[],
+  id1: string,
+  id2: string,
+  id3: string,
+  id4: string
+): { id: string; name: string; image: string; description: string }[] {
+  const idsToMoveToFront = [id1, id2, id3, id4]
+  const itemsToMoveToFront = []
+  const itemsToSortByName = []
+
+  for (let item of arr) {
+    if (idsToMoveToFront.includes(item.id)) {
+      itemsToMoveToFront[idsToMoveToFront.indexOf(item.id)] = item
+    } else {
+      itemsToSortByName.push(item)
+    }
+  }
+
+  itemsToSortByName.sort((a, b) => {
+    if (a.name < b.name) {
+      return -1
+    } else if (a.name > b.name) {
+      return 1
+    } else {
+      return 0
+    }
+  })
+
+  return [...itemsToMoveToFront, ...itemsToSortByName]
+}
+
 // Interfaces
 export interface AlertButton {
   text: string
@@ -184,6 +216,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       })
     ]
 
+    const arrangedWallets = arrangeTop4(
+      wallets,
+      'kukai_web',
+      'trust_ios',
+      'temple_chrome',
+      'umami_desktop'
+    )
+
     const isMobile = window.innerWidth <= 800
 
     dispose = render(
@@ -213,7 +253,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   </div>
                 ) : currentInfo() === 'wallets' && isMobile ? (
                   <Wallets
-                    wallets={wallets.slice(-(wallets.length - 4))}
+                    wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
                     onClickWallet={(id: string | undefined) => {
                       console.log('clicked on wallet', id)
                       setCurrentInfo('install')
@@ -275,7 +315,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   </div>
                 ) : (
                   <TopWallets
-                    wallets={isMobile ? wallets.slice(0, 3) : wallets.slice(0, 4)}
+                    wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
                     onClickWallet={(id: string) => {
                       console.log('clicked on wallet II ', id)
                       setCurrentInfo('install')
@@ -283,7 +323,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     otherWallets={
                       isMobile
                         ? {
-                            images: [wallets[3].image, wallets[4].image, wallets[5].image],
+                            images: [arrangedWallets[3].image, arrangedWallets[4].image, arrangedWallets[5].image],
                             onClick: () => setCurrentInfo('wallets')
                           }
                         : undefined
@@ -295,7 +335,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 currentInfo() !== 'top-wallets' || isMobile ? undefined : (
                   <Wallets
                     small
-                    wallets={wallets.slice(-(wallets.length - 4))}
+                    wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
                     onClickWallet={async (id: string | undefined) => {
                       if (id === 'wallet_connect') {
                         const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
