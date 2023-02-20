@@ -6,6 +6,7 @@ import styles from './styles.css'
 const COPY_RESET_TIMEOUT = 3000
 
 interface QRProps {
+  walletName: string
   code: string
   onClickLearnMore?: () => void
 }
@@ -42,7 +43,7 @@ const QR: Component<QRProps> = (props: QRProps) => {
     <div class="qr-wrapper">
       <div class="qr-left">
         {!isMobile && <h3>Or scan to connect</h3>}
-        {!isMobile && <p>Open Temple Wallet on your mobile phone and scan.</p>}
+        {!isMobile && <p>{`Open ${props.walletName} Wallet on your mobile phone and scan.`}</p>}
         {isMobile && <p>Scan QR code with a Beacon-compatible wallet.</p>}
 
         {props.onClickLearnMore && (

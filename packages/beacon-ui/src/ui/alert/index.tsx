@@ -22,13 +22,20 @@ import * as infoStyles from '../../components/info/styles.css'
 import * as qrStyles from '../../components/qr/styles.css'
 import { Serializer } from '@airgap/beacon-core'
 
+interface Wallet {
+  id: string
+  name: string
+  image: string
+  description: string
+}
+
 function arrangeTop4(
-  arr: { id: string; name: string; image: string; description: string }[],
+  arr: Wallet[],
   id1: string,
   id2: string,
   id3: string,
   id4: string
-): { id: string; name: string; image: string; description: string }[] {
+): Wallet[] {
   const idsToMoveToFront = [id1, id2, id3, id4]
   const itemsToMoveToFront = []
   const itemsToSortByName = []
@@ -79,6 +86,7 @@ export interface AlertConfig {
 
 // State variables
 const [isOpen, setIsOpen] = createSignal<boolean>(false)
+const [currentWallet, setCurrentWallet] = createSignal<Wallet | undefined>(undefined)
 const [currentInfo, setCurrentInfo] = createSignal<'top-wallets' | 'wallets' | 'install' | 'help'>(
   'top-wallets'
 )
@@ -156,6 +164,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   }
 
   if (!isOpen()) {
+    setCurrentInfo('top-wallets')
+    setCurrentWallet(undefined)
+
     // Shadow root
     const shadowRootEl = document.createElement('div')
     shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')
@@ -192,13 +203,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     style6.textContent = qrStyles.default
     shadowRoot.appendChild(style6)
 
-    const wallets = [
+    const wallets: Wallet[] = [
       ...desktopList.map((wallet) => {
         return {
           id: wallet.key,
           name: wallet.shortName,
           image: wallet.logo,
-          description: 'Desktop App'
+          description: 'Desktop App',
+          type: 'desktop'
         }
       }),
       ...extensionList.map((wallet) => {
@@ -206,7 +218,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           id: wallet.key,
           name: wallet.shortName,
           image: wallet.logo,
-          description: 'Browser Extension'
+          description: 'Browser Extension',
+          type: 'extension'
         }
       }),
       ...iOSList.map((wallet) => {
@@ -215,7 +228,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           name: wallet.shortName,
           image: wallet.logo,
           description: 'iOS App',
-          supportedInteractionStandards: wallet.supportedInteractionStandards
+          supportedInteractionStandards: wallet.supportedInteractionStandards,
+          type: 'ios'
         }
       }),
       ...webList.map((wallet) => {
@@ -223,7 +237,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           id: wallet.key,
           name: wallet.shortName,
           image: wallet.logo,
-          description: 'Web App'
+          description: 'Web App',
+          type: 'web'
         }
       })
     ]
@@ -255,8 +270,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     {!isMobile && (
                       <Info
                         border
-                        title="Install Temple Wallet"
-                        description="To connect your Temple Wallet, install the browser extension."
+                        title={`Install ${currentWallet()?.name} Wallet`}
+                        description={`To connect your ${
+                          currentWallet()?.name
+                        } Wallet, install the browser extension.`}
                         buttons={[
                           {
                             label: 'Install extension',
@@ -266,13 +283,18 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         ]}
                       />
                     )}
-                    <QR code={codeQR} onClickLearnMore={() => setCurrentInfo('help')} />
+                    <QR
+                      walletName={currentWallet()?.name || 'Airgap'}
+                      code={codeQR}
+                      onClickLearnMore={() => setCurrentInfo('help')}
+                    />
                   </div>
                 ) : currentInfo() === 'wallets' && isMobile ? (
                   <Wallets
                     wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
                     onClickWallet={(id: string | undefined) => {
-                      console.log('clicked on wallet', id)
+                      const wallet = wallets.find((wallet) => wallet.id === id)
+                      setCurrentWallet(wallet)
                       setCurrentInfo('install')
                     }}
                   />
@@ -334,7 +356,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   <TopWallets
                     wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
                     onClickWallet={(id: string) => {
-                      console.log('clicked on wallet II ', id)
+                      const wallet = wallets.find((wallet) => wallet.id === id)
+                      setCurrentWallet(wallet)
                       setCurrentInfo('install')
                     }}
                     otherWallets={
@@ -357,7 +380,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   <Wallets
                     small
                     wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
-                    onClickWallet={async (id: string | undefined) => {
+                    onClickWallet={async (id: string) => {
+                      const wallet = wallets.find((wallet) => wallet.id === id)
+                      setCurrentWallet(wallet)
+
                       if (id === 'wallet_connect') {
                         const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
                         // TODO: check if uri or code

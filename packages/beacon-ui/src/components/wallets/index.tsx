@@ -10,7 +10,7 @@ interface WalletProps {
     image: string
     supportedInteractionStandards?: string[]
   }[]
-  onClickWallet: (id: string | undefined) => void
+  onClickWallet: (id: string) => void
   small?: boolean
 }
 
@@ -26,10 +26,8 @@ const Wallets: Component<WalletProps> = (props: WalletProps) => {
               image={wallet.image}
               small={props.small}
               onClick={() => {
-                if (wallet && wallet.supportedInteractionStandards) {
-                  props.onClickWallet(wallet?.supportedInteractionStandards[0])
-                } else {
-                  props.onClickWallet(undefined)
+                if (props.onClickWallet) {
+                  props.onClickWallet(wallet.id)
                 }
               }}
             />
