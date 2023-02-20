@@ -26,58 +26,55 @@ export interface ToastConfig {
   openWalletAction?(): Promise<void>
 }
 
-const [isOpen, setIsOpen] = createSignal<boolean>(false)
-
-// EVENT HANDLERS
+// GLOBAL VARIABLES
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
+const [isOpen, setIsOpen] = createSignal<boolean>(false)
+const ANIMATION_TIME = 300
+let globalTimeout: NodeJS.Timeout
 
-/**
- * Create a new toast
- *
- * @param toastConfig Configuration of the toast
- */
-const openToast = async (config: ToastConfig): Promise<void> => {
-  console.log('config', config)
+const createToast = (config: ToastConfig) => {
+  const shadowRootEl = document.createElement('div')
+  shadowRootEl.setAttribute('id', 'beacon-toast-wrapper')
+  shadowRootEl.style.height = '0px'
+  const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })
 
-  if (isServer) {
-    console.log('DO NOT RUN ON SERVER')
-    return
-  }
+  // Toast styles
+  const style = document.createElement('style')
+  style.textContent = toastStyles.default
+  shadowRoot.appendChild(style)
 
-  if (!isOpen()) {
-    const shadowRootEl = document.createElement('div')
-    shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')
-    shadowRootEl.style.height = '0px'
-    const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })
+  // Loader styles
+  const style2 = document.createElement('style')
+  style2.textContent = loaderStyles.default
+  shadowRoot.appendChild(style2)
 
-    // Toast styles
-    const style = document.createElement('style')
-    style.textContent = toastStyles.default
-    shadowRoot.appendChild(style)
+  dispose = render(
+    () => (
+      <Toast
+        label={config.body}
+        open={isOpen()}
+        onClickClose={() => {
+          closeToast()
+        }}
+        actions={config.actions}
+      />
+    ),
+    shadowRoot
+  )
 
-    // Loader styles
-    const style2 = document.createElement('style')
-    style2.textContent = loaderStyles.default
-    shadowRoot.appendChild(style2)
+  // Create toast
+  document.body.prepend(shadowRootEl)
 
-    dispose = render(
-      () => (
-        <Toast
-          label={config.body}
-          open={isOpen()}
-          onClickClose={() => {
-            console.log('clicked close')
-          }}
-          actions={config.actions}
-        />
-      ),
-      shadowRoot
-    )
-    document.body.prepend(shadowRootEl)
-    setTimeout(() => {
-      setIsOpen(true)
-    }, 50)
+  // Open toast
+  setTimeout(() => {
+    setIsOpen(true)
+  }, 50)
+
+  // Add close timer if in config
+  clearTimeout(globalTimeout)
+  if (config.timer) {
+    globalTimeout = setTimeout(() => closeToast(), config.timer)
   }
 }
 
@@ -86,6 +83,7 @@ const openToast = async (config: ToastConfig): Promise<void> => {
  */
 const closeToast = (): Promise<void> =>
   new Promise((resolve) => {
+    console.log('closeToast')
     if (isServer) {
       console.log('DO NOT RUN ON SERVER')
       resolve()
@@ -96,9 +94,33 @@ const closeToast = (): Promise<void> =>
         if (dispose) dispose()
         if (document.getElementById('beacon-toast-wrapper'))
           (document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
-      }, 500)
+      }, ANIMATION_TIME)
     }
     resolve()
   })
+
+/**
+ * Create a new toast
+ *
+ * @param toastConfig Configuration of the toast
+ */
+const openToast = async (config: ToastConfig): Promise<void> => {
+  console.log('openToast')
+  console.log('config', config)
+
+  if (isServer) {
+    console.log('DO NOT RUN ON SERVER')
+    return
+  }
+
+  if (isOpen()) {
+    closeToast()
+    setTimeout(() => {
+      createToast(config)
+    }, ANIMATION_TIME)
+  } else {
+    createToast(config)
+  }
+}
 
 export { closeToast, openToast }

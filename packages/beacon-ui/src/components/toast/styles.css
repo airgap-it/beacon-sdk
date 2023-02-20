@@ -11,6 +11,7 @@
 }
 
 .toast-wrapper-hide {
+  max-width: 400px;
   overflow: hidden;
   background-color: white;
   position: fixed;
