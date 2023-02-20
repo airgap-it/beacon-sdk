@@ -115,7 +115,19 @@ const closeAlert = (_: string): Promise<void> => {
  */
 const closeAlerts = async (): Promise<void> =>
   new Promise(async (resolve) => {
-    console.log('closeAlerts')
+    if (isServer) {
+      console.log('DO NOT RUN ON SERVER')
+      resolve()
+    }
+
+    if (dispose && isOpen()) {
+      setIsOpen(false)
+      setTimeout(() => {
+        if (dispose) dispose()
+        if (document.getElementById('beacon-alert-wrapper'))
+          (document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
+      }, 500)
+    }
     resolve()
   })
 
@@ -323,7 +335,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     otherWallets={
                       isMobile
                         ? {
-                            images: [arrangedWallets[3].image, arrangedWallets[4].image, arrangedWallets[5].image],
+                            images: [
+                              arrangedWallets[3].image,
+                              arrangedWallets[4].image,
+                              arrangedWallets[5].image
+                            ],
                             onClick: () => setCurrentInfo('wallets')
                           }
                         : undefined
