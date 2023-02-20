@@ -58,6 +58,7 @@ const createToast = (config: ToastConfig) => {
           closeToast()
         }}
         actions={config.actions}
+        walletInfo={config.walletInfo}
       />
     ),
     shadowRoot

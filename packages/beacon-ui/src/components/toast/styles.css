@@ -1,5 +1,5 @@
 .toast-wrapper-show {
-  max-width: 400px;
+  max-width: 460px;
   overflow: hidden;
   background-color: white;
   position: fixed;
@@ -11,7 +11,7 @@
 }
 
 .toast-wrapper-hide {
-  max-width: 400px;
+  max-width: 460px;
   overflow: hidden;
   background-color: white;
   position: fixed;
@@ -23,17 +23,27 @@
 }
 
 .toast-header {
-  padding: 0px 12px;
+  padding: 0px 0.6em 0px 1.2em;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 6px;
   overflow: hidden;
   position: relative;
 }
 
+.toast-header img {
+  width: 24px;
+}
+
+.toast-header h3 {
+  font-weight: bold;
+  color: #334155;
+  font-size: 0.8em;
+  margin-right: auto;
+}
+
 .toast-label {
-  margin: 1em 1.2em 1em 0.6em;
+  margin: 1em 0em 1em 0em;
   color: #334155;
   font-size: 0.9em;
 }
