@@ -238,6 +238,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     const isMobile = window.innerWidth <= 800
 
+    const handleCloseAlert = () => {
+      closeAlert('')
+      if (config.closeButtonCallback) config.closeButtonCallback()
+    }
+
     dispose = render(
       () => (
         <>
@@ -369,7 +374,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   />
                 )
               }
-              onCloseClick={() => closeAlert('')}
+              onCloseClick={() => handleCloseAlert()}
               onBackClick={
                 currentInfo() === 'install' && !isMobile
                   ? () => setCurrentInfo('top-wallets')
@@ -408,12 +413,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     {
                       label: 'Close',
                       type: 'primary',
-                      onClick: () => closeAlert('')
+                      onClick: () => handleCloseAlert()
                     }
                   ]}
                 />
               }
-              onCloseClick={() => closeAlert('')}
+              onCloseClick={() => handleCloseAlert()}
             />
           )}
         </>
