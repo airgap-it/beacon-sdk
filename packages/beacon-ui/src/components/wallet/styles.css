@@ -111,4 +111,8 @@
   .wallet-main {
     padding: 0.65em 1.25em;
   }
+
+  .wallet-main-mobile {
+    padding: 1.25em;
+  }
 }

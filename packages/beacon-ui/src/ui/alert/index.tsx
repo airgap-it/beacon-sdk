@@ -21,9 +21,6 @@ import * as walletStyles from '../../components/wallet/styles.css'
 import * as infoStyles from '../../components/info/styles.css'
 import * as qrStyles from '../../components/qr/styles.css'
 import { Serializer } from '@airgap/beacon-core'
-import { getTzip10Link } from 'src/utils/get-tzip10-link'
-// import { getTzip10Link } from 'src/utils/get-tzip10-link'
-// import { Serializer } from '@airgap/beacon-core'
 
 // Interfaces
 export interface AlertButton {
@@ -99,13 +96,12 @@ const closeAlerts = async (): Promise<void> =>
 const openAlert = async (config: AlertConfig): Promise<string> => {
   console.log('config', config)
 
-  let payload = ''
+  let codeQR = ''
 
   const setDefaultPayload = async () => {
     if (config.pairingPayload) {
       const serializer = new Serializer()
-      const code = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
-      payload = getTzip10Link('tezos://', code)
+      codeQR = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
     }
   }
   setDefaultPayload()
@@ -213,7 +209,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         ]}
                       />
                     )}
-                    <QR payload={payload} onClickLearnMore={() => setCurrentInfo('help')} />
+                    <QR code={codeQR} onClickLearnMore={() => setCurrentInfo('help')} />
                   </div>
                 ) : currentInfo() === 'wallets' && isMobile ? (
                   <Wallets
@@ -303,9 +299,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     onClickWallet={async (id: string | undefined) => {
                       if (id === 'wallet_connect') {
                         const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
-                        if (uri) {
-                          payload = uri
-                        }
+                        // TODO: check if uri or code
+                        console.log('uri', uri)
+                        // if (uri) {
+                        //   payload = uri
+                        // }
                       } else {
                         setDefaultPayload()
                       }

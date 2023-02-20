@@ -6,7 +6,7 @@
   border: 1px solid #aaaaaa42;
   border-radius: 10px;
   padding: 1.5em;
-  height: 160px;
+  height: 200px;
 }
 
 .qr-left {
@@ -44,9 +44,38 @@
 
 .qr-right {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
+  border-radius: 6px;
+  transition: all ease 0.2s;
+  cursor: pointer;
+}
+
+.qr-right:hover {
+  background-color: rgb(238, 238, 238);
+}
+
+.qr-copy-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  color: gray;
+  margin-bottom: 1em;
+}
+
+.qr-copy-wrapper svg {
+  font-size: 1em;
+}
+
+.qr-copy-wrapper p {
+  font-size: 0.8em;
+  margin: 0px;
+}
+
+.qr-svg-wrapper svg rect {
+  fill: transparent !important;
 }
 
 @media only screen and (max-width: 800px) {
@@ -54,7 +83,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 300px;
+    height: 340px;
   }
 
   .qr-left {
