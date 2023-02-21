@@ -194,7 +194,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           id: wallet.key,
           name: wallet.shortName,
           image: wallet.logo,
-          description: 'iOS App',
+          description: 'Mobile App',
           supportedInteractionStandards: wallet.supportedInteractionStandards,
           type: 'ios',
           link: wallet.universalLink
