@@ -15,7 +15,8 @@ interface QRProps {
 const QR: Component<QRProps> = (props: QRProps) => {
   const [copied, setCopied] = createSignal<boolean>(false)
 
-  const payload = getTzip10Link('tezos://', props.code)
+  // TODO: We shouldn't do this here, that should be handled on a higher level
+  const payload = props.code.startsWith('wc:') ? props.code : getTzip10Link('tezos://', props.code)
 
   const qrSVG = props.isMobile ? getQrData(payload, 240, 240) : getQrData(payload, 160, 160)
   const div = document.createElement('div')
