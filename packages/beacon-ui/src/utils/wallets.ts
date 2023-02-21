@@ -4,7 +4,8 @@ export interface Wallet {
   image: string
   description: string
   type: string
-  link: string
+  link: string,
+  supportedInteractionStandards?: string[] // 'wallet_connect' or 'beacon'
 }
 
 export interface MergedWallet {
@@ -13,7 +14,8 @@ export interface MergedWallet {
   image: string
   descriptions: string[]
   types: string[]
-  link: string
+  link: string,
+  supportedInteractionStandards?: string[] // 'wallet_connect' or 'beacon'
 }
 
 export function parseWallets(wallets: Wallet[]): Wallet[] {

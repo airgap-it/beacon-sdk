@@ -48,6 +48,7 @@ export interface AlertConfig {
 
 // State variables
 const [isOpen, setIsOpen] = createSignal<boolean>(false)
+const [codeQR, setCodeQR] = createSignal<string>('')
 const [currentWallet, setCurrentWallet] = createSignal<MergedWallet | undefined>(undefined)
 const [currentInfo, setCurrentInfo] = createSignal<'top-wallets' | 'wallets' | 'install' | 'help'>(
   'top-wallets'
@@ -110,12 +111,11 @@ const closeAlerts = async (): Promise<void> =>
 const openAlert = async (config: AlertConfig): Promise<string> => {
   console.log('config', config)
 
-  let codeQR = ''
-
   const setDefaultPayload = async () => {
     if (config.pairingPayload) {
       const serializer = new Serializer()
-      codeQR = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
+      const codeQR = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
+      setCodeQR(codeQR)
     }
   }
   setDefaultPayload()
@@ -278,7 +278,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         <QR
                           isMobile={false}
                           walletName={currentWallet()?.name || 'Airgap'}
-                          code={codeQR}
+                          code={codeQR()}
                           onClickLearnMore={() => setCurrentInfo('help')}
                         />
                       )}
@@ -288,7 +288,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         <QR
                           isMobile={true}
                           walletName={currentWallet()?.name || 'Airgap'}
-                          code={codeQR}
+                          code={codeQR()}
                           onClickLearnMore={() => setCurrentInfo('help')}
                         />
                       )}
@@ -296,7 +296,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       <QR
                         isMobile={true}
                         walletName={currentWallet()?.name || 'Airgap'}
-                        code={codeQR}
+                        code={codeQR()}
                         onClickLearnMore={() => setCurrentInfo('help')}
                       />
                     )}
@@ -400,13 +400,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       const wallet = arrangedWallets.find((wallet) => wallet.id === id)
                       setCurrentWallet(wallet)
 
-                      if (id === 'wallet_connect') {
+                      if (
+                        wallet &&
+                        wallet.supportedInteractionStandards?.includes('wallet_connect')
+                      ) {
                         const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
                         // TODO: check if uri or code
                         console.log('uri', uri)
-                        // if (uri) {
-                        //   payload = uri
-                        // }
+                        if (uri) {
+                          setCodeQR(uri)
+                        }
                       } else {
                         setDefaultPayload()
                       }
