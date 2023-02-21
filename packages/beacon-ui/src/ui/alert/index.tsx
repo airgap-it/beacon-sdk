@@ -379,13 +379,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       }
                       title="Not sure where to start?"
                       description="If you are new to the Web3, we recommend that you start by creating a Kukai wallet. Kukai is a fast way of creating your first wallet using your preffered social account."
-                      buttons={[
-                        {
-                          label: 'Get started',
-                          type: 'primary',
-                          onClick: () => console.log('clicked button')
-                        }
-                      ]}
                     />
                   </div>
                 ) : (
