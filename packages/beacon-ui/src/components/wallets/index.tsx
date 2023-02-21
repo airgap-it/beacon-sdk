@@ -6,6 +6,7 @@ import styles from './styles.css'
 interface WalletProps {
   wallets: MergedWallet[]
   onClickWallet: (id: string) => void
+  onClickOther: () => void
   small?: boolean
 }
 
@@ -29,7 +30,9 @@ const Wallets: Component<WalletProps> = (props: WalletProps) => {
           )}
         </For>
       </div>
-      <button class="wallets-button">Pair wallet on another device</button>
+      <button class="wallets-button" onClick={() => props.onClickOther()}>
+        Pair wallet on another device
+      </button>
     </div>
   )
 }

@@ -256,6 +256,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setCurrentInfo('install')
     }
 
+    const handleClickOther = async () => {
+      setDefaultPayload()
+      setCurrentInfo('install')
+    }
+
     dispose = render(
       () => (
         <>
@@ -333,6 +338,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   <Wallets
                     wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
                     onClickWallet={handleClickWallet}
+                    onClickOther={handleClickOther}
                   />
                 ) : currentInfo() === 'help' ? (
                   <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
@@ -407,6 +413,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     small
                     wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
                     onClickWallet={handleClickWallet}
+                    onClickOther={handleClickOther}
                   />
                 )
               }
