@@ -6,6 +6,7 @@ import styles from './styles.css'
 interface TopWalletsProps {
   wallets: MergedWallet[]
   onClickWallet: (id: string) => void
+  onClickLearnMore: () => void
   otherWallets?: { images: string[]; onClick: () => void }
 }
 
@@ -16,7 +17,12 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
     <div class="top-wallets-wrapper">
       <div class="top-wallets-info">
         <h3>Connect Wallet</h3>
-        <p>If you don't have a wallet, you can select a provider and create one now. Learn more</p>
+        <span>
+          If you don't have a wallet, you can select a provider and create one now.{' '}
+          <span class="top-wallets-learn-more" onClick={() => props.onClickLearnMore()}>
+            Learn more
+          </span>
+        </span>
       </div>
       <div class="top-wallets-wallets-main">
         <For each={props.wallets}>

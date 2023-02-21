@@ -50,6 +50,9 @@ export interface AlertConfig {
 const [isOpen, setIsOpen] = createSignal<boolean>(false)
 const [codeQR, setCodeQR] = createSignal<string>('')
 const [currentWallet, setCurrentWallet] = createSignal<MergedWallet | undefined>(undefined)
+const [previousInfo, setPreviousInfo] = createSignal<
+  'top-wallets' | 'wallets' | 'install' | 'help'
+>('top-wallets')
 const [currentInfo, setCurrentInfo] = createSignal<'top-wallets' | 'wallets' | 'install' | 'help'>(
   'top-wallets'
 )
@@ -223,6 +226,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     const isMobile = window.innerWidth <= 800
 
+    const handleClickLearnMore = () => {
+      setPreviousInfo(currentInfo())
+      setCurrentInfo('help')
+    }
+
     const handleCloseAlert = () => {
       closeAlert('')
       if (config.closeButtonCallback) config.closeButtonCallback()
@@ -232,15 +240,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       const wallet = arrangedWallets.find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
 
-      console.log('wallet', wallet)
       if (wallet?.types.includes('web')) {
         window.open(wallet.link, '_blank')
         return
       }
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
         const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
-        // TODO: check if uri or code
-        console.log('uri', uri)
+
         if (uri) {
           setCodeQR(uri)
         }
@@ -301,7 +307,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           isMobile={false}
                           walletName={currentWallet()?.name || 'Airgap'}
                           code={codeQR()}
-                          onClickLearnMore={() => setCurrentInfo('help')}
+                          onClickLearnMore={handleClickLearnMore}
                         />
                       )}
                     {!isMobile &&
@@ -311,7 +317,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           isMobile={true}
                           walletName={currentWallet()?.name || 'Airgap'}
                           code={codeQR()}
-                          onClickLearnMore={() => setCurrentInfo('help')}
+                          onClickLearnMore={handleClickLearnMore}
                         />
                       )}
                     {isMobile && (
@@ -319,7 +325,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         isMobile={true}
                         walletName={currentWallet()?.name || 'Airgap'}
                         code={codeQR()}
-                        onClickLearnMore={() => setCurrentInfo('help')}
+                        onClickLearnMore={handleClickLearnMore}
                       />
                     )}
                   </div>
@@ -386,6 +392,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   <TopWallets
                     wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
                     onClickWallet={handleClickWallet}
+                    onClickLearnMore={handleClickLearnMore}
                     otherWallets={
                       isMobile
                         ? {
@@ -419,7 +426,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   : currentInfo() === 'wallets' && isMobile
                   ? () => setCurrentInfo('top-wallets')
                   : currentInfo() === 'help'
-                  ? () => setCurrentInfo('install')
+                  ? () => setCurrentInfo(previousInfo())
                   : undefined
               }
             />
