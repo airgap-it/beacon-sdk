@@ -6,19 +6,18 @@ import styles from './styles.css'
 const COPY_RESET_TIMEOUT = 3000
 
 interface QRProps {
+  isMobile: boolean
   walletName: string
   code: string
   onClickLearnMore?: () => void
 }
 
 const QR: Component<QRProps> = (props: QRProps) => {
-  const isMobile = window.innerWidth <= 800
-
   const [copied, setCopied] = createSignal<boolean>(false)
 
   const payload = getTzip10Link('tezos://', props.code)
 
-  const qrSVG = isMobile ? getQrData(payload, 240, 240) : getQrData(payload, 160, 160)
+  const qrSVG = props.isMobile ? getQrData(payload, 240, 240) : getQrData(payload, 160, 160)
   const div = document.createElement('div')
   div.classList.add('qr-svg-wrapper')
   div.innerHTML = qrSVG
@@ -40,11 +39,26 @@ const QR: Component<QRProps> = (props: QRProps) => {
   }
 
   return (
-    <div class="qr-wrapper">
+    <div
+      class="qr-wrapper"
+      style={
+        props.isMobile
+          ? {
+              'flex-direction': 'column',
+              'align-items': 'center',
+              'justify-content': 'center',
+              height: '340px',
+              'text-align': 'center'
+            }
+          : {}
+      }
+    >
       <div class="qr-left">
-        {!isMobile && <h3>Or scan to connect</h3>}
-        {!isMobile && <p>{`Open ${props.walletName} Wallet on your mobile phone and scan.`}</p>}
-        {isMobile && <p>Scan QR code with a Beacon-compatible wallet.</p>}
+        {!props.isMobile && <h3>Or scan to connect</h3>}
+        {!props.isMobile && (
+          <p>{`Open ${props.walletName} Wallet on your mobile phone and scan.`}</p>
+        )}
+        {props.isMobile && <p>Scan QR code with a Beacon-compatible wallet.</p>}
 
         {props.onClickLearnMore && (
           <div style={{ 'margin-top': 'auto' }}>

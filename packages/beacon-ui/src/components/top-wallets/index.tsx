@@ -1,9 +1,10 @@
 import { Component, For } from 'solid-js'
+import { MergedWallet } from 'src/utils/wallets'
 import Wallet from '../wallet'
 import styles from './styles.css'
 
 interface TopWalletsProps {
-  wallets: { id: string; name: string; description: string; image: string }[]
+  wallets: MergedWallet[]
   onClickWallet: (id: string) => void
   otherWallets?: { images: string[]; onClick: () => void }
 }
@@ -23,7 +24,7 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
             <Wallet
               mobile={isMobile}
               name={wallet.name}
-              description={wallet.description}
+              description={wallet.descriptions.join(' & ')}
               image={wallet.image}
               onClick={() => props.onClickWallet(wallet.id)}
             />

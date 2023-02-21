@@ -7,7 +7,7 @@ interface InfoProps {
   icon?: any
   border?: boolean
   iconBadge?: boolean
-  buttons?: { label: string; type: 'primary' | 'scondary'; onClick: () => void }[]
+  buttons?: { label: string; type: 'primary' | 'secondary'; onClick: () => void }[]
 }
 
 const Info: Component<InfoProps> = (props: InfoProps) => {
@@ -21,7 +21,10 @@ const Info: Component<InfoProps> = (props: InfoProps) => {
       <div class="info-buttons">
         <For each={props.buttons}>
           {(button) => (
-            <button class="info-button" onClick={button.onClick}>
+            <button
+              class={button.type !== 'secondary' ? 'info-button' : 'info-button-secondary'}
+              onClick={button.onClick}
+            >
               {button.label}
             </button>
           )}

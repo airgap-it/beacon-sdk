@@ -21,45 +21,7 @@ import * as walletStyles from '../../components/wallet/styles.css'
 import * as infoStyles from '../../components/info/styles.css'
 import * as qrStyles from '../../components/qr/styles.css'
 import { Serializer } from '@airgap/beacon-core'
-
-interface Wallet {
-  id: string
-  name: string
-  image: string
-  description: string
-}
-
-function arrangeTop4(
-  arr: Wallet[],
-  id1: string,
-  id2: string,
-  id3: string,
-  id4: string
-): Wallet[] {
-  const idsToMoveToFront = [id1, id2, id3, id4]
-  const itemsToMoveToFront = []
-  const itemsToSortByName = []
-
-  for (let item of arr) {
-    if (idsToMoveToFront.includes(item.id)) {
-      itemsToMoveToFront[idsToMoveToFront.indexOf(item.id)] = item
-    } else {
-      itemsToSortByName.push(item)
-    }
-  }
-
-  itemsToSortByName.sort((a, b) => {
-    if (a.name < b.name) {
-      return -1
-    } else if (a.name > b.name) {
-      return 1
-    } else {
-      return 0
-    }
-  })
-
-  return [...itemsToMoveToFront, ...itemsToSortByName]
-}
+import { arrangeTop4, MergedWallet, mergeWallets, parseWallets, Wallet } from 'src/utils/wallets'
 
 // Interfaces
 export interface AlertButton {
@@ -86,7 +48,7 @@ export interface AlertConfig {
 
 // State variables
 const [isOpen, setIsOpen] = createSignal<boolean>(false)
-const [currentWallet, setCurrentWallet] = createSignal<Wallet | undefined>(undefined)
+const [currentWallet, setCurrentWallet] = createSignal<MergedWallet | undefined>(undefined)
 const [currentInfo, setCurrentInfo] = createSignal<'top-wallets' | 'wallets' | 'install' | 'help'>(
   'top-wallets'
 )
@@ -210,7 +172,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           name: wallet.shortName,
           image: wallet.logo,
           description: 'Desktop App',
-          type: 'desktop'
+          type: 'desktop',
+          link: wallet.deepLink
         }
       }),
       ...extensionList.map((wallet) => {
@@ -219,7 +182,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           name: wallet.shortName,
           image: wallet.logo,
           description: 'Browser Extension',
-          type: 'extension'
+          type: 'extension',
+          link: wallet.link
         }
       }),
       ...iOSList.map((wallet) => {
@@ -229,7 +193,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           image: wallet.logo,
           description: 'iOS App',
           supportedInteractionStandards: wallet.supportedInteractionStandards,
-          type: 'ios'
+          type: 'ios',
+          link: wallet.universalLink
         }
       }),
       ...webList.map((wallet) => {
@@ -238,13 +203,18 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           name: wallet.shortName,
           image: wallet.logo,
           description: 'Web App',
-          type: 'web'
+          type: 'web',
+          link: wallet.links.mainnet
         }
       })
     ]
 
+    const parsedWallets = parseWallets(wallets)
+
+    const mergedWallets = mergeWallets(parsedWallets)
+
     const arrangedWallets = arrangeTop4(
-      wallets,
+      mergedWallets,
       'kukai_web',
       'trust_ios',
       'temple_chrome',
@@ -267,7 +237,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               content={
                 currentInfo() === 'install' ? (
                   <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
-                    {!isMobile && (
+                    {!isMobile && currentWallet()?.types.includes('extension') && (
                       <Info
                         border
                         title={`Install ${currentWallet()?.name} Wallet`}
@@ -283,17 +253,59 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         ]}
                       />
                     )}
-                    <QR
-                      walletName={currentWallet()?.name || 'Airgap'}
-                      code={codeQR}
-                      onClickLearnMore={() => setCurrentInfo('help')}
-                    />
+                    {!isMobile && currentWallet()?.types.includes('desktop') && (
+                      <Info
+                        border
+                        title={`Open Desktop App`}
+                        description={`If you don't have the desktop app installed, click below to download it.`}
+                        buttons={[
+                          {
+                            label: 'Open desktop app',
+                            type: 'primary',
+                            onClick: () => console.log('clicked button')
+                          },
+                          {
+                            label: 'Download desktop app',
+                            type: 'secondary',
+                            onClick: () => console.log('clicked button')
+                          }
+                        ]}
+                      />
+                    )}
+                    {!isMobile &&
+                      currentWallet()?.types.includes('ios') &&
+                      (currentWallet()?.types.length as number) > 1 && (
+                        <QR
+                          isMobile={false}
+                          walletName={currentWallet()?.name || 'Airgap'}
+                          code={codeQR}
+                          onClickLearnMore={() => setCurrentInfo('help')}
+                        />
+                      )}
+                    {!isMobile &&
+                      currentWallet()?.types.includes('ios') &&
+                      (currentWallet()?.types.length as number) <= 1 && (
+                        <QR
+                          isMobile={true}
+                          walletName={currentWallet()?.name || 'Airgap'}
+                          code={codeQR}
+                          onClickLearnMore={() => setCurrentInfo('help')}
+                        />
+                      )}
+                    {isMobile && (
+                      <QR
+                        isMobile={true}
+                        walletName={currentWallet()?.name || 'Airgap'}
+                        code={codeQR}
+                        onClickLearnMore={() => setCurrentInfo('help')}
+                      />
+                    )}
                   </div>
                 ) : currentInfo() === 'wallets' && isMobile ? (
                   <Wallets
                     wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
                     onClickWallet={(id: string | undefined) => {
-                      const wallet = wallets.find((wallet) => wallet.id === id)
+                      const wallet = arrangedWallets.find((wallet) => wallet.id === id)
                       setCurrentWallet(wallet)
                       setCurrentInfo('install')
                     }}
@@ -350,13 +362,17 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           onClick: () => console.log('clicked button')
                         }
                       ]}
-                    />{' '}
+                    />
                   </div>
                 ) : (
                   <TopWallets
                     wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
                     onClickWallet={(id: string) => {
-                      const wallet = wallets.find((wallet) => wallet.id === id)
+                      const wallet = arrangedWallets.find((wallet) => wallet.id === id)
+                      if (wallet?.types.includes('web')) {
+                        window.open(wallet.link, '_blank')
+                        return
+                      }
                       setCurrentWallet(wallet)
                       setCurrentInfo('install')
                     }}
@@ -381,7 +397,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     small
                     wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
                     onClickWallet={async (id: string) => {
-                      const wallet = wallets.find((wallet) => wallet.id === id)
+                      const wallet = arrangedWallets.find((wallet) => wallet.id === id)
                       setCurrentWallet(wallet)
 
                       if (id === 'wallet_connect') {

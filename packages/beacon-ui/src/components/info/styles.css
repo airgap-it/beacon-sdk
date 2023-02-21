@@ -50,6 +50,7 @@
 .info-buttons {
   display: flex;
   align-items: center;
+  gap: 0.6em;
 }
 
 .info-button {
@@ -57,8 +58,8 @@
   background-color: #3880ff;
   border: 1px solid #3880ff;
   color: white;
-  width: 100%;
-  padding: 0.6em 1.6em;
+  padding: 0.6em;
+  width: fit-content;
   transition: all ease 0.2s;
   cursor: pointer;
   margin-top: 1em;
@@ -66,6 +67,22 @@
 
 .info-button:hover {
   background-color: #166afc;
+}
+
+.info-button-secondary {
+  border-radius: 6px;
+  background-color: white;
+  border: 1px solid #3880ff;
+  color: #3880ff;
+  padding: 0.6em;
+  width: fit-content;
+  transition: all ease 0.2s;
+  cursor: pointer;
+  margin-top: 1em;
+}
+
+.info-button-secondary:hover {
+  background-color: #e8f0ff;
 }
 
 @media only screen and (max-width: 800px) {
