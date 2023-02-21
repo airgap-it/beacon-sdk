@@ -126,10 +126,12 @@
 
   .alert-wrapper-show {
     align-items: flex-end;
+    width: 100%;
   }
 
   .alert-wrapper-hide {
     align-items: flex-end;
+    width: 100%;
   }
 
   .alert-modal-show {
