@@ -8,6 +8,7 @@
   margin-bottom: 1.8em;
   transition: all ease 0.2s;
   cursor: pointer;
+  font-size: 0.8em;
 }
 
 .wallets-button:hover {
@@ -25,7 +26,7 @@
   grid-template-columns: repeat(4, 1fr);
   padding: 1.8em 0px;
   gap: 1.2em 0em;
-  max-height: 140px;
+  max-height: 160px;
 }
 
 @media only screen and (max-width: 800px) {

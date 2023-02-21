@@ -33,7 +33,7 @@
   text-align: center;
   color: #334155;
   margin: 0px;
-  font-size: 1.1em;
+  font-size: 1em;
 }
 
 .info-description {
@@ -58,11 +58,12 @@
   background-color: #3880ff;
   border: 1px solid #3880ff;
   color: white;
-  padding: 0.6em;
+  padding: 0.6em 1.2em;
   width: fit-content;
   transition: all ease 0.2s;
   cursor: pointer;
   margin-top: 1em;
+  font-size: 0.8em;
 }
 
 .info-button:hover {
@@ -74,7 +75,7 @@
   background-color: white;
   border: 1px solid #3880ff;
   color: #3880ff;
-  padding: 0.6em;
+  padding: 0.6em 1.2em;
   width: fit-content;
   transition: all ease 0.2s;
   cursor: pointer;

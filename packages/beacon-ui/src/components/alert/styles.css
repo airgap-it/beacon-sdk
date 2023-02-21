@@ -92,18 +92,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.25em;
+  padding: 1em;
   color: grey;
   cursor: pointer;
   -webkit-box-shadow: 0px -4px 12px rgb(50 50 50 / 6%);
   -moz-box-shadow: 0px -4px 12px rgb(50 50 50 / 6%);
   box-shadow: 0px -4px 12px rgb(50 50 50 / 6%);
+  font-size: 0.8em;
 }
 
 .alert-body-extra-show {
   transition: all ease 0.3s;
   overflow: hidden;
-  max-height: 30vh;
+  max-height: 35vh;
 }
 
 .alert-body-extra-hide {

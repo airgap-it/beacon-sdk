@@ -257,6 +257,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickOther = async () => {
+      setCurrentWallet({
+        ...arrangedWallets[0],
+        name: '',
+        types: ['ios']
+      })
       setDefaultPayload()
       setCurrentInfo('install')
     }

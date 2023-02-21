@@ -20,10 +20,11 @@
   color: #334155;
   margin: 0px;
   margin-bottom: 0.4em;
+  font-size: 1em;
 }
 
 .qr-left p {
-  font-size: 0.85em;
+  font-size: 0.8em;
   font-weight: 300;
   color: #94a3b8;
   line-height: 1.35em;

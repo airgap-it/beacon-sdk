@@ -13,12 +13,13 @@
   text-align: center;
   color: #334155;
   margin: 0px;
+  font-size: 1em;
 }
 
 .top-wallets-info span {
   text-align: center;
   max-width: 400px;
-  font-size: 0.85em;
+  font-size: 0.8em;
   font-weight: 300;
   color: #94a3b8;
   line-height: 1.35em;
