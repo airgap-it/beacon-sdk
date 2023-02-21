@@ -228,6 +228,28 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (config.closeButtonCallback) config.closeButtonCallback()
     }
 
+    const handleClickWallet = async (id: string) => {
+      const wallet = arrangedWallets.find((wallet) => wallet.id === id)
+      setCurrentWallet(wallet)
+
+      console.log('wallet', wallet)
+      if (wallet?.types.includes('web')) {
+        window.open(wallet.link, '_blank')
+        return
+      }
+      if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
+        const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
+        // TODO: check if uri or code
+        console.log('uri', uri)
+        if (uri) {
+          setCodeQR(uri)
+        }
+      } else {
+        setDefaultPayload()
+      }
+      setCurrentInfo('install')
+    }
+
     dispose = render(
       () => (
         <>
@@ -304,11 +326,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 ) : currentInfo() === 'wallets' && isMobile ? (
                   <Wallets
                     wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
-                    onClickWallet={(id: string | undefined) => {
-                      const wallet = arrangedWallets.find((wallet) => wallet.id === id)
-                      setCurrentWallet(wallet)
-                      setCurrentInfo('install')
-                    }}
+                    onClickWallet={handleClickWallet}
                   />
                 ) : currentInfo() === 'help' ? (
                   <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
@@ -367,15 +385,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 ) : (
                   <TopWallets
                     wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
-                    onClickWallet={(id: string) => {
-                      const wallet = arrangedWallets.find((wallet) => wallet.id === id)
-                      if (wallet?.types.includes('web')) {
-                        window.open(wallet.link, '_blank')
-                        return
-                      }
-                      setCurrentWallet(wallet)
-                      setCurrentInfo('install')
-                    }}
+                    onClickWallet={handleClickWallet}
                     otherWallets={
                       isMobile
                         ? {
@@ -396,26 +406,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   <Wallets
                     small
                     wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
-                    onClickWallet={async (id: string) => {
-                      const wallet = arrangedWallets.find((wallet) => wallet.id === id)
-                      setCurrentWallet(wallet)
-
-                      if (
-                        wallet &&
-                        wallet.supportedInteractionStandards?.includes('wallet_connect')
-                      ) {
-                        const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
-                        // TODO: check if uri or code
-                        console.log('uri', uri)
-                        if (uri) {
-                          setCodeQR(uri)
-                        }
-                      } else {
-                        setDefaultPayload()
-                      }
-                      console.log('clicked on wallet III', id)
-                      setCurrentInfo('install')
-                    }}
+                    onClickWallet={handleClickWallet}
                   />
                 )
               }
