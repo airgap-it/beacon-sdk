@@ -73,7 +73,8 @@ export const tezosDesktopList: DesktopApp[] = [
     shortName: 'Infinity Wallet',
     color: 'rgb(52, 147, 218)',
     logo: 'infinity-wallet.png',
-    deepLink: 'infinity://'
+    deepLink: 'infinity://',
+    downloadLink: 'https://infinitywallet.io/download'
   },
   {
     key: 'galleon_desktop',
@@ -81,7 +82,8 @@ export const tezosDesktopList: DesktopApp[] = [
     shortName: 'Galleon',
     color: '',
     logo: 'desktop-galleon.png',
-    deepLink: 'galleon://'
+    deepLink: 'galleon://',
+    downloadLink: 'https://cryptonomic.tech/galleon.html'
   },
   {
     key: 'umami_desktop',
@@ -89,7 +91,8 @@ export const tezosDesktopList: DesktopApp[] = [
     shortName: 'Umami',
     color: '',
     logo: 'desktop-umami.png',
-    deepLink: 'umami://'
+    deepLink: 'umami://',
+    downloadLink: 'https://umamiwallet.com/#download'
   },
   {
     key: 'atomex_desktop',
@@ -97,7 +100,8 @@ export const tezosDesktopList: DesktopApp[] = [
     shortName: 'Atomex',
     color: '',
     logo: 'desktop-atomex.png',
-    deepLink: 'atomex://'
+    deepLink: 'atomex://',
+    downloadLink: 'https://atomex.me/'
   }
 ]
 

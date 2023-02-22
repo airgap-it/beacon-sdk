@@ -35,6 +35,7 @@ export interface WebApp extends AppBase {
 
 export interface DesktopApp extends AppBase {
   deepLink: string
+  downloadLink: string
 }
 
 export interface App extends AppBase {

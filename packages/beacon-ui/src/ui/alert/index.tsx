@@ -1,5 +1,7 @@
 import { createSignal } from 'solid-js'
 import {
+  ExtensionMessage,
+  ExtensionMessageTarget,
   NetworkType,
   P2PPairingRequest,
   PostMessagePairingRequest,
@@ -20,8 +22,10 @@ import * as walletsStyles from '../../components/wallets/styles.css'
 import * as walletStyles from '../../components/wallet/styles.css'
 import * as infoStyles from '../../components/info/styles.css'
 import * as qrStyles from '../../components/qr/styles.css'
-import { Serializer } from '@airgap/beacon-core'
+import { Serializer, windowRef } from '@airgap/beacon-core'
+import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { arrangeTop4, MergedWallet, mergeWallets, parseWallets, Wallet } from 'src/utils/wallets'
+import { getTzip10Link } from 'src/utils/get-tzip10-link'
 
 // Interfaces
 export interface AlertButton {
@@ -118,6 +122,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   }
 
   if (!isOpen()) {
+    const availableExtensions = await PostMessageTransport.getAvailableExtensions()
+
     const setDefaultPayload = async () => {
       if (config.pairingPayload) {
         const serializer = new Serializer()
@@ -170,16 +176,19 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       ...desktopList.map((wallet) => {
         return {
           id: wallet.key,
+          key: wallet.key,
           name: wallet.shortName,
           image: wallet.logo,
           description: 'Desktop App',
           type: 'desktop',
-          link: wallet.deepLink
+          link: wallet.downloadLink,
+          deepLink: wallet.deepLink
         }
       }),
       ...extensionList.map((wallet) => {
         return {
-          id: wallet.key,
+          id: wallet.id,
+          key: wallet.key,
           name: wallet.shortName,
           image: wallet.logo,
           description: 'Browser Extension',
@@ -190,6 +199,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       ...iOSList.map((wallet) => {
         return {
           id: wallet.key,
+          key: wallet.key,
           name: wallet.shortName,
           image: wallet.logo,
           description: 'Mobile App',
@@ -201,6 +211,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       ...webList.map((wallet) => {
         return {
           id: wallet.key,
+          key: wallet.key,
           name: wallet.shortName,
           image: wallet.logo,
           description: 'Web App',
@@ -270,6 +281,42 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setCurrentInfo('install')
     }
 
+    const handleClickConnectExtension = async () => {
+      if (config.pairingPayload?.postmessageSyncCode) {
+        const serializer = new Serializer()
+        const postmessageCode = await serializer.serialize(
+          await config.pairingPayload.postmessageSyncCode()
+        )
+        const message: ExtensionMessage<string> = {
+          target: ExtensionMessageTarget.EXTENSION,
+          payload: postmessageCode,
+          targetId: currentWallet()?.id
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        windowRef.postMessage(message as any, windowRef.location.origin)
+      }
+    }
+
+    const handleClickInstallExtension = async () => {
+      window.open(currentWallet()?.link || '', '_blank')
+    }
+
+    const handleClickOpenDesktopApp = async () => {
+      if (config.pairingPayload?.p2pSyncCode) {
+        const serializer = new Serializer()
+        const code = await serializer.serialize(await config.pairingPayload?.p2pSyncCode())
+        const link = getTzip10Link(currentWallet()?.deepLink || '', code)
+        window.open(link, '_blank')
+      }
+    }
+
+    const handleClickDownloadDesktopApp = async () => {
+      window.open(currentWallet()?.link || '', '_blank')
+    }
+
+    const hasExtension = () =>
+      availableExtensions.map((extension) => extension.id).includes(currentWallet()?.id || '')
+
     dispose = render(
       () => (
         <>
@@ -282,17 +329,37 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     {!isMobile && currentWallet()?.types.includes('extension') && (
                       <Info
                         border
-                        title={`Install ${currentWallet()?.name} Wallet`}
-                        description={`To connect your ${
-                          currentWallet()?.name
-                        } Wallet, install the browser extension.`}
-                        buttons={[
-                          {
-                            label: 'Install extension',
-                            type: 'primary',
-                            onClick: () => console.log('clicked button')
-                          }
-                        ]}
+                        title={
+                          hasExtension()
+                            ? `Use Browser Extension`
+                            : `Install ${currentWallet()?.name} Wallet`
+                        }
+                        description={
+                          hasExtension()
+                            ? `Please connect below to use your ${
+                                currentWallet()?.name
+                              } Wallet browser extension.`
+                            : `To connect your ${
+                                currentWallet()?.name
+                              } Wallet, install the browser extension.`
+                        }
+                        buttons={
+                          hasExtension()
+                            ? [
+                                {
+                                  label: 'Connect now',
+                                  type: 'primary',
+                                  onClick: () => handleClickConnectExtension()
+                                }
+                              ]
+                            : [
+                                {
+                                  label: 'Install extension',
+                                  type: 'primary',
+                                  onClick: () => handleClickInstallExtension()
+                                }
+                              ]
+                        }
                       />
                     )}
                     {!isMobile && currentWallet()?.types.includes('desktop') && (
@@ -304,12 +371,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           {
                             label: 'Open desktop app',
                             type: 'primary',
-                            onClick: () => console.log('clicked button')
+                            onClick: () => handleClickOpenDesktopApp()
                           },
                           {
                             label: 'Download desktop app',
                             type: 'secondary',
-                            onClick: () => console.log('clicked button')
+                            onClick: () => handleClickDownloadDesktopApp()
                           }
                         ]}
                       />

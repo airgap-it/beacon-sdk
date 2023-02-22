@@ -1,15 +1,18 @@
 export interface Wallet {
   id: string
+  key: string
   name: string
   image: string
   description: string
   type: string
   link: string
   supportedInteractionStandards?: string[] // 'wallet_connect' or 'beacon'
+  deepLink?: string;
 }
 
 export interface MergedWallet {
   id: string
+  key: string
   name: string
   image: string
   descriptions: string[]
@@ -17,6 +20,7 @@ export interface MergedWallet {
   link: string
   supportedInteractionStandards?: string[] // 'wallet_connect' or 'beacon',
   tags?: string[]
+  deepLink?: string;
 }
 
 export function parseWallets(wallets: Wallet[]): Wallet[] {
@@ -42,8 +46,8 @@ export function arrangeTop4(
   const itemsToSortByName = []
 
   for (let item of arr) {
-    if (idsToMoveToFront.includes(item.id)) {
-      itemsToMoveToFront[idsToMoveToFront.indexOf(item.id)] = item
+    if (idsToMoveToFront.includes(item.key)) {
+      itemsToMoveToFront[idsToMoveToFront.indexOf(item.key)] = item
     } else {
       itemsToSortByName.push(item)
     }
