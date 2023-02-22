@@ -50,6 +50,20 @@
   height: 2.5em;
 }
 
+.wallet-main-tags {
+  display: flex;
+  gap: 6px;
+}
+
+.wallet-main-tag {
+  color: #3880ff;
+  margin: 0px;
+  font-size: 0.75em;
+  font-weight: 600;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
 .wallet-small {
   display: flex;
   align-items: center;

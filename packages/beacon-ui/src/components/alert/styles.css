@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   position: fixed;
-  height: 100vh;
+  height: 100%;
   width: 100vw;
   overflow: hidden;
   top: 0px;
@@ -18,7 +18,7 @@
   align-items: center;
   justify-content: center;
   position: fixed;
-  height: 100vh;
+  height: 100%;
   width: 100vw;
   overflow: hidden;
   top: 0px;
@@ -145,5 +145,31 @@
     border-bottom-left-radius: 0px;
     border-bottom-right-radius: 0px;
     padding-bottom: 1.8em;
+  }
+}
+
+@media only screen and (max-width: 300px) {
+  .alert-wrapper-show {
+    align-items: flex-end;
+    width: 100vw;
+  }
+
+  .alert-wrapper-hide {
+    align-items: flex-end;
+    width: 100vw;
+  }
+
+  .alert-body {
+    padding: 0.8em;
+  }
+
+  .alert-body {
+    padding: 0.8em;
+    padding-top: 0.4em;
+  }
+
+  .alert-logo {
+    margin: 0px;
+    transform: scale(0.8);
   }
 }

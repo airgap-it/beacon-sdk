@@ -33,6 +33,7 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
               description={wallet.descriptions.join(' & ')}
               image={wallet.image}
               onClick={() => props.onClickWallet(wallet.id)}
+              tags={wallet.tags}
             />
           )}
         </For>

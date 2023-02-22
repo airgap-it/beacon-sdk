@@ -1,4 +1,4 @@
-import { Component, createSignal } from 'solid-js'
+import { Component, createSignal, onCleanup, onMount } from 'solid-js'
 import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
 
 export interface AlertProps {
@@ -11,6 +11,16 @@ export interface AlertProps {
 
 const Alert: Component<AlertProps> = (props: AlertProps) => {
   const [showMore, setShowMore] = createSignal<boolean>(false)
+
+  let prevBodyOverflow: any = null
+  onMount(() => {
+    prevBodyOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+  })
+
+  onCleanup(() => {
+    document.body.style.overflow = prevBodyOverflow
+  })
 
   const isMobile = window.innerWidth <= 800
 

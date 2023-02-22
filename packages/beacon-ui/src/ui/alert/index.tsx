@@ -212,10 +212,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       })
     ]
 
+    // Parse wallet names
     const parsedWallets = parseWallets(wallets)
 
+    // Merge wallets by name
     const mergedWallets = mergeWallets(parsedWallets)
 
+    // Sort wallets by top4
     const arrangedWallets = arrangeTop4(
       mergedWallets,
       'kukai_web',
@@ -223,6 +226,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       'temple_chrome',
       'umami_desktop'
     )
+
+    // Add popular tag to first wallet
+    arrangedWallets[0].tags = ["popular"]
 
     const isMobile = window.innerWidth <= 800
 
@@ -314,6 +320,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       currentWallet()?.types.includes('ios') &&
                       (currentWallet()?.types.length as number) > 1 && (
                         <QR
+                          isWalletConnect={
+                            currentWallet()?.supportedInteractionStandards?.includes(
+                              'wallet_connect'
+                            ) || false
+                          }
                           isMobile={false}
                           walletName={currentWallet()?.name || 'Airgap'}
                           code={codeQR()}
@@ -324,6 +335,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       currentWallet()?.types.includes('ios') &&
                       (currentWallet()?.types.length as number) <= 1 && (
                         <QR
+                          isWalletConnect={
+                            currentWallet()?.supportedInteractionStandards?.includes(
+                              'wallet_connect'
+                            ) || false
+                          }
                           isMobile={true}
                           walletName={currentWallet()?.name || 'Airgap'}
                           code={codeQR()}
@@ -332,6 +348,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       )}
                     {isMobile && (
                       <QR
+                        isWalletConnect={
+                          currentWallet()?.supportedInteractionStandards?.includes(
+                            'wallet_connect'
+                          ) || false
+                        }
                         isMobile={true}
                         walletName={currentWallet()?.name || 'Airgap'}
                         code={codeQR()}

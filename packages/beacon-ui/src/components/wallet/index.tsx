@@ -1,4 +1,4 @@
-import { Component } from 'solid-js'
+import { Component, For } from 'solid-js'
 import styles from './styles.css'
 
 interface WalletProps {
@@ -8,6 +8,7 @@ interface WalletProps {
   small?: boolean
   mobile?: boolean
   onClick: () => void
+  tags?: string[]
 }
 
 const Wallet: Component<WalletProps> = (props: WalletProps) => {
@@ -21,6 +22,11 @@ const Wallet: Component<WalletProps> = (props: WalletProps) => {
           <div class={`wallet-main-left ${props.mobile ? 'wallet-main-left-mobile' : ''}`}>
             <h3>{props.name}</h3>
             {props.description && <p>{props.description}</p>}
+            {props.tags && props.tags.length > 0 && (
+              <div class="wallet-main-tags">
+                <For each={props.tags}>{(tag) => <span class="wallet-main-tag">{tag}</span>}</For>
+              </div>
+            )}
           </div>
           <div class="wallet-main-right">
             <img src={props.image} />

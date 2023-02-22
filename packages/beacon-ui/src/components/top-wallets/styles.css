@@ -119,3 +119,10 @@
     font-size: 0.65em;
   }
 }
+
+@media only screen and (max-width: 400px) {
+  .top-wallets-other-wallets-right {
+    max-width: 50px;
+    transform: scale(0.8);
+  }
+}
