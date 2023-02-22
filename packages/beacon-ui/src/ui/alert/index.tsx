@@ -112,23 +112,21 @@ const closeAlerts = async (): Promise<void> =>
  */
 // eslint-disable-next-line complexity
 const openAlert = async (config: AlertConfig): Promise<string> => {
-  console.log('config', config)
-
-  const setDefaultPayload = async () => {
-    if (config.pairingPayload) {
-      const serializer = new Serializer()
-      const codeQR = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
-      setCodeQR(codeQR)
-    }
-  }
-  setDefaultPayload()
-
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
     return ''
   }
 
   if (!isOpen()) {
+    const setDefaultPayload = async () => {
+      if (config.pairingPayload) {
+        const serializer = new Serializer()
+        const codeQR = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
+        setCodeQR(codeQR)
+      }
+    }
+    setDefaultPayload()
+
     setCurrentInfo('top-wallets')
     setCurrentWallet(undefined)
 
@@ -228,7 +226,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     )
 
     // Add popular tag to first wallet
-    arrangedWallets[0].tags = ["popular"]
+    arrangedWallets[0].tags = ['popular']
 
     const isMobile = window.innerWidth <= 800
 
@@ -257,7 +255,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           setCodeQR(uri)
         }
       } else {
-        setDefaultPayload()
+        await setDefaultPayload()
       }
       setCurrentInfo('install')
     }
