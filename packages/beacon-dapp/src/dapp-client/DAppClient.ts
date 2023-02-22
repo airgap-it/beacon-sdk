@@ -115,6 +115,11 @@ const logger = new Logger('DAppClient')
  */
 export class DAppClient extends Client {
   /**
+   * The description of the app
+   */
+  public readonly description?: string
+
+  /**
    * The block explorer used by the SDK
    */
   public readonly blockExplorer: BlockExplorer
@@ -126,6 +131,9 @@ export class DAppClient extends Client {
   protected postMessageTransport: DappPostMessageTransport | undefined
   protected p2pTransport: DappP2PTransport | undefined
   protected walletConnectTransport: DappWalletConnectTransport | undefined
+
+  protected wcProjectId?: string
+  protected wcRelayUrl?: string
 
   /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
@@ -172,6 +180,10 @@ export class DAppClient extends Client {
       storage: config && config.storage ? config.storage : new LocalStorage(),
       ...config
     })
+    this.description = config.description
+    this.wcProjectId = config.walletConnectOptions?.projectId
+    this.wcRelayUrl = config.walletConnectOptions?.relayUrl
+
     this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
     this.blockExplorer = config.blockExplorer ?? new TzktBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
@@ -349,7 +361,23 @@ export class DAppClient extends Client {
 
     await this.addListener(this.p2pTransport)
 
-    this.walletConnectTransport = new DappWalletConnectTransport(this.name, keyPair, this.storage)
+    const wcOptions = {
+      projectId: this.wcProjectId,
+      relayUrl: this.wcRelayUrl,
+      metadata: {
+        name: this.name,
+        description: this.description ?? '',
+        url: this.appUrl ?? '',
+        icons: this.iconUrl ? [this.iconUrl] : []
+      }
+    }
+
+    this.walletConnectTransport = new DappWalletConnectTransport(
+      this.name,
+      keyPair,
+      this.storage,
+      wcOptions
+    )
 
     await this.addListener(this.walletConnectTransport)
   }

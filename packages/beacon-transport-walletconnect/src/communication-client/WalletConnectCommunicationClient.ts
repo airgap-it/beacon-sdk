@@ -1,7 +1,7 @@
 import { BEACON_VERSION, CommunicationClient, Serializer } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
-import { SessionTypes } from '@walletconnect/types'
+import { SessionTypes, SignClientTypes } from '@walletconnect/types'
 import { getSdkError } from '@walletconnect/utils'
 import {
   ActiveAccountUnspecified,
@@ -12,7 +12,6 @@ import {
   MissingRequiredScope,
   NotConnected
 } from '../error'
-import { WalletConnectConfig } from './WalletConnectConfig'
 import {
   BeaconMessageType,
   ConnectionContext,
@@ -72,13 +71,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private currentMessageId: string | undefined // TODO JGD we shouldn't need this
 
-  constructor() {
+  constructor(private wcOptions: SignClientTypes.Options) {
     super()
   }
 
-  static getInstance(): WalletConnectCommunicationClient {
+  static getInstance(wcOptions: SignClientTypes.Options): WalletConnectCommunicationClient {
     if (!WalletConnectCommunicationClient.instance) {
-      WalletConnectCommunicationClient.instance = new WalletConnectCommunicationClient()
+      WalletConnectCommunicationClient.instance = new WalletConnectCommunicationClient(wcOptions)
     }
     return WalletConnectCommunicationClient.instance
   }
@@ -283,17 +282,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       pairingTopic: undefined
     }
 
-    const initParams = {
-      projectId: WalletConnectConfig.PROJECT_ID,
-      relayUrl: WalletConnectConfig.RELAY_URL,
-      metadata: {
-        name: 'Beacon WalletConnect',
-        description: 'Connect Wallets with dApps on Tezos',
-        url: 'https://docs.walletbeacon.io/',
-        icons: []
-      }
-    }
-    this.signClient = await SignClient.init(initParams)
+    this.signClient = await SignClient.init(this.wcOptions)
 
     const { uri, approval } = await this.signClient.connect({
       requiredNamespaces: {

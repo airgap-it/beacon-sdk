@@ -2,6 +2,11 @@ import { BeaconEvent, BeaconEventType, BeaconEventHandlerFunction } from '../eve
 import { BlockExplorer } from '../utils/block-explorer'
 import { Storage, NetworkType, ColorMode, NodeDistributions } from '@airgap/beacon-types'
 
+type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+  {
+    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
+  }[Keys]
+
 /**
  * @category DApp
  */
@@ -10,6 +15,11 @@ export interface DAppClientOptions {
    * Name of the application
    */
   name: string
+
+  /**
+   * Description of the application
+   */
+  description?: string
 
   /**
    * A URL to the icon of the application
@@ -82,4 +92,21 @@ export interface DAppClientOptions {
    * A list of contracts that the DApp is using. Allows to attach human readable error messages for to error codes
    */
   errorMessages?: Record<string, Record<string | number, string>>
+
+  /**
+   * Configuration that is passed to the WalletConnect transport.
+   *
+   * This is required to enable WalletConnect connections.
+   */
+  walletConnectOptions?: RequireAtLeastOne<{
+    /**
+     * The projectId of the application. Has to be obtained from https://cloud.walletconnect.com/
+     */
+    projectId?: string
+
+    /**
+     * The relay server to connect to
+     */
+    relayUrl?: string
+  }>
 }

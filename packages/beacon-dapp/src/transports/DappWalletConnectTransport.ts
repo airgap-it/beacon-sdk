@@ -7,8 +7,9 @@ import {
 import { Logger } from '@airgap/beacon-core'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 import { KeyPair } from '@stablelib/ed25519'
+import { SignClientTypes } from '@walletconnect/types'
 
-const logger = new Logger('DappPostMessageTransport')
+const logger = new Logger('DappWalletConnectTransport')
 
 /**
  * @internalapi
@@ -19,8 +20,13 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
   ExtendedWalletConnectPairingResponse,
   StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP
 > {
-  constructor(name: string, keyPair: KeyPair, storage: Storage) {
-    super(name, keyPair, storage, StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP)
+  constructor(
+    name: string,
+    keyPair: KeyPair,
+    storage: Storage,
+    wcOptions: SignClientTypes.Options
+  ) {
+    super(name, keyPair, storage, StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP, wcOptions)
     this.client.listenForChannelOpening(async (peer: ExtendedWalletConnectPairingResponse) => {
       await this.addPeer(peer)
       this._isConnected = TransportStatus.CONNECTED

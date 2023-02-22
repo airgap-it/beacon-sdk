@@ -110,7 +110,11 @@
       // Initiate DAppClient
       const client = new beacon.DAppClient({
         name: 'Example DApp', // Name of the DApp,
-        disclaimerText: 'This is an optional <b>disclaimer</b>.'
+        disclaimerText: 'This is an optional <b>disclaimer</b>.',
+        walletConnect: {
+          projectId: '97f804b46f0db632c52af0556586a5f3',
+          relayUrl: 'wss://relay.walletconnect.com'
+        }
         // preferredNetwork: beacon.NetworkType.DELPHINET
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']

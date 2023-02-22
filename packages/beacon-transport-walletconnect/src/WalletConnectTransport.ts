@@ -10,6 +10,7 @@ import {
   WalletConnectPairingRequest
 } from '@airgap/beacon-types'
 import { Transport, PeerManager } from '@airgap/beacon-core'
+import { SignClientTypes } from '@walletconnect/types'
 
 /**
  * @internalapi
@@ -23,10 +24,16 @@ export class WalletConnectTransport<
 > extends Transport<T, K, WalletConnectCommunicationClient> {
   // public readonly type: TransportType = TransportType.WALLETCONNECT
 
-  constructor(name: string, _keyPair: KeyPair, storage: Storage, storageKey: K) {
+  constructor(
+    name: string,
+    _keyPair: KeyPair,
+    storage: Storage,
+    storageKey: K,
+    private wcOptions: SignClientTypes.Options
+  ) {
     super(
       name,
-      WalletConnectCommunicationClient.getInstance(),
+      WalletConnectCommunicationClient.getInstance(wcOptions),
       new PeerManager<K>(storage, storageKey)
     )
   }
@@ -54,7 +61,7 @@ export class WalletConnectTransport<
   }
 
   public async getPeers(): Promise<T[]> {
-    const client = WalletConnectCommunicationClient.getInstance()
+    const client = WalletConnectCommunicationClient.getInstance(this.wcOptions)
     const session = client.currentSession()
     if (!session) {
       return []
