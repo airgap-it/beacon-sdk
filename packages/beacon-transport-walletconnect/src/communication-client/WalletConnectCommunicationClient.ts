@@ -43,6 +43,7 @@ export interface PermissionScopeParam {
   events?: PermissionScopeEvents[]
 }
 export enum PermissionScopeMethods {
+  GET_ACCOUNTS = 'tezos_getAccounts',
   OPERATION_REQUEST = 'tezos_send',
   SIGN = 'tezos_sign'
 }
@@ -136,6 +137,32 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   async requestPermissions() {
+    console.log('#### Requesting permissions')
+
+    const session = this.getSession()
+    if (!this.getPermittedMethods().includes(PermissionScopeMethods.GET_ACCOUNTS)) {
+      throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
+    }
+    const network = this.getActiveNetwork()
+
+    console.log('#### Requesting public keys')
+
+    // Get the public key from the wallet
+    const result = await this.signClient?.request<{
+      algo: 'ed25519'
+      address: string
+      pubkey: string
+    }>({
+      topic: session.topic,
+      chainId: `${TEZOS_PLACEHOLDER}:${network}`,
+      request: {
+        method: PermissionScopeMethods.GET_ACCOUNTS,
+        params: {}
+      }
+    })
+
+    console.log('##### GET ACCOUNTS', result)
+
     const serializer = new Serializer()
     const serialized = await serializer.serialize({
       type: BeaconMessageType.PermissionResponse,
@@ -143,7 +170,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         senderId: this.session?.peer.publicKey,
         name: this.session?.peer.metadata.name
       },
-      publicKey: this.session?.peer.publicKey,
+      publicKey: result?.pubkey,
       network: NetworkType.MAINNET as any,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       id: this.currentMessageId!
@@ -169,6 +196,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
 
+    // TODO: Type
     const signature = await this.signClient?.request<string>({
       topic: session.topic,
       chainId: `${TEZOS_PLACEHOLDER}:${network}`,
@@ -176,8 +204,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         method: PermissionScopeMethods.SIGN,
         params: {
           account: account,
-          expression: signPayloadRequest.payload,
-          signingType: signPayloadRequest.signingType
+          payload: signPayloadRequest.payload
         }
       }
     })
@@ -247,7 +274,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       permissionScope: {
         networks: [NetworkType.MAINNET],
         events: [],
-        methods: [PermissionScopeMethods.OPERATION_REQUEST, PermissionScopeMethods.SIGN]
+        methods: [
+          PermissionScopeMethods.GET_ACCOUNTS,
+          PermissionScopeMethods.OPERATION_REQUEST,
+          PermissionScopeMethods.SIGN
+        ]
       },
       pairingTopic: undefined
     }
@@ -500,15 +531,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     methods: string[]
     events: string[]
   } {
-    if (TEZOS_PLACEHOLDER in this.getSession().requiredNamespaces) {
-      return this.getSession().requiredNamespaces[TEZOS_PLACEHOLDER] as {
-        chains: string[]
-        methods: string[]
-        events: string[]
-      }
-    } else {
-      throw new InvalidSession('Tezos not found in requiredNamespaces')
+    // TODO: Remove testing code
+    return {
+      chains: ['tezos:mainnet'],
+      events: [],
+      methods: ['tezos_getAccounts', 'tezos_send', 'tezos_sign']
     }
+    // if (TEZOS_PLACEHOLDER in this.getSession().requiredNamespaces) {
+    //   return this.getSession().requiredNamespaces[TEZOS_PLACEHOLDER] as {
+    //     chains: string[]
+    //     methods: string[]
+    //     events: string[]
+    //   }
+    // } else {
+    //   throw new InvalidSession('Tezos not found in requiredNamespaces')
+    // }
   }
 
   public currentSession(): SessionTypes.Struct | undefined {
