@@ -324,8 +324,32 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             <Alert
               open={isOpen()}
               content={
-                currentInfo() === 'install' ? (
-                  <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
+                <div>
+                  <div
+                    style={
+                      currentInfo() === 'install'
+                        ? {
+                            opacity: 1,
+                            height: 'unset',
+                            overflow: 'unset',
+                            transform: 'scale(1)',
+                            transition: 'all ease 0.3s',
+                            display: 'flex',
+                            'flex-direction': 'column',
+                            gap: '0.9em'
+                          }
+                        : {
+                            opacity: 0,
+                            height: 0,
+                            overflow: 'hidden',
+                            transform: 'scale(1.1)',
+                            transition: 'all ease 0.3s',
+                            display: 'flex',
+                            'flex-direction': 'column',
+                            gap: '0.9em'
+                          }
+                    }
+                  >
                     {!isMobile && currentWallet()?.types.includes('extension') && (
                       <Info
                         border
@@ -425,14 +449,56 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       />
                     )}
                   </div>
-                ) : currentInfo() === 'wallets' && isMobile ? (
-                  <Wallets
-                    wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
-                    onClickWallet={handleClickWallet}
-                    onClickOther={handleClickOther}
-                  />
-                ) : currentInfo() === 'help' ? (
-                  <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.9em' }}>
+                  <div
+                    style={
+                      currentInfo() === 'wallets'
+                        ? {
+                            opacity: 1,
+                            height: 'unset',
+                            overflow: 'unset',
+                            transform: 'scale(1)',
+                            transition: 'all ease 0.3s'
+                          }
+                        : {
+                            opacity: 0,
+                            height: 0,
+                            overflow: 'hidden',
+                            transform: 'scale(1.1)',
+                            transition: 'all ease 0.3s'
+                          }
+                    }
+                  >
+                    <Wallets
+                      wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
+                      onClickWallet={handleClickWallet}
+                      onClickOther={handleClickOther}
+                    />
+                  </div>
+                  <div
+                    style={
+                      currentInfo() === 'help'
+                        ? {
+                            opacity: 1,
+                            height: 'unset',
+                            overflow: 'unset',
+                            transform: 'scale(1)',
+                            transition: 'all ease 0.3s',
+                            display: 'flex',
+                            'flex-direction': 'column',
+                            gap: '0.9em'
+                          }
+                        : {
+                            opacity: 0,
+                            height: 0,
+                            overflow: 'hidden',
+                            transform: 'scale(1.1)',
+                            transition: 'all ease 0.3s',
+                            display: 'flex',
+                            'flex-direction': 'column',
+                            gap: '0.9em'
+                          }
+                    }
+                  >
                     <Info
                       iconBadge
                       icon={
@@ -478,25 +544,46 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       description="If you are new to the Web3, we recommend that you start by creating a Kukai wallet. Kukai is a fast way of creating your first wallet using your preffered social account."
                     />
                   </div>
-                ) : (
-                  <TopWallets
-                    wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
-                    onClickWallet={handleClickWallet}
-                    onClickLearnMore={handleClickLearnMore}
-                    otherWallets={
-                      isMobile
+                  <div
+                    style={
+                      currentInfo() !== 'install' &&
+                      currentInfo() !== 'wallets' &&
+                      currentInfo() !== 'help'
                         ? {
-                            images: [
-                              arrangedWallets[3].image,
-                              arrangedWallets[4].image,
-                              arrangedWallets[5].image
-                            ],
-                            onClick: () => setCurrentInfo('wallets')
+                            opacity: 1,
+                            height: 'unset',
+                            overflow: 'unset',
+                            transform: 'scale(1)',
+                            transition: 'all ease 0.3s'
                           }
-                        : undefined
+                        : {
+                            opacity: 0,
+                            height: 0,
+                            overflow: 'hidden',
+                            transform: 'scale(1.1)',
+                            transition: 'all ease 0.3s'
+                          }
                     }
-                  />
-                )
+                  >
+                    <TopWallets
+                      wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
+                      onClickWallet={handleClickWallet}
+                      onClickLearnMore={handleClickLearnMore}
+                      otherWallets={
+                        isMobile
+                          ? {
+                              images: [
+                                arrangedWallets[3].image,
+                                arrangedWallets[4].image,
+                                arrangedWallets[5].image
+                              ],
+                              onClick: () => setCurrentInfo('wallets')
+                            }
+                          : undefined
+                      }
+                    />
+                  </div>
+                </div>
               }
               extraContent={
                 currentInfo() !== 'top-wallets' || isMobile ? undefined : (

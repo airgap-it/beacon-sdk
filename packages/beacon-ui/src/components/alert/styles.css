@@ -10,7 +10,7 @@
   left: 0px;
   background-color: rgba(0, 0, 0, 0.6);
   opacity: 1;
-  transition: opacity ease 0.3s;
+  transition: all ease 0.3s;
 }
 
 .alert-wrapper-hide {
@@ -25,7 +25,7 @@
   left: 0px;
   background-color: rgba(0, 0, 0, 0.6);
   opacity: 0;
-  transition: opacity ease 0.3s;
+  transition: all ease 0.3s;
 }
 
 .alert-modal-show {
@@ -95,6 +95,7 @@
 .alert-body {
   padding: 1.8em;
   padding-bottom: 0px;
+  transition: all ease 0.3s;
 }
 
 .alert-footer {
