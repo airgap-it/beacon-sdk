@@ -171,7 +171,7 @@ export const tezosIosList: App[] = [
   {
     key: 'trust_ios',
     name: 'Trust Wallet',
-    shortName: 'Trust',
+    shortName: 'Trust Wallet',
     color: '',
     supportedInteractionStandards: ['wallet_connect'] as any,
     logo: 'ios-trust.png',
