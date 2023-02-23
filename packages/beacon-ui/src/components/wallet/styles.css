@@ -3,7 +3,7 @@
   gap: 1.25em;
   justify-content: space-between;
   border-radius: 12px;
-  padding: 1em;
+  padding: 15px;
   cursor: pointer;
   transition: all ease 0.2s;
 
@@ -46,8 +46,8 @@
 }
 
 .wallet-main-right img {
-  width: 2.5em;
-  height: 2.5em;
+  width: 3.2em;
+  height: 3.2em;
 }
 
 .wallet-main-tags {
@@ -73,6 +73,7 @@
 }
 
 .wallet-small img {
+  padding: 0.4em;
   border-radius: 10px;
   width: 2.5em;
   height: 2.5em;

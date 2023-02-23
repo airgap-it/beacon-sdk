@@ -13,15 +13,15 @@
   text-align: center;
   color: #334155;
   margin: 0px;
-  font-size: 1em;
+  font-size: 0.938rem;
 }
 
 .top-wallets-info span {
   text-align: center;
-  max-width: 400px;
+  max-width: 300px;
   font-size: 0.8em;
   font-weight: 300;
-  color: #94a3b8;
+  color: #7c828b;
   line-height: 1.35em;
   margin: 6px 0px 12px 0px;
 }
@@ -29,6 +29,7 @@
 .top-wallets-learn-more {
   text-decoration: underline;
   cursor: pointer;
+  font-size: 0.95em !important;
 }
 
 .top-wallets-wallets-main {

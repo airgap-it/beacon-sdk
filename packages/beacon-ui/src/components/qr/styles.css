@@ -5,7 +5,7 @@
   gap: 0.5em;
   border: 1px solid #aaaaaa42;
   border-radius: 10px;
-  padding: 1.5em;
+  padding: 30px;
   height: 200px;
 }
 
@@ -23,24 +23,19 @@
   font-size: 1em;
 }
 
-.qr-left p {
+.qr-left span {
   font-size: 0.8em;
   font-weight: 300;
-  color: #94a3b8;
+  color: #7c828b;
   line-height: 1.35em;
   margin: 0px;
 }
 
 .qr-more-info {
-  font-size: 0.85em;
-  font-weight: 300;
-  color: #94a3b8;
-  line-height: 1.35em;
-  margin: 6px 0px 12px 0px;
-  margin: 0px;
+  font-size: 0.95em !important;
   text-decoration: underline;
+  margin-left: 6px !important;
   cursor: pointer;
-  width: fit-content;
 }
 
 .qr-right {
@@ -62,8 +57,9 @@
   display: flex;
   align-items: center;
   gap: 0.6em;
-  color: gray;
-  margin-bottom: 1em;
+  color: #7c828b;
+  margin-bottom: 8px;
+  margin-top: 18px;
 }
 
 .qr-copy-wrapper svg {

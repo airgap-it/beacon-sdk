@@ -58,25 +58,36 @@ const QR: Component<QRProps> = (props: QRProps) => {
       <div class="qr-left">
         {!props.isMobile && <h3>Or scan to connect</h3>}
         {!props.isMobile && (
-          <p>{`Open ${props.walletName} Wallet on your mobile phone and scan.`}</p>
+          <span>{`Open ${props.walletName} Wallet on your mobile phone and scan.`}</span>
         )}
         {props.isMobile && (
-          <p>{`Scan QR code with a ${
-            props.isWalletConnect ? 'WalletConnect' : 'Beacon'
-          }-compatible wallet.`}</p>
+          <span>
+            {`Scan QR code with a ${
+              props.isWalletConnect ? 'WalletConnect' : 'Beacon'
+            }-compatible wallet.`}
+            {props.onClickLearnMore && (
+              <span
+                class="qr-more-info"
+                onClick={() => {
+                  if (props.onClickLearnMore) props.onClickLearnMore()
+                }}
+              >
+                Learn more
+              </span>
+            )}
+          </span>
         )}
 
-        {props.onClickLearnMore && (
-          <div style={{ 'margin-top': 'auto' }}>
-            <p
-              class="qr-more-info"
-              onClick={() => {
-                if (props.onClickLearnMore) props.onClickLearnMore()
-              }}
-            >
-              Learn more
-            </p>
-          </div>
+        {!props.isMobile && props.onClickLearnMore && (
+          <span
+            style={{ 'margin-top': 'auto' }}
+            class="qr-more-info"
+            onClick={() => {
+              if (props.onClickLearnMore) props.onClickLearnMore()
+            }}
+          >
+            Learn more
+          </span>
         )}
       </div>
       <div class="qr-right" onClick={handleCopyClipboard}>
@@ -103,12 +114,12 @@ const QR: Component<QRProps> = (props: QRProps) => {
               fill="currentColor"
               stroke-width="0"
               xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 1024 1024"
+              viewBox="0 0 512 512"
               height="1em"
               width="1em"
               style="overflow: visible;"
             >
-              <path d="M832 64H296c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h496v688c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V96c0-17.7-14.3-32-32-32zM704 192H192c-17.7 0-32 14.3-32 32v530.7c0 8.5 3.4 16.6 9.4 22.6l173.3 173.3c2.2 2.2 4.7 4 7.4 5.5v1.9h4.2c3.5 1.3 7.2 2 11 2H704c17.7 0 32-14.3 32-32V224c0-17.7-14.3-32-32-32zM382 896h-.2L232 746.2v-.2h150v150z"></path>
+              <path d="M502.6 70.63 441.35 9.38C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.02 256c.88 35.4 29.58 64 64.88 64h192c35.2 0 64-28.8 64-64V93.25c0-8.48-3.4-16.62-9.4-22.62zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16V64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1v192zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16l.88-255.9c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64L0 448c.002 35.3 28.66 64 64 64h192c35.2 0 64-28.8 64-64v-32h-47.1l-.9 32z"></path>
             </svg>
             <p>Copy to clipboard</p>
           </div>
