@@ -19,7 +19,7 @@ const QR: Component<QRProps> = (props: QRProps) => {
   // TODO: We shouldn't do this here, that should be handled on a higher level
   const payload = props.code.startsWith('wc:') ? props.code : getTzip10Link('tezos://', props.code)
 
-  const qrSVG = props.isMobile ? getQrData(payload, 240, 240) : getQrData(payload, 160, 160)
+  const qrSVG = props.isMobile ? getQrData(payload, 300, 300) : getQrData(payload, 160, 160)
   const div = document.createElement('div')
   div.classList.add('qr-svg-wrapper')
   div.innerHTML = qrSVG
@@ -50,7 +50,8 @@ const QR: Component<QRProps> = (props: QRProps) => {
               'align-items': 'center',
               'justify-content': 'center',
               height: '340px',
-              'text-align': 'center'
+              'text-align': 'center',
+              border: 'none'
             }
           : {}
       }
@@ -90,7 +91,11 @@ const QR: Component<QRProps> = (props: QRProps) => {
           </span>
         )}
       </div>
-      <div class="qr-right" onClick={handleCopyClipboard}>
+      <div
+        class="qr-right"
+        style={props.isMobile ? { 'background-color': 'transparent' } : {}}
+        onClick={handleCopyClipboard}
+      >
         {div}
         {copied() && (
           <div class="qr-copy-wrapper">
