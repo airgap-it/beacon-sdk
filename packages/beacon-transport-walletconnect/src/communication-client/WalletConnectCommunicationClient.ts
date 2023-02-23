@@ -147,11 +147,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     console.log('#### Requesting public keys')
 
     // Get the public key from the wallet
-    const result = await this.signClient?.request<{
-      algo: 'ed25519'
-      address: string
-      pubkey: string
-    }>({
+    const result = await this.signClient?.request<
+      [
+        {
+          algo: 'ed25519'
+          address: string
+          pubkey: string
+        }
+      ]
+    >({
       topic: session.topic,
       chainId: `${TEZOS_PLACEHOLDER}:${network}`,
       request: {
@@ -162,6 +166,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     console.log('##### GET ACCOUNTS', result)
 
+    if (!result || result.length < 1) {
+      throw new Error('No account shared by wallet')
+    }
+
     const serializer = new Serializer()
     const serialized = await serializer.serialize({
       type: BeaconMessageType.PermissionResponse,
@@ -169,7 +177,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         senderId: this.session?.peer.publicKey,
         name: this.session?.peer.metadata.name
       },
-      publicKey: result?.pubkey,
+      publicKey: result[0]?.pubkey,
       network: NetworkType.MAINNET as any,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       id: this.currentMessageId!
