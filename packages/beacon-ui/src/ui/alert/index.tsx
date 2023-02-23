@@ -629,18 +629,35 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               open={isOpen()}
               content={
                 <Info
+                  bigIcon
                   icon={
                     <svg
-                      color="#334155"
                       fill="currentColor"
                       stroke-width="0"
                       xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 1024 1024"
+                      viewBox="0 0 512 512"
                       height="1em"
                       width="1em"
                       style="overflow: visible;"
+                      color='#494949'
                     >
-                      <path d="m955.7 856-416-720c-6.2-10.7-16.9-16-27.7-16s-21.6 5.3-27.7 16l-416 720C56 877.4 71.4 904 96 904h832c24.6 0 40-26.6 27.7-48zM480 416c0-4.4 3.6-8 8-8h48c4.4 0 8 3.6 8 8v184c0 4.4-3.6 8-8 8h-48c-4.4 0-8-3.6-8-8V416zm32 352a48.01 48.01 0 0 1 0-96 48.01 48.01 0 0 1 0 96z"></path>
+                      <path
+                        d="M85.57 446.25h340.86a32 32 0 0 0 28.17-47.17L284.18 82.58c-12.09-22.44-44.27-22.44-56.36 0L57.4 399.08a32 32 0 0 0 28.17 47.17Z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="32px"
+                      ></path>
+                      <path
+                        d="m250.26 195.39 5.74 122 5.73-121.95a5.74 5.74 0 0 0-5.79-6h0a5.74 5.74 0 0 0-5.68 5.95Z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="32px"
+                      ></path>
+                      <path d="M256 397.25a20 20 0 1 1 20-20 20 20 0 0 1-20 20Z"></path>
                     </svg>
                   }
                   title={config.title || 'No title'}

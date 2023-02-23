@@ -21,14 +21,14 @@
   align-items: center;
   font-size: 28px;
   margin-bottom: 0.2em;
-  -webkit-box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
-  -moz-box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
-  box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
 }
 
 .info-badge {
   background-color: #3880ff;
   font-size: 38px;
+  -webkit-box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
+  -moz-box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
+  box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
 }
 
 .info-title {

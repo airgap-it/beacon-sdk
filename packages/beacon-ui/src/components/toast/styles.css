@@ -60,6 +60,7 @@
   cursor: pointer;
   fill: #64748b;
   transition: all ease 0.2s;
+  margin-left: auto;
 }
 
 .toast-button-icon:hover {
@@ -102,4 +103,14 @@
 .toast-action-button:hover {
   background-color: #e4eeff;
   transition: all ease 0.2s;
+}
+
+@media only screen and (max-width: 800px) {
+  .toast-wrapper-show {
+    width: calc(100% - 24px);
+  }
+
+  .toast-wrapper-hide {
+    width: calc(100% - 24px);
+  }
 }
