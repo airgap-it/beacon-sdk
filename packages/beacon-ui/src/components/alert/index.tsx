@@ -1,17 +1,17 @@
-import { Component, createSignal, onCleanup, onMount } from 'solid-js'
+import { Component, onCleanup, onMount } from 'solid-js'
 import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
 
 export interface AlertProps {
   content: any
   open: boolean
+  showMore?: boolean
   extraContent?: any
   onCloseClick: () => void
+  onClickShowMore?: () => void
   onBackClick?: () => void
 }
 
 const Alert: Component<AlertProps> = (props: AlertProps) => {
-  const [showMore, setShowMore] = createSignal<boolean>(false)
-
   let prevBodyOverflow: any = null
   onMount(() => {
     prevBodyOverflow = document.body.style.overflow
@@ -54,15 +54,20 @@ const Alert: Component<AlertProps> = (props: AlertProps) => {
         <div class="alert-body" style={{ 'margin-bottom': props.extraContent ? '' : '1.8em' }}>
           {props.content}
           {!isMobile && (
-            <div class={showMore() ? 'alert-body-extra-show' : 'alert-body-extra-hide'}>
+            <div class={props.showMore ? 'alert-body-extra-show' : 'alert-body-extra-hide'}>
               {props.extraContent && <div class="alert-divider"></div>}
               {props.extraContent}
             </div>
           )}
         </div>
         {!isMobile && props.extraContent && (
-          <div class="alert-footer" onClick={() => setShowMore(!showMore())}>
-            {showMore() ? 'Show less' : 'Show more'}
+          <div
+            class="alert-footer"
+            onClick={() => {
+              if (props.onClickShowMore) props.onClickShowMore()
+            }}
+          >
+            {props.showMore ? 'Show less' : 'Show more'}
           </div>
         )}
       </div>

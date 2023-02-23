@@ -52,6 +52,7 @@ export interface AlertConfig {
 
 // State variables
 const [isOpen, setIsOpen] = createSignal<boolean>(false)
+const [showMoreContent, setShowMoreContent] = createSignal<boolean>(false)
 const [codeQR, setCodeQR] = createSignal<string>('')
 const [currentWallet, setCurrentWallet] = createSignal<MergedWallet | undefined>(undefined)
 const [previousInfo, setPreviousInfo] = createSignal<
@@ -241,9 +242,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     const isMobile = window.innerWidth <= 800
 
+    const handleClickShowMoreContent = () => {
+      setShowMoreContent(!showMoreContent())
+    }
+
     const handleClickLearnMore = () => {
       setPreviousInfo(currentInfo())
       setCurrentInfo('help')
+      setShowMoreContent(false)
     }
 
     const handleCloseAlert = () => {
@@ -252,6 +258,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickWallet = async (id: string) => {
+      setShowMoreContent(false)
       const wallet = arrangedWallets.find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
 
@@ -272,6 +279,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickOther = async () => {
+      setShowMoreContent(false)
       setCurrentWallet({
         ...arrangedWallets[0],
         name: '',
@@ -282,6 +290,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickConnectExtension = async () => {
+      setShowMoreContent(false)
       if (config.pairingPayload?.postmessageSyncCode) {
         const serializer = new Serializer()
         const postmessageCode = await serializer.serialize(
@@ -298,10 +307,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickInstallExtension = async () => {
+      setShowMoreContent(false)
       window.open(currentWallet()?.link || '', '_blank')
     }
 
     const handleClickOpenDesktopApp = async () => {
+      setShowMoreContent(false)
+
       if (config.pairingPayload?.p2pSyncCode) {
         const serializer = new Serializer()
         const code = await serializer.serialize(await config.pairingPayload?.p2pSyncCode())
@@ -311,6 +323,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickDownloadDesktopApp = async () => {
+      setShowMoreContent(false)
       window.open(currentWallet()?.link || '', '_blank')
     }
 
@@ -323,6 +336,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           {config.pairingPayload && (
             <Alert
               open={isOpen()}
+              showMore={showMoreContent()}
               content={
                 <div>
                   <div
@@ -595,6 +609,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   />
                 )
               }
+              onClickShowMore={handleClickShowMoreContent}
               onCloseClick={() => handleCloseAlert()}
               onBackClick={
                 currentInfo() === 'install' && !isMobile
