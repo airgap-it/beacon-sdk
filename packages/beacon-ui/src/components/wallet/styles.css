@@ -22,6 +22,7 @@
 
 .wallet-main-left {
   max-width: 148px;
+  flex: 1;
 }
 
 .wallet-main-left h3 {
