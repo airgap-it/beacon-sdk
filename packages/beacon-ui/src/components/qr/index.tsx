@@ -1,4 +1,4 @@
-import { Component, createSignal } from 'solid-js'
+import { Component, createEffect, createSignal } from 'solid-js'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
 import { getQrData } from 'src/utils/qr'
 import styles from './styles.css'
@@ -16,13 +16,18 @@ interface QRProps {
 const QR: Component<QRProps> = (props: QRProps) => {
   const [copied, setCopied] = createSignal<boolean>(false)
 
-  // TODO: We shouldn't do this here, that should be handled on a higher level
-  const payload = props.code.startsWith('wc:') ? props.code : getTzip10Link('tezos://', props.code)
-
-  const qrSVG = props.isMobile ? getQrData(payload, 300, 300) : getQrData(payload, 160, 160)
   const div = document.createElement('div')
   div.classList.add('qr-svg-wrapper')
-  div.innerHTML = qrSVG
+
+  createEffect(() => {
+    // TODO: We shouldn't do this here, that should be handled on a higher level
+    const payload = props.code.startsWith('wc:')
+      ? props.code
+      : getTzip10Link('tezos://', props.code)
+
+    const qrSVG = props.isMobile ? getQrData(payload, 300, 300) : getQrData(payload, 160, 160)
+    div.innerHTML = qrSVG
+  })
 
   async function handleCopyClipboard() {
     navigator.clipboard

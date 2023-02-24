@@ -132,7 +132,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         setCodeQR(codeQR)
       }
     }
-    setDefaultPayload()
 
     setCurrentInfo('top-wallets')
     setCurrentWallet(undefined)
@@ -266,13 +265,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         window.open(wallet.link, '_blank')
         return
       }
+
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
         const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
 
         if (uri) {
           setCodeQR(uri)
         }
-      } else {
+      } else if (wallet?.types.includes('ios')) {
         await setDefaultPayload()
       }
       setCurrentInfo('install')
@@ -639,7 +639,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       height="1em"
                       width="1em"
                       style="overflow: visible;"
-                      color='#494949'
+                      color="#494949"
                     >
                       <path
                         d="M85.57 446.25h340.86a32 32 0 0 0 28.17-47.17L284.18 82.58c-12.09-22.44-44.27-22.44-56.36 0L57.4 399.08a32 32 0 0 0 28.17 47.17Z"
