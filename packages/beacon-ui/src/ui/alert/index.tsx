@@ -205,7 +205,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           description: 'Mobile App',
           supportedInteractionStandards: wallet.supportedInteractionStandards,
           type: 'ios',
-          link: wallet.universalLink
+          link: wallet.universalLink,
+          deepLink: wallet.deepLink
         }
       }),
       ...webList.map((wallet) => {
@@ -272,10 +273,27 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         if (uri) {
           setCodeQR(uri)
         }
-      } else if (wallet?.types.includes('ios')) {
+        setCurrentInfo('install')
+      } else if (wallet?.types.includes('ios') && isMobile) {
+        setCodeQR('')
+
+        if (config.pairingPayload) {
+          const serializer = new Serializer()
+          const code = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
+
+          const link = getTzip10Link(wallet.deepLink ?? wallet.link, code)
+
+          // iOS does not trigger deeplinks with `window.open(...)`. The only way is using a normal link. So we have to work around that.
+          const a = document.createElement('a')
+          a.setAttribute('href', link)
+          a.dispatchEvent(
+            new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
+          )
+        }
+      } else {
         await setDefaultPayload()
+        setCurrentInfo('install')
       }
-      setCurrentInfo('install')
     }
 
     const handleClickOther = async () => {
@@ -420,6 +438,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       />
                     )}
                     {!isMobile &&
+                      codeQR().length > 0 &&
                       currentWallet()?.types.includes('ios') &&
                       (currentWallet()?.types.length as number) > 1 && (
                         <QR
@@ -435,6 +454,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         />
                       )}
                     {!isMobile &&
+                      codeQR().length > 0 &&
                       currentWallet()?.types.includes('ios') &&
                       (currentWallet()?.types.length as number) <= 1 && (
                         <QR
@@ -449,7 +469,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           onClickLearnMore={handleClickLearnMore}
                         />
                       )}
-                    {isMobile && (
+                    {isMobile && codeQR().length > 0 && (
                       <QR
                         isWalletConnect={
                           currentWallet()?.supportedInteractionStandards?.includes(
