@@ -263,7 +263,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setCurrentWallet(wallet)
 
       if (wallet?.types.includes('web')) {
-        window.open(wallet.link, '_blank')
+        if (config.pairingPayload) {
+          const serializer = new Serializer()
+          const code = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
+          const link = getTzip10Link(wallet.link, code)
+          window.open(link, '_blank')
+        }
         return
       }
 
