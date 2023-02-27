@@ -556,7 +556,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         </svg>
                       }
                       title="What is a wallet?"
-                      description="Wallets let you send, receive, store an interact with digital assets. Your wallet can be used as an easy way to login, instead of having to remember a password."
+                      description="Wallets let you send, receive, store and interact with digital assets. Your wallet can be used as an easy way to login, instead of having to remember a password."
                     />
                     <Info
                       iconBadge
