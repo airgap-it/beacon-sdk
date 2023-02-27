@@ -1,6 +1,7 @@
 import { createSignal } from 'solid-js'
 import { isServer, render } from 'solid-js/web'
 import { WalletInfo } from '@airgap/beacon-types'
+import { generateGUID } from '@airgap/beacon-utils'
 
 import Toast from '../../components/toast'
 
@@ -30,6 +31,8 @@ export interface ToastConfig {
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
 const [isOpen, setIsOpen] = createSignal<boolean>(false)
+const [renderLast, setRenderLast] = createSignal<string>('')
+
 const ANIMATION_TIME = 300
 let globalTimeout: NodeJS.Timeout
 
@@ -84,20 +87,17 @@ const createToast = (config: ToastConfig) => {
  */
 const closeToast = (): Promise<void> =>
   new Promise((resolve) => {
-    console.log('closeToast')
     if (isServer) {
       console.log('DO NOT RUN ON SERVER')
       resolve()
     }
-    if (dispose && isOpen()) {
-      setIsOpen(false)
-      setTimeout(() => {
-        if (dispose) dispose()
-        if (document.getElementById('beacon-toast-wrapper'))
-          (document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
-      }, ANIMATION_TIME)
-    }
-    resolve()
+    setIsOpen(false)
+    setTimeout(() => {
+      if (dispose) dispose()
+      if (document.getElementById('beacon-toast-wrapper'))
+        (document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
+      resolve()
+    }, ANIMATION_TIME)
   })
 
 /**
@@ -106,22 +106,16 @@ const closeToast = (): Promise<void> =>
  * @param toastConfig Configuration of the toast
  */
 const openToast = async (config: ToastConfig): Promise<void> => {
-  console.log('openToast')
-  console.log('config', config)
-
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
     return
   }
+  
+  const id = await generateGUID()
+  setRenderLast(id)
 
-  if (isOpen()) {
-    closeToast()
-    setTimeout(() => {
-      createToast(config)
-    }, ANIMATION_TIME)
-  } else {
-    createToast(config)
-  }
+  await closeToast()
+  if (id === renderLast()) createToast(config)
 }
 
 export { closeToast, openToast }
