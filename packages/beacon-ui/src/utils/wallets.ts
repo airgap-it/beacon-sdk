@@ -25,7 +25,7 @@ export interface MergedWallet {
 
 export function parseWallets(wallets: Wallet[]): Wallet[] {
   return wallets.map((wallet) => {
-    const tokens = ['Web', 'web', 'Wallet', 'wallet', 'App', 'app', 'Mobile', 'mobile']
+    const tokens = ['Web', 'web', 'App', 'app', 'Mobile', 'mobile']
     for (let i = 0; i < tokens.length; i++) {
       if (wallet.name.includes(tokens[i])) wallet.name = wallet.name.replace(tokens[i], '')
     }
