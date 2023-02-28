@@ -1,6 +1,5 @@
 import { createSignal } from 'solid-js'
 import {
-  ColorMode,
   ExtensionMessage,
   ExtensionMessageTarget,
   NetworkType,
@@ -30,7 +29,7 @@ import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { arrangeTop4, MergedWallet, mergeWallets, parseWallets, Wallet } from 'src/utils/wallets'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
 import { isAndroid, isIOS } from 'src/utils/platform'
-import { getColorMode, setColorMode } from 'src/utils/colorMode'
+import { getColorMode } from 'src/utils/colorMode'
 
 // Interfaces
 export interface AlertButton {
@@ -373,7 +372,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const hasExtension = () =>
       availableExtensions.map((extension) => extension.id).includes(currentWallet()?.id || '')
 
-    setColorMode(ColorMode.DARK)
     const colorMode = getColorMode()
 
     dispose = render(
