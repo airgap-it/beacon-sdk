@@ -1,5 +1,7 @@
 import QRCode from 'qrcode-svg'
 import { Logger } from '@airgap/beacon-core'
+import { getColorMode } from './colorMode'
+import { ColorMode } from '@airgap/beacon-types'
 
 const logger = new Logger('QR')
 
@@ -18,6 +20,7 @@ export const getQrData = (payload: string, height?: number, width?: number): str
   }
   try {
     const qrcode = new QRCode({
+      color: getColorMode() === ColorMode.LIGHT ? 'black' : 'white',
       content: payload,
       join: true, // Join adjacent modules into a single path element
       ecl: 'L', // Error correction level,

@@ -9,6 +9,18 @@
   justify-content: center;
 }
 
+.theme__dark .top-wallets-info h3 {
+  color: white;
+}
+
+.theme__dark .top-wallets-info span {
+  color: #b5b8be;
+}
+
+.theme__dark .top-wallets-other-wallets-left h3 {
+  color: white;
+}
+
 .top-wallets-info h3 {
   text-align: center;
   color: #334155;
