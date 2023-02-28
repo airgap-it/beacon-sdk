@@ -1,11 +1,13 @@
 import { Component, onCleanup, onMount } from 'solid-js'
 import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
+import Loader from '../loader'
 
 export interface AlertProps {
   content: any
   open: boolean
   showMore?: boolean
   extraContent?: any
+  loading?: boolean
   onCloseClick: () => void
   onClickShowMore?: () => void
   onBackClick?: () => void
@@ -50,6 +52,22 @@ const Alert: Component<AlertProps> = (props: AlertProps) => {
           <div class="alert-button-icon" onClick={props.onCloseClick}>
             <CloseIcon />
           </div>
+        </div>
+        <div
+          class="alert-modal-loading-wrapper"
+          style={
+            props.loading
+              ? {
+                  opacity: 1,
+                  transition: 'all ease 0.3s',
+                  height: '14px',
+                  overflow: 'unset',
+                  width: 'unset'
+                }
+              : { opacity: 0, transition: 'all ease 0.3s', height: 0, overflow: 'hidden', width: 0 }
+          }
+        >
+          <Loader />
         </div>
         <div class="alert-body" style={{ 'margin-bottom': props.extraContent ? '' : '1.8em' }}>
           {props.content}

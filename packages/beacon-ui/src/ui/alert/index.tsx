@@ -22,6 +22,8 @@ import * as walletsStyles from '../../components/wallets/styles.css'
 import * as walletStyles from '../../components/wallet/styles.css'
 import * as infoStyles from '../../components/info/styles.css'
 import * as qrStyles from '../../components/qr/styles.css'
+import * as loaderStyles from '../../components/loader/styles.css'
+
 import { Serializer, windowRef } from '@airgap/beacon-core'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { arrangeTop4, MergedWallet, mergeWallets, parseWallets, Wallet } from 'src/utils/wallets'
@@ -53,6 +55,7 @@ export interface AlertConfig {
 
 // State variables
 const [isOpen, setIsOpen] = createSignal<boolean>(false)
+const [isLoading, setIsLoading] = createSignal<boolean>(false)
 const [showMoreContent, setShowMoreContent] = createSignal<boolean>(false)
 const [codeQR, setCodeQR] = createSignal<string>('')
 const [currentWallet, setCurrentWallet] = createSignal<MergedWallet | undefined>(undefined)
@@ -173,6 +176,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     style6.textContent = qrStyles.default
     shadowRoot.appendChild(style6)
 
+    // Loader styles
+    const style7 = document.createElement('style')
+    style7.textContent = loaderStyles.default
+    shadowRoot.appendChild(style7)
+
     const wallets: Wallet[] = [
       ...desktopList.map((wallet) => {
         return {
@@ -256,6 +264,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickWallet = async (id: string) => {
+      setIsLoading(true)
       setShowMoreContent(false)
       const wallet = arrangedWallets.find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
@@ -267,6 +276,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           const link = getTzip10Link(wallet.link, code)
           window.open(link, '_blank')
         }
+        setIsLoading(false)
         return
       }
 
@@ -276,6 +286,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         if (uri) {
           setCodeQR(uri)
         }
+        setIsLoading(false)
         setCurrentInfo('install')
       } else if (wallet?.types.includes('ios') && isMobile) {
         setCodeQR('')
@@ -299,9 +310,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           a.dispatchEvent(
             new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
           )
+          setIsLoading(false)
         }
       } else {
         await setDefaultPayload()
+        setIsLoading(false)
         setCurrentInfo('install')
       }
     }
@@ -363,6 +376,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         <>
           {config.pairingPayload && (
             <Alert
+              loading={isLoading()}
               open={isOpen()}
               showMore={showMoreContent()}
               content={

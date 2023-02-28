@@ -48,6 +48,14 @@
   width: 480px;
 }
 
+.alert-modal-loading-wrapper {
+  width: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
 .alert-header {
   display: flex;
   align-items: center;
