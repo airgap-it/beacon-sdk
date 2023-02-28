@@ -76,6 +76,7 @@ export function mergeWallets(wallets: Wallet[]): MergedWallet[] {
       if (index < 0) console.error('There should be a wallet')
       mergedWallets[index].descriptions.push(wallet.description)
       mergedWallets[index].types.push(wallet.type)
+      mergedWallets[index].deepLink = wallet.deepLink;
     } else {
       mergedWallets.push({
         ...wallet,
