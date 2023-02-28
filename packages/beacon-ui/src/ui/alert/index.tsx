@@ -237,9 +237,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       'umami_desktop'
     )
 
-    // Add popular tag to first wallet
-    arrangedWallets[0].tags = ['popular']
-
     const isMobile = window.innerWidth <= 800
 
     const handleClickShowMoreContent = () => {
