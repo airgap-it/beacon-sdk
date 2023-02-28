@@ -12,6 +12,10 @@
   box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
 }
 
+.wallet-disabled {
+  opacity: 0.5;
+}
+
 .wallet-main:hover {
   transform: scale(1.01);
 }

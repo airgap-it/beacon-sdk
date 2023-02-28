@@ -265,6 +265,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickWallet = async (id: string) => {
+      if (isLoading()) return
+      
       setIsLoading(true)
       setShowMoreContent(false)
       const wallet = arrangedWallets.find((wallet) => wallet.id === id)
@@ -311,8 +313,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           a.dispatchEvent(
             new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
           )
-          setIsLoading(false)
         }
+        setIsLoading(false)
       } else {
         await setDefaultPayload()
         setIsLoading(false)
@@ -530,6 +532,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     }
                   >
                     <Wallets
+                      disabled={isLoading()}
                       wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
                       onClickWallet={handleClickWallet}
                       onClickOther={handleClickOther}
@@ -627,6 +630,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     }
                   >
                     <TopWallets
+                      disabled={isLoading()}
                       wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
                       onClickWallet={handleClickWallet}
                       onClickLearnMore={handleClickLearnMore}
@@ -649,6 +653,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               extraContent={
                 currentInfo() !== 'top-wallets' || isMobile ? undefined : (
                   <Wallets
+                    disabled={isLoading()}
                     small
                     wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
                     onClickWallet={handleClickWallet}

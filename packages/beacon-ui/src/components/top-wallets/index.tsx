@@ -8,6 +8,7 @@ interface TopWalletsProps {
   onClickWallet: (id: string) => void
   onClickLearnMore: () => void
   otherWallets?: { images: string[]; onClick: () => void }
+  disabled?: boolean
 }
 
 const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
@@ -28,6 +29,7 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
         <For each={props.wallets}>
           {(wallet) => (
             <Wallet
+              disabled={props.disabled}
               mobile={isMobile}
               name={wallet.name}
               description={wallet.descriptions.join(' & ')}
