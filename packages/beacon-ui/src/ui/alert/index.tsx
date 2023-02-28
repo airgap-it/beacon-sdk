@@ -26,6 +26,7 @@ import { Serializer, windowRef } from '@airgap/beacon-core'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { arrangeTop4, MergedWallet, mergeWallets, parseWallets, Wallet } from 'src/utils/wallets'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
+import { isAndroid, isIOS } from 'src/utils/platform'
 
 // Interfaces
 export interface AlertButton {
@@ -283,7 +284,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           const serializer = new Serializer()
           const code = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
 
-          const link = getTzip10Link(wallet.deepLink ?? wallet.link, code)
+          const link = getTzip10Link(
+            isIOS(window) && wallet.deepLink
+              ? wallet.deepLink
+              : isAndroid(window)
+              ? 'tezos://'
+              : wallet.link,
+            code
+          )
 
           // iOS does not trigger deeplinks with `window.open(...)`. The only way is using a normal link. So we have to work around that.
           const a = document.createElement('a')
