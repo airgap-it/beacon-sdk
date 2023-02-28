@@ -181,7 +181,7 @@ export class DAppClient extends Client {
       ...config
     })
     this.description = config.description
-    this.wcProjectId = config.walletConnectOptions?.projectId
+    this.wcProjectId = config.walletConnectOptions?.projectId || "24469fd0a06df227b6e5f7dc7de0ff4f"
     this.wcRelayUrl = config.walletConnectOptions?.relayUrl
 
     this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
