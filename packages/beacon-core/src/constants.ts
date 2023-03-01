@@ -1,4 +1,4 @@
-export const SDK_VERSION: string = '3.3.5-beta.5'
+export const SDK_VERSION: string = '3.3.5-beta.6'
 export const BEACON_VERSION: string = '3'
 
 export const NOTIFICATION_ORACLE_URL: string =
