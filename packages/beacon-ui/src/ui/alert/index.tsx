@@ -288,8 +288,17 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
         if (uri) {
           if (isAndroid(window) || isIOS(window)) {
+            // TODO : use -> https://link.trustwallet.com/
             const link = `trust://wc?uri=${encodeURIComponent(uri)}`
-            window.open(link, '_blank')
+
+            if (isAndroid(window)) window.open(link, '_blank')
+            else if (isIOS(window)) {
+              const a = document.createElement('a')
+              a.setAttribute('href', link)
+              a.dispatchEvent(
+                new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
+              )
+            }
           } else {
             setCodeQR(uri)
             setCurrentInfo('install')
@@ -312,7 +321,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             code
           )
 
-          window.open(link, '_blank')
+          if (isAndroid(window)) window.open(link, '_blank')
+          else if (isIOS(window)) {
+            const a = document.createElement('a')
+            a.setAttribute('href', link)
+            a.dispatchEvent(
+              new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
+            )
+          }
         }
         setIsLoading(false)
       } else {
