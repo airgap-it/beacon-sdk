@@ -266,7 +266,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     const handleClickWallet = async (id: string) => {
       if (isLoading()) return
-      
+
       setIsLoading(true)
       setShowMoreContent(false)
       const wallet = arrangedWallets.find((wallet) => wallet.id === id)
@@ -287,10 +287,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
 
         if (uri) {
-          setCodeQR(uri)
+          if (isAndroid(window) || isIOS(window)) {
+            const link = `https://link.trustwallet.com/wc?uri=${uri}`
+            window.open(link, '_blank')
+          } else {
+            setCodeQR(uri)
+            setCurrentInfo('install')
+          }
         }
         setIsLoading(false)
-        setCurrentInfo('install')
       } else if (wallet?.types.includes('ios') && isMobile) {
         setCodeQR('')
 
@@ -307,12 +312,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             code
           )
 
-          // iOS does not trigger deeplinks with `window.open(...)`. The only way is using a normal link. So we have to work around that.
-          const a = document.createElement('a')
-          a.setAttribute('href', link)
-          a.dispatchEvent(
-            new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
-          )
+          window.open(link, '_blank')
         }
         setIsLoading(false)
       } else {
