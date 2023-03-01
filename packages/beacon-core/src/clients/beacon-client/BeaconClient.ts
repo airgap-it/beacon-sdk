@@ -55,7 +55,7 @@ export abstract class BeaconClient {
     }
     this.name = config.name
     this.iconUrl = config.iconUrl
-    this.appUrl = config.appUrl ?? location.origin
+    this.appUrl = config.appUrl ?? windowRef.location.origin
     this.storage = config.storage
 
     // TODO: This is a temporary "workaround" to prevent users from creating multiple Client instances
