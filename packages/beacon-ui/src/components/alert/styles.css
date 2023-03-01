@@ -145,6 +145,7 @@
   transition: all ease 0.3s;
   overflow: hidden;
   max-height: 35vh;
+  overflow-y: auto;
 }
 
 .alert-body-extra-hide {
