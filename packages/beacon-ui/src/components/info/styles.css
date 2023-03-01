@@ -31,6 +31,14 @@
   box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
 }
 
+.theme__dark .info-title {
+  color: white;
+}
+
+.theme__dark .info-description {
+  color: #aeaeae;
+}
+
 .info-title {
   text-align: center;
   color: #334155;
@@ -74,7 +82,7 @@
 
 .info-button-secondary {
   border-radius: 6px;
-  background-color: white;
+  background-color: transparent;
   border: 1px solid #3880ff;
   color: #3880ff;
   padding: 0.6em 1.2em;

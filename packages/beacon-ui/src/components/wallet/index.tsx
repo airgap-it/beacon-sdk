@@ -9,11 +9,12 @@ interface WalletProps {
   mobile?: boolean
   onClick: () => void
   tags?: string[]
+  disabled?: boolean
 }
 
 const Wallet: Component<WalletProps> = (props: WalletProps) => {
   return (
-    <>
+    <div class={props.disabled ? 'wallet-disabled' : ''}>
       {!props.small && (
         <div
           class={`wallet-main ${props.mobile ? 'wallet-main-mobile' : ''}`}
@@ -39,7 +40,7 @@ const Wallet: Component<WalletProps> = (props: WalletProps) => {
           <h3>{props.name}</h3>
         </div>
       )}
-    </>
+    </div>
   )
 }
 

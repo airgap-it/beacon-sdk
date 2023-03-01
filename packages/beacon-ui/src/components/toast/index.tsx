@@ -14,8 +14,6 @@ function parseWallet(
   const regex = /({{\s*wallet\s*}})/g
   const parts = inputString.split(regex)
 
-  console.log('parts', parts)
-
   return parts.map((part) => {
     if (part.match(regex)) {
       return (

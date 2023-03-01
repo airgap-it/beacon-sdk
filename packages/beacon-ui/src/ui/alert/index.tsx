@@ -22,10 +22,14 @@ import * as walletsStyles from '../../components/wallets/styles.css'
 import * as walletStyles from '../../components/wallet/styles.css'
 import * as infoStyles from '../../components/info/styles.css'
 import * as qrStyles from '../../components/qr/styles.css'
+import * as loaderStyles from '../../components/loader/styles.css'
+
 import { Serializer, windowRef } from '@airgap/beacon-core'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { arrangeTop4, MergedWallet, mergeWallets, parseWallets, Wallet } from 'src/utils/wallets'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
+import { isAndroid, isIOS } from 'src/utils/platform'
+import { getColorMode } from 'src/utils/colorMode'
 
 // Interfaces
 export interface AlertButton {
@@ -52,6 +56,7 @@ export interface AlertConfig {
 
 // State variables
 const [isOpen, setIsOpen] = createSignal<boolean>(false)
+const [isLoading, setIsLoading] = createSignal<boolean>(false)
 const [showMoreContent, setShowMoreContent] = createSignal<boolean>(false)
 const [codeQR, setCodeQR] = createSignal<string>('')
 const [currentWallet, setCurrentWallet] = createSignal<MergedWallet | undefined>(undefined)
@@ -172,6 +177,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     style6.textContent = qrStyles.default
     shadowRoot.appendChild(style6)
 
+    // Loader styles
+    const style7 = document.createElement('style')
+    style7.textContent = loaderStyles.default
+    shadowRoot.appendChild(style7)
+
     const wallets: Wallet[] = [
       ...desktopList.map((wallet) => {
         return {
@@ -255,6 +265,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickWallet = async (id: string) => {
+      if (isLoading()) return
+
+      setIsLoading(true)
       setShowMoreContent(false)
       const wallet = arrangedWallets.find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
@@ -266,6 +279,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           const link = getTzip10Link(wallet.link, code)
           window.open(link, '_blank')
         }
+        setIsLoading(false)
         return
       }
 
@@ -273,9 +287,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
 
         if (uri) {
-          setCodeQR(uri)
+          if (isAndroid(window) || isIOS(window)) {
+            const link = `trust://wc?uri=${encodeURIComponent(uri)}`
+            window.open(link, '_blank')
+          } else {
+            setCodeQR(uri)
+            setCurrentInfo('install')
+          }
         }
-        setCurrentInfo('install')
+        setIsLoading(false)
       } else if (wallet?.types.includes('ios') && isMobile) {
         setCodeQR('')
 
@@ -283,17 +303,21 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           const serializer = new Serializer()
           const code = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
 
-          const link = getTzip10Link(wallet.deepLink ?? wallet.link, code)
-
-          // iOS does not trigger deeplinks with `window.open(...)`. The only way is using a normal link. So we have to work around that.
-          const a = document.createElement('a')
-          a.setAttribute('href', link)
-          a.dispatchEvent(
-            new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
+          const link = getTzip10Link(
+            isIOS(window) && wallet.deepLink
+              ? wallet.deepLink
+              : isAndroid(window)
+              ? 'tezos://'
+              : wallet.link,
+            code
           )
+
+          window.open(link, '_blank')
         }
+        setIsLoading(false)
       } else {
         await setDefaultPayload()
+        setIsLoading(false)
         setCurrentInfo('install')
       }
     }
@@ -350,11 +374,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const hasExtension = () =>
       availableExtensions.map((extension) => extension.id).includes(currentWallet()?.id || '')
 
+    const colorMode = getColorMode()
+
     dispose = render(
       () => (
-        <>
+        <div class={`theme__${colorMode}`}>
           {config.pairingPayload && (
             <Alert
+              loading={isLoading()}
               open={isOpen()}
               showMore={showMoreContent()}
               content={
@@ -505,7 +532,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     }
                   >
                     <Wallets
-                      wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
+                      disabled={isLoading()}
+                      wallets={arrangedWallets.slice(
+                        -(arrangedWallets.length - (isMobile ? 3 : 4))
+                      )}
                       onClickWallet={handleClickWallet}
                       onClickOther={handleClickOther}
                     />
@@ -602,6 +632,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     }
                   >
                     <TopWallets
+                      disabled={isLoading()}
                       wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
                       onClickWallet={handleClickWallet}
                       onClickLearnMore={handleClickLearnMore}
@@ -624,6 +655,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               extraContent={
                 currentInfo() !== 'top-wallets' || isMobile ? undefined : (
                   <Wallets
+                    disabled={isLoading()}
                     small
                     wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
                     onClickWallet={handleClickWallet}
@@ -696,7 +728,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               onCloseClick={() => handleCloseAlert()}
             />
           )}
-        </>
+        </div>
       ),
       shadowRoot
     )

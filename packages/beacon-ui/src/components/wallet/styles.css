@@ -12,6 +12,10 @@
   box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
 }
 
+.wallet-disabled {
+  opacity: 0.5;
+}
+
 .wallet-main:hover {
   transform: scale(1.01);
 }
@@ -23,6 +27,30 @@
 .wallet-main-left {
   max-width: 148px;
   flex: 1;
+}
+
+.theme__dark .wallet-main-left h3 {
+  color: white;
+}
+
+.theme__dark .top-wallets-info p {
+  color: #b5b8be;
+}
+
+.theme__dark .wallet-main-right {
+  -webkit-box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 63%);
+  -moz-box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 63%);
+  box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 63%);
+}
+
+.theme__dark .wallet-small img {
+  -webkit-box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 63%);
+  -moz-box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 63%);
+  box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 63%);
+}
+
+.theme__dark .wallet-small h3 {
+  color: white;
 }
 
 .wallet-main-left h3 {

@@ -8,6 +8,7 @@ interface WalletProps {
   onClickWallet: (id: string) => void
   onClickOther: () => void
   small?: boolean
+  disabled?: boolean
 }
 
 const Wallets: Component<WalletProps> = (props: WalletProps) => {
@@ -17,6 +18,7 @@ const Wallets: Component<WalletProps> = (props: WalletProps) => {
         <For each={props.wallets}>
           {(wallet) => (
             <Wallet
+              disabled={props.disabled}
               name={wallet.name}
               description={wallet.descriptions.join(' & ')}
               image={wallet.image}
