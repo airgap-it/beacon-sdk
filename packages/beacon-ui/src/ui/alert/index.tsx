@@ -288,7 +288,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
         if (uri) {
           if (isAndroid(window) || isIOS(window)) {
-            const link = `trust://wc?uri=${uri}`
+            const link = `trust://wc?uri=${encodeURIComponent(uri)}`
             window.open(link, '_blank')
           } else {
             setCodeQR(uri)
