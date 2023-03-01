@@ -22,9 +22,11 @@
 
 .wallets-list-wrapper {
   display: grid;
+  overflow-y: auto;
   grid-template-columns: repeat(4, 1fr);
   padding: 1.8em 0px;
   gap: 1.2em 0em;
+  max-height: 180px;
 }
 
 @media only screen and (max-width: 800px) {
