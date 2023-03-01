@@ -288,7 +288,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
         if (uri) {
           if (isAndroid(window) || isIOS(window)) {
-            const link = `https://link.trustwallet.com/wc?uri=${uri}`
+            const link = `trust://wc?uri=${uri}`
             window.open(link, '_blank')
           } else {
             setCodeQR(uri)
@@ -533,7 +533,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   >
                     <Wallets
                       disabled={isLoading()}
-                      wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
+                      wallets={arrangedWallets.slice(
+                        -(arrangedWallets.length - (isMobile ? 3 : 4))
+                      )}
                       onClickWallet={handleClickWallet}
                       onClickOther={handleClickOther}
                     />
