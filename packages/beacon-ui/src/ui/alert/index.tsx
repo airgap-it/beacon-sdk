@@ -122,6 +122,16 @@ const closeAlerts = async (): Promise<void> =>
  */
 // eslint-disable-next-line complexity
 const openAlert = async (config: AlertConfig): Promise<string> => {
+  const p2ppayload = config.pairingPayload?.p2pSyncCode()
+  const wcpaylouad = config.pairingPayload?.walletConnectSyncCode()
+
+  p2ppayload?.then(() => {
+    console.log('P2P LOADED')
+  })
+  wcpaylouad?.then(() => {
+    console.log('WC LOADED')
+  })
+
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
     return ''
@@ -133,7 +143,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const setDefaultPayload = async () => {
       if (config.pairingPayload) {
         const serializer = new Serializer()
-        const codeQR = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
+        const codeQR = await serializer.serialize(await p2ppayload)
         setCodeQR(codeQR)
       }
     }
@@ -275,7 +285,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (wallet?.types.includes('web')) {
         if (config.pairingPayload) {
           const serializer = new Serializer()
-          const code = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
+          const code = await serializer.serialize(await p2ppayload)
           const link = getTzip10Link(wallet.link, code)
           window.open(link, '_blank')
         }
@@ -284,12 +294,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = (await config?.pairingPayload?.walletConnectSyncCode())?.uri
+        const uri = (await wcpaylouad)?.uri
 
         if (uri) {
           if (isAndroid(window) || isIOS(window)) {
-            // TODO : use -> https://link.trustwallet.com/
-            const link = `trust://wc?uri=${encodeURIComponent(uri)}`
+            const link = `https://link.trustwallet.com/wc?uri=${encodeURIComponent(uri)}`
+            // const link = `trust://wc?uri=${encodeURIComponent(uri)}`
 
             if (isAndroid(window)) window.open(link, '_blank')
             else if (isIOS(window)) {
@@ -310,7 +320,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
         if (config.pairingPayload) {
           const serializer = new Serializer()
-          const code = await serializer.serialize(await config.pairingPayload.p2pSyncCode())
+          const code = await serializer.serialize(await p2ppayload)
 
           const link = getTzip10Link(
             isIOS(window) && wallet.deepLink
