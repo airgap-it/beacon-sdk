@@ -5,7 +5,9 @@
   "module": "dist/esm/index.js",
   "unpkg": "dist/walletbeacon.min.js",
   "types": "dist/esm/index.d.ts",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "keywords": [
     "airgap",
     "beacon",
@@ -21,7 +23,7 @@
     "type": "git",
     "url": "https://github.com/airgap-it/beacon-sdk"
   },
-  "engines" : {
+  "engines": {
     "npm": ">=7.0.0",
     "node": ">=16.0.0"
   },
@@ -70,8 +72,7 @@
     "@airgap/beacon-ui": "file:packages/beacon-ui",
     "@airgap/beacon-utils": "file:packages/beacon-utils",
     "@airgap/beacon-wallet": "file:packages/beacon-wallet",
-    "@walletconnect/legacy-modal": "^2.0.0-rc.0",
-    "@walletconnect/sign-client": "2.2.1",
+    "@walletconnect/sign-client": "2.4.6",
     "@walletconnect/types": "^2.0.0-rc.4",
     "@walletconnect/utils": "^2.0.0-rc.4",
     "@web3modal/standalone": "2.0.0",
