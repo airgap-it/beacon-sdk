@@ -178,13 +178,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         name: this.session?.peer.metadata.name
       },
       publicKey: result[0]?.pubkey,
-      network: NetworkType.MAINNET as any,
+      network: NetworkType.MAINNET,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       id: this.currentMessageId!
     })
     this.activeListeners.forEach((listener) => {
       listener(serialized, {
-        origin: Origin.EXTENSION,
+        origin: Origin.WALLETCONNECT,
         id: this.currentMessageId!
       })
     })
@@ -204,7 +204,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.validateNetworkAndAccount(network, account)
 
     // TODO: Type
-    const signature = await this.signClient?.request<string>({
+    const response = await this.signClient?.request<{ signature: string }>({
       topic: session.topic,
       chainId: `${TEZOS_PLACEHOLDER}:${network}`,
       request: {
@@ -220,7 +220,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const signPayloadResponse = {
       type: BeaconMessageType.SignPayloadResponse,
       signingType: signPayloadRequest.signingType,
-      signature,
+      signature: response?.signature,
       id: this.currentMessageId!
     } as SignPayloadResponse
 
@@ -228,7 +228,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.activeListeners.forEach((listener) => {
       listener(serialized, {
-        origin: Origin.EXTENSION,
+        origin: Origin.WALLETCONNECT,
         id: this.currentMessageId!
       })
     })
@@ -247,7 +247,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const network = this.getActiveNetwork()
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
-    const hash = await this.signClient?.request<string>({
+    const response = await this.signClient?.request<{ hash: string }>({
       topic: session.topic,
       chainId: `${TEZOS_PLACEHOLDER}:${network}`,
       request: {
@@ -259,21 +259,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       }
     })
 
-    if (hash) {
+    if (response) {
       const serializer = new Serializer()
       const serialized = await serializer.serialize({
         type: BeaconMessageType.OperationResponse,
-        transactionHash: hash,
+        transactionHash: response.hash,
         id: this.currentMessageId!
       })
       this.activeListeners.forEach((listener) => {
         listener(serialized, {
-          origin: Origin.EXTENSION,
+          origin: Origin.WALLETCONNECT,
           id: this.currentMessageId!
         })
       })
     }
-    return hash
+    return response?.hash
   }
 
   public async init(): Promise<string | undefined> {
