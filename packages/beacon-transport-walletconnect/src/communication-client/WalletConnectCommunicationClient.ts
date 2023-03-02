@@ -178,7 +178,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         name: this.session?.peer.metadata.name
       },
       publicKey: result[0]?.pubkey,
-      network: NetworkType.MAINNET,
+      network: { type: NetworkType.MAINNET },
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       id: this.currentMessageId!
     })
