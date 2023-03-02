@@ -11,7 +11,7 @@
   background-color: rgba(0, 0, 0, 0.6);
   opacity: 1;
   transition: all ease 0.3s;
-  z-index: 100;
+  z-index: 99999;
 }
 
 .alert-wrapper-hide {
@@ -27,7 +27,7 @@
   background-color: rgba(0, 0, 0, 0.6);
   opacity: 0;
   transition: all ease 0.3s;
-  z-index: 100;
+  z-index: 99999;
 }
 
 .theme__dark .alert-modal-show {
