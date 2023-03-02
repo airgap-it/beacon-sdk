@@ -301,14 +301,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             const link = `https://link.trustwallet.com/wc?uri=${encodeURIComponent(uri)}`
             // const link = `trust://wc?uri=${encodeURIComponent(uri)}`
 
-            // if (isAndroid(window)) window.open(link, '_blank')
-            // else if (isIOS(window)) {
-            const a = document.createElement('a')
-            a.setAttribute('href', link)
-            a.dispatchEvent(
-              new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
-            )
-            // }
+            if (isAndroid(window)) {
+              window.open(link, '_blank')
+            } else if (isIOS(window)) {
+              const a = document.createElement('a')
+              a.setAttribute('href', link)
+              a.dispatchEvent(
+                new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
+              )
+            }
           } else {
             setCodeQR(uri)
             setCurrentInfo('install')
