@@ -367,6 +367,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         const postmessageCode = await serializer.serialize(
           await config.pairingPayload.postmessageSyncCode()
         )
+
         const message: ExtensionMessage<string> = {
           target: ExtensionMessageTarget.EXTENSION,
           payload: postmessageCode,
@@ -374,6 +375,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         windowRef.postMessage(message as any, windowRef.location.origin)
+
+        if (currentWallet()?.firefoxId) {
+          const message: ExtensionMessage<string> = {
+            target: ExtensionMessageTarget.EXTENSION,
+            payload: postmessageCode,
+            targetId: currentWallet()?.firefoxId
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          windowRef.postMessage(message as any, windowRef.location.origin)
+        }
       }
     }
 
@@ -399,6 +410,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const hasExtension = () =>
+      availableExtensions
+        .map((extension) => extension.id)
+        .includes(currentWallet()?.firefoxId || '') ||
       availableExtensions.map((extension) => extension.id).includes(currentWallet()?.id || '')
 
     const colorMode = getColorMode()
