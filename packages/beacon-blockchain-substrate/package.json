@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-blockchain-substrate",
-  "version": "3.3.5-beta.9",
+  "version": "3.3.5-beta.10",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -34,7 +34,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-types": "^3.3.5-beta.9",
-    "@airgap/beacon-ui": "^3.3.5-beta.9"
+    "@airgap/beacon-types": "^3.3.5-beta.10",
+    "@airgap/beacon-ui": "^3.3.5-beta.10"
   }
 }
