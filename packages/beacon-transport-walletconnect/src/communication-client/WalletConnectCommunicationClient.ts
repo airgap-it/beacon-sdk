@@ -13,8 +13,10 @@ import {
   NotConnected
 } from '../error'
 import {
+  BeaconErrorType,
   BeaconMessageType,
   ConnectionContext,
+  ErrorResponse,
   ExtendedWalletConnectPairingRequest,
   ExtendedWalletConnectPairingResponse,
   OperationRequest,
@@ -203,35 +205,51 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
 
-    // TODO: Type
-    const response = await this.signClient?.request<{ signature: string }>({
-      topic: session.topic,
-      chainId: `${TEZOS_PLACEHOLDER}:${network}`,
-      request: {
-        method: PermissionScopeMethods.SIGN,
-        params: {
-          account: account,
-          payload: signPayloadRequest.payload
-        }
-      }
-    })
-
     const serializer = new Serializer()
-    const signPayloadResponse = {
-      type: BeaconMessageType.SignPayloadResponse,
-      signingType: signPayloadRequest.signingType,
-      signature: response?.signature,
-      id: this.currentMessageId!
-    } as SignPayloadResponse
 
-    const serialized = await serializer.serialize(signPayloadResponse)
+    const sendResponse = async (response: unknown) => {
+      const serialized = await serializer.serialize(response)
 
-    this.activeListeners.forEach((listener) => {
-      listener(serialized, {
-        origin: Origin.WALLETCONNECT,
-        id: this.currentMessageId!
+      this.activeListeners.forEach((listener) => {
+        listener(serialized, {
+          origin: Origin.WALLETCONNECT,
+          id: this.currentMessageId!
+        })
       })
-    })
+    }
+
+    // TODO: Type
+    this.signClient
+      ?.request<{ signature: string }>({
+        topic: session.topic,
+        chainId: `${TEZOS_PLACEHOLDER}:${network}`,
+        request: {
+          method: PermissionScopeMethods.SIGN,
+          params: {
+            account: account,
+            payload: signPayloadRequest.payload
+          }
+        }
+      })
+      .then((response) => {
+        const signPayloadResponse = {
+          type: BeaconMessageType.SignPayloadResponse,
+          signingType: signPayloadRequest.signingType,
+          signature: response?.signature,
+          id: this.currentMessageId!
+        } as SignPayloadResponse
+
+        sendResponse(signPayloadResponse)
+      })
+      .catch(async () => {
+        const errorResponse = {
+          type: BeaconMessageType.Error,
+          id: this.currentMessageId!,
+          errorType: BeaconErrorType.ABORTED_ERROR
+        } as ErrorResponse
+
+        sendResponse(errorResponse)
+      })
   }
 
   /**
@@ -247,25 +265,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const network = this.getActiveNetwork()
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
-    const response = await this.signClient?.request<{ hash: string }>({
-      topic: session.topic,
-      chainId: `${TEZOS_PLACEHOLDER}:${network}`,
-      request: {
-        method: PermissionScopeMethods.OPERATION_REQUEST,
-        params: {
-          account,
-          operations: operationRequest.operationDetails
-        }
-      }
-    })
 
-    if (response) {
-      const serializer = new Serializer()
-      const serialized = await serializer.serialize({
-        type: BeaconMessageType.OperationResponse,
-        transactionHash: response.hash,
-        id: this.currentMessageId!
-      })
+    const serializer = new Serializer()
+
+    const sendResponse = async (response: unknown) => {
+      const serialized = await serializer.serialize(response)
+
       this.activeListeners.forEach((listener) => {
         listener(serialized, {
           origin: Origin.WALLETCONNECT,
@@ -273,7 +278,37 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         })
       })
     }
-    return response?.hash
+
+    this.signClient
+      ?.request<{ hash: string }>({
+        topic: session.topic,
+        chainId: `${TEZOS_PLACEHOLDER}:${network}`,
+        request: {
+          method: PermissionScopeMethods.OPERATION_REQUEST,
+          params: {
+            account,
+            operations: operationRequest.operationDetails
+          }
+        }
+      })
+      .then((response) => {
+        const sendOperationResponse = {
+          type: BeaconMessageType.OperationResponse,
+          transactionHash: response.hash,
+          id: this.currentMessageId!
+        }
+
+        sendResponse(sendOperationResponse)
+      })
+      .catch(async () => {
+        const errorResponse = {
+          type: BeaconMessageType.Error,
+          id: this.currentMessageId!,
+          errorType: BeaconErrorType.ABORTED_ERROR
+        } as ErrorResponse
+
+        sendResponse(errorResponse)
+      })
   }
 
   public async init(forceNewConnection: boolean = false): Promise<string | undefined> {
