@@ -32,12 +32,22 @@ export const tezosExtensionList: ExtensionApp[] = [
   {
     key: 'temple_chrome',
     id: 'ookjlbkiijinhpmnjffcofjonbfbgaoc',
-    name: 'Temple Wallet',
+    name: 'Temple Wallet Chrome',
+    shortName: 'Temple',
+    color: '',
+    logo: 'extension-temple.png',
+    link: 'https://templewallet.com/'
+  },
+  {
+    key: 'temple_firefox',
+    id: '{34ac229e-1cf5-4e4c-8a77-988155c4360f}',
+    name: 'Temple Wallet Firefox',
     shortName: 'Temple',
     color: '',
     logo: 'extension-temple.png',
     link: 'https://templewallet.com/'
   }
+
 ]
 
 export const tezosWebList: WebApp[] = [
