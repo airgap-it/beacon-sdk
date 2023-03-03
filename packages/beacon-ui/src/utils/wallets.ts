@@ -7,11 +7,12 @@ export interface Wallet {
   type: string
   link: string
   supportedInteractionStandards?: string[] // 'wallet_connect' or 'beacon'
-  deepLink?: string;
+  deepLink?: string
 }
 
 export interface MergedWallet {
   id: string
+  firefoxId?: string
   key: string
   name: string
   image: string
@@ -20,7 +21,7 @@ export interface MergedWallet {
   link: string
   supportedInteractionStandards?: string[] // 'wallet_connect' or 'beacon',
   tags?: string[]
-  deepLink?: string;
+  deepLink?: string
 }
 
 export function parseWallets(wallets: Wallet[]): Wallet[] {
@@ -74,14 +75,19 @@ export function mergeWallets(wallets: Wallet[]): MergedWallet[] {
     if (mergedWalletsNames.includes(wallet.name)) {
       const index = mergedWallets.findIndex((_wallet) => _wallet.name === wallet.name)
       if (index < 0) console.error('There should be a wallet')
-      mergedWallets[index].descriptions.push(wallet.description)
+      if (!mergedWallets[index].descriptions.includes(wallet.description))
+        mergedWallets[index].descriptions.push(wallet.description)
       mergedWallets[index].types.push(wallet.type)
-      mergedWallets[index].deepLink = wallet.deepLink;
+      mergedWallets[index].deepLink = wallet.deepLink
+      mergedWallets[index].firefoxId = wallet.key.includes('firefox')
+        ? wallet.id
+        : mergedWallets[index].firefoxId
     } else {
       mergedWallets.push({
         ...wallet,
         descriptions: [wallet.description],
-        types: [wallet.type]
+        types: [wallet.type],
+        firefoxId: wallet.key.includes('firefox') ? wallet.id : undefined
       })
     }
   }
