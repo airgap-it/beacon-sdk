@@ -49,6 +49,8 @@ export class WalletConnectTransport<
 
     this._isConnected = TransportStatus.CONNECTING
 
+    await this.client.init()
+
     const knownPeers = await this.getPeers()
 
     if (knownPeers.length > 0) {

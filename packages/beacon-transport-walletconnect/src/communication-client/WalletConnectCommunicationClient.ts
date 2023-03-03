@@ -276,7 +276,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return response?.hash
   }
 
-  public async init(): Promise<string | undefined> {
+  public async init(forceNewConnection: boolean = false): Promise<string | undefined> {
     const connectParams = {
       permissionScope: {
         networks: [NetworkType.MAINNET],
@@ -291,6 +291,30 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     this.signClient = await SignClient.init(this.wcOptions)
+
+    let sessions = this.signClient.session.getAll()
+
+    if (forceNewConnection) {
+      for (let session of sessions) {
+        await this.signClient.disconnect({
+          topic: session.topic,
+          reason: {
+            code: 0,
+            message: 'Force new connection'
+          }
+        })
+      }
+
+      this.clearState()
+
+      sessions = this.signClient.session.getAll()
+    }
+
+    if (sessions && sessions.length > 0) {
+      this.session = sessions[0]
+      this.setDefaultAccountAndNetwork()
+      return
+    }
 
     const { uri, approval } = await this.signClient.connect({
       requiredNamespaces: {
@@ -329,7 +353,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   public async getPairingRequestInfo(): Promise<ExtendedWalletConnectPairingRequest> {
-    const uri = await this.init()
+    const uri = await this.init(true)
     return {
       id: await generateGUID(),
       type: 'walletconnect-pairing-request',
