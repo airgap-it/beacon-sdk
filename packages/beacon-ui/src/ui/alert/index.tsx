@@ -28,7 +28,7 @@ import { Serializer, windowRef } from '@airgap/beacon-core'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { arrangeTop4, MergedWallet, mergeWallets, parseWallets, Wallet } from 'src/utils/wallets'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
-import { isAndroid, isIOS } from 'src/utils/platform'
+import { isAndroid, isIOS, isTwBrowser } from 'src/utils/platform'
 import { getColorMode } from 'src/utils/colorMode'
 
 // Interfaces
@@ -298,10 +298,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
         if (uri) {
           if (isAndroid(window) || isIOS(window)) {
-            const link = `https://link.trustwallet.com/wc?uri=${encodeURIComponent(uri)}`
-            // const link = `trust://wc?uri=${encodeURIComponent(uri)}`
+            let link = `https://link.trustwallet.com/wc?uri=${encodeURIComponent(uri)}`
 
-            if (isAndroid(window)) {
+            if (isTwBrowser(window) && isAndroid(window)) {
+              link = `${uri}`
+              window.location.href = link
+            } else if (isAndroid(window)) {
               window.open(link, '_blank')
             } else if (isIOS(window)) {
               const a = document.createElement('a')
