@@ -1,4 +1,5 @@
 import postcss from 'rollup-plugin-postcss'
+import css from "rollup-plugin-import-css";
 import typescript from 'rollup-plugin-typescript2'
 import withSolid from 'rollup-preset-solid'
 
@@ -6,7 +7,7 @@ export default withSolid([
   {
     input: 'src/index.ts',
     output: '.',
-    plugins: [postcss(), typescript()]
+    plugins: [css(), typescript()]
   },
   {
     input: 'src/index.ts',
@@ -20,6 +21,6 @@ export default withSolid([
         format: 'esm'
       }
     ],
-    plugins: [postcss(), typescript()]
+    plugins: [css(), typescript()]
   }
 ])
