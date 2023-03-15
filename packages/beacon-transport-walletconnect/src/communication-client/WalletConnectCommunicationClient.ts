@@ -334,7 +334,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         await this.signClient.disconnect({
           topic: session.topic,
           reason: {
-            code: 0,
+            code: 0, // TODO: Use constants
             message: 'Force new connection'
           }
         })
