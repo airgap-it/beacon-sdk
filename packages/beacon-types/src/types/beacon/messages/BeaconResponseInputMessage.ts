@@ -19,7 +19,7 @@ export type IgnoredResponseInputProperties = 'senderId' | 'version'
  */
 export type PermissionResponseInput = Optional<
   PermissionResponse,
-  IgnoredResponseInputProperties | 'appMetadata'
+  IgnoredResponseInputProperties | 'appMetadata' | 'key'
 >
 /**
  * @category Wallet

@@ -21,7 +21,8 @@ import {
   BeaconMessageWrapper,
   BlockchainResponseV3,
   PermissionResponseV3,
-  BeaconBaseMessage
+  BeaconBaseMessage,
+  StorageKey
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
 import { getAddressFromPublicKey } from '@airgap/beacon-utils'
@@ -176,9 +177,12 @@ export class OutgoingResponseInterceptor {
         break
       }
       case BeaconMessageType.PermissionResponse: {
+        // TODO: replace with storage class
+        const key = localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? undefined
         const response: PermissionResponse = {
           senderId,
           version: '2',
+          key: key,
           appMetadata: ownAppMetadata,
           ...message
         }

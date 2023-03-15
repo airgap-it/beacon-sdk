@@ -5,6 +5,7 @@ import {
   NetworkType,
   P2PPairingRequest,
   PostMessagePairingRequest,
+  StorageKey,
   WalletConnectPairingRequest
 } from '@airgap/beacon-types'
 import { isServer, render } from 'solid-js/web'
@@ -150,6 +151,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     setCurrentInfo('top-wallets')
     setCurrentWallet(undefined)
+    localStorage.removeItem(StorageKey.LAST_SELECTED_WALLET)
 
     // Shadow root
     const shadowRootEl = document.createElement('div')
@@ -281,13 +283,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setShowMoreContent(false)
       const wallet = arrangedWallets.find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
+      if(wallet?.key){
+        localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, wallet.key)
+      }
 
       if (wallet?.types.includes('web')) {
         if (config.pairingPayload) {
           const serializer = new Serializer()
           const code = await serializer.serialize(await p2ppayload)
           const link = getTzip10Link(wallet.link, code)
-          window.open(link, '_blank')
+          window.open(link, '_blank', 'noopener')
         }
         setIsLoading(false)
         return
@@ -304,10 +309,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               link = `${uri}`
               window.location.href = link
             } else if (isAndroid(window)) {
-              window.open(link, '_blank')
+              window.open(link, '_blank', 'noopener')
             } else if (isIOS(window)) {
               const a = document.createElement('a')
               a.setAttribute('href', link)
+              a.setAttribute('rel', 'noopener')
               a.dispatchEvent(
                 new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
               )
@@ -334,10 +340,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             code
           )
 
-          if (isAndroid(window)) window.open(link, '_blank')
+          if (isAndroid(window)) window.open(link, '_blank', 'noopener')
           else if (isIOS(window)) {
             const a = document.createElement('a')
             a.setAttribute('href', link)
+            a.setAttribute('rel', 'noopener')
             a.dispatchEvent(
               new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
             )
@@ -358,6 +365,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         name: '',
         types: ['ios']
       })
+      // TODO: replace with storage class
+      localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, arrangedWallets[0].key)
       setDefaultPayload()
       setCurrentInfo('install')
     }
@@ -392,7 +401,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     const handleClickInstallExtension = async () => {
       setShowMoreContent(false)
-      window.open(currentWallet()?.link || '', '_blank')
+      window.open(currentWallet()?.link || '', '_blank', 'noopener')
     }
 
     const handleClickOpenDesktopApp = async () => {
@@ -402,13 +411,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         const serializer = new Serializer()
         const code = await serializer.serialize(await config.pairingPayload?.p2pSyncCode())
         const link = getTzip10Link(currentWallet()?.deepLink || '', code)
-        window.open(link, '_blank')
+        window.open(link, '_blank', 'noopener')
       }
     }
 
     const handleClickDownloadDesktopApp = async () => {
       setShowMoreContent(false)
-      window.open(currentWallet()?.link || '', '_blank')
+      window.open(currentWallet()?.link || '', '_blank', 'noopener')
     }
 
     const hasExtension = () =>

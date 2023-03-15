@@ -197,6 +197,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
       const link = data.walletInfo.deeplink
       openWalletAction = async (): Promise<void> => {
         const a = document.createElement('a')
+        a.setAttribute('rel', 'noopener')
         a.setAttribute('href', link)
         a.setAttribute('target', '_blank')
         a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
@@ -490,7 +491,7 @@ const showOperationSuccessAlert = async (
             output.transactionHash,
             account.network
           )
-          window.open(link, '_blank')
+          window.open(link, '_blank', 'noopener')
           await closeToast()
         }
       }
@@ -595,7 +596,7 @@ const showBroadcastSuccessAlert = async (
             output.transactionHash,
             network
           )
-          window.open(link, '_blank')
+          window.open(link, '_blank', 'noopener')
           await closeToast()
         }
       }
