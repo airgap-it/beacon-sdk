@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-transport-walletconnect",
-  "version": "3.3.5-beta.14",
+  "version": "3.3.5-beta.15",
   "description": "Beacon WalletConnect",
   "author": "Papers AG",
   "homepage": "https://walletbeacon.io",
@@ -34,9 +34,9 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "^3.3.5-beta.14",
-    "@airgap/beacon-types": "^3.3.5-beta.14",
-    "@airgap/beacon-utils": "^3.3.5-beta.14",
+    "@airgap/beacon-core": "^3.3.5-beta.15",
+    "@airgap/beacon-types": "^3.3.5-beta.15",
+    "@airgap/beacon-utils": "^3.3.5-beta.15",
     "@walletconnect/sign-client": "2.4.6"
   }
 }
