@@ -1,5 +1,6 @@
 import { createSignal } from 'solid-js'
 import {
+  AnalyticsInterface,
   ExtensionMessage,
   ExtensionMessageTarget,
   NetworkType,
@@ -53,6 +54,7 @@ export interface AlertConfig {
   }
   closeButtonCallback?(): void
   disclaimerText?: string
+  analytics?: AnalyticsInterface
 }
 
 // State variables
@@ -67,6 +69,7 @@ const [previousInfo, setPreviousInfo] = createSignal<
 const [currentInfo, setCurrentInfo] = createSignal<'top-wallets' | 'wallets' | 'install' | 'help'>(
   'top-wallets'
 )
+const [analytics, setAnalytics] = createSignal<AnalyticsInterface | undefined>(undefined)
 
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
@@ -126,6 +129,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   const p2ppayload = config.pairingPayload?.p2pSyncCode()
   const wcpaylouad = config.pairingPayload?.walletConnectSyncCode()
 
+  setAnalytics(config.analytics)
+
+  // TODO: Remove eager connection
   p2ppayload?.then(() => {
     console.log('P2P LOADED')
   })
@@ -262,13 +268,19 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const isMobile = window.innerWidth <= 800
 
     const handleClickShowMoreContent = () => {
+      analytics()?.track('click', 'ui', 'show more wallets')
       setShowMoreContent(!showMoreContent())
     }
 
     const handleClickLearnMore = () => {
+      analytics()?.track('click', 'ui', 'learn more')
       setPreviousInfo(currentInfo())
       setCurrentInfo('help')
       setShowMoreContent(false)
+    }
+
+    const handleClickQrCode = () => {
+      analytics()?.track('click', 'ui', 'copy QR code to clipboard')
     }
 
     const handleCloseAlert = () => {
@@ -283,7 +295,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setShowMoreContent(false)
       const wallet = arrangedWallets.find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
-      if(wallet?.key){
+      if (wallet?.key) {
+        analytics()?.track('click', 'ui', 'opened wallet', { key: wallet.key })
         localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, wallet.key)
       }
 
@@ -359,6 +372,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickOther = async () => {
+      analytics()?.track('click', 'ui', 'other wallet')
+
       setShowMoreContent(false)
       setCurrentWallet({
         ...arrangedWallets[0],
@@ -372,6 +387,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickConnectExtension = async () => {
+      analytics()?.track('click', 'ui', 'open extension', { key: currentWallet()?.key })
+
       setShowMoreContent(false)
       if (config.pairingPayload?.postmessageSyncCode) {
         const serializer = new Serializer()
@@ -400,12 +417,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickInstallExtension = async () => {
+      analytics()?.track('click', 'ui', 'install extension', { key: currentWallet()?.key })
+
       setShowMoreContent(false)
       window.open(currentWallet()?.link || '', '_blank', 'noopener')
     }
 
     const handleClickOpenDesktopApp = async () => {
       setShowMoreContent(false)
+      analytics()?.track('click', 'ui', 'open desktop', { key: currentWallet()?.key })
 
       if (config.pairingPayload?.p2pSyncCode) {
         const serializer = new Serializer()
@@ -416,6 +436,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickDownloadDesktopApp = async () => {
+      analytics()?.track('click', 'ui', 'download desktop', { key: currentWallet()?.key })
+
       setShowMoreContent(false)
       window.open(currentWallet()?.link || '', '_blank', 'noopener')
     }
@@ -529,9 +551,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             ) || false
                           }
                           isMobile={false}
-                          walletName={currentWallet()?.name || 'Airgap'}
+                          walletName={currentWallet()?.name || 'AirGap'}
                           code={codeQR()}
                           onClickLearnMore={handleClickLearnMore}
+                          onClickQrCode={handleClickQrCode}
                         />
                       )}
                     {!isMobile &&
@@ -548,6 +571,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           walletName={currentWallet()?.name || 'Airgap'}
                           code={codeQR()}
                           onClickLearnMore={handleClickLearnMore}
+                          onClickQrCode={handleClickQrCode}
                         />
                       )}
                     {isMobile && codeQR().length > 0 && (
@@ -561,6 +585,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         walletName={currentWallet()?.name || 'Airgap'}
                         code={codeQR()}
                         onClickLearnMore={handleClickLearnMore}
+                        onClickQrCode={handleClickQrCode}
                       />
                     )}
                   </div>

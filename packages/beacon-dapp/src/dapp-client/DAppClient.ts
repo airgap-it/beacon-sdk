@@ -224,6 +224,7 @@ export class DAppClient extends Client {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
         if (openRequest && typedMessage.message.type === BeaconMessageType.Acknowledge) {
+          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
           logger.log(`acknowledge message received for ${message.id}`)
           console.timeLog(message.id, 'acknowledge')
 
@@ -253,6 +254,8 @@ export class DAppClient extends Client {
           this.openRequests.delete(typedMessage.id)
         } else {
           if (typedMessage.message.type === BeaconMessageType.Disconnect) {
+            this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
+
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
@@ -281,6 +284,8 @@ export class DAppClient extends Client {
 
         if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
           logger.log(`acknowledge message received for ${message.id}`)
+          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
+
           console.timeLog(message.id, 'acknowledge')
 
           this.events
@@ -313,6 +318,8 @@ export class DAppClient extends Client {
             typedMessage.type === BeaconMessageType.Disconnect ||
             (message as any)?.typedMessage?.type === BeaconMessageType.Disconnect // TODO: TYPE
           ) {
+            this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
+
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
@@ -442,6 +449,9 @@ export class DAppClient extends Client {
           postMessageTransport
             .listenForNewPeer((peer) => {
               logger.log('init', 'postmessage transport peer connected', peer)
+              this.analytics.track('event', 'DAppClient', 'Extension connected', {
+                peerName: peer.name
+              })
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
@@ -456,6 +466,9 @@ export class DAppClient extends Client {
           p2pTransport
             .listenForNewPeer((peer) => {
               logger.log('init', 'p2p transport peer connected', peer)
+              this.analytics.track('event', 'DAppClient', 'Beacon Wallet connected', {
+                peerName: peer.name
+              })
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
@@ -470,6 +483,9 @@ export class DAppClient extends Client {
           walletConnectTransport
             .listenForNewPeer((peer) => {
               logger.log('init', 'walletconnect transport peer connected', peer)
+              this.analytics.track('event', 'DAppClient', 'WalletConnect Wallet connected', {
+                peerName: peer.name
+              })
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
@@ -482,7 +498,8 @@ export class DAppClient extends Client {
             .catch(console.error)
 
           PostMessageTransport.getAvailableExtensions()
-            .then(async () => {
+            .then(async (extensions) => {
+              this.analytics.track('event', 'DAppClient', 'Extensions detected', { extensions })
               this.events
                 .emit(BeaconEvent.PAIR_INIT, {
                   p2pPeerInfo: () => {
@@ -496,7 +513,8 @@ export class DAppClient extends Client {
                     console.log('ABORTED')
                     this._initPromise = undefined
                   },
-                  disclaimerText: this.disclaimerText
+                  disclaimerText: this.disclaimerText,
+                  analytics: this.analytics
                 })
                 .catch((emitError) => console.warn(emitError))
             })
@@ -904,6 +922,8 @@ export class DAppClient extends Client {
           : [PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN]
     }
 
+    this.analytics.track('event', 'DAppClient', 'Permission requested')
+
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
       PermissionResponse
@@ -959,6 +979,8 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
+    this.analytics.track('event', 'DAppClient', 'Permission received', { address })
+
     return output
   }
 
@@ -1011,6 +1033,8 @@ export class DAppClient extends Client {
       }
     })()
 
+    this.analytics.track('event', 'DAppClient', 'Signature requested')
+
     const request: SignPayloadRequestInput = {
       type: BeaconMessageType.SignPayloadRequest,
       signingType,
@@ -1031,6 +1055,8 @@ export class DAppClient extends Client {
       connectionContext: connectionInfo,
       walletInfo: await this.getWalletInfo()
     })
+
+    this.analytics.track('event', 'DAppClient', 'Signature response')
 
     return message
   }
@@ -1116,6 +1142,8 @@ export class DAppClient extends Client {
       sourceAddress: activeAccount.address || ''
     }
 
+    this.analytics.track('event', 'DAppClient', 'Operation requested')
+
     const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
@@ -1129,6 +1157,8 @@ export class DAppClient extends Client {
       connectionContext: connectionInfo,
       walletInfo: await this.getWalletInfo()
     })
+
+    this.analytics.track('event', 'DAppClient', 'Operation response')
 
     return message
   }
@@ -1152,6 +1182,8 @@ export class DAppClient extends Client {
       signedTransaction: input.signedTransaction
     }
 
+    this.analytics.track('event', 'DAppClient', 'Broadcast requested')
+
     const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
@@ -1165,6 +1197,8 @@ export class DAppClient extends Client {
       connectionContext: connectionInfo,
       walletInfo: await this.getWalletInfo()
     })
+
+    this.analytics.track('event', 'DAppClient', 'Broadcast response')
 
     return message
   }

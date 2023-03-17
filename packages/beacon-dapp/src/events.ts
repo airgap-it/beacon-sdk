@@ -26,7 +26,8 @@ import {
   AcknowledgeResponse,
   WalletInfo,
   ExtendedWalletConnectPairingResponse,
-  WalletConnectPairingRequest
+  WalletConnectPairingRequest,
+  AnalyticsInterface
 } from '@airgap/beacon-types'
 import {
   UnknownBeaconError,
@@ -172,6 +173,7 @@ export interface BeaconEventType {
     preferredNetwork: NetworkType
     abortedHandler?(): void
     disclaimerText?: string
+    analytics: AnalyticsInterface
   }
   [BeaconEvent.PAIR_SUCCESS]:
     | ExtendedPostMessagePairingResponse
@@ -427,7 +429,8 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
     },
     // eslint-disable-next-line @typescript-eslint/unbound-method
     closeButtonCallback: data.abortedHandler,
-    disclaimerText: data.disclaimerText
+    disclaimerText: data.disclaimerText,
+    analytics: data.analytics
   }
   await openAlert(alertConfig)
 }

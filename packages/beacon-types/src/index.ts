@@ -126,6 +126,8 @@ import { Extension } from './types/Extension'
 import { PermissionEntity } from './types/PermissionEntity'
 import { WalletInfo } from './types/WalletInfo'
 
+export * from './types/AnalyticsInterface'
+
 export * from './types/beaconV3/PermissionRequest'
 
 export * from './types/ui'

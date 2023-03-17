@@ -11,6 +11,7 @@ interface QRProps {
   walletName: string
   code: string
   onClickLearnMore?: () => void
+  onClickQrCode?: () => void
 }
 
 const QR: Component<QRProps> = (props: QRProps) => {
@@ -30,6 +31,9 @@ const QR: Component<QRProps> = (props: QRProps) => {
   })
 
   async function handleCopyClipboard() {
+    if (props.onClickQrCode) {
+      props.onClickQrCode()
+    }
     navigator.clipboard
       .writeText(props.code)
       .then(() => {

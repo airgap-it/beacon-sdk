@@ -1,6 +1,12 @@
 import { BeaconEvent, BeaconEventType, BeaconEventHandlerFunction } from '../events'
 import { BlockExplorer } from '../utils/block-explorer'
-import { Storage, NetworkType, ColorMode, NodeDistributions } from '@airgap/beacon-types'
+import {
+  Storage,
+  NetworkType,
+  ColorMode,
+  NodeDistributions,
+  AnalyticsInterface
+} from '@airgap/beacon-types'
 
 type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
   {
@@ -109,4 +115,9 @@ export interface DAppClientOptions {
      */
     relayUrl?: string
   }>
+
+  /**
+   * The analytics instance that will be used by the SDK
+   */
+  analytics?: AnalyticsInterface
 }

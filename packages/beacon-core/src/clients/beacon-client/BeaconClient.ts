@@ -1,10 +1,11 @@
 import { ExposedPromise } from '@airgap/beacon-utils'
 import { getKeypairFromSeed, toHex, generateGUID } from '@airgap/beacon-utils'
-import { Storage, StorageKey } from '@airgap/beacon-types'
+import { AnalyticsInterface, Storage, StorageKey } from '@airgap/beacon-types'
 import { SDK_VERSION } from '../../constants'
 import { windowRef } from '../../MockWindow'
 import { BeaconClientOptions } from './BeaconClientOptions'
 import { KeyPair } from '@stablelib/ed25519'
+import { MockAnalytics } from '../../MockAnalytics'
 
 /**
  * @internalapi
@@ -38,6 +39,8 @@ export abstract class BeaconClient {
 
   protected storage: Storage
 
+  protected analytics: AnalyticsInterface
+
   /**
    * The local keypair that is used for the communication encryption
    */
@@ -57,6 +60,7 @@ export abstract class BeaconClient {
     this.iconUrl = config.iconUrl
     this.appUrl = config.appUrl ?? windowRef.location.origin
     this.storage = config.storage
+    this.analytics = config.analytics ?? new MockAnalytics()
 
     // TODO: This is a temporary "workaround" to prevent users from creating multiple Client instances
     if ((windowRef as any).beaconCreatedClientInstance) {
