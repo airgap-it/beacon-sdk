@@ -39,7 +39,19 @@
       // Initiate DAppClient
       const client = new beacon.WalletClient({
         name: 'Example Wallet' // Name of the DApp
-        // matrixNodes: ['matrix.papers.tech']
+        // matrixNodes: {
+        //   [beacon.Regions.EUROPE_WEST]: [
+        //     'beacon-node-1.diamond.papers.tech',
+        //     'beacon-node-1.sky.papers.tech',
+        //     'beacon-node-2.sky.papers.tech',
+        //     'beacon-node-1.hope.papers.tech',
+        //     'beacon-node-1.hope-2.papers.tech',
+        //     'beacon-node-1.hope-3.papers.tech',
+        //     'beacon-node-1.hope-4.papers.tech',
+        //     'beacon-node-1.hope-5.papers.tech'
+        //   ],
+        //   [beacon.Regions.NORTH_AMERICA_EAST]: []
+        // }
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['beacon.tztip.me']
       })
@@ -88,18 +100,18 @@
             if (message.type === beacon.BeaconMessageType.PermissionRequest) {
               // Show a UI to the user where he can confirm sharing an account with the DApp
 
-              const URL = 'https://beacon-notification-oracle.dev.gke.papers.tech'
+              // const URL = 'https://beacon-notification-oracle.dev.gke.papers.tech'
               const publicKey = '3b92229274683b338cf8b040cf91ac0f8e19e410f06eda5537ef077e718e0026'
 
-              const res = await client.registerPush(
-                'https://webhook.site/37e64204-3058-41ea-b681-9466ec70a892', // TODO: Replace this with your own webhook
-                publicKey,
-                'xtz',
-                Math.random().toString(),
-                URL
-              )
+              // const res = await client.registerPush(
+              //   'https://webhook.site/37e64204-3058-41ea-b681-9466ec70a892', // TODO: Replace this with your own webhook
+              //   publicKey,
+              //   'xtz',
+              //   Math.random().toString(),
+              //   URL
+              // )
 
-              console.log('res', res)
+              // console.log('res', res)
 
               const response = {
                 type: beacon.BeaconMessageType.PermissionResponse,
@@ -110,13 +122,13 @@
                   beacon.PermissionScope.ENCRYPT
                 ], // Ignore the scopes that have been requested and instead give only operation permissions
                 id: message.id,
-                publicKey: publicKey,
+                publicKey: publicKey
 
-                notification: {
-                  version: 1,
-                  apiUrl: URL,
-                  token: res.accessToken
-                }
+                // notification: {
+                //   version: 1,
+                //   apiUrl: URL,
+                //   token: res.accessToken
+                // }
               }
 
               // Let's wait a little to make it more natural (to test the UI on the dApp side)
