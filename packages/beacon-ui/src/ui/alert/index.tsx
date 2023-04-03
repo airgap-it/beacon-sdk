@@ -800,6 +800,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   }
                   title={config.title || 'No title'}
                   description={config.body || 'No description'}
+                  data={config.data}
                   buttons={[
                     {
                       label: 'Close',

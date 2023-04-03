@@ -4,6 +4,7 @@ import styles from './styles.css'
 interface InfoProps {
   title: string
   description?: string
+  data?: string
   icon?: any
   border?: boolean
   iconBadge?: boolean
@@ -24,6 +25,7 @@ const Info: Component<InfoProps> = (props: InfoProps) => {
       )}
       <h3 class="info-title">{props.title}</h3>
       {props.description && <div class="info-description">{props.description}</div>}
+      {props.data && <pre class="info-data">{props.data}</pre>}
       <div class="info-buttons">
         <For each={props.buttons}>
           {(button) => (
