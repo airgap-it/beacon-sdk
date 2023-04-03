@@ -52,11 +52,11 @@
     "check-version": "ts-node --project tsconfig-cjs.json scripts/check-sdk-version.ts",
     "typedoc": "typedoc src/index.ts --includeVersion --internal-aliases publicapi --external-aliases internalapi --logLevel Verbose --listInvalidSymbolLinks && ts-node --project tsconfig-cjs.json scripts/process-docs.ts",
     "publish": "lerna run tsc && lerna publish",
-    "bump:version": "lerna version --no-git-tag-version",
-    "bump:major": "lerna version --no-git-tag-version major --yes",
-    "bump:minor": "lerna version --no-git-tag-version minor --yes",
-    "bump:patch": "lerna version --no-git-tag-version patch --yes",
-    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --yes"
+    "bump:version": "lerna version --no-git-tag-version --exact",
+    "bump:major": "lerna version --no-git-tag-version major --exact --yes",
+    "bump:minor": "lerna version --no-git-tag-version minor --exact --yes",
+    "bump:patch": "lerna version --no-git-tag-version patch --exact --yes",
+    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --exact --yes"
   },
   "author": "Papers AG <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
