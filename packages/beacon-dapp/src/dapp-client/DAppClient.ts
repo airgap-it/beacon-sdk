@@ -175,6 +175,8 @@ export class DAppClient extends Client {
 
   private readonly errorMessages: Record<string, Record<string | number, string>>
 
+  private readonly featuredWallets: string[] | undefined
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -183,6 +185,8 @@ export class DAppClient extends Client {
     this.description = config.description
     this.wcProjectId = config.walletConnectOptions?.projectId || '24469fd0a06df227b6e5f7dc7de0ff4f'
     this.wcRelayUrl = config.walletConnectOptions?.relayUrl
+
+    this.featuredWallets = config.featuredWallets
 
     this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
     this.blockExplorer = config.blockExplorer ?? new TzktBlockExplorer()
@@ -514,7 +518,8 @@ export class DAppClient extends Client {
                     this._initPromise = undefined
                   },
                   disclaimerText: this.disclaimerText,
-                  analytics: this.analytics
+                  analytics: this.analytics,
+                  featuredWallets: this.featuredWallets
                 })
                 .catch((emitError) => console.warn(emitError))
             })

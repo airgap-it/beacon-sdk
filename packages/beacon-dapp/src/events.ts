@@ -174,6 +174,7 @@ export interface BeaconEventType {
     abortedHandler?(): void
     disclaimerText?: string
     analytics: AnalyticsInterface
+    featuredWallets?: string[]
   }
   [BeaconEvent.PAIR_SUCCESS]:
     | ExtendedPostMessagePairingResponse
@@ -430,7 +431,8 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
     // eslint-disable-next-line @typescript-eslint/unbound-method
     closeButtonCallback: data.abortedHandler,
     disclaimerText: data.disclaimerText,
-    analytics: data.analytics
+    analytics: data.analytics,
+    featuredWallets: data.featuredWallets
   }
   await openAlert(alertConfig)
 }

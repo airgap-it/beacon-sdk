@@ -120,4 +120,9 @@ export interface DAppClientOptions {
    * The analytics instance that will be used by the SDK
    */
   analytics?: AnalyticsInterface
+
+  /**
+   * The wallets that will be featured in the UI.
+   */
+  featuredWallets?: string[]
 }

@@ -35,20 +35,23 @@ export function parseWallets(wallets: Wallet[]): Wallet[] {
   })
 }
 
-export function arrangeTop4(
-  arr: MergedWallet[],
-  id1: string,
-  id2: string,
-  id3: string,
-  id4: string
-): MergedWallet[] {
-  const idsToMoveToFront = [id1, id2, id3, id4]
+export function arrangeTopWallets(arr: MergedWallet[], walletIds: string[]): MergedWallet[] {
+  const idsToMoveToFront = walletIds.slice(0, 4)
   const itemsToMoveToFront = []
   const itemsToSortByName = []
 
   for (let item of arr) {
-    if (idsToMoveToFront.includes(item.key)) {
-      itemsToMoveToFront[idsToMoveToFront.indexOf(item.key)] = item
+    let position: number | undefined = undefined
+    idsToMoveToFront.some((id, index) => {
+      const isWallet = item.key.startsWith(id)
+      if (isWallet) {
+        position = index
+      }
+      return isWallet
+    })
+
+    if (typeof position !== 'undefined') {
+      itemsToMoveToFront[position] = item
     } else {
       itemsToSortByName.push(item)
     }

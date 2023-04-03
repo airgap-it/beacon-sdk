@@ -28,7 +28,13 @@ import * as loaderStyles from '../../components/loader/styles.css'
 
 import { Serializer, windowRef } from '@airgap/beacon-core'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
-import { arrangeTop4, MergedWallet, mergeWallets, parseWallets, Wallet } from 'src/utils/wallets'
+import {
+  arrangeTopWallets,
+  MergedWallet,
+  mergeWallets,
+  parseWallets,
+  Wallet
+} from 'src/utils/wallets'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
 import { isAndroid, isIOS, isTwBrowser } from 'src/utils/platform'
 import { getColorMode } from 'src/utils/colorMode'
@@ -55,6 +61,7 @@ export interface AlertConfig {
   closeButtonCallback?(): void
   disclaimerText?: string
   analytics?: AnalyticsInterface
+  featuredWallets?: string[]
 }
 
 // State variables
@@ -256,13 +263,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     // Merge wallets by name
     const mergedWallets = mergeWallets(parsedWallets)
 
+    // Default selection of featured wallets
+    const defaultWalletList = ['kukai', 'trust', 'temple', 'umami']
+
     // Sort wallets by top4
-    const arrangedWallets = arrangeTop4(
+    const arrangedWallets = arrangeTopWallets(
       mergedWallets,
-      'kukai_web',
-      'trust_ios',
-      'temple_chrome',
-      'umami_desktop'
+      config.featuredWallets ?? defaultWalletList
     )
 
     const isMobile = window.innerWidth <= 800
