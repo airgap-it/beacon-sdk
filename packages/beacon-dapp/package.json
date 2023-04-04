@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-dapp",
-  "version": "4.0.0-beta.0",
+  "version": "4.0.0",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -35,10 +35,10 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "4.0.0-beta.0",
-    "@airgap/beacon-transport-matrix": "4.0.0-beta.0",
-    "@airgap/beacon-transport-postmessage": "4.0.0-beta.0",
-    "@airgap/beacon-transport-walletconnect": "4.0.0-beta.0",
+    "@airgap/beacon-core": "4.0.0",
+    "@airgap/beacon-transport-matrix": "4.0.0",
+    "@airgap/beacon-transport-postmessage": "4.0.0",
+    "@airgap/beacon-transport-walletconnect": "4.0.0",
     "@airgap/beacon-ui": "file:../beacon-ui",
     "qrcode-generator": "1.4.4"
   }
