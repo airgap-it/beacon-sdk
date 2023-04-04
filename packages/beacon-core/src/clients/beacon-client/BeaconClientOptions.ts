@@ -1,4 +1,4 @@
-import { Storage } from '@airgap/beacon-types'
+import { AnalyticsInterface, Storage } from '@airgap/beacon-types'
 
 /**
  * @internalapi
@@ -23,4 +23,9 @@ export interface BeaconClientOptions {
    * The storage that will be used by the SDK
    */
   storage: Storage
+
+  /**
+   * The analytics instance that will be used by the SDK
+   */
+  analytics?: AnalyticsInterface
 }

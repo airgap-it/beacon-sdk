@@ -24,7 +24,10 @@ import {
   ConnectionContext,
   NetworkType,
   AcknowledgeResponse,
-  WalletInfo
+  WalletInfo,
+  ExtendedWalletConnectPairingResponse,
+  WalletConnectPairingRequest,
+  AnalyticsInterface
 } from '@airgap/beacon-types'
 import {
   UnknownBeaconError,
@@ -166,11 +169,17 @@ export interface BeaconEventType {
   [BeaconEvent.PAIR_INIT]: {
     p2pPeerInfo: () => Promise<P2PPairingRequest>
     postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
+    walletConnectPeerInfo: () => Promise<WalletConnectPairingRequest>
     preferredNetwork: NetworkType
     abortedHandler?(): void
     disclaimerText?: string
+    analytics: AnalyticsInterface
+    featuredWallets?: string[]
   }
-  [BeaconEvent.PAIR_SUCCESS]: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
+  [BeaconEvent.PAIR_SUCCESS]:
+    | ExtendedPostMessagePairingResponse
+    | ExtendedP2PPairingResponse
+    | ExtendedWalletConnectPairingResponse
   [BeaconEvent.CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[] }
   [BeaconEvent.UNKNOWN]: undefined
@@ -191,6 +200,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
       const link = data.walletInfo.deeplink
       openWalletAction = async (): Promise<void> => {
         const a = document.createElement('a')
+        a.setAttribute('rel', 'noopener')
         a.setAttribute('href', link)
         a.setAttribute('target', '_blank')
         a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
@@ -408,17 +418,21 @@ const showInternalErrorAlert = async (
  * @param data The data that is emitted by the PAIR_INIT event
  */
 const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Promise<void> => {
+  console.log('showPairAlert')
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
     body: `<p></p>`,
     pairingPayload: {
       p2pSyncCode: data.p2pPeerInfo,
+      walletConnectSyncCode: data.walletConnectPeerInfo,
       postmessageSyncCode: data.postmessagePeerInfo,
       preferredNetwork: data.preferredNetwork
     },
     // eslint-disable-next-line @typescript-eslint/unbound-method
     closeButtonCallback: data.abortedHandler,
-    disclaimerText: data.disclaimerText
+    disclaimerText: data.disclaimerText,
+    analytics: data.analytics,
+    featuredWallets: data.featuredWallets
   }
   await openAlert(alertConfig)
 }
@@ -482,7 +496,7 @@ const showOperationSuccessAlert = async (
             output.transactionHash,
             account.network
           )
-          window.open(link, '_blank')
+          window.open(link, '_blank', 'noopener')
           await closeToast()
         }
       }
@@ -587,7 +601,7 @@ const showBroadcastSuccessAlert = async (
             output.transactionHash,
             network
           )
-          window.open(link, '_blank')
+          window.open(link, '_blank', 'noopener')
           await closeToast()
         }
       }

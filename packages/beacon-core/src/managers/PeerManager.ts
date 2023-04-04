@@ -12,6 +12,7 @@ export class PeerManager<
     | StorageKey.TRANSPORT_P2P_PEERS_WALLET
     | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
     | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
+    | StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP
 > {
   private readonly storageManager: StorageManager<T>
 

@@ -37,4 +37,6 @@ export const isIOS = (win: Window): boolean => testUserAgent(win, /iPhone|iPod/i
 
 export const isAndroid = (win: Window): boolean => testUserAgent(win, /android|sink/i)
 
+export const isTwBrowser = (win: Window): boolean => win && (win as any).ethereum?.isTrust == true
+
 export const isDesktop = (win: Window): boolean => !isMobile(win)

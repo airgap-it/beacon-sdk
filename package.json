@@ -5,7 +5,9 @@
   "module": "dist/esm/index.js",
   "unpkg": "dist/walletbeacon.min.js",
   "types": "dist/esm/index.d.ts",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "keywords": [
     "airgap",
     "beacon",
@@ -21,17 +23,17 @@
     "type": "git",
     "url": "https://github.com/airgap-it/beacon-sdk"
   },
-  "engines" : {
+  "engines": {
     "npm": ">=7.0.0",
     "node": ">=16.0.0"
   },
   "scripts": {
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
-    "build": "npm run check-version && lerna run tsc && npm run browserify:all",
-    "browserify:all": "npm run browserify:sdk && npm run browserify:dapp && npm run browserify:wallet",
-    "browserify:sdk": "browserify ./packages/beacon-sdk/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-sdk/dist/walletbeacon.min.js && cp ./packages/beacon-sdk/dist/walletbeacon.min.js ./examples/walletbeacon.min.js",
-    "browserify:dapp": "browserify ./packages/beacon-dapp/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-dapp/dist/walletbeacon.dapp.min.js",
-    "browserify:wallet": "browserify ./packages/beacon-wallet/dist/cjs/index.js -s beacon | uglifyjs > ./packages/beacon-wallet/dist/walletbeacon.wallet.min.js",
+    "build": "npm run check-version && lerna run tsc && npm run webpack:all",
+    "webpack:all": "npm run webpack:sdk && npm run webpack:dapp && npm run webpack:wallet",
+    "webpack:sdk": "webpack --mode=development --config webpack.config.js --entry=./packages/beacon-sdk/dist/cjs/index.js --output-path ./webpack_builds/sdk && terser --ecma=12 ./webpack_builds/sdk/main.js -o ./packages/beacon-sdk/dist/walletbeacon.min.js && cp ./packages/beacon-sdk/dist/walletbeacon.min.js ./examples/walletbeacon.min.js",
+    "webpack:dapp": "webpack --mode=development --entry=./packages/beacon-dapp/dist/cjs/index.js --output-path ./webpack_builds/dapp && terser --ecma=12 ./webpack_builds/dapp/main.js -o ./packages/beacon-dapp/dist/walletbeacon.dapp.min.js",
+    "webpack:wallet": "webpack --mode=development --entry=./packages/beacon-wallet/dist/cjs/index.js --output-path ./webpack_builds/wallet && terser --ecma=12 ./webpack_builds/wallet/main.js -o ./packages/beacon-wallet/dist/walletbeacon.wallet.min.js",
     "prettier": "prettier --write 'src/**/*' '**/src/**/*' 'docs/**/*.md' 'example-dapp.html' 'example-wallet.html'",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
@@ -50,13 +52,13 @@
     "check-version": "ts-node --project tsconfig-cjs.json scripts/check-sdk-version.ts",
     "typedoc": "typedoc src/index.ts --includeVersion --internal-aliases publicapi --external-aliases internalapi --logLevel Verbose --listInvalidSymbolLinks && ts-node --project tsconfig-cjs.json scripts/process-docs.ts",
     "publish": "lerna run tsc && lerna publish",
-    "bump:version": "lerna version --no-git-tag-version",
-    "bump:major": "lerna version --no-git-tag-version major --yes",
-    "bump:minor": "lerna version --no-git-tag-version minor --yes",
-    "bump:patch": "lerna version --no-git-tag-version patch --yes",
-    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --yes"
+    "bump:version": "lerna version --no-git-tag-version --exact",
+    "bump:major": "lerna version --no-git-tag-version major --exact --yes",
+    "bump:minor": "lerna version --no-git-tag-version minor --exact --yes",
+    "bump:patch": "lerna version --no-git-tag-version patch --exact --yes",
+    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --exact --yes"
   },
-  "author": "Papers GmbH <contact@papers.ch> (https://papers.ch)",
+  "author": "Papers AG <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
     "@airgap/beacon-blockchain-substrate": "file:packages/beacon-blockchain-substrate",
     "@airgap/beacon-blockchain-tezos": "file:packages/beacon-blockchain-tezos",
@@ -65,12 +67,21 @@
     "@airgap/beacon-dapp": "file:packages/beacon-dapp",
     "@airgap/beacon-transport-matrix": "file:packages/beacon-transport-matrix",
     "@airgap/beacon-transport-postmessage": "file:packages/beacon-transport-postmessage",
+    "@airgap/beacon-transport-walletconnect": "file:packages/beacon-transport-walletconnect",
     "@airgap/beacon-types": "file:packages/beacon-types",
     "@airgap/beacon-ui": "file:packages/beacon-ui",
     "@airgap/beacon-utils": "file:packages/beacon-utils",
-    "@airgap/beacon-wallet": "file:packages/beacon-wallet"
+    "@airgap/beacon-wallet": "file:packages/beacon-wallet",
+    "@walletconnect/sign-client": "2.4.6",
+    "@walletconnect/types": "^2.0.0-rc.4",
+    "@walletconnect/utils": "^2.0.0-rc.4",
+    "@web3modal/standalone": "2.0.0",
+    "stream-browserify": "^3.0.0"
   },
   "devDependencies": {
+    "@babel/cli": "^7.20.7",
+    "@babel/core": "^7.20.12",
+    "@babel/preset-env": "^7.20.2",
     "@types/bs58check": "2.1.0",
     "@types/chai-as-promised": "7.1.5",
     "@types/mocha": "10.0.0",
@@ -102,12 +113,15 @@
     "sinon": "14.0.2",
     "sonar-scanner": "3.1.0",
     "static-server": "2.2.1",
+    "terser": "^5.16.1",
     "ts-node": "10.9.1",
     "tslint": "6.1.3",
     "typedoc": "0.23.20",
     "typedoc-plugin-internal-external": "2.2.0",
     "typescript": "4.8.4",
-    "uglify-js": "3.17.4"
+    "uglify-js": "3.17.4",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   },
   "files": [
     "/dist"

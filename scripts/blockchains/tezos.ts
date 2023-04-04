@@ -1,5 +1,5 @@
 import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src/types/ui'
-// import { NetworkType } from 'packages/beacon-types/src/types'
+
 // TODO: Temporary build fix
 export enum NetworkType {
   MAINNET = 'mainnet',
@@ -32,12 +32,22 @@ export const tezosExtensionList: ExtensionApp[] = [
   {
     key: 'temple_chrome',
     id: 'ookjlbkiijinhpmnjffcofjonbfbgaoc',
-    name: 'Temple Wallet',
+    name: 'Temple Wallet Chrome',
+    shortName: 'Temple',
+    color: '',
+    logo: 'extension-temple.png',
+    link: 'https://templewallet.com/'
+  },
+  {
+    key: 'temple_firefox',
+    id: '{34ac229e-1cf5-4e4c-8a77-988155c4360f}',
+    name: 'Temple Wallet Firefox',
     shortName: 'Temple',
     color: '',
     logo: 'extension-temple.png',
     link: 'https://templewallet.com/'
   }
+
 ]
 
 export const tezosWebList: WebApp[] = [
@@ -73,7 +83,8 @@ export const tezosDesktopList: DesktopApp[] = [
     shortName: 'Infinity Wallet',
     color: 'rgb(52, 147, 218)',
     logo: 'infinity-wallet.png',
-    deepLink: 'infinity://'
+    deepLink: 'infinity://',
+    downloadLink: 'https://infinitywallet.io/download'
   },
   {
     key: 'galleon_desktop',
@@ -81,7 +92,8 @@ export const tezosDesktopList: DesktopApp[] = [
     shortName: 'Galleon',
     color: '',
     logo: 'desktop-galleon.png',
-    deepLink: 'galleon://'
+    deepLink: 'galleon://',
+    downloadLink: 'https://cryptonomic.tech/galleon.html'
   },
   {
     key: 'umami_desktop',
@@ -89,7 +101,8 @@ export const tezosDesktopList: DesktopApp[] = [
     shortName: 'Umami',
     color: '',
     logo: 'desktop-umami.png',
-    deepLink: 'umami://'
+    deepLink: 'umami://',
+    downloadLink: 'https://umamiwallet.com/#download'
   },
   {
     key: 'atomex_desktop',
@@ -97,7 +110,8 @@ export const tezosDesktopList: DesktopApp[] = [
     shortName: 'Atomex',
     color: '',
     logo: 'desktop-atomex.png',
-    deepLink: 'atomex://'
+    deepLink: 'atomex://',
+    downloadLink: 'https://atomex.me/'
   }
 ]
 
@@ -164,15 +178,16 @@ export const tezosIosList: App[] = [
     deepLink: 'umami://',
     universalLink: 'https://umamiwallet.com/'
   },
-  // {
-  //   key: 'exodus_mobile',
-  //   name: 'Exodus Mobile',
-  //   shortName: 'Exodus Mobile',
-  //   color: '',
-  //   logo: 'exodus.svg',
-  //   deepLink: 'exodus://tzip10',
-  //   universalLink:'https://www.exodus.com/'
-  // },
+  {
+    key: 'trust_ios',
+    name: 'Trust Wallet',
+    shortName: 'Trust Wallet',
+    color: '',
+    supportedInteractionStandards: ['wallet_connect'] as any,
+    logo: 'ios-trust.png',
+    universalLink: 'https://trustwallet.com',
+    deepLink: 'trust://'
+  }
   // {
   //   name: 'Galleon',
   //   shortName: 'Galleon',

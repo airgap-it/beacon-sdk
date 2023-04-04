@@ -111,7 +111,12 @@
       // Initiate DAppClient
       const client = new beacon.DAppClient({
         name: 'Example DApp', // Name of the DApp,
-        disclaimerText: 'This is an optional <b>disclaimer</b>.'
+        disclaimerText: 'This is an optional <b>disclaimer</b>.',
+        appUrl: 'http://localhost:8080',
+        walletConnectOptions: {
+          projectId: '97f804b46f0db632c52af0556586a5f3',
+          relayUrl: 'wss://relay.walletconnect.com'
+        }
         // preferredNetwork: beacon.NetworkType.DELPHINET
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
@@ -249,7 +254,8 @@
       // Add event listener to the button
       document.getElementById('signPayloadRaw').addEventListener('click', async () => {
         const signature = await client.requestSignPayload({
-          payload: 'test'
+          payload:
+            '05010000004254657a6f73205369676e6564204d6573736167653a207465737455726c20323032332d30322d30385431303a33363a31382e3435345a2048656c6c6f20576f726c64'
         })
 
         console.log('signature:', signature)
