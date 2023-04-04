@@ -90,6 +90,3 @@ packages/beacon-blockchain-substrate/src/ui/toast/toast-templates.ts
 packages/beacon-ui/src/ui/alert/alert-templates.ts
 packages/beacon-ui/src/ui/alert/wallet-lists.ts
 packages/beacon-ui/src/ui/toast/toast-templates.ts
-packages/beacon-ui-solid/src/ui/alert/alert-templates.ts
-packages/beacon-ui-solid/src/ui/alert/wallet-lists.ts
-packages/beacon-ui-solid/src/ui/toast/toast-templates.ts
