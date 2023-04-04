@@ -24,7 +24,8 @@ export abstract class Transport<
     | StorageKey.TRANSPORT_P2P_PEERS_DAPP
     | StorageKey.TRANSPORT_P2P_PEERS_WALLET
     | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP
-    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET = any,
+    | StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET
+    | StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP = any,
   S extends CommunicationClient = any
 > {
   /**

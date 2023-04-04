@@ -161,11 +161,30 @@
       const client = beacon.getDAppClientInstance({
         name: 'Example DApp', // Name of the DApp,
         disclaimerText: 'This is an optional <b>disclaimer</b>.',
+        appUrl: 'http://localhost:8080',
         errorMessages: {
           KT1RPW5kTX6WFxg8JK34rGEU24gqEEudyfvz: {
             NOT_OWNER: 'You are not the owner of this token.'
           }
+        },
+        walletConnectOptions: {
+          projectId: '97f804b46f0db632c52af0556586a5f3',
+          relayUrl: 'wss://relay.walletconnect.com'
+        },
+        matrixNodes: {
+          [beacon.Regions.EUROPE_WEST]: [
+            'beacon-node-1.diamond.papers.tech',
+            'beacon-node-1.sky.papers.tech',
+            'beacon-node-2.sky.papers.tech',
+            'beacon-node-1.hope.papers.tech',
+            'beacon-node-1.hope-2.papers.tech',
+            'beacon-node-1.hope-3.papers.tech',
+            'beacon-node-1.hope-4.papers.tech',
+            'beacon-node-1.hope-5.papers.tech'
+          ],
+          [beacon.Regions.NORTH_AMERICA_EAST]: []
         }
+        // featuredWallets: ['airgap']
         // preferredNetwork: beacon.NetworkType.DELPHINET
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
@@ -308,7 +327,8 @@
       // Add event listener to the button
       document.getElementById('signPayloadRaw').addEventListener('click', async () => {
         const signature = await client.requestSignPayload({
-          payload: 'test'
+          payload:
+            '05010000004254657a6f73205369676e6564204d6573736167653a207465737455726c20323032332d30322d30385431303a33363a31382e3435345a2048656c6c6f20576f726c64'
         })
 
         console.log('signature:', signature)

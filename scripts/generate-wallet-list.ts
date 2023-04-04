@@ -57,8 +57,8 @@ const generateForBlockchains = (
           entry.logo = `data:image/svg+xml;base64,${imgBuffer.toString('base64')}`
         } else {
           const resizedImage = await resizeImg(imgBuffer, {
-            width: 64,
-            height: 64
+            width: 256,
+            height: 256
           })
           entry.logo = `data:image/${ext};base64,${resizedImage.toString('base64')}`
         }
@@ -103,7 +103,6 @@ const generateForBlockchains = (
   `
     out += `export const iOSList: App[] = ${JSON.stringify(iosListWithInlinedLogo, null, 2)}`
     out += `
-  
   `
 
     writeFile(path.join(ALERT_DEST_DIR, 'wallet-lists.ts'), out)

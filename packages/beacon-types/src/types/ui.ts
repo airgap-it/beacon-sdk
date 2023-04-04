@@ -35,9 +35,11 @@ export interface WebApp extends AppBase {
 
 export interface DesktopApp extends AppBase {
   deepLink: string
+  downloadLink: string
 }
 
 export interface App extends AppBase {
   universalLink: string
+  supportedInteractionStandards?: string[] // 'wallet_connect' or 'beacon'
   deepLink?: string
 }

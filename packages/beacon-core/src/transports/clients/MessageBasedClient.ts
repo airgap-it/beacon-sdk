@@ -89,7 +89,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
    * @param payload
    */
   protected async decryptMessage(senderPublicKey: string, payload: string): Promise<string> {
-    const sharedKey = await this.createCryptoBoxServer(senderPublicKey, this.keyPair)
+    const sharedKey = await this.createCryptoBoxServer(senderPublicKey, this.keyPair!)
 
     const hexPayload = Buffer.from(payload, 'hex')
 
@@ -111,7 +111,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
    * @param message
    */
   protected async encryptMessage(recipientPublicKey: string, message: string): Promise<string> {
-    const sharedKey = await this.createCryptoBoxClient(recipientPublicKey, this.keyPair)
+    const sharedKey = await this.createCryptoBoxClient(recipientPublicKey, this.keyPair!)
 
     return encryptCryptoboxPayload(message, sharedKey.send)
   }

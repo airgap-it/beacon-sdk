@@ -58,7 +58,8 @@ import {
   App,
   DesktopApp,
   ExtensionApp,
-  WebApp
+  WebApp,
+  ExtendedWalletConnectPairingResponse
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -86,6 +87,7 @@ import { AlertButton, closeToast } from '@airgap/beacon-ui'
 import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
+import { DappWalletConnectTransport } from '../transports/DappWalletConnectTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import {
   getColorMode,
@@ -113,6 +115,11 @@ const logger = new Logger('DAppClient')
  */
 export class DAppClient extends Client {
   /**
+   * The description of the app
+   */
+  public readonly description?: string
+
+  /**
    * The block explorer used by the SDK
    */
   public readonly blockExplorer: BlockExplorer
@@ -123,6 +130,10 @@ export class DAppClient extends Client {
 
   protected postMessageTransport: DappPostMessageTransport | undefined
   protected p2pTransport: DappP2PTransport | undefined
+  protected walletConnectTransport: DappWalletConnectTransport | undefined
+
+  protected wcProjectId?: string
+  protected wcRelayUrl?: string
 
   /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
@@ -148,7 +159,10 @@ export class DAppClient extends Client {
    * The currently active peer. This is used to address a peer in case the active account is not set. (Eg. for permission requests)
    */
   private _activePeer: ExposedPromise<
-    ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
+    | ExtendedPostMessagePairingResponse
+    | ExtendedP2PPairingResponse
+    | ExtendedWalletConnectPairingResponse
+    | undefined
   > = new ExposedPromise()
 
   private _initPromise: Promise<TransportType> | undefined
@@ -161,11 +175,19 @@ export class DAppClient extends Client {
 
   private readonly errorMessages: Record<string, Record<string | number, string>>
 
+  private readonly featuredWallets: string[] | undefined
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
       ...config
     })
+    this.description = config.description
+    this.wcProjectId = config.walletConnectOptions?.projectId || '24469fd0a06df227b6e5f7dc7de0ff4f'
+    this.wcRelayUrl = config.walletConnectOptions?.relayUrl
+
+    this.featuredWallets = config.featuredWallets
+
     this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
     this.blockExplorer = config.blockExplorer ?? new TzktBlockExplorer()
     this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
@@ -197,12 +219,16 @@ export class DAppClient extends Client {
     ): Promise<void> => {
       const openRequest = this.openRequests.get(message.id)
 
+      console.log('### openRequest ###', openRequest)
       logger.log('handleResponse', 'Received message', message, connectionInfo)
+      console.log('### message ###', JSON.stringify(message))
+      console.log('### connectionInfo ###', connectionInfo)
 
       if (message.version === '3') {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
         if (openRequest && typedMessage.message.type === BeaconMessageType.Acknowledge) {
+          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
           logger.log(`acknowledge message received for ${message.id}`)
           console.timeLog(message.id, 'acknowledge')
 
@@ -232,6 +258,8 @@ export class DAppClient extends Client {
           this.openRequests.delete(typedMessage.id)
         } else {
           if (typedMessage.message.type === BeaconMessageType.Disconnect) {
+            this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
+
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
@@ -260,6 +288,8 @@ export class DAppClient extends Client {
 
         if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
           logger.log(`acknowledge message received for ${message.id}`)
+          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
+
           console.timeLog(message.id, 'acknowledge')
 
           this.events
@@ -290,8 +320,10 @@ export class DAppClient extends Client {
         } else {
           if (
             typedMessage.type === BeaconMessageType.Disconnect ||
-            (message as any).typedMessage.type === BeaconMessageType.Disconnect // TODO: TYPE
+            (message as any)?.typedMessage?.type === BeaconMessageType.Disconnect // TODO: TYPE
           ) {
+            this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
+
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
@@ -322,7 +354,7 @@ export class DAppClient extends Client {
   public async initInternalTransports(): Promise<void> {
     const keyPair = await this.keyPair
 
-    if (this.postMessageTransport || this.p2pTransport) {
+    if (this.postMessageTransport || this.p2pTransport || this.walletConnectTransport) {
       return
     }
 
@@ -337,7 +369,28 @@ export class DAppClient extends Client {
       this.iconUrl,
       this.appUrl
     )
+
     await this.addListener(this.p2pTransport)
+
+    const wcOptions = {
+      projectId: this.wcProjectId,
+      relayUrl: this.wcRelayUrl,
+      metadata: {
+        name: this.name,
+        description: this.description ?? '',
+        url: this.appUrl ?? '',
+        icons: this.iconUrl ? [this.iconUrl] : []
+      }
+    }
+
+    this.walletConnectTransport = new DappWalletConnectTransport(
+      this.name,
+      keyPair,
+      this.storage,
+      wcOptions
+    )
+
+    await this.addListener(this.walletConnectTransport)
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
@@ -369,11 +422,14 @@ export class DAppClient extends Client {
           if (this.p2pTransport) {
             this.p2pTransport.stopListeningForNewPeers().catch(console.error)
           }
+          if (this.walletConnectTransport) {
+            this.walletConnectTransport.stopListeningForNewPeers().catch(console.error)
+          }
         }
 
         await this.initInternalTransports()
 
-        if (!this.postMessageTransport || !this.p2pTransport) {
+        if (!this.postMessageTransport || !this.p2pTransport || !this.walletConnectTransport) {
           return
         }
 
@@ -386,14 +442,20 @@ export class DAppClient extends Client {
             resolve(await super.init(this.postMessageTransport))
           } else if (origin === Origin.P2P) {
             resolve(await super.init(this.p2pTransport))
+          } else if (origin === Origin.WALLETCONNECT) {
+            resolve(await super.init(this.walletConnectTransport))
           }
         } else {
           const p2pTransport = this.p2pTransport
           const postMessageTransport = this.postMessageTransport
+          const walletConnectTransport = this.walletConnectTransport
 
           postMessageTransport
             .listenForNewPeer((peer) => {
               logger.log('init', 'postmessage transport peer connected', peer)
+              this.analytics.track('event', 'DAppClient', 'Extension connected', {
+                peerName: peer.name
+              })
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
@@ -408,6 +470,9 @@ export class DAppClient extends Client {
           p2pTransport
             .listenForNewPeer((peer) => {
               logger.log('init', 'p2p transport peer connected', peer)
+              this.analytics.track('event', 'DAppClient', 'Beacon Wallet connected', {
+                peerName: peer.name
+              })
               this.events
                 .emit(BeaconEvent.PAIR_SUCCESS, peer)
                 .catch((emitError) => console.warn(emitError))
@@ -419,8 +484,26 @@ export class DAppClient extends Client {
             })
             .catch(console.error)
 
+          walletConnectTransport
+            .listenForNewPeer((peer) => {
+              logger.log('init', 'walletconnect transport peer connected', peer)
+              this.analytics.track('event', 'DAppClient', 'WalletConnect Wallet connected', {
+                peerName: peer.name
+              })
+              this.events
+                .emit(BeaconEvent.PAIR_SUCCESS, peer)
+                .catch((emitError) => console.warn(emitError))
+
+              this.setActivePeer(peer).catch(console.error)
+              this.setTransport(this.walletConnectTransport).catch(console.error)
+              stopListening()
+              resolve(TransportType.WALLETCONNECT)
+            })
+            .catch(console.error)
+
           PostMessageTransport.getAvailableExtensions()
-            .then(async () => {
+            .then(async (extensions) => {
+              this.analytics.track('event', 'DAppClient', 'Extensions detected', { extensions })
               this.events
                 .emit(BeaconEvent.PAIR_INIT, {
                   p2pPeerInfo: () => {
@@ -428,12 +511,15 @@ export class DAppClient extends Client {
                     return p2pTransport.getPairingRequestInfo()
                   },
                   postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
+                  walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
                   preferredNetwork: this.preferredNetwork,
                   abortedHandler: () => {
                     console.log('ABORTED')
                     this._initPromise = undefined
                   },
-                  disclaimerText: this.disclaimerText
+                  disclaimerText: this.disclaimerText,
+                  analytics: this.analytics,
+                  featuredWallets: this.featuredWallets
                 })
                 .catch((emitError) => console.warn(emitError))
             })
@@ -477,6 +563,8 @@ export class DAppClient extends Client {
         await this.setTransport(this.postMessageTransport)
       } else if (origin === Origin.P2P) {
         await this.setTransport(this.p2pTransport)
+      } else if (origin === Origin.WALLETCONNECT) {
+        await this.setTransport(this.walletConnectTransport)
       }
       const peer = await this.getPeer(account)
       await this.setActivePeer(peer as any)
@@ -736,7 +824,6 @@ export class DAppClient extends Client {
       response.message
     )
 
-    // const accountInfo: AccountInfo = {
     const accountInfo: any = {
       accountIdentifier: partialAccountInfos[0].accountId,
       senderId: response.senderId,
@@ -840,6 +927,8 @@ export class DAppClient extends Client {
           : [PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN]
     }
 
+    this.analytics.track('event', 'DAppClient', 'Permission requested')
+
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
       PermissionResponse
@@ -851,6 +940,11 @@ export class DAppClient extends Client {
     const publicKey = message.publicKey || (message as any).pubkey || (message as any).pubKey
     const address = await getAddressFromPublicKey(publicKey)
 
+    console.log('######## MESSAGE #######')
+    console.log(message)
+
+    const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
+
     const accountInfo: AccountInfo = {
       accountIdentifier: await getAccountIdentifier(address, message.network),
       senderId: message.senderId,
@@ -858,6 +952,7 @@ export class DAppClient extends Client {
         type: connectionInfo.origin,
         id: connectionInfo.id
       },
+      walletKey,
       address,
       publicKey,
       network: message.network,
@@ -867,11 +962,16 @@ export class DAppClient extends Client {
       connectedAt: new Date().getTime()
     }
 
+    console.log('######## ACCOUNT INFO #######')
+
+    console.log(JSON.stringify(accountInfo))
+
     await this.accountManager.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)
 
     const output: PermissionResponseOutput = {
       ...message,
+      walletKey,
       address,
       accountInfo
     }
@@ -883,6 +983,8 @@ export class DAppClient extends Client {
       connectionContext: connectionInfo,
       walletInfo: await this.getWalletInfo()
     })
+
+    this.analytics.track('event', 'DAppClient', 'Permission received', { address })
 
     return output
   }
@@ -936,6 +1038,8 @@ export class DAppClient extends Client {
       }
     })()
 
+    this.analytics.track('event', 'DAppClient', 'Signature requested')
+
     const request: SignPayloadRequestInput = {
       type: BeaconMessageType.SignPayloadRequest,
       signingType,
@@ -956,6 +1060,8 @@ export class DAppClient extends Client {
       connectionContext: connectionInfo,
       walletInfo: await this.getWalletInfo()
     })
+
+    this.analytics.track('event', 'DAppClient', 'Signature response')
 
     return message
   }
@@ -1029,6 +1135,7 @@ export class DAppClient extends Client {
       throw await this.sendInternalError('Operation details must be provided')
     }
     const activeAccount: AccountInfo | undefined = await this.getActiveAccount()
+
     if (!activeAccount) {
       throw await this.sendInternalError('No active account!')
     }
@@ -1039,6 +1146,8 @@ export class DAppClient extends Client {
       operationDetails: input.operationDetails,
       sourceAddress: activeAccount.address || ''
     }
+
+    this.analytics.track('event', 'DAppClient', 'Operation requested')
 
     const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
       request
@@ -1053,6 +1162,8 @@ export class DAppClient extends Client {
       connectionContext: connectionInfo,
       walletInfo: await this.getWalletInfo()
     })
+
+    this.analytics.track('event', 'DAppClient', 'Operation response')
 
     return message
   }
@@ -1076,6 +1187,8 @@ export class DAppClient extends Client {
       signedTransaction: input.signedTransaction
     }
 
+    this.analytics.track('event', 'DAppClient', 'Broadcast requested')
+
     const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
@@ -1090,16 +1203,24 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
+    this.analytics.track('event', 'DAppClient', 'Broadcast response')
+
     return message
   }
 
   protected async setActivePeer(
-    peer?: ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse
+    peer?:
+      | ExtendedPostMessagePairingResponse
+      | ExtendedP2PPairingResponse
+      | ExtendedWalletConnectPairingResponse
   ): Promise<void> {
     if (this._activePeer.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
       this._activePeer = ExposedPromise.resolve<
-        ExtendedPostMessagePairingResponse | ExtendedP2PPairingResponse | undefined
+        | ExtendedPostMessagePairingResponse
+        | ExtendedP2PPairingResponse
+        | ExtendedWalletConnectPairingResponse
+        | undefined
       >(peer)
     } else {
       this._activePeer.resolve(peer)
@@ -1298,8 +1419,8 @@ export class DAppClient extends Client {
 
     if (!walletInfo) {
       walletInfo = {
-        name: typedPeer.name,
-        icon: typedPeer.icon
+        name: typedPeer?.name,
+        icon: typedPeer?.icon
       }
     }
 
@@ -1349,7 +1470,7 @@ export class DAppClient extends Client {
     return walletInfo
   }
 
-  private async getPeer(account?: AccountInfo): Promise<PeerInfo> {
+  private async getPeer(account?: AccountInfo): Promise<PeerInfo | undefined> {
     let peer: PeerInfo | undefined
 
     if (account) {
@@ -1357,7 +1478,9 @@ export class DAppClient extends Client {
       const postMessagePeers: ExtendedPostMessagePairingResponse[] =
         (await this.postMessageTransport?.getPeers()) ?? []
       const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
-      const peers = [...postMessagePeers, ...p2pPeers]
+      const walletConnectPeers: ExtendedWalletConnectPairingResponse[] =
+        (await this.walletConnectTransport?.getPeers()) ?? []
+      const peers = [...postMessagePeers, ...p2pPeers, ...walletConnectPeers]
 
       logger.log('getPeer', 'Found peers', peers, account)
 
@@ -1369,10 +1492,6 @@ export class DAppClient extends Client {
     } else {
       peer = await this._activePeer.promise
       logger.log('getPeer', 'Active peer', peer)
-    }
-
-    if (!peer) {
-      throw new Error('No matching peer found.')
     }
 
     return peer
@@ -1393,6 +1512,7 @@ export class DAppClient extends Client {
     connectionInfo: ConnectionContext
   }> {
     const messageId = await generateGUID()
+
     console.time(messageId)
     logger.log('makeRequest', 'starting')
     await this.init()
@@ -1595,6 +1715,7 @@ export class DAppClient extends Client {
   public async disconnect() {
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
+    this.walletConnectTransport = undefined
     await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
   }
 

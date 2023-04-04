@@ -35,3 +35,5 @@ export const substrateIosList: App[] = [
     deepLink: 'fearless://'
   }
 ]
+
+export const substrateWalletConnectList: App[] = []

@@ -18,6 +18,7 @@ export type IgnoredResponseOutputProperties = 'id' | 'version' | 'type'
 export type PermissionResponseOutput = PermissionResponse & {
   address: string
   accountInfo: AccountInfo
+  walletKey?: string | undefined // Last selected wallet key
 }
 /**
  * @category DApp
