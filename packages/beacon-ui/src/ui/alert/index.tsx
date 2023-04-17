@@ -251,6 +251,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         }
       }),
       ...webList.map((wallet) => {
+        const link = wallet.links[config.pairingPayload?.preferredNetwork ?? NetworkType.MAINNET]
         return {
           id: wallet.key,
           key: wallet.key,
@@ -258,7 +259,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           image: wallet.logo,
           description: 'Web App',
           type: 'web',
-          link: wallet.links.mainnet
+          link: link ?? wallet.links.mainnet
         }
       })
     ]
