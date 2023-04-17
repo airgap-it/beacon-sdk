@@ -39,7 +39,7 @@
     "@airgap/beacon-transport-matrix": "4.0.0",
     "@airgap/beacon-transport-postmessage": "4.0.0",
     "@airgap/beacon-transport-walletconnect": "4.0.0",
-    "@airgap/beacon-ui": "file:../beacon-ui",
+    "@airgap/beacon-ui": "4.0.0",
     "qrcode-generator": "1.4.4"
   }
 }
