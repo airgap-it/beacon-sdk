@@ -52,6 +52,12 @@ const createToast = (config: ToastConfig) => {
   style2.textContent = loaderStyles.default
   shadowRoot.appendChild(style2)
 
+  // Inject font styles
+  const styleFonts = document.createElement('style')
+  styleFonts.textContent =
+    "* { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;}"
+  shadowRoot.appendChild(styleFonts)
+
   dispose = render(
     () => (
       <Toast
@@ -110,7 +116,7 @@ const openToast = async (config: ToastConfig): Promise<void> => {
     console.log('DO NOT RUN ON SERVER')
     return
   }
-  
+
   const id = await generateGUID()
   setRenderLast(id)
 
