@@ -221,6 +221,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           name: wallet.shortName,
           image: wallet.logo,
           description: 'Desktop App',
+          supportedInteractionStandards: wallet.supportedInteractionStandards,
           type: 'desktop',
           link: wallet.downloadLink,
           deepLink: wallet.deepLink
@@ -233,6 +234,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           name: wallet.shortName,
           image: wallet.logo,
           description: 'Browser Extension',
+          supportedInteractionStandards: wallet.supportedInteractionStandards,
           type: 'extension',
           link: wallet.link
         }
@@ -258,6 +260,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           name: wallet.shortName,
           image: wallet.logo,
           description: 'Web App',
+          supportedInteractionStandards: wallet.supportedInteractionStandards,
           type: 'web',
           link: link ?? wallet.links.mainnet
         }
@@ -316,10 +319,18 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       if (wallet?.types.includes('web')) {
         if (config.pairingPayload) {
-          const serializer = new Serializer()
-          const code = await serializer.serialize(await p2ppayload)
-          const link = getTzip10Link(wallet.link, code)
-          window.open(link, '_blank', 'noopener')
+          if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
+            const uri = (await wcpaylouad)?.uri
+            if (uri) {
+              let link = `${wallet.link}/wc?uri=${encodeURIComponent(uri)}`
+              window.open(link, '_blank', 'noopener')
+            }
+          } else {
+            const serializer = new Serializer()
+            const code = await serializer.serialize(await p2ppayload)
+            const link = getTzip10Link(wallet.link, code)
+            window.open(link, '_blank', 'noopener')
+          }
         }
         setIsLoading(false)
         return
