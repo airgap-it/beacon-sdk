@@ -16,6 +16,7 @@ export enum NetworkType {
   KATHMANDUNET = 'kathmandunet',
   LIMANET = 'limanet',
   MUMBAINET = 'mumbainet',
+  NAIROBINET = 'nairobinet',
   CUSTOM = 'custom'
 }
 
@@ -47,7 +48,6 @@ export const tezosExtensionList: ExtensionApp[] = [
     logo: 'extension-temple.png',
     link: 'https://templewallet.com/'
   }
-
 ]
 
 export const tezosWebList: WebApp[] = [
@@ -71,7 +71,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.JAKARTANET]: 'https://jakartanet.kukai.app',
       [NetworkType.KATHMANDUNET]: 'https://kathmandunet.kukai.app',
       [NetworkType.LIMANET]: 'https://limanet.kukai.app',
-      [NetworkType.MUMBAINET]: 'https://mumbainet.kukai.app'
+      [NetworkType.MUMBAINET]: 'https://mumbainet.kukai.app',
+      [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app'
     }
   }
 ]

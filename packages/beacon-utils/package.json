@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-utils",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "> TODO: description",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -38,8 +38,6 @@
     "@stablelib/nacl": "^1.0.3",
     "@stablelib/random": "^1.0.2",
     "@stablelib/utf8": "^1.0.1",
-    "@types/libsodium-wrappers": "0.7.9",
-    "bs58check": "2.1.2",
-    "libsodium-wrappers": "0.7.9"
+    "bs58check": "2.1.2"
   }
 }
