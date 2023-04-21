@@ -207,6 +207,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     style7.textContent = loaderStyles.default
     shadowRoot.appendChild(style7)
 
+    // Inject font styles
+    const styleFonts = document.createElement('style')
+    styleFonts.textContent =
+      "* { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;}"
+    shadowRoot.appendChild(styleFonts)
+
     const wallets: Wallet[] = [
       ...desktopList.map((wallet) => {
         return {
@@ -245,6 +251,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         }
       }),
       ...webList.map((wallet) => {
+        const link = wallet.links[config.pairingPayload?.preferredNetwork ?? NetworkType.MAINNET]
         return {
           id: wallet.key,
           key: wallet.key,
@@ -252,7 +259,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           image: wallet.logo,
           description: 'Web App',
           type: 'web',
-          link: wallet.links.mainnet
+          link: link ?? wallet.links.mainnet
         }
       })
     ]
