@@ -172,6 +172,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new Error('No account shared by wallet')
     }
 
+    if (result.some((account) => !account.pubkey)) {
+      throw new Error('Public Key in `tezos_getAccounts` is empty!')
+    }
+
     const serializer = new Serializer()
     const serialized = await serializer.serialize({
       type: BeaconMessageType.PermissionResponse,
