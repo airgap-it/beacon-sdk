@@ -87,6 +87,11 @@
   margin: 0px;
 }
 
+.qr-svg-wrapper {
+  background-color: white;
+  border-radius: 10px;
+}
+
 .qr-svg-wrapper svg rect {
   fill: transparent !important;
 }
