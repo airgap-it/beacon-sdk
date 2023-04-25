@@ -20,7 +20,7 @@ export const getQrData = (payload: string, height?: number, width?: number): str
   }
   try {
     const qrcode = new QRCode({
-      color: getColorMode() === ColorMode.LIGHT ? 'black' : 'black',
+      color: 'black',
       content: payload,
       join: true, // Join adjacent modules into a single path element
       ecl: 'L', // Error correction level,
