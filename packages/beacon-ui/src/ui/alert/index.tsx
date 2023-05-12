@@ -271,7 +271,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const mergedWallets = mergeWallets(parsedWallets)
 
     // Default selection of featured wallets
-    const defaultWalletList = ['kukai', 'trust', 'temple', 'umami']
+    const defaultWalletList = ['kukai', 'temple', 'naan', 'umami']
 
     // Sort wallets by top4
     const arrangedWallets = arrangeTopWallets(
