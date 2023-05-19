@@ -383,12 +383,10 @@ export class DAppClient extends Client {
       }
     }
 
-    this.walletConnectTransport = new DappWalletConnectTransport(
-      this.name,
-      keyPair,
-      this.storage,
-      wcOptions
-    )
+    this.walletConnectTransport = new DappWalletConnectTransport(this.name, keyPair, this.storage, {
+      network: this.preferredNetwork,
+      opts: wcOptions
+    })
 
     await this.addListener(this.walletConnectTransport)
   }

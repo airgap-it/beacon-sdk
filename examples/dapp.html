@@ -183,9 +183,9 @@
             'beacon-node-1.hope-5.papers.tech'
           ],
           [beacon.Regions.NORTH_AMERICA_EAST]: []
-        }
+        },
         // featuredWallets: ['airgap']
-        // preferredNetwork: beacon.NetworkType.DELPHINET
+        preferredNetwork: beacon.NetworkType.GHOSTNET
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['matrix.papers.tech']
@@ -278,7 +278,7 @@
       // Initiate a permission request
       const requestPermission = (callback) => {
         client
-          .requestPermissions(/*{ network: { type: beacon.NetworkType.DELPHINET } }*/)
+          .requestPermissions({ network: { type: beacon.NetworkType.GHOSTNET } })
           .then((permissions) => {
             console.log('permissions', permissions)
             if (callback) {

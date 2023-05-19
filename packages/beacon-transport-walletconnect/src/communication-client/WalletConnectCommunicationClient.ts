@@ -19,8 +19,10 @@ import {
   ErrorResponse,
   ExtendedWalletConnectPairingRequest,
   ExtendedWalletConnectPairingResponse,
+  NetworkType,
   OperationRequest,
   Origin,
+  PermissionRequest,
   PermissionScope,
   SignPayloadRequest,
   SignPayloadResponse
@@ -28,15 +30,6 @@ import {
 import { generateGUID } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
-
-export enum NetworkType {
-  MAINNET = 'mainnet',
-  GHOSTNET = 'ghostnet',
-  MONDAYNET = 'mondaynet',
-  DAILYNET = 'dailynet',
-  KATHMANDUNET = 'kathmandunet',
-  LIMANET = 'limanet'
-}
 
 export interface PermissionScopeParam {
   networks: NetworkType[]
@@ -73,11 +66,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private currentMessageId: string | undefined // TODO JGD we shouldn't need this
 
-  constructor(private wcOptions: SignClientTypes.Options) {
+  constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
   }
 
-  static getInstance(wcOptions: SignClientTypes.Options): WalletConnectCommunicationClient {
+  static getInstance(wcOptions: {
+    network: NetworkType
+    opts: SignClientTypes.Options
+  }): WalletConnectCommunicationClient {
     if (!WalletConnectCommunicationClient.instance) {
       WalletConnectCommunicationClient.instance = new WalletConnectCommunicationClient(wcOptions)
     }
@@ -125,7 +121,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.currentMessageId = message.id
 
     if (message?.type === BeaconMessageType.PermissionRequest) {
-      this.requestPermissions()
+      this.requestPermissions(message)
     }
 
     if (message?.type === BeaconMessageType.OperationRequest) {
@@ -137,16 +133,19 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
   }
 
-  async requestPermissions() {
+  async requestPermissions(message: PermissionRequest) {
     console.log('#### Requesting permissions')
 
     const session = this.getSession()
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.GET_ACCOUNTS)) {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
-    const network = this.getActiveNetwork()
 
     console.log('#### Requesting public keys')
+
+    if (message.network.type !== this.wcOptions.network) {
+      throw new Error('Network in permission request is not the same as preferred network!')
+    }
 
     // Get the public key from the wallet
     const result = await this.signClient?.request<
@@ -159,7 +158,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       ]
     >({
       topic: session.topic,
-      chainId: `${TEZOS_PLACEHOLDER}:${network}`,
+      chainId: `${TEZOS_PLACEHOLDER}:${message.network.type}`,
       request: {
         method: PermissionScopeMethods.GET_ACCOUNTS,
         params: {}
@@ -184,7 +183,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         name: this.session?.peer.metadata.name
       },
       publicKey: result[0]?.pubkey,
-      network: { type: NetworkType.MAINNET },
+      network: message.network,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       id: this.currentMessageId!
     })
@@ -318,7 +317,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   public async init(forceNewConnection: boolean = false): Promise<string | undefined> {
     const connectParams = {
       permissionScope: {
-        networks: [NetworkType.MAINNET],
+        networks: [this.wcOptions.network],
         events: [],
         methods: [
           PermissionScopeMethods.GET_ACCOUNTS,
@@ -329,7 +328,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       pairingTopic: undefined
     }
 
-    this.signClient = await SignClient.init(this.wcOptions)
+    this.signClient = await SignClient.init(this.wcOptions.opts)
+
+    // this.signClient.on('session_delete', async ({ topic }) => {
+    //   if (this.session?.topic === topic) {
+    //     console.log('SESSION_DELETE')
+    //     this.clearState()
+    //   }
+    // })
+
+    // this.signClient.on('session_expire', async ({ topic }) => {
+    //   if (this.session?.topic === topic) {
+    //     console.log('SESSION_EXPIRE')
+    //     this.clearState()
+    //   }
+    // })
 
     let sessions = this.signClient.session.getAll()
 
@@ -591,9 +604,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     methods: string[]
     events: string[]
   } {
-    // TODO: Remove testing code
     return {
-      chains: ['tezos:mainnet'],
+      chains: [`${TEZOS_PLACEHOLDER}:${this.wcOptions.network}`],
       events: [],
       methods: ['tezos_getAccounts', 'tezos_send', 'tezos_sign']
     }
