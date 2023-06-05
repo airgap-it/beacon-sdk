@@ -69,6 +69,7 @@ const [isOpen, setIsOpen] = createSignal<boolean>(false)
 const [isLoading, setIsLoading] = createSignal<boolean>(false)
 const [showMoreContent, setShowMoreContent] = createSignal<boolean>(false)
 const [codeQR, setCodeQR] = createSignal<string>('')
+const [walletList, setWalletList] = createSignal<MergedWallet[]>([])
 const [currentWallet, setCurrentWallet] = createSignal<MergedWallet | undefined>(undefined)
 const [previousInfo, setPreviousInfo] = createSignal<
   'top-wallets' | 'wallets' | 'install' | 'help'
@@ -152,7 +153,17 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   }
 
   if (!isOpen()) {
-    const availableExtensions = await PostMessageTransport.getAvailableExtensions()
+    let availableExtensions = await PostMessageTransport.getAvailableExtensions()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const extensionsUpdatedFn = async (event: any): Promise<void> => {
+      if (event.data === 'extensionsUpdated') {
+        availableExtensions = await PostMessageTransport.getAvailableExtensions()
+        setWalletList(createWalletList())
+      }
+    }
+
+    windowRef.addEventListener('message', extensionsUpdatedFn)
 
     const setDefaultPayload = async () => {
       if (config.pairingPayload) {
@@ -213,71 +224,90 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       "* { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;}"
     shadowRoot.appendChild(styleFonts)
 
-    const wallets: Wallet[] = [
-      ...desktopList.map((wallet) => {
-        return {
-          id: wallet.key,
-          key: wallet.key,
-          name: wallet.shortName,
-          image: wallet.logo,
-          description: 'Desktop App',
-          type: 'desktop',
-          link: wallet.downloadLink,
-          deepLink: wallet.deepLink
-        }
-      }),
-      ...extensionList.map((wallet) => {
-        return {
-          id: wallet.id,
-          key: wallet.key,
-          name: wallet.shortName,
-          image: wallet.logo,
-          description: 'Browser Extension',
-          type: 'extension',
-          link: wallet.link
-        }
-      }),
-      ...iOSList.map((wallet) => {
-        return {
-          id: wallet.key,
-          key: wallet.key,
-          name: wallet.shortName,
-          image: wallet.logo,
-          description: 'Mobile App',
-          supportedInteractionStandards: wallet.supportedInteractionStandards,
-          type: 'ios',
-          link: wallet.universalLink,
-          deepLink: wallet.deepLink
-        }
-      }),
-      ...webList.map((wallet) => {
-        const link = wallet.links[config.pairingPayload?.preferredNetwork ?? NetworkType.MAINNET]
-        return {
-          id: wallet.key,
-          key: wallet.key,
-          name: wallet.shortName,
-          image: wallet.logo,
-          description: 'Web App',
-          type: 'web',
-          link: link ?? wallet.links.mainnet
-        }
-      })
-    ]
+    const createWalletList = () => {
+      const wallets: Wallet[] = [
+        ...desktopList.map((wallet) => {
+          return {
+            id: wallet.key,
+            key: wallet.key,
+            name: wallet.shortName,
+            image: wallet.logo,
+            description: 'Desktop App',
+            type: 'desktop',
+            link: wallet.downloadLink,
+            deepLink: wallet.deepLink
+          }
+        }),
+        ...extensionList.map((wallet) => {
+          return {
+            id: wallet.id,
+            key: wallet.key,
+            name: wallet.shortName,
+            image: wallet.logo,
+            description: 'Browser Extension',
+            type: 'extension',
+            link: wallet.link
+          }
+        }),
+        ...iOSList.map((wallet) => {
+          return {
+            id: wallet.key,
+            key: wallet.key,
+            name: wallet.shortName,
+            image: wallet.logo,
+            description: 'Mobile App',
+            supportedInteractionStandards: wallet.supportedInteractionStandards,
+            type: 'ios',
+            link: wallet.universalLink,
+            deepLink: wallet.deepLink
+          }
+        }),
+        ...webList.map((wallet) => {
+          const link = wallet.links[config.pairingPayload?.preferredNetwork ?? NetworkType.MAINNET]
+          return {
+            id: wallet.key,
+            key: wallet.key,
+            name: wallet.shortName,
+            image: wallet.logo,
+            description: 'Web App',
+            type: 'web',
+            link: link ?? wallet.links.mainnet
+          }
+        }),
+        ...availableExtensions
+          .filter((newExt) => !extensionList.some((ext) => ext.id === newExt.id))
+          .map((wallet) => {
+            return {
+              id: wallet.id,
+              key: wallet.id,
+              name: wallet.shortName ?? wallet.name ?? '',
+              image: wallet.iconUrl ?? '',
+              description: 'Browser Extension',
+              type: 'extension',
+              link: (wallet as any).link ?? ''
+            }
+          })
+      ]
 
-    // Parse wallet names
-    const parsedWallets = parseWallets(wallets)
+      // Parse wallet names
+      const parsedWallets = parseWallets(wallets)
 
-    // Merge wallets by name
-    const mergedWallets = mergeWallets(parsedWallets)
+      // Merge wallets by name
+      const mergedWallets = mergeWallets(parsedWallets)
 
-    // Default selection of featured wallets
-    const defaultWalletList = ['kukai', 'temple', 'naan', 'umami']
+      // Default selection of featured wallets
+      const defaultWalletList = ['kukai', 'temple', 'naan', 'umami']
 
-    // Sort wallets by top4
-    const arrangedWallets = arrangeTopWallets(
-      mergedWallets,
-      config.featuredWallets ?? defaultWalletList
-    )
+      // Sort wallets by top4
+      const arrangedWallets = arrangeTopWallets(
+        mergedWallets,
+        config.featuredWallets ?? defaultWalletList
+      )
+
+      return arrangedWallets
+    }
+
+    setWalletList(createWalletList())
 
     const isMobile = window.innerWidth <= 800
 
@@ -299,6 +329,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     const handleCloseAlert = () => {
       closeAlert('')
+      windowRef.removeEventListener('message', extensionsUpdatedFn)
       if (config.closeButtonCallback) config.closeButtonCallback()
     }
 
@@ -307,7 +338,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       setIsLoading(true)
       setShowMoreContent(false)
-      const wallet = arrangedWallets.find((wallet) => wallet.id === id)
+      const wallet = walletList().find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
       if (wallet?.key) {
         analytics()?.track('click', 'ui', 'opened wallet', { key: wallet.key })
@@ -390,12 +421,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       setShowMoreContent(false)
       setCurrentWallet({
-        ...arrangedWallets[0],
+        ...walletList()[0],
         name: '',
         types: ['ios']
       })
       // TODO: replace with storage class
-      localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, arrangedWallets[0].key)
+      localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, walletList()[0].key)
       setDefaultPayload()
       setCurrentInfo('install')
     }
@@ -624,9 +655,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   >
                     <Wallets
                       disabled={isLoading()}
-                      wallets={arrangedWallets.slice(
-                        -(arrangedWallets.length - (isMobile ? 3 : 4))
-                      )}
+                      wallets={walletList().slice(-(walletList().length - (isMobile ? 3 : 4)))}
                       onClickWallet={handleClickWallet}
                       onClickOther={handleClickOther}
                     />
@@ -724,16 +753,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   >
                     <TopWallets
                       disabled={isLoading()}
-                      wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
+                      wallets={isMobile ? walletList().slice(0, 3) : walletList().slice(0, 4)}
                       onClickWallet={handleClickWallet}
                       onClickLearnMore={handleClickLearnMore}
                       otherWallets={
                         isMobile
                           ? {
                               images: [
-                                arrangedWallets[3].image,
-                                arrangedWallets[4].image,
-                                arrangedWallets[5].image
+                                walletList()[3].image,
+                                walletList()[4].image,
+                                walletList()[5].image
                               ],
                               onClick: () => setCurrentInfo('wallets')
                             }
@@ -748,7 +777,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   <Wallets
                     disabled={isLoading()}
                     small
-                    wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
+                    wallets={walletList().slice(-(walletList().length - 4))}
                     onClickWallet={handleClickWallet}
                     onClickOther={handleClickOther}
                   />

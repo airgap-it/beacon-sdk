@@ -504,29 +504,30 @@ export class DAppClient extends Client {
           PostMessageTransport.getAvailableExtensions()
             .then(async (extensions) => {
               this.analytics.track('event', 'DAppClient', 'Extensions detected', { extensions })
-              this.events
-                .emit(BeaconEvent.PAIR_INIT, {
-                  p2pPeerInfo: () => {
-                    p2pTransport.connect().then().catch(console.error)
-                    return p2pTransport.getPairingRequestInfo()
-                  },
-                  postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
-                  walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
-                  preferredNetwork: this.preferredNetwork,
-                  abortedHandler: () => {
-                    console.log('ABORTED')
-                    this._initPromise = undefined
-                  },
-                  disclaimerText: this.disclaimerText,
-                  analytics: this.analytics,
-                  featuredWallets: this.featuredWallets
-                })
-                .catch((emitError) => console.warn(emitError))
             })
             .catch((error) => {
               this._initPromise = undefined
               console.error(error)
             })
+
+          this.events
+            .emit(BeaconEvent.PAIR_INIT, {
+              p2pPeerInfo: () => {
+                p2pTransport.connect().then().catch(console.error)
+                return p2pTransport.getPairingRequestInfo()
+              },
+              postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
+              walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
+              preferredNetwork: this.preferredNetwork,
+              abortedHandler: () => {
+                console.log('ABORTED')
+                this._initPromise = undefined
+              },
+              disclaimerText: this.disclaimerText,
+              analytics: this.analytics,
+              featuredWallets: this.featuredWallets
+            })
+            .catch((emitError) => console.warn(emitError))
         }
       }
     })
