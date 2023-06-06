@@ -125,6 +125,7 @@ import { Optional } from './types/utils/Optional'
 import { Extension } from './types/Extension'
 import { PermissionEntity } from './types/PermissionEntity'
 import { WalletInfo } from './types/WalletInfo'
+import { normalizeMessage } from './utils/normalize-message'
 
 export * from './types/AnalyticsInterface'
 
@@ -274,3 +275,7 @@ export { PushToken } from './types/PushToken'
 // TS helpers
 
 export { Optional }
+
+// Utils
+
+export { normalizeMessage }

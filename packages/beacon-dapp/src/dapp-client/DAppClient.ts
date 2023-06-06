@@ -59,7 +59,8 @@ import {
   DesktopApp,
   ExtensionApp,
   WebApp,
-  ExtendedWalletConnectPairingResponse
+  ExtendedWalletConnectPairingResponse,
+  normalizeMessage
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -284,7 +285,7 @@ export class DAppClient extends Client {
           }
         }
       } else {
-        const typedMessage = message as BeaconMessage
+        const typedMessage = normalizeMessage(message as BeaconMessage)
 
         if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
           logger.log(`acknowledge message received for ${message.id}`)
@@ -310,11 +311,11 @@ export class DAppClient extends Client {
           console.timeLog(typedMessage.id, 'response')
           console.timeEnd(typedMessage.id)
 
-          if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
+          if (typedMessage.type === BeaconMessageType.Error || (typedMessage as any).errorType) {
             // TODO: Remove "any" once we remove support for v1 wallets
             openRequest.reject(typedMessage as any)
           } else {
-            openRequest.resolve({ message, connectionInfo })
+            openRequest.resolve({ message: typedMessage, connectionInfo })
           }
           this.openRequests.delete(typedMessage.id)
         } else {

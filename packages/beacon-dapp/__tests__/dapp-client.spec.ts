@@ -752,7 +752,7 @@ describe(`DAppClient`, () => {
       type: BeaconMessageType.OperationResponse,
       version: BEACON_VERSION,
       senderId: 'sender-id',
-      transactionHash: 'my-hash'
+      operationHash: 'my-hash'
     }
 
     const connectionInfo: ConnectionContext = {
@@ -786,7 +786,7 @@ describe(`DAppClient`, () => {
     expect(response).to.deep.equal({
       id: 'my-id',
       senderId: 'sender-id',
-      transactionHash: 'my-hash',
+      operationHash: 'my-hash',
       type: BeaconMessageType.OperationResponse,
       version: '2'
     })
@@ -820,7 +820,7 @@ describe(`DAppClient`, () => {
       type: BeaconMessageType.BroadcastResponse,
       version: BEACON_VERSION,
       senderId: 'sender-id',
-      transactionHash: 'my-hash'
+      operationHash: 'my-hash'
     }
 
     const connectionInfo: ConnectionContext = {
@@ -846,7 +846,7 @@ describe(`DAppClient`, () => {
     expect(response).to.deep.equal({
       id: 'my-id',
       senderId: 'sender-id',
-      transactionHash: 'my-hash',
+      operationHash: 'my-hash',
       type: BeaconMessageType.BroadcastResponse,
       version: '2'
     })

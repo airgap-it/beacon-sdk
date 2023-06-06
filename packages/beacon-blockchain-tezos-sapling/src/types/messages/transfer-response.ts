@@ -1,9 +1,9 @@
 export type TezosSaplingTransferResponse =
   | {
-      transactionHash: string
+      operationHash: string
     }
   | {
-      transactionHash: string
+      operationHash: string
       signature: string
       payload?: string
     }

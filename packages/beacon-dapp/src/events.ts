@@ -487,13 +487,13 @@ const showOperationSuccessAlert = async (
     walletInfo: data.walletInfo,
     actions: [
       {
-        text: shortenString(output.transactionHash),
+        text: shortenString(output.operationHash),
         isBold: true,
         actionText: `Open Blockexplorer`,
         actionLogo: 'external',
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getTransactionLink(
-            output.transactionHash,
+            output.operationHash,
             account.network
           )
           window.open(link, '_blank', 'noopener')
@@ -592,13 +592,13 @@ const showBroadcastSuccessAlert = async (
     walletInfo: data.walletInfo,
     actions: [
       {
-        text: shortenString(output.transactionHash),
+        text: shortenString(output.operationHash),
         isBold: true,
         actionText: `Open Blockexplorer`,
         actionLogo: 'external',
         actionCallback: async (): Promise<void> => {
           const link: string = await blockExplorer.getTransactionLink(
-            output.transactionHash,
+            output.operationHash,
             network
           )
           window.open(link, '_blank', 'noopener')

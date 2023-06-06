@@ -31,7 +31,8 @@ import {
   BeaconMessageWrapper,
   BeaconBaseMessage,
   StorageKey,
-  PushToken
+  PushToken,
+  normalizeMessage
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
 import { WalletP2PTransport } from '../transports/WalletP2PTransport'
@@ -128,7 +129,7 @@ export class WalletClient extends Client {
           })
         }
       } else {
-        const typedMessage = message as BeaconRequestMessage | DisconnectMessage
+        const typedMessage = normalizeMessage(message as BeaconRequestMessage | DisconnectMessage)
 
         if (typedMessage.type === BeaconMessageType.Disconnect) {
           return this.disconnect(typedMessage.senderId)

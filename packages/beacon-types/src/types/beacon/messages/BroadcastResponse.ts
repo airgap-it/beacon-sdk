@@ -5,5 +5,5 @@ import { BeaconBaseMessage, BeaconMessageType } from '@airgap/beacon-types'
  */
 export interface BroadcastResponse extends BeaconBaseMessage {
   type: BeaconMessageType.BroadcastResponse
-  transactionHash: string // Hash of the broadcast transaction
+  operationHash: string // Hash of the broadcast transaction
 }

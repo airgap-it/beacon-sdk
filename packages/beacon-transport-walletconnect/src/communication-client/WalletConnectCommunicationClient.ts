@@ -17,9 +17,11 @@ import {
   BeaconMessageType,
   ConnectionContext,
   ErrorResponse,
+  ErrorResponseInput,
   ExtendedWalletConnectPairingRequest,
   ExtendedWalletConnectPairingResponse,
   OperationRequest,
+  OperationResponseInput,
   Origin,
   PermissionScope,
   SignPayloadRequest,
@@ -296,16 +298,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         }
       })
       .then((response) => {
-        const sendOperationResponse = {
+        const sendOperationResponse: OperationResponseInput = {
           type: BeaconMessageType.OperationResponse,
-          transactionHash: response.hash,
+          operationHash: response.hash,
           id: this.currentMessageId!
         }
 
         sendResponse(sendOperationResponse)
       })
       .catch(async () => {
-        const errorResponse = {
+        const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
           id: this.currentMessageId!,
           errorType: BeaconErrorType.ABORTED_ERROR
