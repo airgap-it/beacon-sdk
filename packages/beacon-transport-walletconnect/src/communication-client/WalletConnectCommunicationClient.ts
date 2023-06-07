@@ -260,7 +260,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.validateNetworkAndAccount(network, account)
 
     this.signClient
-      ?.request<{ hash: string }>({
+      ?.request<{
+        // The `operationHash` field should be provided to specify the operation hash,
+        // while the `transactionHash` and `hash` fields are supported for backwards compatibility.
+        operationHash?: string
+        transactionHash?: string
+        hash?: string 
+      }>({
         topic: session.topic,
         chainId: `${TEZOS_PLACEHOLDER}:${network}`,
         request: {
@@ -274,7 +280,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       .then((response) => {
         const sendOperationResponse: OperationResponseInput = {
           type: BeaconMessageType.OperationResponse,
-          transactionHash: response.hash,
+          transactionHash: response.operationHash ?? response.transactionHash ?? response.hash ?? '',
           id: this.currentMessageId!
         }
 
