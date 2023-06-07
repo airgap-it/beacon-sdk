@@ -13,10 +13,10 @@ import {
   NotConnected
 } from '../error'
 import {
+  BeaconBaseMessage,
   BeaconErrorType,
   BeaconMessageType,
   BeaconResponseInputMessage,
-  BeaconResponseMessage,
   ConnectionContext,
   ErrorResponse,
   ErrorResponseInput,
@@ -186,7 +186,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       type: BeaconMessageType.PermissionResponse,
       appMetadata: {
         senderId: session.peer.publicKey,
-        name: session.peer.metadata.name ?? '',
+        name: session.peer.metadata.name,
         icon: session.peer.metadata.icons[0]
       },
       publicKey: result[0]?.pubkey,
@@ -585,11 +585,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async sendResponse(session: SessionTypes.Struct, partialResponse: BeaconResponseInputMessage) {
-    const response: BeaconResponseMessage = {
+    const response: BeaconBaseMessage = {
       ...partialResponse,
       version: '2',
       senderId: session.peer.publicKey
-    } as BeaconResponseMessage
+    }
     const serializer = new Serializer()
     const serialized = await serializer.serialize(response)
 
