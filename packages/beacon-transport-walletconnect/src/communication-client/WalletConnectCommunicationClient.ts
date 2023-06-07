@@ -13,17 +13,23 @@ import {
   NotConnected
 } from '../error'
 import {
+  BeaconBaseMessage,
   BeaconErrorType,
   BeaconMessageType,
+  BeaconResponseInputMessage,
   ConnectionContext,
   ErrorResponse,
+  ErrorResponseInput,
   ExtendedWalletConnectPairingRequest,
   ExtendedWalletConnectPairingResponse,
   OperationRequest,
+  OperationResponseInput,
   Origin,
+  PermissionResponseInput,
   PermissionScope,
   SignPayloadRequest,
-  SignPayloadResponse
+  SignPayloadResponse,
+  SignPayloadResponseInput
 } from '@airgap/beacon-types'
 import { generateGUID } from '@airgap/beacon-utils'
 
@@ -176,24 +182,20 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new Error('Public Key in `tezos_getAccounts` is empty!')
     }
 
-    const serializer = new Serializer()
-    const serialized = await serializer.serialize({
+      const permissionResponse: PermissionResponseInput = {
       type: BeaconMessageType.PermissionResponse,
       appMetadata: {
-        senderId: this.session?.peer.publicKey,
-        name: this.session?.peer.metadata.name
+        senderId: session.peer.publicKey,
+        name: session.peer.metadata.name,
+        icon: session.peer.metadata.icons[0]
       },
       publicKey: result[0]?.pubkey,
       network: { type: NetworkType.MAINNET },
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       id: this.currentMessageId!
-    })
-    this.activeListeners.forEach((listener) => {
-      listener(serialized, {
-        origin: Origin.WALLETCONNECT,
-        id: this.currentMessageId!
-      })
-    })
+    }
+
+    this.sendResponse(session, permissionResponse)
   }
 
   /**
@@ -209,19 +211,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
 
-    const serializer = new Serializer()
-
-    const sendResponse = async (response: unknown) => {
-      const serialized = await serializer.serialize(response)
-
-      this.activeListeners.forEach((listener) => {
-        listener(serialized, {
-          origin: Origin.WALLETCONNECT,
-          id: this.currentMessageId!
-        })
-      })
-    }
-
     // TODO: Type
     this.signClient
       ?.request<{ signature: string }>({
@@ -236,23 +225,23 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         }
       })
       .then((response) => {
-        const signPayloadResponse = {
+        const signPayloadResponse: SignPayloadResponseInput = {
           type: BeaconMessageType.SignPayloadResponse,
           signingType: signPayloadRequest.signingType,
           signature: response?.signature,
           id: this.currentMessageId!
         } as SignPayloadResponse
 
-        sendResponse(signPayloadResponse)
+        this.sendResponse(session, signPayloadResponse)
       })
       .catch(async () => {
-        const errorResponse = {
+        const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
           id: this.currentMessageId!,
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        sendResponse(errorResponse)
+        this.sendResponse(session, errorResponse)
       })
   }
 
@@ -269,19 +258,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const network = this.getActiveNetwork()
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
-
-    const serializer = new Serializer()
-
-    const sendResponse = async (response: unknown) => {
-      const serialized = await serializer.serialize(response)
-
-      this.activeListeners.forEach((listener) => {
-        listener(serialized, {
-          origin: Origin.WALLETCONNECT,
-          id: this.currentMessageId!
-        })
-      })
-    }
 
     this.signClient
       ?.request<{
@@ -302,23 +278,22 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         }
       })
       .then((response) => {
-        console.log('### WC response ###', response)
-        const sendOperationResponse = {
+        const sendOperationResponse: OperationResponseInput = {
           type: BeaconMessageType.OperationResponse,
           transactionHash: response.operationHash ?? response.transactionHash ?? response.hash ?? '',
           id: this.currentMessageId!
         }
 
-        sendResponse(sendOperationResponse)
+        this.sendResponse(session, sendOperationResponse)
       })
       .catch(async () => {
-        const errorResponse = {
+        const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
           id: this.currentMessageId!,
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        sendResponse(errorResponse)
+        this.sendResponse(session, errorResponse)
       })
   }
 
@@ -613,6 +588,23 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // } else {
     //   throw new InvalidSession('Tezos not found in requiredNamespaces')
     // }
+  }
+
+  private async sendResponse(session: SessionTypes.Struct, partialResponse: BeaconResponseInputMessage) {
+    const response: BeaconBaseMessage = {
+      ...partialResponse,
+      version: '2',
+      senderId: session.peer.publicKey
+    }
+    const serializer = new Serializer()
+    const serialized = await serializer.serialize(response)
+
+    this.activeListeners.forEach((listener) => {
+      listener(serialized, {
+        origin: Origin.WALLETCONNECT,
+        id: this.currentMessageId!
+      })
+    })
   }
 
   public currentSession(): SessionTypes.Struct | undefined {
