@@ -226,18 +226,26 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     const createWalletList = () => {
       const wallets: Wallet[] = [
-        ...desktopList.map((wallet) => {
-          return {
-            id: wallet.key,
-            key: wallet.key,
-            name: wallet.shortName,
-            image: wallet.logo,
-            description: 'Desktop App',
-            type: 'desktop',
-            link: wallet.downloadLink,
-            deepLink: wallet.deepLink
-          }
-        }),
+        ...desktopList
+          // This is used for a special case where desktop wallets have inApp browsers.
+          // In this case, the wallet will act like an extension. This means we have to remove
+          // the desktop app from the list to make the user experience better. One example of this
+          // is Infinity Wallet.
+          .filter(
+            (wallet) => !availableExtensions.some((extWallet) => wallet.name === extWallet.name)
+          )
+          .map((wallet) => {
+            return {
+              id: wallet.key,
+              key: wallet.key,
+              name: wallet.shortName,
+              image: wallet.logo,
+              description: 'Desktop App',
+              type: 'desktop',
+              link: wallet.downloadLink,
+              deepLink: wallet.deepLink
+            }
+          }),
         ...extensionList.map((wallet) => {
           return {
             id: wallet.id,
