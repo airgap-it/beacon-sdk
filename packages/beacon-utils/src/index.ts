@@ -10,7 +10,8 @@ export {
   sealCryptobox,
   openCryptobox,
   recipientString,
-  signMessage
+  signMessage,
+  prefixPublicKey
 } from './utils/crypto'
 export { generateGUID } from './utils/generate-uuid'
 

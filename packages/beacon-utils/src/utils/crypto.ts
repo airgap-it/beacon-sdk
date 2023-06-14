@@ -197,6 +197,21 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
 }
 
 /**
+ * Prefix the public key if it's not prefixed
+ *
+ * @param publicKey
+ */
+export async function prefixPublicKey(publicKey: string): Promise<string> {
+  if (publicKey.length !== 64) {
+    return publicKey
+  }
+
+  const payload: Uint8Array = Buffer.from(publicKey, 'hex')
+
+  return bs58check.encode(Buffer.concat([new Uint8Array([13, 15, 37, 217]), Buffer.from(payload)]))
+}
+
+/**
  * Get the recipient string used in the matrix message
  *
  * @param recipientHash
