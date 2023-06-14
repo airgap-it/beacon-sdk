@@ -77,7 +77,13 @@ import {
   getSenderId,
   Logger
 } from '@airgap/beacon-core'
-import { getAddressFromPublicKey, ExposedPromise, generateGUID, toHex } from '@airgap/beacon-utils'
+import {
+  getAddressFromPublicKey,
+  ExposedPromise,
+  generateGUID,
+  toHex,
+  prefixPublicKey
+} from '@airgap/beacon-utils'
 import { messageEvents } from '../beacon-message-events'
 import { BlockExplorer } from '../utils/block-explorer'
 import { TzktBlockExplorer } from '../utils/tzkt-blockexplorer'
@@ -938,7 +944,9 @@ export class DAppClient extends Client {
     })
 
     // TODO: Migration code. Remove sometime after 1.0.0 release.
-    const publicKey = message.publicKey || (message as any).pubkey || (message as any).pubKey
+    const publicKey = await prefixPublicKey(
+      message.publicKey || (message as any).pubkey || (message as any).pubKey
+    )
     const address = await getAddressFromPublicKey(publicKey)
 
     console.log('######## MESSAGE #######')
