@@ -362,6 +362,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       if (wallet?.types.includes('web')) {
         if (p2pPayload) {
+          // Noopener feature parameter cannot be used, because Chrome will open
+          // about:blank#blocked instead and it will no longer work.
           const newTab = window.open('', '_blank')
 
           if (newTab) {
