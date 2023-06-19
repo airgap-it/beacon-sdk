@@ -361,11 +361,24 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (wallet?.types.includes('web')) {
-        if (config.pairingPayload) {
+        if (p2pPayload) {
+          // Noopener feature parameter cannot be used, because Chrome will open
+          // about:blank#blocked instead and it will no longer work.
+          const newTab = window.open('', '_blank')
+
+          if (newTab) {
+            newTab.opener = null
+          }
+
           const serializer = new Serializer()
           const code = await serializer.serialize(await p2pPayload)
           const link = getTzip10Link(wallet.link, code)
-          window.open(link, '_blank', 'noopener')
+
+          if (newTab) {
+            newTab.location.href = link
+          } else {
+            window.open(link, '_blank', 'noopener')
+          }
         }
         setIsLoading(false)
         return
@@ -478,9 +491,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setShowMoreContent(false)
       analytics()?.track('click', 'ui', 'open desktop', { key: currentWallet()?.key })
 
-      if (config.pairingPayload?.p2pSyncCode) {
+      if (p2pPayload) {
         const serializer = new Serializer()
-        const code = await serializer.serialize(await config.pairingPayload?.p2pSyncCode())
+        const code = await serializer.serialize(await p2pPayload)
         const link = getTzip10Link(currentWallet()?.deepLink || '', code)
         window.open(link, '_blank', 'noopener')
       }
