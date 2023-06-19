@@ -365,30 +365,31 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       if (wallet?.types.includes('web')) {
         if (config.pairingPayload) {
+          // Noopener feature parameter cannot be used, because Chrome will open
+          // about:blank#blocked instead and it will no longer work.
+          const newTab = window.open('', '_blank')
+
+          if (newTab) {
+            newTab.opener = null
+          }
+
+          let link = ''
+
           if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
             const uri = (await wcPayload)?.uri
             if (uri) {
-              let link = `${wallet.link}/wc?uri=${encodeURIComponent(uri)}`
-              window.open(link, '_blank', 'noopener')
+              link = `${wallet.link}/wc?uri=${encodeURIComponent(uri)}`
             }
           } else {
-            // Noopener feature parameter cannot be used, because Chrome will open
-            // about:blank#blocked instead and it will no longer work.
-            const newTab = window.open('', '_blank')
-
-            if (newTab) {
-              newTab.opener = null
-            }
-
             const serializer = new Serializer()
             const code = await serializer.serialize(await p2pPayload)
-            const link = getTzip10Link(wallet.link, code)
+            link = getTzip10Link(wallet.link, code)
+          }
 
-            if (newTab) {
-              newTab.location.href = link
-            } else {
-              window.open(link, '_blank', 'noopener')
-            }
+          if (newTab) {
+            newTab.location.href = link
+          } else {
+            window.open(link, '_blank', 'noopener')
           }
         }
 
