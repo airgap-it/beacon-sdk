@@ -25,6 +25,7 @@ import * as walletStyles from '../../components/wallet/styles.css'
 import * as infoStyles from '../../components/info/styles.css'
 import * as qrStyles from '../../components/qr/styles.css'
 import * as loaderStyles from '../../components/loader/styles.css'
+import * as pairOtherStyles from '../../components/pair-other/styles.css'
 
 import { Serializer, windowRef } from '@airgap/beacon-core'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
@@ -38,6 +39,7 @@ import {
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
 import { isAndroid, isIOS, isTwBrowser } from 'src/utils/platform'
 import { getColorMode } from 'src/utils/colorMode'
+import PairOther from 'src/components/pair-other/pair-other'
 
 // Interfaces
 export interface AlertButton {
@@ -69,13 +71,14 @@ const [isOpen, setIsOpen] = createSignal<boolean>(false)
 const [isLoading, setIsLoading] = createSignal<boolean>(false)
 const [showMoreContent, setShowMoreContent] = createSignal<boolean>(false)
 const [codeQR, setCodeQR] = createSignal<string>('')
+const [walletList, setWalletList] = createSignal<MergedWallet[]>([])
 const [currentWallet, setCurrentWallet] = createSignal<MergedWallet | undefined>(undefined)
 const [previousInfo, setPreviousInfo] = createSignal<
-  'top-wallets' | 'wallets' | 'install' | 'help'
+  'top-wallets' | 'wallets' | 'install' | 'help' | 'qr'
 >('top-wallets')
-const [currentInfo, setCurrentInfo] = createSignal<'top-wallets' | 'wallets' | 'install' | 'help'>(
-  'top-wallets'
-)
+const [currentInfo, setCurrentInfo] = createSignal<
+  'top-wallets' | 'wallets' | 'install' | 'help' | 'qr'
+>('top-wallets')
 const [analytics, setAnalytics] = createSignal<AnalyticsInterface | undefined>(undefined)
 
 type VoidFunction = () => void
@@ -133,16 +136,16 @@ const closeAlerts = async (): Promise<void> =>
  */
 // eslint-disable-next-line complexity
 const openAlert = async (config: AlertConfig): Promise<string> => {
-  const p2ppayload = config.pairingPayload?.p2pSyncCode()
-  const wcpaylouad = config.pairingPayload?.walletConnectSyncCode()
+  const p2pPayload = config.pairingPayload?.p2pSyncCode()
+  const wcPayload = config.pairingPayload?.walletConnectSyncCode()
 
   setAnalytics(config.analytics)
 
   // TODO: Remove eager connection
-  p2ppayload?.then(() => {
+  p2pPayload?.then(() => {
     console.log('P2P LOADED')
   })
-  wcpaylouad?.then(() => {
+  wcPayload?.then(() => {
     console.log('WC LOADED')
   })
 
@@ -152,12 +155,22 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   }
 
   if (!isOpen()) {
-    const availableExtensions = await PostMessageTransport.getAvailableExtensions()
+    let availableExtensions = await PostMessageTransport.getAvailableExtensions()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const extensionsUpdatedFn = async (event: any): Promise<void> => {
+      if (event.data === 'extensionsUpdated') {
+        availableExtensions = await PostMessageTransport.getAvailableExtensions()
+        setWalletList(createWalletList())
+      }
+    }
+
+    windowRef.addEventListener('message', extensionsUpdatedFn)
 
     const setDefaultPayload = async () => {
       if (config.pairingPayload) {
         const serializer = new Serializer()
-        const codeQR = await serializer.serialize(await p2ppayload)
+        const codeQR = await serializer.serialize(await p2pPayload)
         setCodeQR(codeQR)
       }
     }
@@ -207,80 +220,112 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     style7.textContent = loaderStyles.default
     shadowRoot.appendChild(style7)
 
+    // PairOther styles
+    const style8 = document.createElement('style')
+    style8.textContent = pairOtherStyles.default
+    shadowRoot.appendChild(style8)
+
     // Inject font styles
     const styleFonts = document.createElement('style')
     styleFonts.textContent =
       "* { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;}"
     shadowRoot.appendChild(styleFonts)
 
-    const wallets: Wallet[] = [
-      ...desktopList.map((wallet) => {
-        return {
-          id: wallet.key,
-          key: wallet.key,
-          name: wallet.shortName,
-          image: wallet.logo,
-          description: 'Desktop App',
-          supportedInteractionStandards: wallet.supportedInteractionStandards,
-          type: 'desktop',
-          link: wallet.downloadLink,
-          deepLink: wallet.deepLink
-        }
-      }),
-      ...extensionList.map((wallet) => {
-        return {
-          id: wallet.id,
-          key: wallet.key,
-          name: wallet.shortName,
-          image: wallet.logo,
-          description: 'Browser Extension',
-          supportedInteractionStandards: wallet.supportedInteractionStandards,
-          type: 'extension',
-          link: wallet.link
-        }
-      }),
-      ...iOSList.map((wallet) => {
-        return {
-          id: wallet.key,
-          key: wallet.key,
-          name: wallet.shortName,
-          image: wallet.logo,
-          description: 'Mobile App',
-          supportedInteractionStandards: wallet.supportedInteractionStandards,
-          type: 'ios',
-          link: wallet.universalLink,
-          deepLink: wallet.deepLink
-        }
-      }),
-      ...webList.map((wallet) => {
-        const link = wallet.links[config.pairingPayload?.preferredNetwork ?? NetworkType.MAINNET]
-        return {
-          id: wallet.key,
-          key: wallet.key,
-          name: wallet.shortName,
-          image: wallet.logo,
-          description: 'Web App',
-          supportedInteractionStandards: wallet.supportedInteractionStandards,
-          type: 'web',
-          link: link ?? wallet.links.mainnet
-        }
-      })
-    ]
+    const createWalletList = () => {
+      const wallets: Wallet[] = [
+        ...desktopList
+          // This is used for a special case where desktop wallets have inApp browsers.
+          // In this case, the wallet will act like an extension. This means we have to remove
+          // the desktop app from the list to make the user experience better. One example of this
+          // is Infinity Wallet.
+          .filter(
+            (wallet) => !availableExtensions.some((extWallet) => wallet.name === extWallet.name)
+          )
+          .map((wallet) => {
+            return {
+              id: wallet.key,
+              key: wallet.key,
+              name: wallet.shortName,
+              image: wallet.logo,
+              description: 'Desktop App',
+              supportedInteractionStandards: wallet.supportedInteractionStandards,
+              type: 'desktop',
+              link: wallet.downloadLink,
+              deepLink: wallet.deepLink
+            }
+          }),
+        ...extensionList.map((wallet) => {
+          return {
+            id: wallet.id,
+            key: wallet.key,
+            name: wallet.shortName,
+            image: wallet.logo,
+            description: 'Browser Extension',
+            supportedInteractionStandards: wallet.supportedInteractionStandards,
+            type: 'extension',
+            link: wallet.link
+          }
+        }),
+        ...iOSList.map((wallet) => {
+          return {
+            id: wallet.key,
+            key: wallet.key,
+            name: wallet.shortName,
+            image: wallet.logo,
+            description: 'Mobile App',
+            supportedInteractionStandards: wallet.supportedInteractionStandards,
+            type: 'ios',
+            link: wallet.universalLink,
+            deepLink: wallet.deepLink
+          }
+        }),
+        ...webList.map((wallet) => {
+          const link = wallet.links[config.pairingPayload?.preferredNetwork ?? NetworkType.MAINNET]
+          return {
+            id: wallet.key,
+            key: wallet.key,
+            name: wallet.shortName,
+            image: wallet.logo,
+            description: 'Web App',
+            supportedInteractionStandards: wallet.supportedInteractionStandards,
+            type: 'web',
+            link: link ?? wallet.links.mainnet
+          }
+        }),
+        ...availableExtensions
+          .filter((newExt) => !extensionList.some((ext) => ext.id === newExt.id))
+          .map((wallet) => {
+            return {
+              id: wallet.id,
+              key: wallet.id,
+              name: wallet.shortName ?? wallet.name ?? '',
+              image: wallet.iconUrl ?? '',
+              description: 'Browser Extension',
+              type: 'extension',
+              link: (wallet as any).link ?? ''
+            }
+          })
+      ]
 
-    // Parse wallet names
-    const parsedWallets = parseWallets(wallets)
+      // Parse wallet names
+      const parsedWallets = parseWallets(wallets)
 
-    // Merge wallets by name
-    const mergedWallets = mergeWallets(parsedWallets)
+      // Merge wallets by name
+      const mergedWallets = mergeWallets(parsedWallets)
 
-    // Default selection of featured wallets
-    const defaultWalletList = ['kukai', 'temple', 'naan', 'umami']
+      // Default selection of featured wallets
+      const defaultWalletList = ['kukai', 'temple', 'naan', 'umami']
 
-    // Sort wallets by top4
-    const arrangedWallets = arrangeTopWallets(
-      mergedWallets,
-      config.featuredWallets ?? defaultWalletList
-    )
+      // Sort wallets by top4
+      const arrangedWallets = arrangeTopWallets(
+        mergedWallets,
+        config.featuredWallets ?? defaultWalletList
+      )
+
+      return arrangedWallets
+    }
+
+    setWalletList(createWalletList())
 
     const isMobile = window.innerWidth <= 800
 
@@ -302,6 +347,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     const handleCloseAlert = () => {
       closeAlert('')
+      windowRef.removeEventListener('message', extensionsUpdatedFn)
       if (config.closeButtonCallback) config.closeButtonCallback()
     }
 
@@ -310,7 +356,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       setIsLoading(true)
       setShowMoreContent(false)
-      const wallet = arrangedWallets.find((wallet) => wallet.id === id)
+      const wallet = walletList().find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
       if (wallet?.key) {
         analytics()?.track('click', 'ui', 'opened wallet', { key: wallet.key })
@@ -320,24 +366,38 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (wallet?.types.includes('web')) {
         if (config.pairingPayload) {
           if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-            const uri = (await wcpaylouad)?.uri
+            const uri = (await wcPayload)?.uri
             if (uri) {
               let link = `${wallet.link}/wc?uri=${encodeURIComponent(uri)}`
               window.open(link, '_blank', 'noopener')
             }
           } else {
+            // Noopener feature parameter cannot be used, because Chrome will open
+            // about:blank#blocked instead and it will no longer work.
+            const newTab = window.open('', '_blank')
+
+            if (newTab) {
+              newTab.opener = null
+            }
+
             const serializer = new Serializer()
-            const code = await serializer.serialize(await p2ppayload)
+            const code = await serializer.serialize(await p2pPayload)
             const link = getTzip10Link(wallet.link, code)
-            window.open(link, '_blank', 'noopener')
+
+            if (newTab) {
+              newTab.location.href = link
+            } else {
+              window.open(link, '_blank', 'noopener')
+            }
           }
         }
+
         setIsLoading(false)
         return
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = (await wcpaylouad)?.uri
+        const uri = (await wcPayload)?.uri
 
         if (uri) {
           if (isAndroid(window) || isIOS(window)) {
@@ -367,7 +427,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
         if (config.pairingPayload) {
           const serializer = new Serializer()
-          const code = await serializer.serialize(await p2ppayload)
+          const code = await serializer.serialize(await p2pPayload)
 
           const link = getTzip10Link(
             isIOS(window) && wallet.deepLink
@@ -399,16 +459,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const handleClickOther = async () => {
       analytics()?.track('click', 'ui', 'other wallet')
 
-      setShowMoreContent(false)
-      setCurrentWallet({
-        ...arrangedWallets[0],
-        name: '',
-        types: ['ios']
-      })
-      // TODO: replace with storage class
-      localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, arrangedWallets[0].key)
-      setDefaultPayload()
-      setCurrentInfo('install')
+      setCurrentInfo('qr')
     }
 
     const handleClickConnectExtension = async () => {
@@ -452,9 +503,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setShowMoreContent(false)
       analytics()?.track('click', 'ui', 'open desktop', { key: currentWallet()?.key })
 
-      if (config.pairingPayload?.p2pSyncCode) {
+      if (p2pPayload) {
         const serializer = new Serializer()
-        const code = await serializer.serialize(await config.pairingPayload?.p2pSyncCode())
+        const code = await serializer.serialize(await p2pPayload)
         const link = getTzip10Link(currentWallet()?.deepLink || '', code)
         window.open(link, '_blank', 'noopener')
       }
@@ -485,107 +536,122 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               showMore={showMoreContent()}
               content={
                 <div>
-                  <div
-                    style={
-                      currentInfo() === 'install'
-                        ? {
-                            opacity: 1,
-                            height: 'unset',
-                            overflow: 'unset',
-                            transform: 'scale(1)',
-                            transition: 'all ease 0.3s',
-                            display: 'flex',
-                            'flex-direction': 'column',
-                            gap: '0.9em'
+                  {currentInfo() === 'install' && (
+                    <div
+                      style={
+                        currentInfo() === 'install' || currentInfo() === 'qr'
+                          ? {
+                              opacity: 1,
+                              height: 'unset',
+                              overflow: 'unset',
+                              transform: 'scale(1)',
+                              transition: 'all ease 0.3s',
+                              display: 'flex',
+                              'flex-direction': 'column',
+                              gap: '0.9em'
+                            }
+                          : {
+                              opacity: 0,
+                              height: 0,
+                              overflow: 'hidden',
+                              transform: 'scale(1.1)',
+                              transition: 'all ease 0.3s',
+                              display: 'flex',
+                              'flex-direction': 'column',
+                              gap: '0.9em'
+                            }
+                      }
+                    >
+                      {!isMobile && currentWallet()?.types.includes('extension') && (
+                        <Info
+                          border
+                          title={
+                            hasExtension()
+                              ? `Use Browser Extension`
+                              : `Install ${currentWallet()?.name} Wallet`
                           }
-                        : {
-                            opacity: 0,
-                            height: 0,
-                            overflow: 'hidden',
-                            transform: 'scale(1.1)',
-                            transition: 'all ease 0.3s',
-                            display: 'flex',
-                            'flex-direction': 'column',
-                            gap: '0.9em'
+                          description={
+                            hasExtension()
+                              ? `Please connect below to use your ${
+                                  currentWallet()?.name
+                                } Wallet browser extension.`
+                              : `To connect your ${
+                                  currentWallet()?.name
+                                } Wallet, install the browser extension.`
                           }
-                    }
-                  >
-                    {!isMobile && currentWallet()?.types.includes('extension') && (
-                      <Info
-                        border
-                        title={
-                          hasExtension()
-                            ? `Use Browser Extension`
-                            : `Install ${currentWallet()?.name} Wallet`
-                        }
-                        description={
-                          hasExtension()
-                            ? `Please connect below to use your ${
-                                currentWallet()?.name
-                              } Wallet browser extension.`
-                            : `To connect your ${
-                                currentWallet()?.name
-                              } Wallet, install the browser extension.`
-                        }
-                        buttons={
-                          hasExtension()
-                            ? [
-                                {
-                                  label: 'Connect now',
-                                  type: 'primary',
-                                  onClick: () => handleClickConnectExtension()
-                                }
-                              ]
-                            : [
-                                {
-                                  label: 'Install extension',
-                                  type: 'primary',
-                                  onClick: () => handleClickInstallExtension()
-                                }
-                              ]
-                        }
-                      />
-                    )}
-                    {!isMobile && currentWallet()?.types.includes('desktop') && (
-                      <Info
-                        border
-                        title={`Open Desktop App`}
-                        description={`If you don't have the desktop app installed, click below to download it.`}
-                        buttons={[
-                          {
-                            label: 'Open desktop app',
-                            type: 'primary',
-                            onClick: () => handleClickOpenDesktopApp()
-                          },
-                          {
-                            label: 'Download desktop app',
-                            type: 'secondary',
-                            onClick: () => handleClickDownloadDesktopApp()
+                          buttons={
+                            hasExtension()
+                              ? [
+                                  {
+                                    label: 'Connect now',
+                                    type: 'primary',
+                                    onClick: () => handleClickConnectExtension()
+                                  }
+                                ]
+                              : [
+                                  {
+                                    label: 'Install extension',
+                                    type: 'primary',
+                                    onClick: () => handleClickInstallExtension()
+                                  }
+                                ]
                           }
-                        ]}
-                      />
-                    )}
-                    {!isMobile &&
-                      codeQR().length > 0 &&
-                      currentWallet()?.types.includes('ios') &&
-                      (currentWallet()?.types.length as number) > 1 && (
-                        <QR
-                          isWalletConnect={
-                            currentWallet()?.supportedInteractionStandards?.includes(
-                              'wallet_connect'
-                            ) || false
-                          }
-                          isMobile={false}
-                          walletName={currentWallet()?.name || 'AirGap'}
-                          code={codeQR()}
-                          onClickLearnMore={handleClickLearnMore}
-                          onClickQrCode={handleClickQrCode}
                         />
                       )}
-                    {!isMobile &&
-                      codeQR().length > 0 &&
-                      currentWallet()?.types.includes('ios') &&
-                      (currentWallet()?.types.length as number) <= 1 && (
+                      {!isMobile && currentWallet()?.types.includes('desktop') && (
+                        <Info
+                          border
+                          title={`Open Desktop App`}
+                          description={`If you don't have the desktop app installed, click below to download it.`}
+                          buttons={[
+                            {
+                              label: 'Open desktop app',
+                              type: 'primary',
+                              onClick: () => handleClickOpenDesktopApp()
+                            },
+                            {
+                              label: 'Download desktop app',
+                              type: 'secondary',
+                              onClick: () => handleClickDownloadDesktopApp()
+                            }
+                          ]}
+                        />
+                      )}
+                      {!isMobile &&
+                        codeQR().length > 0 &&
+                        currentWallet()?.types.includes('ios') &&
+                        (currentWallet()?.types.length as number) > 1 && (
+                          <QR
+                            isWalletConnect={
+                              currentWallet()?.supportedInteractionStandards?.includes(
+                                'wallet_connect'
+                              ) || false
+                            }
+                            isMobile={false}
+                            walletName={currentWallet()?.name || 'AirGap'}
+                            code={codeQR()}
+                            onClickLearnMore={handleClickLearnMore}
+                            onClickQrCode={handleClickQrCode}
+                          />
+                        )}
+                      {!isMobile &&
+                        codeQR().length > 0 &&
+                        currentWallet()?.types.includes('ios') &&
+                        (currentWallet()?.types.length as number) <= 1 && (
+                          <QR
+                            isWalletConnect={
+                              currentWallet()?.supportedInteractionStandards?.includes(
+                                'wallet_connect'
+                              ) || false
+                            }
+                            isMobile={true}
+                            walletName={currentWallet()?.name || 'AirGap'}
+                            code={codeQR()}
+                            onClickLearnMore={handleClickLearnMore}
+                            onClickQrCode={handleClickQrCode}
+                          />
+                        )}
+                      {isMobile && codeQR().length > 0 && (
                         <QR
                           isWalletConnect={
                             currentWallet()?.supportedInteractionStandards?.includes(
@@ -593,27 +659,48 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             ) || false
                           }
                           isMobile={true}
-                          walletName={currentWallet()?.name || 'Airgap'}
+                          walletName={currentWallet()?.name || 'AirGap'}
                           code={codeQR()}
                           onClickLearnMore={handleClickLearnMore}
                           onClickQrCode={handleClickQrCode}
                         />
                       )}
-                    {isMobile && codeQR().length > 0 && (
-                      <QR
-                        isWalletConnect={
-                          currentWallet()?.supportedInteractionStandards?.includes(
-                            'wallet_connect'
-                          ) || false
-                        }
-                        isMobile={true}
-                        walletName={currentWallet()?.name || 'Airgap'}
-                        code={codeQR()}
+                    </div>
+                  )}
+                  {currentInfo() === 'qr' && (
+                    <div
+                      style={
+                        currentInfo() === 'install' || currentInfo() === 'qr'
+                          ? {
+                              opacity: 1,
+                              height: 'unset',
+                              overflow: 'unset',
+                              transform: 'scale(1)',
+                              transition: 'all ease 0.3s',
+                              display: 'flex',
+                              'flex-direction': 'column',
+                              gap: '0.9em'
+                            }
+                          : {
+                              opacity: 0,
+                              height: 0,
+                              overflow: 'hidden',
+                              transform: 'scale(1.1)',
+                              transition: 'all ease 0.3s',
+                              display: 'flex',
+                              'flex-direction': 'column',
+                              gap: '0.9em'
+                            }
+                      }
+                    >
+                      <PairOther
+                        walletList={walletList()}
                         onClickLearnMore={handleClickLearnMore}
-                        onClickQrCode={handleClickQrCode}
-                      />
-                    )}
-                  </div>
+                        p2pPayload={p2pPayload}
+                        wcPayload={wcPayload}
+                      ></PairOther>
+                    </div>
+                  )}
                   <div
                     style={
                       currentInfo() === 'wallets'
@@ -635,9 +722,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   >
                     <Wallets
                       disabled={isLoading()}
-                      wallets={arrangedWallets.slice(
-                        -(arrangedWallets.length - (isMobile ? 3 : 4))
-                      )}
+                      wallets={walletList().slice(-(walletList().length - (isMobile ? 3 : 4)))}
+                      isMobile={isMobile}
                       onClickWallet={handleClickWallet}
                       onClickOther={handleClickOther}
                     />
@@ -715,6 +801,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   <div
                     style={
                       currentInfo() !== 'install' &&
+                      currentInfo() !== 'qr' &&
                       currentInfo() !== 'wallets' &&
                       currentInfo() !== 'help'
                         ? {
@@ -735,16 +822,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   >
                     <TopWallets
                       disabled={isLoading()}
-                      wallets={isMobile ? arrangedWallets.slice(0, 3) : arrangedWallets.slice(0, 4)}
+                      wallets={isMobile ? walletList().slice(0, 3) : walletList().slice(0, 4)}
                       onClickWallet={handleClickWallet}
                       onClickLearnMore={handleClickLearnMore}
                       otherWallets={
                         isMobile
                           ? {
                               images: [
-                                arrangedWallets[3].image,
-                                arrangedWallets[4].image,
-                                arrangedWallets[5].image
+                                walletList()[3].image,
+                                walletList()[4].image,
+                                walletList()[5].image
                               ],
                               onClick: () => setCurrentInfo('wallets')
                             }
@@ -759,7 +846,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   <Wallets
                     disabled={isLoading()}
                     small
-                    wallets={arrangedWallets.slice(-(arrangedWallets.length - 4))}
+                    wallets={walletList().slice(-(walletList().length - 4))}
+                    isMobile={isMobile}
                     onClickWallet={handleClickWallet}
                     onClickOther={handleClickOther}
                   />
@@ -769,6 +857,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               onCloseClick={() => handleCloseAlert()}
               onBackClick={
                 currentInfo() === 'install' && !isMobile
+                  ? () => setCurrentInfo('top-wallets')
+                  : currentInfo() === 'qr'
                   ? () => setCurrentInfo('top-wallets')
                   : currentInfo() === 'install' && isMobile
                   ? () => setCurrentInfo('wallets')

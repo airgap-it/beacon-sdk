@@ -3,7 +3,7 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
-import { getAddressFromPublicKey } from '../src/utils/crypto'
+import { getAddressFromPublicKey, prefixPublicKey } from '../src/utils/crypto'
 import { generateGUID } from '../src/utils/generate-uuid'
 
 // use chai-as-promised plugin
@@ -103,5 +103,25 @@ describe(`Crypto`, () => {
 
       expect(typeof GUID).to.deep.equal('string')
     })
+  })
+
+  it(`should prefix a public key`, async () => {
+    const publicKey = '370ffb098088e67f8284ca4938f8f1eac02c3e2ab150f29adc8a7075a5ce7e63'
+
+    const prefixedPublicKey = await prefixPublicKey(publicKey)
+
+    expect(prefixedPublicKey).to.deep.equal(
+      'edpku4US3ZykcZifjzSGFCmFr3zRgCKndE82estE4irj4d5oqDNDvf'
+    )
+  })
+
+  it(`should not prefix a public key that is already prefixed`, async () => {
+    const publicKey = 'edpku4US3ZykcZifjzSGFCmFr3zRgCKndE82estE4irj4d5oqDNDvf'
+
+    const prefixedPublicKey = await prefixPublicKey(publicKey)
+
+    expect(prefixedPublicKey).to.deep.equal(
+      'edpku4US3ZykcZifjzSGFCmFr3zRgCKndE82estE4irj4d5oqDNDvf'
+    )
   })
 })
