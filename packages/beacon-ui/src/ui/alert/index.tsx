@@ -364,6 +364,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         if (p2pPayload) {
           const newTab = window.open('', '_blank')
 
+          if (newTab) {
+            newTab.opener = null
+          }
+
           const serializer = new Serializer()
           const code = await serializer.serialize(await p2pPayload)
           const link = getTzip10Link(wallet.link, code)
