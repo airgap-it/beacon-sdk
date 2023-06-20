@@ -50,7 +50,8 @@ const REGIONS_AND_SERVERS: NodeDistributions = {
     'beacon-node-1.hope-2.papers.tech',
     'beacon-node-1.hope-3.papers.tech',
     'beacon-node-1.hope-4.papers.tech',
-    'beacon-node-1.hope-5.papers.tech'
+    'beacon-node-1.hope-5.papers.tech',
+    'beacon-node-1.marigold.dev'
   ]
 }
 
