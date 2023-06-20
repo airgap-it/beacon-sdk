@@ -393,7 +393,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         }
 
-        setIsLoading(false)
         return
       }
 
