@@ -269,6 +269,8 @@ export class DAppClient extends Client {
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
+                : connectionInfo.origin === Origin.WALLETCONNECT
+                ? this.walletConnectTransport
                 : this.postMessageTransport ?? (await this.transport)
 
             if (relevantTransport) {
@@ -279,11 +281,9 @@ export class DAppClient extends Client {
               )
               if (peer) {
                 await relevantTransport.removePeer(peer as any)
-                await this.removeAccountsForPeers([peer])
-                await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-              } else {
-                logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
               }
+              await this.removeAccountsForPeerIds([message.senderId])
+              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
@@ -333,6 +333,8 @@ export class DAppClient extends Client {
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
+                : connectionInfo.origin === Origin.WALLETCONNECT
+                ? this.walletConnectTransport
                 : this.postMessageTransport ?? (await this.transport)
 
             if (relevantTransport) {
@@ -343,11 +345,9 @@ export class DAppClient extends Client {
               )
               if (peer) {
                 await relevantTransport.removePeer(peer as any)
-                await this.removeAccountsForPeers([peer])
-                await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-              } else {
-                logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
               }
+              await this.removeAccountsForPeerIds([message.senderId])
+              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
@@ -1276,12 +1276,17 @@ export class DAppClient extends Client {
    * @param peersToRemove An array of peers for which accounts should be removed
    */
   private async removeAccountsForPeers(peersToRemove: ExtendedPeerInfo[]): Promise<void> {
+    const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
+
+    return this.removeAccountsForPeerIds(peerIdsToRemove)
+  }
+
+  private async removeAccountsForPeerIds(peerIds: string[]): Promise<void> {
     const accounts = await this.accountManager.getAccounts()
 
-    const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
     // Remove all accounts with origin of the specified peer
     const accountsToRemove = accounts.filter((account) =>
-      peerIdsToRemove.includes(account.senderId)
+      peerIds.includes(account.senderId)
     )
     const accountIdentifiersToRemove = accountsToRemove.map(
       (accountInfo) => accountInfo.accountIdentifier

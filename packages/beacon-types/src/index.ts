@@ -60,7 +60,8 @@ import {
   BroadcastResponseInput,
   BeaconResponseInputMessage,
   AcknowledgeResponseInput,
-  ErrorResponseInput
+  ErrorResponseInput,
+  IgnoredResponseInputProperties
 } from './types/beacon/messages/BeaconResponseInputMessage'
 import {
   PermissionResponseOutput,
@@ -264,7 +265,7 @@ export {
   ExtendedWalletConnectPairingResponse
 }
 
-export { IgnoredRequestInputProperties, defaultValues }
+export { IgnoredResponseInputProperties, IgnoredRequestInputProperties, defaultValues }
 
 // Others
 export { ConnectionContext, ColorMode, WalletInfo }

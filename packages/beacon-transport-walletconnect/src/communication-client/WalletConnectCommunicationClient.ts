@@ -17,15 +17,16 @@ import {
   BeaconErrorType,
   BeaconMessageType,
   BeaconResponseInputMessage,
-  ConnectionContext,
+  DisconnectMessage,
   ErrorResponse,
   ErrorResponseInput,
   ExtendedWalletConnectPairingRequest,
   ExtendedWalletConnectPairingResponse,
+  IgnoredResponseInputProperties,
   NetworkType,
   OperationRequest,
   OperationResponseInput,
-  Origin,
+  Optional,
   PermissionRequest,
   PermissionResponseInput,
   PermissionScope,
@@ -53,10 +54,12 @@ export enum PermissionScopeEvents {
   ACCOUNTS_CHANGED = 'accountsChanged'
 }
 
+type BeaconInputMessage = BeaconResponseInputMessage | Optional<DisconnectMessage, IgnoredResponseInputProperties>
+
 export class WalletConnectCommunicationClient extends CommunicationClient {
   protected readonly activeListeners: Map<
     string,
-    (message: string, context: ConnectionContext) => void
+    (message: string) => void
   > = new Map()
 
   protected readonly channelOpeningListeners: Map<
@@ -88,14 +91,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async listenForEncryptedMessage(
     senderPublicKey: string,
-    messageCallback: (message: string, context: ConnectionContext) => void
+    messageCallback: (message: string) => void
   ): Promise<void> {
     if (this.activeListeners.has(senderPublicKey)) {
       return
     }
 
-    const callbackFunction = async (message: string, context: ConnectionContext): Promise<void> => {
-      messageCallback(message, context)
+    const callbackFunction = async (message: string): Promise<void> => {
+      messageCallback(message)
     }
 
     this.activeListeners.set(senderPublicKey, callbackFunction)
@@ -311,34 +314,32 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       pairingTopic: undefined
     }
 
-    this.signClient = await SignClient.init(this.wcOptions.opts)
+    const signClient = await SignClient.init(this.wcOptions.opts)
+    this.signClient = signClient
+    this.subscribeToSessionEvents()
 
-    // this.signClient.on('session_delete', async ({ topic }) => {
-    //   if (this.session?.topic === topic) {
-    //     console.log('SESSION_DELETE')
-    //     this.clearState()
-    //   }
-    // })
-
-    // this.signClient.on('session_expire', async ({ topic }) => {
-    //   if (this.session?.topic === topic) {
-    //     console.log('SESSION_EXPIRE')
-    //     this.clearState()
-    //   }
-    // })
-
+    let pairings = this.signClient.pairing.getAll()
     let sessions = this.signClient.session.getAll()
 
     if (forceNewConnection) {
-      for (let session of sessions) {
-        await this.signClient.disconnect({
-          topic: session.topic,
-          reason: {
-            code: 0, // TODO: Use constants
-            message: 'Force new connection'
-          }
-        })
-      }
+      await Promise.all([
+        Promise.all(
+          sessions.map((session) => {
+            return signClient.disconnect({
+              topic: session.topic,
+              reason: {
+                code: 0, // TODO: Use constants
+                message: 'Force new connection'
+              }
+            })
+          })
+        ),
+        Promise.all(
+          pairings.map((pairing) => {
+            return signClient.core.pairing.disconnect({ topic: pairing.topic })
+          })
+        )
+      ])
 
       this.clearState()
 
@@ -385,6 +386,32 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     return uri
+  }
+
+  private subscribeToSessionEvents(): void {
+    this.signClient?.on('session_update', (_event) => {
+      // TODO
+    })
+
+    this.signClient?.on('session_delete', (event) => {
+      this.disconnect(event.topic)
+    })
+
+    this.signClient?.on('session_expire', (event) => {
+      this.disconnect(event.topic)
+    })
+  }
+
+  private async disconnect(topic: string) {
+    if (!this.session || this.session.topic !== topic) {
+      return
+    }
+
+    this.sendResponse(this.session, {
+      id: await generateGUID(),
+      type: BeaconMessageType.Disconnect,
+    })
+    this.clearState()
   }
 
   public async getPairingRequestInfo(): Promise<ExtendedWalletConnectPairingRequest> {
@@ -562,14 +589,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   getNetworks() {
     return this.getPermittedNetwork()
   }
-
-  private getTezosNamespace(): {
+  private getTezosNamespace(namespaces: SessionTypes.Namespaces = this.getSession().namespaces): {
     accounts: string[]
     methods: string[]
     events: string[]
   } {
-    if (TEZOS_PLACEHOLDER in this.getSession().namespaces) {
-      return this.getSession().namespaces[TEZOS_PLACEHOLDER]
+    if (TEZOS_PLACEHOLDER in namespaces) {
+      return namespaces[TEZOS_PLACEHOLDER]
     } else {
       throw new InvalidSession('Tezos not found in namespaces')
     }
@@ -605,7 +631,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private async sendResponse(
     session: SessionTypes.Struct,
-    partialResponse: BeaconResponseInputMessage
+    partialResponse: BeaconInputMessage
   ) {
     const response: BeaconBaseMessage = {
       ...partialResponse,
@@ -616,10 +642,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const serialized = await serializer.serialize(response)
 
     this.activeListeners.forEach((listener) => {
-      listener(serialized, {
-        origin: Origin.WALLETCONNECT,
-        id: this.currentMessageId!
-      })
+      listener(serialized)
     })
   }
 
