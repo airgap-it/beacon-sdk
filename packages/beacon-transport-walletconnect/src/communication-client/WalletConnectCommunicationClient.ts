@@ -17,6 +17,7 @@ import {
   BeaconErrorType,
   BeaconMessageType,
   BeaconResponseInputMessage,
+  ChangeAccountRequest,
   DisconnectMessage,
   ErrorResponse,
   ErrorResponseInput,
@@ -54,7 +55,7 @@ export enum PermissionScopeEvents {
   ACCOUNTS_CHANGED = 'accountsChanged'
 }
 
-type BeaconInputMessage = BeaconResponseInputMessage | Optional<DisconnectMessage, IgnoredResponseInputProperties>
+type BeaconInputMessage = BeaconResponseInputMessage | Optional<DisconnectMessage, IgnoredResponseInputProperties> | Optional<ChangeAccountRequest, IgnoredResponseInputProperties>
 
 export class WalletConnectCommunicationClient extends CommunicationClient {
   protected readonly activeListeners: Map<
@@ -197,7 +198,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       id: this.currentMessageId!
     }
 
-    this.sendResponse(session, permissionResponse)
+    this.notifyListeners(session, permissionResponse)
   }
 
   /**
@@ -234,7 +235,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: this.currentMessageId!
         } as SignPayloadResponse
 
-        this.sendResponse(session, signPayloadResponse)
+        this.notifyListeners(session, signPayloadResponse)
       })
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
@@ -243,7 +244,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        this.sendResponse(session, errorResponse)
+        this.notifyListeners(session, errorResponse)
       })
   }
 
@@ -287,7 +288,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: this.currentMessageId!
         }
 
-        this.sendResponse(session, sendOperationResponse)
+        this.notifyListeners(session, sendOperationResponse)
       })
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
@@ -296,7 +297,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        this.sendResponse(session, errorResponse)
+        this.notifyListeners(session, errorResponse)
       })
   }
 
@@ -389,8 +390,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private subscribeToSessionEvents(): void {
-    this.signClient?.on('session_update', (_event) => {
-      // TODO
+    this.signClient?.on('session_update', (event) => {
+      this.updateActiveAccount(event.params.namespaces)
     })
 
     this.signClient?.on('session_delete', (event) => {
@@ -402,12 +403,56 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
   }
 
+  private async updateActiveAccount(namespaces: SessionTypes.Namespaces) {
+    try {
+      const accounts = this.getTezosNamespace(namespaces).accounts
+      if (accounts.length === 1) {
+        const [_namespace, chainId, address] = accounts[0].split(':', 3)
+        this.activeAccount = address
+        this.activeNetwork = chainId
+
+        const session = this.getSession()
+
+        // Get the public key from the wallet
+        const result = await this.signClient?.request<
+          [
+            {
+              algo: 'ed25519'
+              address: string
+              pubkey: string
+            }
+          ]
+        >({
+          topic: session.topic,
+          chainId: `${TEZOS_PLACEHOLDER}:${chainId}`,
+          request: {
+            method: PermissionScopeMethods.GET_ACCOUNTS,
+            params: {}
+          }
+        })
+
+        const publicKey = result?.find(({ address: _address }) => address === _address )?.pubkey
+        if (!publicKey) {
+          throw new Error('Public key for the new account not provided')
+        }
+
+        this.notifyListeners(session, {
+          id: await generateGUID(),
+          type: BeaconMessageType.ChangeAccountRequest,
+          publicKey,
+          network: { type: chainId as NetworkType },
+          scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST]
+        })
+      }
+    } catch {}
+  }
+
   private async disconnect(topic: string) {
     if (!this.session || this.session.topic !== topic) {
       return
     }
 
-    this.sendResponse(this.session, {
+    this.notifyListeners(this.session, {
       id: await generateGUID(),
       type: BeaconMessageType.Disconnect,
     })
@@ -629,7 +674,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // }
   }
 
-  private async sendResponse(
+  private async notifyListeners(
     session: SessionTypes.Struct,
     partialResponse: BeaconInputMessage
   ) {

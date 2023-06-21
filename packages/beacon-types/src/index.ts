@@ -126,6 +126,7 @@ import { Optional } from './types/utils/Optional'
 import { Extension } from './types/Extension'
 import { PermissionEntity } from './types/PermissionEntity'
 import { WalletInfo } from './types/WalletInfo'
+import { ChangeAccountRequest } from './types/beacon/messages/ChangeAccountRequest'
 
 export * from './types/AnalyticsInterface'
 
@@ -182,6 +183,7 @@ export {
   // EncryptPayloadResponse,
   BroadcastRequest,
   BroadcastResponse,
+  ChangeAccountRequest,
   AcknowledgeResponse,
   DisconnectMessage,
   BeaconBaseMessage,
