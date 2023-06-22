@@ -78,6 +78,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
+    this.getSignClient()
   }
 
   static getInstance(wcOptions: {
@@ -157,8 +158,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new Error('Network in permission request is not the same as preferred network!')
     }
 
+    const signClient = await this.getSignClient()
+
     // Get the public key from the wallet
-    const result = await this.signClient?.request<
+    const result = await signClient.request<
       [
         {
           algo: 'ed25519'
@@ -206,6 +209,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * @error MissingRequiredScope is thrown if permission to sign payload was not granted
    */
   async signPayload(signPayloadRequest: SignPayloadRequest) {
+    const signClient = await this.getSignClient()
     const session = this.getSession()
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.SIGN)) {
       throw new MissingRequiredScope(PermissionScopeMethods.SIGN)
@@ -215,8 +219,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.validateNetworkAndAccount(network, account)
 
     // TODO: Type
-    this.signClient
-      ?.request<{ signature: string }>({
+    signClient
+      .request<{ signature: string }>({
         topic: session.topic,
         chainId: `${TEZOS_PLACEHOLDER}:${network}`,
         request: {
@@ -253,6 +257,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * @error MissingRequiredScope is thrown if permission to send operation was not granted
    */
   async sendOperations(operationRequest: OperationRequest) {
+    const signClient = await this.getSignClient()
     const session = this.getSession()
 
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.OPERATION_REQUEST)) {
@@ -262,8 +267,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
 
-    this.signClient
-      ?.request<{
+    signClient
+      .request<{
         // The `operationHash` field should be provided to specify the operation hash,
         // while the `transactionHash` and `hash` fields are supported for backwards compatibility.
         operationHash?: string
@@ -315,12 +320,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       pairingTopic: undefined
     }
 
-    const signClient = await SignClient.init(this.wcOptions.opts)
-    this.signClient = signClient
-    this.subscribeToSessionEvents()
+    const signClient = await this.getSignClient()
 
-    let pairings = this.signClient.pairing.getAll()
-    let sessions = this.signClient.session.getAll()
+    let pairings = signClient.pairing.getAll()
+    let sessions = signClient.session.getAll()
 
     if (forceNewConnection) {
       await Promise.all([
@@ -344,7 +347,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       this.clearState()
 
-      sessions = this.signClient.session.getAll()
+      sessions = signClient.session.getAll()
     }
 
     if (sessions && sessions.length > 0) {
@@ -353,7 +356,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    const { uri, approval } = await this.signClient.connect({
+    const { uri, approval } = await signClient.connect({
       requiredNamespaces: {
         [TEZOS_PLACEHOLDER]: {
           chains: connectParams.permissionScope.networks.map(
@@ -389,17 +392,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return uri
   }
 
-  private subscribeToSessionEvents(): void {
-    this.signClient?.on('session_update', (event) => {
+  private subscribeToSessionEvents(signClient: Client): void {
+    signClient.on('session_update', (event) => {
       this.updateActiveAccount(event.params.namespaces)
     })
 
-    this.signClient?.on('session_delete', (event) => {
-      this.disconnect(event.topic)
+    signClient.on('session_delete', (event) => {
+      this.disconnect(signClient, { type: 'session', topic: event.topic })
     })
 
-    this.signClient?.on('session_expire', (event) => {
-      this.disconnect(event.topic)
+    signClient.on('session_expire', (event) => {
+      this.disconnect(signClient, { type: 'session', topic: event.topic })
+    })
+
+    signClient.core.pairing.events.on('pairing_delete', (event) => {
+      this.disconnect(signClient, { type: 'pairing', topic: event.topic })
     })
   }
 
@@ -411,10 +418,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.activeAccount = address
         this.activeNetwork = chainId
 
+        const signClient = await this.getSignClient()
         const session = this.getSession()
 
         // Get the public key from the wallet
-        const result = await this.signClient?.request<
+        const result = await signClient.request<
           [
             {
               algo: 'ed25519'
@@ -447,16 +455,68 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     } catch {}
   }
 
-  private async disconnect(topic: string) {
-    if (!this.session || this.session.topic !== topic) {
+  private async disconnect(
+    signClient: Client, 
+    trigger: { type: 'session'; topic: string } | { type: 'pairing'; topic: string }
+  ) {
+    let session
+    if (trigger.type === 'session') {
+      session = await this.onSessionClosed(signClient, trigger.topic)
+    }
+
+    if (trigger.type === 'pairing') {
+      session = await this.onPairingClosed(signClient, trigger.topic)
+    }
+
+    if (!session) {
       return
     }
 
-    this.notifyListeners(this.session, {
+    this.notifyListeners(session, {
       id: await generateGUID(),
       type: BeaconMessageType.Disconnect,
     })
     this.clearState()
+  }
+
+  private async onPairingClosed(signClient: Client, pairingTopic: string): Promise<SessionTypes.Struct | undefined> {
+    const session = this.session?.pairingTopic === pairingTopic
+      ? this.session
+      : signClient.session.getAll().find((session: SessionTypes.Struct) => session.pairingTopic === pairingTopic)
+
+    if (!session) {
+      return undefined
+    }
+
+    try {
+      await signClient.disconnect({ 
+        topic: session.topic,
+        reason: {
+          code: -1, // TODO: Use constants
+          message: 'Pairing deleted'
+        }
+      })
+    } catch (error) {
+      // If the session was already closed, `disconnect` will throw an error.
+      console.warn(error)
+    }
+
+    return session
+  }
+
+  private async onSessionClosed(signClient: Client, sessionTopic: string): Promise<SessionTypes.Struct | undefined> {
+    if (!this.session || this.session.topic !== sessionTopic) {
+      return undefined
+    }
+
+    try {
+      await signClient.core.pairing.disconnect({ topic: this.session.pairingTopic })
+    } catch (error) {
+      // If the pairing was already closed, `disconnect` will throw an error.
+      console.warn(error)
+    }
+
+    return this.session
   }
 
   public async getPairingRequestInfo(): Promise<ExtendedWalletConnectPairingRequest> {
@@ -693,6 +753,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public currentSession(): SessionTypes.Struct | undefined {
     return this.session
+  }
+
+  private async getSignClient(): Promise<Client> {
+    if (this.signClient === undefined) {
+      this.signClient = await SignClient.init(this.wcOptions.opts)
+      this.subscribeToSessionEvents(this.signClient)
+    }
+
+    return this.signClient
   }
 
   private getSession() {
