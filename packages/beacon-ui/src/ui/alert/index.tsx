@@ -136,6 +136,7 @@ const closeAlerts = async (): Promise<void> =>
  */
 // eslint-disable-next-line complexity
 const openAlert = async (config: AlertConfig): Promise<string> => {
+  setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
 
