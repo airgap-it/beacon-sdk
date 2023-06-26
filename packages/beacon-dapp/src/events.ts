@@ -170,7 +170,7 @@ export interface BeaconEventType {
     p2pPeerInfo: () => Promise<P2PPairingRequest>
     postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
     walletConnectPeerInfo: () => Promise<WalletConnectPairingRequest>
-    preferredNetwork: NetworkType
+    networkType: NetworkType
     abortedHandler?(): void
     disclaimerText?: string
     analytics: AnalyticsInterface
@@ -426,7 +426,7 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
       p2pSyncCode: data.p2pPeerInfo,
       walletConnectSyncCode: data.walletConnectPeerInfo,
       postmessageSyncCode: data.postmessagePeerInfo,
-      preferredNetwork: data.preferredNetwork
+      networkType: data.networkType
     },
     // eslint-disable-next-line @typescript-eslint/unbound-method
     closeButtonCallback: data.abortedHandler,
