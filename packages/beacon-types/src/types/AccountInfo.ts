@@ -12,7 +12,8 @@ export interface AccountInfo extends PermissionEntity {
     id: string
   }
   walletKey?: string
-  publicKey: string
+  publicKey?: string
   connectedAt: number
   notification?: Notification
+  hasVerifiedChallenge?: boolean
 }

@@ -4,6 +4,9 @@
  */
 import { AppMetadata } from './types/beacon/AppMetadata'
 import { PermissionRequest } from './types/beacon/messages/PermissionRequest'
+import { ProofOfEventChallengeRequest } from './types/beacon/messages/ProofOfEventChallengeRequest'
+import { ProofOfEventChallengeResponse } from './types/beacon/messages/ProofOfEventChallengeResponse'
+import { ProofOfEventChallengeRecordedRequest } from './types/beacon/messages/ProofOfEventChallengeRecordedRequest'
 import { Network } from './types/beacon/Network'
 import { BeaconBaseMessage } from './types/beacon/BeaconBaseMessage'
 import { BeaconMessageType } from './types/beacon/BeaconMessageType'
@@ -68,7 +71,8 @@ import {
   // EncryptPayloadResponseOutput,
   OperationResponseOutput,
   BroadcastResponseOutput,
-  BeaconResponseOutputMessage
+  BeaconResponseOutputMessage,
+  ProofOfEventChallengeResponseOutput
 } from './types/beacon/messages/BeaconResponseOutputMessage'
 import {
   PermissionRequestInput,
@@ -77,7 +81,9 @@ import {
   OperationRequestInput,
   BroadcastRequestInput,
   BeaconRequestInputMessage,
-  IgnoredRequestInputProperties
+  IgnoredRequestInputProperties,
+  ProofOfEventChallengeRecordedMessageInput,
+  ProofOfEventChallengeRequestInput
 } from './types/beacon/messages/BeaconRequestInputMessage'
 import {
   PermissionRequestOutput,
@@ -85,7 +91,9 @@ import {
   // EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,
-  BeaconRequestOutputMessage
+  BeaconRequestOutputMessage,
+  ProofOfEventChallengeRequestOutput,
+  ProofOfEventChallengeRecordedMessageOutput
 } from './types/beacon/messages/BeaconRequestOutputMessage'
 import { PermissionInfo } from './types/PermissionInfo'
 import { ConnectionContext } from './types/ConnectionContext'
@@ -198,11 +206,15 @@ export {
   EncryptedExtensionMessage,
   RequestPermissionInput,
   RequestSignPayloadInput,
+  ProofOfEventChallengeRecordedMessageInput,
   // RequestEncryptPayloadInput,
   RequestOperationInput,
   RequestBroadcastInput,
   PermissionInfo,
-  PermissionEntity
+  PermissionEntity,
+  ProofOfEventChallengeRequest,
+  ProofOfEventChallengeResponse,
+  ProofOfEventChallengeRecordedRequest
 }
 
 export {
@@ -214,17 +226,21 @@ export {
   AcknowledgeResponseInput,
   ErrorResponseInput,
   PermissionResponseOutput,
+  ProofOfEventChallengeResponseOutput,
   SignPayloadResponseOutput,
   // EncryptPayloadResponseOutput,
   OperationResponseOutput,
   BroadcastResponseOutput,
   PermissionRequestInput,
   SignPayloadRequestInput,
+  ProofOfEventChallengeRequestInput,
   // EncryptPayloadRequestInput,
   OperationRequestInput,
   BroadcastRequestInput,
   PermissionRequestOutput,
   SignPayloadRequestOutput,
+  ProofOfEventChallengeRequestOutput,
+  ProofOfEventChallengeRecordedMessageOutput,
   // EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,

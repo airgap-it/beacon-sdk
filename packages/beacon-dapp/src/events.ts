@@ -39,6 +39,7 @@ import {
 } from '@airgap/beacon-core'
 import { shortenString } from './utils/shorten-string'
 import { isMobile } from '@airgap/beacon-ui'
+import { ProofOfEventChallengeResponseOutput } from '@airgap/beacon-types'
 
 const logger = new Logger('BeaconEvents')
 
@@ -61,6 +62,9 @@ export enum BeaconEvent {
   PERMISSION_REQUEST_SENT = 'PERMISSION_REQUEST_SENT',
   PERMISSION_REQUEST_SUCCESS = 'PERMISSION_REQUEST_SUCCESS',
   PERMISSION_REQUEST_ERROR = 'PERMISSION_REQUEST_ERROR',
+  PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT = 'PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT',
+  PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS = 'PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS',
+  PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR = 'PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR',
   OPERATION_REQUEST_SENT = 'OPERATION_REQUEST_SENT',
   OPERATION_REQUEST_SUCCESS = 'OPERATION_REQUEST_SUCCESS',
   OPERATION_REQUEST_ERROR = 'OPERATION_REQUEST_ERROR',
@@ -118,6 +122,18 @@ export interface BeaconEventType {
     walletInfo: WalletInfo
   }
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: RequestSentInfo
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: {
+    account: AccountInfo
+    output: ProofOfEventChallengeResponseOutput
+    blockExplorer: BlockExplorer
+    connectionContext: ConnectionContext
+    walletInfo: WalletInfo
+  }
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: {
+    errorResponse: ErrorResponse
+    walletInfo: WalletInfo
+  }
   [BeaconEvent.OPERATION_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: {
     account: AccountInfo
@@ -470,6 +486,25 @@ const showPermissionSuccessAlert = async (
   })
 }
 
+const showProofOfEventChallengeSuccessAlert = async (
+  data: BeaconEventType[BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]
+): Promise<void> => {
+  const { output } = data
+
+  await openToast({
+    body: `{{wallet}}\u00A0 has ${output.isAccepted ? 'accepted' : 'refused'} the challenge`,
+    timer: SUCCESS_TIMER,
+    walletInfo: data.walletInfo,
+    state: 'finished',
+    actions: [
+      {
+        text: 'Challenge Id',
+        actionText: output.dAppChallengeId
+      }
+    ]
+  })
+}
+
 /**
  * Show an "Operation Broadcasted" alert
  *
@@ -627,6 +662,9 @@ export const defaultEventCallbacks: {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: showSentToast,
   [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: showPermissionSuccessAlert,
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: showErrorToast,
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: showSentToast,
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: showProofOfEventChallengeSuccessAlert,
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: showErrorToast,
   [BeaconEvent.OPERATION_REQUEST_SENT]: showSentToast,
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: showOperationSuccessAlert,
   [BeaconEvent.OPERATION_REQUEST_ERROR]: showErrorToast,
@@ -666,6 +704,15 @@ export class BeaconEventHandler {
     [BeaconEvent.PERMISSION_REQUEST_SENT]: [defaultEventCallbacks.PERMISSION_REQUEST_SENT],
     [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: [defaultEventCallbacks.PERMISSION_REQUEST_SUCCESS],
     [BeaconEvent.PERMISSION_REQUEST_ERROR]: [defaultEventCallbacks.PERMISSION_REQUEST_ERROR],
+    [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: [
+      defaultEventCallbacks.PERMISSION_REQUEST_SENT
+    ],
+    [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: [
+      defaultEventCallbacks.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS
+    ],
+    [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: [
+      defaultEventCallbacks.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
+    ],
     [BeaconEvent.OPERATION_REQUEST_SENT]: [defaultEventCallbacks.OPERATION_REQUEST_SENT],
     [BeaconEvent.OPERATION_REQUEST_SUCCESS]: [defaultEventCallbacks.OPERATION_REQUEST_SUCCESS],
     [BeaconEvent.OPERATION_REQUEST_ERROR]: [defaultEventCallbacks.OPERATION_REQUEST_ERROR],

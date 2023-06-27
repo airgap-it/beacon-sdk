@@ -21,7 +21,8 @@ import {
   BeaconMessageWrapper,
   BlockchainResponseV3,
   PermissionResponseV3,
-  BeaconBaseMessage
+  BeaconBaseMessage,
+  ProofOfEventChallengeResponse
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
 import { getAddressFromPublicKey } from '@airgap/beacon-utils'
@@ -183,10 +184,16 @@ export class OutgoingResponseInterceptor {
           ...message
         }
 
+        if (!response.address && !response.publicKey) {
+          throw new Error('Address or PublicKey must be defined')
+        }
+
         const publicKey = response.publicKey
 
-        const address: string = await getAddressFromPublicKey(publicKey)
+        // TODO: Validate address
+        const address: string = response.address ?? (await getAddressFromPublicKey(publicKey!))
         const appMetadata = await appMetadataManager.getAppMetadata(request.senderId)
+
         if (!appMetadata) {
           throw new Error('AppMetadata not found')
         }
@@ -249,7 +256,16 @@ export class OutgoingResponseInterceptor {
           interceptorCallback(response)
         }
         break
-
+      case BeaconMessageType.ProofOfEventChallengeResponse:
+        {
+          const response: ProofOfEventChallengeResponse = {
+            senderId,
+            version: '2',
+            ...message
+          }
+          interceptorCallback(response)
+        }
+        break
       default:
         logger.log('intercept', 'Message not handled')
         assertNever(message)

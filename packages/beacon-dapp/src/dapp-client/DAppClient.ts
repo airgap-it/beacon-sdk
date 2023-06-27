@@ -59,7 +59,10 @@ import {
   DesktopApp,
   ExtensionApp,
   WebApp,
-  ExtendedWalletConnectPairingResponse
+  ExtendedWalletConnectPairingResponse,
+  ProofOfEventChallengeRequest,
+  ProofOfEventChallengeResponse,
+  ProofOfEventChallengeRequestInput
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -84,7 +87,7 @@ import { TzktBlockExplorer } from '../utils/tzkt-blockexplorer'
 
 import { DAppClientOptions } from './DAppClientOptions'
 import { AlertButton, closeToast } from '@airgap/beacon-ui'
-import { BeaconEventHandler } from '@airgap/beacon-dapp'
+import { BeaconEventHandler, openAlert } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { DappWalletConnectTransport } from '../transports/DappWalletConnectTransport'
@@ -149,6 +152,7 @@ export class DAppClient extends Client {
     >
   >()
 
+  private readonly proofOfEventChallenges = new Map<string, Promise<null>>()
   /**
    * The currently active account. For all requests that are associated to a specific request (operation request, signing request),
    * the active account is used to determine the network and destination wallet
@@ -708,7 +712,13 @@ export class DAppClient extends Client {
    * @param type The type of the message
    */
   public async checkPermissions(type: BeaconMessageType): Promise<boolean> {
-    if (type === BeaconMessageType.PermissionRequest) {
+    if (
+      [
+        BeaconMessageType.PermissionRequest,
+        BeaconMessageType.ProofOfEventChallengeRequest,
+        BeaconMessageType.ProofOfEventChallengeRecorded
+      ].includes(type)
+    ) {
       return true
     }
 
@@ -907,6 +917,68 @@ export class DAppClient extends Client {
     return response.message
   }
 
+  private async checkProofOfEventChallenge({
+    contractAddress,
+    payload,
+    dAppChallengeId,
+    accountIdentifier
+  }: {
+    contractAddress: string
+    payload: string
+    dAppChallengeId: string
+    accountIdentifier: string
+  }) {
+    const encoder = new TextEncoder()
+
+    const loop = async () =>
+      fetch(
+        `https://api.ghostnet.tzkt.io/v1/contracts/events?contract=${contractAddress}&tag=proof_of_event&payload.challenge_id=${Buffer.from(
+          encoder.encode(dAppChallengeId)
+        ).toString('hex')}&payload.payload=${Buffer.from(encoder.encode(payload)).toString('hex')}`
+      )
+        .then((res) => res.json())
+        .then(
+          async (
+            response: {
+              id: number
+              level: number
+              timestamp: string
+              contract: {
+                address: string
+              }
+              codeHash: number
+              tag: string
+              payload: {
+                payload: string
+                challenge_id: string
+              }
+              transactionId: number
+            }[]
+          ) => {
+            if (response.length === 0) {
+              await new Promise((resolve) => setTimeout(resolve, 10000))
+              loop()
+            } else {
+              const account = await this.accountManager.updateAccount(accountIdentifier, {
+                hasVerifiedChallenge: true
+              })
+              openAlert({
+                title: 'Challenge verified',
+                body: `${account?.address} has verified the proof of event challenge`
+              })
+              console.log(response[0])
+              // TODO
+            }
+          }
+        )
+        .catch((e) => {
+          // CLEAN?
+          console.log(e)
+        })
+
+    loop()
+  }
+
   /**
    * Send a permission request to the DApp. This should be done as the first step. The wallet will respond
    * with an publicKey and permissions that were given. The account returned will be set as the "activeAccount"
@@ -937,16 +1009,77 @@ export class DAppClient extends Client {
     })
 
     // TODO: Migration code. Remove sometime after 1.0.0 release.
-    const publicKey = message.publicKey || (message as any).pubkey || (message as any).pubKey
-    const address = await getAddressFromPublicKey(publicKey)
+    const publicKey: string | undefined =
+      message.publicKey || (message as any).pubkey || (message as any).pubKey
+
+    if (!publicKey && !message.address) {
+      throw new Error('PublicKey or Address must be defined')
+    }
+
+    // TODO: Verify address
+    const address = message.address ?? (await getAddressFromPublicKey(publicKey!))
 
     console.log('######## MESSAGE #######')
     console.log(message)
 
+    const accountIdentifier = await getAccountIdentifier(address, message.network)
+
+    if (message.verificationType === 'proof_of_event') {
+      const payload = JSON.stringify({ timestamp: Date.now(), from: request.appMetadata.name })
+      const dAppChallengeId = accountIdentifier
+
+      const challengeRequest: ProofOfEventChallengeRequestInput = {
+        type: BeaconMessageType.ProofOfEventChallengeRequest,
+        payload,
+        contractAddress: address,
+        dAppChallengeId
+      }
+      const { message } = await this.makeRequest<
+        ProofOfEventChallengeRequest,
+        ProofOfEventChallengeResponse
+      >(challengeRequest).catch(async (requestError: ErrorResponse) => {
+        throw await this.handleRequestError(request, requestError)
+      })
+
+      this.analytics.track(
+        'event',
+        'DAppClient',
+        `Proof of event challenge ${message.isAccepted ? 'accepted' : 'refused'}`,
+        { address }
+      )
+
+      if (message.isAccepted) {
+        console.log(this.proofOfEventChallenges)
+        this.checkProofOfEventChallenge({
+          contractAddress: address,
+          dAppChallengeId,
+          payload,
+          accountIdentifier
+        })
+        // setTimeout(async () => {
+        // const recordedRequest: ProofOfEventChallengeRecordedMessageInput = {
+        //   type: BeaconMessageType.ProofOfEventChallengeRecorded,
+        //   dAppChallengeId: message.dAppChallengeId,
+        //   success: true,
+        //   errorMessage: ''
+        // }
+        // this.makeRequest(recordedRequest).catch(async (requestError: ErrorResponse) => {
+        //   throw await this.handleRequestError(request, requestError)
+        // })
+        // }, 5000)
+      }
+      //   await this.notifySuccess(challengeRequest, {
+      //     output: message,
+      //     blockExplorer: this.blockExplorer,
+      //     connectionContext: connectionInfo,
+      //     walletInfo: await this.getWalletInfo()
+      // })
+    }
+
     const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
 
     const accountInfo: AccountInfo = {
-      accountIdentifier: await getAccountIdentifier(address, message.network),
+      accountIdentifier,
       senderId: message.senderId,
       origin: {
         type: connectionInfo.origin,
@@ -959,7 +1092,8 @@ export class DAppClient extends Client {
       scopes: message.scopes,
       threshold: message.threshold,
       notification: message.notification,
-      connectedAt: new Date().getTime()
+      connectedAt: new Date().getTime(),
+      ...(message.verificationType === 'proof_of_event' ? { hasVerifiedChallenge: false } : {})
     }
 
     console.log('######## ACCOUNT INFO #######')
