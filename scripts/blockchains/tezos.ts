@@ -82,8 +82,8 @@ export const tezosWebList: WebApp[] = [
     color: '',
     logo: 'web-kukai.png',
     links: {
-      [NetworkType.MAINNET]: 'http://localhost:5173',
-      [NetworkType.GHOSTNET]: 'http://localhost:5173'
+      [NetworkType.MAINNET]: 'http://localhost:3000/beacon',
+      [NetworkType.GHOSTNET]: 'http://localhost:3000/beacon'
     }
   }
 ]
