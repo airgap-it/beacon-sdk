@@ -1067,6 +1067,8 @@ export class DAppClient extends Client {
         //   throw await this.handleRequestError(request, requestError)
         // })
         // }, 5000)
+      } else {
+        throw new Error('Proof of Event challenge refused')
       }
       //   await this.notifySuccess(challengeRequest, {
       //     output: message,
