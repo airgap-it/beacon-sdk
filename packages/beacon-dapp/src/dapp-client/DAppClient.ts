@@ -62,7 +62,8 @@ import {
   ExtendedWalletConnectPairingResponse,
   ProofOfEventChallengeRequest,
   ProofOfEventChallengeResponse,
-  ProofOfEventChallengeRequestInput
+  ProofOfEventChallengeRequestInput,
+  RequestProofOfEventChallengeInput
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -971,12 +972,8 @@ export class DAppClient extends Client {
             }
           }
         )
-        .catch((e) => {
-          // CLEAN?
-          console.log(e)
-        })
 
-    loop()
+    return loop()
   }
 
   /**
@@ -1024,60 +1021,6 @@ export class DAppClient extends Client {
 
     const accountIdentifier = await getAccountIdentifier(address, message.network)
 
-    if (message.verificationType === 'proof_of_event') {
-      const payload = JSON.stringify({ timestamp: Date.now(), from: request.appMetadata.name })
-      const dAppChallengeId = accountIdentifier
-
-      const challengeRequest: ProofOfEventChallengeRequestInput = {
-        type: BeaconMessageType.ProofOfEventChallengeRequest,
-        payload,
-        contractAddress: address,
-        dAppChallengeId
-      }
-      const { message } = await this.makeRequest<
-        ProofOfEventChallengeRequest,
-        ProofOfEventChallengeResponse
-      >(challengeRequest).catch(async (requestError: ErrorResponse) => {
-        throw await this.handleRequestError(request, requestError)
-      })
-
-      this.analytics.track(
-        'event',
-        'DAppClient',
-        `Proof of event challenge ${message.isAccepted ? 'accepted' : 'refused'}`,
-        { address }
-      )
-
-      if (message.isAccepted) {
-        console.log(this.proofOfEventChallenges)
-        this.checkProofOfEventChallenge({
-          contractAddress: address,
-          dAppChallengeId,
-          payload,
-          accountIdentifier
-        })
-        // setTimeout(async () => {
-        // const recordedRequest: ProofOfEventChallengeRecordedMessageInput = {
-        //   type: BeaconMessageType.ProofOfEventChallengeRecorded,
-        //   dAppChallengeId: message.dAppChallengeId,
-        //   success: true,
-        //   errorMessage: ''
-        // }
-        // this.makeRequest(recordedRequest).catch(async (requestError: ErrorResponse) => {
-        //   throw await this.handleRequestError(request, requestError)
-        // })
-        // }, 5000)
-      } else {
-        throw new Error('Proof of Event challenge refused')
-      }
-      //   await this.notifySuccess(challengeRequest, {
-      //     output: message,
-      //     blockExplorer: this.blockExplorer,
-      //     connectionContext: connectionInfo,
-      //     walletInfo: await this.getWalletInfo()
-      // })
-    }
-
     const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
 
     const accountInfo: AccountInfo = {
@@ -1095,6 +1038,8 @@ export class DAppClient extends Client {
       threshold: message.threshold,
       notification: message.notification,
       connectedAt: new Date().getTime(),
+      walletType: message.walletType,
+      verificationType: message.verificationType,
       ...(message.verificationType === 'proof_of_event' ? { hasVerifiedChallenge: false } : {})
     }
 
@@ -1125,6 +1070,67 @@ export class DAppClient extends Client {
     return output
   }
 
+  public async requestProofOfEventChallenge(input: RequestProofOfEventChallengeInput) {
+    const activeAccount = this._activeAccount.promiseResult
+
+    if (!activeAccount)
+      throw new Error('Please request permissions before doing a proof of event challenge')
+    if (
+      activeAccount.walletType !== 'abstracted_account' &&
+      activeAccount.verificationType !== 'proof_of_event'
+    )
+      throw new Error(
+        'This wallet is not an abstracted account and thus cannot perform proof of event'
+      )
+
+    const challengeRequest: ProofOfEventChallengeRequestInput = {
+      type: BeaconMessageType.ProofOfEventChallengeRequest,
+      contractAddress: activeAccount.address,
+      ...input
+    }
+
+    const { message } = await this.makeRequest<
+      ProofOfEventChallengeRequest,
+      ProofOfEventChallengeResponse
+    >(challengeRequest).catch(async (requestError: ErrorResponse) => {
+      throw await this.handleRequestError(challengeRequest, requestError)
+    })
+
+    this.analytics.track(
+      'event',
+      'DAppClient',
+      `Proof of event challenge ${message.isAccepted ? 'accepted' : 'refused'}`,
+      { address: activeAccount.address }
+    )
+
+    if (message.isAccepted) {
+      console.log(this.proofOfEventChallenges)
+      return this.checkProofOfEventChallenge({
+        contractAddress: activeAccount.address,
+        accountIdentifier: activeAccount.accountIdentifier,
+        ...input
+      })
+      // setTimeout(async () => {
+      // const recordedRequest: ProofOfEventChallengeRecordedMessageInput = {
+      //   type: BeaconMessageType.ProofOfEventChallengeRecorded,
+      //   dAppChallengeId: message.dAppChallengeId,
+      //   success: true,
+      //   errorMessage: ''
+      // }
+      // this.makeRequest(recordedRequest).catch(async (requestError: ErrorResponse) => {
+      //   throw await this.handleRequestError(request, requestError)
+      // })
+      // }, 5000)
+    } else {
+      throw new Error('Proof of Event challenge refused')
+    }
+    //   await this.notifySuccess(challengeRequest, {
+    //     output: message,
+    //     blockExplorer: this.blockExplorer,
+    //     connectionContext: connectionInfo,
+    //     walletInfo: await this.getWalletInfo()
+    // })
+  }
   /**
    * This method will send a "SignPayloadRequest" to the wallet. This method is meant to be used to sign
    * arbitrary data (eg. a string). It will return the signature in the format of "edsig..."

@@ -40,6 +40,10 @@
     <br /><br />
     <button id="requestPermission">Request Permission</button>
     <br /><br />
+    <button id="requestProofOfEventChallenge" disabled style="opacity: 0.5">
+      Request Proof Of Event Challenge
+    </button>
+    <br /><br />
     <button id="sendToSelf">Send 1 mutez to myself</button>
     <br /><br />
     <button id="sendToSelfWithPrepare">Send 1 mutez to myself (with 1s prepare delay)</button>
@@ -199,6 +203,16 @@
             document.getElementById('activeAccount').innerText = activeAccount.address
             document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
             document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
+
+            if (
+              activeAccount.walletType !== 'account_abstracted' &&
+              activeAccount.verificationType !== 'proof_of_event'
+            )
+              return
+
+            const btn = document.getElementById('requestProofOfEventChallenge')
+            btn.style.opacity = '1'
+            btn.disabled = false
           } else {
             document.getElementById('activeAccount').innerText = ''
             document.getElementById('activeAccountNetwork').innerText = ''
@@ -291,6 +305,21 @@
           })
       }
 
+      // Initiate a Proof Of Event Request
+      const requestProofOfEventChallenge = () => {
+        client
+          .requestProofOfEventChallenge({
+            dAppChallengeId: 'my-id',
+            payload: JSON.stringify({ timestamp: Date.now() })
+          })
+          .then(() => {
+            console.log('ProofOfEventChallenge approved')
+          })
+          .catch((error) => {
+            console.log('error during Proof Of Event Challenge', error)
+          })
+      }
+
       document.getElementById('connect').addEventListener('click', () => {
         // Check if we have an active account
         client.getActiveAccount().then((activeAccount) => {
@@ -315,6 +344,11 @@
       // Add event listener to the button
       document.getElementById('requestPermission').addEventListener('click', () => {
         requestPermission()
+      })
+
+      // Add event listener to the button
+      document.getElementById('requestProofOfEventChallenge').addEventListener('click', () => {
+        requestProofOfEventChallenge()
       })
 
       // Add event listener to the button

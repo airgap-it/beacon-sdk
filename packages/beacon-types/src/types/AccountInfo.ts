@@ -16,4 +16,6 @@ export interface AccountInfo extends PermissionEntity {
   connectedAt: number
   notification?: Notification
   hasVerifiedChallenge?: boolean
+  walletType: 'implicit' | 'abstracted_account'
+  verificationType?: 'proof_of_event'
 }

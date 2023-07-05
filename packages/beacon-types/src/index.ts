@@ -51,6 +51,7 @@ import { StorageKeyReturnType } from './types/storage/StorageKeyReturnType'
 import { ExtendedP2PPairingRequest, P2PPairingRequest } from './types/P2PPairingRequest'
 import { BeaconMessage } from './types/beacon/BeaconMessage'
 import { RequestPermissionInput } from './types/RequestPermissionInput'
+import { RequestProofOfEventChallengeInput } from './types/RequestProofOfEventChallengeInput'
 import { RequestSignPayloadInput } from './types/RequestSignPayloadInput'
 // import { RequestEncryptPayloadInput } from './types/RequestEncryptPayloadInput'
 import { RequestOperationInput } from './types/RequestOperationInput'
@@ -205,6 +206,7 @@ export {
   Extension,
   EncryptedExtensionMessage,
   RequestPermissionInput,
+  RequestProofOfEventChallengeInput,
   RequestSignPayloadInput,
   ProofOfEventChallengeRecordedMessageInput,
   // RequestEncryptPayloadInput,
