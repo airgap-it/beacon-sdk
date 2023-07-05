@@ -314,6 +314,12 @@
           })
           .then(() => {
             console.log('ProofOfEventChallenge approved')
+
+            const promise = client.getProofOfEventChallenge('my-id')
+
+            promise.then(() => {
+              alert('Proof of event verified')
+            })
           })
           .catch((error) => {
             console.log('error during Proof Of Event Challenge', error)

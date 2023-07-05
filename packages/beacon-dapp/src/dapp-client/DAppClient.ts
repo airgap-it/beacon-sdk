@@ -63,7 +63,8 @@ import {
   ProofOfEventChallengeRequest,
   ProofOfEventChallengeResponse,
   ProofOfEventChallengeRequestInput,
-  RequestProofOfEventChallengeInput
+  RequestProofOfEventChallengeInput,
+  ProofOfEventChallengeRecordedMessageInput
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -88,7 +89,7 @@ import { TzktBlockExplorer } from '../utils/tzkt-blockexplorer'
 
 import { DAppClientOptions } from './DAppClientOptions'
 import { AlertButton, closeToast } from '@airgap/beacon-ui'
-import { BeaconEventHandler, openAlert } from '@airgap/beacon-dapp'
+import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { DappWalletConnectTransport } from '../transports/DappWalletConnectTransport'
@@ -153,7 +154,10 @@ export class DAppClient extends Client {
     >
   >()
 
-  private readonly proofOfEventChallenges = new Map<string, Promise<null>>()
+  private readonly proofOfEventChallenges = new Map<
+    string,
+    Promise<{ payload: string; dAppChallengeId: string; accountIdentifier: string }>
+  >()
   /**
    * The currently active account. For all requests that are associated to a specific request (operation request, signing request),
    * the active account is used to determine the network and destination wallet
@@ -217,6 +221,15 @@ export class DAppClient extends Client {
         await this.setActiveAccount(undefined)
         console.error(storageError)
       })
+
+    this.storage.get(StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES).then((ongoingChallenges) =>
+      ongoingChallenges.forEach((challenge) => {
+        this.proofOfEventChallenges.set(
+          challenge.dAppChallengeId,
+          this.checkProofOfEventChallenge(challenge)
+        )
+      })
+    )
 
     this.handleResponse = async (
       message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
@@ -918,20 +931,20 @@ export class DAppClient extends Client {
     return response.message
   }
 
-  private async checkProofOfEventChallenge({
-    contractAddress,
-    payload,
-    dAppChallengeId,
-    accountIdentifier
-  }: {
+  private async checkProofOfEventChallenge(input: {
     contractAddress: string
     payload: string
     dAppChallengeId: string
     accountIdentifier: string
   }) {
+    const { contractAddress, payload, dAppChallengeId, accountIdentifier } = input
     const encoder = new TextEncoder()
 
-    const loop = async () =>
+    const loop = async (): Promise<{
+      payload: string
+      dAppChallengeId: string
+      accountIdentifier: string
+    }> =>
       fetch(
         `https://api.ghostnet.tzkt.io/v1/contracts/events?contract=${contractAddress}&tag=proof_of_event&payload.challenge_id=${Buffer.from(
           encoder.encode(dAppChallengeId)
@@ -958,17 +971,23 @@ export class DAppClient extends Client {
           ) => {
             if (response.length === 0) {
               await new Promise((resolve) => setTimeout(resolve, 10000))
-              loop()
+              return loop()
             } else {
-              const account = await this.accountManager.updateAccount(accountIdentifier, {
+              await this.accountManager.updateAccount(accountIdentifier, {
                 hasVerifiedChallenge: true
               })
-              openAlert({
-                title: 'Challenge verified',
-                body: `${account?.address} has verified the proof of event challenge`
-              })
-              console.log(response[0])
-              // TODO
+              await this.storage
+                .get(StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES)
+                .then((ongoingChallenges) =>
+                  this.storage.set(
+                    StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES,
+                    ongoingChallenges.filter(
+                      (challenge) => challenge.dAppChallengeId !== dAppChallengeId
+                    )
+                  )
+                )
+
+              return { payload, dAppChallengeId, accountIdentifier }
             }
           }
         )
@@ -1083,17 +1102,17 @@ export class DAppClient extends Client {
         'This wallet is not an abstracted account and thus cannot perform proof of event'
       )
 
-    const challengeRequest: ProofOfEventChallengeRequestInput = {
+    const request: ProofOfEventChallengeRequestInput = {
       type: BeaconMessageType.ProofOfEventChallengeRequest,
       contractAddress: activeAccount.address,
       ...input
     }
 
-    const { message } = await this.makeRequest<
+    const { message, connectionInfo } = await this.makeRequest<
       ProofOfEventChallengeRequest,
       ProofOfEventChallengeResponse
-    >(challengeRequest).catch(async (requestError: ErrorResponse) => {
-      throw await this.handleRequestError(challengeRequest, requestError)
+    >(request).catch(async (requestError: ErrorResponse) => {
+      throw await this.handleRequestError(request, requestError)
     })
 
     this.analytics.track(
@@ -1104,32 +1123,72 @@ export class DAppClient extends Client {
     )
 
     if (message.isAccepted) {
-      console.log(this.proofOfEventChallenges)
-      return this.checkProofOfEventChallenge({
-        contractAddress: activeAccount.address,
-        accountIdentifier: activeAccount.accountIdentifier,
-        ...input
-      })
-      // setTimeout(async () => {
-      // const recordedRequest: ProofOfEventChallengeRecordedMessageInput = {
-      //   type: BeaconMessageType.ProofOfEventChallengeRecorded,
-      //   dAppChallengeId: message.dAppChallengeId,
-      //   success: true,
-      //   errorMessage: ''
-      // }
-      // this.makeRequest(recordedRequest).catch(async (requestError: ErrorResponse) => {
-      //   throw await this.handleRequestError(request, requestError)
-      // })
-      // }, 5000)
-    } else {
-      throw new Error('Proof of Event challenge refused')
+      await this.recordProofOfEventChallenge(input)
     }
-    //   await this.notifySuccess(challengeRequest, {
-    //     output: message,
-    //     blockExplorer: this.blockExplorer,
-    //     connectionContext: connectionInfo,
-    //     walletInfo: await this.getWalletInfo()
-    // })
+
+    await this.notifySuccess(request, {
+      account: activeAccount,
+      output: message,
+      blockExplorer: this.blockExplorer,
+      connectionContext: connectionInfo,
+      walletInfo: await this.getWalletInfo()
+    })
+
+    return message
+  }
+
+  private async recordProofOfEventChallenge(input: RequestProofOfEventChallengeInput) {
+    const activeAccount = this._activeAccount.promiseResult
+
+    if (!activeAccount)
+      throw new Error(
+        'Active account is undefined. Please request permissions before recording a proof of event challenge'
+      )
+
+    let success = true
+    let errorMessage = ''
+
+    const proofOfEvent = {
+      contractAddress: activeAccount.address,
+      accountIdentifier: activeAccount.accountIdentifier,
+      ...input
+    }
+
+    try {
+      await this.storage
+        .get(StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES)
+        .then((ongoingChallenges) =>
+          this.storage.set(
+            StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES,
+            ongoingChallenges.concat([proofOfEvent])
+          )
+        )
+
+      this.proofOfEventChallenges.set(
+        input.dAppChallengeId,
+        this.checkProofOfEventChallenge(proofOfEvent)
+      )
+    } catch (e) {
+      console.log(e)
+
+      errorMessage = (e as Error).message
+      success = false
+    }
+
+    const recordedRequest: ProofOfEventChallengeRecordedMessageInput = {
+      type: BeaconMessageType.ProofOfEventChallengeRecorded,
+      dAppChallengeId: input.dAppChallengeId,
+      success,
+      errorMessage
+    }
+
+    await this.makeRequest(recordedRequest, true).catch(async (requestError: ErrorResponse) => {
+      throw await this.handleRequestError(recordedRequest, requestError)
+    })
+  }
+
+  public getProofOfEventChallenge(dAppChallengeId: string) {
+    return this.proofOfEventChallenges.get(dAppChallengeId)
   }
   /**
    * This method will send a "SignPayloadRequest" to the wallet. This method is meant to be used to sign
@@ -1519,6 +1578,13 @@ export class DAppClient extends Client {
         }
       | {
           account: AccountInfo
+          output: ProofOfEventChallengeResponse
+          blockExplorer: BlockExplorer
+          connectionContext: ConnectionContext
+          walletInfo: WalletInfo
+        }
+      | {
+          account: AccountInfo
           output: OperationResponseOutput
           blockExplorer: BlockExplorer
           connectionContext: ConnectionContext
@@ -1646,13 +1712,24 @@ export class DAppClient extends Client {
    *
    * @param requestInput The BeaconMessage to be sent to the wallet
    * @param account The account that the message will be sent to
+   * @param oneWay If true, the function return as soon as the message is sent
    */
-  private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
-    requestInput: Optional<T, IgnoredRequestInputProperties>
+
+  private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
+    requestInput: Optional<T, IgnoredRequestInputProperties>,
+    oneWay?: undefined | false
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
-  }> {
+  }>
+  private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
+    requestInput: Optional<T, IgnoredRequestInputProperties>,
+    oneWay: true
+  ): Promise<undefined>
+  private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
+    requestInput: Optional<T, IgnoredRequestInputProperties>,
+    oneWay?: boolean
+  ) {
     const messageId = await generateGUID()
 
     console.time(messageId)
@@ -1687,15 +1764,19 @@ export class DAppClient extends Client {
       ...requestInput
     }
 
-    const exposed = new ExposedPromise<
-      {
-        message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>
-        connectionInfo: ConnectionContext
-      },
-      ErrorResponse
-    >()
+    let exposed
 
-    this.addOpenRequest(request.id, exposed)
+    if (!oneWay) {
+      exposed = new ExposedPromise<
+        {
+          message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>
+          connectionInfo: ConnectionContext
+        },
+        ErrorResponse
+      >()
+
+      this.addOpenRequest(request.id, exposed)
+    }
 
     const payload = await new Serializer().serialize(request)
 
@@ -1742,7 +1823,7 @@ export class DAppClient extends Client {
       .catch((emitError) => console.warn(emitError))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return exposed.promise as any // TODO: fix type
+    return exposed?.promise as any // TODO: fix type
   }
 
   /**
