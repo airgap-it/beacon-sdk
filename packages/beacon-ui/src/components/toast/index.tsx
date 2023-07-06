@@ -1,4 +1,4 @@
-import { Component, For } from 'solid-js'
+import { Component, For, createSignal } from 'solid-js'
 import { CloseIcon } from '../icons'
 import Loader from '../loader'
 
@@ -39,10 +39,21 @@ export interface ToastProps {
     name: string
     type?: string
   }
+  openWalletAction?: () => void
 }
+
+const [showMoreInfo, setShowMoreInfo] = createSignal<boolean>(true)
 
 const Toast: Component<ToastProps> = (props: ToastProps) => {
   const hasWalletObject = props.label.includes('{{wallet}}') && props.walletInfo
+  const isRequestSentToast = props.label.includes('Request sent to')
+
+  if (isRequestSentToast) {
+    setShowMoreInfo(false)
+    setTimeout(() => {
+      setShowMoreInfo(true)
+    }, 3000)
+  }
 
   return (
     <div class={props.open ? 'toast-wrapper-show' : 'toast-wrapper-hide'}>
@@ -50,11 +61,23 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
         <Loader />
         {hasWalletObject && props.walletInfo && <>{parseWallet(props.label, props.walletInfo)}</>}
         {!hasWalletObject && <p class="toast-label">props.label</p>}
+        {props.openWalletAction && (
+          <div
+            class="toast-action-button"
+            onClick={() => {
+              if (props && props.openWalletAction) {
+                props?.openWalletAction()
+              }
+            }}
+          >
+            Open Wallet
+          </div>
+        )}
         <div class="toast-button-icon" onClick={props.onClickClose}>
           <CloseIcon />
         </div>
       </div>
-      {props.actions && (
+      {props.actions && showMoreInfo() && (
         <div class="toast-body">
           <For each={props.actions}>
             {(action) => (

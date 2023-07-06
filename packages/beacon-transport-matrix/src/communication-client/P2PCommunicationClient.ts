@@ -161,6 +161,10 @@ export class P2PCommunicationClient extends CommunicationClient {
     keys.forEach((key) => {
       const nodes = this.ENABLED_RELAY_SERVERS[key] ?? []
 
+      if (nodes.length === 0) {
+        return
+      }
+
       const index = Math.floor(Math.random() * nodes.length)
       allPromises.push(
         this.getBeaconInfo(nodes[index])

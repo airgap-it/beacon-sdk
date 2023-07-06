@@ -178,3 +178,6 @@ export class PostMessageTransport<
       })
   }
 }
+
+// Start loading wallets async so they will be ready when the modal is opened
+PostMessageTransport.getAvailableExtensions()
