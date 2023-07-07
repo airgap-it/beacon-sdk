@@ -12,7 +12,8 @@ export {
   recipientString,
   signMessage,
   validateAddress,
-  ValidationResult
+  ValidationResult,
+  prefixPublicKey
 } from './utils/crypto'
 export { generateGUID } from './utils/generate-uuid'
 

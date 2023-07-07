@@ -7,6 +7,7 @@ interface WalletProps {
   wallets: MergedWallet[]
   onClickWallet: (id: string) => void
   onClickOther: () => void
+  isMobile: boolean
   small?: boolean
   disabled?: boolean
 }
@@ -33,7 +34,7 @@ const Wallets: Component<WalletProps> = (props: WalletProps) => {
         </For>
       </div>
       <button class="wallets-button" onClick={() => props.onClickOther()}>
-        Pair wallet on another device
+        {props.isMobile ? 'Pair wallet on another device' : 'Show QR code'}
       </button>
     </div>
   )
