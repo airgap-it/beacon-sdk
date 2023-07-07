@@ -17,11 +17,12 @@ const account1: AccountInfo = {
     type: Origin.P2P,
     id: 'o1'
   },
-  address: 'tz1',
-  publicKey: 'pubkey1',
+  address: 'KT1',
   network: { type: NetworkType.MAINNET },
   scopes: [PermissionScope.SIGN],
-  connectedAt: new Date().getTime()
+  connectedAt: new Date().getTime(),
+  walletType: 'abstracted_account',
+  hasVerifiedChallenge: false
 }
 
 const account2: AccountInfo = {
@@ -35,7 +36,8 @@ const account2: AccountInfo = {
   publicKey: 'pubkey2',
   network: { type: NetworkType.MAINNET },
   scopes: [PermissionScope.SIGN],
-  connectedAt: new Date().getTime()
+  connectedAt: new Date().getTime(),
+  walletType: 'implicit'
 }
 
 const account3: AccountInfo = {
@@ -49,7 +51,8 @@ const account3: AccountInfo = {
   publicKey: 'pubkey3',
   network: { type: NetworkType.MAINNET },
   scopes: [PermissionScope.SIGN],
-  connectedAt: new Date().getTime()
+  connectedAt: new Date().getTime(),
+  walletType: 'implicit'
 }
 
 describe(`AccountManager`, () => {
@@ -85,6 +88,24 @@ describe(`AccountManager`, () => {
 
     expect(accountsAfterReplacing.length, 'after replacing').to.equal(1)
     expect(accountsAfterReplacing[0].scopes, 'after replacing').to.deep.equal(newAccount1.scopes)
+  })
+
+  it(`updates an existing account`, async () => {
+    const accountsBefore: AccountInfo[] = await manager.getAccounts()
+    expect(accountsBefore.length, 'before').to.equal(0)
+
+    await manager.addAccount(account1)
+    const accountsAfterAdding: AccountInfo[] = await manager.getAccounts()
+
+    expect(accountsAfterAdding.length, 'after adding').to.equal(1)
+
+    await manager.updateAccount(account1.accountIdentifier, {
+      hasVerifiedChallenge: true
+    })
+    const accountsAfterReplacing: AccountInfo[] = await manager.getAccounts()
+
+    expect(accountsAfterReplacing.length, 'after replacing').to.equal(1)
+    expect(accountsAfterReplacing[0].hasVerifiedChallenge, 'after replacing').to.equal(true)
   })
 
   it(`reads and adds multiple accounts`, async () => {

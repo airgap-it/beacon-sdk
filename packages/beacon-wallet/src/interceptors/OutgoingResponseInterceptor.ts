@@ -25,7 +25,12 @@ import {
   ProofOfEventChallengeResponse
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
-import { getAddressFromPublicKey } from '@airgap/beacon-utils'
+import {
+  getAddressFromPublicKey,
+  validateAddress,
+  ValidationResult,
+  CONTRACT_PREFIX
+} from '@airgap/beacon-utils'
 
 interface OutgoingResponseInterceptorOptions {
   senderId: string
@@ -190,8 +195,21 @@ export class OutgoingResponseInterceptor {
 
         const publicKey = response.publicKey
 
-        // TODO: Validate address
         const address: string = response.address ?? (await getAddressFromPublicKey(publicKey!))
+
+        if (validateAddress(address) !== ValidationResult.VALID) {
+          throw new Error(`Invalid address: "${address}"`)
+        }
+
+        if (
+          message.walletType === 'abstracted_account' &&
+          address.substring(0, 3) !== CONTRACT_PREFIX
+        ) {
+          throw new Error(
+            `Invalid abstracted account address "${address}", it should be a ${CONTRACT_PREFIX} address`
+          )
+        }
+
         const appMetadata = await appMetadataManager.getAppMetadata(request.senderId)
 
         if (!appMetadata) {

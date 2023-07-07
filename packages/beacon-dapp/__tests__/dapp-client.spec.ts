@@ -160,7 +160,7 @@ describe(`DAppClient`, () => {
         name: 'test-wallet'
       },
       id: 'some-id',
-      version: '2',
+      version: BEACON_VERSION,
       senderId: 'sender-id',
       type: BeaconMessageType.PermissionResponse,
       publicKey: 'pubkey1',
@@ -657,25 +657,12 @@ describe(`DAppClient`, () => {
 
     const getActiveAccountStub = sinon.stub(dAppClient, <any>'getActiveAccount').resolves(account1)
 
-    // const getPeersStub = sinon.stub(Transport.prototype, 'getPeers').resolves([
-    //   {
-    //     id: '',
-    //     name: '',
-    //     address: 'KT1',
-    //     senderId: 'sender-id',
-    //     version: BEACON_VERSION,
-    //     type: 'p2p-pairing-request',
-    //     relayServer: ''
-    //   }
-    // ])
-
     const input = {
       dAppChallengeId: 'my-id',
       payload: 'my-payload'
     }
     const response = await dAppClient.requestProofOfEventChallenge(input)
 
-    // expect(getPeersStub.callCount, 'getPeersStub').to.equal(4)
     expect(notifySuccessStub.callCount, 'notifySuccessStub').to.equal(1)
     expect(recordProofOfEventChallengeStub.callCount, 'recordProofOfEventChallengeStub').to.equal(1)
     expect(getActiveAccountStub.callCount, 'getActiveAccountStub').to.equal(2)

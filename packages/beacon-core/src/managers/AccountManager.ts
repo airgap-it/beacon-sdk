@@ -35,7 +35,7 @@ export class AccountManager {
   ): Promise<AccountInfo | undefined> {
     const account = await this.getAccount(accountIdentifier)
 
-    if (!account) return Promise.resolve(undefined)
+    if (!account) return undefined
 
     const newAccount = { ...account, ...accountInfo }
     await this.storageManager.addOne(
@@ -44,7 +44,7 @@ export class AccountManager {
       true
     )
 
-    return Promise.resolve(newAccount)
+    return newAccount
   }
 
   public async removeAccount(accountIdentifier: string): Promise<void> {
