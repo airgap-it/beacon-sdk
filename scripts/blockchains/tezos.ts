@@ -74,17 +74,6 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.MUMBAINET]: 'https://mumbainet.kukai.app',
       [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app'
     }
-  },
-  {
-    key: 'tzsafe_web',
-    name: 'Tzsafe Multisig wallet',
-    shortName: 'Tzsafe',
-    color: '',
-    logo: 'web-kukai.png',
-    links: {
-      [NetworkType.MAINNET]: 'http://localhost:3000/beacon',
-      [NetworkType.GHOSTNET]: 'http://localhost:3000/beacon'
-    }
   }
 ]
 

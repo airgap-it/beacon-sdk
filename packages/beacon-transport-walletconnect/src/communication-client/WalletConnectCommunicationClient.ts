@@ -182,7 +182,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new Error('Public Key in `tezos_getAccounts` is empty!')
     }
 
-      const permissionResponse: PermissionResponseInput = {
+    const permissionResponse: PermissionResponseInput = {
       type: BeaconMessageType.PermissionResponse,
       appMetadata: {
         senderId: session.peer.publicKey,
@@ -192,7 +192,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       publicKey: result[0]?.pubkey,
       network: { type: NetworkType.MAINNET },
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
-      id: this.currentMessageId!
+      id: this.currentMessageId!,
+      walletType: 'implicit'
     }
 
     this.sendResponse(session, permissionResponse)
@@ -265,7 +266,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         // while the `transactionHash` and `hash` fields are supported for backwards compatibility.
         operationHash?: string
         transactionHash?: string
-        hash?: string 
+        hash?: string
       }>({
         topic: session.topic,
         chainId: `${TEZOS_PLACEHOLDER}:${network}`,
@@ -280,7 +281,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       .then((response) => {
         const sendOperationResponse: OperationResponseInput = {
           type: BeaconMessageType.OperationResponse,
-          transactionHash: response.operationHash ?? response.transactionHash ?? response.hash ?? '',
+          transactionHash:
+            response.operationHash ?? response.transactionHash ?? response.hash ?? '',
           id: this.currentMessageId!
         }
 
@@ -590,7 +592,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // }
   }
 
-  private async sendResponse(session: SessionTypes.Struct, partialResponse: BeaconResponseInputMessage) {
+  private async sendResponse(
+    session: SessionTypes.Struct,
+    partialResponse: BeaconResponseInputMessage
+  ) {
     const response: BeaconBaseMessage = {
       ...partialResponse,
       version: '2',
