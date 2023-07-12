@@ -52,6 +52,30 @@ export const tezosExtensionList: ExtensionApp[] = [
 
 export const tezosWebList: WebApp[] = [
   {
+    key: 'metamask_tezos_web',
+    name: 'MetaMask',
+    shortName: 'MetaMask',
+    color: '',
+    logo: 'web-metamask.png',
+    links: {
+      [NetworkType.MAINNET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.GHOSTNET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.MONDAYNET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.DAILYNET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.DELPHINET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.EDONET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.FLORENCENET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.GRANADANET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.HANGZHOUNET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.ITHACANET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.JAKARTANET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.KATHMANDUNET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.LIMANET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.MUMBAINET]: 'https://airgap-it.github.io/tezos-snaps-wallet/',
+      [NetworkType.NAIROBINET]: 'https://airgap-it.github.io/tezos-snaps-wallet/'
+    }
+  },
+  {
     key: 'kukai_web',
     name: 'Kukai Wallet',
     shortName: 'Kukai',
