@@ -35,7 +35,7 @@ import {
   SignPayloadResponse,
   SignPayloadResponseInput
 } from '@airgap/beacon-types'
-import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
+import { generateGUID } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 
@@ -154,7 +154,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     // TODO: Use public key from namespace
     const accounts = this.getTezosNamespace(session.namespaces).accounts
-    const [_namespace, chainId, address] = accounts[0].split(':', 3)
+    const [_namespace, _chainId, _address] = accounts[0].split(':', 3)
 
     let publicKey: string | undefined
 
