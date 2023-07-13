@@ -136,6 +136,7 @@ const closeAlerts = async (): Promise<void> =>
  */
 // eslint-disable-next-line complexity
 const openAlert = async (config: AlertConfig): Promise<string> => {
+  setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
 
@@ -181,6 +182,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     // Shadow root
     const shadowRootEl = document.createElement('div')
+    if (document.getElementById('beacon-alert-wrapper')) {
+      (document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
+    }
     shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')
     shadowRootEl.style.height = '0px'
     const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })

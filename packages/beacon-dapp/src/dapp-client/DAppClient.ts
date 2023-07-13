@@ -59,7 +59,8 @@ import {
   DesktopApp,
   ExtensionApp,
   WebApp,
-  ExtendedWalletConnectPairingResponse
+  ExtendedWalletConnectPairingResponse,
+  ChangeAccountRequest
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -269,6 +270,8 @@ export class DAppClient extends Client {
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
+                : connectionInfo.origin === Origin.WALLETCONNECT
+                ? this.walletConnectTransport
                 : this.postMessageTransport ?? (await this.transport)
 
             if (relevantTransport) {
@@ -279,12 +282,12 @@ export class DAppClient extends Client {
               )
               if (peer) {
                 await relevantTransport.removePeer(peer as any)
-                await this.removeAccountsForPeers([peer])
-                await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-              } else {
-                logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
               }
+              await this.removeAccountsForPeerIds([message.senderId])
+              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
+          } else if (typedMessage.message.type === BeaconMessageType.ChangeAccountRequest) {
+            await this.onNewAccount(typedMessage.message as ChangeAccountRequest, connectionInfo)
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
@@ -333,6 +336,8 @@ export class DAppClient extends Client {
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
+                : connectionInfo.origin === Origin.WALLETCONNECT
+                ? this.walletConnectTransport
                 : this.postMessageTransport ?? (await this.transport)
 
             if (relevantTransport) {
@@ -343,12 +348,12 @@ export class DAppClient extends Client {
               )
               if (peer) {
                 await relevantTransport.removePeer(peer as any)
-                await this.removeAccountsForPeers([peer])
-                await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-              } else {
-                logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
               }
+              await this.removeAccountsForPeerIds([message.senderId])
+              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
+          } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
+            await this.onNewAccount(typedMessage, connectionInfo)
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
@@ -941,45 +946,12 @@ export class DAppClient extends Client {
       throw await this.handleRequestError(request, requestError)
     })
 
-    // TODO: Migration code. Remove sometime after 1.0.0 release.
-    const publicKey = await prefixPublicKey(
-      message.publicKey || (message as any).pubkey || (message as any).pubKey
-    )
-    const address = await getAddressFromPublicKey(publicKey)
-
-    console.log('######## MESSAGE #######')
-    console.log(message)
-
-    const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
-
-    const accountInfo: AccountInfo = {
-      accountIdentifier: await getAccountIdentifier(address, message.network),
-      senderId: message.senderId,
-      origin: {
-        type: connectionInfo.origin,
-        id: connectionInfo.id
-      },
-      walletKey,
-      address,
-      publicKey,
-      network: message.network,
-      scopes: message.scopes,
-      threshold: message.threshold,
-      notification: message.notification,
-      connectedAt: new Date().getTime()
-    }
-
-    console.log('######## ACCOUNT INFO #######')
-
-    console.log(JSON.stringify(accountInfo))
-
-    await this.accountManager.addAccount(accountInfo)
-    await this.setActiveAccount(accountInfo)
+    const accountInfo = await this.onNewAccount(message, connectionInfo)
 
     const output: PermissionResponseOutput = {
       ...message,
-      walletKey,
-      address,
+      walletKey: accountInfo.walletKey,
+      address: accountInfo.address,
       accountInfo
     }
 
@@ -991,7 +963,7 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
-    this.analytics.track('event', 'DAppClient', 'Permission received', { address })
+    this.analytics.track('event', 'DAppClient', 'Permission received', { address: accountInfo.address })
 
     return output
   }
@@ -1276,12 +1248,17 @@ export class DAppClient extends Client {
    * @param peersToRemove An array of peers for which accounts should be removed
    */
   private async removeAccountsForPeers(peersToRemove: ExtendedPeerInfo[]): Promise<void> {
+    const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
+
+    return this.removeAccountsForPeerIds(peerIdsToRemove)
+  }
+
+  private async removeAccountsForPeerIds(peerIds: string[]): Promise<void> {
     const accounts = await this.accountManager.getAccounts()
 
-    const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
     // Remove all accounts with origin of the specified peer
     const accountsToRemove = accounts.filter((account) =>
-      peerIdsToRemove.includes(account.senderId)
+      peerIds.includes(account.senderId)
     )
     const accountIdentifiersToRemove = accountsToRemove.map(
       (accountInfo) => accountInfo.accountIdentifier
@@ -1798,5 +1775,44 @@ export class DAppClient extends Client {
     })
 
     return notificationResponse.data
+  }
+
+  private async onNewAccount(message: PermissionResponse | ChangeAccountRequest, connectionInfo: ConnectionContext): Promise<AccountInfo> {
+    // TODO: Migration code. Remove sometime after 1.0.0 release.
+    const publicKey = await prefixPublicKey(
+      message.publicKey || (message as any).pubkey || (message as any).pubKey
+    )
+    const address = await getAddressFromPublicKey(publicKey)
+
+    console.log('######## MESSAGE #######')
+    console.log(message)
+
+    const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
+
+    const accountInfo: AccountInfo = {
+      accountIdentifier: await getAccountIdentifier(address, message.network),
+      senderId: message.senderId,
+      origin: {
+        type: connectionInfo.origin,
+        id: connectionInfo.id
+      },
+      walletKey,
+      address,
+      publicKey,
+      network: message.network,
+      scopes: message.scopes,
+      threshold: message.threshold,
+      notification: message.notification,
+      connectedAt: new Date().getTime()
+    }
+
+    console.log('######## ACCOUNT INFO #######')
+
+    console.log(JSON.stringify(accountInfo))
+
+    await this.accountManager.addAccount(accountInfo)
+    await this.setActiveAccount(accountInfo)
+
+    return accountInfo
   }
 }
