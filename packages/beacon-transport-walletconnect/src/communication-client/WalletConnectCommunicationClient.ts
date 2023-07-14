@@ -1,7 +1,7 @@
 import { BEACON_VERSION, CommunicationClient, Serializer } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
-import { SessionTypes, SignClientTypes } from '@walletconnect/types'
+import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
 import { getSdkError } from '@walletconnect/utils'
 import {
   ActiveAccountUnspecified,
@@ -13,6 +13,7 @@ import {
   NotConnected
 } from '../error'
 import {
+  AcknowledgeResponseInput,
   BeaconBaseMessage,
   BeaconErrorType,
   BeaconMessageType,
@@ -52,7 +53,8 @@ export enum PermissionScopeMethods {
 
 export enum PermissionScopeEvents {
   CHAIN_CHANGED = 'chainChanged',
-  ACCOUNTS_CHANGED = 'accountsChanged'
+  ACCOUNTS_CHANGED = 'accountsChanged',
+  REQUEST_ACKNOWLEDGED = 'requestAcknowledged'
 }
 
 type BeaconInputMessage =
@@ -394,7 +396,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private subscribeToSessionEvents(signClient: Client): void {
     signClient.on('session_event', (event) => {
-      console.log('######## SESSION_EVENT', event)
+      if (event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED) {
+        this.acknowledgeRequest(event.params.event.data.id)
+      }
     })
 
     signClient.on('session_update', (event) => {
@@ -413,6 +417,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.disconnect(signClient, { type: 'pairing', topic: event.topic })
     })
   }
+
+  private async acknowledgeRequest(id: string) {
+    const session = this.getSession()
+    const acknowledgeResponse: AcknowledgeResponseInput = {
+      type: BeaconMessageType.Acknowledge,
+      id
+    }
+
+    this.notifyListeners(session, acknowledgeResponse)
+  }
+
 
   private async updateActiveAccount(namespaces: SessionTypes.Namespaces) {
     try {
@@ -585,16 +600,18 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         PermissionScopeMethods.SIGN
       ]
     }
+    const optionalPermissionScopeParams: PermissionScopeParam = {
+      networks: [],
+      events: [PermissionScopeEvents.REQUEST_ACKNOWLEDGED],
+      methods: []
+    }
 
     const connectParams = {
       requiredNamespaces: {
-        [TEZOS_PLACEHOLDER]: {
-          chains: permissionScopeParams.networks.map(
-            (network) => `${TEZOS_PLACEHOLDER}:${network}`
-          ),
-          methods: permissionScopeParams.methods,
-          events: permissionScopeParams.events ?? []
-        }
+        [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(permissionScopeParams)
+      },
+      optionalNamespaces: {
+        [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
       },
       pairingTopic: pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
     }
@@ -607,6 +624,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.setDefaultAccountAndNetwork()
 
     return this.session
+  }
+
+  private permissionScopeParamsToNamespaces(permissionScopeParams: PermissionScopeParam): ProposalTypes.BaseRequiredNamespace {
+    return {
+      chains: permissionScopeParams.networks.map(
+        (network) => `${TEZOS_PLACEHOLDER}:${network}`
+      ),
+      methods: permissionScopeParams.methods,
+      events: permissionScopeParams.events ?? []
+    }
   }
 
   private validateReceivedNamespace(
