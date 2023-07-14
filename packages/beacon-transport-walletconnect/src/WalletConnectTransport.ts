@@ -83,7 +83,7 @@ export class WalletConnectTransport<
   }
 
   public async disconnect(): Promise<void> {
-    // await this.client.stop()
+    await this.client.close()
 
     return super.disconnect()
   }
