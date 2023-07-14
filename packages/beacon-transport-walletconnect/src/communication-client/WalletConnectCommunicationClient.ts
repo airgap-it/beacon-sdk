@@ -396,8 +396,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private subscribeToSessionEvents(signClient: Client): void {
     signClient.on('session_event', (event) => {
-      if (event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED) {
-        this.acknowledgeRequest(event.params.event.data.id)
+      if (event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED && this.currentMessageId) {
+        this.acknowledgeRequest(this.currentMessageId)
       }
     })
 
