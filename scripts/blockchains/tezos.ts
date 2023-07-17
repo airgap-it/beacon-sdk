@@ -128,11 +128,11 @@ export const tezosIosList: App[] = [
     deepLink: 'airgap-wallet://'
   },
   {
-    key: 'naan_ios',
-    name: 'naan - your portal to web3 ',
-    shortName: 'naan',
+    key: 'plenty_wallet_ios',
+    name: 'Plenty Wallet - your portal to web3 ',
+    shortName: 'Plenty Wallet',
     color: '',
-    logo: 'ios-naan.png',
+    logo: 'ios-plenty-wallet.png',
     universalLink: 'https://www.naan.app/',
     deepLink: 'naan://'
   },

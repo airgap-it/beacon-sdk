@@ -601,7 +601,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       ]
     }
     const optionalPermissionScopeParams: PermissionScopeParam = {
-      networks: [],
+      networks: [this.wcOptions.network],
       events: [PermissionScopeEvents.REQUEST_ACKNOWLEDGED],
       methods: []
     }
