@@ -1197,11 +1197,17 @@ export class DAppClient extends Client {
       throw await this.sendInternalError('Signed transaction must be provided')
     }
 
-    const network = input.network || { type: NetworkType.MAINNET }
+    // Add error message for deprecation of network
+    // TODO: Remove when we remove deprecated preferredNetwork
+    if (this.network.type !== input.network?.type) {
+      console.error(
+        '[BEACON] The network specified in the DAppClient constructor does not match the network set in the broadcast request. Please set the network in the constructor. Setting it during the Broadcast Request is deprecated.'
+      )
+    }
 
     const request: BroadcastRequestInput = {
       type: BeaconMessageType.BroadcastRequest,
-      network,
+      network: this.network,
       signedTransaction: input.signedTransaction
     }
 
@@ -1214,7 +1220,7 @@ export class DAppClient extends Client {
     })
 
     await this.notifySuccess(request, {
-      network,
+      network: this.network,
       output: message,
       blockExplorer: this.blockExplorer,
       connectionContext: connectionInfo,
