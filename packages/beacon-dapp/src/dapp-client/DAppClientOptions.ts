@@ -5,7 +5,8 @@ import {
   NetworkType,
   ColorMode,
   NodeDistributions,
-  AnalyticsInterface
+  AnalyticsInterface,
+  Network
 } from '@airgap/beacon-types'
 
 type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
@@ -79,6 +80,12 @@ export interface DAppClientOptions {
   blockExplorer?: BlockExplorer
 
   /**
+   * Indicates on which network the DApp is running on.
+   */
+  network?: Network
+
+  /**
+   * @deprecated Please use "network" instead.
    * Indicates on which network the DApp is planning to run. This is currently used to adjust the URLs of web-wallets in the pairing alert if they use different URLs for testnets.
    * You will still have to define the network you intend to use during the permission request.
    */

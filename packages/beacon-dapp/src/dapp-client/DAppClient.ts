@@ -89,13 +89,14 @@ import { BlockExplorer } from '../utils/block-explorer'
 import { TzktBlockExplorer } from '../utils/tzkt-blockexplorer'
 
 import { DAppClientOptions } from './DAppClientOptions'
-import { AlertButton, closeToast } from '@airgap/beacon-ui'
 import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { DappWalletConnectTransport } from '../transports/DappWalletConnectTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import {
+  AlertButton,
+  closeToast,
   getColorMode,
   setColorMode,
   setDesktopList,
@@ -130,7 +131,7 @@ export class DAppClient extends Client {
    */
   public readonly blockExplorer: BlockExplorer
 
-  public preferredNetwork: NetworkType
+  public network: Network
 
   protected readonly events: BeaconEventHandler = new BeaconEventHandler()
 
@@ -196,7 +197,7 @@ export class DAppClient extends Client {
 
     this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
     this.blockExplorer = config.blockExplorer ?? new TzktBlockExplorer()
-    this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
+    this.network = config.network ?? { type: config.preferredNetwork ?? NetworkType.MAINNET }
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
 
     this.disclaimerText = config.disclaimerText
@@ -524,7 +525,7 @@ export class DAppClient extends Client {
               },
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
               walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
-              preferredNetwork: this.preferredNetwork,
+              networkType: this.network.type,
               abortedHandler: () => {
                 console.log('ABORTED')
                 this._initPromise = undefined
@@ -924,10 +925,18 @@ export class DAppClient extends Client {
   public async requestPermissions(
     input?: RequestPermissionInput
   ): Promise<PermissionResponseOutput> {
+    // Add error message for deprecation of network
+    // TODO: Remove when we remove deprecated preferredNetwork
+    if (this.network.type !== input?.network?.type) {
+      console.error(
+        '[BEACON] The network specified in the DAppClient constructor does not match the network set in the permission request. Please set the network in the constructor. Setting it during the Permission Request is deprecated.'
+      )
+    }
+
     const request: PermissionRequestInput = {
       appMetadata: await this.getOwnAppMetadata(),
       type: BeaconMessageType.PermissionRequest,
-      network: input && input.network ? input.network : { type: NetworkType.MAINNET },
+      network: this.network,
       scopes:
         input && input.scopes
           ? input.scopes
@@ -1151,7 +1160,7 @@ export class DAppClient extends Client {
 
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
-      network: activeAccount.network || { type: NetworkType.MAINNET },
+      network: activeAccount.network || this.network,
       operationDetails: input.operationDetails,
       sourceAddress: activeAccount.address || ''
     }
@@ -1188,11 +1197,17 @@ export class DAppClient extends Client {
       throw await this.sendInternalError('Signed transaction must be provided')
     }
 
-    const network = input.network || { type: NetworkType.MAINNET }
+    // Add error message for deprecation of network
+    // TODO: Remove when we remove deprecated preferredNetwork
+    if (this.network.type !== input.network?.type) {
+      console.error(
+        '[BEACON] The network specified in the DAppClient constructor does not match the network set in the broadcast request. Please set the network in the constructor. Setting it during the Broadcast Request is deprecated.'
+      )
+    }
 
     const request: BroadcastRequestInput = {
       type: BeaconMessageType.BroadcastRequest,
-      network,
+      network: this.network,
       signedTransaction: input.signedTransaction
     }
 
@@ -1205,7 +1220,7 @@ export class DAppClient extends Client {
     })
 
     await this.notifySuccess(request, {
-      network,
+      network: this.network,
       output: message,
       blockExplorer: this.blockExplorer,
       connectionContext: connectionInfo,
@@ -1461,9 +1476,7 @@ export class DAppClient extends Client {
     if (selectedApp) {
       let deeplink: string | undefined
       if (selectedApp.hasOwnProperty('links')) {
-        deeplink = (selectedApp as WebApp).links[
-          selectedAccount?.network.type ?? this.preferredNetwork
-        ]
+        deeplink = (selectedApp as WebApp).links[selectedAccount?.network.type ?? this.network.type]
       } else if (selectedApp.hasOwnProperty('deepLink')) {
         deeplink = (selectedApp as App).deepLink
       }

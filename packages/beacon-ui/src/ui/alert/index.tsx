@@ -58,7 +58,7 @@ export interface AlertConfig {
     p2pSyncCode: () => Promise<P2PPairingRequest>
     postmessageSyncCode: () => Promise<PostMessagePairingRequest>
     walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
-    preferredNetwork: NetworkType
+    networkType: NetworkType
   }
   closeButtonCallback?(): void
   disclaimerText?: string
@@ -278,7 +278,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         }),
         ...webList.map((wallet) => {
-          const link = wallet.links[config.pairingPayload?.preferredNetwork ?? NetworkType.MAINNET]
+          const link = wallet.links[config.pairingPayload?.networkType ?? NetworkType.MAINNET]
           return {
             id: wallet.key,
             key: wallet.key,
