@@ -1160,7 +1160,7 @@ export class DAppClient extends Client {
 
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
-      network: activeAccount.network || { type: NetworkType.MAINNET },
+      network: activeAccount.network || this.network,
       operationDetails: input.operationDetails,
       sourceAddress: activeAccount.address || ''
     }
