@@ -19,6 +19,17 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
   const [isMobile, setIsMobile] = createSignal(checkOS)
   const [windowWidth, setWindowWidth] = createSignal(window.innerWidth)
 
+  const debounce = (fun: Function, delay: number) => {
+    let timerId: NodeJS.Timeout
+
+    return (...args: any[]) => {
+      clearTimeout(timerId)
+      timerId = setTimeout(() => fun(...args), delay)
+    }
+  }
+
+  const debouncedSetWindowWidth = debounce(setWindowWidth, 200)
+
   const updateIsMobile = (isMobileWidth: boolean) => {
     // to avoid unwanted side effects (because of the OR condition), I always reset the value without checking the previous state
     setIsMobile(isMobileWidth || checkOS)
@@ -31,7 +42,7 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
   // Update the windowWidth signal when the window resizes
   createEffect(() => {
     const handleResize = () => {
-      setWindowWidth(window.innerWidth)
+      debouncedSetWindowWidth(window.innerWidth)
     }
 
     window.addEventListener('resize', handleResize)
