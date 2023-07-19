@@ -440,21 +440,19 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const accounts = this.getTezosNamespace(namespaces).accounts
       if (accounts.length === 1) {
         const [_namespace, chainId, addressOrPbk] = accounts[0].split(':', 3)
+        const session = this.getSession()
         let publicKey: string | undefined
 
         if (addressOrPbk.startsWith('edpk')) {
           publicKey = addressOrPbk
           this.activeAccount = await getAddressFromPublicKey(publicKey)
-          return
+        } else {
+          this.activeAccount = addressOrPbk
+          this.activeNetwork = chainId
+          const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
+  
+          publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
         }
-
-        this.activeAccount = addressOrPbk
-        this.activeNetwork = chainId
-
-        const session = this.getSession()
-        const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
-
-        publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
 
         if (!publicKey) {
           throw new Error('Public key for the new account not provided')
