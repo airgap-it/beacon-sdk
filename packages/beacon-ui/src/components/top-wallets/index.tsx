@@ -1,4 +1,4 @@
-import { Component, For } from 'solid-js'
+import { Component, For, createEffect, createSignal, onCleanup } from 'solid-js'
 import { MergedWallet } from 'src/utils/wallets'
 import Wallet from '../wallet'
 import styles from './styles.css'
@@ -12,7 +12,35 @@ interface TopWalletsProps {
 }
 
 const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
-  const isMobile = window.innerWidth <= 800
+  const checkOS =
+    /(Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet|Windows Phone|SymbianOS|Kindle)/i.test(
+      navigator.userAgent
+    )
+  const [isMobile, setIsMobile] = createSignal(checkOS)
+  const [windowWidth, setWindowWidth] = createSignal(window.innerWidth)
+
+  const updateIsMobile = (isMobileWidth: boolean) => {
+    // to avoid unwanted side effects (because of the OR condition), I always reset the value without checking the previous state
+    setIsMobile(isMobileWidth || checkOS)
+  }
+
+  createEffect(() => {
+    updateIsMobile(windowWidth() <= 800)
+  })
+
+  // Update the windowWidth signal when the window resizes
+  createEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth)
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    // Unsubscribe from the event when the component unmounts
+    onCleanup(() => {
+      window.removeEventListener('resize', handleResize)
+    })
+  })
 
   return (
     <div class="top-wallets-wrapper">
@@ -30,7 +58,7 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
           {(wallet) => (
             <Wallet
               disabled={props.disabled}
-              mobile={isMobile}
+              mobile={isMobile()}
               name={wallet.name}
               description={wallet.descriptions.join(' & ')}
               image={wallet.image}
