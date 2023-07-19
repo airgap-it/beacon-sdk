@@ -202,32 +202,32 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         '[requestPermissions]: Have pubkey in sessionProperties, skipping "get_accounts" call',
         session.sessionProperties
       )
-      return
-    }
-    const accounts = this.getTezosNamespace(session.namespaces).accounts
-    const addressOrPbk = accounts[0].split(':', 3)[2]
-
-    if (addressOrPbk.startsWith('edpk')) {
-      publicKey = addressOrPbk
     } else {
-      if (message.network.type !== this.wcOptions.network) {
-        throw new Error('Network in permission request is not the same as preferred network!')
+      const accounts = this.getTezosNamespace(session.namespaces).accounts
+      const addressOrPbk = accounts[0].split(':', 3)[2]
+
+      if (addressOrPbk.startsWith('edpk')) {
+        publicKey = addressOrPbk
+      } else {
+        if (message.network.type !== this.wcOptions.network) {
+          throw new Error('Network in permission request is not the same as preferred network!')
+        }
+
+        const result = await this.fetchAccounts(
+          session.topic,
+          `${TEZOS_PLACEHOLDER}:${message.network.type}`
+        )
+
+        if (!result || result.length < 1) {
+          throw new Error('No account shared by wallet')
+        }
+
+        if (result.some((account) => !account.pubkey)) {
+          throw new Error('Public Key in `tezos_getAccounts` is empty!')
+        }
+
+        publicKey = result[0]?.pubkey
       }
-
-      const result = await this.fetchAccounts(
-        session.topic,
-        `${TEZOS_PLACEHOLDER}:${message.network.type}`
-      )
-
-      if (!result || result.length < 1) {
-        throw new Error('No account shared by wallet')
-      }
-
-      if (result.some((account) => !account.pubkey)) {
-        throw new Error('Public Key in `tezos_getAccounts` is empty!')
-      }
-
-      publicKey = result[0]?.pubkey
     }
 
     if (!publicKey) {
@@ -450,7 +450,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.activeAccount = addressOrPbk
           this.activeNetwork = chainId
           const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
-  
+
           publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
         }
 
