@@ -36,7 +36,7 @@ import {
   SignPayloadResponse,
   SignPayloadResponseInput
 } from '@airgap/beacon-types'
-import { generateGUID } from '@airgap/beacon-utils'
+import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 
@@ -155,6 +155,26 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
   }
 
+  private async fetchAccounts(topic: string, chainId: string) {
+    const signClient = await this.getSignClient()
+    return signClient.request<
+      [
+        {
+          algo: 'ed25519'
+          address: string
+          pubkey: string
+        }
+      ]
+    >({
+      topic: topic,
+      chainId: chainId,
+      request: {
+        method: PermissionScopeMethods.GET_ACCOUNTS,
+        params: {}
+      }
+    })
+  }
+
   async requestPermissions(message: PermissionRequest) {
     console.log('#### Requesting permissions')
 
@@ -170,11 +190,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.permissionsAlreadyRequested = true
 
     const session = this.getSession()
-
-    // TODO: Use public key from namespace
-    const accounts = this.getTezosNamespace(session.namespaces).accounts
-    const [_namespace, _chainId, _address] = accounts[0].split(':', 3)
-
     let publicKey: string | undefined
 
     if (
@@ -187,35 +202,22 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         '[requestPermissions]: Have pubkey in sessionProperties, skipping "get_accounts" call',
         session.sessionProperties
       )
-    } else {
-      console.log('#### Requesting public keys', session)
-      debugger
+      return
+    }
+    const accounts = this.getTezosNamespace(session.namespaces).accounts
+    const addressOrPbk = accounts[0].split(':', 3)[2]
 
+    if (addressOrPbk.startsWith('edpk')) {
+      publicKey = addressOrPbk
+    } else {
       if (message.network.type !== this.wcOptions.network) {
         throw new Error('Network in permission request is not the same as preferred network!')
       }
 
-      const signClient = await this.getSignClient()
-
-      // Get the public key from the wallet
-      const result = await signClient.request<
-        [
-          {
-            algo: 'ed25519'
-            address: string
-            pubkey: string
-          }
-        ]
-      >({
-        topic: session.topic,
-        chainId: `${TEZOS_PLACEHOLDER}:${message.network.type}`,
-        request: {
-          method: PermissionScopeMethods.GET_ACCOUNTS,
-          params: {}
-        }
-      })
-
-      console.log('##### GET ACCOUNTS', result)
+      const result = await this.fetchAccounts(
+        session.topic,
+        `${TEZOS_PLACEHOLDER}:${message.network.type}`
+      )
 
       if (!result || result.length < 1) {
         throw new Error('No account shared by wallet')
@@ -350,7 +352,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       })
   }
 
-  public async init(forceNewConnection: boolean = false): Promise<{ uri: string; topic: string } | undefined> {
+  public async init(
+    forceNewConnection: boolean = false
+  ): Promise<{ uri: string; topic: string } | undefined> {
     const signClient = await this.getSignClient()
 
     if (forceNewConnection) {
@@ -396,7 +400,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private subscribeToSessionEvents(signClient: Client): void {
     signClient.on('session_event', (event) => {
-      if (event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED && this.currentMessageId) {
+      if (
+        event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED &&
+        this.currentMessageId
+      ) {
         this.acknowledgeRequest(this.currentMessageId)
       }
     })
@@ -428,40 +435,26 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.notifyListeners(session, acknowledgeResponse)
   }
 
-
   private async updateActiveAccount(namespaces: SessionTypes.Namespaces) {
     try {
       const accounts = this.getTezosNamespace(namespaces).accounts
       if (accounts.length === 1) {
-        // TODO: Use public key from namespace. Use getAddressFromPublicKey(pk)
-        const [_namespace, chainId, address] = accounts[0].split(':', 3)
-        this.activeAccount = address
-        this.activeNetwork = chainId
-
-        const signClient = await this.getSignClient()
-        const session = this.getSession()
-
+        const [_namespace, chainId, addressOrPbk] = accounts[0].split(':', 3)
         let publicKey: string | undefined
 
-        // Get the public key from the wallet
-        const result = await signClient.request<
-          [
-            {
-              algo: 'ed25519'
-              address: string
-              pubkey: string
-            }
-          ]
-        >({
-          topic: session.topic,
-          chainId: `${TEZOS_PLACEHOLDER}:${chainId}`,
-          request: {
-            method: PermissionScopeMethods.GET_ACCOUNTS,
-            params: {}
-          }
-        })
+        if (addressOrPbk.startsWith('edpk')) {
+          publicKey = addressOrPbk
+          this.activeAccount = await getAddressFromPublicKey(publicKey)
+          return
+        }
 
-        publicKey = result?.find(({ address: _address }) => address === _address)?.pubkey
+        this.activeAccount = addressOrPbk
+        this.activeNetwork = chainId
+
+        const session = this.getSession()
+        const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
+
+        publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
 
         if (!publicKey) {
           throw new Error('Public key for the new account not provided')
@@ -626,11 +619,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return this.session
   }
 
-  private permissionScopeParamsToNamespaces(permissionScopeParams: PermissionScopeParam): ProposalTypes.BaseRequiredNamespace {
+  private permissionScopeParamsToNamespaces(
+    permissionScopeParams: PermissionScopeParam
+  ): ProposalTypes.BaseRequiredNamespace {
     return {
-      chains: permissionScopeParams.networks.map(
-        (network) => `${TEZOS_PLACEHOLDER}:${network}`
-      ),
+      chains: permissionScopeParams.networks.map((network) => `${TEZOS_PLACEHOLDER}:${network}`),
       methods: permissionScopeParams.methods,
       events: permissionScopeParams.events ?? []
     }
