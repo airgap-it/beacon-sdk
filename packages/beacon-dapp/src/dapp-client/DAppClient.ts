@@ -927,7 +927,7 @@ export class DAppClient extends Client {
   ): Promise<PermissionResponseOutput> {
     // Add error message for deprecation of network
     // TODO: Remove when we remove deprecated preferredNetwork
-    if (this.network.type !== input?.network?.type) {
+    if (input?.network !== undefined && this.network.type !== input?.network?.type) {
       console.error(
         '[BEACON] The network specified in the DAppClient constructor does not match the network set in the permission request. Please set the network in the constructor. Setting it during the Permission Request is deprecated.'
       )
@@ -1199,7 +1199,7 @@ export class DAppClient extends Client {
 
     // Add error message for deprecation of network
     // TODO: Remove when we remove deprecated preferredNetwork
-    if (this.network.type !== input.network?.type) {
+    if (input.network !== undefined && this.network.type !== input.network?.type) {
       console.error(
         '[BEACON] The network specified in the DAppClient constructor does not match the network set in the broadcast request. Please set the network in the constructor. Setting it during the Broadcast Request is deprecated.'
       )
