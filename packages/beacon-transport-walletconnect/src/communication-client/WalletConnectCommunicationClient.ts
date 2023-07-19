@@ -443,12 +443,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         const session = this.getSession()
         let publicKey: string | undefined
 
+        this.activeNetwork = chainId
+
         if (addressOrPbk.startsWith('edpk')) {
           publicKey = addressOrPbk
           this.activeAccount = await getAddressFromPublicKey(publicKey)
         } else {
           this.activeAccount = addressOrPbk
-          this.activeNetwork = chainId
           const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
 
           publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
