@@ -1,11 +1,14 @@
-import { BlockchainMessage } from '@airgap/beacon-types'
+import { BlockchainRequestV3 } from '@airgap/beacon-types'
 
-import { ICNetwork } from '../network'
 import { ICBlockchainIdentifier } from '../blockchain'
+import { ICPermissionScope } from '../permission-scope'
 
-export interface ICCanisterCallRequest extends BlockchainMessage<ICBlockchainIdentifier> {
-    network: ICNetwork
-    canisterId: string
-    method: string
-    args: string
+export interface ICCanisterCallRequest extends BlockchainRequestV3<ICBlockchainIdentifier> {
+    blockchainData: {
+        type: 'canister_call_request'
+        scope: ICPermissionScope.CANISTER_CALL
+        canisterId: string
+        method: string
+        args: string
+    }
 }

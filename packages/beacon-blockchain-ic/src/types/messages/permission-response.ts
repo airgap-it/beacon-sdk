@@ -7,6 +7,7 @@ import { ICBlockchainIdentifier } from '../blockchain'
 
 export interface ICPermissionResponse extends PermissionResponseV3<ICBlockchainIdentifier> {
     blockchainData: {
+        type: 'permission_response'
         appMetadata: AppMetadata
         networks: ICNetwork[]
         scopes: ICPermissionScope[]

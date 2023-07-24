@@ -6,6 +6,7 @@ import { ICBlockchainIdentifier } from '../blockchain'
 
 export interface ICPermissionRequest extends PermissionRequestV3<ICBlockchainIdentifier> {
     blockchainData: {
+        type: 'permission_request'
         appMetadata: AppMetadata
         networks: ICNetwork[]
         scopes: ICPermissionScope[]
