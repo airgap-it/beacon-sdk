@@ -10,6 +10,13 @@ import {
 } from '../packages/beacon-types/src/types/ui'
 
 import {
+  icExtensionList,
+  icDesktopList,
+  icWebList,
+  icIosList
+} from './blockchains/ic'
+
+import {
   substrateExtensionList,
   substrateDesktopList,
   substrateWebList,
@@ -175,6 +182,14 @@ generateForBlockchains(
   substrateDesktopList,
   substrateWebList,
   substrateIosList
+)
+
+generateForBlockchains(
+  'beacon-blockchain-ic',
+  icExtensionList,
+  icDesktopList,
+  icWebList,
+  icIosList
 )
 
 generateForBlockchains(

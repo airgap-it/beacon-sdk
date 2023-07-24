@@ -9,8 +9,8 @@ This package adds support for the Internet Computer blockchain. It can be used i
 ## Usage
 
 ```
-import { DAppClient } from '@airga/beacon-dapp'
-import { ICBlockchain } from '@airga/beacon-blockchain-ic'
+import { DAppClient } from '@airgap/beacon-dapp'
+import { ICBlockchain } from '@airgap/beacon-blockchain-ic'
 
 const client = new DAppClient({
     name: 'Example DApp',

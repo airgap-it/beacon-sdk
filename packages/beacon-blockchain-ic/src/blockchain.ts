@@ -1,8 +1,10 @@
 import { App, Blockchain, BlockchainMessage, DesktopApp, ExtensionApp, ResponseInput, WebApp } from '@airgap/beacon-types'
+
 import { ICBlockchainIdentifier } from './types/blockchain';
 import { ICPermissionResponse } from './types/messages/permission-response';
+import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-lists'
 
-export class ICPBlockchain implements Blockchain {
+export class ICBlockchain implements Blockchain {
     public readonly identifier: ICBlockchainIdentifier = 'ic'
 
     public async validateRequest(input: BlockchainMessage<string>): Promise<void> {
@@ -24,10 +26,10 @@ export class ICPBlockchain implements Blockchain {
         iOSList: App[]
     }> {
         return {
-            extensionList: [],
-            desktopList: [],
-            webList: [],
-            iOSList: []
+            extensionList,
+            desktopList,
+            webList,
+            iOSList
         }
     }
 
