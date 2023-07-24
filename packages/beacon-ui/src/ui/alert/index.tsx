@@ -175,7 +175,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
     }
 
-    setCurrentInfo('top-wallets')
+    setPreviousInfo('qr')
+    setCurrentInfo('qr')
     setCurrentWallet(undefined)
     localStorage.removeItem(StorageKey.LAST_SELECTED_WALLET)
 
@@ -888,7 +889,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 currentInfo() === 'install' && !isMobile()
                   ? () => setCurrentInfo('top-wallets')
                   : currentInfo() === 'qr'
-                  ? () => setCurrentInfo('top-wallets')
+                  ? undefined
                   : currentInfo() === 'install' && isMobile()
                   ? () => setCurrentInfo('wallets')
                   : currentInfo() === 'wallets' && isMobile()

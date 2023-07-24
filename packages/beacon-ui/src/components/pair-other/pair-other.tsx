@@ -19,8 +19,12 @@ const [qrData, setQrData] = createSignal<string>('')
 
 const PairOther: Component<PairOtherProps> = (props: PairOtherProps) => {
   onMount(() => {
-    setUiState('selection')
-    setQrData('')
+    setUiState('p2p')
+    props.p2pPayload!.then(async (payload) => {
+      const serializer = new Serializer()
+      const codeQR = await serializer.serialize(payload)
+      setQrData(codeQR)
+    })
   })
 
   setHasBeacon(!!props.p2pPayload)
