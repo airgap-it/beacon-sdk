@@ -1,4 +1,4 @@
-import { Component, For, createSignal } from 'solid-js'
+import { Component, For, createEffect, createSignal } from 'solid-js'
 import { CloseIcon } from '../icons'
 import Loader from '../loader'
 
@@ -48,6 +48,42 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
   const hasWalletObject = props.label.includes('{{wallet}}') && props.walletInfo
   const isRequestSentToast = props.label.includes('Request sent to')
 
+  const offset = { x: window.innerWidth - 460, y: 0 }
+  const [divPosition, setDivPosition] = createSignal(offset)
+  const [isDragging, setIsDragging] = createSignal(false)
+
+  const onMouseDownHandler = (event: MouseEvent) => {
+    event.preventDefault() // prevents inner text highlighting
+    const boundinRect = (event.target as HTMLElement).getBoundingClientRect()
+    offset.x = event.clientX - boundinRect.x
+    offset.y = event.clientY - boundinRect.y
+    setIsDragging(true)
+  }
+
+  const onMouseMoveHandler = (event: MouseEvent) => {
+    if (isDragging() && event.buttons === 1) {
+      setDivPosition({
+        x: event.clientX - offset.x,
+        y: event.clientY - offset.y
+      })
+    }
+  }
+
+  const onMouseUpHandler = () => {
+    setIsDragging(false)
+  }
+
+  // when the mouse is out of the div boundaries but it is still pressed, keep moving the toast
+  createEffect(() => {
+    if (isDragging()) {
+      window.addEventListener('mousemove', onMouseMoveHandler)
+      window.addEventListener('mouseup', onMouseUpHandler)
+    } else {
+      window.removeEventListener('mousemove', onMouseMoveHandler)
+      window.removeEventListener('mouseup', onMouseUpHandler)
+    }
+  })
+
   if (isRequestSentToast) {
     setShowMoreInfo(false)
     setTimeout(() => {
@@ -56,7 +92,11 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
   }
 
   return (
-    <div class={props.open ? 'toast-wrapper-show' : 'toast-wrapper-hide'}>
+    <div
+      style={{ left: `${divPosition().x}px`, top: `${divPosition().y}px` }}
+      class={props.open ? 'toast-wrapper-show' : 'toast-wrapper-hide'}
+      onMouseDown={onMouseDownHandler}
+    >
       <div class="toast-header">
         <Loader />
         {hasWalletObject && props.walletInfo && <>{parseWallet(props.label, props.walletInfo)}</>}
