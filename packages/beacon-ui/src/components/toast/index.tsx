@@ -1,6 +1,7 @@
 import { Component, For, createEffect, createSignal } from 'solid-js'
 import { CloseIcon } from '../icons'
 import Loader from '../loader'
+import { isMobileOS } from 'src/utils/platform'
 
 function parseWallet(
   inputString: string,
@@ -48,7 +49,7 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
   const hasWalletObject = props.label.includes('{{wallet}}') && props.walletInfo
   const isRequestSentToast = props.label.includes('Request sent to')
 
-  const offset = { x: window.innerWidth - 460, y: 0 }
+  const offset = { x: isMobileOS(window) ? 12 : window.innerWidth - 460, y: 12 }
   const [divPosition, setDivPosition] = createSignal(offset)
   const [isDragging, setIsDragging] = createSignal(false)
 
