@@ -74,6 +74,7 @@ function App() {
       })
 
       if (queryResponse.status !== 'replied') {
+        console.error(queryResponse)
         throw new Error('Canister returned error')
       }
 

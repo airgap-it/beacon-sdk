@@ -93,7 +93,7 @@ function App() {
       blockchainData: {
         type: 'canister_call_request',
         scope: 'canister_call',
-        canisterId: 'bd3sg-teaaa-aaaaa-qaaba-cai',
+        canisterId: 'bkyz2-fmaaa-aaaaa-qaaaq-cai',
         method: 'transfer',
         args: Buffer.from(args).toString('hex')
       }
