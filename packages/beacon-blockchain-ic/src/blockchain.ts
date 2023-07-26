@@ -1,8 +1,10 @@
+import { getAccountIdentifier } from '@airgap/beacon-core'
 import { App, Blockchain, BlockchainMessage, DesktopApp, ExtensionApp, ResponseInput, WebApp } from '@airgap/beacon-types'
 
-import { ICBlockchainIdentifier } from './types/blockchain';
-import { ICPermissionResponse } from './types/messages/permission-response';
+import { ICBlockchainIdentifier } from './types/blockchain'
+import { ICPermissionResponse } from './types/messages/permission-response'
 import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-lists'
+import { ICNetwork } from './types/network'
 
 export class ICBlockchain implements Blockchain {
     public readonly identifier: ICBlockchainIdentifier = 'ic'
@@ -34,12 +36,20 @@ export class ICBlockchain implements Blockchain {
     }
 
     public async getAccountInfosFromPermissionResponse(
-        _permissionResponse: ICPermissionResponse
+        permissionResponse: ICPermissionResponse
     ): Promise<{ accountId: string; address: string; publicKey: string; }[]> {
-        return [{
-            accountId: '',
-            address: '',
-            publicKey: ''
-        }]
+        return Promise.all(permissionResponse.blockchainData.networks.map(async (network: ICNetwork) => {
+            const accountId = await getAccountIdentifier(
+                permissionResponse.blockchainData.account.subaccount 
+                    ? `${permissionResponse.blockchainData.account.owner}:${permissionResponse.blockchainData.account.subaccount}`
+                    : permissionResponse.blockchainData.account.owner,
+                network as any
+            )
+            return {
+                accountId,
+                address: '',
+                publicKey: ''
+            }
+        }))
     }
 }
