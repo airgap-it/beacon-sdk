@@ -100,7 +100,7 @@ function App() {
     })
     .then((response) => {
       const result = idlDecode([TransferResult], Buffer.from(response.blockchainData.response, 'hex'))[0]
-      setSendResult(JSON.stringify(result, null, 2))
+      setSendResult(JSON.stringify(result, (_, value) => typeof value === 'bigint' ? value.toString() : value, 2))
     })
     .catch((error) => {
       console.log('send error', error)
@@ -154,7 +154,7 @@ function App() {
       {activeAccount && (
         <>
           <input type="text" onChange={onRecipientInput}></input>
-          <button onClick={send}>Send 1 token</button>
+          <button onClick={send}>Send 1000 DEV</button>
           {sendResult && <div>{sendResult}</div>}
           <br /><br />
         </>
