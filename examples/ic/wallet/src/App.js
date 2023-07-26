@@ -4,6 +4,8 @@ import { encodeIcrcAccount } from '@dfinity/ledger';
 import { useState } from 'react';
 
 import './App.css';
+import { ConsentMessageRequest, ConsentMessageResponse, idlDecode, idlEncode } from './idl';
+import { createAgent, readState } from './agent';
 
 const client = new WalletClient({
   name: 'Example Wallet'
@@ -13,7 +15,9 @@ function App() {
   const [account, setAccount] = useState(undefined)
   const [mnemonic, setMnemonic] = useState('')
   const [status, setStatus] = useState('')
-  
+  const [pendingCanisterCall, setPendingCanisterCall] = useState(undefined)
+  const [consentMessage, setConsentMessage] = useState(undefined)
+
   const onPermissionRequest = async (request) => {
     if (request.message.blockchainIdentifier !== 'ic') {
       throw new Error('Only IC supported')
@@ -42,7 +46,49 @@ function App() {
 
     // Send response back to DApp
     client.respond(response)
-  } 
+  }
+
+  const onBlockchainRequest = async (request) => {
+    if (request.message.blockchainIdentifier !== 'ic') {
+      throw new Error('Only IC supported')
+    }
+
+    if (request.message.blockchainData.type === 'canister_call_request') {
+      const canisterId = request.message.blockchainData.canisterId
+      const method = request.message.blockchainData.method
+      const args = request.message.blockchainData.args
+
+      setPendingCanisterCall({ id: request.id, canisterId, method, args })
+
+      const agent = await createAgent(mnemonic)
+      
+      const queryResponse = await agent.query(canisterId, {
+        methodName: 'consent_message',
+        arg: idlEncode([ConsentMessageRequest], [{
+          method,
+          arg: Buffer.from(args, 'hex'),
+          consent_preferences: {
+            language: 'en'
+          }
+        }])
+      })
+
+      if (queryResponse.status !== 'replied') {
+        throw new Error('Canister returned error')
+      }
+
+      const consentMessage = idlDecode([ConsentMessageResponse], queryResponse.reply.arg)[0]
+      if (!consentMessage.Valid) {
+        const error = consentMessage.Forbidden || consentMessage.Malformed
+        throw new Error(`(${error.error_code}) ${error.description}`)
+      }
+
+      setConsentMessage(consentMessage.Valid.consent_message)
+    } else {
+      console.error('Message type not supported, received: ', request)
+      throw new Error()
+    }
+  }
 
   client.init().then(() => {
     console.log('init')
@@ -52,11 +98,20 @@ function App() {
 
         console.log('message', message)
         // Example: Handle PermissionRequest. A wallet should handle all request types
-        if (message.message.type === BeaconMessageType.PermissionRequest) {
-          await onPermissionRequest(message)
-        } else {
-          console.error('Message type not supported, received: ', message)
-      
+        try {
+          if (message.message.type === BeaconMessageType.PermissionRequest) {
+            await onPermissionRequest(message)
+          } if (message.message.type === BeaconMessageType.BlockchainRequest) {
+            await onBlockchainRequest(message)
+          } else {
+            console.error('Message type not supported, received: ', message)
+            throw new Error()
+          }
+        } catch (error) {
+          if (error.message) {
+            console.error(error)
+          }
+
           const response = {
             type: BeaconMessageType.Error,
             id: message.id,
@@ -102,6 +157,63 @@ function App() {
     }
   }
 
+  const acceptCanisterCall = async () => {
+    const agent = await createAgent(mnemonic)
+    
+    const callResponse = await agent.call(pendingCanisterCall.canisterId, {
+      methodName: pendingCanisterCall.method,
+      arg: Buffer.from(pendingCanisterCall.args, 'hex')
+    })
+
+    let response
+    if (!callResponse.response.ok) {
+      response = {
+        id: pendingCanisterCall.id,
+        type: BeaconMessageType.Error,
+        errorType: BeaconErrorType.UNKNOWN_ERROR
+      }
+    } else {
+      const readStateResponse = await readState(agent, pendingCanisterCall.canisterId, callResponse.requestId)
+      response = readStateResponse
+        ? {
+            id: pendingCanisterCall.id,
+            message: {
+              blockchainIdentifier: 'ic',
+              type: BeaconMessageType.BlockchainResponse,
+              blockchainData: {
+                type: 'canister_call_response',
+                canisterId: pendingCanisterCall.canisterId,
+                method: pendingCanisterCall.method,
+                args: pendingCanisterCall.args,
+                response: Buffer.from(readStateResponse).toString('hex')
+              }
+            }
+          }
+        : {
+            id: pendingCanisterCall.id,
+            type: BeaconMessageType.Error,
+            errorType: BeaconErrorType.UNKNOWN_ERROR
+          }
+    }
+
+    client.respond(response)
+
+    setPendingCanisterCall(undefined)
+    setConsentMessage(undefined)
+  }
+
+  const rejectCanisterCall = async () => {
+    const response = {
+      type: BeaconMessageType.Error,
+      id: pendingCanisterCall.id,
+      errorType: BeaconErrorType.ABORTED_ERROR
+    }
+    client.respond(response)
+
+    setPendingCanisterCall(undefined)
+    setConsentMessage(undefined)
+  }
+
   const removePeer = () => {
     client.getPeers().then((peers) => {
       if (peers.length > 0) {
@@ -137,6 +249,19 @@ function App() {
           <>
             <textarea onChange={onMnemonicInput}></textarea>
             <button onClick={importAccount}>Import Account</button>
+          </>
+        )
+      }
+      <br /><br />
+      {
+        consentMessage && (
+          <>
+            <div>{consentMessage}</div>
+            <br /><br />
+            <div>
+              <button onClick={acceptCanisterCall}>Ok</button>
+              <button onClick={rejectCanisterCall}>Reject</button>
+            </div>
           </>
         )
       }

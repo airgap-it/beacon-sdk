@@ -1,5 +1,8 @@
 import { BeaconEvent, getDAppClientInstance, ICBlockchain, Regions, Serializer } from '@airgap/beacon-sdk';
+import { Principal } from '@dfinity/principal';
 import { useEffect, useState } from 'react';
+
+import { idlDecode, idlEncode, TransferArgs, TransferResult } from './idl';
 
 import './App.css';
 
@@ -32,6 +35,8 @@ client.addBlockchain(icBlockchain)
 
 function App() {
   const [activeAccount, setActiveAccount] = useState(undefined)
+  const [recipient, setRecipient] = useState(undefined)
+  const [sendResult, setSendResult] = useState(undefined)
   const [dataToDeserialize, setDataToDeserialize] = useState('')
   const [dataToSerialize, setDataToSerialize] = useState('')
 
@@ -68,18 +73,37 @@ function App() {
       })
   }
 
-  const sendToSelf = () => {
+  const onRecipientInput = (event) => {
+    setRecipient(event.target.value)
+  }
+
+  const send = () => {
+    setSendResult(undefined)
+    const args = idlEncode([TransferArgs], [{
+      from_subaccount: [],
+      to: {
+        owner: Principal.from(recipient),
+        subaccount: []
+      },
+      amount: 1000
+    }])
+    
     client.request({
       blockchainIdentifier: 'ic',
       blockchainData: {
         type: 'canister_call_request',
         scope: 'canister_call',
-        canisterId: '',
-        method: '',
-        args: ''
+        canisterId: 'bd3sg-teaaa-aaaaa-qaaba-cai',
+        method: 'transfer',
+        args: Buffer.from(args).toString('hex')
       }
-    }).catch((error) => {
-      console.log('sendToSelf error', error)
+    })
+    .then((response) => {
+      const result = idlDecode([TransferResult], Buffer.from(response.blockchainData.response, 'hex'))[0]
+      setSendResult(JSON.stringify(result, null, 2))
+    })
+    .catch((error) => {
+      console.log('send error', error)
     })
   }
 
@@ -127,8 +151,14 @@ function App() {
       <br /><br />
       <button onClick={reset}>Reset and Refresh</button>
       <br /><br />
-      <button onClick={sendToSelf}>Send 1 token to myself</button>
-      <br /><br />
+      {activeAccount && (
+        <>
+          <input type="text" onChange={onRecipientInput}></input>
+          <button onClick={send}>Send 1 token</button>
+          {sendResult && <div>{sendResult}</div>}
+          <br /><br />
+        </>
+      )}
       ---
       <br /><br />
       <textarea onChange={onDataToDeserializeInput}></textarea>

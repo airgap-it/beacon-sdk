@@ -21,7 +21,7 @@ import {
   BeaconMessageWrapper,
   BlockchainResponseV3,
   PermissionResponseV3,
-  BeaconBaseMessage
+  BeaconBaseMessage,
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
 import { getAddressFromPublicKey } from '@airgap/beacon-utils'
@@ -125,10 +125,19 @@ export class OutgoingResponseInterceptor {
           //   appMetadataManager,
           //   msg.senderId
           // )
-          const request: any /* BeaconMessageWrapper<BlockchainRequestV3<string>> */ = {
-            ...wrappedMessage
+          const response: BeaconMessageWrapper<BlockchainResponseV3<string>> = {
+            id: wrappedMessage.id,
+            version: request.version,
+            senderId,
+            message: {
+              blockchainIdentifier: wrappedMessage.message.blockchainIdentifier,
+              type: BeaconMessageType.BlockchainResponse,
+              blockchainData: {
+                ...(wrappedMessage.message.blockchainData as any)
+              }
+            }
           }
-          interceptorCallback(request)
+          interceptorCallback(response as any)
         }
         break
 
