@@ -37,7 +37,7 @@ import {
   Wallet
 } from 'src/utils/wallets'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
-import { isAndroid, isIOS, isTwBrowser } from 'src/utils/platform'
+import { isAndroid, isIOS, isMobileOS, isTwBrowser } from 'src/utils/platform'
 import { getColorMode } from 'src/utils/colorMode'
 import PairOther from 'src/components/pair-other/pair-other'
 
@@ -324,11 +324,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     setWalletList(createWalletList())
 
-    const isMobileOS =
-      /(Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet|Windows Phone|SymbianOS|Kindle)/i.test(
-        navigator.userAgent
-      )
-    const [isMobile, setIsMobile] = createSignal(isMobileOS)
+    const _isMobileOS = isMobileOS(window)
+    const [isMobile, setIsMobile] = createSignal(_isMobileOS)
     const [windowWidth, setWindowWidth] = createSignal(window.innerWidth)
 
     const debounce = (fun: Function, delay: number) => {
@@ -345,7 +342,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const updateIsMobile = (isMobileWidth: boolean) => {
       // to avoid unwanted side effects (because of the OR condition), I always reset the value without checking the previous state
       setWalletList(createWalletList())
-      setIsMobile(isMobileWidth || isMobileOS)
+      setIsMobile(isMobileWidth || _isMobileOS)
     }
 
     createEffect(() => {
@@ -450,7 +447,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         }
         setIsLoading(false)
-      } else if (wallet?.types.includes('ios') && isMobileOS) { 
+      } else if (wallet?.types.includes('ios') && _isMobileOS) { 
         setCodeQR('')
 
         if (config.pairingPayload) {
