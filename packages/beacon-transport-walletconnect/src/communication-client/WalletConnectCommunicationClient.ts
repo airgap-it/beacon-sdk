@@ -76,15 +76,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
 
-  // Introduced to fix https://github.com/airgap-it/beacon-sdk/issues/477.
-  // The ideal solution would be to decouple pairing from session creating,
-  // initialize the pairing in `init` and open a new session every time `requestPermissions` is called.
-  // Such an approach would be a better fit to our Beacon structures, resulting in better code and UX.
-  // Unfortunately, it's not possible as long as pairing doesn't provide other party's metadata.
-  // The peer metadata is exchanged only on the session level, therefore, in order to send
-  // a complete Beacon pairing response, both a pairing and session must be started in `init`.
-  private permissionsAlreadyRequested: boolean = false
-
   private currentMessageId: string | undefined // TODO JGD we shouldn't need this
 
   constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
@@ -182,12 +173,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
 
-    if (this.permissionsAlreadyRequested) {
+    if (this.activeAccount) {
       await this.closeSessions()
       await this.openSession()
     }
-
-    this.permissionsAlreadyRequested = true
+    
+    this.setDefaultAccountAndNetwork()
 
     const session = this.getSession()
     let publicKey: string | undefined
@@ -613,7 +604,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.session = this.session ?? (session as SessionTypes.Struct)
     this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
-    this.setDefaultAccountAndNetwork()
 
     return this.session
   }
@@ -880,6 +870,5 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.session = undefined
     this.activeAccount = undefined
     this.activeNetwork = undefined
-    this.permissionsAlreadyRequested = false
   }
 }
