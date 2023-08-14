@@ -7,5 +7,5 @@
       "@airgap/beacon-blockchain-substrate": ["./src"]
     }
   },
-  "include": ["./src"]
+  "include": ["./src", "../beacon-types/src/types/JsonRPC.ts"]
 }

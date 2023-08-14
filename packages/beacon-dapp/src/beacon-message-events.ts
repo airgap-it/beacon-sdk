@@ -6,13 +6,13 @@ export const messageEvents: {
 } = {
   [BeaconMessageType.BlockchainRequest]: {
     sent: BeaconEvent.UNKNOWN,
-    success: BeaconEvent.UNKNOWN,
-    error: BeaconEvent.UNKNOWN
+    success: BeaconEvent.HIDE_UI,
+    error: BeaconEvent.HIDE_UI
   },
   [BeaconMessageType.BlockchainResponse]: {
     sent: BeaconEvent.UNKNOWN,
-    success: BeaconEvent.UNKNOWN,
-    error: BeaconEvent.UNKNOWN
+    success: BeaconEvent.HIDE_UI,
+    error: BeaconEvent.HIDE_UI
   },
   [BeaconMessageType.PermissionRequest]: {
     sent: BeaconEvent.PERMISSION_REQUEST_SENT,

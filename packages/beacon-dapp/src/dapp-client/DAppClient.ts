@@ -799,7 +799,8 @@ export class DAppClient extends Client {
 
   /** Generic messages */
   public async permissionRequest(
-    input: PermissionRequestV3<string>
+    input: PermissionRequestV3<string>,
+    id?: string
   ): Promise<PermissionResponseV3<string>> {
     console.log('PERMISSION REQUEST')
     const blockchain = this.blockchains.get(input.blockchainIdentifier)
@@ -821,7 +822,7 @@ export class DAppClient extends Client {
     const { message: response, connectionInfo } = await this.makeRequestV3<
       PermissionRequestV3<string>,
       BeaconMessageWrapper<PermissionResponseV3<string>>
-    >(request).catch(async (_requestError: ErrorResponse) => {
+    >(request, id).catch(async (_requestError: ErrorResponse) => {
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
     })
@@ -874,7 +875,7 @@ export class DAppClient extends Client {
     return response.message
   }
 
-  public async request(input: BlockchainRequestV3<string>): Promise<BlockchainResponseV3<string>> {
+  public async request(input: BlockchainRequestV3<string>, id?: string): Promise<BlockchainResponseV3<string>> {
     console.log('REQUEST', input)
     const blockchain = this.blockchains.get(input.blockchainIdentifier)
     if (!blockchain) {
@@ -897,7 +898,7 @@ export class DAppClient extends Client {
     const { message: response, connectionInfo } = await this.makeRequestV3<
       BlockchainRequestV3<string>,
       BeaconMessageWrapper<BlockchainResponseV3<string>>
-    >(request).catch(async (requestError: ErrorResponse) => {
+    >(request, id).catch(async (requestError: ErrorResponse) => {
       console.error(requestError)
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
@@ -907,6 +908,14 @@ export class DAppClient extends Client {
       request,
       account: activeAccount,
       output: response,
+      blockExplorer: this.blockExplorer,
+      connectionContext: connectionInfo,
+      walletInfo: await this.getWalletInfo()
+    })
+
+    await this.notifySuccess(request as any, {
+      account: activeAccount,
+      output: response.message.blockchainData as any,
       blockExplorer: this.blockExplorer,
       connectionContext: connectionInfo,
       walletInfo: await this.getWalletInfo()
@@ -1637,12 +1646,13 @@ export class DAppClient extends Client {
     T extends BlockchainMessage<string>,
     U extends BeaconMessageWrapper<BlockchainMessage<string>>
   >(
-    requestInput: T
+    requestInput: T,
+    id?: string
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
   }> {
-    const messageId = await generateGUID()
+    const messageId = id ?? await generateGUID()
     console.time(messageId)
     logger.log('makeRequest', 'starting')
     await this.init()

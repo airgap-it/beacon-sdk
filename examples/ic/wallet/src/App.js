@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 import './App.css';
 import { ConsentMessageRequest, ConsentMessageResponse, idlDecode, idlEncode } from './idl';
-import { createAgent, readState } from './agent';
+import { call, createAgent, readState } from './agent';
 
 const client = new WalletClient({
   name: 'Example Wallet'
@@ -15,95 +15,78 @@ function App() {
   const [account, setAccount] = useState(undefined)
   const [mnemonic, setMnemonic] = useState('')
   const [status, setStatus] = useState('')
-  const [pendingCanisterCall, setPendingCanisterCall] = useState(undefined)
+  const [pendingCanisterCallRequest, setPendingCanisterCallRequest] = useState(undefined)
   const [consentMessage, setConsentMessage] = useState(undefined)
 
   const onPermissionRequest = async (request) => {
-    if (request.message.blockchainIdentifier !== 'ic') {
-      throw new Error('Only IC supported')
-    }
-    // Show a UI to the user where he can confirm sharing an account with the DApp
+    const identity = Secp256k1KeyIdentity.fromSeedPhrase(mnemonic)
+    const signature = await identity.sign(Buffer.from(request.params.challenge, 'base64'))
+    console.log(typeof Buffer.from(request.params.challenge, 'base64'))
 
     const response = {
-      id: request.id,
-      message: {
-        blockchainIdentifier: 'ic',
-        type: BeaconMessageType.PermissionResponse,
-        blockchainData: {
-          type: 'permission_response',
-          networks: request.message.blockchainData.networks,
-          scopes: request.message.blockchainData.scopes,
-          account: {
-            owner: account.owner,
-            subaccount: account.subaccount
-          }
-        }
-      }
+      networks: request.params.networks,
+      scopes: request.params.scopes,
+      principal: account.owner,
+      ledger: {
+        subaccount: account.subaccount
+      },
+      challenge: request.params.challenge,
+      signature: Buffer.from(signature).toString('base64'),
     }
 
     // Let's wait a little to make it more natural (to test the UI on the dApp side)
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     // Send response back to DApp
-    client.respond(response)
+    client.ic.respondWithResult(request, response)
   }
 
-  const onBlockchainRequest = async (request) => {
-    if (request.message.blockchainIdentifier !== 'ic') {
-      throw new Error('Only IC supported')
+  const onCanisterCallRequest = async (request) => {
+    const canisterId = request.params.canisterId
+    const method = request.params.method
+    const arg = request.params.arg
+
+    setPendingCanisterCallRequest(request)
+
+    const agent = await createAgent(mnemonic)
+    
+    const queryResponse = await agent.query(canisterId, {
+      methodName: 'consent_message',
+      arg: idlEncode([ConsentMessageRequest], [{
+        method,
+        arg: Buffer.from(arg, 'base64'),
+        consent_preferences: {
+          language: 'en'
+        }
+      }])
+    })
+
+    if (queryResponse.status !== 'replied') {
+      console.error(queryResponse)
+      throw new Error('Canister returned error')
     }
 
-    if (request.message.blockchainData.type === 'canister_call_request') {
-      const canisterId = request.message.blockchainData.canisterId
-      const method = request.message.blockchainData.method
-      const args = request.message.blockchainData.args
-
-      setPendingCanisterCall({ id: request.id, canisterId, method, args })
-
-      const agent = await createAgent(mnemonic)
-      
-      const queryResponse = await agent.query(canisterId, {
-        methodName: 'consent_message',
-        arg: idlEncode([ConsentMessageRequest], [{
-          method,
-          arg: Buffer.from(args, 'hex'),
-          consent_preferences: {
-            language: 'en'
-          }
-        }])
-      })
-
-      if (queryResponse.status !== 'replied') {
-        console.error(queryResponse)
-        throw new Error('Canister returned error')
-      }
-
-      const consentMessage = idlDecode([ConsentMessageResponse], queryResponse.reply.arg)[0]
-      if (!consentMessage.Valid) {
-        const error = consentMessage.Forbidden || consentMessage.Malformed
-        throw new Error(`(${error.error_code}) ${error.description}`)
-      }
-
-      setConsentMessage(consentMessage.Valid.consent_message)
-    } else {
-      console.error('Message type not supported, received: ', request)
-      throw new Error()
+    const consentMessage = idlDecode([ConsentMessageResponse], queryResponse.reply.arg)[0]
+    if (!consentMessage.Valid) {
+      const error = consentMessage.Forbidden || consentMessage.Malformed
+      throw new Error(`(${error.error_code}) ${error.description}`)
     }
+
+    setConsentMessage(consentMessage.Valid.consent_message)
   }
 
   client.init().then(() => {
     console.log('init')
-    client
+    client.ic
       .connect(async (message) => {
         setStatus('Handling request...')
 
         console.log('message', message)
-        // Example: Handle PermissionRequest. A wallet should handle all request types
         try {
-          if (message.message.type === BeaconMessageType.PermissionRequest) {
+          if (message.method === 'permission') {
             await onPermissionRequest(message)
-          } if (message.message.type === BeaconMessageType.BlockchainRequest) {
-            await onBlockchainRequest(message)
+          } else if (message.method === 'canister_call') {
+            await onCanisterCallRequest(message)
           } else {
             console.error('Message type not supported, received: ', message)
             throw new Error()
@@ -113,17 +96,14 @@ function App() {
             console.error(error)
           }
 
-          const response = {
-            type: BeaconMessageType.Error,
-            id: message.id,
-            errorType: BeaconErrorType.ABORTED_ERROR
-          }
-          client.respond(response)
+          client.ic.respondWithError(message, { 
+            version: '1',
+            errorType: 'ABORTED'
+          })
         }
 
         setStatus('')
       })
-      .catch((error) => console.error('connect error', error))
   }) // Establish P2P connection
 
 
@@ -161,57 +141,52 @@ function App() {
   const acceptCanisterCall = async () => {
     const agent = await createAgent(mnemonic)
     
-    const callResponse = await agent.call(pendingCanisterCall.canisterId, {
-      methodName: pendingCanisterCall.method,
-      arg: Buffer.from(pendingCanisterCall.args, 'hex')
-    })
+    const callResponse = await call(agent, pendingCanisterCallRequest.params.canisterId, pendingCanisterCallRequest.params.method, Buffer.from(pendingCanisterCallRequest.params.arg, 'base64'))
 
-    let response
     if (!callResponse.response.ok) {
-      response = {
-        id: pendingCanisterCall.id,
-        type: BeaconMessageType.Error,
-        errorType: BeaconErrorType.UNKNOWN_ERROR
-      }
+      await client.respondWithError(pendingCanisterCallRequest, { 
+        version: '1',
+        errorType: 'UNKNOWN'
+      })
     } else {
-      const readStateResponse = await readState(agent, pendingCanisterCall.canisterId, callResponse.requestId)
-      response = readStateResponse
-        ? {
-            id: pendingCanisterCall.id,
-            message: {
-              blockchainIdentifier: 'ic',
-              type: BeaconMessageType.BlockchainResponse,
-              blockchainData: {
-                type: 'canister_call_response',
-                canisterId: pendingCanisterCall.canisterId,
-                method: pendingCanisterCall.method,
-                args: pendingCanisterCall.args,
-                response: Buffer.from(readStateResponse).toString('hex')
-              }
-            }
-          }
-        : {
-            id: pendingCanisterCall.id,
-            type: BeaconMessageType.Error,
-            errorType: BeaconErrorType.UNKNOWN_ERROR
-          }
+      try {
+        const readStateResponse = await readState(agent, pendingCanisterCallRequest.params.canisterId, callResponse.requestId)
+        await client.ic.respondWithResult(pendingCanisterCallRequest, {
+          version: '1',
+          network: pendingCanisterCallRequest.network,
+          contentMap: {
+            request_type: callResponse.contentMap.request_type,
+            sender: Buffer.from(callResponse.contentMap.sender.toUint8Array()).toString('base64'),
+            nonce: callResponse.contentMap.nonce ? Buffer.from(callResponse.contentMap.nonce).toString('base64') : undefined,
+            ingress_expiry: callResponse.contentMap.ingress_expiry._value.toString(),
+            canister_id: Buffer.from(callResponse.contentMap.canister_id.toUint8Array()).toString('base64'),
+            method_name: callResponse.contentMap.method_name,
+            arg: Buffer.from(callResponse.contentMap.arg).toString('base64'),
+          },
+          certificate: Buffer.from(readStateResponse.certificate).toString('base64')
+        })
+      } catch (e) {
+        console.error(e)
+        await client.ic.respondWithError(pendingCanisterCallRequest, { 
+          version: '1',
+          errorType: 'UNKNOWN'
+        })
+      }
     }
 
-    client.respond(response)
-
-    setPendingCanisterCall(undefined)
+    setPendingCanisterCallRequest(undefined)
     setConsentMessage(undefined)
   }
 
   const rejectCanisterCall = async () => {
     const response = {
       type: BeaconMessageType.Error,
-      id: pendingCanisterCall.id,
+      id: pendingCanisterCallRequest.id,
       errorType: BeaconErrorType.ABORTED_ERROR
     }
     client.respond(response)
 
-    setPendingCanisterCall(undefined)
+    setPendingCanisterCallRequest(undefined)
     setConsentMessage(undefined)
   }
 

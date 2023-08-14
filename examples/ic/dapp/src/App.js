@@ -1,5 +1,6 @@
 import { BeaconEvent, getDAppClientInstance, ICBlockchain, Regions, Serializer } from '@airgap/beacon-sdk';
 import { Principal } from '@dfinity/principal';
+import { randomBytes } from 'crypto-browserify';
 import { useEffect, useState } from 'react';
 
 import { idlDecode, idlEncode, TransferArgs, TransferResult } from './idl';
@@ -56,14 +57,13 @@ function App() {
   }, [])
 
   const requestPermission = () => {
-    client
-      .permissionRequest({
-        blockchainIdentifier: 'ic',
-        blockchainData: {
-          type: 'permission_request',
-          networks: [{ type: 'mainnet' }],
-          scopes: ['canister_call']
-        }
+    const challenge = randomBytes(32)
+
+    client.ic
+      .requestPermissions({
+        networks: [{ chainId: 'icp:737ba355e855bd4b61279056603e0550' }],
+        scopes: ['canister_call'],
+        challenge: Buffer.from(challenge).toString('base64')
       })
       .then((permissions) => {
         console.log('permissions', permissions)
@@ -87,16 +87,13 @@ function App() {
       },
       amount: 1000
     }])
-    
-    client.request({
-      blockchainIdentifier: 'ic',
-      blockchainData: {
-        type: 'canister_call_request',
-        scope: 'canister_call',
-        canisterId: 'bkyz2-fmaaa-aaaaa-qaaaq-cai',
-        method: 'transfer',
-        args: Buffer.from(args).toString('hex')
-      }
+
+    client.ic.requestCanisterCall({
+      network: { chainId: 'icp:737ba355e855bd4b61279056603e0550' },
+      canisterId: 'bkyz2-fmaaa-aaaaa-qaaaq-cai',
+      sender: activeAccount.chainData.principal,
+      method: 'transfer',
+      arg: Buffer.from(args).toString('base64')
     })
     .then((response) => {
       const result = idlDecode([TransferResult], Buffer.from(response.blockchainData.response, 'hex'))[0]
@@ -141,8 +138,8 @@ function App() {
       <span>
         Active account:
         <br />
-        <span>{activeAccount?.chainData.account.owner}</span>
-        <span>{activeAccount?.chainData.subaccount}</span>
+        <span>{activeAccount?.chainData.principal}</span>
+        <span>{activeAccount?.chainData.ledger?.subaccount}</span>
         {/* <span>{activeAccount?.network.type}</span> */}
         <span>{activeAccount?.origin.type}</span>
       </span>

@@ -1,5 +1,5 @@
 export interface ICNetwork {
-    type: 'mainnet' | 'testnet'
+    chainId: string
     name?: string
     rpcUrl?: string
 }
