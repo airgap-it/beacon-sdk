@@ -91,7 +91,7 @@ function App() {
     client.ic.requestCanisterCall({
       network: { chainId: 'icp:737ba355e855bd4b61279056603e0550' },
       canisterId: 'bkyz2-fmaaa-aaaaa-qaaaq-cai',
-      sender: activeAccount.chainData.principal,
+      sender: Principal.selfAuthenticating(Buffer.from(activeAccount.chainData.identity.publicKey, 'base64')).toText(),
       method: 'transfer',
       arg: Buffer.from(args).toString('base64')
     })
@@ -138,8 +138,8 @@ function App() {
       <span>
         Active account:
         <br />
-        <span>{activeAccount?.chainData.principal}</span>
-        <span>{activeAccount?.chainData.ledger?.subaccount}</span>
+        <span>{activeAccount ? Principal.selfAuthenticating(Buffer.from(activeAccount.chainData.identity.publicKey, 'base64')).toText() : ''}</span>
+        <span>{activeAccount?.chainData.identity.ledger?.subaccount}</span>
         {/* <span>{activeAccount?.network.type}</span> */}
         <span>{activeAccount?.origin.type}</span>
       </span>

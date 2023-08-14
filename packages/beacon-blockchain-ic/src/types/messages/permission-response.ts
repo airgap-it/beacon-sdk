@@ -10,9 +10,12 @@ interface ICPermissionResponseParams {
     appMetadata: AppMetadata
     networks: ICNetwork[]
     scopes: ICPermissionScope[]
-    principal: string
-    ledger?: {
-        subaccount?: string
+    identity: {
+        algorithm: 'ed25519' | 'secp256k1' | 'secp256r1'
+        publicKey: string
+        ledger?: {
+            subaccount?: string
+        }
     }
     challenge: string
     signature: string
@@ -27,9 +30,12 @@ export interface ICPermissionBeaconResponse extends PermissionResponseV3<ICBlock
         appMetadata: AppMetadata
         networks: ICNetwork[]
         scopes: ICPermissionScope[]
-        principal: string
-        ledger?: {
-            subaccount?: string
+        identity: {
+            algorithm: 'ed25519' | 'secp256k1' | 'secp256r1'
+            publicKey: string
+            ledger?: {
+                subaccount?: string
+            }
         }
         challenge: string
         signature: string

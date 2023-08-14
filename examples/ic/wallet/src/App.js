@@ -21,14 +21,16 @@ function App() {
   const onPermissionRequest = async (request) => {
     const identity = Secp256k1KeyIdentity.fromSeedPhrase(mnemonic)
     const signature = await identity.sign(Buffer.from(request.params.challenge, 'base64'))
-    console.log(typeof Buffer.from(request.params.challenge, 'base64'))
 
     const response = {
       networks: request.params.networks,
       scopes: request.params.scopes,
-      principal: account.owner,
-      ledger: {
-        subaccount: account.subaccount
+      identity: {
+        algorithm: 'secp256k1',
+        publicKey: Buffer.from(account.publicKey).toString('base64'),
+        ledger: {
+          subaccount: account.subaccount
+        },
       },
       challenge: request.params.challenge,
       signature: Buffer.from(signature).toString('base64'),
@@ -117,6 +119,7 @@ function App() {
 
     setAccount({
       address: encodeIcrcAccount({ owner: principal }),
+      publicKey: identity.getPublicKey().toDer(),
       owner: principal.toText(),
       subaccount: undefined
     })
