@@ -177,7 +177,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       await this.closeSessions()
       await this.openSession()
     }
-    
+
     this.setDefaultAccountAndNetwork()
 
     const session = this.getSession()
