@@ -606,8 +606,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       await this.closeSessions() // close the previous session
     } 
 
-    // I still need this check in the event the user abort the sync process on the wallet side
-    // but I already have a connection set
+    // I still need this check in the event the user aborts the sync process on the wallet side
+    // but there is already a connection set
     this.session = this.session ?? (session as SessionTypes.Struct)
     this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
 
