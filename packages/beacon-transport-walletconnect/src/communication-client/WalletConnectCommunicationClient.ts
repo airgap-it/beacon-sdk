@@ -174,7 +174,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     if (this.activeAccount) {
-      await this.closeSessions()
       await this.openSession()
     }
 
@@ -602,6 +601,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const { approval } = await signClient.connect(connectParams)
     const session = await approval()
 
+    // if I have successfully opened a session and I already have one opened
+    if (session && this.session) {
+      await this.closeSessions() // close the previous session
+    }
+
+    // I still need this check in the event the user aborts the sync process on the wallet side
+    // but there is already a connection set
     this.session = this.session ?? (session as SessionTypes.Struct)
     this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
 
