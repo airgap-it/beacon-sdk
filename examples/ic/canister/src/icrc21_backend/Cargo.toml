@@ -1,0 +1,24 @@
+[package]
+name = "icrc21_backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+candid = "0.8.4"
+
+[dependencies]
+candid = "0.8.4"
+ic-cdk = "0.9.2"
+ic-cdk-macros = "0.6.10"
+ic-ledger-types = "0.6.0"
+icrc-ledger-types = { git = "https://github.com/dfinity/ic.git", package = "icrc-ledger-types" }
+serde = "1.0.175"
+serde_derive = "1.0.175"
+
+[dev-dependencies]
+tempfile = "3.2.0"

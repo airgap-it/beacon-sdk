@@ -1,0 +1,58 @@
+type Configuration = record {
+    ledger_canister_id : principal;
+};
+
+    // Transfer
+
+type BlockIndex = nat;
+type Tokens = nat;
+
+type Subaccount = blob;
+type Account = record {
+    owner : principal;
+    subaccount : opt Subaccount;
+};
+
+type TransferArgs = record {
+    from_subaccount : opt Subaccount;
+    to : Account;
+    amount : Tokens;
+};
+
+type TransferResult = variant {
+    Ok : BlockIndex;
+    Err : text;
+};
+
+    // Consent
+
+type ConsentPreferences = record {
+    language : text;
+};
+
+type ConsentMessageRequest = record {
+    method : text;
+    arg : blob;
+    consent_preferences : ConsentPreferences;
+};
+
+type ConsentInfo = record {
+    consent_message : text;
+    language : text;
+};
+
+type ErrorInfo = record {
+    error_code : nat;
+    description : text;
+};
+
+type ConsentMessageResponse = variant {
+    Valid : ConsentInfo;
+    Forbidden : ErrorInfo;
+    MalformedCall : ErrorInfo;
+};
+
+service : (opt Configuration) -> {
+    consent_message: (ConsentMessageRequest) -> (opt ConsentMessageResponse);
+    transfer: (TransferArgs) -> (TransferResult);
+}
