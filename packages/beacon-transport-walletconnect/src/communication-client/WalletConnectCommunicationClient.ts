@@ -237,7 +237,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       id: this.currentMessageId!
     }
 
-    this.notifyListeners(session, permissionResponse)
+    this.notifyListeners(session.pairingTopic, permissionResponse)
   }
 
   /**
@@ -275,7 +275,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: this.currentMessageId!
         } as SignPayloadResponse
 
-        this.notifyListeners(session, signPayloadResponse)
+        this.notifyListeners(session.pairingTopic, signPayloadResponse)
       })
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
@@ -284,7 +284,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        this.notifyListeners(session, errorResponse)
+        this.notifyListeners(session.pairingTopic, errorResponse)
       })
   }
 
@@ -329,7 +329,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: this.currentMessageId!
         }
 
-        this.notifyListeners(session, sendOperationResponse)
+        this.notifyListeners(session.pairingTopic, sendOperationResponse)
       })
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
@@ -338,7 +338,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        this.notifyListeners(session, errorResponse)
+        this.notifyListeners(session.pairingTopic, errorResponse)
       })
   }
 
@@ -422,7 +422,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       id
     }
 
-    this.notifyListeners(session, acknowledgeResponse)
+    this.notifyListeners(session.pairingTopic, acknowledgeResponse)
   }
 
   private async updateActiveAccount(namespaces: SessionTypes.Namespaces) {
@@ -449,7 +449,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           throw new Error('Public key for the new account not provided')
         }
 
-        this.notifyListeners(session, {
+        this.notifyListeners(session.pairingTopic, {
           id: await generateGUID(),
           type: BeaconMessageType.ChangeAccountRequest,
           publicKey,
@@ -477,7 +477,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    this.notifyListeners(session, {
+    this.notifyListeners(session.pairingTopic, {
       id: await generateGUID(),
       type: BeaconMessageType.Disconnect
     })
@@ -599,7 +599,22 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     const { approval } = await signClient.connect(connectParams)
-    const session = await approval()
+
+    let session: SessionTypes.Struct | undefined
+
+    try {
+      session = await approval()
+    } catch (error: any) {
+      console.error(error.message)
+      const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
+      const errorResponse: ErrorResponseInput = {
+        type: BeaconMessageType.Error,
+        id: this.currentMessageId!,
+        errorType: BeaconErrorType.ABORTED_ERROR
+      } as ErrorResponse
+
+      this.notifyListeners(_pairingTopic, errorResponse)
+    }
 
     // if I have successfully opened a session and I already have one opened
     if (session && this.session) {
@@ -826,11 +841,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // }
   }
 
-  private async notifyListeners(session: SessionTypes.Struct, partialResponse: BeaconInputMessage) {
+  private async notifyListeners(pairingTopic: string, partialResponse: BeaconInputMessage) {
     const response: BeaconBaseMessage = {
       ...partialResponse,
       version: '2',
-      senderId: session.pairingTopic
+      senderId: pairingTopic
     }
     const serializer = new Serializer()
     const serialized = await serializer.serialize(response)
