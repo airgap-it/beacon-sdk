@@ -960,7 +960,6 @@ export class DAppClient extends Client {
       PermissionRequest,
       PermissionResponse
     >(request).catch(async (requestError: ErrorResponse) => {
-      // emitEvent()
       throw await this.handleRequestError(request, requestError)
     })
 
@@ -1348,7 +1347,7 @@ export class DAppClient extends Client {
         await this.setTransport()
         await this.setActivePeer()
       }
-      
+
       this.events
         .emit(
           messageEvents[request.type].error,
