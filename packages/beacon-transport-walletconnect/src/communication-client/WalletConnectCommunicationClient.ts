@@ -184,7 +184,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       try {
         await this.openSession()
       } catch (error: any) {
-        // throw new InvalidSession(error.message)
         console.error(error.message)
         return
       }
@@ -397,7 +396,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         console.error(error.message)
         this.eventHandler && this.eventHandler()
         return
-        // throw new InvalidSession(error.message)
       }
     })
 
