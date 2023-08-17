@@ -1348,7 +1348,7 @@ export class DAppClient extends Client {
         await this.setTransport()
         await this.setActivePeer()
       }
-      debugger
+      
       this.events
         .emit(
           messageEvents[request.type].error,
