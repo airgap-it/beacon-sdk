@@ -55,6 +55,12 @@ export abstract class Transport<
    */
   protected newPeerListener?: (peer: T) => void
 
+  // protected _eventHandler?: Function
+
+  set eventHandler(fun: Function) {
+    this.client.eventHandler = fun
+  }
+
   /**
    * The listeners that will be notified when new messages are coming in
    */

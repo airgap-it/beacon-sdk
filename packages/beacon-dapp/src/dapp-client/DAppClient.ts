@@ -400,6 +400,7 @@ export class DAppClient extends Client {
       opts: wcOptions
     })
 
+    this.walletConnectTransport.eventHandler = this.hideUIHandler.bind(null, this.events, ['alert'])
     await this.addListener(this.walletConnectTransport)
   }
 
@@ -627,6 +628,13 @@ export class DAppClient extends Client {
       }
     })()
     await this.events.emit(BeaconEvent.SHOW_PREPARE, { walletInfo })
+  }
+
+  public async hideUIHandler(
+    events: BeaconEventHandler,
+    elements?: ('alert' | 'toast')[]
+  ): Promise<void> {
+    await events.emit(BeaconEvent.HIDE_UI, elements)
   }
 
   public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
@@ -952,6 +960,7 @@ export class DAppClient extends Client {
       PermissionRequest,
       PermissionResponse
     >(request).catch(async (requestError: ErrorResponse) => {
+      // emitEvent()
       throw await this.handleRequestError(request, requestError)
     })
 
@@ -972,7 +981,9 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
-    this.analytics.track('event', 'DAppClient', 'Permission received', { address: accountInfo.address })
+    this.analytics.track('event', 'DAppClient', 'Permission received', {
+      address: accountInfo.address
+    })
 
     return output
   }
@@ -1272,9 +1283,7 @@ export class DAppClient extends Client {
     const accounts = await this.accountManager.getAccounts()
 
     // Remove all accounts with origin of the specified peer
-    const accountsToRemove = accounts.filter((account) =>
-      peerIds.includes(account.senderId)
-    )
+    const accountsToRemove = accounts.filter((account) => peerIds.includes(account.senderId))
     const accountIdentifiersToRemove = accountsToRemove.map(
       (accountInfo) => accountInfo.accountIdentifier
     )
@@ -1339,7 +1348,7 @@ export class DAppClient extends Client {
         await this.setTransport()
         await this.setActivePeer()
       }
-
+      debugger
       this.events
         .emit(
           messageEvents[request.type].error,
@@ -1790,7 +1799,10 @@ export class DAppClient extends Client {
     return notificationResponse.data
   }
 
-  private async onNewAccount(message: PermissionResponse | ChangeAccountRequest, connectionInfo: ConnectionContext): Promise<AccountInfo> {
+  private async onNewAccount(
+    message: PermissionResponse | ChangeAccountRequest,
+    connectionInfo: ConnectionContext
+  ): Promise<AccountInfo> {
     // TODO: Migration code. Remove sometime after 1.0.0 release.
     const publicKey = await prefixPublicKey(
       message.publicKey || (message as any).pubkey || (message as any).pubKey

@@ -75,6 +75,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private session: SessionTypes.Struct | undefined
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
+  public eventHandler?: Function
 
   private currentMessageId: string | undefined // TODO JGD we shouldn't need this
 
@@ -131,18 +132,24 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const serializer = new Serializer()
     const message = (await serializer.deserialize(_message)) as any
 
+    if (!message) {
+      return
+    }
+
     this.currentMessageId = message.id
 
-    if (message?.type === BeaconMessageType.PermissionRequest) {
-      this.requestPermissions(message)
-    }
-
-    if (message?.type === BeaconMessageType.OperationRequest) {
-      this.sendOperations(message)
-    }
-
-    if (message?.type === BeaconMessageType.SignPayloadRequest) {
-      this.signPayload(message)
+    switch (message.type) {
+      case BeaconMessageType.PermissionRequest:
+        this.requestPermissions(message)
+        break
+      case BeaconMessageType.OperationRequest:
+        this.sendOperations(message)
+        break
+      case BeaconMessageType.SignPayloadRequest:
+        this.signPayload(message)
+        break
+      default:
+        return
     }
   }
 
@@ -174,7 +181,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     if (this.activeAccount) {
-      await this.openSession()
+      try {
+        await this.openSession()
+      } catch (error: any) {
+        // throw new InvalidSession(error.message)
+        console.error(error.message)
+        return
+      }
     }
 
     this.setDefaultAccountAndNetwork()
@@ -365,20 +378,27 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // pairings don't have peer details
       // therefore we must immediately open a session
       // to get data required in the pairing response
-      const session = await this.openSession(topic)
-      const pairingResponse = {
-        id: topic,
-        type: 'walletconnect-pairing-response',
-        name: session.peer.metadata.name,
-        publicKey: session.peer.publicKey,
-        senderId: topic,
-        extensionId: session.peer.metadata.name,
-        version: '3'
-      } as ExtendedWalletConnectPairingResponse
+      try {
+        const session = await this.openSession(topic)
+        const pairingResponse = {
+          id: topic,
+          type: 'walletconnect-pairing-response',
+          name: session.peer.metadata.name,
+          publicKey: session.peer.publicKey,
+          senderId: topic,
+          extensionId: session.peer.metadata.name,
+          version: '3'
+        } as ExtendedWalletConnectPairingResponse
 
-      this.channelOpeningListeners.forEach((listener) => {
-        listener(pairingResponse)
-      })
+        this.channelOpeningListeners.forEach((listener) => {
+          listener(pairingResponse)
+        })
+      } catch (error: any) {
+        console.error(error.message)
+        this.eventHandler && this.eventHandler()
+        return
+        // throw new InvalidSession(error.message)
+      }
     })
 
     return { uri, topic }
