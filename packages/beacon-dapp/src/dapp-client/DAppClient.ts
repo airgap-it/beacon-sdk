@@ -641,6 +641,11 @@ export class DAppClient extends Client {
   }
 
   public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
+    if (elements?.includes('alert')) {
+      // if the sync was aborted from the wallet side or the alert is closed we need to cancell the promise
+      this._initPromise = undefined
+    }
+
     await this.events.emit(BeaconEvent.HIDE_UI, elements)
   }
 
