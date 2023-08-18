@@ -75,7 +75,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private session: SessionTypes.Struct | undefined
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
-  public eventHandler?: Function
 
   private currentMessageId: string | undefined // TODO JGD we shouldn't need this
 
@@ -394,7 +393,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         })
       } catch (error: any) {
         console.error(error.message)
-        this.eventHandler && this.eventHandler()
+        const fun = this.events.get('close_alert')
+        fun && fun()
         return
       }
     })
@@ -489,6 +489,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (trigger.type === 'pairing') {
       session = await this.onPairingClosed(signClient, trigger.topic)
+    }
+
+    if (!this.activeAccount) {
+      const fun = this.events.get('refresh')
+      fun && fun()
     }
 
     if (!session) {

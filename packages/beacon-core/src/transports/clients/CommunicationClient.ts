@@ -17,7 +17,7 @@ import { clientSessionKeys, serverSessionKeys, SessionKeys } from '@stablelib/x2
 export abstract class CommunicationClient {
   constructor(protected readonly keyPair?: KeyPair) {}
 
-  public eventHandler?: Function
+  public events: Map<string, Function> = new Map()
 
   /**
    * Get the public key

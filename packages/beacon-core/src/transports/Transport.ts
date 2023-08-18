@@ -57,8 +57,8 @@ export abstract class Transport<
 
   // protected _eventHandler?: Function
 
-  set eventHandler(fun: Function) {
-    this.client.eventHandler = fun
+  setEventHandler(event: string, fun: Function) {
+    this.client.events?.set(event, fun)
   }
 
   /**

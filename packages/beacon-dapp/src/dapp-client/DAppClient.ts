@@ -400,8 +400,18 @@ export class DAppClient extends Client {
       opts: wcOptions
     })
 
-    this.walletConnectTransport.eventHandler = this.hideUIHandler.bind(null, this.events, ['alert'])
+    this.initEvents()
+
     await this.addListener(this.walletConnectTransport)
+  }
+
+  private initEvents() {
+    if (!this.walletConnectTransport) {
+      return
+    }
+
+    this.walletConnectTransport.setEventHandler('close_alert', this.hideUI.bind(this, ['alert']))
+    this.walletConnectTransport.setEventHandler('refresh', this.destroy.bind(this))
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
@@ -628,13 +638,6 @@ export class DAppClient extends Client {
       }
     })()
     await this.events.emit(BeaconEvent.SHOW_PREPARE, { walletInfo })
-  }
-
-  public async hideUIHandler(
-    events: BeaconEventHandler,
-    elements?: ('alert' | 'toast')[]
-  ): Promise<void> {
-    await events.emit(BeaconEvent.HIDE_UI, elements)
   }
 
   public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
