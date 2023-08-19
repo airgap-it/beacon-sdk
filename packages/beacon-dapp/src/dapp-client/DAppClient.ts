@@ -411,7 +411,14 @@ export class DAppClient extends Client {
     }
 
     this.walletConnectTransport.setEventHandler('close_alert', this.hideUI.bind(this, ['alert']))
-    this.walletConnectTransport.setEventHandler('refresh', this.destroy.bind(this))
+    this.walletConnectTransport.setEventHandler('refresh', this.channelClosedHandler.bind(this))
+  }
+
+  private async channelClosedHandler() {
+    await await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+    this.setActiveAccount(undefined)
+
+    this.destroy()
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {

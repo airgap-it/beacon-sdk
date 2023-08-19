@@ -80,7 +80,6 @@ export abstract class BeaconClient {
   public async destroy(): Promise<void> {
     await this.removeBeaconEntriesFromStorage()
     ;(windowRef as any).beaconCreatedClientInstance = false
-    location.reload()
   }
 
   /**
