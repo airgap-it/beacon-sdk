@@ -18,7 +18,7 @@ import { ClientEvents } from './ClientEvents'
 export abstract class CommunicationClient {
   constructor(protected readonly keyPair?: KeyPair) {}
 
-  public events: Map<ClientEvents, Function> = new Map()
+  public eventHandlers: Map<ClientEvents, Function> = new Map()
 
   /**
    * Get the public key

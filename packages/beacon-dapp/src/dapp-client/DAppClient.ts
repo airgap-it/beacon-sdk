@@ -76,7 +76,8 @@ import {
   LocalStorage,
   getAccountIdentifier,
   getSenderId,
-  Logger
+  Logger,
+  ClientEvents
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -110,7 +111,6 @@ import {
   getiOSList
 } from '@airgap/beacon-ui'
 import { signMessage } from '@airgap/beacon-utils'
-import { ClientEvents } from '@airgap/beacon-core/dist/esm/transports/clients/ClientEvents'
 
 const logger = new Logger('DAppClient')
 
@@ -416,7 +416,7 @@ export class DAppClient extends Client {
   }
 
   private async channelClosedHandler() {
-    await await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+    await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
     this.setActiveAccount(undefined)
 
     this.destroy()
