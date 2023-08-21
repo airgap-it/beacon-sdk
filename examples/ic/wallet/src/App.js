@@ -20,7 +20,7 @@ function App() {
 
   const onPermissionRequest = async (request) => {
     const identity = Secp256k1KeyIdentity.fromSeedPhrase(mnemonic)
-    const signature = await identity.sign(Buffer.from(request.params.challenge, 'base64'))
+    const signature = await identity.sign(Buffer.concat([Buffer.from(new TextEncoder().encode('\x0Aic-wallet-challenge')), Buffer.from(request.params.challenge, 'base64')]))
 
     const response = {
       networks: request.params.networks,
