@@ -110,6 +110,7 @@ import {
   getiOSList
 } from '@airgap/beacon-ui'
 import { signMessage } from '@airgap/beacon-utils'
+import { ClientEvents } from '@airgap/beacon-core/dist/esm/transports/clients/ClientEvents'
 
 const logger = new Logger('DAppClient')
 
@@ -410,8 +411,8 @@ export class DAppClient extends Client {
       return
     }
 
-    this.walletConnectTransport.setEventHandler('close_alert', this.hideUI.bind(this, ['alert']))
-    this.walletConnectTransport.setEventHandler('refresh', this.channelClosedHandler.bind(this))
+    this.walletConnectTransport.setEventHandler(ClientEvents.CLOSE_ALERT, this.hideUI.bind(this, ['alert']))
+    this.walletConnectTransport.setEventHandler(ClientEvents.RESET_STATE, this.channelClosedHandler.bind(this))
   }
 
   private async channelClosedHandler() {

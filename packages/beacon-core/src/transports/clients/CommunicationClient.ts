@@ -9,6 +9,7 @@ import {
 import { toHex, getHexHash, sealCryptobox } from '@airgap/beacon-utils'
 import { convertPublicKeyToX25519, convertSecretKeyToX25519, KeyPair } from '@stablelib/ed25519'
 import { clientSessionKeys, serverSessionKeys, SessionKeys } from '@stablelib/x25519-session'
+import { ClientEvents } from './ClientEvents'
 /**
  * @internalapi
  *
@@ -17,7 +18,7 @@ import { clientSessionKeys, serverSessionKeys, SessionKeys } from '@stablelib/x2
 export abstract class CommunicationClient {
   constructor(protected readonly keyPair?: KeyPair) {}
 
-  public events: Map<string, Function> = new Map()
+  public events: Map<ClientEvents, Function> = new Map()
 
   /**
    * Get the public key

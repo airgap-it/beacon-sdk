@@ -37,6 +37,7 @@ import {
   SignPayloadResponseInput
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
+import { ClientEvents } from '@airgap/beacon-core/dist/esm/transports/clients/ClientEvents'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 
@@ -393,7 +394,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         })
       } catch (error: any) {
         console.error(error.message)
-        const fun = this.events.get('close_alert')
+        const fun = this.events.get(ClientEvents.CLOSE_ALERT)
         fun && fun()
         return
       }
@@ -492,7 +493,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     if (!this.activeAccount) {
-      const fun = this.events.get('refresh')
+      const fun = this.events.get(ClientEvents.RESET_STATE)
       fun && fun()
     }
 

@@ -10,6 +10,7 @@ import {
 import { PeerManager } from '../managers/PeerManager'
 import { ArrayElem } from '../managers/StorageManager'
 import { CommunicationClient } from './clients/CommunicationClient'
+import { ClientEvents } from './clients/ClientEvents'
 
 const logger = new Logger('Transport')
 
@@ -57,7 +58,7 @@ export abstract class Transport<
 
   // protected _eventHandler?: Function
 
-  setEventHandler(event: string, fun: Function) {
+  setEventHandler(event: ClientEvents, fun: Function) {
     this.client.events.set(event, fun)
   }
 
