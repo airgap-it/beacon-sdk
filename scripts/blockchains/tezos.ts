@@ -196,7 +196,7 @@ export const tezosIosList: App[] = [
     color: '',
     logo: 'exodus.svg',
     supportedInteractionStandards: ['beacon'],
-    deepLink: 'exodus://wc?uri=',
+    deepLink: 'exodus://wc',
     universalLink:'https://www.exodus.com/'
   }
   // {
