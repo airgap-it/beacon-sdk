@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js'
+import { createEffect, createSignal, onCleanup } from 'solid-js'
 import {
   AnalyticsInterface,
   ExtensionMessage,
@@ -37,7 +37,7 @@ import {
   Wallet
 } from 'src/utils/wallets'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
-import { isAndroid, isIOS, isTwBrowser } from 'src/utils/platform'
+import { isAndroid, isIOS, isMobileOS, isTwBrowser } from 'src/utils/platform'
 import { getColorMode } from 'src/utils/colorMode'
 import PairOther from 'src/components/pair-other/pair-other'
 
@@ -331,7 +331,44 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     setWalletList(createWalletList())
 
-    const isMobile = window.innerWidth <= 800
+    const _isMobileOS = isMobileOS(window)
+    const [isMobile, setIsMobile] = createSignal(_isMobileOS)
+    const [windowWidth, setWindowWidth] = createSignal(window.innerWidth)
+
+    const debounce = (fun: Function, delay: number) => {
+      let timerId: NodeJS.Timeout
+
+      return (...args: any[]) => {
+        clearTimeout(timerId)
+        timerId = setTimeout(() => fun(...args), delay)
+      }
+    }
+
+    const debouncedSetWindowWidth = debounce(setWindowWidth, 200)
+
+    const updateIsMobile = (isMobileWidth: boolean) => {
+      // to avoid unwanted side effects (because of the OR condition), I always reset the value without checking the previous state
+      setWalletList(createWalletList())
+      setIsMobile(isMobileWidth || _isMobileOS)
+    }
+
+    createEffect(() => {
+      updateIsMobile(windowWidth() <= 800)
+    })
+
+    // Update the windowWidth signal when the window resizes
+    createEffect(() => {
+      const handleResize = () => {
+        debouncedSetWindowWidth(window.innerWidth)
+      }
+
+      window.addEventListener('resize', handleResize)
+
+      // Unsubscribe from the event when the component unmounts
+      onCleanup(() => {
+        window.removeEventListener('resize', handleResize)
+      })
+    })
 
     const handleClickShowMoreContent = () => {
       analytics()?.track('click', 'ui', 'show more wallets')
@@ -426,7 +463,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         }
         setIsLoading(false)
-      } else if (wallet?.types.includes('ios') && isMobile) {
+      } else if (wallet?.types.includes('ios') && _isMobileOS) { 
         setCodeQR('')
 
         if (config.pairingPayload) {
@@ -566,7 +603,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
-                      {!isMobile && currentWallet()?.types.includes('extension') && (
+                      {!isMobile() && currentWallet()?.types.includes('extension') && (
                         <Info
                           border
                           title={
@@ -602,7 +639,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           }
                         />
                       )}
-                      {!isMobile && currentWallet()?.types.includes('desktop') && (
+                      {!isMobile() && currentWallet()?.types.includes('desktop') && (
                         <Info
                           border
                           title={`Open Desktop App`}
@@ -621,7 +658,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           ]}
                         />
                       )}
-                      {!isMobile &&
+                      {!isMobile() &&
                         codeQR().length > 0 &&
                         currentWallet()?.types.includes('ios') &&
                         (currentWallet()?.types.length as number) > 1 && (
@@ -638,7 +675,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             onClickQrCode={handleClickQrCode}
                           />
                         )}
-                      {!isMobile &&
+                      {!isMobile() &&
                         codeQR().length > 0 &&
                         currentWallet()?.types.includes('ios') &&
                         (currentWallet()?.types.length as number) <= 1 && (
@@ -655,7 +692,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             onClickQrCode={handleClickQrCode}
                           />
                         )}
-                      {isMobile && codeQR().length > 0 && (
+                      {isMobile() && codeQR().length > 0 && (
                         <QR
                           isWalletConnect={
                             currentWallet()?.supportedInteractionStandards?.includes(
@@ -726,8 +763,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   >
                     <Wallets
                       disabled={isLoading()}
-                      wallets={walletList().slice(-(walletList().length - (isMobile ? 3 : 4)))}
-                      isMobile={isMobile}
+                      wallets={walletList().slice(-(walletList().length - (isMobile() ? 3 : 4)))}
+                      isMobile={isMobile()}
                       onClickWallet={handleClickWallet}
                       onClickOther={handleClickOther}
                     />
@@ -826,11 +863,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   >
                     <TopWallets
                       disabled={isLoading()}
-                      wallets={isMobile ? walletList().slice(0, 3) : walletList().slice(0, 4)}
+                      wallets={isMobile() ? walletList().slice(0, 3) : walletList().slice(0, 4)}
+                      isMobile={isMobile()}
                       onClickWallet={handleClickWallet}
                       onClickLearnMore={handleClickLearnMore}
                       otherWallets={
-                        isMobile
+                        isMobile()
                           ? {
                               images: [
                                 walletList()[3].image,
@@ -846,12 +884,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 </div>
               }
               extraContent={
-                currentInfo() !== 'top-wallets' || isMobile ? undefined : (
+                currentInfo() !== 'top-wallets' || isMobile() ? undefined : (
                   <Wallets
                     disabled={isLoading()}
                     small
                     wallets={walletList().slice(-(walletList().length - 4))}
-                    isMobile={isMobile}
+                    isMobile={isMobile()}
                     onClickWallet={handleClickWallet}
                     onClickOther={handleClickOther}
                   />
@@ -860,13 +898,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               onClickShowMore={handleClickShowMoreContent}
               onCloseClick={() => handleCloseAlert()}
               onBackClick={
-                currentInfo() === 'install' && !isMobile
+                currentInfo() === 'install' && !isMobile()
                   ? () => setCurrentInfo('top-wallets')
                   : currentInfo() === 'qr'
                   ? () => setCurrentInfo('top-wallets')
-                  : currentInfo() === 'install' && isMobile
+                  : currentInfo() === 'install' && isMobile()
                   ? () => setCurrentInfo('wallets')
-                  : currentInfo() === 'wallets' && isMobile
+                  : currentInfo() === 'wallets' && isMobile()
                   ? () => setCurrentInfo('top-wallets')
                   : currentInfo() === 'help'
                   ? () => setCurrentInfo(previousInfo())
