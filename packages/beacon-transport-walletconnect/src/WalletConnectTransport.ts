@@ -54,7 +54,7 @@ export class WalletConnectTransport<
 
     const knownPeers = await this.getPeers()
 
-    if (knownPeers.length > 0) {
+    if (knownPeers?.length > 0) {
       knownPeers.map(async (peer) => this.listen(peer.publicKey))
     }
 
