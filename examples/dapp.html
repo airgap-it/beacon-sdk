@@ -188,7 +188,9 @@
           [beacon.Regions.NORTH_AMERICA_EAST]: []
         }
         // featuredWallets: ['airgap']
-        // preferredNetwork: beacon.NetworkType.DELPHINET
+        // network: {
+        //   type: beacon.NetworkType.GHOSTNET
+        // }
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['matrix.papers.tech']
@@ -209,7 +211,10 @@
           }
         })
       }
-      updateActiveAccount()
+
+      client.subscribeToEvent('ACTIVE_ACCOUNT_SET', () => {
+        updateActiveAccount()
+      })
 
       // Display the active account in the UI
       const updateColorMode = () => {
@@ -281,7 +286,7 @@
       // Initiate a permission request
       const requestPermission = (callback) => {
         client
-          .requestPermissions(/*{ network: { type: beacon.NetworkType.DELPHINET } }*/)
+          .requestPermissions()
           .then((permissions) => {
             console.log('permissions', permissions)
             if (callback) {

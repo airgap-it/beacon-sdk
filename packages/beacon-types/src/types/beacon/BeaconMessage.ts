@@ -11,7 +11,8 @@ import {
   BroadcastResponse,
   AcknowledgeResponse,
   DisconnectMessage,
-  ErrorResponse
+  ErrorResponse,
+  ChangeAccountRequest
 } from '@airgap/beacon-types'
 
 /**
@@ -31,3 +32,4 @@ export type BeaconMessage =
   | AcknowledgeResponse
   | DisconnectMessage
   | ErrorResponse
+  | ChangeAccountRequest
