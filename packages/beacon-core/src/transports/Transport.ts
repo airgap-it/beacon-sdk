@@ -56,8 +56,6 @@ export abstract class Transport<
    */
   protected newPeerListener?: (peer: T) => void
 
-  // protected _eventHandler?: Function
-
   setEventHandler(event: ClientEvents, fun: Function) {
     this.client.eventHandlers.set(event, fun)
   }
