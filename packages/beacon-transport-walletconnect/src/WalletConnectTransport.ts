@@ -7,7 +7,8 @@ import {
   TransportStatus,
   ExtendedWalletConnectPairingResponse,
   StorageKey,
-  WalletConnectPairingRequest
+  WalletConnectPairingRequest,
+  NetworkType
 } from '@airgap/beacon-types'
 import { Transport, PeerManager } from '@airgap/beacon-core'
 import { SignClientTypes } from '@walletconnect/types'
@@ -29,7 +30,7 @@ export class WalletConnectTransport<
     _keyPair: KeyPair,
     storage: Storage,
     storageKey: K,
-    private wcOptions: SignClientTypes.Options
+    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }
   ) {
     super(
       name,
@@ -82,7 +83,7 @@ export class WalletConnectTransport<
   }
 
   public async disconnect(): Promise<void> {
-    // await this.client.stop()
+    await this.client.close()
 
     return super.disconnect()
   }

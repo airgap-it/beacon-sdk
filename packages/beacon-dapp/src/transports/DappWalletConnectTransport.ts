@@ -2,7 +2,8 @@ import {
   StorageKey,
   Storage,
   ExtendedWalletConnectPairingResponse,
-  TransportStatus
+  TransportStatus,
+  NetworkType
 } from '@airgap/beacon-types'
 import { Logger } from '@airgap/beacon-core'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
@@ -24,7 +25,7 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
     name: string,
     keyPair: KeyPair,
     storage: Storage,
-    wcOptions: SignClientTypes.Options
+    wcOptions: { network: NetworkType; opts: SignClientTypes.Options }
   ) {
     super(name, keyPair, storage, StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP, wcOptions)
     this.client.listenForChannelOpening(async (peer: ExtendedWalletConnectPairingResponse) => {
