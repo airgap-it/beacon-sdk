@@ -186,11 +186,11 @@
             'beacon-node-1.hope-5.papers.tech'
           ],
           [beacon.Regions.NORTH_AMERICA_EAST]: []
-        },
-        // featuredWallets: ['airgap']
-        network: {
-          type: beacon.NetworkType.GHOSTNET
         }
+        // featuredWallets: ['airgap']
+        // network: {
+        //   type: beacon.NetworkType.GHOSTNET
+        // }
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['matrix.papers.tech']
@@ -211,9 +211,9 @@
           }
         })
       }
-      
+
       client.subscribeToEvent('ACTIVE_ACCOUNT_SET', () => {
-        updateActiveAccount()  
+        updateActiveAccount()
       })
 
       // Display the active account in the UI
@@ -286,7 +286,7 @@
       // Initiate a permission request
       const requestPermission = (callback) => {
         client
-          .requestPermissions({ network: { type: beacon.NetworkType.GHOSTNET } })
+          .requestPermissions()
           .then((permissions) => {
             console.log('permissions', permissions)
             if (callback) {
