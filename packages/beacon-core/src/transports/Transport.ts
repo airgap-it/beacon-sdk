@@ -10,6 +10,7 @@ import {
 import { PeerManager } from '../managers/PeerManager'
 import { ArrayElem } from '../managers/StorageManager'
 import { CommunicationClient } from './clients/CommunicationClient'
+import { ClientEvents } from './clients/ClientEvents'
 
 const logger = new Logger('Transport')
 
@@ -54,6 +55,12 @@ export abstract class Transport<
    * The listener that will be invoked when a new peer is connected
    */
   protected newPeerListener?: (peer: T) => void
+
+  // protected _eventHandler?: Function
+
+  setEventHandler(event: ClientEvents, fun: Function) {
+    this.client.eventHandlers.set(event, fun)
+  }
 
   /**
    * The listeners that will be notified when new messages are coming in

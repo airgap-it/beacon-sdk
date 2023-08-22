@@ -76,7 +76,8 @@ import {
   LocalStorage,
   getAccountIdentifier,
   getSenderId,
-  Logger
+  Logger,
+  ClientEvents
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -400,7 +401,25 @@ export class DAppClient extends Client {
       opts: wcOptions
     })
 
+    this.initEvents()
+
     await this.addListener(this.walletConnectTransport)
+  }
+
+  private initEvents() {
+    if (!this.walletConnectTransport) {
+      return
+    }
+
+    this.walletConnectTransport.setEventHandler(ClientEvents.CLOSE_ALERT, this.hideUI.bind(this, ['alert']))
+    this.walletConnectTransport.setEventHandler(ClientEvents.RESET_STATE, this.channelClosedHandler.bind(this))
+  }
+
+  private async channelClosedHandler() {
+    await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+    this.setActiveAccount(undefined)
+
+    this.destroy()
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
@@ -630,6 +649,11 @@ export class DAppClient extends Client {
   }
 
   public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
+    if (elements?.includes('alert')) {
+      // if the sync was aborted from the wallet side or the alert is closed we need to cancel the promise
+      this._initPromise = undefined
+    }
+
     await this.events.emit(BeaconEvent.HIDE_UI, elements)
   }
 
@@ -972,7 +996,9 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
-    this.analytics.track('event', 'DAppClient', 'Permission received', { address: accountInfo.address })
+    this.analytics.track('event', 'DAppClient', 'Permission received', {
+      address: accountInfo.address
+    })
 
     return output
   }
@@ -1272,9 +1298,7 @@ export class DAppClient extends Client {
     const accounts = await this.accountManager.getAccounts()
 
     // Remove all accounts with origin of the specified peer
-    const accountsToRemove = accounts.filter((account) =>
-      peerIds.includes(account.senderId)
-    )
+    const accountsToRemove = accounts.filter((account) => peerIds.includes(account.senderId))
     const accountIdentifiersToRemove = accountsToRemove.map(
       (accountInfo) => accountInfo.accountIdentifier
     )
@@ -1790,7 +1814,10 @@ export class DAppClient extends Client {
     return notificationResponse.data
   }
 
-  private async onNewAccount(message: PermissionResponse | ChangeAccountRequest, connectionInfo: ConnectionContext): Promise<AccountInfo> {
+  private async onNewAccount(
+    message: PermissionResponse | ChangeAccountRequest,
+    connectionInfo: ConnectionContext
+  ): Promise<AccountInfo> {
     // TODO: Migration code. Remove sometime after 1.0.0 release.
     const publicKey = await prefixPublicKey(
       message.publicKey || (message as any).pubkey || (message as any).pubKey
