@@ -35,7 +35,7 @@ export class StorageManager<
   }
 
   public async getAll(): Promise<StorageKeyReturnType[T]> {
-    return this.storage.get(this.storageKey) ?? []
+    return await this.storage.get(this.storageKey) ?? []
   }
 
   public async getOne(

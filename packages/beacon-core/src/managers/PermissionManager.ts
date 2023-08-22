@@ -15,7 +15,7 @@ export class PermissionManager {
   }
 
   public async getPermissions(): Promise<PermissionInfo[]> {
-    return this.storageManager.getAll() ?? []
+    return await this.storageManager.getAll() ?? []
   }
 
   public async getPermission(accountIdentifier: string): Promise<PermissionInfo | undefined> {

@@ -15,7 +15,7 @@ export class AccountManager {
   }
 
   public async getAccounts(): Promise<AccountInfo[]> {
-    return this.storageManager.getAll() ?? []
+    return await this.storageManager.getAll() ?? []
   }
 
   public async getAccount(accountIdentifier: string): Promise<AccountInfo | undefined> {
