@@ -89,15 +89,6 @@ export const tezosDesktopList: DesktopApp[] = [
     downloadLink: 'https://infinitywallet.io/download'
   },
   {
-    key: 'galleon_desktop',
-    name: 'Galleon',
-    shortName: 'Galleon',
-    color: '',
-    logo: 'desktop-galleon.png',
-    deepLink: 'galleon://',
-    downloadLink: 'https://cryptonomic.tech/galleon.html'
-  },
-  {
     key: 'umami_desktop',
     name: 'Umami',
     shortName: 'Umami',
@@ -190,12 +181,4 @@ export const tezosIosList: App[] = [
     universalLink: 'https://trustwallet.com',
     deepLink: 'trust://'
   }
-  // {
-  //   name: 'Galleon',
-  //   shortName: 'Galleon',
-  //   color: '',
-  //   logo: 'ios-galleon.png',
-  //   universalLink: 'https://cryptonomic.tech',
-  //   deepLink: 'galleon://'
-  // }
 ]
