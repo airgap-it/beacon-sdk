@@ -236,7 +236,7 @@ export class DAppClient extends Client {
       if (message.version === '3') {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
-        if (openRequest && typedMessage.message.type === BeaconMessageType.Acknowledge) {
+        if (openRequest && typedMessage.message?.type === BeaconMessageType.Acknowledge) {
           this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
           logger.log(`acknowledge message received for ${message.id}`)
           console.timeLog(message.id, 'acknowledge')
@@ -252,21 +252,21 @@ export class DAppClient extends Client {
           const appMetadata: AppMetadata | undefined = (
             typedMessage.message as unknown /* Why is this unkown cast needed? */ as PermissionResponseV3<string>
           ).blockchainData.appMetadata
-          if (typedMessage.message.type === BeaconMessageType.PermissionResponse && appMetadata) {
+          if (typedMessage.message?.type === BeaconMessageType.PermissionResponse && appMetadata) {
             await this.appMetadataManager.addAppMetadata(appMetadata)
           }
 
           console.timeLog(typedMessage.id, 'response')
           console.timeEnd(typedMessage.id)
 
-          if (typedMessage.message.type === BeaconMessageType.Error) {
+          if (typedMessage.message?.type === BeaconMessageType.Error) {
             openRequest.reject(typedMessage.message as ErrorResponse)
           } else {
             openRequest.resolve({ message, connectionInfo })
           }
           this.openRequests.delete(typedMessage.id)
         } else {
-          if (typedMessage.message.type === BeaconMessageType.Disconnect) {
+          if (typedMessage.message?.type === BeaconMessageType.Disconnect) {
             this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
 
             const relevantTransport =
@@ -288,7 +288,7 @@ export class DAppClient extends Client {
               await this.removeAccountsForPeerIds([message.senderId])
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
-          } else if (typedMessage.message.type === BeaconMessageType.ChangeAccountRequest) {
+          } else if (typedMessage.message?.type === BeaconMessageType.ChangeAccountRequest) {
             await this.onNewAccount(typedMessage.message as ChangeAccountRequest, connectionInfo)
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
