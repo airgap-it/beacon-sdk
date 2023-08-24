@@ -57,6 +57,7 @@ export const tezosWebList: WebApp[] = [
     shortName: 'Kukai',
     color: '',
     logo: 'web-kukai.png',
+    supportedInteractionStandards: ['wallet_connect'],
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
       [NetworkType.GHOSTNET]: 'https://ghostnet.kukai.app',
@@ -86,15 +87,6 @@ export const tezosDesktopList: DesktopApp[] = [
     logo: 'infinity-wallet.png',
     deepLink: 'infinity://',
     downloadLink: 'https://infinitywallet.io/download'
-  },
-  {
-    key: 'galleon_desktop',
-    name: 'Galleon',
-    shortName: 'Galleon',
-    color: '',
-    logo: 'desktop-galleon.png',
-    deepLink: 'galleon://',
-    downloadLink: 'https://cryptonomic.tech/galleon.html'
   },
   {
     key: 'umami_desktop',
@@ -184,17 +176,9 @@ export const tezosIosList: App[] = [
     name: 'Trust Wallet',
     shortName: 'Trust Wallet',
     color: '',
-    supportedInteractionStandards: ['wallet_connect'] as any,
+    supportedInteractionStandards: ['wallet_connect'],
     logo: 'ios-trust.png',
     universalLink: 'https://trustwallet.com',
     deepLink: 'trust://'
   }
-  // {
-  //   name: 'Galleon',
-  //   shortName: 'Galleon',
-  //   color: '',
-  //   logo: 'ios-galleon.png',
-  //   universalLink: 'https://cryptonomic.tech',
-  //   deepLink: 'galleon://'
-  // }
 ]
