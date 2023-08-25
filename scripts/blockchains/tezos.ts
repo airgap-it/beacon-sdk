@@ -57,7 +57,6 @@ export const tezosWebList: WebApp[] = [
     shortName: 'Kukai',
     color: '',
     logo: 'web-kukai.png',
-    supportedInteractionStandards: ['wallet_connect'],
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
       [NetworkType.GHOSTNET]: 'https://ghostnet.kukai.app',
