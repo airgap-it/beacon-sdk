@@ -154,6 +154,20 @@
           el.setAttribute('style', 'background-color: red')
           document.getElementById('logger-output').appendChild(el)
         }
+
+        time(start, label) {
+          const el = document.createElement('div')
+          el.innerText = `'time' ${start} ${label}`
+          el.setAttribute('style', 'background-color: grey')
+          document.getElementById('logger-output').appendChild(el)
+        }
+
+        timeLog(method, ...args) {
+          const el = document.createElement('div')
+          el.innerText = `'timeLog' ${method} ${args.join(', ')}`
+          el.setAttribute('style', 'background-color: grey')
+          document.getElementById('logger-output').appendChild(el)
+        }
       }
 
       const x = new MyLogger()
