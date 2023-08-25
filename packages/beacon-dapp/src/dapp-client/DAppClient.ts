@@ -238,8 +238,8 @@ export class DAppClient extends Client {
 
         if (openRequest && typedMessage.message?.type === BeaconMessageType.Acknowledge) {
           this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
-          logger.log(`acknowledge message received for ${message.id}`)
-          console.timeLog(message.id, 'acknowledge')
+          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
+          logger.timeLog('handleResponse', message.id, 'acknowledge')
 
           this.events
             .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
@@ -256,8 +256,8 @@ export class DAppClient extends Client {
             await this.appMetadataManager.addAppMetadata(appMetadata)
           }
 
-          console.timeLog(typedMessage.id, 'response')
-          console.timeEnd(typedMessage.id)
+          logger.timeLog('handleResponse', typedMessage.id, 'response')
+          logger.time(false, typedMessage.id)
 
           if (typedMessage.message?.type === BeaconMessageType.Error) {
             openRequest.reject(typedMessage.message as ErrorResponse)
@@ -301,7 +301,7 @@ export class DAppClient extends Client {
           logger.log(`acknowledge message received for ${message.id}`)
           this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
 
-          console.timeLog(message.id, 'acknowledge')
+          logger.timeLog('handleResponse', message.id, 'acknowledge')
 
           this.events
             .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
@@ -318,8 +318,8 @@ export class DAppClient extends Client {
             await this.appMetadataManager.addAppMetadata(typedMessage.appMetadata)
           }
 
-          console.timeLog(typedMessage.id, 'response')
-          console.timeEnd(typedMessage.id)
+          logger.timeLog('handleResponse', typedMessage.id, 'response')
+          logger.time(false, typedMessage.id)
 
           if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
             // TODO: Remove "any" once we remove support for v1 wallets
@@ -411,8 +411,14 @@ export class DAppClient extends Client {
       return
     }
 
-    this.walletConnectTransport.setEventHandler(ClientEvents.CLOSE_ALERT, this.hideUI.bind(this, ['alert']))
-    this.walletConnectTransport.setEventHandler(ClientEvents.RESET_STATE, this.channelClosedHandler.bind(this))
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.CLOSE_ALERT,
+      this.hideUI.bind(this, ['alert'])
+    )
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.RESET_STATE,
+      this.channelClosedHandler.bind(this)
+    )
   }
 
   private async channelClosedHandler() {
@@ -1534,10 +1540,10 @@ export class DAppClient extends Client {
   }> {
     const messageId = await generateGUID()
 
-    console.time(messageId)
+    logger.time(true, messageId)
     logger.log('makeRequest', 'starting')
     await this.init()
-    console.timeLog(messageId, 'init done')
+    logger.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -1585,7 +1591,7 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
-    console.timeLog(messageId, 'sending')
+    logger.timeLog('makeRequest', messageId, 'sending')
     try {
       await (await this.transport).send(payload, peer)
     } catch (sendError) {
@@ -1601,10 +1607,10 @@ export class DAppClient extends Client {
           }
         ]
       })
-      console.timeLog(messageId, 'send error')
+      logger.timeLog('makeRequest', messageId, 'send error')
       throw sendError
     }
-    console.timeLog(messageId, 'sent')
+    logger.timeLog('makeRequest', messageId, 'sent')
 
     this.events
       .emit(messageEvents[requestInput.type].sent, {
@@ -1642,10 +1648,10 @@ export class DAppClient extends Client {
     connectionInfo: ConnectionContext
   }> {
     const messageId = await generateGUID()
-    console.time(messageId)
+    logger.time(true, messageId)
     logger.log('makeRequest', 'starting')
     await this.init()
-    console.timeLog(messageId, 'init done')
+    logger.timeLog('makeRequest', messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -1692,7 +1698,7 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
-    console.timeLog(messageId, 'sending')
+    logger.timeLog('makeRequest', messageId, 'sending')
     try {
       await (await this.transport).send(payload, peer)
     } catch (sendError) {
@@ -1708,10 +1714,10 @@ export class DAppClient extends Client {
           }
         ]
       })
-      console.timeLog(messageId, 'send error')
+      logger.timeLog('makeRequest', messageId, 'send error')
       throw sendError
     }
-    console.timeLog(messageId, 'sent')
+    logger.timeLog('makeRequest', messageId, 'sent')
 
     const index = requestInput.type as any as BeaconMessageType
 
