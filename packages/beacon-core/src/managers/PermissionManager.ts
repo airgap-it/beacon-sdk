@@ -15,7 +15,7 @@ export class PermissionManager {
   }
 
   public async getPermissions(): Promise<PermissionInfo[]> {
-    return await this.storageManager.getAll() ?? []
+    return (await this.storageManager.getAll()) ?? []
   }
 
   public async getPermission(accountIdentifier: string): Promise<PermissionInfo | undefined> {
@@ -28,7 +28,8 @@ export class PermissionManager {
     return this.storageManager.addOne(
       permissionInfo,
       (permission: PermissionInfo) =>
-        permission.accountIdentifier === permissionInfo.accountIdentifier
+        permission.accountIdentifier === permissionInfo.accountIdentifier &&
+        permission.senderId === permissionInfo.senderId
     )
   }
 
