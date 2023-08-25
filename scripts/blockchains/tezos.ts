@@ -179,5 +179,15 @@ export const tezosIosList: App[] = [
     logo: 'ios-trust.png',
     universalLink: 'https://trustwallet.com',
     deepLink: 'trust://'
+  },
+  {
+    key: 'exodus_mobile',
+    name: 'Exodus Mobile',
+    shortName: 'Exodus',
+    color: '',
+    logo: 'exodus.svg',
+    supportedInteractionStandards: ['beacon'],
+    deepLink: 'exodus://wc',
+    universalLink:'https://www.exodus.com/'
   }
 ]
