@@ -6,7 +6,7 @@ export interface Wallet {
   description: string
   type: string
   link: string
-  supportedInteractionStandards?: string[] // 'wallet_connect' or 'beacon'
+  supportedInteractionStandards?: ('wallet_connect' | 'beacon')[] // 'wallet_connect' or 'beacon'
   deepLink?: string
 }
 
@@ -19,7 +19,7 @@ export interface MergedWallet {
   descriptions: string[]
   types: string[]
   link: string
-  supportedInteractionStandards?: string[] // 'wallet_connect' or 'beacon',
+  supportedInteractionStandards?: ('wallet_connect' | 'beacon')[] // 'wallet_connect' or 'beacon',
   tags?: string[]
   deepLink?: string
 }
