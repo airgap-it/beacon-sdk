@@ -112,15 +112,6 @@ export const tezosDesktopList: DesktopApp[] = [
     downloadLink: 'https://infinitywallet.io/download'
   },
   {
-    key: 'galleon_desktop',
-    name: 'Galleon',
-    shortName: 'Galleon',
-    color: '',
-    logo: 'desktop-galleon.png',
-    deepLink: 'galleon://',
-    downloadLink: 'https://cryptonomic.tech/galleon.html'
-  },
-  {
     key: 'umami_desktop',
     name: 'Umami',
     shortName: 'Umami',
@@ -208,17 +199,19 @@ export const tezosIosList: App[] = [
     name: 'Trust Wallet',
     shortName: 'Trust Wallet',
     color: '',
-    supportedInteractionStandards: ['wallet_connect'] as any,
+    supportedInteractionStandards: ['wallet_connect'],
     logo: 'ios-trust.png',
     universalLink: 'https://trustwallet.com',
     deepLink: 'trust://'
+  },
+  {
+    key: 'exodus_mobile',
+    name: 'Exodus Mobile',
+    shortName: 'Exodus',
+    color: '',
+    logo: 'exodus.svg',
+    supportedInteractionStandards: ['beacon'],
+    deepLink: 'exodus://wc',
+    universalLink:'https://www.exodus.com/'
   }
-  // {
-  //   name: 'Galleon',
-  //   shortName: 'Galleon',
-  //   color: '',
-  //   logo: 'ios-galleon.png',
-  //   universalLink: 'https://cryptonomic.tech',
-  //   deepLink: 'galleon://'
-  // }
 ]

@@ -1,7 +1,7 @@
 {
   "name": "@airgap/beacon-core",
-  "version": "4.0.5",
-  "description": "> TODO: description",
+  "version": "4.0.8",
+  "description": "This package contains internal methods that are used by both the dApp and wallet client.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
   "license": "ISC",
@@ -34,8 +34,8 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-types": "4.0.5",
-    "@airgap/beacon-utils": "4.0.5",
+    "@airgap/beacon-types": "4.0.8",
+    "@airgap/beacon-utils": "4.0.8",
     "@stablelib/ed25519": "^1.0.3",
     "@stablelib/nacl": "^1.0.4",
     "@stablelib/utf8": "^1.0.1",
