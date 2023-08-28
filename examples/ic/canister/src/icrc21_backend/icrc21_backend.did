@@ -2,10 +2,23 @@ type Configuration = record {
     ledger_canister_id : principal;
 };
 
-    // Transfer
-
-type BlockIndex = nat;
 type Tokens = nat;
+
+// Balance
+
+type BalanceArgs = record {
+    account : principal;
+};
+
+type BalanceResult = variant {
+    Ok : record {
+        owner : Tokens;
+        deposit : Tokens;
+    };
+    Err : text
+};
+
+// Transfer
 
 type Subaccount = blob;
 type Account = record {
@@ -13,8 +26,9 @@ type Account = record {
     subaccount : opt Subaccount;
 };
 
+type BlockIndex = nat;
+
 type TransferArgs = record {
-    from_subaccount : opt Subaccount;
     to : Account;
     amount : Tokens;
 };
@@ -24,7 +38,7 @@ type TransferResult = variant {
     Err : text;
 };
 
-    // Consent
+// Consent
 
 type ConsentPreferences = record {
     language : text;
@@ -52,7 +66,10 @@ type ConsentMessageResponse = variant {
     MalformedCall : ErrorInfo;
 };
 
+// Service
+
 service : (opt Configuration) -> {
     consent_message: (ConsentMessageRequest) -> (opt ConsentMessageResponse);
+    balance_of: (BalanceArgs) -> (BalanceResult);
     transfer: (TransferArgs) -> (TransferResult);
 }

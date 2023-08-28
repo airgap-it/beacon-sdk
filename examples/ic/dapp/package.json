@@ -4,8 +4,11 @@
   "private": true,
   "dependencies": {
     "@airgap/beacon-sdk": "file:../../../beacon-sdk",
+    "@dfinity/agent": "^0.15.7",
     "@dfinity/candid": "^0.15.7",
+    "@dfinity/identity": "^0.15.7",
     "@dfinity/principal": "^0.15.7",
+    "@dfinity/utils": "^0.0.18",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",

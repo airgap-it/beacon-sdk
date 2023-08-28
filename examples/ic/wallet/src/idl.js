@@ -1,5 +1,20 @@
 import { IDL } from '@dfinity/candid'
 
+export const Tokens = IDL.Nat
+
+// Balance
+
+export const BalanceArgs = IDL.Record({
+  account: IDL.Principal
+})
+
+export const BalanceResult = IDL.Variant({
+  Ok: IDL.Record({
+    owner: Tokens,
+    deposit: Tokens
+  })
+})
+
 // Consent
 
 export const ConsentPreferences = IDL.Record({
@@ -28,9 +43,46 @@ export const ConsentMessageResponse = IDL.Variant({
   Malformed_call: ErrorInfo,
 })
 
-export const canister = IDL.Service({
-    consent_message: IDL.Func([ConsentMessageRequest], [IDL.Opt(ConsentMessageResponse)], ['query']),
+// ICRC1
+
+export const Subaccount = IDL.Vec(IDL.Nat8)
+export const Account = IDL.Record({
+    owner: IDL.Principal,
+    subaccount: IDL.Opt(Subaccount)
 })
+
+const Memo = IDL.Vec(IDL.Nat8)
+const Timestamp = IDL.Nat64
+
+export const ICRC1TransferArgs = IDL.Record({
+  to: Account,
+  fee: IDL.Opt(Tokens),
+  memo: IDL.Opt(Memo),
+  from_subaccount: IDL.Opt(Subaccount),
+  created_at_time: IDL.Opt(Timestamp),
+  amount: Tokens
+})
+
+const BlockIndex = IDL.Nat
+const TransferError = IDL.Variant({
+  GenericError: IDL.Record({
+    message: IDL.Text,
+    error_code: IDL.Nat
+  }),
+  TemporarilyUnavailable: IDL.Null,
+  BadBurn: IDL.Record({ min_burn_amount: Tokens }),
+  Duplicate: IDL.Record({ duplicate_of: BlockIndex }),
+  BadFee: IDL.Record({ expected_fee: Tokens }),
+  CreatedInFuture: IDL.Record({ ledger_time: IDL.Nat64 }),
+  TooOld: IDL.Null,
+  InsufficientFunds: IDL.Record({ balance: Tokens })
+})
+export const ICRC1TransferResult = IDL.Variant({
+  Ok: BlockIndex,
+  Err: TransferError
+})
+
+// Encoding
 
 export function idlEncode(types, args) {
     return IDL.encode(types, args)

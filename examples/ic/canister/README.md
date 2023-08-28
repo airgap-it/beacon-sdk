@@ -24,6 +24,12 @@ dfx canister create icrc21_backend --specified-id bkyz2-fmaaa-aaaaa-qaaaq-cai
 
 # Deploys all canisters to the replica and generates the candid interface
 dfx deploy
+
+# Switches to the minter account
+dfx identity use minter
+
+# Mints tokens
+dfx canister call ledger icrc1_transfer '(record { to = record { owner = principal "'<target_principal>'" }; amount = 100_000_000 })'
 ```
 
 Once the job completes, your application will be available at `http://localhost:4943?canisterId={asset_canister_id}`.

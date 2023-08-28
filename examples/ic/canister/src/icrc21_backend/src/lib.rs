@@ -1,7 +1,10 @@
+pub mod balance;
 pub mod transfer;
 pub mod consent;
 
 mod state;
+mod ledger;
+mod utils;
 
 use state::{Configuration, CONFIGURATION};
 use candid::{candid_method};

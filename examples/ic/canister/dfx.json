@@ -2,8 +2,8 @@
   "canisters": {
     "ledger": {
       "type": "custom",
-      "candid": "https://raw.githubusercontent.com/dfinity/ic/0062aec2efc16d6e4cadb2cd1052aaabbc9f6e48/rs/rosetta-api/icrc1/ledger/ledger.did",
-      "wasm": "https://download.dfinity.systems/ic/0062aec2efc16d6e4cadb2cd1052aaabbc9f6e48/canisters/ic-icrc1-ledger.wasm.gz",
+      "candid": "https://raw.githubusercontent.com/dfinity/ic/a4191e757dbc581cbc8cef9160aea1e852218a1a/rs/rosetta-api/icrc1/ledger/ledger.did",
+      "wasm": "https://download.dfinity.systems/ic/a4191e757dbc581cbc8cef9160aea1e852218a1a/canisters/ic-icrc1-ledger.wasm.gz",
       "remote": {
         "id": {
           "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai"

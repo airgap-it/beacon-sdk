@@ -1,19 +1,28 @@
+/* global BigInt */
 import { BeaconErrorType, BeaconMessageType, Serializer, WalletClient } from '@airgap/beacon-sdk';
 import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1'
 import { encodeIcrcAccount } from '@dfinity/ledger';
-import { useState } from 'react';
+import { Principal } from '@dfinity/principal';
+import { principalToSubAccount } from '@dfinity/utils';
+import { useEffect, useMemo, useState } from 'react';
 
 import './App.css';
-import { ConsentMessageRequest, ConsentMessageResponse, idlDecode, idlEncode } from './idl';
-import { call, createAgent, readState } from './agent';
+import { BalanceArgs, BalanceResult, ConsentMessageRequest, ConsentMessageResponse, ICRC1TransferArgs, ICRC1TransferResult, idlDecode, idlEncode } from './idl';
+import { call, callQuery, createAgent, query, readState } from './agent';
 
-const client = new WalletClient({
-  name: 'Example Wallet'
-})
+const LEDGER_CANISTER_ID = 'ryjl3-tyaaa-aaaaa-aaaba-cai'
+const ICRC21_LEDGER_CANISTER_ID = 'bkyz2-fmaaa-aaaaa-qaaaq-cai'
 
 function App() {
+  const client = useMemo(() => {
+    return new WalletClient({
+      name: 'Example Wallet'
+    })
+  }, [])
+
   const [account, setAccount] = useState(undefined)
-  const [mnemonic, setMnemonic] = useState('')
+  const [balance, setBalance] = useState(undefined)
+  const [mnemonic, setMnemonic] = useState('already alone man elite catalog affair friend mammal cash average idea wet')
   const [status, setStatus] = useState('')
   const [pendingCanisterCallRequest, setPendingCanisterCallRequest] = useState(undefined)
   const [consentMessage, setConsentMessage] = useState(undefined)
@@ -51,17 +60,13 @@ function App() {
     setPendingCanisterCallRequest(request)
 
     const agent = await createAgent(mnemonic)
-    
-    const queryResponse = await agent.query(canisterId, {
-      methodName: 'consent_message',
-      arg: idlEncode([ConsentMessageRequest], [{
-        method,
-        arg: Buffer.from(arg, 'base64'),
-        consent_preferences: {
-          language: 'en'
-        }
-      }])
-    })
+    const queryResponse = await query(agent, canisterId, 'consent_message', idlEncode([ConsentMessageRequest], [{
+      method,
+      arg: Buffer.from(arg, 'base64'),
+      consent_preferences: {
+        language: 'en'
+      }
+    }]))
 
     if (queryResponse.status !== 'replied') {
       console.error(queryResponse)
@@ -78,7 +83,6 @@ function App() {
   }
 
   client.init().then(() => {
-    console.log('init')
     client.ic
       .connect(async (message) => {
         setStatus('Handling request...')
@@ -117,12 +121,64 @@ function App() {
     const identity = Secp256k1KeyIdentity.fromSeedPhrase(mnemonic)
     const principal = identity.getPrincipal()
 
+    console.log(Buffer.from(principalToSubAccount(principal)).toString('hex'))
+
     setAccount({
       address: encodeIcrcAccount({ owner: principal }),
       publicKey: identity.getPublicKey().toDer(),
       owner: principal.toText(),
       subaccount: undefined
     })
+  }
+
+  const fetchBalance = async () => {
+    try {
+      setStatus('Fetching the balance...')
+      const agent = await createAgent(mnemonic)
+      const queryResponse = await callQuery(agent, ICRC21_LEDGER_CANISTER_ID, 'balance_of', idlEncode([BalanceArgs], [{
+        account: Principal.from(account.owner)
+      }]))
+
+      const balance = idlDecode([BalanceResult], queryResponse)[0]
+      if (balance.Err) {
+        throw balance.Err
+      }
+
+      setStatus('')
+      setBalance({
+        owner: balance.Ok.owner.toString(),
+        deposit: balance.Ok.deposit.toString()
+      })
+    } catch (error) {
+      console.error('fetchBalance error', error)
+      setStatus('Failed to fetch the balance')
+    }
+  }
+
+  useEffect(() => {
+    if (account) {
+      fetchBalance()
+    }
+  }, [mnemonic, account])
+
+  const deposit = async () => {
+    const agent = await createAgent(mnemonic)
+    const fee = BigInt(100)
+    const callResponse = await call(agent, LEDGER_CANISTER_ID, 'icrc1_transfer', idlEncode([ICRC1TransferArgs], [{
+      from_subaccount: [],
+      to: {
+        owner: Principal.from(ICRC21_LEDGER_CANISTER_ID),
+        subaccount: [principalToSubAccount(Principal.from(account.owner))]
+      },
+      amount: BigInt(balance.owner) - fee,
+      fee: [fee],
+      memo: [],
+      created_at_time: []
+    }]))
+
+    const state = await readState(agent, LEDGER_CANISTER_ID, callResponse.requestId)
+    console.log(idlDecode([ICRC1TransferResult], state.response)[0])
+    await fetchBalance()
   }
 
   const pasteSyncCode = async () => {
@@ -137,7 +193,7 @@ function App() {
       console.log('Peer added')
     } catch (error) {
       console.error('pasteSyncCode error', error)
-      setStatus('not a valid sync code: ' + syncCode)
+      setStatus('Not a valid sync code: ' + syncCode)
     }
   }
 
@@ -179,6 +235,7 @@ function App() {
 
     setPendingCanisterCallRequest(undefined)
     setConsentMessage(undefined)
+    fetchBalance()
   }
 
   const rejectCanisterCall = async () => {
@@ -191,18 +248,6 @@ function App() {
 
     setPendingCanisterCallRequest(undefined)
     setConsentMessage(undefined)
-  }
-
-  const removePeer = () => {
-    client.getPeers().then((peers) => {
-      if (peers.length > 0) {
-        client.removePeer(peers[0], true).then(() => {
-          console.log('peer removed', peers[0])
-        })
-      } else {
-        console.log('no peers to be removed')
-      }
-    })
   }
 
   const reset = () => {
@@ -218,15 +263,29 @@ function App() {
       {account
         ? (
             <>
+              {status && <div>Status: {status}</div>}
+              <br />
               <div>Account: {account.address}</div>
-              {status ? <div>Status: {status}</div> : <></>}
-              <br /><br />
+              {balance && (
+                <>
+                  <div>Owner: {balance.owner} DEV</div>  
+                  <div>Deposit: {balance.deposit} DEV</div>  
+                  <br />
+                  {BigInt(balance.owner) > 0 && (
+                    <>
+                      <button onClick={deposit}>Deposit</button>
+                      <br />
+                    </>
+                  )}
+                </>
+              )}
+              <br />
               <button onClick={pasteSyncCode}>Paste Sync Code</button>
             </>
           )
         : (
           <>
-            <textarea onChange={onMnemonicInput}></textarea>
+            <textarea onChange={onMnemonicInput} defaultValue={mnemonic}></textarea>
             <button onClick={importAccount}>Import Account</button>
           </>
         )
@@ -241,14 +300,10 @@ function App() {
               <button onClick={acceptCanisterCall}>Ok</button>
               <button onClick={rejectCanisterCall}>Reject</button>
             </div>
+            <br /><br />
           </>
         )
       }
-      <br /><br />
-      ---
-      <br /><br />
-      <button onClick={removePeer}>Remove Peer</button>
-      <br /><br />
       ---
       <br /><br />
       <button onClick={reset}>Reset and Refresh</button>

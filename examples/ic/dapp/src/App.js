@@ -1,45 +1,49 @@
-import { BeaconEvent, getDAppClientInstance, ICBlockchain, Regions, Serializer } from '@airgap/beacon-sdk';
+/* global BigInt */
+import { BeaconEvent, getDAppClientInstance, ICBlockchain, Regions } from '@airgap/beacon-sdk';
+import { AnonymousIdentity, Certificate, requestIdOf } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
+import { createAgent } from '@dfinity/utils';
 import { randomBytes } from 'crypto-browserify';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { idlDecode, idlEncode, TransferArgs, TransferResult } from './idl';
 
 import './App.css';
 
-const client = getDAppClientInstance({
-  name: 'Example DApp', // Name of the DApp,
-  disclaimerText: 'This is an optional <b>disclaimer</b>.',
-  appUrl: 'http://localhost:3000',
-  featuredWallets: [],
-  walletConnectOptions: {
-    projectId: '97f804b46f0db632c52af0556586a5f3',
-    relayUrl: 'wss://relay.walletconnect.com'
-  },
-  matrixNodes: {
-    [Regions.EUROPE_WEST]: [
-      'beacon-node-1.diamond.papers.tech',
-      'beacon-node-1.sky.papers.tech',
-      'beacon-node-2.sky.papers.tech',
-      'beacon-node-1.hope.papers.tech',
-      'beacon-node-1.hope-2.papers.tech',
-      'beacon-node-1.hope-3.papers.tech',
-      'beacon-node-1.hope-4.papers.tech',
-      'beacon-node-1.hope-5.papers.tech'
-    ],
-    [Regions.NORTH_AMERICA_EAST]: []
-  }
-})
-
-const icBlockchain = new ICBlockchain()
-client.addBlockchain(icBlockchain)
+const MAINNET_CHAIN_ID = 'icp:737ba355e855bd4b61279056603e0550'
+const HOST = 'http://127.0.0.1:4943'
+const TEST_CANISTER_ID = 'bkyz2-fmaaa-aaaaa-qaaaq-cai'
 
 function App() {
+  const client = useMemo(() => {
+    const client = getDAppClientInstance({
+      name: 'Example DApp', // Name of the DApp,
+      disclaimerText: 'This is an optional <b>disclaimer</b>.',
+      appUrl: 'http://localhost:3000',
+      matrixNodes: {
+        [Regions.EUROPE_WEST]: [
+          'beacon-node-1.diamond.papers.tech',
+          'beacon-node-1.sky.papers.tech',
+          'beacon-node-2.sky.papers.tech',
+          'beacon-node-1.hope.papers.tech',
+          'beacon-node-1.hope-2.papers.tech',
+          'beacon-node-1.hope-3.papers.tech',
+          'beacon-node-1.hope-4.papers.tech',
+          'beacon-node-1.hope-5.papers.tech'
+        ],
+        [Regions.NORTH_AMERICA_EAST]: []
+      }
+    })
+
+    const icBlockchain = new ICBlockchain()
+    client.addBlockchain(icBlockchain)
+
+    return client
+  }, [])
+
   const [activeAccount, setActiveAccount] = useState(undefined)
   const [recipient, setRecipient] = useState(undefined)
   const [sendResult, setSendResult] = useState(undefined)
-  const [dataToDeserialize, setDataToDeserialize] = useState('')
-  const [dataToSerialize, setDataToSerialize] = useState('')
 
   useEffect(() => {
     const setInitialActiveAccount = async () => {
@@ -54,22 +58,27 @@ function App() {
       console.log('activeAccount', activeAccount)
       setActiveAccount(activeAccount)
     })
-  }, [])
+  }, [client])
+
+  const verifyPermissionResponse = async (response) => {
+    // TODO
+  }
 
   const requestPermission = () => {
     const challenge = randomBytes(32)
 
     client.ic
       .requestPermissions({
-        networks: [{ chainId: 'icp:737ba355e855bd4b61279056603e0550' }],
+        networks: [{ chainId: MAINNET_CHAIN_ID }],
         scopes: ['canister_call'],
         challenge: Buffer.from(challenge).toString('base64')
       })
-      .then((permissions) => {
-        console.log('permissions', permissions)
+      .then((response) => {
+        console.log('requestPermissions success', response)
+        verifyPermissionResponse(response)
       })
       .catch((error) => {
-        console.log('requestPermission error', error)
+        console.log('requestPermissions error', error)
       })
   }
 
@@ -79,6 +88,7 @@ function App() {
 
   const send = () => {
     setSendResult(undefined)
+    const canisterId = TEST_CANISTER_ID
     const args = idlEncode([TransferArgs], [{
       from_subaccount: [],
       to: {
@@ -89,18 +99,39 @@ function App() {
     }])
 
     client.ic.requestCanisterCall({
-      network: { chainId: 'icp:737ba355e855bd4b61279056603e0550' },
-      canisterId: 'bkyz2-fmaaa-aaaaa-qaaaq-cai',
+      network: { chainId: MAINNET_CHAIN_ID },
+      canisterId,
       sender: Principal.selfAuthenticating(Buffer.from(activeAccount.chainData.identity.publicKey, 'base64')).toText(),
       method: 'transfer',
       arg: Buffer.from(args).toString('base64')
     })
-    .then((response) => {
-      const result = idlDecode([TransferResult], Buffer.from(response.blockchainData.response, 'hex'))[0]
+    .then(async (response) => {
+      console.log('requestCanisterCall `transfer` success', response)
+      const agent = await createAgent({
+        identity: new AnonymousIdentity(),
+        host: HOST,
+        fetchRootKey: true
+      })
+      const requestId = requestIdOf({
+        request_type: response.result.contentMap.request_type,
+        sender: Principal.fromUint8Array(Buffer.from(response.result.contentMap.sender, 'base64')),
+        nonce: response.result.contentMap.nonce ? Buffer.from(response.result.contentMap.nonce, 'base64') : undefined,
+        ingress_expiry: BigInt(response.result.contentMap.ingress_expiry),
+        canister_id: Principal.fromUint8Array(Buffer.from(response.result.contentMap.canister_id, 'base64')),
+        method_name: response.result.contentMap.method_name,
+        arg: Buffer.from(response.result.contentMap.arg, 'base64')
+      })
+      const certificate = await Certificate.create({
+        certificate: Buffer.from(response.result.certificate, 'base64'),
+        rootKey: agent.rootKey,
+        canisterId: Principal.from(canisterId)
+      })
+      const path = [new TextEncoder().encode('request_status'), requestId]
+      const result = idlDecode([TransferResult], certificate.lookup([...path, 'reply']))[0]
       setSendResult(JSON.stringify(result, (_, value) => typeof value === 'bigint' ? value.toString() : value, 2))
     })
     .catch((error) => {
-      console.log('send error', error)
+      console.log('requestCanisterCall `transfer` error', error)
     })
   }
 
@@ -108,27 +139,6 @@ function App() {
     client.destroy().then(() => {
       window.location.reload()
     })
-  }
-
-  const onDataToDeserializeInput = (event) => {
-    setDataToDeserialize(event.target.value)
-  }
-
-  const deserializeData = () => {
-    console.log('Deserializing:', dataToDeserialize)
-
-    new Serializer().deserialize(dataToDeserialize).then(console.log).catch(console.error)
-  }
-
-  const onDataToSerializeInput = (event) => {
-    setDataToSerialize(event.target.value)
-  }
-
-  const serializeData = () => {
-    console.log('Serializing:', dataToSerialize)
-    const parsed = JSON.parse(dataToSerialize)
-    console.log(parsed)
-    new Serializer().serialize(parsed).then(console.log).catch(console.error)
   }
 
   return (
@@ -156,16 +166,6 @@ function App() {
           <br /><br />
         </>
       )}
-      ---
-      <br /><br />
-      <textarea onChange={onDataToDeserializeInput}></textarea>
-      <button onClick={deserializeData}>Deserialize Data</button>
-      <br /><br />
-      ---
-      <br /><br />
-      <textarea onChange={onDataToSerializeInput}></textarea>
-      <button onClick={serializeData}>Serialize Data</button>
-      <br /><br />
     </div>
   );
 }
