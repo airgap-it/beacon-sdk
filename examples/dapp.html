@@ -186,9 +186,9 @@
             'beacon-node-1.hope-5.papers.tech'
           ],
           [beacon.Regions.NORTH_AMERICA_EAST]: []
-        }
+        },
         // featuredWallets: ['airgap']
-        // preferredNetwork: beacon.NetworkType.DELPHINET
+        preferredNetwork: beacon.NetworkType.GHOSTNET
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['matrix.papers.tech']
@@ -259,7 +259,7 @@
       // send contract call
       const sendContractCall = () => {
         return client.getActiveAccount().then(async (activeAccount) => {
-          const TZ_BUTTON_COLORS_CONTRACT = 'KT1RPW5kTX6WFxg8JK34rGEU24gqEEudyfvz'
+          const TZ_BUTTON_COLORS_CONTRACT = 'KT1GSdrLzGAorWKoe2z7qV3P5Df6Vmo7neZt'
           const tokenId = '925'
 
           // Setting the color of TzButton is only possible if you are currently the leader and own a color

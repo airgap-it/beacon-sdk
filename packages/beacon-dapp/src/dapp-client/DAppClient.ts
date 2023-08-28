@@ -742,9 +742,9 @@ export class DAppClient extends Client {
   public async checkPermissions(type: BeaconMessageType): Promise<boolean> {
     if (
       [
-        BeaconMessageType.PermissionRequest
-        // BeaconMessageType.ProofOfEventChallengeRequest,
-        // BeaconMessageType.ProofOfEventChallengeRecorded
+        BeaconMessageType.PermissionRequest,
+        BeaconMessageType.ProofOfEventChallengeRequest,
+        BeaconMessageType.ProofOfEventChallengeRecorded
       ].includes(type)
     ) {
       return true
