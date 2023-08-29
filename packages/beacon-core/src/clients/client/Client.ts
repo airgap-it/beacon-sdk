@@ -154,7 +154,8 @@ export abstract class Client extends BeaconClient {
     return {
       senderId: await getSenderId(await this.beaconId),
       name: this.name,
-      icon: this.iconUrl
+      icon: this.iconUrl,
+      url: this.appUrl
     }
   }
 

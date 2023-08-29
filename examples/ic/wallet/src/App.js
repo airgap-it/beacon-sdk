@@ -1,5 +1,5 @@
 /* global BigInt */
-import { BeaconErrorType, BeaconMessageType, Serializer } from '@airgap/beacon-sdk'
+import { Serializer } from '@airgap/beacon-sdk'
 import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1'
 import { Principal } from '@dfinity/principal'
 import { principalToSubAccount } from '@dfinity/utils'

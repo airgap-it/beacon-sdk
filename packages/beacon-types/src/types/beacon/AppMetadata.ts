@@ -1,5 +1,6 @@
 export interface AppMetadata {
-  senderId: string
+  senderId?: string
   name: string
   icon?: string // URL
+  url?: string
 }

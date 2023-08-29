@@ -38,7 +38,7 @@ export class AppMetadataManager {
 
   public async removeAppMetadatas(senderIds: string[]): Promise<void> {
     return this.storageManager.remove((appMetadata: AppMetadata) =>
-      senderIds.includes(appMetadata.senderId)
+      appMetadata.senderId !== undefined && senderIds.includes(appMetadata.senderId)
     )
   }
 

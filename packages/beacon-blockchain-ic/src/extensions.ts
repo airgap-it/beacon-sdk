@@ -50,7 +50,13 @@ class ICDappClient {
         const jsonrpcResponse: ICPermissionResponse = {
             id: jsonrpcRequest.id,
             jsonrpc: '2.0',
-            result
+            result: {
+                ...result,
+                appMetadata: {
+                    name: result.appMetadata.name,
+                    url: result.appMetadata.url
+                }
+            }
         }
 
         return jsonrpcResponse
@@ -100,12 +106,20 @@ class ICWalletClient {
                 return
             }
 
+            const { type: _, ...params } = message.message.blockchainData
+
             if (message.message.type === BeaconMessageType.PermissionRequest) {
                 newMessageCallback({
                     id: parseInt(message.id),
                     jsonrpc: '2.0',
                     method: 'permission',
-                    params: message.message.blockchainData
+                    params: {
+                        ...params,
+                        appMetadata: {
+                            name: params.appMetadata.name,
+                            url: params.appMetadata.url
+                        }
+                    }
                 })
             } else if (message.message.type === BeaconMessageType.BlockchainRequest) {
                 if (message.message.blockchainData.type === 'canister_call_request') {
@@ -113,7 +127,7 @@ class ICWalletClient {
                         id: parseInt(message.id),
                         jsonrpc: '2.0',
                         method: 'canister_call',
-                        params: message.message.blockchainData
+                        params
                     })
                 }
             }
