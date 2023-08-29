@@ -59,7 +59,8 @@ import {
   DesktopApp,
   ExtensionApp,
   WebApp,
-  ExtendedWalletConnectPairingResponse
+  ExtendedWalletConnectPairingResponse,
+  ChangeAccountRequest
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -75,7 +76,8 @@ import {
   LocalStorage,
   getAccountIdentifier,
   getSenderId,
-  Logger
+  Logger,
+  ClientEvents
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -231,10 +233,10 @@ export class DAppClient extends Client {
       if (message.version === '3') {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
-        if (openRequest && typedMessage.message.type === BeaconMessageType.Acknowledge) {
+        if (openRequest && typedMessage.message?.type === BeaconMessageType.Acknowledge) {
           this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
-          logger.log(`acknowledge message received for ${message.id}`)
-          console.timeLog(message.id, 'acknowledge')
+          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
+          logger.timeLog('handleResponse', message.id, 'acknowledge')
 
           this.events
             .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
@@ -247,26 +249,28 @@ export class DAppClient extends Client {
           const appMetadata: AppMetadata | undefined = (
             typedMessage.message as unknown /* Why is this unkown cast needed? */ as PermissionResponseV3<string>
           ).blockchainData.appMetadata
-          if (typedMessage.message.type === BeaconMessageType.PermissionResponse && appMetadata) {
+          if (typedMessage.message?.type === BeaconMessageType.PermissionResponse && appMetadata) {
             await this.appMetadataManager.addAppMetadata(appMetadata)
           }
 
-          console.timeLog(typedMessage.id, 'response')
-          console.timeEnd(typedMessage.id)
+          logger.timeLog('handleResponse', typedMessage.id, 'response')
+          logger.time(false, typedMessage.id)
 
-          if (typedMessage.message.type === BeaconMessageType.Error) {
+          if (typedMessage.message?.type === BeaconMessageType.Error) {
             openRequest.reject(typedMessage.message as ErrorResponse)
           } else {
             openRequest.resolve({ message, connectionInfo })
           }
           this.openRequests.delete(typedMessage.id)
         } else {
-          if (typedMessage.message.type === BeaconMessageType.Disconnect) {
+          if (typedMessage.message?.type === BeaconMessageType.Disconnect) {
             this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
 
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
+                : connectionInfo.origin === Origin.WALLETCONNECT
+                ? this.walletConnectTransport
                 : this.postMessageTransport ?? (await this.transport)
 
             if (relevantTransport) {
@@ -277,12 +281,12 @@ export class DAppClient extends Client {
               )
               if (peer) {
                 await relevantTransport.removePeer(peer as any)
-                await this.removeAccountsForPeers([peer])
-                await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-              } else {
-                logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
               }
+              await this.removeAccountsForPeerIds([message.senderId])
+              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
+          } else if (typedMessage.message?.type === BeaconMessageType.ChangeAccountRequest) {
+            await this.onNewAccount(typedMessage.message as ChangeAccountRequest, connectionInfo)
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
@@ -294,7 +298,7 @@ export class DAppClient extends Client {
           logger.log(`acknowledge message received for ${message.id}`)
           this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
 
-          console.timeLog(message.id, 'acknowledge')
+          logger.timeLog('handleResponse', message.id, 'acknowledge')
 
           this.events
             .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
@@ -311,8 +315,8 @@ export class DAppClient extends Client {
             await this.appMetadataManager.addAppMetadata(typedMessage.appMetadata)
           }
 
-          console.timeLog(typedMessage.id, 'response')
-          console.timeEnd(typedMessage.id)
+          logger.timeLog('handleResponse', typedMessage.id, 'response')
+          logger.time(false, typedMessage.id)
 
           if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
             // TODO: Remove "any" once we remove support for v1 wallets
@@ -331,6 +335,8 @@ export class DAppClient extends Client {
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
+                : connectionInfo.origin === Origin.WALLETCONNECT
+                ? this.walletConnectTransport
                 : this.postMessageTransport ?? (await this.transport)
 
             if (relevantTransport) {
@@ -341,12 +347,12 @@ export class DAppClient extends Client {
               )
               if (peer) {
                 await relevantTransport.removePeer(peer as any)
-                await this.removeAccountsForPeers([peer])
-                await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-              } else {
-                logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
               }
+              await this.removeAccountsForPeerIds([message.senderId])
+              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
+          } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
+            await this.onNewAccount(typedMessage, connectionInfo)
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
@@ -387,14 +393,36 @@ export class DAppClient extends Client {
       }
     }
 
-    this.walletConnectTransport = new DappWalletConnectTransport(
-      this.name,
-      keyPair,
-      this.storage,
-      wcOptions
-    )
+    this.walletConnectTransport = new DappWalletConnectTransport(this.name, keyPair, this.storage, {
+      network: this.network.type,
+      opts: wcOptions
+    })
+
+    this.initEvents()
 
     await this.addListener(this.walletConnectTransport)
+  }
+
+  private initEvents() {
+    if (!this.walletConnectTransport) {
+      return
+    }
+
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.CLOSE_ALERT,
+      this.hideUI.bind(this, ['alert'])
+    )
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.RESET_STATE,
+      this.channelClosedHandler.bind(this)
+    )
+  }
+
+  private async channelClosedHandler() {
+    await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+    this.setActiveAccount(undefined)
+
+    this.destroy()
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
@@ -624,6 +652,11 @@ export class DAppClient extends Client {
   }
 
   public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
+    if (elements?.includes('alert')) {
+      // if the sync was aborted from the wallet side or the alert is closed we need to cancel the promise
+      this._initPromise = undefined
+    }
+
     await this.events.emit(BeaconEvent.HIDE_UI, elements)
   }
 
@@ -964,38 +997,12 @@ export class DAppClient extends Client {
       throw await this.handleRequestError(request, requestError)
     })
 
-    // TODO: Migration code. Remove sometime after 1.0.0 release.
-    const publicKey = await prefixPublicKey(
-      message.publicKey || (message as any).pubkey || (message as any).pubKey
-    )
-    const address = await getAddressFromPublicKey(publicKey)
-
-    const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
-
-    const accountInfo: AccountInfo = {
-      accountIdentifier: await getAccountIdentifier(address, message.network),
-      senderId: message.senderId,
-      origin: {
-        type: connectionInfo.origin,
-        id: connectionInfo.id
-      },
-      walletKey,
-      address,
-      publicKey,
-      network: message.network,
-      scopes: message.scopes,
-      threshold: message.threshold,
-      notification: message.notification,
-      connectedAt: new Date().getTime()
-    }
-
-    await this.accountManager.addAccount(accountInfo)
-    await this.setActiveAccount(accountInfo)
+    const accountInfo = await this.onNewAccount(message, connectionInfo)
 
     const output: PermissionResponseOutput = {
       ...message,
-      walletKey,
-      address,
+      walletKey: accountInfo.walletKey,
+      address: accountInfo.address,
       accountInfo
     }
 
@@ -1007,7 +1014,9 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
-    this.analytics.track('event', 'DAppClient', 'Permission received', { address })
+    this.analytics.track('event', 'DAppClient', 'Permission received', {
+      address: accountInfo.address
+    })
 
     return output
   }
@@ -1298,13 +1307,16 @@ export class DAppClient extends Client {
    * @param peersToRemove An array of peers for which accounts should be removed
    */
   private async removeAccountsForPeers(peersToRemove: ExtendedPeerInfo[]): Promise<void> {
+    const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
+
+    return this.removeAccountsForPeerIds(peerIdsToRemove)
+  }
+
+  private async removeAccountsForPeerIds(peerIds: string[]): Promise<void> {
     const accounts = await this.accountManager.getAccounts()
 
-    const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
     // Remove all accounts with origin of the specified peer
-    const accountsToRemove = accounts.filter((account) =>
-      peerIdsToRemove.includes(account.senderId)
-    )
+    const accountsToRemove = accounts.filter((account) => peerIds.includes(account.senderId))
     const accountIdentifiersToRemove = accountsToRemove.map(
       (accountInfo) => accountInfo.accountIdentifier
     )
@@ -1540,10 +1552,10 @@ export class DAppClient extends Client {
   }> {
     const messageId = await generateGUID()
 
-    console.time(messageId)
+    logger.time(true, messageId)
     logger.log('makeRequest', 'starting')
     await this.init()
-    console.timeLog(messageId, 'init done')
+    logger.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -1591,7 +1603,7 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
-    console.timeLog(messageId, 'sending')
+    logger.timeLog('makeRequest', messageId, 'sending')
     try {
       await (await this.transport).send(payload, peer)
     } catch (sendError) {
@@ -1607,10 +1619,10 @@ export class DAppClient extends Client {
           }
         ]
       })
-      console.timeLog(messageId, 'send error')
+      logger.timeLog('makeRequest', messageId, 'send error')
       throw sendError
     }
-    console.timeLog(messageId, 'sent')
+    logger.timeLog('makeRequest', messageId, 'sent')
 
     this.events
       .emit(messageEvents[requestInput.type].sent, {
@@ -1649,11 +1661,9 @@ export class DAppClient extends Client {
     connectionInfo: ConnectionContext
   }> {
     const messageId = id ?? await generateGUID()
-    console.time(messageId)
+    logger.time(true, messageId)
     logger.log('makeRequest', 'starting')
     await this.init()
-    console.timeLog(messageId, 'init done')
-    logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
@@ -1699,7 +1709,7 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
-    console.timeLog(messageId, 'sending')
+    logger.timeLog('makeRequest', messageId, 'sending')
     try {
       await (await this.transport).send(payload, peer)
     } catch (sendError) {
@@ -1715,10 +1725,10 @@ export class DAppClient extends Client {
           }
         ]
       })
-      console.timeLog(messageId, 'send error')
+      logger.timeLog('makeRequest', messageId, 'send error')
       throw sendError
     }
-    console.timeLog(messageId, 'sent')
+    logger.timeLog('makeRequest', messageId, 'sent')
 
     const index = requestInput.type as any as BeaconMessageType
 
@@ -1819,5 +1829,40 @@ export class DAppClient extends Client {
     })
 
     return notificationResponse.data
+  }
+
+  private async onNewAccount(
+    message: PermissionResponse | ChangeAccountRequest,
+    connectionInfo: ConnectionContext
+  ): Promise<AccountInfo> {
+    // TODO: Migration code. Remove sometime after 1.0.0 release.
+    const publicKey = await prefixPublicKey(
+      message.publicKey || (message as any).pubkey || (message as any).pubKey
+    )
+    const address = await getAddressFromPublicKey(publicKey)
+
+    const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
+
+    const accountInfo: AccountInfo = {
+      accountIdentifier: await getAccountIdentifier(address, message.network),
+      senderId: message.senderId,
+      origin: {
+        type: connectionInfo.origin,
+        id: connectionInfo.id
+      },
+      walletKey,
+      address,
+      publicKey,
+      network: message.network,
+      scopes: message.scopes,
+      threshold: message.threshold,
+      notification: message.notification,
+      connectedAt: new Date().getTime()
+    }
+
+    await this.accountManager.addAccount(accountInfo)
+    await this.setActiveAccount(accountInfo)
+
+    return accountInfo
   }
 }

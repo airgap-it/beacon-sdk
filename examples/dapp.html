@@ -154,6 +154,20 @@
           el.setAttribute('style', 'background-color: red')
           document.getElementById('logger-output').appendChild(el)
         }
+
+        time(start, label) {
+          const el = document.createElement('div')
+          el.innerText = `'time' ${start} ${label}`
+          el.setAttribute('style', 'background-color: grey')
+          document.getElementById('logger-output').appendChild(el)
+        }
+
+        timeLog(method, ...args) {
+          const el = document.createElement('div')
+          el.innerText = `'timeLog' ${method} ${args.join(', ')}`
+          el.setAttribute('style', 'background-color: grey')
+          document.getElementById('logger-output').appendChild(el)
+        }
       }
 
       const x = new MyLogger()
@@ -186,9 +200,11 @@
             'beacon-node-1.hope-5.papers.tech'
           ],
           [beacon.Regions.NORTH_AMERICA_EAST]: []
-        }
-        // featuredWallets: ['airgap']
-        // preferredNetwork: beacon.NetworkType.DELPHINET
+        },
+        featuredWallets: ['airgap', 'metamask']
+        // network: {
+        //   type: beacon.NetworkType.GHOSTNET
+        // }
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['matrix.papers.tech']
@@ -209,7 +225,10 @@
           }
         })
       }
-      updateActiveAccount()
+
+      client.subscribeToEvent('ACTIVE_ACCOUNT_SET', () => {
+        updateActiveAccount()
+      })
 
       // Display the active account in the UI
       const updateColorMode = () => {
@@ -281,7 +300,7 @@
       // Initiate a permission request
       const requestPermission = (callback) => {
         client
-          .requestPermissions(/*{ network: { type: beacon.NetworkType.DELPHINET } }*/)
+          .requestPermissions()
           .then((permissions) => {
             console.log('permissions', permissions)
             if (callback) {
@@ -372,7 +391,8 @@
       document.getElementById('signPayloadMicheline').addEventListener('click', async () => {
         const signature = await client.requestSignPayload({
           signingType: beacon.SigningType.MICHELINE,
-          payload: '05test'
+          payload:
+            '05010000004254657a6f73205369676e6564204d6573736167653a206d79646170702e636f6d20323032312d30312d31345431353a31363a30345a2048656c6c6f20776f726c6421'
         })
 
         console.log('signature:', signature)

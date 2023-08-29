@@ -52,6 +52,30 @@ export const tezosExtensionList: ExtensionApp[] = [
 
 export const tezosWebList: WebApp[] = [
   {
+    key: 'metamask_tezos_web',
+    name: 'MetaMask',
+    shortName: 'MetaMask',
+    color: '',
+    logo: 'web-metamask.png',
+    links: {
+      [NetworkType.MAINNET]: 'https://metamask.tezos.com/',
+      [NetworkType.GHOSTNET]: 'https://metamask.tezos.com/',
+      [NetworkType.MONDAYNET]: 'https://metamask.tezos.com/',
+      [NetworkType.DAILYNET]: 'https://metamask.tezos.com/',
+      [NetworkType.DELPHINET]: 'https://metamask.tezos.com/',
+      [NetworkType.EDONET]: 'https://metamask.tezos.com/',
+      [NetworkType.FLORENCENET]: 'https://metamask.tezos.com/',
+      [NetworkType.GRANADANET]: 'https://metamask.tezos.com/',
+      [NetworkType.HANGZHOUNET]: 'https://metamask.tezos.com/',
+      [NetworkType.ITHACANET]: 'https://metamask.tezos.com/',
+      [NetworkType.JAKARTANET]: 'https://metamask.tezos.com/',
+      [NetworkType.KATHMANDUNET]: 'https://metamask.tezos.com/',
+      [NetworkType.LIMANET]: 'https://metamask.tezos.com/',
+      [NetworkType.MUMBAINET]: 'https://metamask.tezos.com/',
+      [NetworkType.NAIROBINET]: 'https://metamask.tezos.com/'
+    }
+  },
+  {
     key: 'kukai_web',
     name: 'Kukai Wallet',
     shortName: 'Kukai',
@@ -86,15 +110,6 @@ export const tezosDesktopList: DesktopApp[] = [
     logo: 'infinity-wallet.png',
     deepLink: 'infinity://',
     downloadLink: 'https://infinitywallet.io/download'
-  },
-  {
-    key: 'galleon_desktop',
-    name: 'Galleon',
-    shortName: 'Galleon',
-    color: '',
-    logo: 'desktop-galleon.png',
-    deepLink: 'galleon://',
-    downloadLink: 'https://cryptonomic.tech/galleon.html'
   },
   {
     key: 'umami_desktop',
@@ -184,17 +199,19 @@ export const tezosIosList: App[] = [
     name: 'Trust Wallet',
     shortName: 'Trust Wallet',
     color: '',
-    supportedInteractionStandards: ['wallet_connect'] as any,
+    supportedInteractionStandards: ['wallet_connect'],
     logo: 'ios-trust.png',
     universalLink: 'https://trustwallet.com',
     deepLink: 'trust://'
+  },
+  {
+    key: 'exodus_mobile',
+    name: 'Exodus Mobile',
+    shortName: 'Exodus',
+    color: '',
+    logo: 'exodus.svg',
+    supportedInteractionStandards: ['beacon'],
+    deepLink: 'exodus://wc',
+    universalLink:'https://www.exodus.com/'
   }
-  // {
-  //   name: 'Galleon',
-  //   shortName: 'Galleon',
-  //   color: '',
-  //   logo: 'ios-galleon.png',
-  //   universalLink: 'https://cryptonomic.tech',
-  //   deepLink: 'galleon://'
-  // }
 ]

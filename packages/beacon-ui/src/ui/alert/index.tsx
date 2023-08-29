@@ -37,7 +37,7 @@ import {
   Wallet
 } from 'src/utils/wallets'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
-import { isAndroid, isIOS, isTwBrowser } from 'src/utils/platform'
+import { isAndroid, isIOS, isMobileOS, isTwBrowser } from 'src/utils/platform'
 import { getColorMode } from 'src/utils/colorMode'
 import PairOther from 'src/components/pair-other/pair-other'
 
@@ -136,6 +136,7 @@ const closeAlerts = async (): Promise<void> =>
  */
 // eslint-disable-next-line complexity
 const openAlert = async (config: AlertConfig): Promise<string> => {
+  setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
 
@@ -182,6 +183,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     // Shadow root
     const shadowRootEl = document.createElement('div')
+    if (document.getElementById('beacon-alert-wrapper')) {
+      (document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
+    }
     shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')
     shadowRootEl.style.height = '0px'
     const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })
@@ -249,6 +253,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               name: wallet.shortName,
               image: wallet.logo,
               description: 'Desktop App',
+              supportedInteractionStandards: wallet.supportedInteractionStandards,
               type: 'desktop',
               link: wallet.downloadLink,
               deepLink: wallet.deepLink
@@ -261,6 +266,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             name: wallet.shortName,
             image: wallet.logo,
             description: 'Browser Extension',
+            supportedInteractionStandards: wallet.supportedInteractionStandards,
             type: 'extension',
             link: wallet.link
           }
@@ -286,6 +292,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             name: wallet.shortName,
             image: wallet.logo,
             description: 'Web App',
+            supportedInteractionStandards: wallet.supportedInteractionStandards,
             type: 'web',
             link: link ?? wallet.links.mainnet
           }
@@ -325,11 +332,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     setWalletList(createWalletList())
 
-    const isMobileOS =
-      /(Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet|Windows Phone|SymbianOS|Kindle)/i.test(
-        navigator.userAgent
-      )
-    const [isMobile, setIsMobile] = createSignal(isMobileOS)
+    const _isMobileOS = isMobileOS(window)
+    const [isMobile, setIsMobile] = createSignal(_isMobileOS)
     const [windowWidth, setWindowWidth] = createSignal(window.innerWidth)
 
     const debounce = (fun: Function, delay: number) => {
@@ -346,7 +350,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const updateIsMobile = (isMobileWidth: boolean) => {
       // to avoid unwanted side effects (because of the OR condition), I always reset the value without checking the previous state
       setWalletList(createWalletList())
-      setIsMobile(isMobileWidth || isMobileOS)
+      setIsMobile(isMobileWidth || _isMobileOS)
     }
 
     createEffect(() => {
@@ -402,7 +406,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (wallet?.types.includes('web')) {
-        if (p2pPayload) {
+        if (config.pairingPayload) {
           // Noopener feature parameter cannot be used, because Chrome will open
           // about:blank#blocked instead and it will no longer work.
           const newTab = window.open('', '_blank')
@@ -411,9 +415,18 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             newTab.opener = null
           }
 
-          const serializer = new Serializer()
-          const code = await serializer.serialize(await p2pPayload)
-          const link = getTzip10Link(wallet.link, code)
+          let link = ''
+
+          if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
+            const uri = (await wcPayload)?.uri
+            if (uri) {
+              link = `${wallet.link}/wc?uri=${encodeURIComponent(uri)}`
+            }
+          } else {
+            const serializer = new Serializer()
+            const code = await serializer.serialize(await p2pPayload)
+            link = getTzip10Link(wallet.link, code)
+          }
 
           if (newTab) {
             newTab.location.href = link
@@ -421,7 +434,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             window.open(link, '_blank', 'noopener')
           }
         }
-        setIsLoading(false)
+
         return
       }
 
@@ -451,7 +464,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         }
         setIsLoading(false)
-      } else if (wallet?.types.includes('ios') && isMobileOS) { 
+      } else if (wallet?.types.includes('ios') && _isMobileOS) { 
         setCodeQR('')
 
         if (config.pairingPayload) {
@@ -824,7 +837,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         </svg>
                       }
                       title="Not sure where to start?"
-                      description="If you are new to the Web3, we recommend that you start by creating a Kukai wallet. Kukai is a fast way of creating your first wallet using your preffered social account."
+                      description="If you are new to the Web3, we recommend that you start by creating a Kukai wallet. Kukai is a fast way of creating your first wallet using your preferred social account."
                     />
                   </div>
                   <div
