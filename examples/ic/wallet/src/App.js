@@ -37,13 +37,9 @@ function App() {
       },
       networks: request.params.networks,
       scopes: request.params.scopes,
-      identity: {
-        publicKey: Buffer.from(account.publicKey).toString('base64'),
-        ledger: {
-          subaccount: account.subaccount
-        },
-      },
-      challenge: request.params.challenge,
+      identities: [{
+        publicKey: Buffer.from(account.publicKey).toString('base64')
+      }],
       signature: Buffer.from(signature).toString('base64'),
     }
 

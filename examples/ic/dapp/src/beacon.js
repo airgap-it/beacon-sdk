@@ -27,5 +27,5 @@ export function createDAppClient() {
 }
 
 export function publicKeyFromAccount(account) {
-  return Buffer.from(account.chainData.identity.publicKey, 'base64')
+  return Buffer.from(account.chainData.identities[0].publicKey, 'base64')
 }

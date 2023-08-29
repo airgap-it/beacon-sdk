@@ -63,7 +63,7 @@ function App() {
   }, [activeAccount, fetchBalance])
 
   const verifyPermissionResponse = async (response, challenge) => {
-    const derPublicKey = Buffer.from(response.result.identity.publicKey, 'base64')
+    const derPublicKey = Buffer.from(response.result.identities[0].publicKey, 'base64')
     const secp256k1PublicKey = (publicKey) => {
       try {
         return {
@@ -262,8 +262,8 @@ function App() {
       <span>
         Active account:
         <br />
-        <span>{activeAccount ? Principal.selfAuthenticating(Buffer.from(activeAccount.chainData.identity.publicKey, 'base64')).toText() : ''}</span>
-        <span>{activeAccount?.chainData.identity.ledger?.subaccount}</span>
+        <span>{activeAccount ? Principal.selfAuthenticating(publicKeyFromAccount(activeAccount)).toText() : ''}</span>
+        <span>{activeAccount?.chainData.identities[0].ledger?.subaccounts[0]}</span>
         {/* <span>{activeAccount?.network.type}</span> */}
         <span>{activeAccount?.origin.type}</span>
       </span>

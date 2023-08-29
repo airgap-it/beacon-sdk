@@ -10,13 +10,12 @@ interface ICPermissionResponseParams {
     appMetadata: AppMetadata
     networks: ICNetwork[]
     scopes: ICPermissionScope[]
-    identity: {
+    identities: {
         publicKey: string
         ledger?: {
-            subaccount?: string
+            subaccounts?: string[]
         }
-    }
-    challenge: string
+    }[]
     signature: string
 }
 
@@ -29,13 +28,12 @@ export interface ICPermissionBeaconResponse extends PermissionResponseV3<ICBlock
         appMetadata: AppMetadata
         networks: ICNetwork[]
         scopes: ICPermissionScope[]
-        identity: {
+        identities: {
             publicKey: string
             ledger?: {
-                subaccount?: string
+                subaccounts?: string[]
             }
-        }
-        challenge: string
+        }[]
         signature: string
     }
 }
