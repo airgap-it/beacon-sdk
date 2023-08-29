@@ -66,6 +66,8 @@ function App() {
       client.ic
         .connect(async (message) => {
           setStatus('Handling request...')
+
+          console.log('request', message)
   
           try {
             if (message.method === 'permission') {
