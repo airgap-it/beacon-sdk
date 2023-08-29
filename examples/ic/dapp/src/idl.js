@@ -1,7 +1,23 @@
 import { IDL } from '@dfinity/candid'
 
-export const BlockIndex = IDL.Nat
 export const Tokens = IDL.Nat
+
+// Balance
+
+export const BalanceArgs = IDL.Record({
+  account: IDL.Principal
+})
+
+export const BalanceResult = IDL.Variant({
+  Ok: IDL.Record({
+    owner: Tokens,
+    deposit: Tokens
+  })
+})
+
+// Transfer
+
+export const BlockIndex = IDL.Nat
 
 export const Subaccount = IDL.Vec(IDL.Nat8)
 export const Account = IDL.Record({
@@ -20,12 +36,10 @@ export const TransferResult = IDL.Variant({
   Err: IDL.Text
 })
 
-export const canister = IDL.Service({
-    transfer: IDL.Func([TransferArgs], [TransferResult], [])
-})
+// Encoding
 
 export function idlEncode(types, args) {
-    return IDL.encode(types, args)
+  return IDL.encode(types, args)
 }
 
 export function idlDecode(types, args) {

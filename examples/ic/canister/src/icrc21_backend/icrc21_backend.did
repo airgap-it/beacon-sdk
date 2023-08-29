@@ -28,6 +28,15 @@ type Account = record {
 
 type BlockIndex = nat;
 
+type MintArgs = record {
+    amount : Tokens;
+};
+
+type MintResult = variant {
+    Ok : BlockIndex;
+    Err : text;
+};
+
 type TransferArgs = record {
     to : Account;
     amount : Tokens;
@@ -71,5 +80,6 @@ type ConsentMessageResponse = variant {
 service : (opt Configuration) -> {
     consent_message: (ConsentMessageRequest) -> (opt ConsentMessageResponse);
     balance_of: (BalanceArgs) -> (BalanceResult);
+    mint: (MintArgs) -> (MintResult);
     transfer: (TransferArgs) -> (TransferResult);
 }

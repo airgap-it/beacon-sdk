@@ -1,47 +1,27 @@
 /* global BigInt */
-import { BeaconEvent, getDAppClientInstance, ICBlockchain, Regions } from '@airgap/beacon-sdk';
-import { AnonymousIdentity, Certificate, requestIdOf } from '@dfinity/agent';
-import { Principal } from '@dfinity/principal';
-import { createAgent } from '@dfinity/utils';
-import { randomBytes } from 'crypto-browserify';
-import { useEffect, useMemo, useState } from 'react';
+import { BeaconEvent } from '@airgap/beacon-sdk'
+import { Certificate, requestIdOf } from '@dfinity/agent'
+import { Ed25519PublicKey, unwrapDER } from '@dfinity/identity'
+import { Secp256k1PublicKey } from '@dfinity/identity-secp256k1'
+import { Principal } from '@dfinity/principal'
+import { createHash, randomBytes } from 'crypto-browserify'
+import { ec as EC } from 'elliptic'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { idlDecode, idlEncode, TransferArgs, TransferResult } from './idl';
+import { callQuery, rootKey } from './agent'
+import { BalanceArgs, BalanceResult, idlDecode, idlEncode, TransferArgs, TransferResult } from './idl'
 
-import './App.css';
+import './App.css'
+import { createDAppClient, publicKeyFromAccount } from './beacon'
 
-const MAINNET_CHAIN_ID = 'icp:737ba355e855bd4b61279056603e0550'
-const HOST = 'http://127.0.0.1:4943'
-const TEST_CANISTER_ID = 'bkyz2-fmaaa-aaaaa-qaaaq-cai'
+const MAIN_CHAIN_ID = 'icp:737ba355e855bd4b61279056603e0550'
+const ICRC21_CANISTER_ID = 'bkyz2-fmaaa-aaaaa-qaaaq-cai'
 
 function App() {
-  const client = useMemo(() => {
-    const client = getDAppClientInstance({
-      name: 'Example DApp', // Name of the DApp,
-      disclaimerText: 'This is an optional <b>disclaimer</b>.',
-      appUrl: 'http://localhost:3000',
-      matrixNodes: {
-        [Regions.EUROPE_WEST]: [
-          'beacon-node-1.diamond.papers.tech',
-          'beacon-node-1.sky.papers.tech',
-          'beacon-node-2.sky.papers.tech',
-          'beacon-node-1.hope.papers.tech',
-          'beacon-node-1.hope-2.papers.tech',
-          'beacon-node-1.hope-3.papers.tech',
-          'beacon-node-1.hope-4.papers.tech',
-          'beacon-node-1.hope-5.papers.tech'
-        ],
-        [Regions.NORTH_AMERICA_EAST]: []
-      }
-    })
-
-    const icBlockchain = new ICBlockchain()
-    client.addBlockchain(icBlockchain)
-
-    return client
-  }, [])
+  const client = useMemo(() => createDAppClient(), [])
 
   const [activeAccount, setActiveAccount] = useState(undefined)
+  const [balance, setBalance] = useState(undefined)
   const [recipient, setRecipient] = useState(undefined)
   const [sendResult, setSendResult] = useState(undefined)
 
@@ -55,84 +35,218 @@ function App() {
     
     client.subscribeToEvent(BeaconEvent.ACTIVE_ACCOUNT_SET, async () => {
       const activeAccount = await client.getActiveAccount()
-      console.log('activeAccount', activeAccount)
       setActiveAccount(activeAccount)
     })
   }, [client])
 
-  const verifyPermissionResponse = async (response) => {
-    // TODO
+  const fetchBalance = useCallback(async () => {
+    try {
+      const queryResponse = await callQuery(ICRC21_CANISTER_ID, 'balance_of', idlEncode([BalanceArgs], [{
+        account: Principal.selfAuthenticating(publicKeyFromAccount(activeAccount))
+      }]))
+
+      const balance = idlDecode([BalanceResult], queryResponse)[0]
+      if (balance.Err) {
+        throw balance.Err
+      }
+
+      setBalance(balance.Ok.deposit.toString())
+    } catch (error) {
+      console.error('fetchBalance error', error)
+    }
+  }, [activeAccount])
+
+  useEffect(() => {
+    if (activeAccount) {
+      fetchBalance()
+    }
+  }, [activeAccount, fetchBalance])
+
+  const verifyPermissionResponse = async (response, challenge) => {
+    const derPublicKey = Buffer.from(response.result.identity.publicKey, 'base64')
+    const secp256k1PublicKey = (publicKey) => {
+      try {
+        return {
+          curve: 'secp256k1',
+          raw: Secp256k1PublicKey.fromDer(publicKey).toRaw()
+        }
+      } catch {
+        return undefined
+      }
+    }
+    const ed25519PublicKey = (publicKey) => {
+      try {
+        return {
+          curve: 'ed25519',
+          raw: Ed25519PublicKey.fromDer(publicKey).toRaw()
+        }
+      } catch {
+        return undefined
+      }
+    }
+    const p256PublicKey = (publicKey) => {
+      const ECDSA_P256_OID = Uint8Array.from([
+        ...[0x30, 0x13], // SEQUENCE
+        ...[0x06, 0x07], // OID with 7 bytes
+        ...[0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01], // OID ECDSA
+        ...[0x06, 0x08], // OID with 8 bytes
+        ...[0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07], // OID P-256
+      ]);
+
+      try {
+        return {
+          curve: 'p256',
+          raw: unwrapDER(publicKey, ECDSA_P256_OID)
+        }
+      } catch {
+        return undefined
+      }
+    }
+
+    const publicKey = secp256k1PublicKey(derPublicKey) ?? ed25519PublicKey(derPublicKey) ?? p256PublicKey(derPublicKey)
+    if (publicKey === undefined) {
+      throw new Error('Public key not supported')
+    }
+
+    const signatureRaw = Buffer.from(response.result.signature, 'base64')
+    const dataRaw = Buffer.concat([
+      Buffer.from(new TextEncoder().encode('\x0Aic-wallet-challenge')), 
+      challenge
+    ])
+
+    let signature
+    let data
+    // eslint-disable-next-line default-case
+    switch (publicKey.curve) {
+      case 'secp256k1':
+      case 'p256':
+        signature = { r: signatureRaw.subarray(0, 32), s: signatureRaw.subarray(32) }
+        const hash = createHash('sha256')
+        hash.update(dataRaw)
+        data = hash.digest()
+        break
+      case 'ed25519':
+        signature = signatureRaw
+        data = dataRaw
+        break
+    }
+
+    const ec = new EC(publicKey.curve)
+    const verified = ec.verify(data, signature, publicKey.raw, 'hex')
+    if (!verified) {
+      throw new Error('Invalid signature')
+    }
+
+    console.log('challenge verified')
   }
 
-  const requestPermission = () => {
-    const challenge = randomBytes(32)
+  const verifyContentMap = (sender, canisterId, method, arg, contentMap) => {
+    if (sender.compareTo(contentMap.sender) !== 'eq') {
+      throw new Error(`Invalid content map, senders don't match (${sender.toText()} != ${contentMap.sender.toText()})`)
+    }
 
-    client.ic
-      .requestPermissions({
-        networks: [{ chainId: MAINNET_CHAIN_ID }],
+    if (canisterId !== contentMap.canister_id.toText()) {
+      throw new Error(`Invalid content map, canister IDs don't match (${canisterId} != ${contentMap.canister_id.toText()})`)
+    }
+
+    if (method !== contentMap.method_name) {
+      throw new Error(`Invalid content map, method names don't match (${method} != ${contentMap.method_name})`)
+    }
+
+    if (Buffer.from(arg).toString('hex') !== contentMap.arg.toString('hex')) {
+      throw new Error(`Invalid content map, args don't match (${arg.toString('hex')} != ${contentMap.arg.toString('hex')})`)
+    }
+
+    console.log('content map verified')
+  }
+
+  const requestPermission = async () => {
+    try {
+      const challenge = randomBytes(32)
+      const response = await client.ic.requestPermissions({
+        version: '1',
+        appMetadata: {
+          name: client.name,
+          url: client.appUrl,
+        },
+        networks: [{ chainId: MAIN_CHAIN_ID }],
         scopes: ['canister_call'],
         challenge: Buffer.from(challenge).toString('base64')
       })
-      .then((response) => {
-        console.log('requestPermissions success', response)
-        verifyPermissionResponse(response)
-      })
-      .catch((error) => {
-        console.log('requestPermissions error', error)
-      })
+
+      await verifyPermissionResponse(response, challenge)
+
+      console.log('requestPermissions success', response)
+    } catch (error) {
+      setActiveAccount(undefined)
+      console.error('requestPermissions error', error)
+    }
   }
 
   const onRecipientInput = (event) => {
     setRecipient(event.target.value)
   }
 
-  const send = () => {
-    setSendResult(undefined)
-    const canisterId = TEST_CANISTER_ID
-    const args = idlEncode([TransferArgs], [{
-      from_subaccount: [],
-      to: {
-        owner: Principal.from(recipient),
-        subaccount: []
-      },
-      amount: 1000
-    }])
+  const contentMapFromResponse = (response) => {
+    return {
+      request_type: response.result.contentMap.request_type,
+      sender: Principal.fromUint8Array(Buffer.from(response.result.contentMap.sender, 'base64')),
+      nonce: response.result.contentMap.nonce ? Buffer.from(response.result.contentMap.nonce, 'base64') : undefined,
+      ingress_expiry: BigInt(response.result.contentMap.ingress_expiry),
+      canister_id: Principal.fromUint8Array(Buffer.from(response.result.contentMap.canister_id, 'base64')),
+      method_name: response.result.contentMap.method_name,
+      arg: Buffer.from(response.result.contentMap.arg, 'base64')
+    }
+  }
 
-    client.ic.requestCanisterCall({
-      network: { chainId: MAINNET_CHAIN_ID },
-      canisterId,
-      sender: Principal.selfAuthenticating(Buffer.from(activeAccount.chainData.identity.publicKey, 'base64')).toText(),
-      method: 'transfer',
-      arg: Buffer.from(args).toString('base64')
+  const certificateFromResponse = async (response) => {
+    return Certificate.create({
+      certificate: Buffer.from(response.result.certificate, 'base64'),
+      rootKey: await rootKey(),
+      canisterId: Principal.fromUint8Array(Buffer.from(response.result.contentMap.canister_id, 'base64'))
     })
-    .then(async (response) => {
+  }
+
+  const send = async () => {
+    setSendResult(undefined)
+
+    const canisterId = ICRC21_CANISTER_ID
+    const method = 'transfer'
+
+    try {
+      const sender = Principal.selfAuthenticating(publicKeyFromAccount(activeAccount))
+      const arg = idlEncode([TransferArgs], [{
+        from_subaccount: [],
+        to: {
+          owner: Principal.from(recipient),
+          subaccount: []
+        },
+        amount: 10
+      }])
+
+      const response = await client.ic.requestCanisterCall({
+        version: '1',
+        network: { chainId: MAIN_CHAIN_ID },
+        canisterId,
+        sender: sender.toText(),
+        method,
+        arg: Buffer.from(arg).toString('base64')
+      })
+      const contentMap = contentMapFromResponse(response)
+      verifyContentMap(sender, canisterId, method, arg, contentMap)
+
       console.log('requestCanisterCall `transfer` success', response)
-      const agent = await createAgent({
-        identity: new AnonymousIdentity(),
-        host: HOST,
-        fetchRootKey: true
-      })
-      const requestId = requestIdOf({
-        request_type: response.result.contentMap.request_type,
-        sender: Principal.fromUint8Array(Buffer.from(response.result.contentMap.sender, 'base64')),
-        nonce: response.result.contentMap.nonce ? Buffer.from(response.result.contentMap.nonce, 'base64') : undefined,
-        ingress_expiry: BigInt(response.result.contentMap.ingress_expiry),
-        canister_id: Principal.fromUint8Array(Buffer.from(response.result.contentMap.canister_id, 'base64')),
-        method_name: response.result.contentMap.method_name,
-        arg: Buffer.from(response.result.contentMap.arg, 'base64')
-      })
-      const certificate = await Certificate.create({
-        certificate: Buffer.from(response.result.certificate, 'base64'),
-        rootKey: agent.rootKey,
-        canisterId: Principal.from(canisterId)
-      })
+
+      const requestId = requestIdOf(contentMap)
+      const certificate = await certificateFromResponse(response)
       const path = [new TextEncoder().encode('request_status'), requestId]
       const result = idlDecode([TransferResult], certificate.lookup([...path, 'reply']))[0]
+
       setSendResult(JSON.stringify(result, (_, value) => typeof value === 'bigint' ? value.toString() : value, 2))
-    })
-    .catch((error) => {
-      console.log('requestCanisterCall `transfer` error', error)
-    })
+      fetchBalance()
+    } catch (error) {
+      console.error(`requestCanisterCall ${method} error`, error)
+    }
   }
 
   const reset = () => {
@@ -154,18 +268,21 @@ function App() {
         <span>{activeAccount?.origin.type}</span>
       </span>
       <br /><br />
-      <button onClick={requestPermission}>Request Permission</button>
+      <div>Balance: {balance ? balance : '---'} DEV</div>
       <br /><br />
-      <button onClick={reset}>Reset and Refresh</button>
+      <button onClick={requestPermission}>Request Permission</button>
       <br /><br />
       {activeAccount && (
         <>
           <input type="text" onChange={onRecipientInput}></input>
-          <button onClick={send}>Send 1000 DEV</button>
+          <button onClick={send}>Send 10 DEV</button>
           {sendResult && <div>{sendResult}</div>}
           <br /><br />
         </>
       )}
+      ---
+      <br /><br />
+      <button onClick={reset}>Reset and Refresh</button>
     </div>
   );
 }

@@ -44,11 +44,12 @@ class ICDappClient {
         }
 
         const response: ICPermissionBeaconResponse = (await this.client.permissionRequest(beaconRequest, jsonrpcRequest.id.toString())) as ICPermissionBeaconResponse
+        const { type: _, ...result } = response.blockchainData
 
         const jsonrpcResponse: ICPermissionResponse = {
             id: jsonrpcRequest.id,
             jsonrpc: '2.0',
-            result: response.blockchainData
+            result
         }
 
         return jsonrpcResponse
@@ -77,11 +78,12 @@ class ICDappClient {
         }
 
         const response: ICCanisterCallBeaconResponse = (await this.client.request(beaconRequest, jsonrpcRequest.id.toString())) as ICCanisterCallBeaconResponse
+        const { type: _, ...result } = response.blockchainData
 
         const jsonrpcResponse: ICCanisterCallResponse = {
             id: jsonrpcRequest.id,
             jsonrpc: '2.0',
-            result: response.blockchainData
+            result
         }
 
         return jsonrpcResponse

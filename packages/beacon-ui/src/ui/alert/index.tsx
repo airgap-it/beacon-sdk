@@ -143,10 +143,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
   // TODO: Remove eager connection
   p2pPayload?.then(() => {
-    console.log('P2P LOADED')
+    // console.log('P2P LOADED')
   })
   wcPayload?.then(() => {
-    console.log('WC LOADED')
+    // console.log('WC LOADED')
   })
 
   if (isServer) {

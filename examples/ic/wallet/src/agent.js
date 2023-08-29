@@ -7,12 +7,12 @@ import {
   requestIdOf,
   RequestStatusResponseStatus, 
   SubmitRequestType 
-} from '@dfinity/agent';
+} from '@dfinity/agent'
 import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1'
 import { Principal } from '@dfinity/principal'
-import { createAgent as _createAgent } from '@dfinity/utils';
+import { createAgent as _createAgent } from '@dfinity/utils'
 
-export const createAgent = (mnemonic) => {
+export async function createAgent(mnemonic) {
   return _createAgent({ 
     identity: Secp256k1KeyIdentity.fromSeedPhrase(mnemonic),
     host: 'http://127.0.0.1:4943',
@@ -20,18 +20,18 @@ export const createAgent = (mnemonic) => {
   })
 }
 
-export const query = async (agent, canisterId, method, arg) => {
+export async function query(agent, canisterId, method, arg) {
   return agent.query(canisterId, { methodName: method, arg })
 }
 
-export const callQuery = async (agent, canisterId, method, arg) => {
+export async function callQuery(agent, canisterId, method, arg) {
   const callResponse = await call(agent, canisterId, method, arg)
   const state = await readState(agent, canisterId, callResponse.requestId)
 
   return state.response
 }
 
-export const call = async (agent, canisterId, method, arg) => {
+export async function call(agent, canisterId, method, arg) {
   const options = {
     methodName: method,
     arg
@@ -103,11 +103,11 @@ export const call = async (agent, canisterId, method, arg) => {
     }
 }
 
-export const readState = async (agent, canisterId, requestId, strategy = polling.defaultStrategy()) => {
+export async function readState (agent, canisterId, requestId, strategy = polling.defaultStrategy()) {
   return pollForResponse(agent, canisterId, requestId, strategy)
 }
 
-const pollForResponse = async (agent, canisterId, requestId, strategy, request) => {
+async function pollForResponse(agent, canisterId, requestId, strategy, request) {
   const path = [new TextEncoder().encode('request_status'), requestId]
   const currentRequest = request ?? (await agent.createReadStateRequest?.({ paths: [path] }))
   const state = await agent.readState(canisterId, { paths: [path] }, undefined, currentRequest)

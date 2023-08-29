@@ -418,7 +418,6 @@ const showInternalErrorAlert = async (
  * @param data The data that is emitted by the PAIR_INIT event
  */
 const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Promise<void> => {
-  console.log('showPairAlert')
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
     body: `<p></p>`,

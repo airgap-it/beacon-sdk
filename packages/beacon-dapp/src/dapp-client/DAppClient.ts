@@ -226,10 +226,7 @@ export class DAppClient extends Client {
     ): Promise<void> => {
       const openRequest = this.openRequests.get(message.id)
 
-      console.log('### openRequest ###', openRequest)
       logger.log('handleResponse', 'Received message', message, connectionInfo)
-      console.log('### message ###', JSON.stringify(message))
-      console.log('### connectionInfo ###', connectionInfo)
 
       if (message.version === '3') {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
@@ -802,7 +799,7 @@ export class DAppClient extends Client {
     input: PermissionRequestV3<string>,
     id?: string
   ): Promise<PermissionResponseV3<string>> {
-    console.log('PERMISSION REQUEST')
+    // console.log('PERMISSION REQUEST')
     const blockchain = this.blockchains.get(input.blockchainIdentifier)
     if (!blockchain) {
       throw new Error(`Blockchain "${input.blockchainIdentifier}" not supported by dAppClient`)
@@ -817,8 +814,6 @@ export class DAppClient extends Client {
       }
     }
 
-    console.log('REQUESTION PERMIMISSION V3', 'xxx', request)
-
     const { message: response, connectionInfo } = await this.makeRequestV3<
       PermissionRequestV3<string>,
       BeaconMessageWrapper<PermissionResponseV3<string>>
@@ -826,8 +821,6 @@ export class DAppClient extends Client {
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
     })
-
-    console.log('RESPONSE V3', response, connectionInfo)
 
     const partialAccountInfos = await blockchain.getAccountInfosFromPermissionResponse(
       response.message
@@ -967,9 +960,6 @@ export class DAppClient extends Client {
     )
     const address = await getAddressFromPublicKey(publicKey)
 
-    console.log('######## MESSAGE #######')
-    console.log(message)
-
     const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
 
     const accountInfo: AccountInfo = {
@@ -988,10 +978,6 @@ export class DAppClient extends Client {
       notification: message.notification,
       connectedAt: new Date().getTime()
     }
-
-    console.log('######## ACCOUNT INFO #######')
-
-    console.log(JSON.stringify(accountInfo))
 
     await this.accountManager.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)

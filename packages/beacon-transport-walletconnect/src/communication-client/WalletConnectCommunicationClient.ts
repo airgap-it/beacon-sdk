@@ -144,15 +144,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   async requestPermissions() {
-    console.log('#### Requesting permissions')
-
     const session = this.getSession()
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.GET_ACCOUNTS)) {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
     const network = this.getActiveNetwork()
-
-    console.log('#### Requesting public keys')
 
     // Get the public key from the wallet
     const result = await this.signClient?.request<
@@ -171,8 +167,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         params: {}
       }
     })
-
-    console.log('##### GET ACCOUNTS', result)
 
     if (!result || result.length < 1) {
       throw new Error('No account shared by wallet')

@@ -11,7 +11,6 @@ interface ICPermissionResponseParams {
     networks: ICNetwork[]
     scopes: ICPermissionScope[]
     identity: {
-        algorithm: 'ed25519' | 'secp256k1' | 'secp256r1'
         publicKey: string
         ledger?: {
             subaccount?: string
@@ -31,7 +30,6 @@ export interface ICPermissionBeaconResponse extends PermissionResponseV3<ICBlock
         networks: ICNetwork[]
         scopes: ICPermissionScope[]
         identity: {
-            algorithm: 'ed25519' | 'secp256k1' | 'secp256r1'
             publicKey: string
             ledger?: {
                 subaccount?: string

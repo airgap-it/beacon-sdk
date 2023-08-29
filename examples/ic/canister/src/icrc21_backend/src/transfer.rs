@@ -7,6 +7,31 @@ use crate::ledger::call_ledger;
 use crate::utils::principal_to_subaccount;
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug, Hash)]
+pub struct MintArgs {
+    pub amount: icrc1::transfer::NumTokens,
+}
+
+#[update]
+#[candid_method(update)]
+pub async fn mint(args: MintArgs) -> Result<icrc1::transfer::BlockIndex, String> {
+    ic_cdk::println!("Minting {} DEV for principal {}", &args.amount, &ic_cdk::caller());
+    let transfer_args = icrc1::transfer::TransferArg {
+        from_subaccount: None,
+        to: icrc1::account::Account {
+            owner: ic_cdk::caller(),
+            subaccount: None
+        },
+        fee: None,
+        created_at_time: None,
+        memo: None,
+        amount: args.amount,
+    };
+
+    icrc1_transfer(transfer_args).await?
+        .map_err(|e| format!("ICRC-1 transfer error: {:?}", e))
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug, Hash)]
 pub struct TransferArgs {
     pub to: icrc1::account::Account,
     pub amount: icrc1::transfer::NumTokens,

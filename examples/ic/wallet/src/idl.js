@@ -1,5 +1,6 @@
 import { IDL } from '@dfinity/candid'
 
+const BlockIndex = IDL.Nat
 export const Tokens = IDL.Nat
 
 // Balance
@@ -13,6 +14,17 @@ export const BalanceResult = IDL.Variant({
     owner: Tokens,
     deposit: Tokens
   })
+})
+
+// Transfer
+
+export const MintArgs = IDL.Record({
+  amount: Tokens
+})
+
+export const MintResult = IDL.Variant({
+  Ok: BlockIndex,
+  Err: IDL.Text
 })
 
 // Consent
@@ -63,7 +75,6 @@ export const ICRC1TransferArgs = IDL.Record({
   amount: Tokens
 })
 
-const BlockIndex = IDL.Nat
 const TransferError = IDL.Variant({
   GenericError: IDL.Record({
     message: IDL.Text,
