@@ -23,6 +23,7 @@ function App() {
   const [activeAccount, setActiveAccount] = useState(undefined)
   const [balance, setBalance] = useState(undefined)
   const [recipient, setRecipient] = useState(undefined)
+  const [amount, setAmount] = useState(undefined)
   const [sendResult, setSendResult] = useState(undefined)
 
   useEffect(() => {
@@ -189,6 +190,10 @@ function App() {
     setRecipient(event.target.value)
   }
 
+  const onAmountInput = (event) => {
+    setAmount(event.target.value)
+  }
+
   const contentMapFromResponse = (response) => {
     return {
       request_type: response.result.contentMap.request_type,
@@ -223,7 +228,7 @@ function App() {
           owner: Principal.from(recipient),
           subaccount: []
         },
-        amount: 10
+        amount: BigInt(amount)
       }])
 
       const response = await client.ic.requestCanisterCall({
@@ -273,11 +278,16 @@ function App() {
       </div>
       <br />
       <div>Balance: {balance ? balance : '---'} DEV</div>
-      <br /><br />
+      <br />
       {activeAccount && (
         <>
-          <input type="text" onChange={onRecipientInput}></input>
-          <button onClick={send}>Send 10 DEV</button>
+          ---
+          <br /><br />
+          Transfer
+          <br /><br />
+          <input type="text" placeholder='to (principal)' onChange={onRecipientInput}></input>
+          <input type="text" placeholder='amount' onChange={onAmountInput}></input>
+          <button onClick={send}>Send</button>
           {sendResult && <div className='multiline'>{JSON.stringify(sendResult, null, 2)}</div>}
           <br /><br />
         </>

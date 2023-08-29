@@ -1,4 +1,4 @@
-# Example Canister
+# Example ICRC-21 Canister
 
 ## Running the project locally
 
@@ -8,7 +8,7 @@ Make sure [the IC SDK](https://internetcomputer.org/docs/current/developer-docs/
 # Starts the replica, running in the background
 dfx start --background
 
-# Switches back to your default account
+# Switches to your default account
 dfx identity use default
 
 # Creates icrc21_backend canister with a fixed id

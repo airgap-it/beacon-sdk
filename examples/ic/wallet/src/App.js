@@ -322,37 +322,43 @@ function App() {
           )
         : (
           <>
-            <textarea onChange={onMnemonicInput} defaultValue={mnemonic}></textarea>
+            Import Account
+            <br /><br />
+            <textarea onChange={onMnemonicInput} placeholder='BIP-39 mnemonic' defaultValue={mnemonic}></textarea>
             <button onClick={importAccount}>Import Account</button>
+            <br />
           </>
         )
       }
-      <br /><br />
       {
         pendingPermissionRequest && (
           <>
-            Permission SubmitRequestType
-            <div className='multiline'>{JSON.stringify(pendingPermissionRequest, null, 2)}</div>
+            ---
             <br /><br />
+            Permission Request
+            <div className='multiline'>{JSON.stringify(pendingPermissionRequest, null, 2)}</div>
+            <br />
             <div>
               <button onClick={acceptPermissionRequest}>Ok</button>
               <button onClick={rejectPermissionRequest}>Reject</button>
             </div>
-            <br /><br />
+            <br />
           </>
         )
       }
       {
         consentMessage && (
           <>
+            ---
+            <br /><br />
             Canister Call
             <div>{consentMessage}</div>
-            <br /><br />
+            <br />
             <div>
               <button onClick={acceptCanisterCall}>Ok</button>
               <button onClick={rejectCanisterCall}>Reject</button>
             </div>
-            <br /><br />
+            <br />
           </>
         )
       }
