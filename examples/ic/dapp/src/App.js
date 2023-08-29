@@ -239,15 +239,17 @@ function App() {
         method,
         arg: Buffer.from(arg).toString('base64')
       })
+      console.log('requestCanisterCall `transfer` response', response)
+      
       const contentMap = contentMapFromResponse(response)
       verifyContentMap(sender, canisterId, method, arg, contentMap)
-
-      console.log('requestCanisterCall `transfer` success', response)
 
       const requestId = requestIdOf(contentMap)
       const certificate = await certificateFromResponse(response)
       const path = [new TextEncoder().encode('request_status'), requestId]
       const result = idlDecode([TransferResult], certificate.lookup([...path, 'reply']))[0]
+
+      console.log('requestCanisterCall `transfer` success')
 
       setSendResult(JSON.parse(JSON.stringify(result, (_, value) => typeof value === 'bigint' ? value.toString() : value, 2)))
       fetchBalance()

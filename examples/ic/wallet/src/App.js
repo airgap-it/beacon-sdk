@@ -138,11 +138,12 @@ function App() {
 
   const mint = async () => {
     setStatus('Minting 1,000 DEV...')
+    const fee = BigInt(1)
     const amount = BigInt(1_000)
 
     const agent = await createAgent(mnemonic)
     const mintCallResponse = await call(agent, ICRC21_CANISTER_ID, 'mint', idlEncode([MintArgs], [{
-      amount
+      amount: amount + fee
     }]))
     const mintState = await readState(agent, ICRC21_CANISTER_ID, mintCallResponse.requestId)
     const mintResult = idlDecode([MintResult], mintState.response)[0]
@@ -153,14 +154,13 @@ function App() {
       return
     }
 
-    const fee = BigInt(1)
     const depositCallResponse = await call(agent, LEDGER_CANISTER_ID, 'icrc1_transfer', idlEncode([ICRC1TransferArgs], [{
       from_subaccount: [],
       to: {
         owner: Principal.from(ICRC21_CANISTER_ID),
         subaccount: [principalToSubAccount(Principal.from(account.principal))]
       },
-      amount: amount - fee,
+      amount: amount,
       fee: [fee],
       memo: [],
       created_at_time: []
