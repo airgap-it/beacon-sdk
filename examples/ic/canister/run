@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Stops the replica, if already running
+dfx stop
+
+# Starts the replica, running in the background
+dfx start --background --clean
+
+# Switches to your default account
+dfx identity use default
+
+# Deploys the ledger canister with a fixed id, sets the icrc21_backend canister as minter and current (default) identity as the canister's controller
+dfx deploy ledger --specified-id ryjl3-tyaaa-aaaaa-aaaba-cai --argument "(variant {Init = record { token_name = \"DEV\"; token_symbol = \"DEV\"; transfer_fee = 1; metadata = vec {}; minting_account = record {owner = principal \"bkyz2-fmaaa-aaaaa-qaaaq-cai\";}; initial_balances = vec {}; archive_options = record {num_blocks_to_archive = 1000000; trigger_threshold = 1000000; controller_id = principal \"$(dfx identity get-principal)\"}; }})"
+
+# Deploys the icrc21_backend canister with a fixed id
+dfx deploy icrc21_backend --specified-id bkyz2-fmaaa-aaaaa-qaaaq-cai
