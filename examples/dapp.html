@@ -230,10 +230,6 @@
         updateActiveAccount()
       })
 
-      client.subscribeToEvent('ACTIVE_ACCOUNT_SET', () => {
-        updateActiveAccount()
-      })
-
       // Display the active account in the UI
       const updateColorMode = () => {
         client.getColorMode().then((colorMode) => {
