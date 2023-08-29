@@ -850,9 +850,9 @@ export class DAppClient extends Client {
     const { message: response, connectionInfo } = await this.makeRequestV3<
       PermissionRequestV3<string>,
       BeaconMessageWrapper<PermissionResponseV3<string>>
-    >(request, id).catch(async (_requestError: ErrorResponse) => {
-      throw new Error('TODO')
-      // throw await this.handleRequestError(request, requestError)
+    >(request, id).catch(async (requestError: ErrorResponse) => {
+      // throw new Error('TODO')
+      throw await this.handleRequestError(request as any, requestError)
     })
 
     const partialAccountInfos = await blockchain.getAccountInfosFromPermissionResponse(
@@ -926,18 +926,7 @@ export class DAppClient extends Client {
       BeaconMessageWrapper<BlockchainResponseV3<string>>
     >(request, id).catch(async (requestError: ErrorResponse) => {
       // console.error(requestError)
-      // throw await this.handleRequestError(request as any, requestError)
-      throw await this.events
-        .emit(
-          BeaconEvent.OPERATION_REQUEST_ERROR,
-          {
-            errorResponse: requestError,
-            walletInfo: await this.getWalletInfo(),
-            errorMessages: this.errorMessages
-          },
-          []
-        )
-        .catch((emitError) => logger.error('handleRequestError', emitError))
+      throw await this.handleRequestError(request as any, requestError)
     })
 
     await blockchain.handleResponse({

@@ -161,6 +161,8 @@ function App() {
   }
 
   const requestPermission = async () => {
+    setSendResult(undefined)
+
     try {
       const challenge = randomBytes(32)
       const response = await client.ic.requestPermissions({
@@ -242,7 +244,7 @@ function App() {
       const path = [new TextEncoder().encode('request_status'), requestId]
       const result = idlDecode([TransferResult], certificate.lookup([...path, 'reply']))[0]
 
-      setSendResult(JSON.stringify(result, (_, value) => typeof value === 'bigint' ? value.toString() : value, 2))
+      setSendResult(JSON.parse(JSON.stringify(result, (_, value) => typeof value === 'bigint' ? value.toString() : value, 2)))
       fetchBalance()
     } catch (error) {
       console.error(`requestCanisterCall ${method} error`, error)
@@ -276,7 +278,7 @@ function App() {
         <>
           <input type="text" onChange={onRecipientInput}></input>
           <button onClick={send}>Send 10 DEV</button>
-          {sendResult && <div>{sendResult}</div>}
+          {sendResult && <div className='multiline'>{JSON.stringify(sendResult, null, 2)}</div>}
           <br /><br />
         </>
       )}

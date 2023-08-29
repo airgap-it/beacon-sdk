@@ -64,6 +64,7 @@ export enum BeaconEvent {
   OPERATION_REQUEST_SENT = 'OPERATION_REQUEST_SENT',
   OPERATION_REQUEST_SUCCESS = 'OPERATION_REQUEST_SUCCESS',
   OPERATION_REQUEST_ERROR = 'OPERATION_REQUEST_ERROR',
+  BLOCKCHAIN_REQUEST_SUCCESS = 'BLOCKCHAIN_REQUEST_SUCCESS',
   SIGN_REQUEST_SENT = 'SIGN_REQUEST_SENT',
   SIGN_REQUEST_SUCCESS = 'SIGN_REQUEST_SUCCESS',
   SIGN_REQUEST_ERROR = 'SIGN_REQUEST_ERROR',
@@ -130,6 +131,9 @@ export interface BeaconEventType {
     errorResponse: ErrorResponse
     walletInfo: WalletInfo
     errorMessages: Record<string, Record<string | number, string>>
+  }
+  [BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]: {
+    walletInfo: WalletInfo
   }
   [BeaconEvent.SIGN_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: {
@@ -469,6 +473,17 @@ const showPermissionSuccessAlert = async (
   })
 }
 
+const showCanisterCallSuccessAlert = async (
+  data: BeaconEventType[BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]
+): Promise<void> => {
+  await openToast({
+    body: `{{wallet}}\u00A0 successfully submitted canister call`,
+    timer: SUCCESS_TIMER,
+    state: 'finished',
+    walletInfo: data.walletInfo
+  })
+}
+
 /**
  * Show an "Operation Broadcasted" alert
  *
@@ -629,6 +644,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.OPERATION_REQUEST_SENT]: showSentToast,
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: showOperationSuccessAlert,
   [BeaconEvent.OPERATION_REQUEST_ERROR]: showErrorToast,
+  [BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]: showCanisterCallSuccessAlert,
   [BeaconEvent.SIGN_REQUEST_SENT]: showSentToast,
   [BeaconEvent.SIGN_REQUEST_SUCCESS]: showSignSuccessAlert,
   [BeaconEvent.SIGN_REQUEST_ERROR]: showErrorToast,
@@ -668,6 +684,7 @@ export class BeaconEventHandler {
     [BeaconEvent.OPERATION_REQUEST_SENT]: [defaultEventCallbacks.OPERATION_REQUEST_SENT],
     [BeaconEvent.OPERATION_REQUEST_SUCCESS]: [defaultEventCallbacks.OPERATION_REQUEST_SUCCESS],
     [BeaconEvent.OPERATION_REQUEST_ERROR]: [defaultEventCallbacks.OPERATION_REQUEST_ERROR],
+    [BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]: [defaultEventCallbacks.BLOCKCHAIN_REQUEST_SUCCESS],
     [BeaconEvent.SIGN_REQUEST_SENT]: [defaultEventCallbacks.SIGN_REQUEST_SENT],
     [BeaconEvent.SIGN_REQUEST_SUCCESS]: [defaultEventCallbacks.SIGN_REQUEST_SUCCESS],
     [BeaconEvent.SIGN_REQUEST_ERROR]: [defaultEventCallbacks.SIGN_REQUEST_ERROR],

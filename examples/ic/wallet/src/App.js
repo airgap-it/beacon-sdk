@@ -20,34 +20,13 @@ function App() {
   const [balance, setBalance] = useState(undefined)
   const [mnemonic, setMnemonic] = useState('already alone man elite catalog affair friend mammal cash average idea wet')
   const [status, setStatus] = useState('')
+  const [pendingPermissionRequest, setPendingPermissionRequest] = useState(undefined)
   const [pendingCanisterCallRequest, setPendingCanisterCallRequest] = useState(undefined)
   const [consentMessage, setConsentMessage] = useState(undefined)
 
   const onPermissionRequest = useCallback(async (request) => {
-    const identity = Secp256k1KeyIdentity.fromSeedPhrase(mnemonic)
-    const signature = await identity.sign(Buffer.concat([
-      Buffer.from(new TextEncoder().encode('\x0Aic-wallet-challenge')), 
-      Buffer.from(request.params.challenge, 'base64')
-    ]))
-
-    const response = {
-      version: request.params.version,
-      appMetadata: {
-        name: client.name
-      },
-      networks: request.params.networks,
-      scopes: request.params.scopes,
-      identities: [{
-        publicKey: Buffer.from(account.publicKey).toString('base64')
-      }],
-      signature: Buffer.from(signature).toString('base64'),
-    }
-
-    // Let's wait a little to make it more natural (to test the UI on the dapp side)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    client.ic.respondWithResult(request, response)
-  }, [client, mnemonic, account])
+    setPendingPermissionRequest(request)
+  }, [])
 
   const onCanisterCallRequest = useCallback(async (request) => {
     const canisterId = request.params.canisterId
@@ -217,6 +196,42 @@ function App() {
     }
   }
 
+  const acceptPermissionRequest = async () => {
+    const identity = Secp256k1KeyIdentity.fromSeedPhrase(mnemonic)
+    const signature = await identity.sign(Buffer.concat([
+      Buffer.from(new TextEncoder().encode('\x0Aic-wallet-challenge')), 
+      Buffer.from(pendingPermissionRequest.params.challenge, 'base64')
+    ]))
+
+    const response = {
+      version: pendingPermissionRequest.params.version,
+      appMetadata: {
+        name: client.name
+      },
+      networks: pendingPermissionRequest.params.networks,
+      scopes: pendingPermissionRequest.params.scopes,
+      identities: [{
+        publicKey: Buffer.from(account.publicKey).toString('base64')
+      }],
+      signature: Buffer.from(signature).toString('base64'),
+    }
+
+    // Let's wait a little to make it more natural (to test the UI on the dapp side)
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
+    await client.ic.respondWithResult(pendingPermissionRequest, response)
+    setPendingPermissionRequest(undefined)
+  }
+
+  const rejectPermissionRequest = async () => {
+    client.ic.respondWithError(pendingPermissionRequest, {
+      version: '1',
+      errorType: 'ABORTED'
+    })
+
+    setPendingPermissionRequest(undefined)
+  }
+
   const acceptCanisterCall = async () => {
     setStatus('Executing canister call...')
 
@@ -314,8 +329,23 @@ function App() {
       }
       <br /><br />
       {
+        pendingPermissionRequest && (
+          <>
+            Permission SubmitRequestType
+            <div className='multiline'>{JSON.stringify(pendingPermissionRequest, null, 2)}</div>
+            <br /><br />
+            <div>
+              <button onClick={acceptPermissionRequest}>Ok</button>
+              <button onClick={rejectPermissionRequest}>Reject</button>
+            </div>
+            <br /><br />
+          </>
+        )
+      }
+      {
         consentMessage && (
           <>
+            Canister Call
             <div>{consentMessage}</div>
             <br /><br />
             <div>

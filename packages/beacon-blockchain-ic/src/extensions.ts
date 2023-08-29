@@ -7,6 +7,7 @@ import { ICCanisterCallBeaconRequest, ICCanisterCallRequest } from "./types/mess
 import { ICCanisterCallBeaconResponse, ICCanisterCallResponse } from "./types/messages/canister-call-response"
 import { ICPermissionScope } from "./types/permission-scope"
 import { JsonRPCError } from "./types/messages/response"
+import { BeaconErrorType } from "@airgap/beacon-types"
 
 declare module "@airgap/beacon-dapp" {
     interface DAppClient {
@@ -171,10 +172,32 @@ class ICWalletClient {
             error 
         }
 
+        let errorType: string = error.errorType
+        switch (errorType) {
+            case 'ABORTED':
+                errorType = BeaconErrorType.ABORTED_ERROR
+                break
+            case 'VERSION_NOT_SUPPORTED':
+                errorType = BeaconErrorType.UNKNOWN_ERROR
+                break
+            case 'NETWORK_NOT_SUPPORTED':
+                errorType = BeaconErrorType.NETWORK_NOT_SUPPORTED
+                break
+            case 'NOT_GRANTED':
+                errorType = BeaconErrorType.NOT_GRANTED_ERROR
+                break
+            case 'NETWORK':
+                errorType = BeaconErrorType.UNKNOWN_ERROR
+                break
+            case 'UNKNOWN':
+                errorType = BeaconErrorType.UNKNOWN_ERROR
+                break
+        }
+
         const beaconResponse = {
             id: response.id.toString(),
             type: BeaconMessageType.Error,
-            errorType: error.errorType,
+            errorType,
             description: error.description
         }
 
