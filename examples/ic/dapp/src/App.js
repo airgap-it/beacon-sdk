@@ -257,20 +257,20 @@ function App() {
 
   return (
     <div className="App">
-      Beacon Example
+      ICRC-25 Example DApp
       <br /><br />
-      <span>
+      <button onClick={requestPermission}>Request Permission</button>
+      <br /><br />
+      <div>
         Active account:
         <br />
         <span>{activeAccount ? Principal.selfAuthenticating(publicKeyFromAccount(activeAccount)).toText() : ''}</span>
         <span>{activeAccount?.chainData.identities[0].ledger?.subaccounts[0]}</span>
         {/* <span>{activeAccount?.network.type}</span> */}
         <span>{activeAccount?.origin.type}</span>
-      </span>
-      <br /><br />
+      </div>
+      <br />
       <div>Balance: {balance ? balance : '---'} DEV</div>
-      <br /><br />
-      <button onClick={requestPermission}>Request Permission</button>
       <br /><br />
       {activeAccount && (
         <>

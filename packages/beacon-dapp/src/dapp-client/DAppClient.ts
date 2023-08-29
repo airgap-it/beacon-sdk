@@ -869,7 +869,7 @@ export class DAppClient extends Client {
   }
 
   public async request(input: BlockchainRequestV3<string>, id?: string): Promise<BlockchainResponseV3<string>> {
-    console.log('REQUEST', input)
+    // console.log('REQUEST', input)
     const blockchain = this.blockchains.get(input.blockchainIdentifier)
     if (!blockchain) {
       throw new Error(`Blockchain "${blockchain}" not supported by dAppClient`)
@@ -892,9 +892,19 @@ export class DAppClient extends Client {
       BlockchainRequestV3<string>,
       BeaconMessageWrapper<BlockchainResponseV3<string>>
     >(request, id).catch(async (requestError: ErrorResponse) => {
-      console.error(requestError)
-      throw new Error('TODO')
-      // throw await this.handleRequestError(request, requestError)
+      // console.error(requestError)
+      // throw await this.handleRequestError(request as any, requestError)
+      throw await this.events
+        .emit(
+          BeaconEvent.OPERATION_REQUEST_ERROR,
+          {
+            errorResponse: requestError,
+            walletInfo: await this.getWalletInfo(),
+            errorMessages: this.errorMessages
+          },
+          []
+        )
+        .catch((emitError) => logger.error('handleRequestError', emitError))
     })
 
     await blockchain.handleResponse({

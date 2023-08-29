@@ -266,12 +266,10 @@ function App() {
   }
 
   const rejectCanisterCall = async () => {
-    const response = {
-      type: BeaconMessageType.Error,
-      id: pendingCanisterCallRequest.id,
-      errorType: BeaconErrorType.ABORTED_ERROR
-    }
-    client.respond(response)
+    client.ic.respondWithError(pendingCanisterCallRequest, {
+      version: '1',
+      errorType: 'ABORTED'
+    })
 
     setPendingCanisterCallRequest(undefined)
     setConsentMessage(undefined)
@@ -285,20 +283,26 @@ function App() {
 
   return (
     <div className="App">
-      Beacon Example Wallet
+      ICRC-25 Example Wallet
       <br /><br />
       {account
         ? (
             <>
+              <button onClick={pasteSyncCode}>Paste Sync Code</button>
+              <br /><br />
               {status && <div>Status: {status}</div>}
               <br />
-              <div>Account: {account.principal}</div>
+              <div>
+                Account:
+                <br />
+                <span>{account.principal}</span>
+                <span>{account.subaccount}</span>
+              </div>
+              <br />
               <div>Balance: {balance ? balance.deposit : '---'} DEV</div>  
               <br />
               <button onClick={mint}>Mint 1,000 DEV</button>
               <br />
-              <br />
-              <button onClick={pasteSyncCode}>Paste Sync Code</button>
             </>
           )
         : (

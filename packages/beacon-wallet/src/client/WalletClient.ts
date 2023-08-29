@@ -114,7 +114,7 @@ export class WalletClient extends Client {
         if (typedMessage.message.type === BeaconMessageType.Disconnect) {
           return this.disconnect(typedMessage.senderId)
         }
-
+        
         if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
           this.pendingRequests.push([typedMessage, connectionContext])
 
