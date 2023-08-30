@@ -35,6 +35,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
+    "@airgap/beacon-blockchain-ic": "4.0.9",
     "@airgap/beacon-blockchain-substrate": "4.0.9",
     "@airgap/beacon-blockchain-tezos": "4.0.9",
     "@airgap/beacon-core": "4.0.9",
