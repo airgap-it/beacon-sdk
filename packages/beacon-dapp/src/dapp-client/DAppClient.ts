@@ -660,8 +660,8 @@ export class DAppClient extends Client {
     if (elements?.includes('alert')) {
       // if the sync was aborted from the wallet side
       this._initPromise = undefined
-      // by dispatching two opposite events (one closes the alert the other one closes it)
-      // triggers some sort of race condition in the UI render cycle
+      // by dispatching two opposite events (one closes the alert the other one opens it)
+      // it triggers some sort of race condition in the UI render cycle
       setTimeout(async () => await this.events.emit(BeaconEvent.NO_PERMISSIONS), 1000)
     }
   }
