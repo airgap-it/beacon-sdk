@@ -7,7 +7,7 @@ import {
   P2PPairingRequest,
   PostMessagePairingRequest,
   StorageKey,
-  WalletConnectPairingRequest
+  // WalletConnectPairingRequest
 } from '@airgap/beacon-types'
 import { isServer, render } from 'solid-js/web'
 import { desktopList, extensionList, iOSList, webList } from './wallet-lists'
@@ -57,7 +57,7 @@ export interface AlertConfig {
   pairingPayload?: {
     p2pSyncCode: () => Promise<P2PPairingRequest>
     postmessageSyncCode: () => Promise<PostMessagePairingRequest>
-    walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
+    // walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
     networkType: NetworkType
   }
   closeButtonCallback?(): void
@@ -138,7 +138,7 @@ const closeAlerts = async (): Promise<void> =>
 const openAlert = async (config: AlertConfig): Promise<string> => {
   setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
-  const wcPayload = config.pairingPayload?.walletConnectSyncCode()
+  // const wcPayload = config.pairingPayload?.walletConnectSyncCode()
 
   setAnalytics(config.analytics)
 
@@ -146,9 +146,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   p2pPayload?.then(() => {
     // console.log('P2P LOADED')
   })
-  wcPayload?.then(() => {
+  // wcPayload?.then(() => {
     // console.log('WC LOADED')
-  })
+  // })
 
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
@@ -418,10 +418,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           let link = ''
 
           if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-            const uri = (await wcPayload)?.uri
-            if (uri) {
-              link = `${wallet.link}/wc?uri=${encodeURIComponent(uri)}`
-            }
+            // const uri = (await wcPayload)?.uri
+            // if (uri) {
+            //   link = `${wallet.link}/wc?uri=${encodeURIComponent(uri)}`
+            // }
           } else {
             const serializer = new Serializer()
             const code = await serializer.serialize(await p2pPayload)
@@ -439,7 +439,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = (await wcPayload)?.uri
+        // const uri = (await wcPayload)?.uri
+        const uri = undefined
 
         if (uri) {
           if (isAndroid(window) || isIOS(window)) {
@@ -739,7 +740,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         walletList={walletList()}
                         onClickLearnMore={handleClickLearnMore}
                         p2pPayload={p2pPayload}
-                        wcPayload={wcPayload}
                       ></PairOther>
                     </div>
                   )}

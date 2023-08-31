@@ -26,7 +26,7 @@ import {
   AcknowledgeResponse,
   WalletInfo,
   ExtendedWalletConnectPairingResponse,
-  WalletConnectPairingRequest,
+  // WalletConnectPairingRequest,
   AnalyticsInterface
 } from '@airgap/beacon-types'
 import {
@@ -173,7 +173,7 @@ export interface BeaconEventType {
   [BeaconEvent.PAIR_INIT]: {
     p2pPeerInfo: () => Promise<P2PPairingRequest>
     postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
-    walletConnectPeerInfo: () => Promise<WalletConnectPairingRequest>
+    // walletConnectPeerInfo: () => Promise<WalletConnectPairingRequest>
     networkType: NetworkType
     abortedHandler?(): void
     disclaimerText?: string
@@ -427,7 +427,7 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
     body: `<p></p>`,
     pairingPayload: {
       p2pSyncCode: data.p2pPeerInfo,
-      walletConnectSyncCode: data.walletConnectPeerInfo,
+      // walletConnectSyncCode: data.walletConnectPeerInfo,
       postmessageSyncCode: data.postmessagePeerInfo,
       networkType: data.networkType
     },

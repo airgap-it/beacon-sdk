@@ -269,8 +269,6 @@ export class DAppClient extends Client {
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
-                : connectionInfo.origin === Origin.WALLETCONNECT
-                ? this.walletConnectTransport
                 : this.postMessageTransport ?? (await this.transport)
 
             if (relevantTransport) {
@@ -335,8 +333,6 @@ export class DAppClient extends Client {
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
-                : connectionInfo.origin === Origin.WALLETCONNECT
-                ? this.walletConnectTransport
                 : this.postMessageTransport ?? (await this.transport)
 
             if (relevantTransport) {
@@ -382,25 +378,25 @@ export class DAppClient extends Client {
 
     await this.addListener(this.p2pTransport)
 
-    const wcOptions = {
-      projectId: this.wcProjectId,
-      relayUrl: this.wcRelayUrl,
-      metadata: {
-        name: this.name,
-        description: this.description ?? '',
-        url: this.appUrl ?? '',
-        icons: this.iconUrl ? [this.iconUrl] : []
-      }
-    }
+    // const wcOptions = {
+    //   projectId: this.wcProjectId,
+    //   relayUrl: this.wcRelayUrl,
+    //   metadata: {
+    //     name: this.name,
+    //     description: this.description ?? '',
+    //     url: this.appUrl ?? '',
+    //     icons: this.iconUrl ? [this.iconUrl] : []
+    //   }
+    // }
 
-    this.walletConnectTransport = new DappWalletConnectTransport(this.name, keyPair, this.storage, {
-      network: this.network.type,
-      opts: wcOptions
-    })
+    // this.walletConnectTransport = new DappWalletConnectTransport(this.name, keyPair, this.storage, {
+    //   network: this.network.type,
+    //   opts: wcOptions
+    // })
 
     this.initEvents()
 
-    await this.addListener(this.walletConnectTransport)
+    // await this.addListener(this.walletConnectTransport)
   }
 
   private initEvents() {
@@ -461,7 +457,7 @@ export class DAppClient extends Client {
 
         await this.initInternalTransports()
 
-        if (!this.postMessageTransport || !this.p2pTransport || !this.walletConnectTransport) {
+        if (!this.postMessageTransport || !this.p2pTransport) {
           return
         }
 
@@ -474,13 +470,11 @@ export class DAppClient extends Client {
             resolve(await super.init(this.postMessageTransport))
           } else if (origin === Origin.P2P) {
             resolve(await super.init(this.p2pTransport))
-          } else if (origin === Origin.WALLETCONNECT) {
-            resolve(await super.init(this.walletConnectTransport))
           }
         } else {
           const p2pTransport = this.p2pTransport
           const postMessageTransport = this.postMessageTransport
-          const walletConnectTransport = this.walletConnectTransport
+          // const walletConnectTransport = this.walletConnectTransport
 
           postMessageTransport
             .listenForNewPeer((peer) => {
@@ -516,22 +510,22 @@ export class DAppClient extends Client {
             })
             .catch(console.error)
 
-          walletConnectTransport
-            .listenForNewPeer((peer) => {
-              logger.log('init', 'walletconnect transport peer connected', peer)
-              this.analytics.track('event', 'DAppClient', 'WalletConnect Wallet connected', {
-                peerName: peer.name
-              })
-              this.events
-                .emit(BeaconEvent.PAIR_SUCCESS, peer)
-                .catch((emitError) => console.warn(emitError))
+          // walletConnectTransport
+          //   .listenForNewPeer((peer) => {
+          //     logger.log('init', 'walletconnect transport peer connected', peer)
+          //     this.analytics.track('event', 'DAppClient', 'WalletConnect Wallet connected', {
+          //       peerName: peer.name
+          //     })
+          //     this.events
+          //       .emit(BeaconEvent.PAIR_SUCCESS, peer)
+          //       .catch((emitError) => console.warn(emitError))
 
-              this.setActivePeer(peer).catch(console.error)
-              this.setTransport(this.walletConnectTransport).catch(console.error)
-              stopListening()
-              resolve(TransportType.WALLETCONNECT)
-            })
-            .catch(console.error)
+          //     this.setActivePeer(peer).catch(console.error)
+          //     this.setTransport(this.walletConnectTransport).catch(console.error)
+          //     stopListening()
+          //     resolve(TransportType.WALLETCONNECT)
+          //   })
+          //   .catch(console.error)
 
           PostMessageTransport.getAvailableExtensions()
             .then(async (extensions) => {
@@ -549,7 +543,7 @@ export class DAppClient extends Client {
                 return p2pTransport.getPairingRequestInfo()
               },
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
-              walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
+              // walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
               networkType: this.network.type,
               abortedHandler: () => {
                 console.log('ABORTED')
@@ -596,8 +590,6 @@ export class DAppClient extends Client {
         await this.setTransport(this.postMessageTransport)
       } else if (origin === Origin.P2P) {
         await this.setTransport(this.p2pTransport)
-      } else if (origin === Origin.WALLETCONNECT) {
-        await this.setTransport(this.walletConnectTransport)
       }
       const peer = await this.getPeer(account)
       await this.setActivePeer(peer as any)
@@ -1506,9 +1498,9 @@ export class DAppClient extends Client {
       const postMessagePeers: ExtendedPostMessagePairingResponse[] =
         (await this.postMessageTransport?.getPeers()) ?? []
       const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
-      const walletConnectPeers: ExtendedWalletConnectPairingResponse[] =
-        (await this.walletConnectTransport?.getPeers()) ?? []
-      const peers = [...postMessagePeers, ...p2pPeers, ...walletConnectPeers]
+      // const walletConnectPeers: ExtendedWalletConnectPairingResponse[] =
+        // (await this.walletConnectTransport?.getPeers()) ?? []
+      const peers = [...postMessagePeers, ...p2pPeers]
 
       logger.log('getPeer', 'Found peers', peers, account)
 
