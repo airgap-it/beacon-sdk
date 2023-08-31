@@ -1366,6 +1366,7 @@ export class DAppClient extends Client {
         this._initPromise = undefined
         this.postMessageTransport = undefined
         this.p2pTransport = undefined
+        this.walletConnectTransport = undefined
         await this.setTransport()
         await this.setActivePeer()
       }
