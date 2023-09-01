@@ -39,7 +39,6 @@ import {
   AppMetadata,
   ExtendedP2PPairingResponse,
   ExtendedPostMessagePairingResponse,
-  PostMessagePairingResponse,
   SigningType,
   ExtendedPeerInfo,
   Optional,
@@ -60,7 +59,8 @@ import {
   ExtensionApp,
   WebApp,
   ExtendedWalletConnectPairingResponse,
-  ChangeAccountRequest
+  ChangeAccountRequest,
+  PeerInfoType
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -167,12 +167,7 @@ export class DAppClient extends Client {
   /**
    * The currently active peer. This is used to address a peer in case the active account is not set. (Eg. for permission requests)
    */
-  private _activePeer: ExposedPromise<
-    | ExtendedPostMessagePairingResponse
-    | ExtendedP2PPairingResponse
-    | ExtendedWalletConnectPairingResponse
-    | undefined
-  > = new ExposedPromise()
+  private _activePeer: ExposedPromise<PeerInfoType | undefined> = new ExposedPromise()
 
   private _initPromise: Promise<TransportType> | undefined
 
@@ -283,7 +278,7 @@ export class DAppClient extends Client {
                 (peerEl) => peerEl.senderId === message.senderId
               )
               if (peer) {
-                await relevantTransport.removePeer(peer as any)
+                await relevantTransport.removePeer(peer)
               }
               await this.removeAccountsForPeerIds([message.senderId])
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
@@ -349,7 +344,7 @@ export class DAppClient extends Client {
                 (peerEl) => peerEl.senderId === message.senderId
               )
               if (peer) {
-                await relevantTransport.removePeer(peer as any)
+                await relevantTransport.removePeer(peer)
               }
               await this.removeAccountsForPeerIds([message.senderId])
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
@@ -603,7 +598,7 @@ export class DAppClient extends Client {
         await this.setTransport(this.walletConnectTransport)
       }
       const peer = await this.getPeer(account)
-      await this.setActivePeer(peer as any)
+      await this.setActivePeer(peer)
     } else {
       await this.setActivePeer(undefined)
       await this.setTransport(undefined)
@@ -1234,34 +1229,25 @@ export class DAppClient extends Client {
     return message
   }
 
-  protected async setActivePeer(
-    peer?:
-      | ExtendedPostMessagePairingResponse
-      | ExtendedP2PPairingResponse
-      | ExtendedWalletConnectPairingResponse
-  ): Promise<void> {
+  protected async setActivePeer(peer?: PeerInfoType): Promise<void> {
     if (this._activePeer.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
-      this._activePeer = ExposedPromise.resolve<
-        | ExtendedPostMessagePairingResponse
-        | ExtendedP2PPairingResponse
-        | ExtendedWalletConnectPairingResponse
-        | undefined
-      >(peer)
+      this._activePeer = ExposedPromise.resolve(peer)
     } else {
       this._activePeer.resolve(peer)
     }
 
-    if (peer) {
-      await this.initInternalTransports()
-      if (peer.type === 'postmessage-pairing-response') {
-        await this.setTransport(this.postMessageTransport)
-      } else if (peer.type === 'p2p-pairing-response') {
-        await this.setTransport(this.p2pTransport)
-      }
+    if (!peer) {
+      return
     }
 
-    return
+    await this.initInternalTransports()
+
+    if (peer.type === 'postmessage-pairing-response') {
+      await this.setTransport(this.postMessageTransport)
+    } else if (peer.type === 'p2p-pairing-response') {
+      await this.setTransport(this.p2pTransport)
+    }
   }
 
   /**
@@ -1445,12 +1431,10 @@ export class DAppClient extends Client {
       walletInfo = await this.appMetadataManager.getAppMetadata(selectedAccount.senderId)
     }
 
-    const typedPeer: PostMessagePairingResponse = selectedPeer as any
-
     if (!walletInfo) {
       walletInfo = {
-        name: typedPeer?.name,
-        icon: typedPeer?.icon
+        name: selectedPeer?.name ?? '',
+        icon: selectedPeer?.icon
       }
     }
 
