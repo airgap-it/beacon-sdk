@@ -73,7 +73,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.KATHMANDUNET]: 'https://metamask.tezos.com/',
       [NetworkType.LIMANET]: 'https://metamask.tezos.com/',
       [NetworkType.MUMBAINET]: 'https://metamask.tezos.com/',
-      [NetworkType.NAIROBINET]: 'https://metamask.tezos.com/'
+      [NetworkType.NAIROBINET]: 'https://metamask.tezos.com/',
+      [NetworkType.OXFORDNET]: 'https://metamask.tezos.com/'
     }
   },
   {
@@ -97,7 +98,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.KATHMANDUNET]: 'https://kathmandunet.kukai.app',
       [NetworkType.LIMANET]: 'https://limanet.kukai.app',
       [NetworkType.MUMBAINET]: 'https://mumbainet.kukai.app',
-      [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app'
+      [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app',
+      [NetworkType.OXFORDNET]: 'https://oxfordnet.kukai.app'
     }
   }
 ]
