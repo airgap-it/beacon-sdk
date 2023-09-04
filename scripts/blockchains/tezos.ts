@@ -5,7 +5,7 @@ export enum NetworkType {
   MAINNET = 'mainnet',
   GHOSTNET = 'ghostnet', // Long running testnet
   MONDAYNET = 'mondaynet', // Testnet, resets every monday
-  DAILYNET = 'mondaynet', // Testnet, resets every day
+  DAILYNET = 'dailynet', // Testnet, resets every day
   DELPHINET = 'delphinet',
   EDONET = 'edonet',
   FLORENCENET = 'florencenet',
@@ -212,6 +212,6 @@ export const tezosIosList: App[] = [
     logo: 'exodus.svg',
     supportedInteractionStandards: ['beacon'],
     deepLink: 'exodus://wc',
-    universalLink:'https://www.exodus.com/'
+    universalLink: 'https://www.exodus.com/'
   }
 ]
