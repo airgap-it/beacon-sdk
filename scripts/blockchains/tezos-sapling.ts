@@ -17,6 +17,7 @@ export enum NetworkType {
   LIMANET = 'limanet',
   MUMBAINET = 'mumbainet',
   NAIROBINET = 'nairobinet',
+  OXFORDNET = 'oxfordnet',
   CUSTOM = 'custom'
 }
 
