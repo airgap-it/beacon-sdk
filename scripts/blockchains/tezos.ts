@@ -217,5 +217,15 @@ export const tezosIosList: App[] = [
     supportedInteractionStandards: ['beacon'],
     deepLink: 'exodus://wc',
     universalLink: 'https://www.exodus.com/'
+  },
+  {
+    key: 'kukai_ios',
+    name: 'Kukai Wallet',
+    shortName: 'Kukai',
+    color: '',
+    logo: 'web-kukai.png',
+    supportedInteractionStandards: ['wallet_connect'],
+    universalLink: 'https://wallet.kukai.app',
+    deepLink: 'kukai://'
   }
 ]
