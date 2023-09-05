@@ -200,11 +200,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
   }
 
-  private async setSessionProperties(session: SessionTypes.Struct, networkType: NetworkType) {
+  private async setSessionProperties(session: SessionTypes.Struct) {
     try {
       const sessionProperties = await this.fetchSessionProperties(
         session.topic,
-        `${TEZOS_PLACEHOLDER}:${networkType}`
+        `${TEZOS_PLACEHOLDER}:${this.wcOptions.network}`
       )
       session.sessionProperties = sessionProperties[0]
     } catch (error) {
@@ -233,7 +233,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const session = this.getSession()
     let publicKey: string | undefined
 
-    !session.sessionProperties && this.setSessionProperties(session, message.network.type)
+    !session.sessionProperties && this.setSessionProperties(session)
 
     if (
       session.sessionProperties?.pubkey &&
@@ -396,7 +396,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   public async init(
-    networkType: NetworkType,
     forceNewConnection: boolean = false
   ): Promise<{ uri: string; topic: string } | undefined> {
     const signClient = await this.getSignClient()
@@ -422,7 +421,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       try {
         const session = await this.openSession(topic)
 
-        !session.sessionProperties && this.setSessionProperties(session, networkType)
+        !session.sessionProperties && this.setSessionProperties(session)
 
         const pairingResponse = {
           id: topic,
@@ -599,9 +598,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   public async getPairingRequestInfo(
-    networkType: NetworkType
   ): Promise<ExtendedWalletConnectPairingRequest> {
-    const { uri, topic } = (await this.init(networkType, true)) ?? {}
+    const { uri, topic } = (await this.init(true)) ?? {}
     return {
       id: topic!,
       type: 'walletconnect-pairing-request',
