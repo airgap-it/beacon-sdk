@@ -1,0 +1,24 @@
+{
+    "canisters": {
+      "icrc25_dapp": {
+        "frontend": {
+          "entrypoint": "build/index.html"
+        },
+        "source": [
+          "build"
+        ],
+        "type": "assets"
+      }
+    },
+    "defaults": {
+      "replica": {
+        "subnet_type": "system"
+      },
+      "build": {
+        "args": "",
+        "packtool": ""
+      }
+    },
+    "output_env_file": ".env",
+    "version": 1
+  }

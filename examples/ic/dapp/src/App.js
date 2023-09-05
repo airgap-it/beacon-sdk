@@ -15,7 +15,7 @@ import './App.css'
 import { createDAppClient, publicKeyFromAccount } from './beacon'
 
 const MAIN_CHAIN_ID = 'icp:737ba355e855bd4b61279056603e0550'
-const ICRC21_CANISTER_ID = 'bkyz2-fmaaa-aaaaa-qaaaq-cai'
+const ICRC21_CANISTER_ID = 'xhy27-fqaaa-aaaao-a2hlq-cai'
 
 const ICRC21_TRANSFER_FEE = BigInt(1)
 

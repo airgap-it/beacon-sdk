@@ -10,7 +10,7 @@ dfx start --background --clean
 dfx identity use default
 
 # Deploys the ledger canister with a fixed id, sets the icrc21_backend canister as minter and current (default) identity as the canister's controller
-dfx deploy ledger --specified-id ryjl3-tyaaa-aaaaa-aaaba-cai --argument "(variant {Init = record { token_name = \"DEV\"; token_symbol = \"DEV\"; transfer_fee = 1; metadata = vec {}; minting_account = record {owner = principal \"bkyz2-fmaaa-aaaaa-qaaaq-cai\";}; initial_balances = vec {}; archive_options = record {num_blocks_to_archive = 1000000; trigger_threshold = 1000000; controller_id = principal \"$(dfx identity get-principal)\"}; }})"
+dfx deploy ledger --specified-id wkw6r-kyaaa-aaaao-a2hma-cai --argument "(variant {Init = record { token_name = \"DEV\"; token_symbol = \"DEV\"; transfer_fee = 1; metadata = vec {}; minting_account = record {owner = principal \"xhy27-fqaaa-aaaao-a2hlq-cai\";}; initial_balances = vec {}; archive_options = record {num_blocks_to_archive = 1000000; trigger_threshold = 1000000; controller_id = principal \"$(dfx identity get-principal)\"}; }})"
 
 # Deploys the icrc21_backend canister with a fixed id
-dfx deploy icrc21_backend --specified-id bkyz2-fmaaa-aaaaa-qaaaq-cai
+dfx deploy icrc21_backend --specified-id xhy27-fqaaa-aaaao-a2hlq-cai --argument "(opt record { ledger_canister_id = principal \"wkw6r-kyaaa-aaaao-a2hma-cai\"; })"

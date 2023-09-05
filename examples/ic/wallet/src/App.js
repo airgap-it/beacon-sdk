@@ -10,8 +10,8 @@ import { call, callQuery, createAgent, query, readState } from './agent';
 import { createWalletClient } from './beacon'
 import { BalanceArgs, BalanceResult, ConsentMessageRequest, ConsentMessageResponse, ICRC1TransferArgs, ICRC1TransferResult, MintArgs, MintResult, idlDecode, idlEncode } from './idl';
 
-const LEDGER_CANISTER_ID = 'ryjl3-tyaaa-aaaaa-aaaba-cai'
-const ICRC21_CANISTER_ID = 'bkyz2-fmaaa-aaaaa-qaaaq-cai'
+const LEDGER_CANISTER_ID = 'wkw6r-kyaaa-aaaao-a2hma-cai'
+const ICRC21_CANISTER_ID = 'xhy27-fqaaa-aaaao-a2hlq-cai'
 
 const ICRC21_TRANSFER_FEE = BigInt(1)
 

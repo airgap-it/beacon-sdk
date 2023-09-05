@@ -1,0 +1,41 @@
+{
+  "canisters": {
+    "ledger": {
+      "type": "custom",
+      "candid": "icrc1_ledger/icrc1_ledger.did",
+      "wasm": "icrc1_ledger/icrc1_ledger.wasm.gz"
+    },
+    "icrc21_backend": {
+      "dependencies": [
+        "ledger"
+      ],
+      "candid": "src/icrc21_backend/icrc21_backend.did",
+      "package": "icrc21_backend",
+      "type": "rust"
+    },
+    "icrc21_frontend": {
+      "dependencies": [
+        "icrc21_backend"
+      ],
+      "frontend": {
+        "entrypoint": "src/icrc21_frontend/src/index.html"
+      },
+      "source": [
+        "src/icrc21_frontend/assets",
+        "dist/icrc21_frontend/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "replica": {
+      "subnet_type": "system"
+    },
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
