@@ -13,6 +13,8 @@ import { BalanceArgs, BalanceResult, ConsentMessageRequest, ConsentMessageRespon
 const LEDGER_CANISTER_ID = 'ryjl3-tyaaa-aaaaa-aaaba-cai'
 const ICRC21_CANISTER_ID = 'bkyz2-fmaaa-aaaaa-qaaaq-cai'
 
+const ICRC21_TRANSFER_FEE = BigInt(1)
+
 function App() {
   const client = useMemo(() => createWalletClient(), [])
 
@@ -20,6 +22,7 @@ function App() {
   const [balance, setBalance] = useState(undefined)
   const [mnemonic, setMnemonic] = useState('already alone man elite catalog affair friend mammal cash average idea wet')
   const [status, setStatus] = useState('')
+  const [syncCode, setSyncCode] = useState(undefined)
   const [pendingPermissionRequest, setPendingPermissionRequest] = useState(undefined)
   const [pendingCanisterCallRequest, setPendingCanisterCallRequest] = useState(undefined)
   const [consentMessage, setConsentMessage] = useState(undefined)
@@ -98,6 +101,10 @@ function App() {
     setMnemonic(event.target.value)
   }
 
+  const onSyncCodeInput = (event) => {
+    setSyncCode(event.target.value)
+  }
+
   const importAccount = async () => {
     const identity = Secp256k1KeyIdentity.fromSeedPhrase(mnemonic)
     const principal = identity.getPrincipal()
@@ -138,24 +145,13 @@ function App() {
     }
   }, [mnemonic, account, fetchBalance])
 
-  const mint = async () => {
-    setStatus('Minting 1,000 DEV...')
-    const fee = BigInt(1)
-    const amount = BigInt(1_000)
+  const deposit = async (amount) => {
+    const fee = ICRC21_TRANSFER_FEE
+    amount = typeof amount === 'bigint' ? amount : BigInt(balance.owner) - fee
 
-    const agent = await createAgent(mnemonic)
-    const mintCallResponse = await call(agent, ICRC21_CANISTER_ID, 'mint', idlEncode([MintArgs], [{
-      amount: amount + fee
-    }]))
-    const mintState = await readState(agent, ICRC21_CANISTER_ID, mintCallResponse.requestId)
-    const mintResult = idlDecode([MintResult], mintState.response)[0]
+    setStatus(`Depositing ${amount.toString()} DEV...`)
     
-    if (mintResult.Err) {
-      setStatus('Minting failed')
-      console.error(mintResult.Err)
-      return
-    }
-
+    const agent = await createAgent(mnemonic)
     const depositCallResponse = await call(agent, LEDGER_CANISTER_ID, 'icrc1_transfer', idlEncode([ICRC1TransferArgs], [{
       from_subaccount: [],
       to: {
@@ -172,7 +168,7 @@ function App() {
     const depositResult = idlDecode([ICRC1TransferResult], depositState.response)[0]
     
     if (depositResult.Err) {
-      setStatus('Minting failed')
+      setStatus('Deposit failed')
       console.error(depositResult.Err)
       return
     }
@@ -184,17 +180,40 @@ function App() {
     }
   }
 
-  const pasteSyncCode = async () => {
-    const syncCode = await navigator.clipboard.readText()
+  const mint = async () => {
+    setStatus('Minting 1,000 DEV...')
+    const fee = ICRC21_TRANSFER_FEE
+    const amount = BigInt(1_000)
+
+    const agent = await createAgent(mnemonic)
+    const mintCallResponse = await call(agent, ICRC21_CANISTER_ID, 'mint', idlEncode([MintArgs], [{
+      amount: amount + fee
+    }]))
+    const mintState = await readState(agent, ICRC21_CANISTER_ID, mintCallResponse.requestId)
+    const mintResult = idlDecode([MintResult], mintState.response)[0]
+    
+    if (mintResult.Err) {
+      setStatus('Minting failed')
+      console.error(mintResult.Err)
+      return
+    }
+
+    await deposit(amount)
+  }
+
+  const connect = async () => {
+    const _syncCode = syncCode ?? await navigator.clipboard.readText()
     try {
       const serializer = new Serializer()
-      const peer = await serializer.deserialize(syncCode)
+      const peer = await serializer.deserialize(_syncCode)
       setStatus('Connecting...')
       await client.addPeer(peer)
       setStatus('Connected')
     } catch (error) {
       console.error('pasteSyncCode error', error)
-      setStatus('Not a valid sync code: ' + syncCode)
+      setStatus('Not a valid sync code: ' + _syncCode)
+    } finally {
+      setSyncCode('')
     }
   }
 
@@ -305,7 +324,12 @@ function App() {
       {account
         ? (
             <>
-              <button onClick={pasteSyncCode}>Paste Sync Code</button>
+              {navigator.clipboard.readText ? <button onClick={connect}>Paste Sync Code</button> : (
+                <>
+                  <textarea onChange={onSyncCodeInput} placeholder='Sync Code' value={syncCode}></textarea>
+                  <button onClick={connect}>Connect</button>
+                </>
+              )}
               <br /><br />
               {status && <div>Status: {status}</div>}
               <br />
@@ -316,9 +340,19 @@ function App() {
                 <span>{account.subaccount}</span>
               </div>
               <br />
-              <div>Balance: {balance ? balance.deposit : '---'} DEV</div>  
+              <div>Balance: {balance ? (
+                BigInt(balance.owner) > 0 ? `${balance.deposit} DEV (To Deposit: ${BigInt(balance.owner) - ICRC21_TRANSFER_FEE} DEV)` : `${balance.deposit} DEV`
+              ) : '---'}</div>  
+              <br />
+              <button onClick={fetchBalance}>Fetch Balance</button>
               <br />
               <button onClick={mint}>Mint 1,000 DEV</button>
+              {balance && BigInt(balance.owner) > 0 && (
+                <>
+                  <br />
+                  <button onClick={deposit}>Deposit</button>
+                </>
+              )}
               <br />
             </>
           )

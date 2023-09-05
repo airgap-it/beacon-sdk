@@ -17,6 +17,8 @@ import { createDAppClient, publicKeyFromAccount } from './beacon'
 const MAIN_CHAIN_ID = 'icp:737ba355e855bd4b61279056603e0550'
 const ICRC21_CANISTER_ID = 'bkyz2-fmaaa-aaaaa-qaaaq-cai'
 
+const ICRC21_TRANSFER_FEE = BigInt(1)
+
 function App() {
   const client = useMemo(() => createDAppClient(), [])
 
@@ -51,7 +53,10 @@ function App() {
         throw balance.Err
       }
 
-      setBalance(balance.Ok.deposit.toString())
+      setBalance({
+        owner: balance.Ok.owner.toString(),
+        deposit: balance.Ok.deposit.toString()
+      })
     } catch (error) {
       console.error('fetchBalance error', error)
     }
@@ -279,10 +284,14 @@ function App() {
         <span>{activeAccount?.origin.type}</span>
       </div>
       <br />
-      <div>Balance: {balance ? balance : '---'} DEV</div>
-      <br />
       {activeAccount && (
         <>
+          <div>Balance: {balance ? (
+            BigInt(balance.owner) > 0 ? `${balance.deposit} DEV (To Deposit: ${BigInt(balance.owner) - ICRC21_TRANSFER_FEE} DEV)` : `${balance.deposit} DEV`
+          ) : '---'}</div>  
+          <br />
+          <button onClick={fetchBalance}>Fetch Balance</button>
+          <br />
           ---
           <br /><br />
           Transfer
