@@ -1,4 +1,5 @@
 import { AnonymousIdentity, polling } from '@dfinity/agent'
+import { Principal } from '@dfinity/principal'
 import { createAgent as _createAgent } from '@dfinity/utils'
 
 export async function createAgent() {
@@ -19,5 +20,5 @@ export async function callQuery(canisterId, method, arg) {
   const agent = await createAgent()
   const callResponse = await agent.call(canisterId, { methodName: method, arg })
 
-  return polling.pollForResponse(agent, canisterId, callResponse.requestId, polling.defaultStrategy())
+  return polling.pollForResponse(agent, Principal.from(canisterId), callResponse.requestId, polling.defaultStrategy())
 }

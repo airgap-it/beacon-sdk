@@ -103,8 +103,8 @@ export async function call(agent, canisterId, method, arg) {
     }
 }
 
-export async function readState (agent, canisterId, requestId, strategy = polling.defaultStrategy()) {
-  return pollForResponse(agent, canisterId, requestId, strategy)
+export async function readState(agent, canisterId, requestId, strategy = polling.defaultStrategy()) {
+  return pollForResponse(agent, Principal.from(canisterId), requestId, strategy)
 }
 
 async function pollForResponse(agent, canisterId, requestId, strategy, request) {
