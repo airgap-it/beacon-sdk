@@ -54,6 +54,7 @@ export interface PermissionScopeParam {
 }
 export enum PermissionScopeMethods {
   GET_ACCOUNTS = 'tezos_getAccounts',
+  GET_ACKNOWLEDGEMENT = 'tezos_getAcknowledgment',
   OPERATION_REQUEST = 'tezos_send',
   SIGN = 'tezos_sign'
 }
@@ -179,6 +180,38 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
   }
 
+  private async fetchSessionProperties(topic: string, chainId: string) {
+    const signClient = await this.getSignClient()
+    return signClient.request<
+      [
+        {
+          algo: string
+          address: string
+          pubkey: string
+        }
+      ]
+    >({
+      topic: topic,
+      chainId: chainId,
+      request: {
+        method: PermissionScopeMethods.GET_ACKNOWLEDGEMENT,
+        params: {}
+      }
+    })
+  }
+
+  private async setSessionProperties(session: SessionTypes.Struct, networkType: NetworkType) {
+    try {
+      const sessionProperties = await this.fetchSessionProperties(
+        session.topic,
+        `${TEZOS_PLACEHOLDER}:${networkType}`
+      )
+      session.sessionProperties = sessionProperties[0]
+    } catch (error) {
+      console.warn('No session properties received.')
+    }
+  }
+
   async requestPermissions(message: PermissionRequest) {
     logger.log('#### Requesting permissions')
 
@@ -199,6 +232,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     const session = this.getSession()
     let publicKey: string | undefined
+
+    !session.sessionProperties && this.setSessionProperties(session, message.network.type)
 
     if (
       session.sessionProperties?.pubkey &&
@@ -361,6 +396,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   public async init(
+    networkType: NetworkType,
     forceNewConnection: boolean = false
   ): Promise<{ uri: string; topic: string } | undefined> {
     const signClient = await this.getSignClient()
@@ -385,15 +421,18 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // to get data required in the pairing response
       try {
         const session = await this.openSession(topic)
-        const pairingResponse: ExtendedWalletConnectPairingResponse =
-          new ExtendedWalletConnectPairingResponse(
-            topic,
-            session.peer.metadata.name,
-            session.peer.publicKey,
-            '3',
-            topic,
-            session.peer.metadata.name
-          )
+
+        !session.sessionProperties && this.setSessionProperties(session, networkType)
+
+        const pairingResponse = {
+          id: topic,
+          type: 'walletconnect-pairing-response',
+          name: session.peer.metadata.name,
+          publicKey: session.peer.publicKey,
+          senderId: topic,
+          extensionId: session.peer.metadata.name,
+          version: '3'
+        } as ExtendedWalletConnectPairingResponse
 
         this.channelOpeningListeners.forEach((listener) => {
           listener(pairingResponse)
@@ -559,17 +598,19 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return this.session
   }
 
-  public async getPairingRequestInfo(): Promise<ExtendedWalletConnectPairingRequest> {
-    const { uri, topic } = (await this.init(true)) ?? {}
-
-    return new ExtendedWalletConnectPairingRequest(
-      topic!,
-      'WalletConnect',
-      await generateGUID(),
-      BEACON_VERSION,
-      await generateGUID(),
-      uri!
-    )
+  public async getPairingRequestInfo(
+    networkType: NetworkType
+  ): Promise<ExtendedWalletConnectPairingRequest> {
+    const { uri, topic } = (await this.init(networkType, true)) ?? {}
+    return {
+      id: topic!,
+      type: 'walletconnect-pairing-request',
+      name: 'WalletConnect',
+      version: BEACON_VERSION,
+      uri: uri!,
+      senderId: await generateGUID(),
+      publicKey: await generateGUID()
+    }
   }
 
   private async closePairings() {
