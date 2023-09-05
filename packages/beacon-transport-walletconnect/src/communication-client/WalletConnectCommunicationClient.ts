@@ -54,7 +54,7 @@ export interface PermissionScopeParam {
 }
 export enum PermissionScopeMethods {
   GET_ACCOUNTS = 'tezos_getAccounts',
-  GET_ACKNOWLEDGEMENT = 'tezos_getAcknowledgment',
+  GET_ACKNOWLEDGEMENT = 'tezos_getAcknowledgement',
   OPERATION_REQUEST = 'tezos_send',
   SIGN = 'tezos_sign'
 }
