@@ -515,9 +515,7 @@
       document.getElementById('sendToSelfWithPrepare').addEventListener('click', () => {
         client.showPrepare()
         setTimeout(() => {
-          sendToSelf().catch((e) => {
-            client.hideUI()
-          })
+          sendToSelf()
         }, 2000)
       })
 

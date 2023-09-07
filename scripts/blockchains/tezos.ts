@@ -5,7 +5,7 @@ export enum NetworkType {
   MAINNET = 'mainnet',
   GHOSTNET = 'ghostnet', // Long running testnet
   MONDAYNET = 'mondaynet', // Testnet, resets every monday
-  DAILYNET = 'mondaynet', // Testnet, resets every day
+  DAILYNET = 'dailynet', // Testnet, resets every day
   DELPHINET = 'delphinet',
   EDONET = 'edonet',
   FLORENCENET = 'florencenet',
@@ -17,6 +17,7 @@ export enum NetworkType {
   LIMANET = 'limanet',
   MUMBAINET = 'mumbainet',
   NAIROBINET = 'nairobinet',
+  OXFORDNET = 'oxfordnet',
   CUSTOM = 'custom'
 }
 
@@ -72,7 +73,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.KATHMANDUNET]: 'https://metamask.tezos.com/',
       [NetworkType.LIMANET]: 'https://metamask.tezos.com/',
       [NetworkType.MUMBAINET]: 'https://metamask.tezos.com/',
-      [NetworkType.NAIROBINET]: 'https://metamask.tezos.com/'
+      [NetworkType.NAIROBINET]: 'https://metamask.tezos.com/',
+      [NetworkType.OXFORDNET]: 'https://metamask.tezos.com/'
     }
   },
   {
@@ -96,7 +98,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.KATHMANDUNET]: 'https://kathmandunet.kukai.app',
       [NetworkType.LIMANET]: 'https://limanet.kukai.app',
       [NetworkType.MUMBAINET]: 'https://mumbainet.kukai.app',
-      [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app'
+      [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app',
+      [NetworkType.OXFORDNET]: 'https://oxfordnet.kukai.app'
     }
   }
 ]
@@ -212,6 +215,6 @@ export const tezosIosList: App[] = [
     logo: 'exodus.svg',
     supportedInteractionStandards: ['beacon'],
     deepLink: 'exodus://wc',
-    universalLink:'https://www.exodus.com/'
+    universalLink: 'https://www.exodus.com/'
   }
 ]

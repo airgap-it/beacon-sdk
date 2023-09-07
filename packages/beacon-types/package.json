@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-types",
-  "version": "4.0.9",
+  "version": "4.0.10",
   "description": "This package contains types that are used throughout the Beacon SDK.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
