@@ -408,7 +408,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, wallet.key)
       }
 
-      if (wallet?.types.includes('web')) {
+      if (
+        wallet?.types.includes('web') &&
+        !(
+          wallet?.types.includes('extension') ||
+          wallet?.types.includes('desktop') ||
+          wallet?.types.includes('ios')
+        )
+      ) {
         if (config.pairingPayload) {
           // Noopener feature parameter cannot be used, because Chrome will open
           // about:blank#blocked instead and it will no longer work.
