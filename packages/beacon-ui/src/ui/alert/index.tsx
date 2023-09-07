@@ -183,7 +183,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     // Shadow root
     const shadowRootEl = document.createElement('div')
     if (document.getElementById('beacon-alert-wrapper')) {
-      (document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
+      ;(document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
     }
     shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')
     shadowRootEl.style.height = '0px'
@@ -404,7 +404,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, wallet.key)
       }
 
-      if (wallet?.types.includes('web')) {
+      if (
+        wallet?.types.includes('web') &&
+        !(
+          wallet?.types.includes('extension') ||
+          wallet?.types.includes('desktop') ||
+          wallet?.types.includes('ios')
+        )
+      ) {
         if (config.pairingPayload) {
           // Noopener feature parameter cannot be used, because Chrome will open
           // about:blank#blocked instead and it will no longer work.
@@ -463,7 +470,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         }
         setIsLoading(false)
-      } else if (wallet?.types.includes('ios') && _isMobileOS) { 
+      } else if (wallet?.types.includes('ios') && _isMobileOS) {
         setCodeQR('')
 
         if (config.pairingPayload) {
