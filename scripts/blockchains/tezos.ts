@@ -52,6 +52,30 @@ export const tezosExtensionList: ExtensionApp[] = [
 
 export const tezosWebList: WebApp[] = [
   {
+    key: 'metamask_tezos_web',
+    name: 'MetaMask',
+    shortName: 'MetaMask',
+    color: '',
+    logo: 'web-metamask.png',
+    links: {
+      [NetworkType.MAINNET]: 'https://metamask.tezos.com/',
+      [NetworkType.GHOSTNET]: 'https://metamask.tezos.com/',
+      [NetworkType.MONDAYNET]: 'https://metamask.tezos.com/',
+      [NetworkType.DAILYNET]: 'https://metamask.tezos.com/',
+      [NetworkType.DELPHINET]: 'https://metamask.tezos.com/',
+      [NetworkType.EDONET]: 'https://metamask.tezos.com/',
+      [NetworkType.FLORENCENET]: 'https://metamask.tezos.com/',
+      [NetworkType.GRANADANET]: 'https://metamask.tezos.com/',
+      [NetworkType.HANGZHOUNET]: 'https://metamask.tezos.com/',
+      [NetworkType.ITHACANET]: 'https://metamask.tezos.com/',
+      [NetworkType.JAKARTANET]: 'https://metamask.tezos.com/',
+      [NetworkType.KATHMANDUNET]: 'https://metamask.tezos.com/',
+      [NetworkType.LIMANET]: 'https://metamask.tezos.com/',
+      [NetworkType.MUMBAINET]: 'https://metamask.tezos.com/',
+      [NetworkType.NAIROBINET]: 'https://metamask.tezos.com/'
+    }
+  },
+  {
     key: 'kukai_web',
     name: 'Kukai Wallet',
     shortName: 'Kukai',
