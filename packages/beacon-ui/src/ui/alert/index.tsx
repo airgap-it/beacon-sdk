@@ -142,14 +142,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
   setAnalytics(config.analytics)
 
-  // TODO: Remove eager connection
-  p2pPayload?.then(() => {
-    console.log('P2P LOADED')
-  })
-  wcPayload?.then(() => {
-    console.log('WC LOADED')
-  })
-
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
     return ''
