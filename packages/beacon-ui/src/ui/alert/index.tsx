@@ -163,8 +163,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const setDefaultPayload = async () => {
       if (config.pairingPayload) {
         const serializer = new Serializer()
-        const codeQR = await serializer.serialize(await p2pPayload)
-        setCodeQR(codeQR)
+        try {
+          const codeQR = await serializer.serialize(await p2pPayload)
+          setCodeQR(codeQR) 
+        } catch(error: any) {
+          console.error("Cannot connect to netwrok: ", error.message)
+        }
       }
     }
 
@@ -490,9 +494,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         }
         setIsLoading(false)
       } else {
-        await setDefaultPayload()
         setIsLoading(false)
         setCurrentInfo('install')
+        await setDefaultPayload()
       }
     }
 
