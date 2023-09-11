@@ -250,7 +250,16 @@ const showAcknowledgedToast = async (data: {
   openToast({
     body: 'Awaiting confirmation in\u00A0 {{wallet}}',
     state: 'acknowledge',
-    walletInfo: data.walletInfo
+    walletInfo: data.walletInfo,
+    actions: [
+      {
+        text: 'Did you make a mistake?',
+        actionText: 'Cancel Request',
+        actionCallback: async (): Promise<void> => {
+          await closeToast()
+        }
+      }
+    ]
   }).catch((toastError) => console.error(toastError))
 }
 
