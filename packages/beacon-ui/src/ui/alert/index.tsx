@@ -139,16 +139,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
+  const isOnline = navigator.onLine;
 
   setAnalytics(config.analytics)
-
-  // TODO: Remove eager connection
-  p2pPayload?.then(() => {
-    console.log('P2P LOADED')
-  })
-  wcPayload?.then(() => {
-    console.log('WC LOADED')
-  })
 
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
@@ -171,8 +164,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const setDefaultPayload = async () => {
       if (config.pairingPayload) {
         const serializer = new Serializer()
-        const codeQR = await serializer.serialize(await p2pPayload)
-        setCodeQR(codeQR)
+        try {
+          const codeQR = await serializer.serialize(await p2pPayload)
+          setCodeQR(codeQR)
+        } catch (error: any) {
+          console.error('Cannot connect to network: ', error.message)
+        }
       }
     }
 
@@ -183,7 +180,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     // Shadow root
     const shadowRootEl = document.createElement('div')
     if (document.getElementById('beacon-alert-wrapper')) {
-      (document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
+      ;(document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
     }
     shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')
     shadowRootEl.style.height = '0px'
@@ -498,9 +495,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         }
         setIsLoading(false)
       } else {
-        await setDefaultPayload()
         setIsLoading(false)
         setCurrentInfo('install')
+        await setDefaultPayload()
       }
     }
 
@@ -610,6 +607,21 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
+                      {!isMobile() && isOnline && currentWallet()?.types.includes('web') && (
+                        <Info
+                          border
+                          title={'Open Wallet in a new Tab'}
+                          description={`Please connect below to use ${currentWallet()?.name}`}
+                          buttons={[
+                            {
+                              label: 'Connect now',
+                              type: 'primary',
+                              onClick: () =>
+                                window.open(currentWallet()?.link, '_blank', 'noopener')
+                            }
+                          ]}
+                        />
+                      )}
                       {!isMobile() && currentWallet()?.types.includes('extension') && (
                         <Info
                           border
