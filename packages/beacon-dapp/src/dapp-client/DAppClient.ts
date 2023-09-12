@@ -655,12 +655,15 @@ export class DAppClient extends Client {
   }
 
   public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
-    if (elements?.includes('alert')) {
-      // if the sync was aborted from the wallet side or the alert is closed we need to cancel the promise
-      this._initPromise = undefined
-    }
-
     await this.events.emit(BeaconEvent.HIDE_UI, elements)
+
+    if (elements?.includes('alert')) {
+      // if the sync was aborted from the wallet side
+      this._initPromise = undefined
+      // by dispatching two opposite events (one closes the alert the other one opens it)
+      // it triggers some sort of race condition in the UI render cycle
+      setTimeout(async () => await this.events.emit(BeaconEvent.NO_PERMISSIONS), 1000)
+    }
   }
 
   /**
