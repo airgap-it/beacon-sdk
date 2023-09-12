@@ -113,11 +113,11 @@ export abstract class Transport<
    */
   public async send(message: string, peer?: PeerInfo): Promise<void> {
     if (peer) {
-      return this.client.sendMessage(message, peer as any)
+      return this.client.sendMessage(message, peer)
     } else {
       const knownPeers = await this.getPeers()
       // A broadcast request has to be sent everywhere.
-      const promises = knownPeers.map((peerEl) => this.client.sendMessage(message, peerEl as any))
+      const promises = knownPeers.map((peerEl) => this.client.sendMessage(message, peerEl))
 
       return (await Promise.all(promises))[0]
     }
