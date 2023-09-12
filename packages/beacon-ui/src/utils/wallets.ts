@@ -18,10 +18,17 @@ export interface MergedWallet {
   image: string
   descriptions: string[]
   types: string[]
-  link: string
+  links: string[]
   supportedInteractionStandards?: ('wallet_connect' | 'beacon')[] // 'wallet_connect' or 'beacon',
   tags?: string[]
   deepLink?: string
+}
+
+export enum OSLink {
+  WEB,
+  IOS,
+  DESKTOP,
+  EXTENSION
 }
 
 export function parseWallets(wallets: Wallet[]): Wallet[] {
@@ -33,6 +40,26 @@ export function parseWallets(wallets: Wallet[]): Wallet[] {
     wallet.name = wallet.name.trim()
     return wallet
   })
+}
+
+function setWallet(newWallet: MergedWallet, type: string, link: string) {
+  let choice: OSLink
+
+  switch (type) {
+    case 'web':
+      choice = OSLink.WEB
+      break
+    case 'extension':
+      choice = OSLink.EXTENSION
+      break
+    case 'ios':
+      choice = OSLink.IOS
+      break
+    default:
+      choice = OSLink.DESKTOP
+  }
+
+  newWallet.links[choice] = link;
 }
 
 export function arrangeTopWallets(arr: MergedWallet[], walletIds: string[]): MergedWallet[] {
@@ -77,21 +104,30 @@ export function mergeWallets(wallets: Wallet[]): MergedWallet[] {
     const mergedWalletsNames = mergedWallets.map((_wallet) => _wallet.name)
     if (mergedWalletsNames.includes(wallet.name)) {
       const index = mergedWallets.findIndex((_wallet) => _wallet.name === wallet.name)
-      if (index < 0) console.error('There should be a wallet')
-      if (!mergedWallets[index].descriptions.includes(wallet.description))
+      if (index < 0) {
+        console.error('There should be a wallet')
+      }
+      if (!mergedWallets[index].descriptions.includes(wallet.description)) {
+        setWallet(mergedWallets[index], wallet.type, wallet.link);
         mergedWallets[index].descriptions.push(wallet.description)
+      }
       mergedWallets[index].types.push(wallet.type)
       mergedWallets[index].deepLink = wallet.deepLink
       mergedWallets[index].firefoxId = wallet.key.includes('firefox')
         ? wallet.id
         : mergedWallets[index].firefoxId
     } else {
-      mergedWallets.push({
+      const newWallet: MergedWallet = {
         ...wallet,
         descriptions: [wallet.description],
+        links: ['', '', '', ''],
         types: [wallet.type],
         firefoxId: wallet.key.includes('firefox') ? wallet.id : undefined
-      })
+      }
+      
+      setWallet(newWallet, wallet.type, wallet.link);
+
+      mergedWallets.push(newWallet)
     }
   }
   return mergedWallets
