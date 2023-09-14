@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES2015",
+    "target": "ESNext",
     "lib": ["es2015", "es2017.string", "dom"],
-    "module": "esnext",
+    "module": "ESNext",
     "moduleResolution": "node",
     "declaration": true,
     "outDir": "./dist/esm",
     "typeRoots": ["./node_modules/@types", "./src/typings", "./node_modules"],
-    "types": ["vite/client", "node", "chrome"],
+    "types": ["vite/client", "node", "chrome", "jest"],
     "sourceMap": true,
     "baseUrl": ".",
     /* Strict Type-Checking Options */
