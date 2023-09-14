@@ -6,7 +6,8 @@
     "moduleResolution": "node",
     "declaration": true,
     "outDir": "./dist/esm",
-    "typeRoots": ["./node_modules/@types", "./src/typings"],
+    "typeRoots": ["./node_modules/@types", "./src/typings", "./node_modules"],
+    "types": ["vite/client", "node", "chrome"],
     "sourceMap": true,
     "baseUrl": ".",
     /* Strict Type-Checking Options */
