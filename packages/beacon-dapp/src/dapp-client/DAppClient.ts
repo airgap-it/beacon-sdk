@@ -144,6 +144,8 @@ export class DAppClient extends Client {
   protected wcProjectId?: string
   protected wcRelayUrl?: string
 
+  private isGetActiveAccountHandled: boolean = false
+  private refAccount: AccountInfo | undefined = undefined
   /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
    */
@@ -577,6 +579,10 @@ export class DAppClient extends Client {
     return this._activeAccount.promise
   }
 
+  private isInvalidState(account: AccountInfo) {
+    return !this.refAccount ? false : this.refAccount?.address !== account.address && !this.isGetActiveAccountHandled
+  }
+
   /**
    * Sets the active account
    *
@@ -591,6 +597,15 @@ export class DAppClient extends Client {
     }
 
     if (account) {
+      if(this.isInvalidState(account)) {
+        setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI), 1000)
+        this.destroy()
+        this.setActiveAccount(undefined)
+        setTimeout(() => this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE), 1000)
+  
+        return
+      }
+
       const origin = account.origin.type
       await this.initInternalTransports()
 
@@ -742,6 +757,10 @@ export class DAppClient extends Client {
     internalEvent: K,
     eventCallback: BeaconEventHandlerFunction<BeaconEventType[K]>
   ): Promise<void> {
+    if (internalEvent === BeaconEvent.ACTIVE_ACCOUNT_SET) {
+      this.isGetActiveAccountHandled = true
+    }
+
     await this.events.on(internalEvent, eventCallback)
   }
 
@@ -989,6 +1008,10 @@ export class DAppClient extends Client {
     })
 
     const accountInfo = await this.onNewAccount(message, connectionInfo)
+
+    if (!this.refAccount) {
+      this.refAccount = accountInfo
+    }
 
     const output: PermissionResponseOutput = {
       ...message,
