@@ -145,7 +145,6 @@ export class DAppClient extends Client {
   protected wcRelayUrl?: string
 
   private isGetActiveAccountHandled: boolean = false
-  private refAccount: AccountInfo | undefined = undefined
   /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
    */
@@ -579,8 +578,9 @@ export class DAppClient extends Client {
     return this._activeAccount.promise
   }
 
-  private isInvalidState(account: AccountInfo) {
-    return !this.refAccount ? false : this.refAccount?.address !== account.address && !this.isGetActiveAccountHandled
+  private async isInvalidState(account: AccountInfo) {
+    const activeAccount = await this._activeAccount.promise;
+    return !activeAccount ? false : activeAccount?.address !== account.address && !this.isGetActiveAccountHandled
   }
 
   /**
@@ -589,6 +589,15 @@ export class DAppClient extends Client {
    * @param account The account that will be set as the active account
    */
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
+    if(account && await this.isInvalidState(account)) {
+      setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI), 1000)
+      this.destroy()
+      this.setActiveAccount(undefined)
+      setTimeout(() => this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE), 1000)
+
+      return
+    }
+
     if (this._activeAccount.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
       this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(account)
@@ -597,15 +606,6 @@ export class DAppClient extends Client {
     }
 
     if (account) {
-      if(this.isInvalidState(account)) {
-        setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI), 1000)
-        this.destroy()
-        this.setActiveAccount(undefined)
-        setTimeout(() => this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE), 1000)
-  
-        return
-      }
-
       const origin = account.origin.type
       await this.initInternalTransports()
 
@@ -1008,10 +1008,6 @@ export class DAppClient extends Client {
     })
 
     const accountInfo = await this.onNewAccount(message, connectionInfo)
-
-    if (!this.refAccount) {
-      this.refAccount = accountInfo
-    }
 
     const output: PermissionResponseOutput = {
       ...message,
