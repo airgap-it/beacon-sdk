@@ -473,7 +473,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           type: BeaconMessageType.ChangeAccountRequest,
           publicKey,
           network: { type: chainId as NetworkType },
-          scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST]
+          scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
+          walletType: 'implicit'
         })
       }
     } catch {}
