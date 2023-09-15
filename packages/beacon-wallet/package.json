@@ -1,7 +1,7 @@
 {
   "name": "@airgap/beacon-wallet",
-  "version": "4.0.5",
-  "description": "> TODO: description",
+  "version": "4.0.10",
+  "description": "Use this package in your wallet to instanciate a WalletClient object and communicate to dApps.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
   "license": "ISC",
@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@airgap/beacon-core": "file:../beacon-core",
-    "@airgap/beacon-transport-matrix": "4.0.5",
-    "@airgap/beacon-transport-postmessage": "4.0.5"
+    "@airgap/beacon-transport-matrix": "4.0.10",
+    "@airgap/beacon-transport-postmessage": "4.0.10"
   }
 }

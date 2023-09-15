@@ -296,7 +296,8 @@
       document.getElementById('signPayloadMicheline').addEventListener('click', async () => {
         const signature = await client.requestSignPayload({
           signingType: beacon.SigningType.MICHELINE,
-          payload: '05test'
+          payload:
+            '05010000004254657a6f73205369676e6564204d6573736167653a206d79646170702e636f6d20323032312d30312d31345431353a31363a30345a2048656c6c6f20776f726c6421'
         })
 
         console.log('signature:', signature)

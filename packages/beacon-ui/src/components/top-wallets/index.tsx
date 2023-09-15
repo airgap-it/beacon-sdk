@@ -9,11 +9,10 @@ interface TopWalletsProps {
   onClickLearnMore: () => void
   otherWallets?: { images: string[]; onClick: () => void }
   disabled?: boolean
+  isMobile: boolean
 }
 
 const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
-  const isMobile = window.innerWidth <= 800
-
   return (
     <div class="top-wallets-wrapper">
       <div class="top-wallets-info">
@@ -30,7 +29,7 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
           {(wallet) => (
             <Wallet
               disabled={props.disabled}
-              mobile={isMobile}
+              mobile={props.isMobile}
               name={wallet.name}
               description={wallet.descriptions.join(' & ')}
               image={wallet.image}

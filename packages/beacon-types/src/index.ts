@@ -64,7 +64,8 @@ import {
   BroadcastResponseInput,
   BeaconResponseInputMessage,
   AcknowledgeResponseInput,
-  ErrorResponseInput
+  ErrorResponseInput,
+  IgnoredResponseInputProperties
 } from './types/beacon/messages/BeaconResponseInputMessage'
 import {
   PermissionResponseOutput,
@@ -134,6 +135,7 @@ import { Optional } from './types/utils/Optional'
 import { Extension } from './types/Extension'
 import { PermissionEntity } from './types/PermissionEntity'
 import { WalletInfo } from './types/WalletInfo'
+import { ChangeAccountRequest } from './types/beacon/messages/ChangeAccountRequest'
 
 export * from './types/AnalyticsInterface'
 
@@ -190,6 +192,7 @@ export {
   // EncryptPayloadResponse,
   BroadcastRequest,
   BroadcastResponse,
+  ChangeAccountRequest,
   AcknowledgeResponse,
   DisconnectMessage,
   BeaconBaseMessage,
@@ -282,7 +285,7 @@ export {
   ExtendedWalletConnectPairingResponse
 }
 
-export { IgnoredRequestInputProperties, defaultValues }
+export { IgnoredResponseInputProperties, IgnoredRequestInputProperties, defaultValues }
 
 // Others
 export { ConnectionContext, ColorMode, WalletInfo }

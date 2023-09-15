@@ -1,7 +1,7 @@
-import { BEACON_VERSION, CommunicationClient, Serializer } from '@airgap/beacon-core'
+import { BEACON_VERSION, CommunicationClient, Serializer, ClientEvents } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
-import { SessionTypes, SignClientTypes } from '@walletconnect/types'
+import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
 import { getSdkError } from '@walletconnect/utils'
 import {
   ActiveAccountUnspecified,
@@ -13,36 +13,32 @@ import {
   NotConnected
 } from '../error'
 import {
+  AcknowledgeResponseInput,
   BeaconBaseMessage,
   BeaconErrorType,
   BeaconMessageType,
   BeaconResponseInputMessage,
-  ConnectionContext,
+  ChangeAccountRequest,
+  DisconnectMessage,
   ErrorResponse,
   ErrorResponseInput,
   ExtendedWalletConnectPairingRequest,
   ExtendedWalletConnectPairingResponse,
+  IgnoredResponseInputProperties,
+  NetworkType,
   OperationRequest,
   OperationResponseInput,
-  Origin,
+  Optional,
+  PermissionRequest,
   PermissionResponseInput,
   PermissionScope,
   SignPayloadRequest,
   SignPayloadResponse,
   SignPayloadResponseInput
 } from '@airgap/beacon-types'
-import { generateGUID } from '@airgap/beacon-utils'
+import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
-
-export enum NetworkType {
-  MAINNET = 'mainnet',
-  GHOSTNET = 'ghostnet',
-  MONDAYNET = 'mondaynet',
-  DAILYNET = 'dailynet',
-  KATHMANDUNET = 'kathmandunet',
-  LIMANET = 'limanet'
-}
 
 export interface PermissionScopeParam {
   networks: NetworkType[]
@@ -57,14 +53,17 @@ export enum PermissionScopeMethods {
 
 export enum PermissionScopeEvents {
   CHAIN_CHANGED = 'chainChanged',
-  ACCOUNTS_CHANGED = 'accountsChanged'
+  ACCOUNTS_CHANGED = 'accountsChanged',
+  REQUEST_ACKNOWLEDGED = 'requestAcknowledged'
 }
 
+type BeaconInputMessage =
+  | BeaconResponseInputMessage
+  | Optional<DisconnectMessage, IgnoredResponseInputProperties>
+  | Optional<ChangeAccountRequest, IgnoredResponseInputProperties>
+
 export class WalletConnectCommunicationClient extends CommunicationClient {
-  protected readonly activeListeners: Map<
-    string,
-    (message: string, context: ConnectionContext) => void
-  > = new Map()
+  protected readonly activeListeners: Map<string, (message: string) => void> = new Map()
 
   protected readonly channelOpeningListeners: Map<
     string,
@@ -79,11 +78,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private currentMessageId: string | undefined // TODO JGD we shouldn't need this
 
-  constructor(private wcOptions: SignClientTypes.Options) {
+  constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
+    this.getSignClient()
   }
 
-  static getInstance(wcOptions: SignClientTypes.Options): WalletConnectCommunicationClient {
+  static getInstance(wcOptions: {
+    network: NetworkType
+    opts: SignClientTypes.Options
+  }): WalletConnectCommunicationClient {
     if (!WalletConnectCommunicationClient.instance) {
       WalletConnectCommunicationClient.instance = new WalletConnectCommunicationClient(wcOptions)
     }
@@ -92,14 +95,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async listenForEncryptedMessage(
     senderPublicKey: string,
-    messageCallback: (message: string, context: ConnectionContext) => void
+    messageCallback: (message: string) => void
   ): Promise<void> {
     if (this.activeListeners.has(senderPublicKey)) {
       return
     }
 
-    const callbackFunction = async (message: string, context: ConnectionContext): Promise<void> => {
-      messageCallback(message, context)
+    const callbackFunction = async (message: string): Promise<void> => {
+      messageCallback(message)
     }
 
     this.activeListeners.set(senderPublicKey, callbackFunction)
@@ -128,34 +131,30 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const serializer = new Serializer()
     const message = (await serializer.deserialize(_message)) as any
 
+    if (!message) {
+      return
+    }
+
     this.currentMessageId = message.id
 
-    if (message?.type === BeaconMessageType.PermissionRequest) {
-      this.requestPermissions()
-    }
-
-    if (message?.type === BeaconMessageType.OperationRequest) {
-      this.sendOperations(message)
-    }
-
-    if (message?.type === BeaconMessageType.SignPayloadRequest) {
-      this.signPayload(message)
+    switch (message.type) {
+      case BeaconMessageType.PermissionRequest:
+        this.requestPermissions(message)
+        break
+      case BeaconMessageType.OperationRequest:
+        this.sendOperations(message)
+        break
+      case BeaconMessageType.SignPayloadRequest:
+        this.signPayload(message)
+        break
+      default:
+        return
     }
   }
 
-  async requestPermissions() {
-    console.log('#### Requesting permissions')
-
-    const session = this.getSession()
-    if (!this.getPermittedMethods().includes(PermissionScopeMethods.GET_ACCOUNTS)) {
-      throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
-    }
-    const network = this.getActiveNetwork()
-
-    console.log('#### Requesting public keys')
-
-    // Get the public key from the wallet
-    const result = await this.signClient?.request<
+  private async fetchAccounts(topic: string, chainId: string) {
+    const signClient = await this.getSignClient()
+    return signClient.request<
       [
         {
           algo: 'ed25519'
@@ -164,39 +163,93 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         }
       ]
     >({
-      topic: session.topic,
-      chainId: `${TEZOS_PLACEHOLDER}:${network}`,
+      topic: topic,
+      chainId: chainId,
       request: {
         method: PermissionScopeMethods.GET_ACCOUNTS,
         params: {}
       }
     })
+  }
 
-    console.log('##### GET ACCOUNTS', result)
+  async requestPermissions(message: PermissionRequest) {
+    console.log('#### Requesting permissions')
 
-    if (!result || result.length < 1) {
-      throw new Error('No account shared by wallet')
+    if (!this.getPermittedMethods().includes(PermissionScopeMethods.GET_ACCOUNTS)) {
+      throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
 
-    if (result.some((account) => !account.pubkey)) {
+    if (this.activeAccount) {
+      try {
+        await this.openSession()
+      } catch (error: any) {
+        console.error(error.message)
+        return
+      }
+    }
+
+    this.setDefaultAccountAndNetwork()
+
+    const session = this.getSession()
+    let publicKey: string | undefined
+
+    if (
+      session.sessionProperties?.pubkey &&
+      session.sessionProperties?.algo &&
+      session.sessionProperties?.address
+    ) {
+      publicKey = session.sessionProperties?.pubkey
+      console.log(
+        '[requestPermissions]: Have pubkey in sessionProperties, skipping "get_accounts" call',
+        session.sessionProperties
+      )
+    } else {
+      const accounts = this.getTezosNamespace(session.namespaces).accounts
+      const addressOrPbk = accounts[0].split(':', 3)[2]
+
+      if (addressOrPbk.startsWith('edpk')) {
+        publicKey = addressOrPbk
+      } else {
+        if (message.network.type !== this.wcOptions.network) {
+          throw new Error('Network in permission request is not the same as preferred network!')
+        }
+
+        const result = await this.fetchAccounts(
+          session.topic,
+          `${TEZOS_PLACEHOLDER}:${message.network.type}`
+        )
+
+        if (!result || result.length < 1) {
+          throw new Error('No account shared by wallet')
+        }
+
+        if (result.some((account) => !account.pubkey)) {
+          throw new Error('Public Key in `tezos_getAccounts` is empty!')
+        }
+
+        publicKey = result[0]?.pubkey
+      }
+    }
+
+    if (!publicKey) {
       throw new Error('Public Key in `tezos_getAccounts` is empty!')
     }
 
     const permissionResponse: PermissionResponseInput = {
       type: BeaconMessageType.PermissionResponse,
       appMetadata: {
-        senderId: session.peer.publicKey,
+        senderId: session.pairingTopic,
         name: session.peer.metadata.name,
         icon: session.peer.metadata.icons[0]
       },
-      publicKey: result[0]?.pubkey,
-      network: { type: NetworkType.MAINNET },
+      publicKey,
+      network: message.network,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       id: this.currentMessageId!,
       walletType: 'implicit'
     }
 
-    this.sendResponse(session, permissionResponse)
+    this.notifyListeners(session.pairingTopic, permissionResponse)
   }
 
   /**
@@ -204,6 +257,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * @error MissingRequiredScope is thrown if permission to sign payload was not granted
    */
   async signPayload(signPayloadRequest: SignPayloadRequest) {
+    const signClient = await this.getSignClient()
     const session = this.getSession()
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.SIGN)) {
       throw new MissingRequiredScope(PermissionScopeMethods.SIGN)
@@ -213,8 +267,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.validateNetworkAndAccount(network, account)
 
     // TODO: Type
-    this.signClient
-      ?.request<{ signature: string }>({
+    signClient
+      .request<{ signature: string }>({
         topic: session.topic,
         chainId: `${TEZOS_PLACEHOLDER}:${network}`,
         request: {
@@ -233,7 +287,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: this.currentMessageId!
         } as SignPayloadResponse
 
-        this.sendResponse(session, signPayloadResponse)
+        this.notifyListeners(session.pairingTopic, signPayloadResponse)
       })
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
@@ -242,7 +296,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        this.sendResponse(session, errorResponse)
+        this.notifyListeners(session.pairingTopic, errorResponse)
       })
   }
 
@@ -251,6 +305,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * @error MissingRequiredScope is thrown if permission to send operation was not granted
    */
   async sendOperations(operationRequest: OperationRequest) {
+    const signClient = await this.getSignClient()
     const session = this.getSession()
 
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.OPERATION_REQUEST)) {
@@ -260,8 +315,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
 
-    this.signClient
-      ?.request<{
+    signClient
+      .request<{
         // The `operationHash` field should be provided to specify the operation hash,
         // while the `transactionHash` and `hash` fields are supported for backwards compatibility.
         operationHash?: string
@@ -286,7 +341,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: this.currentMessageId!
         }
 
-        this.sendResponse(session, sendOperationResponse)
+        this.notifyListeners(session.pairingTopic, sendOperationResponse)
       })
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
@@ -295,96 +350,317 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        this.sendResponse(session, errorResponse)
+        this.notifyListeners(session.pairingTopic, errorResponse)
       })
   }
 
-  public async init(forceNewConnection: boolean = false): Promise<string | undefined> {
-    const connectParams = {
-      permissionScope: {
-        networks: [NetworkType.MAINNET],
-        events: [],
-        methods: [
-          PermissionScopeMethods.GET_ACCOUNTS,
-          PermissionScopeMethods.OPERATION_REQUEST,
-          PermissionScopeMethods.SIGN
-        ]
-      },
-      pairingTopic: undefined
-    }
-
-    this.signClient = await SignClient.init(this.wcOptions)
-
-    let sessions = this.signClient.session.getAll()
+  public async init(
+    forceNewConnection: boolean = false
+  ): Promise<{ uri: string; topic: string } | undefined> {
+    const signClient = await this.getSignClient()
 
     if (forceNewConnection) {
-      for (let session of sessions) {
-        await this.signClient.disconnect({
-          topic: session.topic,
-          reason: {
-            code: 0, // TODO: Use constants
-            message: 'Force new connection'
-          }
-        })
-      }
-
-      this.clearState()
-
-      sessions = this.signClient.session.getAll()
+      this.closePairings()
     }
 
+    const sessions = signClient.session.getAll()
     if (sessions && sessions.length > 0) {
       this.session = sessions[0]
       this.setDefaultAccountAndNetwork()
+      return undefined
+    }
+
+    const { uri, topic } = await signClient.core.pairing.create()
+    signClient.core.pairing.ping({ topic }).then(async () => {
+      await signClient.core.pairing.activate({ topic })
+
+      // pairings don't have peer details
+      // therefore we must immediately open a session
+      // to get data required in the pairing response
+      try {
+        const session = await this.openSession(topic)
+        const pairingResponse = {
+          id: topic,
+          type: 'walletconnect-pairing-response',
+          name: session.peer.metadata.name,
+          publicKey: session.peer.publicKey,
+          senderId: topic,
+          extensionId: session.peer.metadata.name,
+          version: '3'
+        } as ExtendedWalletConnectPairingResponse
+
+        this.channelOpeningListeners.forEach((listener) => {
+          listener(pairingResponse)
+        })
+      } catch (error: any) {
+        console.error(error.message)
+        const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+        fun && fun()
+        return
+      }
+    })
+
+    return { uri, topic }
+  }
+
+  public async close() {
+    await this.closePairings()
+  }
+
+  private subscribeToSessionEvents(signClient: Client): void {
+    signClient.on('session_event', (event) => {
+      if (
+        event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED &&
+        this.currentMessageId
+      ) {
+        this.acknowledgeRequest(this.currentMessageId)
+      }
+    })
+
+    signClient.on('session_update', (event) => {
+      this.updateActiveAccount(event.params.namespaces)
+    })
+
+    signClient.on('session_delete', (event) => {
+      this.disconnect(signClient, { type: 'session', topic: event.topic })
+    })
+
+    signClient.on('session_expire', (event) => {
+      this.disconnect(signClient, { type: 'session', topic: event.topic })
+    })
+
+    signClient.core.pairing.events.on('pairing_delete', (event) => {
+      this.disconnect(signClient, { type: 'pairing', topic: event.topic })
+    })
+  }
+
+  private async acknowledgeRequest(id: string) {
+    const session = this.getSession()
+    const acknowledgeResponse: AcknowledgeResponseInput = {
+      type: BeaconMessageType.Acknowledge,
+      id
+    }
+
+    this.notifyListeners(session.pairingTopic, acknowledgeResponse)
+  }
+
+  private async updateActiveAccount(namespaces: SessionTypes.Namespaces) {
+    try {
+      const accounts = this.getTezosNamespace(namespaces).accounts
+      if (accounts.length === 1) {
+        const [_namespace, chainId, addressOrPbk] = accounts[0].split(':', 3)
+        const session = this.getSession()
+        let publicKey: string | undefined
+
+        this.activeNetwork = chainId
+
+        if (addressOrPbk.startsWith('edpk')) {
+          publicKey = addressOrPbk
+          this.activeAccount = await getAddressFromPublicKey(publicKey)
+        } else {
+          this.activeAccount = addressOrPbk
+          const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
+
+          publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
+        }
+
+        if (!publicKey) {
+          throw new Error('Public key for the new account not provided')
+        }
+
+        this.notifyListeners(session.pairingTopic, {
+          id: await generateGUID(),
+          type: BeaconMessageType.ChangeAccountRequest,
+          publicKey,
+          network: { type: chainId as NetworkType },
+          scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST]
+        })
+      }
+    } catch {}
+  }
+
+  private async disconnect(
+    signClient: Client,
+    trigger: { type: 'session'; topic: string } | { type: 'pairing'; topic: string }
+  ) {
+    let session
+    if (trigger.type === 'session') {
+      session = await this.onSessionClosed(signClient, trigger.topic)
+    }
+
+    if (trigger.type === 'pairing') {
+      session = await this.onPairingClosed(signClient, trigger.topic)
+    }
+
+    if (!this.activeAccount) {
+      const fun = this.eventHandlers.get(ClientEvents.RESET_STATE)
+      fun && fun()
+    }
+
+    if (!session) {
       return
     }
 
-    const { uri, approval } = await this.signClient.connect({
-      requiredNamespaces: {
-        [TEZOS_PLACEHOLDER]: {
-          chains: connectParams.permissionScope.networks.map(
-            (network) => `${TEZOS_PLACEHOLDER}:${network}`
-          ),
-          methods: connectParams.permissionScope.methods,
-          events: connectParams.permissionScope.events ?? []
+    this.notifyListeners(session.pairingTopic, {
+      id: await generateGUID(),
+      type: BeaconMessageType.Disconnect
+    })
+    this.clearState()
+  }
+
+  private async onPairingClosed(
+    signClient: Client,
+    pairingTopic: string
+  ): Promise<SessionTypes.Struct | undefined> {
+    const session =
+      this.session?.pairingTopic === pairingTopic
+        ? this.session
+        : signClient.session
+            .getAll()
+            .find((session: SessionTypes.Struct) => session.pairingTopic === pairingTopic)
+
+    if (!session) {
+      return undefined
+    }
+
+    try {
+      await signClient.disconnect({
+        topic: session.topic,
+        reason: {
+          code: -1, // TODO: Use constants
+          message: 'Pairing deleted'
         }
-      },
-      pairingTopic: connectParams.pairingTopic
-    })
-
-    approval().then(async (session) => {
-      this.session = this.session ?? (session as SessionTypes.Struct)
-      this.validateReceivedNamespace(connectParams.permissionScope, this.session.namespaces)
-      this.setDefaultAccountAndNetwork()
-
-      const pairingResponse = {
-        id: this.session.peer.publicKey,
-        type: 'walletconnect-pairing-response',
-        name: session.peer.metadata.name,
-        publicKey: session.peer.publicKey,
-        senderId: this.session.peer.publicKey,
-        extensionId: this.session.peer.metadata.name,
-        version: '3'
-      } as ExtendedWalletConnectPairingResponse
-
-      this.channelOpeningListeners.forEach((listener) => {
-        listener(pairingResponse)
       })
-    })
+    } catch (error) {
+      // If the session was already closed, `disconnect` will throw an error.
+      console.warn(error)
+    }
 
-    return uri
+    return session
+  }
+
+  private async onSessionClosed(
+    signClient: Client,
+    sessionTopic: string
+  ): Promise<SessionTypes.Struct | undefined> {
+    if (!this.session || this.session.topic !== sessionTopic) {
+      return undefined
+    }
+
+    try {
+      await signClient.core.pairing.disconnect({ topic: this.session.pairingTopic })
+    } catch (error) {
+      // If the pairing was already closed, `disconnect` will throw an error.
+      console.warn(error)
+    }
+
+    return this.session
   }
 
   public async getPairingRequestInfo(): Promise<ExtendedWalletConnectPairingRequest> {
-    const uri = await this.init(true)
+    const { uri, topic } = (await this.init(true)) ?? {}
     return {
-      id: await generateGUID(),
+      id: topic!,
       type: 'walletconnect-pairing-request',
       name: 'WalletConnect',
       version: BEACON_VERSION,
       uri: uri!,
       senderId: await generateGUID(),
       publicKey: await generateGUID()
+    }
+  }
+
+  private async closePairings() {
+    await this.closeSessions()
+    const signClient = await this.getSignClient()
+    const pairings = signClient.pairing.getAll() ?? []
+    for (let pairing of pairings) {
+      await signClient.core.pairing.disconnect({ topic: pairing.topic })
+    }
+  }
+
+  private async closeSessions() {
+    const signClient = await this.getSignClient()
+    const sessions = signClient.session.getAll() ?? []
+    for (let session of sessions) {
+      await signClient.disconnect({
+        topic: session.topic,
+        reason: {
+          code: 0, // TODO: Use constants
+          message: 'Force new connection'
+        }
+      })
+    }
+
+    this.clearState()
+  }
+
+  private async openSession(pairingTopic?: string): Promise<SessionTypes.Struct> {
+    const signClient = await this.getSignClient()
+    const permissionScopeParams: PermissionScopeParam = {
+      networks: [this.wcOptions.network],
+      events: [],
+      methods: [
+        PermissionScopeMethods.GET_ACCOUNTS,
+        PermissionScopeMethods.OPERATION_REQUEST,
+        PermissionScopeMethods.SIGN
+      ]
+    }
+    const optionalPermissionScopeParams: PermissionScopeParam = {
+      networks: [this.wcOptions.network],
+      events: [PermissionScopeEvents.REQUEST_ACKNOWLEDGED],
+      methods: []
+    }
+
+    const connectParams = {
+      requiredNamespaces: {
+        [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(permissionScopeParams)
+      },
+      optionalNamespaces: {
+        [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
+      },
+      pairingTopic: pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
+    }
+
+    const { approval } = await signClient.connect(connectParams)
+
+    try {
+      const session = await approval()
+      // if I have successfully opened a session and I already have one opened
+      if (session && this.session) {
+        await this.closeSessions() // close the previous session
+      }
+
+      // I still need this check in the event the user aborts the sync process on the wallet side
+      // but there is already a connection set
+      this.session = this.session ?? (session as SessionTypes.Struct)
+      this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
+    } catch (error: any) {
+      console.error(error.message)
+      const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
+      const errorResponse: ErrorResponseInput = {
+        type: BeaconMessageType.Error,
+        id: this.currentMessageId!,
+        errorType: BeaconErrorType.ABORTED_ERROR
+      } as ErrorResponse
+
+      this.notifyListeners(_pairingTopic, errorResponse)
+    }
+
+    if (this.session) {
+      return this.session
+    } else {
+      throw new InvalidSession('No session set.')
+    }
+  }
+
+  private permissionScopeParamsToNamespaces(
+    permissionScopeParams: PermissionScopeParam
+  ): ProposalTypes.BaseRequiredNamespace {
+    return {
+      chains: permissionScopeParams.networks.map((network) => `${TEZOS_PLACEHOLDER}:${network}`),
+      methods: permissionScopeParams.methods,
+      events: permissionScopeParams.events ?? []
     }
   }
 
@@ -550,14 +826,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   getNetworks() {
     return this.getPermittedNetwork()
   }
-
-  private getTezosNamespace(): {
+  private getTezosNamespace(namespaces: SessionTypes.Namespaces = this.getSession().namespaces): {
     accounts: string[]
     methods: string[]
     events: string[]
   } {
-    if (TEZOS_PLACEHOLDER in this.getSession().namespaces) {
-      return this.getSession().namespaces[TEZOS_PLACEHOLDER]
+    if (TEZOS_PLACEHOLDER in namespaces) {
+      return namespaces[TEZOS_PLACEHOLDER]
     } else {
       throw new InvalidSession('Tezos not found in namespaces')
     }
@@ -575,9 +850,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     methods: string[]
     events: string[]
   } {
-    // TODO: Remove testing code
     return {
-      chains: ['tezos:mainnet'],
+      chains: [`${TEZOS_PLACEHOLDER}:${this.wcOptions.network}`],
       events: [],
       methods: ['tezos_getAccounts', 'tezos_send', 'tezos_sign']
     }
@@ -592,28 +866,31 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // }
   }
 
-  private async sendResponse(
-    session: SessionTypes.Struct,
-    partialResponse: BeaconResponseInputMessage
-  ) {
+  private async notifyListeners(pairingTopic: string, partialResponse: BeaconInputMessage) {
     const response: BeaconBaseMessage = {
       ...partialResponse,
       version: '2',
-      senderId: session.peer.publicKey
+      senderId: pairingTopic
     }
     const serializer = new Serializer()
     const serialized = await serializer.serialize(response)
 
     this.activeListeners.forEach((listener) => {
-      listener(serialized, {
-        origin: Origin.WALLETCONNECT,
-        id: this.currentMessageId!
-      })
+      listener(serialized)
     })
   }
 
   public currentSession(): SessionTypes.Struct | undefined {
     return this.session
+  }
+
+  private async getSignClient(): Promise<Client> {
+    if (this.signClient === undefined) {
+      this.signClient = await SignClient.init(this.wcOptions.opts)
+      this.subscribeToSessionEvents(this.signClient)
+    }
+
+    return this.signClient
   }
 
   private getSession() {

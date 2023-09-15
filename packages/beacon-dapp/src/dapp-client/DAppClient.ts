@@ -64,7 +64,8 @@ import {
   ProofOfEventChallengeResponse,
   ProofOfEventChallengeRequestInput,
   RequestProofOfEventChallengeInput,
-  ProofOfEventChallengeRecordedMessageInput
+  ProofOfEventChallengeRecordedMessageInput,
+  ChangeAccountRequest
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -80,7 +81,8 @@ import {
   LocalStorage,
   getAccountIdentifier,
   getSenderId,
-  Logger
+  Logger,
+  ClientEvents
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -98,13 +100,14 @@ import { BlockExplorer } from '../utils/block-explorer'
 import { TzktBlockExplorer } from '../utils/tzkt-blockexplorer'
 
 import { DAppClientOptions } from './DAppClientOptions'
-import { AlertButton, closeToast } from '@airgap/beacon-ui'
 import { BeaconEventHandler } from '@airgap/beacon-dapp'
 import { DappPostMessageTransport } from '../transports/DappPostMessageTransport'
 import { DappP2PTransport } from '../transports/DappP2PTransport'
 import { DappWalletConnectTransport } from '../transports/DappWalletConnectTransport'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import {
+  AlertButton,
+  closeToast,
   getColorMode,
   setColorMode,
   setDesktopList,
@@ -138,7 +141,7 @@ export class DAppClient extends Client {
    */
   public readonly blockExplorer: BlockExplorer
 
-  public preferredNetwork: NetworkType
+  public network: Network
 
   protected readonly events: BeaconEventHandler = new BeaconEventHandler()
 
@@ -212,7 +215,7 @@ export class DAppClient extends Client {
 
     this.events = new BeaconEventHandler(config.eventHandlers, config.disableDefaultEvents ?? false)
     this.blockExplorer = config.blockExplorer ?? new TzktBlockExplorer()
-    this.preferredNetwork = config.preferredNetwork ?? NetworkType.MAINNET
+    this.network = config.network ?? { type: config.preferredNetwork ?? NetworkType.MAINNET }
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
 
     this.disclaimerText = config.disclaimerText
@@ -258,10 +261,10 @@ export class DAppClient extends Client {
       if (message.version === '3') {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
-        if (openRequest && typedMessage.message.type === BeaconMessageType.Acknowledge) {
+        if (openRequest && typedMessage.message?.type === BeaconMessageType.Acknowledge) {
           this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
-          logger.log(`acknowledge message received for ${message.id}`)
-          console.timeLog(message.id, 'acknowledge')
+          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
+          logger.timeLog('handleResponse', message.id, 'acknowledge')
 
           this.events
             .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
@@ -274,26 +277,28 @@ export class DAppClient extends Client {
           const appMetadata: AppMetadata | undefined = (
             typedMessage.message as unknown /* Why is this unkown cast needed? */ as PermissionResponseV3<string>
           ).blockchainData.appMetadata
-          if (typedMessage.message.type === BeaconMessageType.PermissionResponse && appMetadata) {
+          if (typedMessage.message?.type === BeaconMessageType.PermissionResponse && appMetadata) {
             await this.appMetadataManager.addAppMetadata(appMetadata)
           }
 
-          console.timeLog(typedMessage.id, 'response')
-          console.timeEnd(typedMessage.id)
+          logger.timeLog('handleResponse', typedMessage.id, 'response')
+          logger.time(false, typedMessage.id)
 
-          if (typedMessage.message.type === BeaconMessageType.Error) {
+          if (typedMessage.message?.type === BeaconMessageType.Error) {
             openRequest.reject(typedMessage.message as ErrorResponse)
           } else {
             openRequest.resolve({ message, connectionInfo })
           }
           this.openRequests.delete(typedMessage.id)
         } else {
-          if (typedMessage.message.type === BeaconMessageType.Disconnect) {
+          if (typedMessage.message?.type === BeaconMessageType.Disconnect) {
             this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
 
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
+                : connectionInfo.origin === Origin.WALLETCONNECT
+                ? this.walletConnectTransport
                 : this.postMessageTransport ?? (await this.transport)
 
             if (relevantTransport) {
@@ -304,12 +309,12 @@ export class DAppClient extends Client {
               )
               if (peer) {
                 await relevantTransport.removePeer(peer as any)
-                await this.removeAccountsForPeers([peer])
-                await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-              } else {
-                logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
               }
+              await this.removeAccountsForPeerIds([message.senderId])
+              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
+          } else if (typedMessage.message?.type === BeaconMessageType.ChangeAccountRequest) {
+            await this.onNewAccount(typedMessage.message as ChangeAccountRequest, connectionInfo)
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
@@ -321,7 +326,7 @@ export class DAppClient extends Client {
           logger.log(`acknowledge message received for ${message.id}`)
           this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
 
-          console.timeLog(message.id, 'acknowledge')
+          logger.timeLog('handleResponse', message.id, 'acknowledge')
 
           this.events
             .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
@@ -338,8 +343,8 @@ export class DAppClient extends Client {
             await this.appMetadataManager.addAppMetadata(typedMessage.appMetadata)
           }
 
-          console.timeLog(typedMessage.id, 'response')
-          console.timeEnd(typedMessage.id)
+          logger.timeLog('handleResponse', typedMessage.id, 'response')
+          logger.time(false, typedMessage.id)
 
           if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
             // TODO: Remove "any" once we remove support for v1 wallets
@@ -358,6 +363,8 @@ export class DAppClient extends Client {
             const relevantTransport =
               connectionInfo.origin === Origin.P2P
                 ? this.p2pTransport
+                : connectionInfo.origin === Origin.WALLETCONNECT
+                ? this.walletConnectTransport
                 : this.postMessageTransport ?? (await this.transport)
 
             if (relevantTransport) {
@@ -368,12 +375,12 @@ export class DAppClient extends Client {
               )
               if (peer) {
                 await relevantTransport.removePeer(peer as any)
-                await this.removeAccountsForPeers([peer])
-                await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-              } else {
-                logger.error('handleDisconnect', 'cannot find peer for sender ID', message.senderId)
               }
+              await this.removeAccountsForPeerIds([message.senderId])
+              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
+          } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
+            await this.onNewAccount(typedMessage, connectionInfo)
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
@@ -414,14 +421,36 @@ export class DAppClient extends Client {
       }
     }
 
-    this.walletConnectTransport = new DappWalletConnectTransport(
-      this.name,
-      keyPair,
-      this.storage,
-      wcOptions
-    )
+    this.walletConnectTransport = new DappWalletConnectTransport(this.name, keyPair, this.storage, {
+      network: this.network.type,
+      opts: wcOptions
+    })
+
+    this.initEvents()
 
     await this.addListener(this.walletConnectTransport)
+  }
+
+  private initEvents() {
+    if (!this.walletConnectTransport) {
+      return
+    }
+
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.CLOSE_ALERT,
+      this.hideUI.bind(this, ['alert'])
+    )
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.RESET_STATE,
+      this.channelClosedHandler.bind(this)
+    )
+  }
+
+  private async channelClosedHandler() {
+    await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+    this.setActiveAccount(undefined)
+
+    this.destroy()
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
@@ -549,7 +578,7 @@ export class DAppClient extends Client {
               },
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
               walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
-              preferredNetwork: this.preferredNetwork,
+              networkType: this.network.type,
               abortedHandler: () => {
                 console.log('ABORTED')
                 this._initPromise = undefined
@@ -651,6 +680,11 @@ export class DAppClient extends Client {
   }
 
   public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
+    if (elements?.includes('alert')) {
+      // if the sync was aborted from the wallet side or the alert is closed we need to cancel the promise
+      this._initPromise = undefined
+    }
+
     await this.events.emit(BeaconEvent.HIDE_UI, elements)
   }
 
@@ -1002,10 +1036,18 @@ export class DAppClient extends Client {
   public async requestPermissions(
     input?: RequestPermissionInput
   ): Promise<PermissionResponseOutput> {
+    // Add error message for deprecation of network
+    // TODO: Remove when we remove deprecated preferredNetwork
+    if (input?.network !== undefined && this.network.type !== input?.network?.type) {
+      console.error(
+        '[BEACON] The network specified in the DAppClient constructor does not match the network set in the permission request. Please set the network in the constructor. Setting it during the Permission Request is deprecated.'
+      )
+    }
+
     const request: PermissionRequestInput = {
       appMetadata: await this.getOwnAppMetadata(),
       type: BeaconMessageType.PermissionRequest,
-      network: input && input.network ? input.network : { type: NetworkType.MAINNET },
+      network: this.network,
       scopes:
         input && input.scopes
           ? input.scopes
@@ -1021,57 +1063,10 @@ export class DAppClient extends Client {
       throw await this.handleRequestError(request, requestError)
     })
 
-    // TODO: Migration code. Remove sometime after 1.0.0 release.
-    const tempPK: string | undefined =
-      message.publicKey || (message as any).pubkey || (message as any).pubKey
-
-    const publicKey = !!tempPK ? await prefixPublicKey(tempPK) : undefined
-
-    if (!publicKey && !message.address) {
-      throw new Error('PublicKey or Address must be defined')
-    }
-
-    const address = message.address ?? (await getAddressFromPublicKey(publicKey!))
-
-    if (validateAddress(address) !== ValidationResult.VALID) {
-      throw new Error(`Invalid address: "${address}"`)
-    }
-
-    if (
-      message.walletType === 'abstracted_account' &&
-      address.substring(0, 3) !== CONTRACT_PREFIX
-    ) {
-      throw new Error(
-        `Invalid abstracted account address "${address}", it should be a ${CONTRACT_PREFIX} address`
-      )
-    }
-
     console.log('######## MESSAGE #######')
     console.log(message)
 
-    const accountIdentifier = await getAccountIdentifier(address, message.network)
-
-    const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
-
-    const accountInfo: AccountInfo = {
-      accountIdentifier,
-      senderId: message.senderId,
-      origin: {
-        type: connectionInfo.origin,
-        id: connectionInfo.id
-      },
-      walletKey,
-      address,
-      publicKey,
-      network: message.network,
-      scopes: message.scopes,
-      threshold: message.threshold,
-      notification: message.notification,
-      connectedAt: new Date().getTime(),
-      walletType: message.walletType,
-      verificationType: message.verificationType,
-      ...(message.verificationType === 'proof_of_event' ? { hasVerifiedChallenge: false } : {})
-    }
+    const accountInfo = await this.onNewAccount(message, connectionInfo)
 
     console.log('######## ACCOUNT INFO #######')
 
@@ -1082,8 +1077,8 @@ export class DAppClient extends Client {
 
     const output: PermissionResponseOutput = {
       ...message,
-      walletKey,
-      address,
+      walletKey: accountInfo.walletKey,
+      address: accountInfo.address,
       accountInfo
     }
 
@@ -1095,7 +1090,9 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
-    this.analytics.track('event', 'DAppClient', 'Permission received', { address })
+    this.analytics.track('event', 'DAppClient', 'Permission received', {
+      address: accountInfo.address
+    })
 
     return output
   }
@@ -1362,7 +1359,7 @@ export class DAppClient extends Client {
 
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
-      network: activeAccount.network || { type: NetworkType.MAINNET },
+      network: activeAccount.network || this.network,
       operationDetails: input.operationDetails,
       sourceAddress: activeAccount.address || ''
     }
@@ -1399,11 +1396,17 @@ export class DAppClient extends Client {
       throw await this.sendInternalError('Signed transaction must be provided')
     }
 
-    const network = input.network || { type: NetworkType.MAINNET }
+    // Add error message for deprecation of network
+    // TODO: Remove when we remove deprecated preferredNetwork
+    if (input.network !== undefined && this.network.type !== input.network?.type) {
+      console.error(
+        '[BEACON] The network specified in the DAppClient constructor does not match the network set in the broadcast request. Please set the network in the constructor. Setting it during the Broadcast Request is deprecated.'
+      )
+    }
 
     const request: BroadcastRequestInput = {
       type: BeaconMessageType.BroadcastRequest,
-      network,
+      network: this.network,
       signedTransaction: input.signedTransaction
     }
 
@@ -1416,7 +1419,7 @@ export class DAppClient extends Client {
     })
 
     await this.notifySuccess(request, {
-      network,
+      network: this.network,
       output: message,
       blockExplorer: this.blockExplorer,
       connectionContext: connectionInfo,
@@ -1489,13 +1492,16 @@ export class DAppClient extends Client {
    * @param peersToRemove An array of peers for which accounts should be removed
    */
   private async removeAccountsForPeers(peersToRemove: ExtendedPeerInfo[]): Promise<void> {
+    const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
+
+    return this.removeAccountsForPeerIds(peerIdsToRemove)
+  }
+
+  private async removeAccountsForPeerIds(peerIds: string[]): Promise<void> {
     const accounts = await this.accountManager.getAccounts()
 
-    const peerIdsToRemove = peersToRemove.map((peer) => peer.senderId)
     // Remove all accounts with origin of the specified peer
-    const accountsToRemove = accounts.filter((account) =>
-      peerIdsToRemove.includes(account.senderId)
-    )
+    const accountsToRemove = accounts.filter((account) => peerIds.includes(account.senderId))
     const accountIdentifiersToRemove = accountsToRemove.map(
       (accountInfo) => accountInfo.accountIdentifier
     )
@@ -1557,6 +1563,7 @@ export class DAppClient extends Client {
         this._initPromise = undefined
         this.postMessageTransport = undefined
         this.p2pTransport = undefined
+        this.walletConnectTransport = undefined
         await this.setTransport()
         await this.setActivePeer()
       }
@@ -1679,9 +1686,7 @@ export class DAppClient extends Client {
     if (selectedApp) {
       let deeplink: string | undefined
       if (selectedApp.hasOwnProperty('links')) {
-        deeplink = (selectedApp as WebApp).links[
-          selectedAccount?.network.type ?? this.preferredNetwork
-        ]
+        deeplink = (selectedApp as WebApp).links[selectedAccount?.network.type ?? this.network.type]
       } else if (selectedApp.hasOwnProperty('deepLink')) {
         deeplink = (selectedApp as App).deepLink
       }
@@ -1751,10 +1756,10 @@ export class DAppClient extends Client {
   ) {
     const messageId = await generateGUID()
 
-    console.time(messageId)
+    logger.time(true, messageId)
     logger.log('makeRequest', 'starting')
     await this.init()
-    console.timeLog(messageId, 'init done')
+    logger.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -1806,7 +1811,7 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
-    console.timeLog(messageId, 'sending')
+    logger.timeLog('makeRequest', messageId, 'sending')
     try {
       await (await this.transport).send(payload, peer)
     } catch (sendError) {
@@ -1822,10 +1827,10 @@ export class DAppClient extends Client {
           }
         ]
       })
-      console.timeLog(messageId, 'send error')
+      logger.timeLog('makeRequest', messageId, 'send error')
       throw sendError
     }
-    console.timeLog(messageId, 'sent')
+    logger.timeLog('makeRequest', messageId, 'sent')
 
     this.events
       .emit(messageEvents[requestInput.type].sent, {
@@ -1863,10 +1868,10 @@ export class DAppClient extends Client {
     connectionInfo: ConnectionContext
   }> {
     const messageId = await generateGUID()
-    console.time(messageId)
+    logger.time(true, messageId)
     logger.log('makeRequest', 'starting')
     await this.init()
-    console.timeLog(messageId, 'init done')
+    logger.timeLog('makeRequest', messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -1913,7 +1918,7 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
-    console.timeLog(messageId, 'sending')
+    logger.timeLog('makeRequest', messageId, 'sending')
     try {
       await (await this.transport).send(payload, peer)
     } catch (sendError) {
@@ -1929,10 +1934,10 @@ export class DAppClient extends Client {
           }
         ]
       })
-      console.timeLog(messageId, 'send error')
+      logger.timeLog('makeRequest', messageId, 'send error')
       throw sendError
     }
-    console.timeLog(messageId, 'sent')
+    logger.timeLog('makeRequest', messageId, 'sent')
 
     const index = requestInput.type as any as BeaconMessageType
 
@@ -2033,5 +2038,69 @@ export class DAppClient extends Client {
     })
 
     return notificationResponse.data
+  }
+
+  private async onNewAccount(
+    message: PermissionResponse | ChangeAccountRequest,
+    connectionInfo: ConnectionContext
+  ): Promise<AccountInfo> {
+    // TODO: Migration code. Remove sometime after 1.0.0 release.
+    const tempPK: string | undefined =
+      message.publicKey || (message as any).pubkey || (message as any).pubKey
+
+    const publicKey = !!tempPK ? await prefixPublicKey(tempPK) : undefined
+
+    if (!publicKey && !message.address) {
+      throw new Error('PublicKey or Address must be defined')
+    }
+
+    const address = message.address ?? (await getAddressFromPublicKey(publicKey!))
+
+    if (validateAddress(address) !== ValidationResult.VALID) {
+      throw new Error(`Invalid address: "${address}"`)
+    }
+
+    if (
+      message.walletType === 'abstracted_account' &&
+      address.substring(0, 3) !== CONTRACT_PREFIX
+    ) {
+      throw new Error(
+        `Invalid abstracted account address "${address}", it should be a ${CONTRACT_PREFIX} address`
+      )
+    }
+
+    console.log('######## MESSAGE #######')
+    console.log(message)
+
+    const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
+
+    const accountInfo: AccountInfo = {
+      accountIdentifier: await getAccountIdentifier(address, message.network),
+      senderId: message.senderId,
+      origin: {
+        type: connectionInfo.origin,
+        id: connectionInfo.id
+      },
+      walletKey,
+      address,
+      publicKey,
+      network: message.network,
+      scopes: message.scopes,
+      threshold: message.threshold,
+      notification: message.notification,
+      connectedAt: new Date().getTime(),
+      walletType: message.walletType,
+      verificationType: message.verificationType,
+      ...(message.verificationType === 'proof_of_event' ? { hasVerifiedChallenge: false } : {})
+    }
+
+    console.log('######## ACCOUNT INFO #######')
+
+    console.log(JSON.stringify(accountInfo))
+
+    await this.accountManager.addAccount(accountInfo)
+    await this.setActiveAccount(accountInfo)
+
+    return accountInfo
   }
 }

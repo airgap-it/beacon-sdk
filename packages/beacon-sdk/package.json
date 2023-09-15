@@ -1,7 +1,7 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "4.0.5",
-  "description": "> TODO: description",
+  "version": "4.0.10",
+  "description": "The `beacon-sdk` simplifies and abstracts the communication between dApps and wallets over different transport layers.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
   "license": "ISC",

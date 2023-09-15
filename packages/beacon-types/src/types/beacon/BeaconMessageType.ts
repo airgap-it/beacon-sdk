@@ -5,6 +5,7 @@ export enum BeaconMessageType {
   // EncryptPayloadRequest = 'encrypt_payload_request',
   OperationRequest = 'operation_request',
   BroadcastRequest = 'broadcast_request',
+  ChangeAccountRequest = 'change_account_request',
   BlockchainResponse = 'blockchain_response',
   PermissionResponse = 'permission_response',
   SignPayloadResponse = 'sign_payload_response',
