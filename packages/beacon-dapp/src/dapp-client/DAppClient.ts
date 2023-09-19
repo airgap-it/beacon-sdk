@@ -111,6 +111,7 @@ import {
   getiOSList
 } from '@airgap/beacon-ui'
 import { signMessage } from '@airgap/beacon-utils'
+import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 
 const logger = new Logger('DAppClient')
 
@@ -980,6 +981,15 @@ export class DAppClient extends Client {
     }
 
     this.analytics.track('event', 'DAppClient', 'Permission requested')
+
+    await this.init()
+
+    const transport = await this.transport
+
+    if (transport instanceof WalletConnectTransport && !transport.pairings?.length) {
+      await this.channelClosedHandler()
+      throw new Error('Pairing expired.')
+    }
 
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
