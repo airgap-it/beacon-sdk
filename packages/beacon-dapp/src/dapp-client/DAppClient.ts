@@ -982,15 +982,6 @@ export class DAppClient extends Client {
 
     this.analytics.track('event', 'DAppClient', 'Permission requested')
 
-    await this.init()
-
-    const transport = await this.transport
-
-    if (transport instanceof WalletConnectTransport && !transport.pairings?.length) {
-      await this.channelClosedHandler()
-      throw new Error('Pairing expired.')
-    }
-
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
       PermissionResponse
@@ -1560,6 +1551,17 @@ export class DAppClient extends Client {
     logger.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
+    const transport = await this.transport
+
+    if (
+      requestInput.type === BeaconMessageType.PermissionRequest &&
+      transport instanceof WalletConnectTransport &&
+      !transport.pairings?.length
+    ) {
+      await this.channelClosedHandler()
+      throw new Error('Pairing expired.')
+    }
+
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
@@ -1607,7 +1609,7 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'sending message', request)
     logger.timeLog('makeRequest', messageId, 'sending')
     try {
-      await (await this.transport).send(payload, peer)
+      await transport.send(payload, peer)
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
@@ -1676,6 +1678,17 @@ export class DAppClient extends Client {
       throw new Error('rate limit reached')
     }
 
+    const transport = await this.transport
+
+    if (
+      requestInput.type === BeaconMessageType.PermissionRequest &&
+      transport instanceof WalletConnectTransport &&
+      !transport.pairings?.length
+    ) {
+      await this.channelClosedHandler()
+      throw new Error('Pairing expired.')
+    }
+
     // if (!(await this.checkPermissions(requestInput.type as BeaconMessageType))) {
     //   this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
 
@@ -1714,7 +1727,7 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'sending message', request)
     logger.timeLog('makeRequest', messageId, 'sending')
     try {
-      await (await this.transport).send(payload, peer)
+      await transport.send(payload, peer)
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
