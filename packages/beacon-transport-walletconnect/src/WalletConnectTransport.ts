@@ -63,6 +63,10 @@ export class WalletConnectTransport<
     return super.connect()
   }
 
+  public get pairings() {
+    return this.client.signClient?.pairing.getAll()
+  }
+
   public async getPeers(): Promise<T[]> {
     const client = WalletConnectCommunicationClient.getInstance(this.wcOptions)
     const session = client.currentSession()
