@@ -99,7 +99,7 @@ import {
   PartialTezosOriginationOperation,
   PartialTezosRevealOperation
 } from './types/tezos/PartialTezosOperation'
-import { ExtendedPeerInfo, PeerInfo } from './types/PeerInfo'
+import { ExtendedPeerInfo, PeerInfo, PeerInfoType } from './types/PeerInfo'
 import { AcknowledgeResponse } from './types/beacon/messages/AcknowledgeResponse'
 import { DisconnectMessage } from './types/beacon/messages/DisconnectMessage'
 import { SigningType } from './types/beacon/SigningType'
@@ -255,6 +255,7 @@ export { Storage, StorageKey, StorageKeyReturnDefaults, StorageKeyReturnType }
 export {
   PeerInfo,
   ExtendedPeerInfo,
+  PeerInfoType,
   PostMessagePairingRequest,
   PostMessagePairingResponse,
   ExtendedPostMessagePairingRequest,

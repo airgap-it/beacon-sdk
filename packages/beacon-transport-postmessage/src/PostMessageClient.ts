@@ -99,11 +99,16 @@ export class PostMessageClient extends MessageBasedClient {
               await openCryptobox(payload, this.keyPair!.publicKey, this.keyPair!.secretKey)
             )
 
-            messageCallback({
-              ...pairingResponse,
-              senderId: await getSenderId(pairingResponse.publicKey),
-              extensionId: event?.data?.sender.id
-            })
+            messageCallback(
+              new ExtendedPostMessagePairingResponse(
+                pairingResponse.id,
+                pairingResponse.name,
+                pairingResponse.publicKey,
+                pairingResponse.version,
+                await getSenderId(pairingResponse.publicKey),
+                event?.data?.sender.id
+              )
+            )
           } catch (decryptionError) {
             /* NO-OP. We try to decode every message, but some might not be addressed to us. */
           }
