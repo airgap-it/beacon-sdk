@@ -43,7 +43,7 @@ const getExpectedPromiseOutcome = (
         })
         .catch(() => undefined)
       const timeout = global.setTimeout(() => {
-        ;(resolvePredicate ? reject : resolve)()
+        resolvePredicate ? reject() : resolve(undefined)
       }, WAIT_TIME)
     }).catch(() => undefined)
   )
@@ -54,7 +54,7 @@ const getExpectedPromiseOutcome = (
         cancelTimeoutAndSettle(timeout, rejectPredicate ? resolve : reject)(result)
       })
       const timeout = global.setTimeout(() => {
-        ;(rejectPredicate ? reject : resolve)()
+        ;rejectPredicate ? reject() : resolve(undefined)
       }, WAIT_TIME)
     }).catch(() => undefined)
   )
@@ -67,7 +67,7 @@ const getExpectedPromiseOutcome = (
           cancelTimeoutAndSettle(timeout, finallyPredicate ? resolve : reject)()
         })
       const timeout = global.setTimeout(() => {
-        ;(finallyPredicate ? reject : resolve)()
+        ;finallyPredicate ? reject() : resolve(undefined)
       }, WAIT_TIME)
     }).catch(() => undefined)
   )
