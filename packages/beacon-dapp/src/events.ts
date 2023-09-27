@@ -212,13 +212,6 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     isBold: true
   })
   actions.push({
-    text: 'Did you make a mistake?',
-    actionText: 'Cancel Request',
-    actionCallback: async (): Promise<void> => {
-      await closeToast()
-    }
-  })
-  actions.push({
     text: 'Wallet not receiving request?',
     actionText: 'Reset Connection',
     actionCallback: async (): Promise<void> => {
@@ -249,16 +242,7 @@ const showAcknowledgedToast = async (data: {
   openToast({
     body: 'Awaiting confirmation in\u00A0 {{wallet}}',
     state: 'acknowledge',
-    walletInfo: data.walletInfo,
-    actions: [
-      {
-        text: 'Did you make a mistake?',
-        actionText: 'Cancel Request',
-        actionCallback: async (): Promise<void> => {
-          await closeToast()
-        }
-      }
-    ]
+    walletInfo: data.walletInfo
   }).catch((toastError) => console.error(toastError))
 }
 
