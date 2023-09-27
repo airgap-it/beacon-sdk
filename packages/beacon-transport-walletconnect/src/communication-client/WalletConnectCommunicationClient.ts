@@ -792,7 +792,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
   /**
    * @description Access the active network
-   * @error ActiveNetworkUnspecified thorwn when there are multiple Tezos netwroks in the session and none is set as the active one
+   * @error ActiveNetworkUnspecified thorwn when there are multiple Tezos networks in the session and none is set as the active one
    */
   getActiveNetwork() {
     if (!this.activeNetwork) {

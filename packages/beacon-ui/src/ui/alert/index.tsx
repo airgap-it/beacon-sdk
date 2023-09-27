@@ -167,7 +167,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           const codeQR = await serializer.serialize(await p2pPayload)
           setCodeQR(codeQR) 
         } catch(error: any) {
-          console.error("Cannot connect to netwrok: ", error.message)
+          console.error("Cannot connect to network: ", error.message)
         }
       }
     }
