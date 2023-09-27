@@ -33,6 +33,7 @@ import { TezosProposalOperation } from './types/tezos/operations/Proposal'
 import { TezosRevealOperation } from './types/tezos/operations/Reveal'
 import { TezosSeedNonceRevelationOperation } from './types/tezos/operations/SeedNonceRevelation'
 import { TezosTransactionOperation } from './types/tezos/operations/Transaction'
+import { MichelineMichelsonV1Expression } from './types/tezos/MichelineMichelsonV1Expression'
 import { MichelsonPrimitives } from './types/tezos/MichelsonPrimitives'
 import { TezosTransactionParameters } from './types/tezos/TezosTransactionParameters'
 import { Origin } from './types/Origin'
@@ -107,7 +108,7 @@ import {
   PartialTezosOriginationOperation,
   PartialTezosRevealOperation
 } from './types/tezos/PartialTezosOperation'
-import { ExtendedPeerInfo, PeerInfo } from './types/PeerInfo'
+import { ExtendedPeerInfo, PeerInfo, PeerInfoType } from './types/PeerInfo'
 import { AcknowledgeResponse } from './types/beacon/messages/AcknowledgeResponse'
 import { DisconnectMessage } from './types/beacon/messages/DisconnectMessage'
 import { SigningType } from './types/beacon/SigningType'
@@ -150,6 +151,7 @@ export {
   TezosBaseOperation,
   TezosOperationType,
   TezosBlockHeader,
+  MichelineMichelsonV1Expression,
   MichelsonPrimitives,
   TezosTransactionParameters,
   TezosOperation
@@ -271,6 +273,7 @@ export { Storage, StorageKey, StorageKeyReturnDefaults, StorageKeyReturnType }
 export {
   PeerInfo,
   ExtendedPeerInfo,
+  PeerInfoType,
   PostMessagePairingRequest,
   PostMessagePairingResponse,
   ExtendedPostMessagePairingRequest,

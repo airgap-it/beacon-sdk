@@ -39,7 +39,6 @@ import {
   AppMetadata,
   ExtendedP2PPairingResponse,
   ExtendedPostMessagePairingResponse,
-  PostMessagePairingResponse,
   SigningType,
   ExtendedPeerInfo,
   Optional,
@@ -65,7 +64,8 @@ import {
   ProofOfEventChallengeRequestInput,
   RequestProofOfEventChallengeInput,
   ProofOfEventChallengeRecordedMessageInput,
-  ChangeAccountRequest
+  ChangeAccountRequest,
+  PeerInfoType
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -119,6 +119,7 @@ import {
   getWebList,
   getiOSList
 } from '@airgap/beacon-ui'
+import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 
 const logger = new Logger('DAppClient')
 
@@ -152,6 +153,7 @@ export class DAppClient extends Client {
   protected wcProjectId?: string
   protected wcRelayUrl?: string
 
+  private isGetActiveAccountHandled: boolean = false
   /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
    */
@@ -183,12 +185,7 @@ export class DAppClient extends Client {
   /**
    * The currently active peer. This is used to address a peer in case the active account is not set. (Eg. for permission requests)
    */
-  private _activePeer: ExposedPromise<
-    | ExtendedPostMessagePairingResponse
-    | ExtendedP2PPairingResponse
-    | ExtendedWalletConnectPairingResponse
-    | undefined
-  > = new ExposedPromise()
+  private _activePeer: ExposedPromise<PeerInfoType | undefined> = new ExposedPromise()
 
   private _initPromise: Promise<TransportType> | undefined
 
@@ -308,7 +305,7 @@ export class DAppClient extends Client {
                 (peerEl) => peerEl.senderId === message.senderId
               )
               if (peer) {
-                await relevantTransport.removePeer(peer as any)
+                await relevantTransport.removePeer(peer)
               }
               await this.removeAccountsForPeerIds([message.senderId])
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
@@ -374,7 +371,7 @@ export class DAppClient extends Client {
                 (peerEl) => peerEl.senderId === message.senderId
               )
               if (peer) {
-                await relevantTransport.removePeer(peer as any)
+                await relevantTransport.removePeer(peer)
               }
               await this.removeAccountsForPeerIds([message.senderId])
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
@@ -602,12 +599,28 @@ export class DAppClient extends Client {
     return this._activeAccount.promise
   }
 
+  private async isInvalidState(account: AccountInfo) {
+    const activeAccount = await this._activeAccount.promise
+    return !activeAccount
+      ? false
+      : activeAccount?.address !== account.address && !this.isGetActiveAccountHandled
+  }
+
   /**
    * Sets the active account
    *
    * @param account The account that will be set as the active account
    */
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
+    if (account && (await this.isInvalidState(account))) {
+      setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI), 1000)
+      this.destroy()
+      this.setActiveAccount(undefined)
+      setTimeout(() => this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE), 1000)
+
+      return
+    }
+
     if (this._activeAccount.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
       this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(account)
@@ -628,7 +641,7 @@ export class DAppClient extends Client {
         await this.setTransport(this.walletConnectTransport)
       }
       const peer = await this.getPeer(account)
-      await this.setActivePeer(peer as any)
+      await this.setActivePeer(peer)
     } else {
       await this.setActivePeer(undefined)
       await this.setTransport(undefined)
@@ -680,12 +693,15 @@ export class DAppClient extends Client {
   }
 
   public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
-    if (elements?.includes('alert')) {
-      // if the sync was aborted from the wallet side or the alert is closed we need to cancel the promise
-      this._initPromise = undefined
-    }
-
     await this.events.emit(BeaconEvent.HIDE_UI, elements)
+
+    if (elements?.includes('alert')) {
+      // if the sync was aborted from the wallet side
+      this._initPromise = undefined
+      // by dispatching two opposite events (one closes the alert the other one opens it)
+      // it triggers some sort of race condition in the UI render cycle
+      setTimeout(async () => await this.events.emit(BeaconEvent.NO_PERMISSIONS), 1000)
+    }
   }
 
   /**
@@ -764,6 +780,10 @@ export class DAppClient extends Client {
     internalEvent: K,
     eventCallback: BeaconEventHandlerFunction<BeaconEventType[K]>
   ): Promise<void> {
+    if (internalEvent === BeaconEvent.ACTIVE_ACCOUNT_SET) {
+      this.isGetActiveAccountHandled = true
+    }
+
     await this.events.on(internalEvent, eventCallback)
   }
 
@@ -1431,34 +1451,25 @@ export class DAppClient extends Client {
     return message
   }
 
-  protected async setActivePeer(
-    peer?:
-      | ExtendedPostMessagePairingResponse
-      | ExtendedP2PPairingResponse
-      | ExtendedWalletConnectPairingResponse
-  ): Promise<void> {
+  protected async setActivePeer(peer?: PeerInfoType): Promise<void> {
     if (this._activePeer.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
-      this._activePeer = ExposedPromise.resolve<
-        | ExtendedPostMessagePairingResponse
-        | ExtendedP2PPairingResponse
-        | ExtendedWalletConnectPairingResponse
-        | undefined
-      >(peer)
+      this._activePeer = ExposedPromise.resolve(peer)
     } else {
       this._activePeer.resolve(peer)
     }
 
-    if (peer) {
-      await this.initInternalTransports()
-      if (peer.type === 'postmessage-pairing-response') {
-        await this.setTransport(this.postMessageTransport)
-      } else if (peer.type === 'p2p-pairing-response') {
-        await this.setTransport(this.p2pTransport)
-      }
+    if (!peer) {
+      return
     }
 
-    return
+    await this.initInternalTransports()
+
+    if (peer.type === 'postmessage-pairing-response') {
+      await this.setTransport(this.postMessageTransport)
+    } else if (peer.type === 'p2p-pairing-response') {
+      await this.setTransport(this.p2pTransport)
+    }
   }
 
   /**
@@ -1649,12 +1660,10 @@ export class DAppClient extends Client {
       walletInfo = await this.appMetadataManager.getAppMetadata(selectedAccount.senderId)
     }
 
-    const typedPeer: PostMessagePairingResponse = selectedPeer as any
-
     if (!walletInfo) {
       walletInfo = {
-        name: typedPeer?.name,
-        icon: typedPeer?.icon
+        name: selectedPeer?.name ?? '',
+        icon: selectedPeer?.icon
       }
     }
 
@@ -1762,6 +1771,17 @@ export class DAppClient extends Client {
     logger.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
+    const transport = await this.transport
+
+    if (
+      requestInput.type === BeaconMessageType.PermissionRequest &&
+      transport instanceof WalletConnectTransport &&
+      !transport.pairings?.length
+    ) {
+      await this.channelClosedHandler()
+      throw new Error('Pairing expired.')
+    }
+
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
@@ -1813,7 +1833,7 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'sending message', request)
     logger.timeLog('makeRequest', messageId, 'sending')
     try {
-      await (await this.transport).send(payload, peer)
+      await transport.send(payload, peer)
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
@@ -1882,6 +1902,17 @@ export class DAppClient extends Client {
       throw new Error('rate limit reached')
     }
 
+    const transport = await this.transport
+
+    if (
+      requestInput.type === BeaconMessageType.PermissionRequest &&
+      transport instanceof WalletConnectTransport &&
+      !transport.pairings?.length
+    ) {
+      await this.channelClosedHandler()
+      throw new Error('Pairing expired.')
+    }
+
     // if (!(await this.checkPermissions(requestInput.type as BeaconMessageType))) {
     //   this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
 
@@ -1920,7 +1951,7 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'sending message', request)
     logger.timeLog('makeRequest', messageId, 'sending')
     try {
-      await (await this.transport).send(payload, peer)
+      await transport.send(payload, peer)
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',

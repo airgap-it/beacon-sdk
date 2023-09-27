@@ -379,15 +379,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // to get data required in the pairing response
       try {
         const session = await this.openSession(topic)
-        const pairingResponse = {
-          id: topic,
-          type: 'walletconnect-pairing-response',
-          name: session.peer.metadata.name,
-          publicKey: session.peer.publicKey,
-          senderId: topic,
-          extensionId: session.peer.metadata.name,
-          version: '3'
-        } as ExtendedWalletConnectPairingResponse
+        const pairingResponse: ExtendedWalletConnectPairingResponse =
+          new ExtendedWalletConnectPairingResponse(
+            topic,
+            session.peer.metadata.name,
+            session.peer.publicKey,
+            '3',
+            topic,
+            session.peer.metadata.name
+          )
 
         this.channelOpeningListeners.forEach((listener) => {
           listener(pairingResponse)
@@ -427,10 +427,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     signClient.on('session_expire', (event) => {
       this.disconnect(signClient, { type: 'session', topic: event.topic })
-    })
-
-    signClient.core.pairing.events.on('pairing_delete', (event) => {
-      this.disconnect(signClient, { type: 'pairing', topic: event.topic })
     })
   }
 
@@ -560,15 +556,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async getPairingRequestInfo(): Promise<ExtendedWalletConnectPairingRequest> {
     const { uri, topic } = (await this.init(true)) ?? {}
-    return {
-      id: topic!,
-      type: 'walletconnect-pairing-request',
-      name: 'WalletConnect',
-      version: BEACON_VERSION,
-      uri: uri!,
-      senderId: await generateGUID(),
-      publicKey: await generateGUID()
-    }
+
+    return new ExtendedWalletConnectPairingRequest(
+      topic!,
+      'WalletConnect',
+      await generateGUID(),
+      BEACON_VERSION,
+      await generateGUID(),
+      uri!
+    )
   }
 
   private async closePairings() {

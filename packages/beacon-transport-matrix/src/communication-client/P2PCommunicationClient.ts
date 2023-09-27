@@ -106,14 +106,13 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
-    const info: P2PPairingRequest = {
-      id: await generateGUID(),
-      type: 'p2p-pairing-request',
-      name: this.name,
-      version: BEACON_VERSION,
-      publicKey: await this.getPublicKey(),
-      relayServer: (await this.getRelayServer()).server
-    }
+    const info: P2PPairingRequest = new P2PPairingRequest(
+      await generateGUID(),
+      this.name,
+      await this.getPublicKey(),
+      BEACON_VERSION,
+      (await this.getRelayServer()).server
+    )
 
     if (this.iconUrl) {
       info.icon = this.iconUrl
@@ -126,14 +125,13 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async getPairingResponseInfo(request: P2PPairingRequest): Promise<P2PPairingResponse> {
-    const info: P2PPairingResponse = {
-      id: request.id,
-      type: 'p2p-pairing-response',
-      name: this.name,
-      version: request.version,
-      publicKey: await this.getPublicKey(),
-      relayServer: (await this.getRelayServer()).server
-    }
+    const info: P2PPairingResponse = new P2PPairingResponse(
+      request.id,
+      this.name,
+      await this.getPublicKey(),
+      request.version,
+      (await this.getRelayServer()).server
+    )
 
     if (this.iconUrl) {
       info.icon = this.iconUrl
@@ -713,13 +711,13 @@ export class P2PCommunicationClient extends CommunicationClient {
       ? new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_DAPP)
       : new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_WALLET)
     const peers = await manager.getPeers()
-    const promiseArray = (peers as any).map(
-      async (peer: P2PPairingRequest | ExtendedP2PPairingResponse) => {
+    const promiseArray = peers.map(
+      async (peer) => {
         const hash = `@${await getHexHash(Buffer.from(peer.publicKey, 'hex'))}`
         if (hash === senderHash) {
           if (peer.relayServer !== relayServer) {
             peer.relayServer = relayServer
-            await manager.addPeer(peer as any)
+            await manager.addPeer(peer as ExtendedP2PPairingResponse)
           }
         }
       }
