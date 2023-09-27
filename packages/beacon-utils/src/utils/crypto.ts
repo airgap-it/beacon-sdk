@@ -9,6 +9,8 @@ import { BLAKE2b } from '@stablelib/blake2b'
 import { concat } from '@stablelib/bytes'
 import { sign } from '@stablelib/ed25519'
 
+export { validateAddress, ValidationResult } from '@taquito/utils'
+
 export const secretbox_NONCEBYTES = 24 // crypto_secretbox_NONCEBYTES
 export const secretbox_MACBYTES = 16 // crypto_secretbox_MACBYTES
 

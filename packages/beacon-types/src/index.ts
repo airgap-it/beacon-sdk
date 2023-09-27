@@ -4,6 +4,9 @@
  */
 import { AppMetadata } from './types/beacon/AppMetadata'
 import { PermissionRequest } from './types/beacon/messages/PermissionRequest'
+import { ProofOfEventChallengeRequest } from './types/beacon/messages/ProofOfEventChallengeRequest'
+import { ProofOfEventChallengeResponse } from './types/beacon/messages/ProofOfEventChallengeResponse'
+import { ProofOfEventChallengeRecordedRequest } from './types/beacon/messages/ProofOfEventChallengeRecordedRequest'
 import { Network } from './types/beacon/Network'
 import { BeaconBaseMessage } from './types/beacon/BeaconBaseMessage'
 import { BeaconMessageType } from './types/beacon/BeaconMessageType'
@@ -49,6 +52,7 @@ import { StorageKeyReturnType } from './types/storage/StorageKeyReturnType'
 import { ExtendedP2PPairingRequest, P2PPairingRequest } from './types/P2PPairingRequest'
 import { BeaconMessage } from './types/beacon/BeaconMessage'
 import { RequestPermissionInput } from './types/RequestPermissionInput'
+import { RequestProofOfEventChallengeInput } from './types/RequestProofOfEventChallengeInput'
 import { RequestSignPayloadInput } from './types/RequestSignPayloadInput'
 // import { RequestEncryptPayloadInput } from './types/RequestEncryptPayloadInput'
 import { RequestOperationInput } from './types/RequestOperationInput'
@@ -70,7 +74,8 @@ import {
   // EncryptPayloadResponseOutput,
   OperationResponseOutput,
   BroadcastResponseOutput,
-  BeaconResponseOutputMessage
+  BeaconResponseOutputMessage,
+  ProofOfEventChallengeResponseOutput
 } from './types/beacon/messages/BeaconResponseOutputMessage'
 import {
   PermissionRequestInput,
@@ -79,7 +84,9 @@ import {
   OperationRequestInput,
   BroadcastRequestInput,
   BeaconRequestInputMessage,
-  IgnoredRequestInputProperties
+  IgnoredRequestInputProperties,
+  ProofOfEventChallengeRecordedMessageInput,
+  ProofOfEventChallengeRequestInput
 } from './types/beacon/messages/BeaconRequestInputMessage'
 import {
   PermissionRequestOutput,
@@ -87,7 +94,9 @@ import {
   // EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,
-  BeaconRequestOutputMessage
+  BeaconRequestOutputMessage,
+  ProofOfEventChallengeRequestOutput,
+  ProofOfEventChallengeRecordedMessageOutput
 } from './types/beacon/messages/BeaconRequestOutputMessage'
 import { PermissionInfo } from './types/PermissionInfo'
 import { ConnectionContext } from './types/ConnectionContext'
@@ -202,12 +211,17 @@ export {
   Extension,
   EncryptedExtensionMessage,
   RequestPermissionInput,
+  RequestProofOfEventChallengeInput,
   RequestSignPayloadInput,
+  ProofOfEventChallengeRecordedMessageInput,
   // RequestEncryptPayloadInput,
   RequestOperationInput,
   RequestBroadcastInput,
   PermissionInfo,
-  PermissionEntity
+  PermissionEntity,
+  ProofOfEventChallengeRequest,
+  ProofOfEventChallengeResponse,
+  ProofOfEventChallengeRecordedRequest
 }
 
 export {
@@ -219,17 +233,21 @@ export {
   AcknowledgeResponseInput,
   ErrorResponseInput,
   PermissionResponseOutput,
+  ProofOfEventChallengeResponseOutput,
   SignPayloadResponseOutput,
   // EncryptPayloadResponseOutput,
   OperationResponseOutput,
   BroadcastResponseOutput,
   PermissionRequestInput,
   SignPayloadRequestInput,
+  ProofOfEventChallengeRequestInput,
   // EncryptPayloadRequestInput,
   OperationRequestInput,
   BroadcastRequestInput,
   PermissionRequestOutput,
   SignPayloadRequestOutput,
+  ProofOfEventChallengeRequestOutput,
+  ProofOfEventChallengeRecordedMessageOutput,
   // EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,

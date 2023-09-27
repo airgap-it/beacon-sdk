@@ -29,6 +29,24 @@ export class AccountManager {
     )
   }
 
+  public async updateAccount(
+    accountIdentifier: string,
+    accountInfo: Partial<AccountInfo>
+  ): Promise<AccountInfo | undefined> {
+    const account = await this.getAccount(accountIdentifier)
+
+    if (!account) return undefined
+
+    const newAccount = { ...account, ...accountInfo }
+    await this.storageManager.addOne(
+      newAccount,
+      (account) => account.accountIdentifier === accountIdentifier,
+      true
+    )
+
+    return newAccount
+  }
+
   public async removeAccount(accountIdentifier: string): Promise<void> {
     return this.storageManager.remove((account) => account.accountIdentifier === accountIdentifier)
   }

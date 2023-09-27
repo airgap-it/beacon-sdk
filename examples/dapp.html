@@ -40,11 +40,11 @@
     <br /><br />
     <button id="requestPermission">Request Permission</button>
     <br /><br />
-
-    <br /><br />
     <button id="reset">Reset and Refresh</button>
     <br /><br />
-
+    <button id="requestProofOfEventChallenge" disabled style="opacity: 0.5">
+      Request Proof Of Event Challenge
+    </button>
     <br /><br />
     <button id="sendToSelf">Send 1 mutez to myself</button>
     <br /><br />
@@ -201,6 +201,7 @@
           ],
           [beacon.Regions.NORTH_AMERICA_EAST]: []
         },
+        preferredNetwork: beacon.NetworkType.GHOSTNET,
         featuredWallets: ['airgap', 'metamask']
         // network: {
         //   type: beacon.NetworkType.GHOSTNET
@@ -218,6 +219,16 @@
             document.getElementById('activeAccount').innerText = activeAccount.address
             document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
             document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
+
+            if (
+              activeAccount.walletType !== 'account_abstracted' &&
+              activeAccount.verificationType !== 'proof_of_event'
+            )
+              return
+
+            const btn = document.getElementById('requestProofOfEventChallenge')
+            btn.style.opacity = '1'
+            btn.disabled = false
           } else {
             document.getElementById('activeAccount').innerText = ''
             document.getElementById('activeAccountNetwork').innerText = ''
@@ -268,7 +279,7 @@
       // send contract call
       const sendContractCall = () => {
         return client.getActiveAccount().then(async (activeAccount) => {
-          const TZ_BUTTON_COLORS_CONTRACT = 'KT1RPW5kTX6WFxg8JK34rGEU24gqEEudyfvz'
+          const TZ_BUTTON_COLORS_CONTRACT = 'KT1GSdrLzGAorWKoe2z7qV3P5Df6Vmo7neZt'
           const tokenId = '925'
 
           // Setting the color of TzButton is only possible if you are currently the leader and own a color
@@ -313,6 +324,27 @@
           })
       }
 
+      // Initiate a Proof Of Event Request
+      const requestProofOfEventChallenge = () => {
+        client
+          .requestProofOfEventChallenge({
+            dAppChallengeId: 'my-id',
+            payload: JSON.stringify({ timestamp: Date.now() })
+          })
+          .then(() => {
+            console.log('ProofOfEventChallenge approved')
+
+            const promise = client.getProofOfEventChallenge('my-id')
+
+            promise.then(() => {
+              alert('Proof of event verified')
+            })
+          })
+          .catch((error) => {
+            console.log('error during Proof Of Event Challenge', error)
+          })
+      }
+
       document.getElementById('connect').addEventListener('click', () => {
         // Check if we have an active account
         client.getActiveAccount().then((activeAccount) => {
@@ -337,6 +369,11 @@
       // Add event listener to the button
       document.getElementById('requestPermission').addEventListener('click', () => {
         requestPermission()
+      })
+
+      // Add event listener to the button
+      document.getElementById('requestProofOfEventChallenge').addEventListener('click', () => {
+        requestProofOfEventChallenge()
       })
 
       // Add event listener to the button

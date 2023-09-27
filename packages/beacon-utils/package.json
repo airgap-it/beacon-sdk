@@ -38,6 +38,7 @@
     "@stablelib/nacl": "^1.0.4",
     "@stablelib/random": "^1.0.2",
     "@stablelib/utf8": "^1.0.1",
+    "@taquito/utils": "^17.0.0",
     "bs58check": "2.1.2"
   }
 }
