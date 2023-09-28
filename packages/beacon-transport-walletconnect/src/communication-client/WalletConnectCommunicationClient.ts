@@ -54,6 +54,7 @@ export interface PermissionScopeParam {
 }
 export enum PermissionScopeMethods {
   GET_ACCOUNTS = 'tezos_getAccounts',
+  GET_ACKNOWLEDGEMENT = 'tezos_getAcknowledgement',
   OPERATION_REQUEST = 'tezos_send',
   SIGN = 'tezos_sign'
 }
@@ -179,6 +180,41 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
   }
 
+  private async fetchSessionProperties(topic: string, chainId: string) {
+    const signClient = await this.getSignClient()
+    return signClient.request<
+      [
+        {
+          algo: string
+          address: string
+          pubkey: string
+        }
+      ]
+    >({
+      topic: topic,
+      chainId: chainId,
+      request: {
+        method: PermissionScopeMethods.GET_ACKNOWLEDGEMENT,
+        params: {}
+      }
+    })
+  }
+
+  private async setSessionProperties(session: SessionTypes.Struct) {
+    const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+    fun && fun(true)
+    try {
+      const sessionProperties = await this.fetchSessionProperties(
+        session.topic,
+        `${TEZOS_PLACEHOLDER}:${this.wcOptions.network}`
+      )
+      session.sessionProperties = sessionProperties[0]
+    } catch (error) {
+      console.warn('No session properties received.')
+    }
+    fun && fun(false)
+  }
+
   async requestPermissions(message: PermissionRequest) {
     logger.log('#### Requesting permissions')
 
@@ -199,6 +235,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     const session = this.getSession()
     let publicKey: string | undefined
+
+    !session.sessionProperties && this.setSessionProperties(session)
 
     if (
       session.sessionProperties?.pubkey &&
@@ -385,6 +423,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // to get data required in the pairing response
       try {
         const session = await this.openSession(topic)
+
+        !session.sessionProperties && this.setSessionProperties(session)
+        
         const pairingResponse: ExtendedWalletConnectPairingResponse =
           new ExtendedWalletConnectPairingResponse(
             topic,

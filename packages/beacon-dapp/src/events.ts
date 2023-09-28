@@ -74,7 +74,8 @@ export enum BeaconEvent {
   BROADCAST_REQUEST_SENT = 'BROADCAST_REQUEST_SENT',
   BROADCAST_REQUEST_SUCCESS = 'BROADCAST_REQUEST_SUCCESS',
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
-
+  WC_ACKNOWLEDGE_PENDING = 'WC_ACKNOWLEDGE_PENDING',
+  WC_ACKNOWLEDGE_RECEIVED = 'WC_ACKNOWLEDGE_RECEIVED',
   ACKNOWLEDGE_RECEIVED = 'ACKNOWLEDGE_RECEIVED',
 
   LOCAL_RATE_LIMIT_REACHED = 'LOCAL_RATE_LIMIT_REACHED',
@@ -155,6 +156,12 @@ export interface BeaconEventType {
     walletInfo: WalletInfo
   }
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
+  [BeaconEvent.WC_ACKNOWLEDGE_PENDING]: {
+    walletInfo: WalletInfo
+  }
+  [BeaconEvent.WC_ACKNOWLEDGE_RECEIVED]: {
+    walletInfo: WalletInfo
+  }
   [BeaconEvent.ACKNOWLEDGE_RECEIVED]: {
     message: AcknowledgeResponse
     extraInfo: ExtraInfo
@@ -614,6 +621,22 @@ const showBroadcastSuccessAlert = async (
   })
 }
 
+const showWCPendingAck = async (data: { walletInfo: WalletInfo }): Promise<void> => {
+  openToast({
+    body: 'Awaiting acknowledgment from\u00A0 {{wallet}}',
+    state: 'loading',
+    walletInfo: data.walletInfo
+  }).catch((toastError) => console.error(toastError))
+}
+
+const showWCReceivedAck = async (data: { walletInfo: WalletInfo }): Promise<void> => {
+  openToast({
+    body: 'Acknowledgment received from\u00A0 {{wallet}}',
+    state: 'acknowledge',
+    walletInfo: data.walletInfo
+  }).catch((toastError) => console.error(toastError))
+}
+
 const emptyHandler = (): BeaconEventHandlerFunction => async (): Promise<void> => {
   //
 }
@@ -645,6 +668,8 @@ export const defaultEventCallbacks: {
   [BeaconEvent.BROADCAST_REQUEST_SENT]: showSentToast,
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: showBroadcastSuccessAlert,
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: showErrorToast,
+  [BeaconEvent.WC_ACKNOWLEDGE_PENDING]: showWCPendingAck,
+  [BeaconEvent.WC_ACKNOWLEDGE_RECEIVED]: showWCReceivedAck,
   [BeaconEvent.ACKNOWLEDGE_RECEIVED]: showAcknowledgedToast,
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
@@ -678,6 +703,8 @@ export class BeaconEventHandler {
     [BeaconEvent.SIGN_REQUEST_SENT]: [defaultEventCallbacks.SIGN_REQUEST_SENT],
     [BeaconEvent.SIGN_REQUEST_SUCCESS]: [defaultEventCallbacks.SIGN_REQUEST_SUCCESS],
     [BeaconEvent.SIGN_REQUEST_ERROR]: [defaultEventCallbacks.SIGN_REQUEST_ERROR],
+    [BeaconEvent.WC_ACKNOWLEDGE_PENDING]: [defaultEventCallbacks.WC_ACKNOWLEDGE_PENDING],
+    [BeaconEvent.WC_ACKNOWLEDGE_RECEIVED]: [defaultEventCallbacks.WC_ACKNOWLEDGE_RECEIVED],
     // TODO: ENCRYPTION
     // [BeaconEvent.ENCRYPT_REQUEST_SENT]: [defaultEventCallbacks.ENCRYPT_REQUEST_SENT],
     // [BeaconEvent.ENCRYPT_REQUEST_SUCCESS]: [defaultEventCallbacks.ENCRYPT_REQUEST_SUCCESS],
@@ -690,7 +717,9 @@ export class BeaconEventHandler {
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
     [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
-    [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE],
+    [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [
+      defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE
+    ],
     [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
     [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
