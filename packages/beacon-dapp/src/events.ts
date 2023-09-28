@@ -212,13 +212,6 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     isBold: true
   })
   actions.push({
-    text: 'Did you make a mistake?',
-    actionText: 'Cancel Request',
-    actionCallback: async (): Promise<void> => {
-      await closeToast()
-    }
-  })
-  actions.push({
     text: 'Wallet not receiving request?',
     actionText: 'Reset Connection',
     actionCallback: async (): Promise<void> => {
