@@ -3,7 +3,6 @@ import {
   CommunicationClient,
   Serializer,
   ClientEvents,
-  Logger
 } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
