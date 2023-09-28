@@ -597,18 +597,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return this.session
   }
 
-  public async getPairingRequestInfo(
-  ): Promise<ExtendedWalletConnectPairingRequest> {
+  public async getPairingRequestInfo(): Promise<ExtendedWalletConnectPairingRequest> {
     const { uri, topic } = (await this.init(true)) ?? {}
-    return {
-      id: topic!,
-      type: 'walletconnect-pairing-request',
-      name: 'WalletConnect',
-      version: BEACON_VERSION,
-      uri: uri!,
-      senderId: await generateGUID(),
-      publicKey: await generateGUID()
-    }
+    return new ExtendedWalletConnectPairingRequest(
+      topic!,
+      'WalletConnect',
+      await generateGUID(),
+      BEACON_VERSION,
+      await generateGUID(),
+      uri!
+    )
   }
 
   private async closePairings() {
