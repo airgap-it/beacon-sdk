@@ -201,6 +201,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async setSessionProperties(session: SessionTypes.Struct) {
+    const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+    fun && fun(true)
     try {
       const sessionProperties = await this.fetchSessionProperties(
         session.topic,
@@ -210,6 +212,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     } catch (error) {
       console.warn('No session properties received.')
     }
+    fun && fun(false)
   }
 
   async requestPermissions(message: PermissionRequest) {
