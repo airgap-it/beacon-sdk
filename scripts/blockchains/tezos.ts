@@ -83,6 +83,7 @@ export const tezosWebList: WebApp[] = [
     shortName: 'Kukai',
     color: '',
     logo: 'web-kukai.png',
+    supportedInteractionStandards: ['wallet_connect'],
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
       [NetworkType.GHOSTNET]: 'https://ghostnet.kukai.app',
@@ -216,5 +217,15 @@ export const tezosIosList: App[] = [
     supportedInteractionStandards: ['beacon'],
     deepLink: 'exodus://wc',
     universalLink: 'https://www.exodus.com/'
+  },
+  {
+    key: 'kukai_ios',
+    name: 'Kukai Wallet',
+    shortName: 'Kukai',
+    color: '',
+    logo: 'web-kukai.png',
+    supportedInteractionStandards: ['wallet_connect'],
+    universalLink: 'https://wallet.kukai.app',
+    deepLink: 'kukai://'
   }
 ]
