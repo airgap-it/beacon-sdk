@@ -33,6 +33,7 @@ import {
   arrangeTopWallets,
   MergedWallet,
   mergeWallets,
+  OSLink,
   parseWallets,
   Wallet
 } from 'src/utils/wallets'
@@ -139,16 +140,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
+  const isOnline = navigator.onLine;
 
   setAnalytics(config.analytics)
-
-  // TODO: Remove eager connection
-  p2pPayload?.then(() => {
-    console.log('P2P LOADED')
-  })
-  wcPayload?.then(() => {
-    console.log('WC LOADED')
-  })
 
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
@@ -171,8 +165,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const setDefaultPayload = async () => {
       if (config.pairingPayload) {
         const serializer = new Serializer()
-        const codeQR = await serializer.serialize(await p2pPayload)
-        setCodeQR(codeQR)
+        try {
+          const codeQR = await serializer.serialize(await p2pPayload)
+          setCodeQR(codeQR)
+        } catch (error: any) {
+          console.error('Cannot connect to network: ', error.message)
+        }
       }
     }
 
@@ -183,7 +181,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     // Shadow root
     const shadowRootEl = document.createElement('div')
     if (document.getElementById('beacon-alert-wrapper')) {
-      (document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
+      ;(document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
     }
     shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')
     shadowRootEl.style.height = '0px'
@@ -392,6 +390,41 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (config.closeButtonCallback) config.closeButtonCallback()
     }
 
+    const handleNewTab = async (config: AlertConfig, wallet?: MergedWallet) => {
+      if(!wallet) {
+        return
+      }
+
+      if (config.pairingPayload) {
+        // Noopener feature parameter cannot be used, because Chrome will open
+        // about:blank#blocked instead and it will no longer work.
+        const newTab = window.open('', '_blank')
+
+        if (newTab) {
+          newTab.opener = null
+        }
+
+        let link = ''
+
+        if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
+          const uri = (await wcPayload)?.uri
+          if (uri) {
+            link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
+          }
+        } else {
+          const serializer = new Serializer()
+          const code = await serializer.serialize(await p2pPayload)
+          link = getTzip10Link(wallet.links[OSLink.WEB], code)
+        }
+
+        if (newTab) {
+          newTab.location.href = link
+        } else {
+          window.open(link, '_blank', 'noopener')
+        }
+      }
+    }
+
     const handleClickWallet = async (id: string) => {
       if (isLoading()) return
 
@@ -404,36 +437,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, wallet.key)
       }
 
-      if (wallet?.types.includes('web')) {
-        if (config.pairingPayload) {
-          // Noopener feature parameter cannot be used, because Chrome will open
-          // about:blank#blocked instead and it will no longer work.
-          const newTab = window.open('', '_blank')
-
-          if (newTab) {
-            newTab.opener = null
-          }
-
-          let link = ''
-
-          if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-            const uri = (await wcPayload)?.uri
-            if (uri) {
-              link = `${wallet.link}/wc?uri=${encodeURIComponent(uri)}`
-            }
-          } else {
-            const serializer = new Serializer()
-            const code = await serializer.serialize(await p2pPayload)
-            link = getTzip10Link(wallet.link, code)
-          }
-
-          if (newTab) {
-            newTab.location.href = link
-          } else {
-            window.open(link, '_blank', 'noopener')
-          }
-        }
-
+      if (
+        wallet?.types.includes('web') &&
+        !(
+          wallet?.types.includes('extension') ||
+          wallet?.types.includes('desktop') ||
+          wallet?.types.includes('ios')
+        )
+      ) {
+        handleNewTab(config, wallet)
         return
       }
 
@@ -463,7 +475,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         }
         setIsLoading(false)
-      } else if (wallet?.types.includes('ios') && _isMobileOS) { 
+      } else if (wallet?.types.includes('ios') && _isMobileOS) {
         setCodeQR('')
 
         if (config.pairingPayload) {
@@ -475,7 +487,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               ? wallet.deepLink
               : isAndroid(window)
               ? 'tezos://'
-              : wallet.link,
+              : wallet.links[OSLink.IOS],
             code
           )
 
@@ -491,9 +503,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         }
         setIsLoading(false)
       } else {
-        await setDefaultPayload()
         setIsLoading(false)
         setCurrentInfo('install')
+        await setDefaultPayload()
       }
     }
 
@@ -537,7 +549,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       analytics()?.track('click', 'ui', 'install extension', { key: currentWallet()?.key })
 
       setShowMoreContent(false)
-      window.open(currentWallet()?.link || '', '_blank', 'noopener')
+      window.open(currentWallet()?.links[OSLink.EXTENSION] || '', '_blank', 'noopener')
     }
 
     const handleClickOpenDesktopApp = async () => {
@@ -556,7 +568,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       analytics()?.track('click', 'ui', 'download desktop', { key: currentWallet()?.key })
 
       setShowMoreContent(false)
-      window.open(currentWallet()?.link || '', '_blank', 'noopener')
+      window.open(currentWallet()?.links[OSLink.DESKTOP] || '', '_blank', 'noopener')
     }
 
     const hasExtension = () =>
@@ -603,6 +615,21 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
+                      {!isMobile() && isOnline && currentWallet()?.types.includes('web') && (
+                        <Info
+                          border
+                          title={'Open wallet in a new tab'}
+                          description={`Please connect below to use ${currentWallet()?.name}`}
+                          buttons={[
+                            {
+                              label: 'Connect now',
+                              type: 'primary',
+                              onClick: () =>
+                              handleNewTab(config, currentWallet())
+                            }
+                          ]}
+                        />
+                      )}
                       {!isMobile() && currentWallet()?.types.includes('extension') && (
                         <Info
                           border
