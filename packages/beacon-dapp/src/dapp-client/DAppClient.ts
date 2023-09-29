@@ -443,6 +443,11 @@ export class DAppClient extends Client {
     this.destroy()
   }
 
+  async destroy(): Promise<void> {
+    (await this.transport).disconnect()
+    await super.destroy()
+  }
+
   public async init(transport?: Transport<any>): Promise<TransportType> {
     if (this._initPromise) {
       return this._initPromise
