@@ -465,6 +465,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     signClient.on('session_update', (event) => {
+      this.session = signClient.session.get(event.topic)
       this.updateActiveAccount(event.params.namespaces)
     })
 
@@ -676,7 +677,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       // I still need this check in the event the user aborts the sync process on the wallet side
       // but there is already a connection set
-      this.session = this.session ?? (session as SessionTypes.Struct)
+      this.session = this.session ?? session
       this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
     } catch (error: any) {
       console.error(error.message)
