@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-transport-walletconnect",
-  "version": "4.0.10-beta.0",
+  "version": "4.0.10",
   "description": "This package contains methods to facilitate communication over the WalletConnect network.",
   "author": "Papers AG",
   "homepage": "https://walletbeacon.io",
@@ -34,9 +34,9 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "4.0.10-beta.0",
-    "@airgap/beacon-types": "4.0.10-beta.0",
-    "@airgap/beacon-utils": "4.0.10-beta.0",
-    "@walletconnect/sign-client": "^2.9.0"
+    "@airgap/beacon-core": "4.0.10",
+    "@airgap/beacon-types": "4.0.10",
+    "@airgap/beacon-utils": "4.0.10",
+    "@walletconnect/sign-client": "2.7.0"
   }
 }

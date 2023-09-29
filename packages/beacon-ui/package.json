@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-ui",
-  "version": "4.0.10-beta.0",
+  "version": "4.0.10",
   "description": "This package contains the UI part (alerts and toasts) of the Beacon SDK.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -34,26 +34,26 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "4.0.10-beta.0",
-    "@airgap/beacon-transport-postmessage": "4.0.10-beta.0",
-    "@airgap/beacon-types": "4.0.10-beta.0",
-    "@airgap/beacon-utils": "4.0.10-beta.0",
+    "@airgap/beacon-core": "4.0.10",
+    "@airgap/beacon-transport-postmessage": "4.0.10",
+    "@airgap/beacon-types": "4.0.10",
+    "@airgap/beacon-utils": "4.0.10",
     "qrcode-svg": "^1.1.0",
-    "solid-js": "^1.6.6"
+    "solid-js": "^1.7.11"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^24.0.1",
+    "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-image": "^3.0.2",
-    "@types/node": "^18.13.0",
-    "@types/qrcode-svg": "^1.1.1",
-    "rollup": "^3.13.0",
-    "rollup-plugin-import-css": "^3.2.1",
+    "@types/node": "^20.6.0",
+    "@types/qrcode-svg": "^1.1.2",
+    "rollup": "^3.29.1",
+    "rollup-plugin-import-css": "^3.3.3",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-svg": "^2.0.0",
-    "rollup-plugin-typescript2": "^0.34.1",
+    "rollup-plugin-typescript2": "^0.35.0",
     "rollup-preset-solid": "^2.0.1",
-    "typescript": "^4.9.4",
-    "vite": "^4.0.3",
-    "vite-plugin-solid": "^2.5.0"
+    "typescript": "^5.2.2",
+    "vite": "^4.4.9",
+    "vite-plugin-solid": "^2.7.0"
   }
 }

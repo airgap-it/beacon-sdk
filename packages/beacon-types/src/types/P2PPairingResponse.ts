@@ -1,22 +1,55 @@
-import { PeerInfo } from './PeerInfo'
+import { ExtendedPeerInfo, PeerInfo } from './PeerInfo'
 
 /**
  * @internalapi
  */
-export interface P2PPairingResponse extends PeerInfo {
-  id: string
-  type: 'p2p-pairing-response'
-  name: string
-  publicKey: string
+export class P2PPairingResponse implements PeerInfo {
+  readonly type: string = 'p2p-pairing-request'
   relayServer: string
-  icon?: string // TODO: Should this be a URL or base64 image?
-  appUrl?: string
+  id: string
+  name: string
+  icon?: string | undefined
+  appUrl?: string | undefined
+  publicKey: string
+  version: string
+
+  constructor(
+    id: string,
+    name: string,
+    publicKey: string,
+    version: string,
+    relayServer: string,
+    icon?: string,
+    appUrl?: string
+  ) {
+    this.id = id
+    this.name = name
+    this.icon = icon
+    this.appUrl = appUrl
+    this.publicKey = publicKey
+    this.version = version
+    this.relayServer = relayServer
+  }
 }
 
 /**
  * @internalapi
  */
-export type ExtendedP2PPairingResponse = P2PPairingResponse & {
+export class ExtendedP2PPairingResponse extends P2PPairingResponse implements ExtendedPeerInfo {
   senderId: string
+
+  constructor(
+    id: string,
+    name: string,
+    publicKey: string,
+    version: string,
+    relayServer: string,
+    senderId: string,
+    icon?: string,
+    appUrl?: string
+  ) {
+    super(id, name, publicKey, version, relayServer, icon, appUrl)
+    this.senderId = senderId
+  }
 }
 // TODO: Rename to "WalletPeerInfo"?
