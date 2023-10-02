@@ -1,4 +1,4 @@
 {
-  "useWorkspaces": true,
-  "version": "4.0.9"
+  "version": "4.0.10",
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json"
 }

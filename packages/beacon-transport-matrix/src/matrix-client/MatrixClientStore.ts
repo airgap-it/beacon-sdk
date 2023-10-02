@@ -60,14 +60,7 @@ export class MatrixClientStore {
   /**
    * A promise that resolves once the client is ready
    */
-  private waitReadyPromise: Promise<void> = new Promise<void>(async (resolve, reject) => {
-    try {
-      await this.initFromStorage()
-      resolve()
-    } catch (error) {
-      reject(error)
-    }
-  })
+  private waitReadyPromise: Promise<void> | undefined
 
   constructor(private readonly storage: Storage) {}
 
@@ -129,6 +122,17 @@ export class MatrixClientStore {
    * A promise that resolves once the client is ready
    */
   private async waitReady(): Promise<void> {
+    if (this.waitReadyPromise === undefined) {
+      this.waitReadyPromise = new Promise<void>(async (resolve, reject) => {
+        try {
+          await this.initFromStorage()
+          resolve()
+        } catch (error) {
+          reject(error)
+        }
+      })
+    }
+    
     return this.waitReadyPromise
   }
 

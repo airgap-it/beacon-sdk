@@ -70,8 +70,6 @@ export class OutgoingResponseInterceptor {
     const v3Message: PermissionResponseV3<string> | BlockchainResponseV3<string> =
       wrappedMessage.message
 
-    // console.log('LOGGING OUTGOING V3', v3Message, appMetadataManager)
-
     if (v3Message === undefined) {
       interceptorCallback(msg as any)
       return

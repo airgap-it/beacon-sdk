@@ -31,7 +31,12 @@ import {
   BeaconMessageWrapper,
   BeaconBaseMessage,
   StorageKey,
-  PushToken
+  PushToken,
+  PostMessagePairingRequest,
+  ExtendedPostMessagePairingRequest,
+  P2PPairingRequest,
+  ExtendedP2PPairingRequest,
+  ExtendedWalletConnectPairingRequest
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
 import { WalletP2PTransport } from '../transports/WalletP2PTransport'
@@ -257,7 +262,6 @@ export class WalletClient extends Client {
    * @param message The BeaconResponseMessage that will be sent back to the DApp
    */
   public async respond(message: BeaconResponseInputMessage): Promise<void> {
-    // console.log('RESPONSE', message)
     const request = this.pendingRequests.find(
       (pendingRequest) => pendingRequest[0].id === message.id
     )
@@ -314,17 +318,49 @@ export class WalletClient extends Client {
     return this.permissionManager.removeAllPermissions()
   }
 
+  private async getPeerInfo(peer: PeerInfo): Promise<ExtendedPeerInfo> {
+    const senderId = await getSenderId(peer.publicKey)
+
+    if (peer instanceof PostMessagePairingRequest) {
+      return new ExtendedPostMessagePairingRequest(
+        peer.id,
+        peer.name,
+        peer.publicKey,
+        peer.version,
+        senderId
+      )
+    } else if (peer instanceof P2PPairingRequest) {
+      return new ExtendedP2PPairingRequest(
+        peer.id,
+        peer.name,
+        peer.publicKey,
+        peer.version,
+        peer.relayServer,
+        senderId
+      )
+    } else if (peer instanceof ExtendedWalletConnectPairingRequest) {
+      return new ExtendedWalletConnectPairingRequest(
+        peer.id,
+        peer.name,
+        peer.publicKey,
+        peer.version,
+        senderId,
+        peer.uri
+      )
+    } else {
+      return {
+        ...peer,
+        senderId
+      }
+    }
+  }
+
   /**
    * Add a new peer to the known peers
    * @param peer The new peer to add
    */
   public async addPeer(peer: PeerInfo, sendPairingResponse: boolean = true): Promise<void> {
-    const extendedPeer: ExtendedPeerInfo = {
-      ...peer,
-      senderId: await getSenderId(peer.publicKey)
-    }
-
-    return (await this.transport).addPeer(extendedPeer, sendPairingResponse)
+    return (await this.transport).addPeer(await this.getPeerInfo(peer), sendPairingResponse)
   }
 
   public async removePeer(

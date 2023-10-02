@@ -88,7 +88,7 @@ export enum BeaconEvent {
 
   SHOW_PREPARE = 'SHOW_PREPARE',
   HIDE_UI = 'HIDE_UI',
-
+  INVALID_ACTIVE_ACCOUNT_STATE = 'INVALID_ACTIVE_ACCOUNT_STATE',
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
@@ -168,6 +168,7 @@ export interface BeaconEventType {
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
+  [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: undefined
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
   [BeaconEvent.PAIR_INIT]: {
@@ -288,6 +289,17 @@ const showNoPermissionAlert = async (): Promise<void> => {
   await openAlert({
     title: 'No Permission',
     body: 'Please allow the wallet to handle this type of request.'
+  })
+}
+
+/**
+ * Show a 
+ */
+const showInvalidActiveAccountState = async (): Promise<void> => {
+  await openAlert({
+    title: 'Invalid state',
+    body: `A new active account has been received but no handler found 
+    (INVALID STATE: no handler found for BeaconEvent.ACTIVE_ACCOUNT_SET)`
   })
 }
 
@@ -660,6 +672,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(),
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(),
+  [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: showInvalidActiveAccountState,
   [BeaconEvent.SHOW_PREPARE]: showPrepare,
   [BeaconEvent.HIDE_UI]: hideUI,
   [BeaconEvent.PAIR_INIT]: showPairAlert,
@@ -700,6 +713,7 @@ export class BeaconEventHandler {
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
     [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
+    [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE],
     [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
     [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],

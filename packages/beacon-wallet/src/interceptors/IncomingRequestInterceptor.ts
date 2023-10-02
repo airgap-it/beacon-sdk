@@ -44,8 +44,6 @@ export class IncomingRequestInterceptor {
    * @param config
    */
   public static async intercept(config: IncomingRequestInterceptorOptions): Promise<void> {
-    // console.log('INTERCEPTING REQUEST', config.message)
-
     if (config.message.version === '2') {
       IncomingRequestInterceptor.handleV2Message(config as IncomingRequestInterceptorOptionsV2)
     } else if (config.message.version === '3') {
@@ -76,7 +74,6 @@ export class IncomingRequestInterceptor {
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
         {
-          // console.log('PERMISSION REQUEST V*', message)
           // TODO: Remove v1 compatibility in later version
           if ((message.appMetadata as any).beaconId && !message.appMetadata.senderId) {
             message.appMetadata.senderId = (message.appMetadata as any).beaconId

@@ -184,7 +184,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     // Shadow root
     const shadowRootEl = document.createElement('div')
     if (document.getElementById('beacon-alert-wrapper')) {
-      (document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
+      ;(document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
     }
     shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')
     shadowRootEl.style.height = '0px'
@@ -336,40 +336,44 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const [isMobile, setIsMobile] = createSignal(_isMobileOS)
     const [windowWidth, setWindowWidth] = createSignal(window.innerWidth)
 
-    const debounce = (fun: Function, delay: number) => {
-      let timerId: NodeJS.Timeout
+    const AlertResize = () => {
+      const debounce = (fun: Function, delay: number) => {
+        let timerId: NodeJS.Timeout
 
-      return (...args: any[]) => {
-        clearTimeout(timerId)
-        timerId = setTimeout(() => fun(...args), delay)
-      }
-    }
-
-    const debouncedSetWindowWidth = debounce(setWindowWidth, 200)
-
-    const updateIsMobile = (isMobileWidth: boolean) => {
-      // to avoid unwanted side effects (because of the OR condition), I always reset the value without checking the previous state
-      setWalletList(createWalletList())
-      setIsMobile(isMobileWidth || _isMobileOS)
-    }
-
-    createEffect(() => {
-      updateIsMobile(windowWidth() <= 800)
-    })
-
-    // Update the windowWidth signal when the window resizes
-    createEffect(() => {
-      const handleResize = () => {
-        debouncedSetWindowWidth(window.innerWidth)
+        return (...args: any[]) => {
+          clearTimeout(timerId)
+          timerId = setTimeout(() => fun(...args), delay)
+        }
       }
 
-      window.addEventListener('resize', handleResize)
+      const debouncedSetWindowWidth = debounce(setWindowWidth, 200)
 
-      // Unsubscribe from the event when the component unmounts
-      onCleanup(() => {
-        window.removeEventListener('resize', handleResize)
+      const updateIsMobile = (isMobileWidth: boolean) => {
+        // to avoid unwanted side effects (because of the OR condition), I always reset the value without checking the previous state
+        setWalletList(createWalletList())
+        setIsMobile(isMobileWidth || _isMobileOS)
+      }
+
+      createEffect(() => {
+        updateIsMobile(windowWidth() <= 800)
       })
-    })
+
+      // Update the windowWidth signal when the window resizes
+      createEffect(() => {
+        const handleResize = () => {
+          debouncedSetWindowWidth(window.innerWidth)
+        }
+
+        window.addEventListener('resize', handleResize)
+
+        // Unsubscribe from the event when the component unmounts
+        onCleanup(() => {
+          window.removeEventListener('resize', handleResize)
+        })
+      })
+
+      return <></>
+    }
 
     const handleClickShowMoreContent = () => {
       analytics()?.track('click', 'ui', 'show more wallets')
@@ -465,7 +469,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         }
         setIsLoading(false)
-      } else if (wallet?.types.includes('ios') && _isMobileOS) { 
+      } else if (wallet?.types.includes('ios') && _isMobileOS) {
         setCodeQR('')
 
         if (config.pairingPayload) {
@@ -572,6 +576,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     dispose = render(
       () => (
         <div class={`theme__${colorMode}`}>
+          <AlertResize />
           {config.pairingPayload && (
             <Alert
               loading={isLoading()}
