@@ -827,6 +827,26 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       )
     }
   }
+
+  async closeActiveSession(account: string) {
+    try {
+      this.validateNetworkAndAccount(this.getActiveNetwork(), account);
+    } catch(error: any) {
+      console.error(error.message);
+      return;
+    }
+
+    const session = this.getSession();
+
+    await this.signClient?.disconnect({
+      topic: session.topic,
+      reason: {
+        code: 0, // TODO: Use constants
+        message: 'Force new connection'
+      }
+    })
+  }
+
   private validateNetworkAndAccount(network: string, account: string) {
     if (!this.getTezosNamespace().accounts.includes(`${TEZOS_PLACEHOLDER}:${network}:${account}`)) {
       throw new InvalidNetworkOrAccount(network, account)

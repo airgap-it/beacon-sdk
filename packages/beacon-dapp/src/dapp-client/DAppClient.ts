@@ -619,6 +619,20 @@ export class DAppClient extends Client {
       return
     }
 
+    // when I'm resetting the activeAccount
+    if (!account && this._activeAccount.isResolved() && (await this.getActiveAccount())) {
+      const transport = await this.transport
+      const activeAccount = await this.getActiveAccount()
+
+      if (!transport || !activeAccount) {
+        return
+      }
+
+      if (transport instanceof WalletConnectTransport) {
+        await transport.closeActiveSession(activeAccount)
+      }
+    }
+
     if (this._activeAccount.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
       this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(account)
