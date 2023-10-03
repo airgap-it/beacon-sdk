@@ -5,9 +5,10 @@ import { ICPermissionBeaconRequest, ICPermissionRequest } from "./types/messages
 import { ICPermissionBeaconResponse, ICPermissionResponse } from "./types/messages/permission-response"
 import { ICCanisterCallBeaconRequest, ICCanisterCallRequest } from "./types/messages/canister-call-request"
 import { ICCanisterCallBeaconResponse, ICCanisterCallResponse } from "./types/messages/canister-call-response"
-import { ICPermissionScope } from "./types/permission-scope"
 import { JsonRPCError } from "./types/messages/response"
 import { BeaconErrorType } from "@airgap/beacon-types"
+import { ICRevokePermissionBeaconRequest, ICRevokePermissionRequest } from "./types/messages/revoke-permission-request"
+import { ICRevokePermissionBeaconResponse, ICRevokePermissionResponse } from "./types/messages/revoke-permission-response"
 
 declare module "@airgap/beacon-dapp" {
     interface DAppClient {
@@ -45,18 +46,13 @@ class ICDappClient {
         }
 
         const response: ICPermissionBeaconResponse = (await this.client.permissionRequest(beaconRequest, jsonrpcRequest.id.toString())) as ICPermissionBeaconResponse
-        const { type: _, ...result } = response.blockchainData
+        const { type: _type, ...result } = response.blockchainData
+        const { appMetadata: _appMetadata, ...rest } = result
 
         const jsonrpcResponse: ICPermissionResponse = {
             id: jsonrpcRequest.id,
             jsonrpc: '2.0',
-            result: {
-                ...result,
-                appMetadata: {
-                    name: result.appMetadata.name,
-                    url: result.appMetadata.url
-                }
-            }
+            result: rest
         }
 
         return jsonrpcResponse
@@ -79,7 +75,7 @@ class ICDappClient {
             accountId: (await this.client.getActiveAccount())?.accountIdentifier!,
             blockchainData: {
                 type: 'canister_call_request',
-                scope: ICPermissionScope.CANISTER_CALL,
+                scope: 'canister_call',
                 ...parameters,
             }
         }
@@ -95,12 +91,46 @@ class ICDappClient {
 
         return jsonrpcResponse
     }
+
+    public async revokePermissions(parameters: ICRevokePermissionRequest['params']): Promise<ICRevokePermissionResponse> {
+        const jsonrpcRequest: ICRevokePermissionRequest = {
+            id: new Date().getTime(),
+            jsonrpc: '2.0',
+            method: 'revoke_permission',
+            params: {
+                ...parameters,
+                version: '1'
+            }
+        }
+
+        const beaconRequest: ICRevokePermissionBeaconRequest = {
+            blockchainIdentifier: 'ic',
+            type: BeaconMessageType.BlockchainRequest,
+            accountId: (await this.client.getActiveAccount())?.accountIdentifier!,
+            blockchainData: {
+                type: 'revoke_permission_request',
+                scope: 'revoke_permission',
+                ...parameters
+            }
+        }
+
+        const response: ICRevokePermissionBeaconResponse = (await this.client.request(beaconRequest, jsonrpcRequest.id.toString())) as ICRevokePermissionBeaconResponse
+        const { type: _, ...result } = response.blockchainData
+
+        const jsonrpcResponse: ICRevokePermissionResponse = {
+            id: jsonrpcRequest.id,
+            jsonrpc: '2.0',
+            result
+        }
+
+        return jsonrpcResponse
+    }
 }
 
 class ICWalletClient {
     constructor(private readonly client: WalletClient) {}
 
-    public connect(newMessageCallback: (message: ICPermissionRequest | ICCanisterCallRequest) => void) {
+    public connect(newMessageCallback: (message: ICPermissionRequest | ICCanisterCallRequest | ICRevokePermissionRequest) => void) {
         this.client.connect(async (message: any) => {
             if (message.message.blockchainIdentifier !== 'ic') {
                 return
@@ -109,17 +139,13 @@ class ICWalletClient {
             const { type: _, ...params } = message.message.blockchainData
 
             if (message.message.type === BeaconMessageType.PermissionRequest) {
+                const { appMetadata: _, ...rest} = params
+
                 newMessageCallback({
                     id: parseInt(message.id),
                     jsonrpc: '2.0',
                     method: 'permission',
-                    params: {
-                        ...params,
-                        appMetadata: {
-                            name: params.appMetadata.name,
-                            url: params.appMetadata.url
-                        }
-                    }
+                    params: rest
                 })
             } else if (message.message.type === BeaconMessageType.BlockchainRequest) {
                 if (message.message.blockchainData.type === 'canister_call_request') {
@@ -129,12 +155,26 @@ class ICWalletClient {
                         method: 'canister_call',
                         params
                     })
+                } else if (message.message.blockchainData.type === 'revoke_permission_request') {
+                    newMessageCallback({
+                        id: parseInt(message.id),
+                        jsonrpc: '2.0',
+                        method: 'revoke_permission',
+                        params
+                    })
                 }
             }
         })
     }
 
-    public async respondWithResult<T extends ICPermissionRequest | ICCanisterCallRequest>(request: T, result: T['method'] extends 'permission' ? ICPermissionResponse['result'] : ICCanisterCallResponse['result']): Promise<void> {
+    public async respondWithResult<T extends ICPermissionRequest | ICCanisterCallRequest | ICRevokePermissionRequest>(
+        request: T,
+        result: T['method'] extends 'permission' 
+            ? ICPermissionResponse['result'] 
+            : T['method'] extends 'canister_call'
+            ? ICCanisterCallResponse['result']
+            : ICRevokePermissionResponse['result']
+    ): Promise<void> {
         if (request.method === 'permission') {
             const response: ICPermissionResponse = {
                 id: request.id,
@@ -169,6 +209,26 @@ class ICWalletClient {
                     type: BeaconMessageType.BlockchainResponse,
                     blockchainData: {
                         type: 'canister_call_response',
+                        ...response.result
+                    }
+                }
+            }
+
+            await this.client.respond(beaconResponse as any)
+        } else if (request.method === 'revoke_permission') {
+            const response: ICRevokePermissionResponse = {
+                id: request.id,
+                jsonrpc: '2.0',
+                result: result as ICRevokePermissionResponse['result']
+            }
+
+            const beaconResponse = {
+                id: response.id.toString(),
+                message: {
+                    blockchainIdentifier: 'ic',
+                    type: BeaconMessageType.BlockchainResponse,
+                    blockchainData: {
+                        type: 'revoke_permission_response',
                         ...response.result
                     }
                 }

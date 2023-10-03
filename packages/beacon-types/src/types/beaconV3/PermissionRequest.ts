@@ -58,7 +58,7 @@ export interface PermissionRequestV3<T extends string = string> extends Blockcha
   type: BeaconMessageType.PermissionRequest
   blockchainData: {
     appMetadata: AppMetadata // Some additional information about the DApp
-    scopes: string[]
+    scopes: any[]
   }
 }
 export interface PermissionResponseV3<T extends string = string> extends BlockchainMessage<T> {
@@ -66,7 +66,7 @@ export interface PermissionResponseV3<T extends string = string> extends Blockch
   type: BeaconMessageType.PermissionResponse
   blockchainData: {
     appMetadata: AppMetadata // Some additional information about the Wallet
-    scopes: string[] // Permissions that have been granted for this specific address / account
+    scopes: any[] // Permissions that have been granted for this specific address / account
   }
 }
 

@@ -7,16 +7,12 @@ import { JsonRPCResponse } from './response'
 
 interface ICPermissionResponseParams {
     version: string
-    appMetadata: AppMetadata
     networks: ICNetwork[]
     scopes: ICPermissionScope[]
     identities: {
         publicKey: string
-        ledger?: {
-            subaccounts?: string[]
-        }
+        signature: string
     }[]
-    signature: string
 }
 
 export type ICPermissionResponse = JsonRPCResponse<ICPermissionResponseParams>
@@ -30,10 +26,7 @@ export interface ICPermissionBeaconResponse extends PermissionResponseV3<ICBlock
         scopes: ICPermissionScope[]
         identities: {
             publicKey: string
-            ledger?: {
-                subaccounts?: string[]
-            }
+            signature: string
         }[]
-        signature: string
     }
 }

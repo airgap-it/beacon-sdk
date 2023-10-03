@@ -1,3 +1,3 @@
-export enum ICPermissionScope {
-    CANISTER_CALL = 'canister_call'
+export interface ICPermissionScope {
+    scopeId: 'canister_call'
 }

@@ -38,19 +38,17 @@ export class ICBlockchain implements Blockchain {
     public async getAccountInfosFromPermissionResponse(
         permissionResponse: ICPermissionBeaconResponse
     ): Promise<{ accountId: string; address: string; publicKey: string; }[]> {
-        return Promise.all(permissionResponse.blockchainData.networks.map(async (network: ICNetwork) => {
-            const identitiy = permissionResponse.blockchainData.identities[0]
-            const accountId = await getAccountIdentifier(
-                identitiy.ledger?.subaccounts && identitiy.ledger?.subaccounts.length > 0
-                    ? `${identitiy.publicKey}:${identitiy.ledger.subaccounts[0]}`
-                    : identitiy.publicKey,
-                network as any
-            )
-            return {
-                accountId,
-                address: '',
-                publicKey: ''
-            }
+        const accounts = await Promise.all(permissionResponse.blockchainData.networks.map(async (network: ICNetwork) => {
+            return Promise.all(permissionResponse.blockchainData.identities.map(async (identity: ICPermissionBeaconResponse['blockchainData']['identities'][number]) => {
+                const accountId = await getAccountIdentifier(identity.publicKey, network as any)
+                return {
+                    accountId,
+                    address: '',
+                    publicKey: identity.publicKey
+                }
+            }))
         }))
+
+        return accounts.reduce((acc, next) => acc.concat(next), [])
     }
 }

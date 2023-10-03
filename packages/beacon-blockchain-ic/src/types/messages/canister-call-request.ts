@@ -1,7 +1,6 @@
 import { BlockchainRequestV3 } from '@airgap/beacon-types'
 
 import { ICBlockchainIdentifier } from '../blockchain'
-import { ICPermissionScope } from '../permission-scope'
 import { JsonRPCRequest } from './request'
 import { ICNetwork } from '../network'
 
@@ -19,7 +18,7 @@ export type ICCanisterCallRequest = JsonRPCRequest<'canister_call', ICCanisterCa
 export interface ICCanisterCallBeaconRequest extends BlockchainRequestV3<ICBlockchainIdentifier> {
     blockchainData: {
         type: 'canister_call_request'
-        scope: ICPermissionScope.CANISTER_CALL
+        scope: 'canister_call'
         version: string
         network: ICNetwork
         canisterId: string

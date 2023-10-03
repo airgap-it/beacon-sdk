@@ -228,10 +228,6 @@ export class DAppClient extends Client {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
         if (openRequest && typedMessage.message?.type === BeaconMessageType.Acknowledge) {
-          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
-          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
-          logger.timeLog('handleResponse', message.id, 'acknowledge')
-
           this.events
             .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
               message: typedMessage.message as AcknowledgeResponse,
@@ -246,9 +242,6 @@ export class DAppClient extends Client {
           if (typedMessage.message?.type === BeaconMessageType.PermissionResponse && appMetadata) {
             await this.appMetadataManager.addAppMetadata(appMetadata)
           }
-
-          logger.timeLog('handleResponse', typedMessage.id, 'response')
-          logger.time(false, typedMessage.id)
 
           if (typedMessage.message?.type === BeaconMessageType.Error) {
             openRequest.reject(typedMessage.message as ErrorResponse)
@@ -287,11 +280,6 @@ export class DAppClient extends Client {
         const typedMessage = message as BeaconMessage
 
         if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
-          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
-          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
-
-          logger.timeLog('handleResponse', message.id, 'acknowledge')
-
           this.events
             .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
               message: typedMessage,
@@ -306,9 +294,6 @@ export class DAppClient extends Client {
           ) {
             await this.appMetadataManager.addAppMetadata(typedMessage.appMetadata)
           }
-
-          logger.timeLog('handleResponse', typedMessage.id, 'response')
-          logger.time(false, typedMessage.id)
 
           if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
             // TODO: Remove "any" once we remove support for v1 wallets
@@ -1537,11 +1522,7 @@ export class DAppClient extends Client {
   }> {
     const messageId = await generateGUID()
 
-    logger.time(true, messageId)
-    logger.log('makeRequest', 'starting')
     await this.init()
-    logger.timeLog(messageId, 'init done')
-    logger.log('makeRequest', 'after init')
 
     const transport = await this.transport
 
@@ -1598,8 +1579,6 @@ export class DAppClient extends Client {
 
     const walletInfo = await this.getWalletInfo(peer, account)
 
-    logger.log('makeRequest', 'sending message', request)
-    logger.timeLog('makeRequest', messageId, 'sending')
     try {
       await transport.send(payload, peer)
     } catch (sendError) {
@@ -1615,10 +1594,8 @@ export class DAppClient extends Client {
           }
         ]
       })
-      logger.timeLog('makeRequest', messageId, 'send error')
       throw sendError
     }
-    logger.timeLog('makeRequest', messageId, 'sent')
 
     this.events
       .emit(messageEvents[requestInput.type].sent, {
@@ -1657,8 +1634,6 @@ export class DAppClient extends Client {
     connectionInfo: ConnectionContext
   }> {
     const messageId = id ?? await generateGUID()
-    logger.time(true, messageId)
-    logger.log('makeRequest', 'starting')
     await this.init()
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -1715,8 +1690,6 @@ export class DAppClient extends Client {
 
     const walletInfo = await this.getWalletInfo(peer, account)
 
-    logger.log('makeRequest', 'sending message', request)
-    logger.timeLog('makeRequest', messageId, 'sending')
     try {
       await transport.send(payload, peer)
     } catch (sendError) {
@@ -1732,10 +1705,8 @@ export class DAppClient extends Client {
           }
         ]
       })
-      logger.timeLog('makeRequest', messageId, 'send error')
       throw sendError
     }
-    logger.timeLog('makeRequest', messageId, 'sent')
 
     const index = requestInput.type as any as BeaconMessageType
 
