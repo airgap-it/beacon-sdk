@@ -164,12 +164,12 @@ export class DAppClient extends Client {
    * The currently active account. For all requests that are associated to a specific request (operation request, signing request),
    * the active account is used to determine the network and destination wallet
    */
-  private _activeAccount: Promise<AccountInfo | undefined> = Promise.resolve(undefined)
+  private _activeAccount: ExposedPromise<AccountInfo | undefined> = new ExposedPromise()
 
   /**
    * The currently active peer. This is used to address a peer in case the active account is not set. (Eg. for permission requests)
    */
-  private _activePeer: Promise<PeerInfoType | undefined> = Promise.resolve(undefined)
+  private _activePeer: ExposedPromise<PeerInfoType | undefined> = new ExposedPromise()
 
   private _initPromise: Promise<TransportType> | undefined
 
@@ -205,7 +205,19 @@ export class DAppClient extends Client {
 
     this.appMetadataManager = new AppMetadataManager(this.storage)
 
-    this.activeAccountLoaded = this.initStorage()
+    this.activeAccountLoaded = this.storage
+      .get(StorageKey.ACTIVE_ACCOUNT)
+      .then(async (activeAccountIdentifier) => {
+        if (activeAccountIdentifier) {
+          await this.setActiveAccount(await this.accountManager.getAccount(activeAccountIdentifier))
+        } else {
+          await this.setActiveAccount(undefined)
+        }
+      })
+      .catch(async (storageError) => {
+        await this.setActiveAccount(undefined)
+        console.error(storageError)
+      })
 
     this.handleResponse = async (
       message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
@@ -349,23 +361,6 @@ export class DAppClient extends Client {
     }
   }
 
-  private promiseState<T>(promise: Promise<T>) {
-    const t = {};
-    return Promise.race([promise, t])
-      .then(v => (v === t)? "pending" : "fulfilled", () => "rejected");
-  }
-
-  private async initStorage() {
-    const id = await this.storage.get(StorageKey.ACTIVE_ACCOUNT)
-
-    if (!id) {
-      await this.setActiveAccount(undefined)
-      return
-    }
-
-    await this.setActiveAccount(await this.accountManager.getAccount(id))
-  }
-
   public async initInternalTransports(): Promise<void> {
     const keyPair = await this.keyPair
 
@@ -458,7 +453,11 @@ export class DAppClient extends Client {
       return this._initPromise
     }
 
-    this.activeAccountLoaded.catch((error) => console.error(error))
+    try {
+      await this.activeAccountLoaded
+    } catch {
+      //
+    }
 
     this._initPromise = new Promise(async (resolve) => {
       if (transport) {
@@ -595,11 +594,11 @@ export class DAppClient extends Client {
    * Returns the active account
    */
   public async getActiveAccount(): Promise<AccountInfo | undefined> {
-    return await this._activeAccount
+    return this._activeAccount.promise
   }
 
   private async isInvalidState(account: AccountInfo) {
-    const activeAccount = await this._activeAccount
+    const activeAccount = await this._activeAccount.promise
     return !activeAccount
       ? false
       : activeAccount?.address !== account.address && !this.isGetActiveAccountHandled
@@ -621,11 +620,7 @@ export class DAppClient extends Client {
     }
 
     // when I'm resetting the activeAccount
-    if (
-      !account &&
-      (await this.promiseState(this._activeAccount)) !== 'pending' &&
-      (await this.getActiveAccount())
-    ) {
+    if (!account && this._activeAccount.isResolved() && (await this.getActiveAccount())) {
       const transport = await this.transport
       const activeAccount = await this.getActiveAccount()
 
@@ -638,7 +633,12 @@ export class DAppClient extends Client {
       }
     }
 
-    this._activeAccount = Promise.resolve(account)
+    if (this._activeAccount.isSettled()) {
+      // If the promise has already been resolved we need to create a new one.
+      this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(account)
+    } else {
+      this._activeAccount.resolve(account)
+    }
 
     if (account) {
       const origin = account.origin.type
@@ -1292,7 +1292,12 @@ export class DAppClient extends Client {
   }
 
   protected async setActivePeer(peer?: PeerInfoType): Promise<void> {
-    this._activePeer = Promise.resolve(peer)
+    if (this._activePeer.isSettled()) {
+      // If the promise has already been resolved we need to create a new one.
+      this._activePeer = ExposedPromise.resolve(peer)
+    } else {
+      this._activePeer.resolve(peer)
+    }
 
     if (!peer) {
       return
@@ -1559,7 +1564,7 @@ export class DAppClient extends Client {
         peer = peers.find((peerEl) => (peerEl as any).extensionId === account.origin.id)
       }
     } else {
-      peer = await this._activePeer
+      peer = await this._activePeer.promise
       logger.log('getPeer', 'Active peer', peer)
     }
 
