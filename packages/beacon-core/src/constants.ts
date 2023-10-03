@@ -1,4 +1,4 @@
-export const SDK_VERSION: string = '4.0.11-icp-icrc25-beta.0'
+export const SDK_VERSION: string = '4.0.11-icp-icrc25-beta.1'
 export const BEACON_VERSION: string = '3'
 
 export const NOTIFICATION_ORACLE_URL: string =

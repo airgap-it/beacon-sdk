@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-utils",
-  "version": "4.0.11-icp-icrc25-beta.0",
+  "version": "4.0.11-icp-icrc25.beta.1",
   "description": "This package contains utility functions that are used throughout the beacon-sdk",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
