@@ -610,7 +610,7 @@ export class DAppClient extends Client {
    * @param account The account that will be set as the active account
    */
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
-    if (account && (await this.isInvalidState(account))) {
+    if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
       setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI), 1000)
       this.destroy()
       this.setActiveAccount(undefined)
