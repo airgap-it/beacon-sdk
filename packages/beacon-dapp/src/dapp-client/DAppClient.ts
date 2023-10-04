@@ -60,7 +60,8 @@ import {
   WebApp,
   ExtendedWalletConnectPairingResponse,
   ChangeAccountRequest,
-  PeerInfoType
+  PeerInfoType,
+  AppBase
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -108,7 +109,10 @@ import {
   getDesktopList,
   getExtensionList,
   getWebList,
-  getiOSList
+  getiOSList,
+  isMobileOS,
+  isBrowser,
+  isDesktop
 } from '@airgap/beacon-ui'
 import { signMessage } from '@airgap/beacon-utils'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
@@ -444,7 +448,7 @@ export class DAppClient extends Client {
   }
 
   async destroy(): Promise<void> {
-    (await this.transport).disconnect()
+    ;(await this.transport).disconnect()
     await super.destroy()
   }
 
@@ -1508,20 +1512,31 @@ export class DAppClient extends Client {
       return false
     }
 
-    let selectedApp: WebApp | App | DesktopApp | ExtensionApp | undefined
+    let selectedApp: AppBase | undefined
     let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
+    const apps: AppBase[] = [
+      ...getiOSList(),
+      ...getWebList(),
+      ...getDesktopList(),
+      ...getExtensionList()
+    ].filter((app: AppBase) => lowerCaseCompare(app.name, walletInfo?.name))
     // TODO: Remove once all wallets send the icon?
-    if (getiOSList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-      selectedApp = getiOSList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+    const mobile = (apps as App[]).find((app) => app.universalLink)
+    const browser = (apps as WebApp[]).find((app) => app.links)
+    const desktop = (apps as DesktopApp[]).find((app) => app.downloadLink)
+    const extension = (apps as ExtensionApp[]).find((app) => app.id)
+
+    if (isMobileOS(window) && mobile) {
+      selectedApp = mobile
       type = 'mobile'
-    } else if (getWebList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-      selectedApp = getWebList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+    } else if (isBrowser(window) && browser) {
+      selectedApp = browser
       type = 'web'
-    } else if (getDesktopList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-      selectedApp = getDesktopList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+    } else if (isDesktop(window) && desktop) {
+      selectedApp = desktop
       type = 'desktop'
-    } else if (getExtensionList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))) {
-      selectedApp = getExtensionList().find((app) => lowerCaseCompare(app.name, walletInfo?.name))
+    } else if (isBrowser(window) && extension) {
+      selectedApp = extension
       type = 'extension'
     }
 
