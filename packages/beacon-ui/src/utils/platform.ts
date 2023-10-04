@@ -33,11 +33,19 @@ const isIpad = (win: Window): boolean => {
   return false
 }
 
+export const isBrowser = (win: Window): boolean =>
+  testUserAgent(
+    win,
+    /(?:Mozilla)(?=.*\b(?:Gecko|AppleWebKit))(?=.*\b(?:Chrome|Safari|Firefox|Opera|Edge|Brave|DuckDuckGo)).*/i
+  )
+
 export const isPrivacyBrowser = (win: Window): boolean => testUserAgent(win, /Mobile DuckDuckGo/i)
 
-export const isIOS = (win: Window): boolean => isPrivacyBrowser(win) || testUserAgent(win, /iPhone|iPod|Mobile DuckDuckGo/i) || isIpad(win)
+export const isIOS = (win: Window): boolean =>
+  isPrivacyBrowser(win) || testUserAgent(win, /iPhone|iPod|Mobile DuckDuckGo/i) || isIpad(win)
 
-export const isAndroid = (win: Window): boolean => !isPrivacyBrowser(win) && testUserAgent(win, /android|sink/i)
+export const isAndroid = (win: Window): boolean =>
+  !isPrivacyBrowser(win) && testUserAgent(win, /android|sink/i)
 
 export const isTwBrowser = (win: Window): boolean => win && (win as any).ethereum?.isTrust == true
 
