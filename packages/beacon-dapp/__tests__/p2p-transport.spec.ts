@@ -33,7 +33,7 @@ describe(`P2PTransport`, () => {
     const keypair = await getKeypairFromSeed('test')
     const localStorage = new LocalStorage()
 
-    transport = new DappP2PTransport('Test', keypair, localStorage, [])
+    transport = new DappP2PTransport('Test', keypair, localStorage, [] as any)
   })
 
   it(`should be supported`, async () => {

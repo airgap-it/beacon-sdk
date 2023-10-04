@@ -1,6 +1,6 @@
 import { Component, createEffect, createSignal } from 'solid-js'
-import { getTzip10Link } from 'src/utils/get-tzip10-link'
-import { getQrData } from 'src/utils/qr'
+import { getTzip10Link } from '../../utils/get-tzip10-link'
+import { getQrData } from '../../utils/qr'
 import styles from './styles.css'
 
 const COPY_RESET_TIMEOUT = 3000
