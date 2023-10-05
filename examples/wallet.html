@@ -38,7 +38,10 @@
     <script>
       // Initiate DAppClient
       const client = new beacon.WalletClient({
-        name: 'Example Wallet' // Name of the DApp
+        name: 'Example Wallet', // Name of the DApp
+        matrixNodes: {
+          [beacon.Regions.EUROPE_WEST]: ['beacon-test-node-2.crystal.papers.tech']
+        }
         // matrixNodes: {
         //   [beacon.Regions.EUROPE_WEST]: [
         //     'beacon-node-1.diamond.papers.tech',
