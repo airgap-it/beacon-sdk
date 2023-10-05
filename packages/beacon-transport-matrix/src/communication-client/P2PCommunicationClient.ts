@@ -628,8 +628,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     // TODO: Improve to listen to "JOIN" event
     const room = await (await this.client.promise).getRoomById(roomId)
     logger.log(`waitForJoin`, `Currently ${room.members.length} members, we need at least 2`)
-    if (room.members.length >= 2 || room.members.length === 0) {
-      // 0 means it's an unknown room, we don't need to wait
+    if (room.members.length >= 2) {
       return
     } else {
       if (retry <= 200) {
