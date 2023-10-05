@@ -361,7 +361,7 @@ export class WalletClient extends Client {
    * @param peer The new peer to add
    */
   public async addPeer(peer: PeerInfo, sendPairingResponse: boolean = true): Promise<void> {
-    return (await this.transport).addPeer(this.getPeerInfo(peer), sendPairingResponse)
+    return (await this.transport).addPeer(await this.getPeerInfo(peer), sendPairingResponse)
   }
 
   public async removePeer(
