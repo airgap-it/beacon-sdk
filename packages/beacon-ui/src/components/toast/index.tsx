@@ -1,7 +1,7 @@
 import { Component, For, createEffect, createSignal } from 'solid-js'
 import { CloseIcon } from '../icons'
 import Loader from '../loader'
-import { isMobileOS } from 'src/utils/platform'
+import { isMobileOS } from '../../utils/platform'
 
 function parseWallet(
   inputString: string,

@@ -35,11 +35,11 @@ import {
   mergeWallets,
   parseWallets,
   Wallet
-} from 'src/utils/wallets'
-import { getTzip10Link } from 'src/utils/get-tzip10-link'
-import { isAndroid, isIOS, isMobileOS, isTwBrowser } from 'src/utils/platform'
-import { getColorMode } from 'src/utils/colorMode'
-import PairOther from 'src/components/pair-other/pair-other'
+} from '../../utils/wallets'
+import { getTzip10Link } from '../../utils/get-tzip10-link'
+import { isAndroid, isIOS, isMobileOS, isTwBrowser } from '../../utils/platform'
+import { getColorMode } from '../../utils/colorMode'
+import PairOther from '../../components/pair-other/pair-other'
 
 // Interfaces
 export interface AlertButton {
