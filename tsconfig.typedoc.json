@@ -1,0 +1,31 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    ".devcontainer",
+    ".github",
+    ".gitlab",
+    "assets",
+    "dist",
+    "docs",
+    "e2e",
+    "examples",
+    "node_modules",
+    "*/node_modules",
+    "scripts",
+    "test",
+    "__tests__",
+    "webpack_builds"
+  ],
+  "compilerOptions": {
+    "target": "es6",
+    "lib": ["es2015", "es2016", "es2017", "dom"],
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "skipLibCheck": true
+  }
+}
