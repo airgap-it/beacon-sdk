@@ -598,10 +598,6 @@ export class DAppClient extends Client {
    * Returns the active account
    */
   public async getActiveAccount(): Promise<AccountInfo | undefined> {
-    if (!this._activeAccount.isSettled()) {
-      return undefined
-    }
-
     return this._activeAccount.promise
   }
 
@@ -627,11 +623,10 @@ export class DAppClient extends Client {
       return
     }
 
-    const activeAccount = await this.getActiveAccount()
-
     // when I'm resetting the activeAccount
-    if (!account && activeAccount) {
+    if (!account && this._activeAccount.isResolved() && (await this.getActiveAccount())) {
       const transport = await this.transport
+      const activeAccount = await this.getActiveAccount()
 
       if (!transport || !activeAccount) {
         return
