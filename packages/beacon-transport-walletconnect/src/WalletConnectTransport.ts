@@ -68,6 +68,10 @@ export class WalletConnectTransport<
     return this.client.signClient?.pairing.getAll()
   }
 
+  public get sessions() {
+    return this.client.signClient?.session.getAll()
+  }
+
   public async closeActiveSession(account: AccountInfo) {
     if(!this.pairings || !this.pairings.length) {
       await this.disconnect();

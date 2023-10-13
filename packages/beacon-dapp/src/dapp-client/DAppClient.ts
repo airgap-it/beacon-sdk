@@ -1743,10 +1743,12 @@ export class DAppClient extends Client {
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
-      !transport.pairings?.length
+      (await this.getActiveAccount()) &&
+      !transport.pairings?.length &&
+      !transport.sessions?.length
     ) {
       await this.channelClosedHandler()
-      throw new Error('Pairing expired.')
+      throw new Error('No active pairing nor session found')
     }
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -1874,10 +1876,12 @@ export class DAppClient extends Client {
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
-      !transport.pairings?.length
+      (await this.getActiveAccount()) &&
+      !transport.pairings?.length &&
+      !transport.sessions?.length
     ) {
       await this.channelClosedHandler()
-      throw new Error('Pairing expired.')
+      throw new Error('No active pairing nor session found')
     }
 
     // if (!(await this.checkPermissions(requestInput.type as BeaconMessageType))) {
