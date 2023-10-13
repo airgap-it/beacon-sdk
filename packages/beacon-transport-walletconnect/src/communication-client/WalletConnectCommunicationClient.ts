@@ -3,7 +3,7 @@ import {
   CommunicationClient,
   Serializer,
   ClientEvents,
-  Logger,
+  Logger
 } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
@@ -56,7 +56,8 @@ export enum PermissionScopeMethods {
   GET_ACCOUNTS = 'tezos_getAccounts',
   GET_ACKNOWLEDGEMENT = 'tezos_getAcknowledgement',
   OPERATION_REQUEST = 'tezos_send',
-  SIGN = 'tezos_sign'
+  SIGN = 'tezos_sign',
+  REQUEST_NEW_ACCOUNT = 'tezos_requestNewAccount'
 }
 
 export enum PermissionScopeEvents {
@@ -209,10 +210,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         `${TEZOS_PLACEHOLDER}:${this.wcOptions.network}`
       )
       session.sessionProperties = sessionProperties[0]
-    } catch (error) {
-      console.warn('No session properties received.')
+    } catch (error: any) {
+      logger.warn('No session properties received.')
     }
     fun && fun(false)
+  }
+
+  private checkTezosMethods(method: PermissionScopeMethods) {
+    return this.session?.namespaces.tezos.methods.includes(method)
   }
 
   async requestPermissions(message: PermissionRequest) {
@@ -222,11 +227,33 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
 
+    if (
+      this.activeAccount &&
+      this.session &&
+      this.checkTezosMethods(PermissionScopeMethods.REQUEST_NEW_ACCOUNT)
+    ) {
+      const client = await this.getSignClient()
+      try {
+        console.log('this.session.optionalNamespaces: ', this.session)
+        await client.request({
+          topic: this.session.topic,
+          chainId: `${TEZOS_PLACEHOLDER}:${this.getActiveNetwork()}`,
+          request: {
+            method: PermissionScopeMethods.REQUEST_NEW_ACCOUNT,
+            params: {}
+          }
+        })
+        return
+      } catch (error: any) {
+        logger.warn(error.message)
+      }
+    }
+
     if (this.activeAccount) {
       try {
         await this.openSession()
       } catch (error: any) {
-        console.error(error.message)
+        logger.error(error.message)
         return
       }
     }
@@ -236,7 +263,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const session = this.getSession()
     let publicKey: string | undefined
 
-    !session.sessionProperties && this.setSessionProperties(session)
+    if (
+      !session.sessionProperties &&
+      this.checkTezosMethods(PermissionScopeMethods.GET_ACKNOWLEDGEMENT)
+    ) {
+      this.setSessionProperties(session)
+    }
 
     if (
       session.sessionProperties?.pubkey &&
@@ -424,8 +456,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       try {
         const session = await this.openSession(topic)
 
-        !session.sessionProperties && this.setSessionProperties(session)
-        
+        if (
+          !session.sessionProperties &&
+          this.checkTezosMethods(PermissionScopeMethods.GET_ACKNOWLEDGEMENT)
+        ) {
+          this.setSessionProperties(session)
+        }
+
         const pairingResponse: ExtendedWalletConnectPairingResponse =
           new ExtendedWalletConnectPairingResponse(
             topic,
@@ -440,7 +477,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           listener(pairingResponse)
         })
       } catch (error: any) {
-        console.error(error.message)
+        logger.error(error.message)
         const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
         fun && fun()
         return
@@ -575,9 +612,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           message: 'Pairing deleted'
         }
       })
-    } catch (error) {
+    } catch (error: any) {
       // If the session was already closed, `disconnect` will throw an error.
-      console.warn(error)
+      logger.warn(error)
     }
 
     return session
@@ -593,9 +630,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     try {
       await signClient.core.pairing.disconnect({ topic: this.session.pairingTopic })
-    } catch (error) {
+    } catch (error: any) {
       // If the pairing was already closed, `disconnect` will throw an error.
-      console.warn(error)
+      logger.warn(error.message)
     }
 
     return this.session
@@ -653,7 +690,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const optionalPermissionScopeParams: PermissionScopeParam = {
       networks: [this.wcOptions.network],
       events: [PermissionScopeEvents.REQUEST_ACKNOWLEDGED],
-      methods: []
+      methods: [
+        PermissionScopeMethods.GET_ACKNOWLEDGEMENT,
+        PermissionScopeMethods.REQUEST_NEW_ACCOUNT
+      ]
     }
 
     const connectParams = {
@@ -680,7 +720,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.session = this.session ?? session
       this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
     } catch (error: any) {
-      console.error(error.message)
+      logger.error(error.message)
       const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
       const errorResponse: ErrorResponseInput = {
         type: BeaconMessageType.Error,
@@ -830,13 +870,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   async closeActiveSession(account: string) {
     try {
-      this.validateNetworkAndAccount(this.getActiveNetwork(), account);
-    } catch(error: any) {
-      console.error(error.message);
-      return;
+      this.validateNetworkAndAccount(this.getActiveNetwork(), account)
+    } catch (error: any) {
+      logger.error(error.message)
+      return
     }
 
-    const session = this.getSession();
+    const session = this.getSession()
 
     await this.signClient?.disconnect({
       topic: session.topic,

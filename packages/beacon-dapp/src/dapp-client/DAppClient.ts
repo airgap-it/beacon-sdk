@@ -598,6 +598,10 @@ export class DAppClient extends Client {
    * Returns the active account
    */
   public async getActiveAccount(): Promise<AccountInfo | undefined> {
+    if (!this._activeAccount.isSettled()) {
+      return undefined
+    }
+
     return this._activeAccount.promise
   }
 
@@ -623,10 +627,11 @@ export class DAppClient extends Client {
       return
     }
 
+    const activeAccount = await this.getActiveAccount()
+
     // when I'm resetting the activeAccount
-    if (!account && this._activeAccount.isResolved() && (await this.getActiveAccount())) {
+    if (!account && activeAccount) {
       const transport = await this.transport
-      const activeAccount = await this.getActiveAccount()
 
       if (!transport || !activeAccount) {
         return
@@ -1613,10 +1618,12 @@ export class DAppClient extends Client {
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
-      !transport.pairings?.length
+      (await this.getActiveAccount()) &&
+      !transport.pairings?.length &&
+      !transport.sessions?.length
     ) {
       await this.channelClosedHandler()
-      throw new Error('Pairing expired.')
+      throw new Error('No active pairing nor session found')
     }
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -1740,10 +1747,12 @@ export class DAppClient extends Client {
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
-      !transport.pairings?.length
+      (await this.getActiveAccount()) &&
+      !transport.pairings?.length &&
+      !transport.sessions?.length
     ) {
       await this.channelClosedHandler()
-      throw new Error('Pairing expired.')
+      throw new Error('No active pairing nor session found')
     }
 
     // if (!(await this.checkPermissions(requestInput.type as BeaconMessageType))) {
