@@ -3,7 +3,7 @@ import {
   CommunicationClient,
   Serializer,
   ClientEvents,
-  Logger,
+  Logger
 } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
@@ -425,7 +425,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         const session = await this.openSession(topic)
 
         !session.sessionProperties && this.setSessionProperties(session)
-        
+
         const pairingResponse: ExtendedWalletConnectPairingResponse =
           new ExtendedWalletConnectPairingResponse(
             topic,
@@ -672,6 +672,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const session = await approval()
       // if I have successfully opened a session and I already have one opened
       if (session && this.session) {
+        this.activeAccount && this.closeActiveSession(this.activeAccount)
         this.session = undefined // close the previous session
       }
 
@@ -830,13 +831,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   async closeActiveSession(account: string) {
     try {
-      this.validateNetworkAndAccount(this.getActiveNetwork(), account);
-    } catch(error: any) {
-      console.error(error.message);
-      return;
+      this.validateNetworkAndAccount(this.getActiveNetwork(), account)
+    } catch (error: any) {
+      console.error(error.message)
+      return
     }
 
-    const session = this.getSession();
+    const session = this.getSession()
 
     await this.signClient?.disconnect({
       topic: session.topic,
