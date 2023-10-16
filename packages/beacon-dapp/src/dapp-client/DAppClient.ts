@@ -2120,7 +2120,7 @@ export class DAppClient extends Client {
       threshold: message.threshold,
       notification: message.notification,
       connectedAt: new Date().getTime(),
-      walletType: message.walletType,
+      walletType: message.walletType ?? 'implicit',
       verificationType: message.verificationType,
       ...(message.verificationType === 'proof_of_event' ? { hasVerifiedChallenge: false } : {})
     }
