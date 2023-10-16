@@ -11,8 +11,7 @@ export {
   openCryptobox,
   recipientString,
   signMessage,
-  validateAddress,
-  ValidationResult,
+  isValidAddress,
   prefixPublicKey
 } from './utils/crypto'
 export { generateGUID } from './utils/generate-uuid'

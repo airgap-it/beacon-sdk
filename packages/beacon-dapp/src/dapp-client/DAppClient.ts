@@ -89,11 +89,10 @@ import {
   ExposedPromise,
   generateGUID,
   toHex,
-  validateAddress,
-  ValidationResult,
   signMessage,
   CONTRACT_PREFIX,
-  prefixPublicKey
+  prefixPublicKey,
+  isValidAddress
 } from '@airgap/beacon-utils'
 import { messageEvents } from '../beacon-message-events'
 import { BlockExplorer } from '../utils/block-explorer'
@@ -2087,7 +2086,7 @@ export class DAppClient extends Client {
 
     const address = message.address ?? (await getAddressFromPublicKey(publicKey!))
 
-    if (validateAddress(address) !== ValidationResult.VALID) {
+    if (isValidAddress(address)) {
       throw new Error(`Invalid address: "${address}"`)
     }
 

@@ -25,12 +25,7 @@ import {
   ProofOfEventChallengeResponse
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
-import {
-  getAddressFromPublicKey,
-  validateAddress,
-  ValidationResult,
-  CONTRACT_PREFIX
-} from '@airgap/beacon-utils'
+import { getAddressFromPublicKey, CONTRACT_PREFIX, isValidAddress } from '@airgap/beacon-utils'
 
 interface OutgoingResponseInterceptorOptions {
   senderId: string
@@ -197,7 +192,7 @@ export class OutgoingResponseInterceptor {
 
         const address: string = response.address ?? (await getAddressFromPublicKey(publicKey!))
 
-        if (validateAddress(address) !== ValidationResult.VALID) {
+        if (isValidAddress(address)) {
           throw new Error(`Invalid address: "${address}"`)
         }
 
