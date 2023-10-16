@@ -1745,23 +1745,23 @@ export class DAppClient extends Client {
    *
    * @param requestInput The BeaconMessage to be sent to the wallet
    * @param account The account that the message will be sent to
-   * @param oneWay If true, the function return as soon as the message is sent
+   * @param skipResponse If true, the function return as soon as the message is sent
    */
 
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
-    oneWay?: undefined | false
+    skipResponse?: undefined | false
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
   }>
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
-    oneWay: true
+    skipResponse: true
   ): Promise<undefined>
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
-    oneWay?: boolean
+    skipResponse?: boolean
   ) {
     const messageId = await generateGUID()
 
@@ -1810,7 +1810,7 @@ export class DAppClient extends Client {
 
     let exposed
 
-    if (!oneWay) {
+    if (!skipResponse) {
       exposed = new ExposedPromise<
         {
           message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>
