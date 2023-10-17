@@ -168,14 +168,6 @@ export class DAppClient extends Client {
   >()
 
   /**
-   * A map of Promises that are polling tzkt api to check if the Proof Of Event challenge has been completed
-   */
-  private readonly proofOfEventChallenges = new Map<
-    string,
-    Promise<{ payload: string; dAppChallengeId: string; accountIdentifier: string }>
-  >()
-
-  /**
    * The currently active account. For all requests that are associated to a specific request (operation request, signing request),
    * the active account is used to determine the network and destination wallet
    */
@@ -233,15 +225,6 @@ export class DAppClient extends Client {
         await this.setActiveAccount(undefined)
         console.error(storageError)
       })
-
-    this.storage.get(StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES).then((ongoingChallenges) =>
-      ongoingChallenges.forEach((challenge) => {
-        this.proofOfEventChallenges.set(
-          challenge.dAppChallengeId,
-          this.checkProofOfEventChallenge(challenge)
-        )
-      })
-    )
 
     this.handleResponse = async (
       message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
@@ -998,53 +981,6 @@ export class DAppClient extends Client {
     return response.message
   }
 
-  private async checkProofOfEventChallenge(input: {
-    contractAddress: string
-    payload: string
-    dAppChallengeId: string
-    accountIdentifier: string
-  }) {
-    const { contractAddress, payload, dAppChallengeId, accountIdentifier } = input
-    const encoder = new TextEncoder()
-
-    const encodedId = Buffer.from(encoder.encode(dAppChallengeId)).toString('hex')
-    const encodedPayload = Buffer.from(encoder.encode(payload)).toString('hex')
-
-    const loop = async (): Promise<{
-      payload: string
-      dAppChallengeId: string
-      accountIdentifier: string
-    }> =>
-      fetch(
-        `https://api.ghostnet.tzkt.io/v1/contracts/events?contract=${contractAddress}&tag=proof_of_event&payload.challenge_id=${encodedId}&payload.payload=${encodedPayload}`
-      )
-        .then((res) => res.json())
-        .then(async (response: []) => {
-          if (response.length === 0) {
-            await new Promise((resolve) => setTimeout(resolve, 10000))
-            return loop()
-          } else {
-            await this.accountManager.updateAccount(accountIdentifier, {
-              hasVerifiedChallenge: true
-            })
-            await this.storage
-              .get(StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES)
-              .then((ongoingChallenges) =>
-                this.storage.set(
-                  StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES,
-                  ongoingChallenges.filter(
-                    (challenge) => challenge.dAppChallengeId !== dAppChallengeId
-                  )
-                )
-              )
-
-            return { payload, dAppChallengeId, accountIdentifier }
-          }
-        })
-
-    return loop()
-  }
-
   /**
    * Send a permission request to the DApp. This should be done as the first step. The wallet will respond
    * with an publicKey and permissions that were given. The account returned will be set as the "activeAccount"
@@ -1183,33 +1119,6 @@ export class DAppClient extends Client {
     let success = true
     let errorMessage = ''
 
-    const proofOfEvent = {
-      contractAddress: activeAccount.address,
-      accountIdentifier: activeAccount.accountIdentifier,
-      ...input
-    }
-
-    try {
-      await this.storage
-        .get(StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES)
-        .then((ongoingChallenges) =>
-          this.storage.set(
-            StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES,
-            ongoingChallenges.concat([proofOfEvent])
-          )
-        )
-
-      this.proofOfEventChallenges.set(
-        input.dAppChallengeId,
-        this.checkProofOfEventChallenge(proofOfEvent)
-      )
-    } catch (e) {
-      console.log(e)
-
-      errorMessage = (e as Error).message
-      success = false
-    }
-
     const recordedRequest: ProofOfEventChallengeRecordedMessageInput = {
       type: BeaconMessageType.ProofOfEventChallengeRecorded,
       dAppChallengeId: input.dAppChallengeId,
@@ -1222,9 +1131,6 @@ export class DAppClient extends Client {
     })
   }
 
-  public getProofOfEventChallenge(dAppChallengeId: string) {
-    return this.proofOfEventChallenges.get(dAppChallengeId)
-  }
   /**
    * This method will send a "SignPayloadRequest" to the wallet. This method is meant to be used to sign
    * arbitrary data (eg. a string). It will return the signature in the format of "edsig..."
