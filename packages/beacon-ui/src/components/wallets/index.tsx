@@ -1,5 +1,5 @@
 import { Component, For } from 'solid-js'
-import { MergedWallet } from 'src/utils/wallets'
+import { MergedWallet } from '../../utils/wallets'
 import Wallet from '../wallet'
 import styles from './styles.css'
 

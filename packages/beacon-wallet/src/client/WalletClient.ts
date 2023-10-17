@@ -261,7 +261,7 @@ export class WalletClient extends Client {
    * @param message The BeaconResponseMessage that will be sent back to the DApp
    */
   public async respond(message: BeaconResponseInputMessage): Promise<void> {
-    console.log('RESPONSE', message)
+    logger.log('RESPONSE', message)
     const request = this.pendingRequests.find(
       (pendingRequest) => pendingRequest[0].id === message.id
     )
@@ -360,7 +360,7 @@ export class WalletClient extends Client {
    * @param peer The new peer to add
    */
   public async addPeer(peer: PeerInfo, sendPairingResponse: boolean = true): Promise<void> {
-    return (await this.transport).addPeer(this.getPeerInfo(peer), sendPairingResponse)
+    return (await this.transport).addPeer(await this.getPeerInfo(peer), sendPairingResponse)
   }
 
   public async removePeer(

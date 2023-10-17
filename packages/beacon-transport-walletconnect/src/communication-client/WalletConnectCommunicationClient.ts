@@ -1,4 +1,10 @@
-import { BEACON_VERSION, CommunicationClient, Serializer, ClientEvents } from '@airgap/beacon-core'
+import {
+  BEACON_VERSION,
+  CommunicationClient,
+  Serializer,
+  ClientEvents,
+  Logger
+} from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
 import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
@@ -39,6 +45,7 @@ import {
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
+const logger = new Logger('WalletConnectCommunicationClient')
 
 export interface PermissionScopeParam {
   networks: NetworkType[]
@@ -173,7 +180,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   async requestPermissions(message: PermissionRequest) {
-    console.log('#### Requesting permissions')
+    logger.log('#### Requesting permissions')
 
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.GET_ACCOUNTS)) {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
@@ -199,7 +206,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       session.sessionProperties?.address
     ) {
       publicKey = session.sessionProperties?.pubkey
-      console.log(
+      logger.log(
         '[requestPermissions]: Have pubkey in sessionProperties, skipping "get_accounts" call',
         session.sessionProperties
       )

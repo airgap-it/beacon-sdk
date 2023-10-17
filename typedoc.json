@@ -1,3 +1,5 @@
 {
+  "entryPoints": ["packages/*"],
+  "entryPointStrategy": "packages",
   "categoryOrder": ["DApp", "Wallet", "Error", "*"]
 }

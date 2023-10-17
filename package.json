@@ -50,7 +50,7 @@
     "sonar-scanner": "sonar-scanner",
     "prepare": "npm run build",
     "check-version": "ts-node --project tsconfig-cjs.json scripts/check-sdk-version.ts",
-    "typedoc": "typedoc src/index.ts --includeVersion --internal-aliases publicapi --external-aliases internalapi --logLevel Verbose --listInvalidSymbolLinks && ts-node --project tsconfig-cjs.json scripts/process-docs.ts",
+    "typedoc": "typedoc",
     "publish": "lerna run tsc && lerna publish",
     "bump:version": "lerna version --no-git-tag-version --exact",
     "bump:major": "lerna version --no-git-tag-version major --exact --yes",
