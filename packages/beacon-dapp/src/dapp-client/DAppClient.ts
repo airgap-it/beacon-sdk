@@ -1992,7 +1992,7 @@ export class DAppClient extends Client {
 
     const address = message.address ?? (await getAddressFromPublicKey(publicKey!))
 
-    if (isValidAddress(address)) {
+    if (!isValidAddress(address)) {
       throw new Error(`Invalid address: "${address}"`)
     }
 

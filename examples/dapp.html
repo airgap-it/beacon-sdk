@@ -40,6 +40,9 @@
     <br /><br />
     <button id="requestPermission">Request Permission</button>
     <br /><br />
+    <button id="requestPermissionAndSign">Request Permission And Sign Request</button>
+    <br /><br />
+
     <button id="reset">Reset and Refresh</button>
     <br /><br />
     <button id="requestProofOfEventChallenge" disabled style="opacity: 0.5">
@@ -324,6 +327,30 @@
           })
       }
 
+      // Initiate a permission request with sign request
+      const requestPermissionAndSign = (callback) => {
+        console.log('requestPermissionAndSign')
+        client
+          .requestPermissions()
+          .then(async (permissions) => {
+            console.log('permissions', permissions)
+            if (callback) {
+              callback(permissions)
+            }
+            updateActiveAccount()
+
+            const signature = await client.requestSignPayload({
+              payload:
+                '05010000004254657a6f73205369676e6564204d6573736167653a207465737455726c20323032332d30322d30385431303a33363a31382e3435345a2048656c6c6f20576f726c64'
+            })
+
+            console.log('signature:', signature)
+          })
+          .catch((error) => {
+            console.log('error during permission request', error)
+          })
+      }
+
       // Initiate a Proof Of Event Request
       const requestProofOfEventChallenge = () => {
         client
@@ -369,6 +396,11 @@
       // Add event listener to the button
       document.getElementById('requestPermission').addEventListener('click', () => {
         requestPermission()
+      })
+
+      // Add event listener to the button
+      document.getElementById('requestPermissionAndSign').addEventListener('click', () => {
+        requestPermissionAndSign()
       })
 
       // Add event listener to the button

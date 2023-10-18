@@ -192,7 +192,7 @@ export class OutgoingResponseInterceptor {
 
         const address: string = response.address ?? (await getAddressFromPublicKey(publicKey!))
 
-        if (isValidAddress(address)) {
+        if (!isValidAddress(address)) {
           throw new Error(`Invalid address: "${address}"`)
         }
 
