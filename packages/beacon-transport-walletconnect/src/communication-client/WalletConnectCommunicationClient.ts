@@ -252,7 +252,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       publicKey,
       network: message.network,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
-      id: this.currentMessageId!
+      id: this.currentMessageId!,
+      walletType: 'implicit'
     }
 
     this.notifyListeners(session.pairingTopic, permissionResponse)
@@ -475,7 +476,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           type: BeaconMessageType.ChangeAccountRequest,
           publicKey,
           network: { type: chainId as NetworkType },
-          scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST]
+          scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
+          walletType: 'implicit'
         })
       }
     } catch {}

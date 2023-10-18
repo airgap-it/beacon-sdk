@@ -1,4 +1,4 @@
-import { Optional } from '@airgap/beacon-types'
+import { Optional, ProofOfEventChallengeResponse } from '@airgap/beacon-types'
 import {
   PermissionResponse,
   OperationResponse,
@@ -20,6 +20,13 @@ export type IgnoredResponseInputProperties = 'senderId' | 'version'
 export type PermissionResponseInput = Optional<
   PermissionResponse,
   IgnoredResponseInputProperties | 'appMetadata'
+>
+/**
+ * @category Wallet
+ */
+export type ProofOfEventChallengeResponseInput = Optional<
+  ProofOfEventChallengeResponse,
+  IgnoredResponseInputProperties
 >
 /**
  * @category Wallet
@@ -61,3 +68,4 @@ export type BeaconResponseInputMessage =
   | BroadcastResponseInput
   | AcknowledgeResponseInput
   | ErrorResponseInput
+  | ProofOfEventChallengeResponseInput
