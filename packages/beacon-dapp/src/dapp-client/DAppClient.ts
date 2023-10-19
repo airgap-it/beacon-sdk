@@ -1490,7 +1490,7 @@ export class DAppClient extends Client {
   }
 
   private async getWalletInfoFromStorage() {
-    return (await this.storage.get(StorageKey.LAST_SELECTED_WALLET))?.split('_')[0]
+    return await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
   }
 
   private async getWalletInfo(peer?: PeerInfo, account?: AccountInfo): Promise<WalletInfo> {
@@ -1560,8 +1560,8 @@ export class DAppClient extends Client {
       }
 
       return {
-        name: walletInfo.name,
-        icon: walletInfo.icon ?? selectedApp.logo,
+        name: selectedApp ? selectedApp.name : walletInfo.name,
+        icon: walletInfo.icon ?? selectedApp?.logo,
         deeplink,
         type
       }
