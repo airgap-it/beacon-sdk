@@ -376,7 +376,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const signClient = await this.getSignClient()
 
     if (forceNewConnection) {
-      this.closePairings()
+      await this.closePairings()
+      await this.closeSessions()
     }
 
     const sessions = signClient.session.getAll()
