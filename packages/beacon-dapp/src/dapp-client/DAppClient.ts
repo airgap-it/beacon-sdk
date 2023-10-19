@@ -437,9 +437,7 @@ export class DAppClient extends Client {
 
     console.log('walletInfo: ', walletInfo)
 
-    if (walletInfo.name === '' || walletInfo.name === 'wallet') {
-      setTimeout(async () => await this.events.emit(BeaconEvent.HIDE_UI, ['alert']))
-    }
+    setTimeout(async () => await this.events.emit(BeaconEvent.HIDE_UI, ['alert']))
 
     await this.events.emit(BeaconEvent.WC_ACKNOWLEDGE_PENDING, { walletInfo })
   }
