@@ -426,7 +426,7 @@ export class DAppClient extends Client {
     )
   }
 
-  private async wcToastHandler(isWaiting: boolean) {
+  private async wcToastHandler() {
     const walletInfo = await (async (): Promise<WalletInfo> => {
       try {
         return await this.getWalletInfo()
@@ -435,9 +435,13 @@ export class DAppClient extends Client {
       }
     })()
 
-    await (isWaiting
-      ? this.events.emit(BeaconEvent.WC_ACKNOWLEDGE_PENDING, { walletInfo })
-      : this.events.emit(BeaconEvent.WC_ACKNOWLEDGE_RECEIVED, { walletInfo }))
+    console.log('walletInfo: ', walletInfo)
+
+    if (walletInfo.name === '' || walletInfo.name === 'wallet') {
+      setTimeout(async () => await this.events.emit(BeaconEvent.HIDE_UI, ['alert']))
+    }
+
+    await this.events.emit(BeaconEvent.WC_ACKNOWLEDGE_PENDING, { walletInfo })
   }
 
   private async channelClosedHandler() {
@@ -615,10 +619,10 @@ export class DAppClient extends Client {
    */
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
     if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
-      setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI), 1000)
+      setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI))
       this.destroy()
       this.setActiveAccount(undefined)
-      setTimeout(() => this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE), 1000)
+      setTimeout(() => this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE))
 
       return
     }
@@ -716,7 +720,7 @@ export class DAppClient extends Client {
       this._initPromise = undefined
       // by dispatching two opposite events (one closes the alert the other one opens it)
       // it triggers some sort of race condition in the UI render cycle
-      setTimeout(async () => await this.events.emit(BeaconEvent.NO_PERMISSIONS), 1000)
+      setTimeout(async () => await this.events.emit(BeaconEvent.NO_PERMISSIONS))
     }
   }
 
@@ -1487,6 +1491,10 @@ export class DAppClient extends Client {
       .catch((emitError) => console.warn(emitError))
   }
 
+  private async getWalletInfoFromStorage() {
+    return (await this.storage.get(StorageKey.LAST_SELECTED_WALLET))?.split('_')[0]
+  }
+
   private async getWalletInfo(peer?: PeerInfo, account?: AccountInfo): Promise<WalletInfo> {
     const selectedAccount = account ? account : await this.getActiveAccount()
 
@@ -1499,7 +1507,7 @@ export class DAppClient extends Client {
 
     if (!walletInfo) {
       walletInfo = {
-        name: selectedPeer?.name ?? '',
+        name: selectedPeer?.name ?? (await this.getWalletInfoFromStorage()) ?? '',
         icon: selectedPeer?.icon
       }
     }
@@ -1512,6 +1520,8 @@ export class DAppClient extends Client {
       return false
     }
 
+    const getOrgName = (name: string) => name.split(/[_\s]+/)[0]
+
     let selectedApp: AppBase | undefined
     let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
     const apps: AppBase[] = [
@@ -1519,7 +1529,10 @@ export class DAppClient extends Client {
       ...getWebList(),
       ...getDesktopList(),
       ...getExtensionList()
-    ].filter((app: AppBase) => lowerCaseCompare(app.name, walletInfo?.name))
+    ].filter((app: AppBase) =>
+      lowerCaseCompare(getOrgName(app.key), getOrgName(walletInfo?.name ?? 'wallet'))
+    )
+
     // TODO: Remove once all wallets send the icon?
     const mobile = (apps as App[]).find((app) => app.universalLink)
     const browser = (apps as WebApp[]).find((app) => app.links)

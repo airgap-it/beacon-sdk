@@ -199,14 +199,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.setDefaultAccountAndNetwork()
 
-    const session = this.getSession()
+    let session = this.getSession()
     let publicKey: string | undefined
 
     if (!session.sessionProperties) {
       const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-      fun && fun(true)
+      fun && fun()
       this.requestAccountNamespacePromise = new ExposedPromise()
       await this.requestAccountNamespacePromise?.promise
+      session = this.getSession()
     }
 
     if (
@@ -393,13 +394,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // therefore we must immediately open a session
       // to get data required in the pairing response
       try {
-        const session = await this.openSession(topic)
+        let session = await this.openSession(topic)
 
         if (!session.sessionProperties) {
           const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-          fun && fun(true)
+          fun && fun()
           this.requestAccountNamespacePromise = new ExposedPromise()
           await this.requestAccountNamespacePromise?.promise
+          session = this.getSession()
         }
 
         const pairingResponse: ExtendedWalletConnectPairingResponse =
@@ -444,8 +446,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.session = signClient.session.get(event.topic)
 
       if (this.requestAccountNamespacePromise) {
-        const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-        fun && fun(false)
         this.requestAccountNamespacePromise?.resolve(true)
         this.requestAccountNamespacePromise = undefined
       } else {
