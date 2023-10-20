@@ -525,6 +525,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           throw new Error('Public key for the new account not provided')
         }
 
+        const fun = this.eventHandlers.get(ClientEvents.UPDATE_ACCOUNT)
+        fun && fun(this.activeAccount)
+
         this.notifyListeners(session.pairingTopic, {
           id: await generateGUID(),
           type: BeaconMessageType.ChangeAccountRequest,
