@@ -1609,13 +1609,20 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'after init')
 
     const transport = await this.transport
+    const regexp = new RegExp(/^(\[\])$/)
+    const pairingMissing = regexp.test(
+      (await this.storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]'
+    )
+    const sessionMissing = regexp.test(
+      (await this.storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]'
+    )
 
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
       (await this.getActiveAccount()) &&
-      !transport.pairings?.length &&
-      !transport.sessions?.length
+      pairingMissing &&
+      sessionMissing
     ) {
       await this.channelClosedHandler()
       throw new Error('No active pairing nor session found')
@@ -1738,13 +1745,19 @@ export class DAppClient extends Client {
     }
 
     const transport = await this.transport
+    const regexp = new RegExp(/^(\[\])$/)
+    const pairingMissing = regexp.test(
+      (await this.storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]'
+    )
+    const sessionMissing = regexp.test(
+      (await this.storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]'
+    )
 
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
-      (await this.getActiveAccount()) &&
-      !transport.pairings?.length &&
-      !transport.sessions?.length
+      pairingMissing &&
+      sessionMissing
     ) {
       await this.channelClosedHandler()
       throw new Error('No active pairing nor session found')
