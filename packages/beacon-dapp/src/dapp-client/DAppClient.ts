@@ -442,15 +442,21 @@ export class DAppClient extends Client {
   }
 
   private async resetWCSnapshot() {
+    if (!localStorage) {
+      return
+    
+    }
+    const storage = new LocalStorage()
+
     await Promise.all([
-      this.storage.delete(StorageKey.WC_2_CLIENT_SESSION),
-      this.storage.delete(StorageKey.WC_2_CORE_PAIRING),
-      this.storage.delete(StorageKey.WC_2_CORE_KEYCHAIN),
-      this.storage.delete(StorageKey.WC_2_CORE_MESSAGES),
-      this.storage.delete(StorageKey.WC_2_CLIENT_PROPOSAL),
-      this.storage.delete(StorageKey.WC_2_CORE_SUBSCRIPTION),
-      this.storage.delete(StorageKey.WC_2_CORE_HISTORY),
-      this.storage.delete(StorageKey.WC_2_CORE_EXPIRER)
+      storage.delete(StorageKey.WC_2_CLIENT_SESSION),
+      storage.delete(StorageKey.WC_2_CORE_PAIRING),
+      storage.delete(StorageKey.WC_2_CORE_KEYCHAIN),
+      storage.delete(StorageKey.WC_2_CORE_MESSAGES),
+      storage.delete(StorageKey.WC_2_CLIENT_PROPOSAL),
+      storage.delete(StorageKey.WC_2_CORE_SUBSCRIPTION),
+      storage.delete(StorageKey.WC_2_CORE_HISTORY),
+      storage.delete(StorageKey.WC_2_CORE_EXPIRER)
     ])
   }
 
