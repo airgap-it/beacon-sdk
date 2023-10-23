@@ -428,6 +428,23 @@ export class DAppClient extends Client {
       ClientEvents.UPDATE_ACCOUNT,
       this.updateActiveAccountHandler.bind(this)
     )
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.CLEAR_WC_STORAGE,
+      this.resetWCSnapshot.bind(this)
+    )
+  }
+
+  private async resetWCSnapshot() {
+    await Promise.all([
+      this.storage.delete(StorageKey.WC_2_CLIENT_SESSION),
+      this.storage.delete(StorageKey.WC_2_CORE_PAIRING),
+      this.storage.delete(StorageKey.WC_2_CORE_KEYCHAIN),
+      this.storage.delete(StorageKey.WC_2_CORE_MESSAGES),
+      this.storage.delete(StorageKey.WC_2_CLIENT_PROPOSAL),
+      this.storage.delete(StorageKey.WC_2_CORE_SUBSCRIPTION),
+      this.storage.delete(StorageKey.WC_2_CORE_HISTORY),
+      this.storage.delete(StorageKey.WC_2_CORE_EXPIRER)
+    ])
   }
 
   private async updateActiveAccountHandler(address?: string) {

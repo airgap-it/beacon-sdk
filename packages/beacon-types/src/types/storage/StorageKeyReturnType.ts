@@ -35,5 +35,11 @@ export interface StorageKeyReturnType {
   [StorageKey.MATRIX_SELECTED_NODE]: string | undefined
   [StorageKey.MULTI_NODE_SETUP_DONE]: boolean | undefined
   [StorageKey.WC_2_CLIENT_SESSION]: string | undefined
-  [StorageKey.WC_2_CORE_PAIRING]: string | undefined
+  [StorageKey.WC_2_CORE_PAIRING]: string | undefined,
+  [StorageKey.WC_2_CORE_KEYCHAIN]: string | undefined,
+  [StorageKey.WC_2_CORE_MESSAGES]: string | undefined, 
+  [StorageKey.WC_2_CLIENT_PROPOSAL]: string | undefined, 
+  [StorageKey.WC_2_CORE_SUBSCRIPTION]: string | undefined, 
+  [StorageKey.WC_2_CORE_HISTORY]: string | undefined, 
+  [StorageKey.WC_2_CORE_EXPIRER]: string | undefined, 
 }

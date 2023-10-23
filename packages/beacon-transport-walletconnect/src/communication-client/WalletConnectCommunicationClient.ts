@@ -661,6 +661,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     for (let pairing of pairings) {
       await signClient.core.pairing.disconnect({ topic: pairing.topic })
     }
+    const fun = this.eventHandlers.get(ClientEvents.CLEAR_WC_STORAGE)
+    fun && (await fun())
   }
 
   private async closeSessions() {
