@@ -1625,6 +1625,8 @@ export class DAppClient extends Client {
     const sessionMissing =
       ((await this.storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
 
+    // if an external source tempers with localStoarge
+    // then the internal signClient snapshot won't react to those changes
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
@@ -1757,6 +1759,7 @@ export class DAppClient extends Client {
     const sessionMissing =
       ((await this.storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
 
+    // read lines 1628 - 1629
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
