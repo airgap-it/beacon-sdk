@@ -1621,13 +1621,9 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'after init')
 
     const transport = await this.transport
-    const regexp = new RegExp(/^(\[\])$/)
-    const pairingMissing = regexp.test(
-      (await this.storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]'
-    )
-    const sessionMissing = regexp.test(
-      (await this.storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]'
-    )
+    const pairingMissing = ((await this.storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
+    const sessionMissing =
+      ((await this.storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
 
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
@@ -1757,13 +1753,9 @@ export class DAppClient extends Client {
     }
 
     const transport = await this.transport
-    const regexp = new RegExp(/^(\[\])$/)
-    const pairingMissing = regexp.test(
-      (await this.storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]'
-    )
-    const sessionMissing = regexp.test(
-      (await this.storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]'
-    )
+    const pairingMissing = ((await this.storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
+    const sessionMissing =
+      ((await this.storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
 
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
