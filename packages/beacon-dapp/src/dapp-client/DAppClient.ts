@@ -1625,10 +1625,15 @@ export class DAppClient extends Client {
     let pairingMissing,
       sessionMissing = false
 
-    if (isLocalStorageAvailable()) {
-      const storage = new LocalStorage()
-      pairingMissing = ((await storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
-      sessionMissing = ((await storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
+    if (transport instanceof WalletConnectTransport) {
+      if (isLocalStorageAvailable()) {
+        const storage = new LocalStorage()
+        pairingMissing = ((await storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
+        sessionMissing = ((await storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
+      } else {
+        pairingMissing = !transport.pairings?.length
+        sessionMissing = !transport.sessions?.length
+      }
     }
 
     // if an external source tempers with localStoarge
@@ -1765,10 +1770,15 @@ export class DAppClient extends Client {
     let pairingMissing,
       sessionMissing = false
 
-    if (isLocalStorageAvailable()) {
-      const storage = new LocalStorage()
-      pairingMissing = ((await storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
-      sessionMissing = ((await storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
+    if (transport instanceof WalletConnectTransport) {
+      if (isLocalStorageAvailable()) {
+        const storage = new LocalStorage()
+        pairingMissing = ((await storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
+        sessionMissing = ((await storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
+      } else {
+        pairingMissing = !transport.pairings?.length
+        sessionMissing = !transport.sessions?.length
+      }
     }
 
     // read lines 1628 - 1629
