@@ -3,7 +3,9 @@ import {
   CommunicationClient,
   Serializer,
   ClientEvents,
-  Logger
+  Logger,
+  isLocalStorageAvailable,
+  LocalStorage
 } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
@@ -40,7 +42,8 @@ import {
   PermissionScope,
   SignPayloadRequest,
   SignPayloadResponse,
-  SignPayloadResponseInput
+  SignPayloadResponseInput,
+  StorageKey
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
@@ -654,6 +657,24 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     )
   }
 
+  private async resetWCSnapshot() {
+    if (!isLocalStorageAvailable()) {
+      return
+    }
+    const storage = new LocalStorage()
+
+    await Promise.all([
+      storage.delete(StorageKey.WC_2_CLIENT_SESSION),
+      storage.delete(StorageKey.WC_2_CORE_PAIRING),
+      storage.delete(StorageKey.WC_2_CORE_KEYCHAIN),
+      storage.delete(StorageKey.WC_2_CORE_MESSAGES),
+      storage.delete(StorageKey.WC_2_CLIENT_PROPOSAL),
+      storage.delete(StorageKey.WC_2_CORE_SUBSCRIPTION),
+      storage.delete(StorageKey.WC_2_CORE_HISTORY),
+      storage.delete(StorageKey.WC_2_CORE_EXPIRER)
+    ])
+  }
+
   private async closePairings() {
     await this.closeSessions()
     const signClient = await this.getSignClient()
@@ -661,8 +682,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     for (let pairing of pairings) {
       await signClient.core.pairing.disconnect({ topic: pairing.topic })
     }
-    const fun = this.eventHandlers.get(ClientEvents.CLEAR_WC_STORAGE)
-    fun && (await fun())
+    await this.resetWCSnapshot()
   }
 
   private async closeSessions() {
