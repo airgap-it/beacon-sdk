@@ -68,7 +68,7 @@ export class WalletConnectTransport<
     if (isLocalStorageAvailable()) {
       return ((await new LocalStorage().get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
     } else {
-      return !this.client.signClient?.pairing.getAll()?.length
+      return !!this.client.signClient?.pairing.getAll()?.length
     }
   }
 
@@ -76,7 +76,7 @@ export class WalletConnectTransport<
     if (isLocalStorageAvailable()) {
       return ((await new LocalStorage().get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
     } else {
-      return !this.client.signClient?.session.getAll()?.length
+      return !!this.client.signClient?.session.getAll()?.length
     }
   }
 
