@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-blockchain-tezos",
-  "version": "4.0.12",
+  "version": "4.0.13-beta.0",
   "description": "This package adds support for the `tezos` blockchain. It can be used in combination with the `@airgap/beacon-dapp` or `@airgap/beacon-wallet` packages.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -34,7 +34,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-types": "4.0.12",
-    "@airgap/beacon-ui": "4.0.12"
+    "@airgap/beacon-types": "4.0.13-beta.0",
+    "@airgap/beacon-ui": "4.0.13-beta.0"
   }
 }
