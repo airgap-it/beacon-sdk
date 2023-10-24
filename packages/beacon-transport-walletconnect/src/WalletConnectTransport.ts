@@ -11,7 +11,7 @@ import {
   NetworkType,
   AccountInfo
 } from '@airgap/beacon-types'
-import { Transport, PeerManager } from '@airgap/beacon-core'
+import { Transport, PeerManager, isLocalStorageAvailable, LocalStorage } from '@airgap/beacon-core'
 import { SignClientTypes } from '@walletconnect/types'
 
 /**
@@ -64,19 +64,27 @@ export class WalletConnectTransport<
     return super.connect()
   }
 
-  public get pairings() {
-    return this.client.signClient?.pairing.getAll()
+  public async hasPairings() {
+    if (isLocalStorageAvailable()) {
+      return ((await new LocalStorage().get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
+    } else {
+      return !this.client.signClient?.pairing.getAll()?.length
+    }
   }
 
-  public get sessions() {
-    return this.client.signClient?.session.getAll()
+  public async hasSessions() {
+    if (isLocalStorageAvailable()) {
+      return ((await new LocalStorage().get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
+    } else {
+      return !this.client.signClient?.session.getAll()?.length
+    }
   }
 
   public async closeActiveSession(account: AccountInfo) {
-    if(!this.pairings || !this.pairings.length) {
-      await this.disconnect();
+    if (!(await this.hasPairings()) || !(await this.hasPairings())) {
+      await this.disconnect()
     } else {
-      await this.client.closeActiveSession(account.address);
+      await this.client.closeActiveSession(account.address)
     }
   }
 
