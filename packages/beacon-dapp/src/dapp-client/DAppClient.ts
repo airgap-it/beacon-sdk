@@ -428,29 +428,6 @@ export class DAppClient extends Client {
       ClientEvents.UPDATE_ACCOUNT,
       this.updateActiveAccountHandler.bind(this)
     )
-    this.walletConnectTransport.setEventHandler(
-      ClientEvents.CLEAR_WC_STORAGE,
-      this.resetWCSnapshot.bind(this)
-    )
-  }
-
-  private async resetWCSnapshot() {
-    if (!localStorage) {
-      return
-    
-    }
-    const storage = new LocalStorage()
-
-    await Promise.all([
-      storage.delete(StorageKey.WC_2_CLIENT_SESSION),
-      storage.delete(StorageKey.WC_2_CORE_PAIRING),
-      storage.delete(StorageKey.WC_2_CORE_KEYCHAIN),
-      storage.delete(StorageKey.WC_2_CORE_MESSAGES),
-      storage.delete(StorageKey.WC_2_CLIENT_PROPOSAL),
-      storage.delete(StorageKey.WC_2_CORE_SUBSCRIPTION),
-      storage.delete(StorageKey.WC_2_CORE_HISTORY),
-      storage.delete(StorageKey.WC_2_CORE_EXPIRER)
-    ])
   }
 
   private async updateActiveAccountHandler(address?: string) {
@@ -1644,9 +1621,15 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'after init')
 
     const transport = await this.transport
-    const pairingMissing = ((await this.storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
-    const sessionMissing =
-      ((await this.storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
+
+    let pairingMissing,
+      sessionMissing = false
+
+    if (isLocalStorageAvailable()) {
+      const storage = new LocalStorage()
+      pairingMissing = ((await storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
+      sessionMissing = ((await storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
+    }
 
     // if an external source tempers with localStoarge
     // then the internal signClient snapshot won't react to those changes
@@ -1778,9 +1761,15 @@ export class DAppClient extends Client {
     }
 
     const transport = await this.transport
-    const pairingMissing = ((await this.storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
-    const sessionMissing =
-      ((await this.storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
+
+    let pairingMissing,
+      sessionMissing = false
+
+    if (isLocalStorageAvailable()) {
+      const storage = new LocalStorage()
+      pairingMissing = ((await storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
+      sessionMissing = ((await storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
+    }
 
     // read lines 1628 - 1629
     if (
