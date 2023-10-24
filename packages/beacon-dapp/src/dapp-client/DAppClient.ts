@@ -1752,28 +1752,12 @@ export class DAppClient extends Client {
 
     const transport = await this.transport
 
-    let pairingMissing,
-      sessionMissing = false
-
-    if (transport instanceof WalletConnectTransport) {
-      if (isLocalStorageAvailable()) {
-        const storage = new LocalStorage()
-        pairingMissing = ((await storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
-        sessionMissing = ((await storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
-      } else {
-        pairingMissing = !transport.pairings?.length
-        sessionMissing = !transport.sessions?.length
-      }
-    }
-
-    // if an external source tempers with localStoarge
-    // then the internal signClient snapshot won't react to those changes
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
       (await this.getActiveAccount()) &&
-      pairingMissing &&
-      sessionMissing
+      !(await transport.hasPairings()) &&
+      !(await transport.hasSessions())
     ) {
       await this.channelClosedHandler()
       throw new Error('No active pairing nor session found')
@@ -1901,26 +1885,12 @@ export class DAppClient extends Client {
 
     const transport = await this.transport
 
-    let pairingMissing,
-      sessionMissing = false
-
-    if (transport instanceof WalletConnectTransport) {
-      if (isLocalStorageAvailable()) {
-        const storage = new LocalStorage()
-        pairingMissing = ((await storage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') === '[]'
-        sessionMissing = ((await storage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') === '[]'
-      } else {
-        pairingMissing = !transport.pairings?.length
-        sessionMissing = !transport.sessions?.length
-      }
-    }
-
-    // read lines 1628 - 1629
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
-      pairingMissing &&
-      sessionMissing
+      (await this.getActiveAccount()) &&
+      !(await transport.hasPairings()) &&
+      !(await transport.hasSessions())
     ) {
       await this.channelClosedHandler()
       throw new Error('No active pairing nor session found')
