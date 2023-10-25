@@ -1559,7 +1559,7 @@ export class DAppClient extends Client {
       }
 
       return {
-        name: selectedApp ? selectedApp.name : walletInfo.name,
+        name: walletInfo.name ? walletInfo.name : selectedApp.name,
         icon: walletInfo.icon ?? selectedApp?.logo,
         deeplink,
         type
