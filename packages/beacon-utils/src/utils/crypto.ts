@@ -155,17 +155,17 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
     // tz1...
     edpk: {
       length: 54,
-      prefix: Buffer.from(new Uint8Array([6, 161, 159]))
+      prefix: Buffer.from(new Uint8Array([5, 186, 196]))
     },
     // tz2...
     sppk: {
       length: 55,
-      prefix: Buffer.from(new Uint8Array([6, 161, 161]))
+      prefix: Buffer.from(new Uint8Array([5, 186, 199]))
     },
     // tz3...
     p2pk: {
       length: 55,
-      prefix: Buffer.from(new Uint8Array([6, 161, 164]))
+      prefix: Buffer.from(new Uint8Array([5, 186, 201]))
     }
   }
 
