@@ -51,7 +51,11 @@ const REGIONS_AND_SERVERS: NodeDistributions = {
     'beacon-node-1.hope-3.papers.tech',
     'beacon-node-1.hope-4.papers.tech',
     'beacon-node-1.hope-5.papers.tech'
-  ]
+  ],
+  [Regions.NORTH_AMERICA_EAST]: ['beacon-node-1.beacon-server-1.papers.tech'],
+  [Regions.NORTH_AMERICA_WEST]: ['beacon-node-1.beacon-server-2.papers.tech'],
+  [Regions.ASIA_EAST]: ['beacon-node-1.beacon-server-3.papers.tech'],
+  [Regions.AUSTRALIA]: ['beacon-node-1.beacon-server-4.papers.tech']
 }
 
 interface BeaconInfoResponse {
@@ -634,9 +638,12 @@ export class P2PCommunicationClient extends CommunicationClient {
         logger.log(`Waiting for join... Try: ${retry}`)
 
         return new Promise((resolve) => {
-          setTimeout(async () => {
-            resolve(this.waitForJoin(roomId, retry + 1))
-          }, 100 * (retry > 50 ? 10 : 1)) // After the initial 5 seconds, retry only once per second
+          setTimeout(
+            async () => {
+              resolve(this.waitForJoin(roomId, retry + 1))
+            },
+            100 * (retry > 50 ? 10 : 1)
+          ) // After the initial 5 seconds, retry only once per second
         })
       } else {
         throw new Error(`No one joined after ${retry} tries.`)
@@ -710,17 +717,15 @@ export class P2PCommunicationClient extends CommunicationClient {
       ? new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_DAPP)
       : new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_WALLET)
     const peers = await manager.getPeers()
-    const promiseArray = peers.map(
-      async (peer) => {
-        const hash = `@${await getHexHash(Buffer.from(peer.publicKey, 'hex'))}`
-        if (hash === senderHash) {
-          if (peer.relayServer !== relayServer) {
-            peer.relayServer = relayServer
-            await manager.addPeer(peer as ExtendedP2PPairingResponse)
-          }
+    const promiseArray = peers.map(async (peer) => {
+      const hash = `@${await getHexHash(Buffer.from(peer.publicKey, 'hex'))}`
+      if (hash === senderHash) {
+        if (peer.relayServer !== relayServer) {
+          peer.relayServer = relayServer
+          await manager.addPeer(peer as ExtendedP2PPairingResponse)
         }
       }
-    )
+    })
     await Promise.all(promiseArray)
   }
 
