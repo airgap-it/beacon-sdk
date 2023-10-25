@@ -3,7 +3,7 @@ import {
   CommunicationClient,
   Serializer,
   ClientEvents,
-  Logger,
+  Logger
 } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
@@ -42,7 +42,7 @@ import {
   SignPayloadResponse,
   SignPayloadResponseInput
 } from '@airgap/beacon-types'
-import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
+import { ExposedPromise, generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 const logger = new Logger('WalletConnectCommunicationClient')
@@ -54,7 +54,6 @@ export interface PermissionScopeParam {
 }
 export enum PermissionScopeMethods {
   GET_ACCOUNTS = 'tezos_getAccounts',
-  GET_ACKNOWLEDGEMENT = 'tezos_getAcknowledgement',
   OPERATION_REQUEST = 'tezos_send',
   SIGN = 'tezos_sign'
 }
@@ -83,6 +82,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private session: SessionTypes.Struct | undefined
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
+
+  private requestAccountNamespacePromise: ExposedPromise | undefined = undefined
 
   private currentMessageId: string | undefined // TODO JGD we shouldn't need this
 
@@ -180,41 +181,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
   }
 
-  private async fetchSessionProperties(topic: string, chainId: string) {
-    const signClient = await this.getSignClient()
-    return signClient.request<
-      [
-        {
-          algo: string
-          address: string
-          pubkey: string
-        }
-      ]
-    >({
-      topic: topic,
-      chainId: chainId,
-      request: {
-        method: PermissionScopeMethods.GET_ACKNOWLEDGEMENT,
-        params: {}
-      }
-    })
-  }
-
-  private async setSessionProperties(session: SessionTypes.Struct) {
-    const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-    fun && fun(true)
-    try {
-      const sessionProperties = await this.fetchSessionProperties(
-        session.topic,
-        `${TEZOS_PLACEHOLDER}:${this.wcOptions.network}`
-      )
-      session.sessionProperties = sessionProperties[0]
-    } catch (error) {
-      console.warn('No session properties received.')
-    }
-    fun && fun(false)
-  }
-
   async requestPermissions(message: PermissionRequest) {
     logger.log('#### Requesting permissions')
 
@@ -233,10 +199,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.setDefaultAccountAndNetwork()
 
-    const session = this.getSession()
+    let session = this.getSession()
     let publicKey: string | undefined
 
-    !session.sessionProperties && this.setSessionProperties(session)
+    if (!session.sessionProperties) {
+      const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+      fun && fun()
+      this.requestAccountNamespacePromise = new ExposedPromise()
+      await this.requestAccountNamespacePromise?.promise
+      session = this.getSession()
+    }
 
     if (
       session.sessionProperties?.pubkey &&
@@ -404,7 +376,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const signClient = await this.getSignClient()
 
     if (forceNewConnection) {
-      this.closePairings()
+      await this.closePairings()
+      await this.closeSessions()
     }
 
     const sessions = signClient.session.getAll()
@@ -422,10 +395,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // therefore we must immediately open a session
       // to get data required in the pairing response
       try {
-        const session = await this.openSession(topic)
+        let session = await this.openSession(topic)
 
-        !session.sessionProperties && this.setSessionProperties(session)
-        
+        if (!session.sessionProperties) {
+          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+          fun && fun()
+          this.requestAccountNamespacePromise = new ExposedPromise()
+          await this.requestAccountNamespacePromise?.promise
+          session = this.getSession()
+        }
+
         const pairingResponse: ExtendedWalletConnectPairingResponse =
           new ExtendedWalletConnectPairingResponse(
             topic,
@@ -466,7 +445,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     signClient.on('session_update', (event) => {
       this.session = signClient.session.get(event.topic)
-      this.updateActiveAccount(event.params.namespaces)
+
+      if (this.requestAccountNamespacePromise) {
+        this.requestAccountNamespacePromise?.resolve(true)
+        this.requestAccountNamespacePromise = undefined
+      } else {
+        this.updateActiveAccount(event.params.namespaces)
+      }
     })
 
     signClient.on('session_delete', (event) => {
@@ -830,13 +815,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   async closeActiveSession(account: string) {
     try {
-      this.validateNetworkAndAccount(this.getActiveNetwork(), account);
-    } catch(error: any) {
-      console.error(error.message);
-      return;
+      this.validateNetworkAndAccount(this.getActiveNetwork(), account)
+    } catch (error: any) {
+      console.error(error.message)
+      return
     }
 
-    const session = this.getSession();
+    const session = this.getSession()
 
     await this.signClient?.disconnect({
       topic: session.topic,
