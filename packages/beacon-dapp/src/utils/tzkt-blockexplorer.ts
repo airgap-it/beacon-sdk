@@ -20,6 +20,7 @@ export class TzktBlockExplorer extends BlockExplorer {
       [NetworkType.MUMBAINET]: 'https://mumbainet.tzkt.io',
       [NetworkType.NAIROBINET]: 'https://nairobinet.tzkt.io',
       [NetworkType.OXFORDNET]: 'https://oxfordnet.tzkt.io',
+      [NetworkType.BASENET]: 'https://api.mavryk.network',
       [NetworkType.CUSTOM]: 'https://oxfordnet.tzkt.io'
     }
   ) {

@@ -32,6 +32,7 @@ export interface WebApp extends AppBase {
     [NetworkType.MUMBAINET]?: string
     [NetworkType.NAIROBINET]?: string
     [NetworkType.OXFORDNET]?: string
+    [NetworkType.BASENET]?: string
     [NetworkType.CUSTOM]?: string
   }
 }
