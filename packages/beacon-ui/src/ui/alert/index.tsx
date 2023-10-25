@@ -140,7 +140,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
-  const isOnline = navigator.onLine;
+  const isOnline = navigator.onLine
 
   setAnalytics(config.analytics)
 
@@ -395,7 +395,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleNewTab = async (config: AlertConfig, wallet?: MergedWallet) => {
-      if(!wallet) {
+      if (!wallet) {
         return
       }
 
@@ -458,7 +458,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
         if (uri) {
           if (isAndroid(window) || isIOS(window)) {
-            let link = `https://link.trustwallet.com/wc?uri=${encodeURIComponent(uri)}`
+            let link = `${wallet.links[OSLink.IOS]}/wc?uri={encodeURIComponent(uri)}`
 
             if (isTwBrowser(window) && isAndroid(window)) {
               link = `${uri}`
@@ -629,8 +629,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             {
                               label: 'Connect now',
                               type: 'primary',
-                              onClick: () =>
-                              handleNewTab(config, currentWallet())
+                              onClick: () => {
+                                handleNewTab(config, currentWallet())
+                                setIsLoading(true)
+                              }
                             }
                           ]}
                         />
@@ -645,12 +647,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           }
                           description={
                             hasExtension()
-                              ? `Please connect below to use your ${
-                                  currentWallet()?.name
-                                } Wallet browser extension.`
-                              : `To connect your ${
-                                  currentWallet()?.name
-                                } Wallet, install the browser extension.`
+                              ? `Please connect below to use your ${currentWallet()
+                                  ?.name} Wallet browser extension.`
+                              : `To connect your ${currentWallet()
+                                  ?.name} Wallet, install the browser extension.`
                           }
                           buttons={
                             hasExtension()

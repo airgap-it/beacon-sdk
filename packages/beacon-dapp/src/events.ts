@@ -75,7 +75,6 @@ export enum BeaconEvent {
   BROADCAST_REQUEST_SUCCESS = 'BROADCAST_REQUEST_SUCCESS',
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
   WC_ACKNOWLEDGE_PENDING = 'WC_ACKNOWLEDGE_PENDING',
-  WC_ACKNOWLEDGE_RECEIVED = 'WC_ACKNOWLEDGE_RECEIVED',
   ACKNOWLEDGE_RECEIVED = 'ACKNOWLEDGE_RECEIVED',
 
   LOCAL_RATE_LIMIT_REACHED = 'LOCAL_RATE_LIMIT_REACHED',
@@ -157,9 +156,6 @@ export interface BeaconEventType {
   }
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
   [BeaconEvent.WC_ACKNOWLEDGE_PENDING]: {
-    walletInfo: WalletInfo
-  }
-  [BeaconEvent.WC_ACKNOWLEDGE_RECEIVED]: {
     walletInfo: WalletInfo
   }
   [BeaconEvent.ACKNOWLEDGE_RECEIVED]: {
@@ -629,14 +625,6 @@ const showWCPendingAck = async (data: { walletInfo: WalletInfo }): Promise<void>
   }).catch((toastError) => console.error(toastError))
 }
 
-const showWCReceivedAck = async (data: { walletInfo: WalletInfo }): Promise<void> => {
-  openToast({
-    body: 'Acknowledgment received from\u00A0 {{wallet}}',
-    state: 'acknowledge',
-    walletInfo: data.walletInfo
-  }).catch((toastError) => console.error(toastError))
-}
-
 const emptyHandler = (): BeaconEventHandlerFunction => async (): Promise<void> => {
   //
 }
@@ -669,7 +657,6 @@ export const defaultEventCallbacks: {
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: showBroadcastSuccessAlert,
   [BeaconEvent.BROADCAST_REQUEST_ERROR]: showErrorToast,
   [BeaconEvent.WC_ACKNOWLEDGE_PENDING]: showWCPendingAck,
-  [BeaconEvent.WC_ACKNOWLEDGE_RECEIVED]: showWCReceivedAck,
   [BeaconEvent.ACKNOWLEDGE_RECEIVED]: showAcknowledgedToast,
   [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: showRateLimitReached,
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
@@ -704,7 +691,6 @@ export class BeaconEventHandler {
     [BeaconEvent.SIGN_REQUEST_SUCCESS]: [defaultEventCallbacks.SIGN_REQUEST_SUCCESS],
     [BeaconEvent.SIGN_REQUEST_ERROR]: [defaultEventCallbacks.SIGN_REQUEST_ERROR],
     [BeaconEvent.WC_ACKNOWLEDGE_PENDING]: [defaultEventCallbacks.WC_ACKNOWLEDGE_PENDING],
-    [BeaconEvent.WC_ACKNOWLEDGE_RECEIVED]: [defaultEventCallbacks.WC_ACKNOWLEDGE_RECEIVED],
     // TODO: ENCRYPTION
     // [BeaconEvent.ENCRYPT_REQUEST_SENT]: [defaultEventCallbacks.ENCRYPT_REQUEST_SENT],
     // [BeaconEvent.ENCRYPT_REQUEST_SUCCESS]: [defaultEventCallbacks.ENCRYPT_REQUEST_SUCCESS],
