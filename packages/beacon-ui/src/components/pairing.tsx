@@ -1,5 +1,5 @@
 import { desktopList, extensionList, iOSList, webList } from '../ui/alert/wallet-lists'
-import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
+import { DesktopApp, App, ExtensionApp, WebApp } from '@mavrykdynamics/beacon-types'
 
 // export interface PairingProps {}
 

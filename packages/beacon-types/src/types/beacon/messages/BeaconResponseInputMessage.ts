@@ -1,4 +1,4 @@
-import { Optional } from '@airgap/beacon-types'
+import { Optional } from '@mavrykdynamics/beacon-types'
 import {
   PermissionResponse,
   OperationResponse,
@@ -7,7 +7,7 @@ import {
   BroadcastResponse,
   AcknowledgeResponse,
   ErrorResponse
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 
 /**
  * @category Wallet

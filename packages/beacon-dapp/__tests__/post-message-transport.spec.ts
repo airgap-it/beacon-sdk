@@ -5,12 +5,12 @@ import * as sinon from 'sinon'
 
 import { DappPostMessageTransport } from '../src/transports/DappPostMessageTransport'
 
-import { TransportStatus, Origin, ExtendedPostMessagePairingResponse } from '@airgap/beacon-types'
-import { getKeypairFromSeed } from '@airgap/beacon-utils'
-import { BEACON_VERSION, PeerManager, LocalStorage } from '@airgap/beacon-core'
+import { TransportStatus, Origin, ExtendedPostMessagePairingResponse } from '@mavrykdynamics/beacon-types'
+import { getKeypairFromSeed } from '@mavrykdynamics/beacon-utils'
+import { BEACON_VERSION, PeerManager, LocalStorage } from '@mavrykdynamics/beacon-core'
 import { clearMockWindowState, windowRef } from '../../beacon-core/src/MockWindow'
-import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
-import { PostMessageClient } from '@airgap/beacon-transport-postmessage/src/PostMessageClient'
+import { PostMessageTransport } from '@mavrykdynamics/beacon-transport-postmessage'
+import { PostMessageClient } from '@mavrykdynamics/beacon-transport-postmessage/src/PostMessageClient'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)

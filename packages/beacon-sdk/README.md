@@ -28,7 +28,7 @@ The documentation can be found [here](https://docs.walletbeacon.io/), technical 
 ## Installation
 
 ```
-npm i --save @airgap/beacon-sdk
+npm i --save @mavrykdynamics/beacon-sdk
 ```
 
 ## Example DApp integration

@@ -1,5 +1,5 @@
 {
-  "name": "@airgap/beacon-dapp",
+  "name": "@mavrykdynamics/beacon-dapp",
   "version": "4.0.12",
   "description": "Use this package on your dApp to instanciate a DAppClient object and communicate to wallets.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
@@ -35,10 +35,10 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "4.0.12",
-    "@airgap/beacon-transport-matrix": "4.0.12",
-    "@airgap/beacon-transport-postmessage": "4.0.12",
-    "@airgap/beacon-transport-walletconnect": "4.0.12",
-    "@airgap/beacon-ui": "4.0.12"
+    "@mavrykdynamics/beacon-core": "4.0.12",
+    "@mavrykdynamics/beacon-transport-matrix": "4.0.12",
+    "@mavrykdynamics/beacon-transport-postmessage": "4.0.12",
+    "@mavrykdynamics/beacon-transport-walletconnect": "4.0.12",
+    "@mavrykdynamics/beacon-ui": "4.0.12"
   }
 }

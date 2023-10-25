@@ -1,6 +1,6 @@
 import { Logger } from '../utils/Logger'
 import { ChromeStorage, LocalStorage } from '..'
-import { Storage } from '@airgap/beacon-types'
+import { Storage } from '@mavrykdynamics/beacon-types'
 
 const logger = new Logger('STORAGE')
 

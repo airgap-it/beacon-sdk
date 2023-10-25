@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { AppMetadataManager } from '../../src/managers/AppMetadataManager'
 
-import { AppMetadata } from '@airgap/beacon-types'
+import { AppMetadata } from '@mavrykdynamics/beacon-types'
 import { FileStorage, writeLocalFile } from '../../../../test/test-utils/FileStorage'
 
 // use chai-as-promised plugin

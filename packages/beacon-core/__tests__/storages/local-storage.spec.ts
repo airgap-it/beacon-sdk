@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import * as sinon from 'sinon'
 
-import { StorageKey } from '@airgap/beacon-types'
+import { StorageKey } from '@mavrykdynamics/beacon-types'
 
 import { LocalStorage } from '../../src'
 

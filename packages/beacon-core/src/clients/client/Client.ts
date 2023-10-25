@@ -1,4 +1,4 @@
-import { ExposedPromise, ExposedPromiseStatus, generateGUID } from '@airgap/beacon-utils'
+import { ExposedPromise, ExposedPromiseStatus, generateGUID } from '@mavrykdynamics/beacon-utils'
 import {
   ConnectionContext,
   TransportType,
@@ -12,7 +12,7 @@ import {
   BeaconRequestMessage,
   BeaconMessageWrapper,
   NodeDistributions
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 import { Serializer, Transport } from '../..'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'

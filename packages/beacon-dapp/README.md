@@ -1,6 +1,6 @@
-# `@airgap/beacon-dapp`
+# `@mavrykdynamics/beacon-dapp`
 
-This package is part of the `@airgap/beacon-sdk` project. [Read more](https://github.com/airgap-it/beacon-sdk)
+This package is part of the `@mavrykdynamics/beacon-sdk` project. [Read more](https://github.com/airgap-it/beacon-sdk)
 
 ## Introduction
 
@@ -9,7 +9,7 @@ Use this package on your dApp to instanciate a `DAppClient` object and communica
 ## Usage
 
 ```
-import { DAppClient } from '@airgap/beacon-dapp'
+import { DAppClient } from '@mavrykdynamics/beacon-dapp'
 
 const dAppClient = new DAppClient({ name: "Beacon Docs" });
 ```

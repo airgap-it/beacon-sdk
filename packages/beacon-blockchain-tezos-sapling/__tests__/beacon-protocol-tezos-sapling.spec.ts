@@ -1,4 +1,4 @@
-import { BeaconMessageType, NetworkType } from '@airgap/beacon-types'
+import { BeaconMessageType, NetworkType } from '@mavrykdynamics/beacon-types'
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
@@ -9,7 +9,7 @@ const expect = chai.expect
 
 import { TezosSaplingBlockchain, TezosSaplingPermissionScope } from '../src'
 
-describe('@airgap/beacon-blockchain-tezos-sapling', () => {
+describe('@mavrykdynamics/beacon-blockchain-tezos-sapling', () => {
   it('should have wallets', async () => {
     const blockchain = new TezosSaplingBlockchain()
 

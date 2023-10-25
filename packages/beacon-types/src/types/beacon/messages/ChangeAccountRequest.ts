@@ -1,4 +1,4 @@
-import { BeaconBaseMessage, BeaconMessageType, Network, PermissionScope, Threshold } from "@airgap/beacon-types"
+import { BeaconBaseMessage, BeaconMessageType, Network, PermissionScope, Threshold } from "@mavrykdynamics/beacon-types"
 import { Notification } from '../../Notification'
 
 export interface ChangeAccountRequest extends BeaconBaseMessage {

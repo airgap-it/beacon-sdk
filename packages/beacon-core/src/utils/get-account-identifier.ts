@@ -1,5 +1,5 @@
 import * as bs58check from 'bs58check'
-import { Network } from '@airgap/beacon-types'
+import { Network } from '@mavrykdynamics/beacon-types'
 import { hash } from '@stablelib/blake2b'
 import { encode } from '@stablelib/utf8'
 

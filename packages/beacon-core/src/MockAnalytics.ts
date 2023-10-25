@@ -1,4 +1,4 @@
-import { AnalyticsInterface } from '@airgap/beacon-types'
+import { AnalyticsInterface } from '@mavrykdynamics/beacon-types'
 
 export class MockAnalytics implements AnalyticsInterface {
   track(

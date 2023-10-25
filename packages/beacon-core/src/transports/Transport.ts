@@ -6,7 +6,7 @@ import {
   StorageKey,
   StorageKeyReturnType,
   ConnectionContext
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 import { PeerManager } from '../managers/PeerManager'
 import { ArrayElem } from '../managers/StorageManager'
 import { CommunicationClient } from './clients/CommunicationClient'

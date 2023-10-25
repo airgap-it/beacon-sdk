@@ -7,7 +7,7 @@ import {
   NodeDistributions,
   AnalyticsInterface,
   Network
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 
 type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
   {

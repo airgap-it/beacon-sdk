@@ -8,7 +8,7 @@ import {
   DesktopApp,
   WebApp,
   App
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 
 export interface ResponseInput {
   request: BlockchainMessage

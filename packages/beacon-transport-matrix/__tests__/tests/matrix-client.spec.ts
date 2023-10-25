@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
-import { LocalStorage } from '@airgap/beacon-core'
+import { LocalStorage } from '@mavrykdynamics/beacon-core'
 import { MatrixClient } from '../../src/matrix-client/MatrixClient'
 import * as sinon from 'sinon'
 import { MatrixRoomStatus } from '../../src/matrix-client/models/MatrixRoom'

@@ -1,5 +1,5 @@
 import { EventEmitter } from './EventEmitter'
-import { keys } from '@airgap/beacon-utils'
+import { keys } from '@mavrykdynamics/beacon-utils'
 import { MatrixStateStore, MatrixStateUpdate } from './MatrixClientStore'
 import { MatrixRoomStatus } from './models/MatrixRoom'
 import { MatrixMessage } from './models/MatrixMessage'

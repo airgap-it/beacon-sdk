@@ -4,7 +4,7 @@ import {
   SignPayloadResponse,
   BroadcastResponse
   // EncryptPayloadResponse
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 import { ErrorResponse } from './messages/ErrorResponse'
 
 /**

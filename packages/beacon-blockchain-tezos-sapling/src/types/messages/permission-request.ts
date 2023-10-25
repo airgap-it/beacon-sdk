@@ -1,4 +1,4 @@
-import { AppMetadata, NetworkType, PermissionRequestV3 } from '@airgap/beacon-types'
+import { AppMetadata, NetworkType, PermissionRequestV3 } from '@mavrykdynamics/beacon-types'
 import { TezosSaplingPermissionScope } from '../permission-scope'
 
 export interface TezosSaplingPermissionRequest extends PermissionRequestV3<'tezos-sapling'> {

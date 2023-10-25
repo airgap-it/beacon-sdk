@@ -8,9 +8,9 @@ import {
   getSenderId,
   Logger,
   NOTIFICATION_ORACLE_URL
-} from '@airgap/beacon-core'
+} from '@mavrykdynamics/beacon-core'
 
-import { ExposedPromise, toHex } from '@airgap/beacon-utils'
+import { ExposedPromise, toHex } from '@mavrykdynamics/beacon-utils'
 
 import {
   ConnectionContext,
@@ -32,7 +32,7 @@ import {
   BeaconBaseMessage,
   StorageKey,
   PushToken
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
 import { WalletP2PTransport } from '../transports/WalletP2PTransport'
 import { IncomingRequestInterceptor } from '../interceptors/IncomingRequestInterceptor'

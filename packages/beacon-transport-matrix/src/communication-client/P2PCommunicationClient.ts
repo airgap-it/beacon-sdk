@@ -9,7 +9,7 @@ import {
   decryptCryptoboxPayload,
   secretbox_NONCEBYTES,
   secretbox_MACBYTES
-} from '@airgap/beacon-utils'
+} from '@mavrykdynamics/beacon-utils'
 import { MatrixClient } from '../matrix-client/MatrixClient'
 import {
   MatrixClientEvent,
@@ -26,15 +26,15 @@ import {
   P2PPairingResponse,
   NodeDistributions,
   Regions
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 import {
   PeerManager,
   BEACON_VERSION,
   getSenderId,
   Logger,
   CommunicationClient
-} from '@airgap/beacon-core'
-import { ExposedPromise, generateGUID } from '@airgap/beacon-utils'
+} from '@mavrykdynamics/beacon-core'
+import { ExposedPromise, generateGUID } from '@mavrykdynamics/beacon-utils'
 import { KeyPair } from '@stablelib/ed25519'
 import { hash } from '@stablelib/blake2b'
 import { encode } from '@stablelib/utf8'

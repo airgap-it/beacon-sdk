@@ -1,4 +1,4 @@
-import { StorageKey, StorageKeyReturnType } from '@airgap/beacon-types'
+import { StorageKey, StorageKeyReturnType } from '@mavrykdynamics/beacon-types'
 
 /**
  * @internalapi

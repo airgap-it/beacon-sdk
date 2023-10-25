@@ -7,7 +7,7 @@ import {
   closeToast,
   openToast,
   ToastAction
-} from '@airgap/beacon-dapp'
+} from '@mavrykdynamics/beacon-dapp'
 import {
   BeaconErrorType,
   ExtendedPostMessagePairingResponse,
@@ -28,7 +28,7 @@ import {
   ExtendedWalletConnectPairingResponse,
   WalletConnectPairingRequest,
   AnalyticsInterface
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 import {
   UnknownBeaconError,
   BeaconError,
@@ -36,9 +36,9 @@ import {
   Logger
   // EncryptPayloadResponseOutput,
   // EncryptionOperation
-} from '@airgap/beacon-core'
+} from '@mavrykdynamics/beacon-core'
 import { shortenString } from './utils/shorten-string'
-import { isMobile } from '@airgap/beacon-ui'
+import { isMobile } from '@mavrykdynamics/beacon-ui'
 
 const logger = new Logger('BeaconEvents')
 

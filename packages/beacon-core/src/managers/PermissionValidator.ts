@@ -3,7 +3,7 @@ import {
   BeaconMessageType,
   PermissionScope,
   PermissionEntity
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 import { getAccountIdentifier } from '../utils/get-account-identifier'
 
 /**

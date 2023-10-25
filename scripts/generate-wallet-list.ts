@@ -76,7 +76,7 @@ const generateForBlockchains = (
     const webListWithInlinedLogo = await convert(webList)
     const iosListWithInlinedLogo = await convert(iosList)
 
-    let out = `import { App, DesktopApp, ExtensionApp, WebApp } from '@airgap/beacon-types'`
+    let out = `import { App, DesktopApp, ExtensionApp, WebApp } from '@mavrykdynamics/beacon-types'`
     out += `
   
   `

@@ -1,5 +1,5 @@
 import { SDK_VERSION } from '../constants'
-import { Storage, StorageKey } from '@airgap/beacon-types'
+import { Storage, StorageKey } from '@mavrykdynamics/beacon-types'
 import { migrate_0_7_0 } from './migrate-0.7.0'
 
 const migrations: [string, Function][] = [

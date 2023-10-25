@@ -4,8 +4,8 @@ import 'mocha'
 import * as sinon from 'sinon'
 
 import { P2PCommunicationClient } from '../../src'
-import { getKeypairFromSeed } from '@airgap/beacon-utils'
-import { LocalStorage } from '@airgap/beacon-core'
+import { getKeypairFromSeed } from '@mavrykdynamics/beacon-utils'
+import { LocalStorage } from '@mavrykdynamics/beacon-core'
 
 chai.use(chaiAsPromised)
 const expect = chai.expect

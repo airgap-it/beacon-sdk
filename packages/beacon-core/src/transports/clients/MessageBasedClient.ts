@@ -5,9 +5,9 @@ import {
   generateGUID,
   secretbox_NONCEBYTES,
   secretbox_MACBYTES
-} from '@airgap/beacon-utils'
+} from '@mavrykdynamics/beacon-utils'
 import { CommunicationClient } from './CommunicationClient'
-import { PostMessagePairingRequest, PostMessagePairingResponse } from '@airgap/beacon-types'
+import { PostMessagePairingRequest, PostMessagePairingResponse } from '@mavrykdynamics/beacon-types'
 import { KeyPair } from '@stablelib/ed25519'
 
 /**

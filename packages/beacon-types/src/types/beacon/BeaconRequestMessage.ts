@@ -4,7 +4,7 @@ import {
   SignPayloadRequest,
   BroadcastRequest
   // EncryptPayloadRequest
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 
 /**
  * @internalapi

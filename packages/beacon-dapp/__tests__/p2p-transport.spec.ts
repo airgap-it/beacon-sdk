@@ -5,10 +5,10 @@ import * as sinon from 'sinon'
 
 import { DappP2PTransport } from '../src/transports/DappP2PTransport'
 
-import { P2PCommunicationClient, P2PTransport } from '@airgap/beacon-transport-matrix'
-import { ExtendedP2PPairingResponse, TransportStatus, Origin } from '@airgap/beacon-types'
-import { getKeypairFromSeed } from '@airgap/beacon-utils'
-import { BEACON_VERSION, PeerManager, LocalStorage } from '@airgap/beacon-core'
+import { P2PCommunicationClient, P2PTransport } from '@mavrykdynamics/beacon-transport-matrix'
+import { ExtendedP2PPairingResponse, TransportStatus, Origin } from '@mavrykdynamics/beacon-types'
+import { getKeypairFromSeed } from '@mavrykdynamics/beacon-utils'
+import { BEACON_VERSION, PeerManager, LocalStorage } from '@mavrykdynamics/beacon-core'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)

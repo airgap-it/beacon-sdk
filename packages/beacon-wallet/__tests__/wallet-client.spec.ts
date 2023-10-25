@@ -15,7 +15,7 @@ import {
   PermissionInfo,
   PermissionResponseInput,
   BeaconResponseInputMessage
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 
 import {
   AppMetadataManager,
@@ -25,9 +25,9 @@ import {
   LocalStorage,
   getSenderId,
   Serializer
-} from '@airgap/beacon-core'
+} from '@mavrykdynamics/beacon-core'
 
-import { P2PTransport } from '@airgap/beacon-transport-matrix'
+import { P2PTransport } from '@mavrykdynamics/beacon-transport-matrix'
 import { WalletClient } from '../src'
 
 // use chai-as-promised plugin

@@ -13,8 +13,8 @@ import {
   PermissionRequestV3,
   BeaconBaseMessage
   // EncryptPayloadRequestOutput
-} from '@airgap/beacon-types'
-import { AppMetadataManager, Logger } from '@airgap/beacon-core'
+} from '@mavrykdynamics/beacon-types'
+import { AppMetadataManager, Logger } from '@mavrykdynamics/beacon-core'
 
 const logger = new Logger('IncomingRequestInterceptor')
 

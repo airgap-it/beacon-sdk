@@ -4,9 +4,9 @@ import {
   ExtendedWalletConnectPairingResponse,
   TransportStatus,
   NetworkType
-} from '@airgap/beacon-types'
-import { Logger } from '@airgap/beacon-core'
-import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
+} from '@mavrykdynamics/beacon-types'
+import { Logger } from '@mavrykdynamics/beacon-core'
+import { WalletConnectTransport } from '@mavrykdynamics/beacon-transport-walletconnect'
 import { KeyPair } from '@stablelib/ed25519'
 import { SignClientTypes } from '@walletconnect/types'
 

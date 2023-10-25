@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { PeerManager } from '../../src/managers/PeerManager'
 
-import { StorageKey, P2PPairingRequest } from '@airgap/beacon-types'
+import { StorageKey, P2PPairingRequest } from '@mavrykdynamics/beacon-types'
 import { FileStorage, writeLocalFile } from '../../../../test/test-utils/FileStorage'
 import { BEACON_VERSION } from '../../src/'
 

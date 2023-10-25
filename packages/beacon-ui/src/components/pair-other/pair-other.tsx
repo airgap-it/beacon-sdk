@@ -1,9 +1,9 @@
 import { Component, createSignal, onMount } from 'solid-js'
 import QR from '../qr'
 import { MergedWallet } from '../../utils/wallets'
-import { P2PPairingRequest, WalletConnectPairingRequest } from '@airgap/beacon-types'
+import { P2PPairingRequest, WalletConnectPairingRequest } from '@mavrykdynamics/beacon-types'
 import styles from './styles.css'
-import { Serializer } from '@airgap/beacon-core'
+import { Serializer } from '@mavrykdynamics/beacon-core'
 
 export interface PairOtherProps {
   walletList: MergedWallet[]

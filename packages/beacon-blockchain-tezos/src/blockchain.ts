@@ -7,7 +7,7 @@ import {
   DesktopApp,
   ExtensionApp,
   WebApp
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 import { desktopList, extensionList, iOSList, webList } from './ui/alert/wallet-lists'
 
 export class TezosBlockchain implements Blockchain {

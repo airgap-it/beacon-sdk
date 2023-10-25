@@ -1,4 +1,4 @@
-import { BeaconMessageType } from '@airgap/beacon-types'
+import { BeaconMessageType } from '@mavrykdynamics/beacon-types'
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
@@ -9,7 +9,7 @@ const expect = chai.expect
 
 import { SubstrateBlockchain, SubstratePermissionScope } from '../src'
 
-describe('@airgap/beacon-blockchain-substrate', () => {
+describe('@mavrykdynamics/beacon-blockchain-substrate', () => {
   it('should have wallets', async () => {
     const blockchain = new SubstrateBlockchain()
 

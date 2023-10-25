@@ -4,7 +4,7 @@
     "outDir": "./dist/esm",
     "baseUrl": ".",
     "paths": {
-      "@airgap/beacon-transport-postmessage": ["./src"]
+      "@mavrykdynamics/beacon-transport-postmessage": ["./src"]
     }
   },
   "include": ["./src"]

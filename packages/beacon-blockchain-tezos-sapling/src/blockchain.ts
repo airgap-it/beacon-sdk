@@ -6,7 +6,7 @@ import {
   DesktopApp,
   WebApp,
   App
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 import { TezosSaplingPermissionResponse } from './types/messages/permission-response'
 import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-lists'
 

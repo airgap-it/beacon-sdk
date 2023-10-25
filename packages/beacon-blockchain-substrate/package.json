@@ -1,7 +1,7 @@
 {
-  "name": "@airgap/beacon-blockchain-substrate",
+  "name": "@mavrykdynamics/beacon-blockchain-substrate",
   "version": "4.0.12",
-  "description": "This package adds support for `substrate` based blockchains. It can be used in combination with the `@airgap/beacon-dapp` or `@airgap/beacon-wallet` packages.",
+  "description": "This package adds support for `substrate` based blockchains. It can be used in combination with the `@mavrykdynamics/beacon-dapp` or `@mavrykdynamics/beacon-wallet` packages.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
   "license": "ISC",
@@ -34,7 +34,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-types": "4.0.12",
-    "@airgap/beacon-ui": "4.0.12"
+    "@mavrykdynamics/beacon-types": "4.0.12",
+    "@mavrykdynamics/beacon-ui": "4.0.12"
   }
 }

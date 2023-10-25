@@ -1,4 +1,4 @@
-import { AppMetadata, PermissionRequestV3 } from '@airgap/beacon-types'
+import { AppMetadata, PermissionRequestV3 } from '@mavrykdynamics/beacon-types'
 import { SubstratePermissionScope } from '../permission-scope'
 
 export interface SubstratePermissionRequest extends PermissionRequestV3<'substrate'> {

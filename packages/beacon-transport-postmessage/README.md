@@ -1,6 +1,6 @@
-# `@airgap/beacon-transport-postmessage`
+# `@mavrykdynamics/beacon-transport-postmessage`
 
-This package is part of the `@airgap/beacon-sdk` project. [Read more](https://github.com/airgap-it/beacon-sdk)
+This package is part of the `@mavrykdynamics/beacon-sdk` project. [Read more](https://github.com/airgap-it/beacon-sdk)
 
 ## Introduction
 

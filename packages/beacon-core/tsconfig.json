@@ -4,7 +4,7 @@
     "baseUrl": ".",
     "outDir": "./dist/esm",
     "paths": {
-      "@airgap/beacon-core": ["./src"]
+      "@mavrykdynamics/beacon-core": ["./src"]
     }
   },
   "include": ["./src"]

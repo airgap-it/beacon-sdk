@@ -1,4 +1,4 @@
-import { Optional } from '@airgap/beacon-types'
+import { Optional } from '@mavrykdynamics/beacon-types'
 import {
   AppMetadata,
   PermissionRequest,
@@ -6,7 +6,7 @@ import {
   SignPayloadRequest,
   // EncryptPayloadRequest,
   BroadcastRequest
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 
 /**
  * @category Wallet

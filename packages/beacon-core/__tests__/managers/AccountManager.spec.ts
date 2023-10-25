@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { AccountManager } from '../../src/managers/AccountManager'
 
-import { AccountInfo, Origin, NetworkType, PermissionScope } from '@airgap/beacon-types'
+import { AccountInfo, Origin, NetworkType, PermissionScope } from '@mavrykdynamics/beacon-types'
 import { FileStorage, writeLocalFile } from '../../../../test/test-utils/FileStorage'
 
 // use chai-as-promised plugin

@@ -1,11 +1,11 @@
-import { Optional } from '@airgap/beacon-types'
+import { Optional } from '@mavrykdynamics/beacon-types'
 import {
   PermissionRequest,
   OperationRequest,
   SignPayloadRequest,
   // EncryptPayloadRequest,
   BroadcastRequest
-} from '@airgap/beacon-types'
+} from '@mavrykdynamics/beacon-types'
 
 /**
  * @internalapi
