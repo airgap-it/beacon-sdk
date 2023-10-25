@@ -435,9 +435,8 @@ export class DAppClient extends Client {
       }
     })()
 
-    console.log('walletInfo: ', walletInfo)
-
-    setTimeout(async () => await this.events.emit(BeaconEvent.HIDE_UI, ['alert']))
+    // todo check why the alert is not hiding without the following command
+    setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI, ['alert']))
 
     await this.events.emit(BeaconEvent.WC_ACKNOWLEDGE_PENDING, { walletInfo })
   }
