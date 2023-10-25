@@ -657,6 +657,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const session = await approval()
       // if I have successfully opened a session and I already have one opened
       if (session && this.session) {
+        this.activeAccount && this.closeActiveSession(this.activeAccount)
         this.session = undefined // close the previous session
       }
 
