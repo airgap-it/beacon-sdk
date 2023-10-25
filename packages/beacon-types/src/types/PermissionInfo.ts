@@ -6,6 +6,6 @@ export interface PermissionInfo extends PermissionEntity {
   senderId: string
   appMetadata: AppMetadata
   website: string
-  publicKey: string
+  publicKey?: string
   connectedAt: number
 }

@@ -262,4 +262,20 @@ export const signMessage = async (
   return signature
 }
 
+export const isValidAddress = (address: string): boolean => {
+  const prefixes = ['tz1', 'tz2', 'tz3', 'tz4', 'KT1', 'txr1', 'sr1']
+
+  if (!prefixes.some((p) => address.toLowerCase().startsWith(p.toLowerCase()))) {
+    return false
+  }
+
+  try {
+    bs58check.decode(address)
+  } catch (error) {
+    return false
+  }
+
+  return true
+}
+
 /* eslint-enable prefer-arrow/prefer-arrow-functions */

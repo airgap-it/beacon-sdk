@@ -4,7 +4,8 @@ import {
   SignPayloadResponse,
   // EncryptPayloadResponse,
   BroadcastResponse,
-  AccountInfo
+  AccountInfo,
+  ProofOfEventChallengeResponse
 } from '@airgap/beacon-types'
 
 /**
@@ -20,6 +21,12 @@ export type PermissionResponseOutput = PermissionResponse & {
   accountInfo: AccountInfo
   walletKey?: string | undefined // Last selected wallet key
 }
+
+/**
+ * @category DApp
+ */
+export type ProofOfEventChallengeResponseOutput = ProofOfEventChallengeResponse
+
 /**
  * @category DApp
  */
@@ -47,3 +54,4 @@ export type BeaconResponseOutputMessage =
   | SignPayloadResponseOutput
   // | EncryptPayloadResponseOutput
   | BroadcastResponseOutput
+  | ProofOfEventChallengeResponseOutput

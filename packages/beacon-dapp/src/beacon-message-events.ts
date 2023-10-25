@@ -24,6 +24,21 @@ export const messageEvents: {
     success: BeaconEvent.UNKNOWN,
     error: BeaconEvent.UNKNOWN
   },
+  [BeaconMessageType.ProofOfEventChallengeRequest]: {
+    sent: BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT,
+    success: BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS,
+    error: BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
+  },
+  [BeaconMessageType.ProofOfEventChallengeResponse]: {
+    sent: BeaconEvent.UNKNOWN,
+    success: BeaconEvent.UNKNOWN,
+    error: BeaconEvent.UNKNOWN
+  },
+  [BeaconMessageType.ProofOfEventChallengeRecorded]: {
+    sent: BeaconEvent.UNKNOWN,
+    success: BeaconEvent.UNKNOWN,
+    error: BeaconEvent.UNKNOWN
+  },
   [BeaconMessageType.OperationRequest]: {
     sent: BeaconEvent.OPERATION_REQUEST_SENT,
     success: BeaconEvent.OPERATION_REQUEST_SUCCESS,

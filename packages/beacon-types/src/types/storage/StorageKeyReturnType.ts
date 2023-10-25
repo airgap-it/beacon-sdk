@@ -5,7 +5,8 @@ import {
   P2PPairingRequest,
   AppMetadata,
   PermissionInfo,
-  ExtendedWalletConnectPairingResponse
+  ExtendedWalletConnectPairingResponse,
+  RequestProofOfEventChallengeInput
 } from '../..'
 // TODO: MOVE TYPE import { MatrixState } from '../../matrix-client/MatrixClientStore'
 import { ExtendedP2PPairingResponse } from '../P2PPairingResponse'
@@ -29,6 +30,10 @@ export interface StorageKeyReturnType {
   [StorageKey.BEACON_SDK_SECRET_SEED]: string | undefined
   [StorageKey.APP_METADATA_LIST]: AppMetadata[]
   [StorageKey.PERMISSION_LIST]: PermissionInfo[]
+  [StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES]: ({
+    contractAddress: string
+    accountIdentifier: string
+  } & RequestProofOfEventChallengeInput)[]
   [StorageKey.BEACON_SDK_VERSION]: string | undefined
   [StorageKey.MATRIX_PRESERVED_STATE]: { [key: string]: unknown } // TODO: TYPE Partial<MatrixState>
   [StorageKey.MATRIX_PEER_ROOM_IDS]: { [key: string]: string | undefined }

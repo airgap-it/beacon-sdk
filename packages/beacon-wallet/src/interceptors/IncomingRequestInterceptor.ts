@@ -6,12 +6,14 @@ import {
   OperationRequestOutput,
   SignPayloadRequestOutput,
   BroadcastRequestOutput,
+  ProofOfEventChallengeRequestOutput,
   ConnectionContext,
   BeaconRequestMessage,
   BeaconMessageWrapper,
   BlockchainRequestV3,
   PermissionRequestV3,
-  BeaconBaseMessage
+  BeaconBaseMessage,
+  ProofOfEventChallengeRecordedMessageOutput
   // EncryptPayloadRequestOutput
 } from '@airgap/beacon-types'
 import { AppMetadataManager, Logger } from '@airgap/beacon-core'
@@ -141,7 +143,32 @@ export class IncomingRequestInterceptor {
           interceptorCallback(request, connectionInfo)
         }
         break
-
+      case BeaconMessageType.ProofOfEventChallengeRequest:
+        {
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+            appMetadataManager,
+            message.senderId
+          )
+          const request: ProofOfEventChallengeRequestOutput = {
+            appMetadata,
+            ...message
+          }
+          interceptorCallback(request, connectionInfo)
+        }
+        break
+      case BeaconMessageType.ProofOfEventChallengeRecorded:
+        {
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+            appMetadataManager,
+            message.senderId
+          )
+          const request: ProofOfEventChallengeRecordedMessageOutput = {
+            appMetadata,
+            ...message
+          }
+          interceptorCallback(request, connectionInfo)
+        }
+        break
       default:
         logger.log('intercept', 'Message not handled')
         assertNever(message)
