@@ -1,4 +1,4 @@
-import * as chai from 'chai'
+  import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import { getAccountIdentifier } from '../../src/utils/get-account-identifier'
@@ -11,25 +11,25 @@ const expect = chai.expect
 describe(`AccountIdentifier`, () => {
   describe('getAccountIdentifier', () => {
     it(`should return the account identifier for an address on mainnet`, async () => {
-      const address: string = 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
+      const address: string = 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB'
       const network: Network = { type: NetworkType.MAINNET }
 
       const accountIdentifier: string = await getAccountIdentifier(address, network)
 
-      expect(accountIdentifier).to.deep.equal('yQxM85PrJ718CA1N6oz')
+      expect(accountIdentifier).to.deep.equal('288mYBP4kGn8FW4SbMBt')
     })
 
     it(`should return the account identifier for an address on delphinet`, async () => {
-      const address: string = 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
+      const address: string = 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB'
       const network: Network = { type: NetworkType.DELPHINET }
 
       const accountIdentifier: string = await getAccountIdentifier(address, network)
 
-      expect(accountIdentifier).to.deep.equal('2M1kGfFekH3G48Yxav3H')
+      expect(accountIdentifier).to.deep.equal('Q98wQHLpraA9PV5D9y8')
     })
 
     it(`should return the account identifier for an address on custom net`, async () => {
-      const address: string = 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
+      const address: string = 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB'
       const network: Network = {
         type: NetworkType.CUSTOM,
         name: 'Test',
@@ -38,11 +38,11 @@ describe(`AccountIdentifier`, () => {
 
       const accountIdentifier: string = await getAccountIdentifier(address, network)
 
-      expect(accountIdentifier).to.deep.equal('2BvmGNNovaYxXo879r6j')
+      expect(accountIdentifier).to.deep.equal('qq5awoPP6FG8bsarSXK')
     })
 
     it(`should return different account identifier for different network names`, async () => {
-      const address: string = 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
+      const address: string = 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB'
       const network1: Network = { type: NetworkType.MAINNET, name: 'Mainnet 1' }
       const network2: Network = { type: NetworkType.MAINNET, name: 'Mainnet 2' }
 
@@ -53,7 +53,7 @@ describe(`AccountIdentifier`, () => {
     })
 
     it(`should return different account identifier for different network rpcUrls`, async () => {
-      const address: string = 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
+      const address: string = 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB'
       const network1: Network = { type: NetworkType.MAINNET, rpcUrl: 'http://localhost/' }
       const network2: Network = { type: NetworkType.MAINNET, rpcUrl: 'http://localhost:8080/' }
 
@@ -64,7 +64,7 @@ describe(`AccountIdentifier`, () => {
     })
 
     it(`should return different account identifier for same name or rpcUrl`, async () => {
-      const address: string = 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
+      const address: string = 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB'
       const network1: Network = { type: NetworkType.MAINNET, name: 'http://localhost:8080/' }
       const network2: Network = { type: NetworkType.MAINNET, rpcUrl: 'http://localhost:8080/' }
 

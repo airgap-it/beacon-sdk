@@ -614,7 +614,7 @@ describe(`DAppClient`, () => {
       id: 'my-id',
       type: BeaconMessageType.PermissionResponse,
       senderId: 'sender-id',
-      address: 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7',
+      address: 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB',
       network: { type: 'mainnet' },
       scopes: ['sign', 'operation_request'],
       publicKey: '444e1f4ab90c304a5ac003d367747aab63815f583ff2330ce159d12c1ecceba1',
@@ -626,13 +626,13 @@ describe(`DAppClient`, () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
     const account: AccountInfo = {
-      accountIdentifier: 'yQxM85PrJ718CA1N6oz',
+      accountIdentifier: '288mYBP4kGn8FW4SbMBt',
       senderId: 'sender-id',
       origin: {
         type: Origin.P2P,
         id: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3'
       },
-      address: 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7',
+      address: 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB',
       publicKey: '444e1f4ab90c304a5ac003d367747aab63815f583ff2330ce159d12c1ecceba1',
       network: { type: NetworkType.MAINNET },
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
@@ -673,7 +673,7 @@ describe(`DAppClient`, () => {
       type: BeaconMessageType.SignPayloadRequest,
       payload: 'test-payload',
       signingType: SigningType.RAW,
-      sourceAddress: 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
+      sourceAddress: 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB'
     })
 
     const expectedResponse = {
@@ -728,13 +728,13 @@ describe(`DAppClient`, () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
     const account: AccountInfo = {
-      accountIdentifier: 'yQxM85PrJ718CA1N6oz',
+      accountIdentifier: '288mYBP4kGn8FW4SbMBt',
       senderId: 'sender-id',
       origin: {
         type: Origin.P2P,
         id: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3'
       },
-      address: 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7',
+      address: 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB',
       publicKey: '444e1f4ab90c304a5ac003d367747aab63815f583ff2330ce159d12c1ecceba1',
       network: { type: NetworkType.MAINNET },
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
@@ -769,7 +769,7 @@ describe(`DAppClient`, () => {
       {
         kind: TezosOperationType.TRANSACTION,
         amount: '1',
-        destination: 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
+        destination: 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB'
       }
     ]
     const response = await dAppClient.requestOperation({ operationDetails })
@@ -781,7 +781,7 @@ describe(`DAppClient`, () => {
       type: BeaconMessageType.OperationRequest,
       network: { type: NetworkType.MAINNET },
       operationDetails: operationDetails,
-      sourceAddress: 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7'
+      sourceAddress: 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB'
     })
     expect(response).to.deep.equal({
       id: 'my-id',
@@ -796,13 +796,13 @@ describe(`DAppClient`, () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
     const account: AccountInfo = {
-      accountIdentifier: 'yQxM85PrJ718CA1N6oz',
+      accountIdentifier: '288mYBP4kGn8FW4SbMBt',
       senderId: 'sender-id',
       origin: {
         type: Origin.P2P,
         id: '69421294fd0136926639977666e8523550af4c126b6bcd429d3ae555c7aca3a3'
       },
-      address: 'tz1d75oB6T4zUMexzkr5WscGktZ1Nss1JrT7',
+      address: 'mv1RUZ6mQpNM3dSC95QvkhJHuuQywGJfQRmB',
       publicKey: '444e1f4ab90c304a5ac003d367747aab63815f583ff2330ce159d12c1ecceba1',
       network: { type: NetworkType.MAINNET },
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],

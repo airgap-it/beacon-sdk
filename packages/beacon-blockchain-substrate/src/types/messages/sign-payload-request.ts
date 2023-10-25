@@ -1,4 +1,4 @@
-import { BlockchainMessage } from '/beacon-types'
+import { BlockchainMessage } from '@mavrykdynamics/beacon-types'
 import { SubstrateMessageType } from '../message-type'
 import { SubstratePermissionScope } from '../permission-scope'
 
