@@ -40,7 +40,6 @@ import { getLogger, Logger, setLogger } from './utils/Logger'
 import { windowRef } from './MockWindow'
 import { CommunicationClient } from './transports/clients/CommunicationClient'
 import { ClientEvents } from './transports/clients/ClientEvents'
-import { isLocalStorageAvailable } from './utils/storage-utils'
 // import { EncryptionType } from './types/EncryptionType'
 // import { EncryptionOperation } from './types/EncryptionOperation'
 
@@ -68,7 +67,7 @@ export {
 export { Transport, MessageBasedClient, CommunicationClient }
 
 // Storage
-export { ChromeStorage, LocalStorage, getStorage, isLocalStorageAvailable }
+export { ChromeStorage, LocalStorage, getStorage }
 
 // Managers
 export { PeerManager, AccountManager, AppMetadataManager, PermissionManager }

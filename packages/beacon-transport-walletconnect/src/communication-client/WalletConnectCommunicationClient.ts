@@ -4,7 +4,6 @@ import {
   Serializer,
   ClientEvents,
   Logger,
-  isLocalStorageAvailable,
   LocalStorage
 } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
@@ -635,7 +634,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async resetWCSnapshot() {
-    if (!isLocalStorageAvailable()) {
+    if (!(await LocalStorage.isSupported())) {
       return
     }
     const storage = new LocalStorage()

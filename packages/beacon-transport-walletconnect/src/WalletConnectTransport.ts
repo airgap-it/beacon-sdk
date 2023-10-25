@@ -11,7 +11,7 @@ import {
   NetworkType,
   AccountInfo
 } from '@airgap/beacon-types'
-import { Transport, PeerManager, isLocalStorageAvailable, LocalStorage } from '@airgap/beacon-core'
+import { Transport, PeerManager, LocalStorage } from '@airgap/beacon-core'
 import { SignClientTypes } from '@walletconnect/types'
 
 /**
@@ -65,7 +65,7 @@ export class WalletConnectTransport<
   }
 
   public async hasPairings() {
-    if (isLocalStorageAvailable()) {
+    if (await LocalStorage.isSupported()) {
       return ((await new LocalStorage().get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
     } else {
       return !!this.client.signClient?.pairing.getAll()?.length
@@ -73,7 +73,7 @@ export class WalletConnectTransport<
   }
 
   public async hasSessions() {
-    if (isLocalStorageAvailable()) {
+    if (await LocalStorage.isSupported()) {
       return ((await new LocalStorage().get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
     } else {
       return !!this.client.signClient?.session.getAll()?.length
