@@ -52,24 +52,24 @@ export class MatrixClientStore {
   /**
    * Listeners that will be called when the state changes
    */
-  private readonly onStateChangedListeners: Map<
-    keyof MatrixState | 'all',
-    OnStateChangedListener
-  > = new Map()
+  private readonly onStateChangedListeners: Map<keyof MatrixState | 'all', OnStateChangedListener> =
+    new Map()
 
   /**
    * A promise that resolves once the client is ready
    */
-  private waitReadyPromise: Promise<void> = new Promise<void>(async (resolve, reject) => {
-    try {
-      await this.initFromStorage()
-      resolve()
-    } catch (error) {
-      reject(error)
-    }
-  })
+  private waitReadyPromise: Promise<void>
 
-  constructor(private readonly storage: Storage) {}
+  constructor(private readonly storage: Storage) {
+    this.waitReadyPromise = new Promise<void>(async (resolve, reject) => {
+      try {
+        await this.initFromStorage()
+        resolve()
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
 
   /**
    * Get an item from the state
