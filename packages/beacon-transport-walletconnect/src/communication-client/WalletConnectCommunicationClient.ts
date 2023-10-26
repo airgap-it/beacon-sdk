@@ -3,7 +3,8 @@ import {
   CommunicationClient,
   Serializer,
   ClientEvents,
-  Logger
+  Logger,
+  LocalStorage
 } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
@@ -40,7 +41,8 @@ import {
   PermissionScope,
   SignPayloadRequest,
   SignPayloadResponse,
-  SignPayloadResponseInput
+  SignPayloadResponseInput,
+  StorageKey
 } from '@airgap/beacon-types'
 import { ExposedPromise, generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
@@ -55,7 +57,8 @@ export interface PermissionScopeParam {
 export enum PermissionScopeMethods {
   GET_ACCOUNTS = 'tezos_getAccounts',
   OPERATION_REQUEST = 'tezos_send',
-  SIGN = 'tezos_sign'
+  SIGN = 'tezos_sign',
+  REQUEST_NEW_ACCOUNT = 'tezos_requestNewAccount'
 }
 
 export enum PermissionScopeEvents {
@@ -181,6 +184,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
   }
 
+  private checkTezosMethods(method: PermissionScopeMethods) {
+    return this.session?.namespaces.tezos.methods.includes(method)
+  }
+
   async requestPermissions(message: PermissionRequest) {
     logger.log('#### Requesting permissions')
 
@@ -188,11 +195,33 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
 
+    if (
+      this.activeAccount &&
+      this.session &&
+      this.checkTezosMethods(PermissionScopeMethods.REQUEST_NEW_ACCOUNT)
+    ) {
+      const client = await this.getSignClient()
+      try {
+        console.log('this.session.optionalNamespaces: ', this.session)
+        await client.request({
+          topic: this.session.topic,
+          chainId: `${TEZOS_PLACEHOLDER}:${this.getActiveNetwork()}`,
+          request: {
+            method: PermissionScopeMethods.REQUEST_NEW_ACCOUNT,
+            params: {}
+          }
+        })
+        return
+      } catch (error: any) {
+        logger.warn(error.message)
+      }
+    }
+
     if (this.activeAccount) {
       try {
         await this.openSession()
       } catch (error: any) {
-        console.error(error.message)
+        logger.error(error.message)
         return
       }
     }
@@ -420,7 +449,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           listener(pairingResponse)
         })
       } catch (error: any) {
-        console.error(error.message)
+        logger.error(error.message)
         const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
         fun && fun()
         return
@@ -498,6 +527,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           throw new Error('Public key for the new account not provided')
         }
 
+        const fun = this.eventHandlers.get(ClientEvents.UPDATE_ACCOUNT)
+        fun && fun(this.activeAccount)
+
         this.notifyListeners(session.pairingTopic, {
           id: await generateGUID(),
           type: BeaconMessageType.ChangeAccountRequest,
@@ -562,9 +594,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           message: 'Pairing deleted'
         }
       })
-    } catch (error) {
+    } catch (error: any) {
       // If the session was already closed, `disconnect` will throw an error.
-      console.warn(error)
+      logger.warn(error)
     }
 
     return session
@@ -580,9 +612,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     try {
       await signClient.core.pairing.disconnect({ topic: this.session.pairingTopic })
-    } catch (error) {
+    } catch (error: any) {
       // If the pairing was already closed, `disconnect` will throw an error.
-      console.warn(error)
+      logger.warn(error.message)
     }
 
     return this.session
@@ -601,6 +633,24 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     )
   }
 
+  private async resetWCSnapshot() {
+    if (!(await LocalStorage.isSupported())) {
+      return
+    }
+    const storage = new LocalStorage()
+
+    await Promise.all([
+      storage.delete(StorageKey.WC_2_CLIENT_SESSION),
+      storage.delete(StorageKey.WC_2_CORE_PAIRING),
+      storage.delete(StorageKey.WC_2_CORE_KEYCHAIN),
+      storage.delete(StorageKey.WC_2_CORE_MESSAGES),
+      storage.delete(StorageKey.WC_2_CLIENT_PROPOSAL),
+      storage.delete(StorageKey.WC_2_CORE_SUBSCRIPTION),
+      storage.delete(StorageKey.WC_2_CORE_HISTORY),
+      storage.delete(StorageKey.WC_2_CORE_EXPIRER)
+    ])
+  }
+
   private async closePairings() {
     await this.closeSessions()
     const signClient = await this.getSignClient()
@@ -608,6 +658,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     for (let pairing of pairings) {
       await signClient.core.pairing.disconnect({ topic: pairing.topic })
     }
+    await this.resetWCSnapshot()
   }
 
   private async closeSessions() {
@@ -640,7 +691,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const optionalPermissionScopeParams: PermissionScopeParam = {
       networks: [this.wcOptions.network],
       events: [PermissionScopeEvents.REQUEST_ACKNOWLEDGED],
-      methods: []
+      methods: [PermissionScopeMethods.REQUEST_NEW_ACCOUNT]
     }
 
     const connectParams = {
@@ -668,7 +719,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.session = this.session ?? session
       this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
     } catch (error: any) {
-      console.error(error.message)
+      logger.error(error.message)
       const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
       const errorResponse: ErrorResponseInput = {
         type: BeaconMessageType.Error,
@@ -820,7 +871,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     try {
       this.validateNetworkAndAccount(this.getActiveNetwork(), account)
     } catch (error: any) {
-      console.error(error.message)
+      logger.error(error.message)
       return
     }
 

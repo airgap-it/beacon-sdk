@@ -431,6 +431,18 @@ export class DAppClient extends Client {
       ClientEvents.WC_ACK_NOTIFICATION,
       this.wcToastHandler.bind(this)
     )
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.UPDATE_ACCOUNT,
+      this.updateActiveAccountHandler.bind(this)
+    )
+  }
+
+  private async updateActiveAccountHandler(address?: string) {
+    if (address && this._activeAccount.isResolved()) {
+      let account = await this._activeAccount.promise
+      account && (account.address = address)
+      account && (await this.setActiveAccount(account))
+    }
   }
 
   private async wcToastHandler() {
@@ -1743,10 +1755,12 @@ export class DAppClient extends Client {
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
-      !transport.pairings?.length
+      (await this.getActiveAccount()) &&
+      !(await transport.hasPairings()) &&
+      !(await transport.hasSessions())
     ) {
       await this.channelClosedHandler()
-      throw new Error('Pairing expired.')
+      throw new Error('No active pairing nor session found')
     }
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -1874,10 +1888,12 @@ export class DAppClient extends Client {
     if (
       requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
-      !transport.pairings?.length
+      (await this.getActiveAccount()) &&
+      !(await transport.hasPairings()) &&
+      !(await transport.hasSessions())
     ) {
       await this.channelClosedHandler()
-      throw new Error('Pairing expired.')
+      throw new Error('No active pairing nor session found')
     }
 
     // if (!(await this.checkPermissions(requestInput.type as BeaconMessageType))) {
