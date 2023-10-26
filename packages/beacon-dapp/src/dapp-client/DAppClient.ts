@@ -439,9 +439,14 @@ export class DAppClient extends Client {
 
   private async updateActiveAccountHandler(address?: string) {
     if (address && this._activeAccount.isResolved()) {
-      let account = await this._activeAccount.promise
-      account && (account.address = address)
-      account && (await this.setActiveAccount(account))
+      const activeAccount = await this._activeAccount.promise
+
+      const account = {
+        ...activeAccount,
+        address: address
+      } as AccountInfo
+
+      await this.setActiveAccount(account)
     }
   }
 
