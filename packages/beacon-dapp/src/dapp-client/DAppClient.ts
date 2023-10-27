@@ -464,7 +464,7 @@ export class DAppClient extends Client {
     await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
     this.setActiveAccount(undefined)
 
-    this.destroy()
+    await this.destroy()
   }
 
   async destroy(): Promise<void> {
@@ -636,8 +636,8 @@ export class DAppClient extends Client {
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
     if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
       setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI))
-      this.destroy()
-      this.setActiveAccount(undefined)
+      await this.destroy()
+      await this.setActiveAccount(undefined)
       setTimeout(() => this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE))
 
       return
