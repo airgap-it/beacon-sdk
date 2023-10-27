@@ -208,7 +208,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           request: {
             method: PermissionScopeMethods.REQUEST_NEW_ACCOUNT,
             params: {
-              id: this.session.pairingTopic
+              id: this.currentMessageId!
             }
           }
         })
