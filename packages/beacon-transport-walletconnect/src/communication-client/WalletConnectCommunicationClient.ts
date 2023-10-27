@@ -202,13 +202,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     ) {
       const client = await this.getSignClient()
       try {
-        console.log('this.session.optionalNamespaces: ', this.session)
         await client.request({
           topic: this.session.topic,
           chainId: `${TEZOS_PLACEHOLDER}:${this.getActiveNetwork()}`,
           request: {
             method: PermissionScopeMethods.REQUEST_NEW_ACCOUNT,
-            params: {}
+            params: {
+              id: this.session.pairingTopic
+            }
           }
         })
         return
@@ -407,7 +408,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (forceNewConnection) {
       await this.closePairings()
-      await this.closeSessions()
     }
 
     const sessions = signClient.session.getAll()
