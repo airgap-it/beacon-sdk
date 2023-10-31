@@ -602,7 +602,7 @@ export class DAppClient extends Client {
                 logger.log('init', 'ABORTED')
                 await Promise.all([
                   postMessageTransport.disconnect(),
-                  p2pTransport.disconnect(),
+                  // p2pTransport.disconnect(), do not abort connection manually
                   walletConnectTransport.disconnect()
                 ])
                 this._initPromise = undefined
