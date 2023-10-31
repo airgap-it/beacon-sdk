@@ -464,7 +464,7 @@ export class DAppClient extends Client {
     await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
     this.setActiveAccount(undefined)
 
-    this.destroy()
+    await this.destroy()
   }
 
   async destroy(): Promise<void> {
@@ -598,8 +598,13 @@ export class DAppClient extends Client {
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
               walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
               networkType: this.network.type,
-              abortedHandler: () => {
+              abortedHandler: async () => {
                 logger.log('init', 'ABORTED')
+                await Promise.all([
+                  postMessageTransport.disconnect(),
+                  p2pTransport.disconnect(),
+                  walletConnectTransport.disconnect()
+                ])
                 this._initPromise = undefined
               },
               disclaimerText: this.disclaimerText,
@@ -636,8 +641,8 @@ export class DAppClient extends Client {
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
     if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
       setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI))
-      this.destroy()
-      this.setActiveAccount(undefined)
+      await this.destroy()
+      await this.setActiveAccount(undefined)
       setTimeout(() => this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE))
 
       return
