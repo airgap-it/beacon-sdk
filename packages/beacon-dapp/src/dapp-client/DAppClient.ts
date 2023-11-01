@@ -468,7 +468,7 @@ export class DAppClient extends Client {
   }
 
   async destroy(): Promise<void> {
-    ;(await this.transport).disconnect()
+    await (await this.transport).disconnect()
     await super.destroy()
   }
 
