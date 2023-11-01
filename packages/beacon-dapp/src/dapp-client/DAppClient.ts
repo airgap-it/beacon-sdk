@@ -443,7 +443,7 @@ export class DAppClient extends Client {
 
       const account = {
         ...activeAccount,
-        address: address
+        address
       } as AccountInfo
 
       await this.setActiveAccount(account)
