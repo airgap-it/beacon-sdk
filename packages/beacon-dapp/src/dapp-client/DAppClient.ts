@@ -431,23 +431,6 @@ export class DAppClient extends Client {
       ClientEvents.WC_ACK_NOTIFICATION,
       this.wcToastHandler.bind(this)
     )
-    this.walletConnectTransport.setEventHandler(
-      ClientEvents.UPDATE_ACCOUNT,
-      this.updateActiveAccountHandler.bind(this)
-    )
-  }
-
-  private async updateActiveAccountHandler(address?: string) {
-    if (address && this._activeAccount.isResolved()) {
-      const activeAccount = await this._activeAccount.promise
-
-      const account = {
-        ...activeAccount,
-        address
-      } as AccountInfo
-
-      await this.setActiveAccount(account)
-    }
   }
 
   private async wcToastHandler() {
