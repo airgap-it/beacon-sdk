@@ -21,7 +21,10 @@ export abstract class MessageBasedClient extends CommunicationClient {
    */
   protected abstract readonly activeListeners: Map<string, unknown>
 
-  constructor(protected readonly name: string, keyPair: KeyPair) {
+  constructor(
+    protected readonly name: string,
+    keyPair: KeyPair
+  ) {
     super(keyPair)
     this.init().catch(console.error)
   }
@@ -51,7 +54,12 @@ export abstract class MessageBasedClient extends CommunicationClient {
   public async getPairingResponseInfo(
     request: PostMessagePairingRequest
   ): Promise<PostMessagePairingResponse> {
-    return new PostMessagePairingResponse(request.id, this.name, await this.getPublicKey(), request.version)
+    return new PostMessagePairingResponse(
+      request.id,
+      this.name,
+      await this.getPublicKey(),
+      request.version
+    )
   }
 
   /**

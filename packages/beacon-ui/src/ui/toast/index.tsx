@@ -39,7 +39,7 @@ let globalTimeout: NodeJS.Timeout
 const createToast = (config: ToastConfig) => {
   const shadowRootEl = document.createElement('div')
   if (document.getElementById('beacon-toast-wrapper')) {
-    (document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
+    ;(document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
   }
   shadowRootEl.setAttribute('id', 'beacon-toast-wrapper')
   shadowRootEl.style.height = '0px'

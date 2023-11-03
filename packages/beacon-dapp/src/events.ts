@@ -305,7 +305,7 @@ const showNoPermissionAlert = async (): Promise<void> => {
 }
 
 /**
- * Show a 
+ * Show a
  */
 const showInvalidActiveAccountState = async (): Promise<void> => {
   await openAlert({
@@ -744,7 +744,9 @@ export class BeaconEventHandler {
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
     [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
-    [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE],
+    [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [
+      defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE
+    ],
     [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
     [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],

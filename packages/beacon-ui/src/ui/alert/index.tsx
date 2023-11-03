@@ -618,12 +618,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           }
                           description={
                             hasExtension()
-                              ? `Please connect below to use your ${
-                                  currentWallet()?.name
-                                } Wallet browser extension.`
-                              : `To connect your ${
-                                  currentWallet()?.name
-                                } Wallet, install the browser extension.`
+                              ? `Please connect below to use your ${currentWallet()
+                                  ?.name} Wallet browser extension.`
+                              : `To connect your ${currentWallet()
+                                  ?.name} Wallet, install the browser extension.`
                           }
                           buttons={
                             hasExtension()
