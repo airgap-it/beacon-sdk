@@ -42,10 +42,10 @@ export function parseWallets(wallets: Wallet[]): Wallet[] {
   })
 }
 
-function setWallet(newWallet: MergedWallet, type: string, link: string) {
+function setWallet(newWallet: MergedWallet, wallet: Wallet) {
   let choice: OSLink
 
-  switch (type) {
+  switch (wallet.type) {
     case 'web':
       choice = OSLink.WEB
       break
@@ -59,7 +59,7 @@ function setWallet(newWallet: MergedWallet, type: string, link: string) {
       choice = OSLink.DESKTOP
   }
 
-  newWallet.links[choice] = link;
+  newWallet.links[choice] = wallet.type === 'ios' ? wallet.deepLink ?? wallet.link : wallet.link
 }
 
 export function arrangeTopWallets(arr: MergedWallet[], walletIds: string[]): MergedWallet[] {
@@ -108,7 +108,7 @@ export function mergeWallets(wallets: Wallet[]): MergedWallet[] {
         console.error('There should be a wallet')
       }
       if (!mergedWallets[index].descriptions.includes(wallet.description)) {
-        setWallet(mergedWallets[index], wallet.type, wallet.link);
+        setWallet(mergedWallets[index], wallet)
         mergedWallets[index].descriptions.push(wallet.description)
       }
       mergedWallets[index].types.push(wallet.type)
@@ -124,8 +124,8 @@ export function mergeWallets(wallets: Wallet[]): MergedWallet[] {
         types: [wallet.type],
         firefoxId: wallet.key.includes('firefox') ? wallet.id : undefined
       }
-      
-      setWallet(newWallet, wallet.type, wallet.link);
+
+      setWallet(newWallet, wallet)
 
       mergedWallets.push(newWallet)
     }

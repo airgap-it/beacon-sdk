@@ -30,9 +30,9 @@ export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.WC_2_CLIENT_SESSION]: undefined,
   [StorageKey.WC_2_CORE_PAIRING]: undefined,
   [StorageKey.WC_2_CORE_KEYCHAIN]: undefined,
-  [StorageKey.WC_2_CORE_MESSAGES]: undefined, 
-  [StorageKey.WC_2_CLIENT_PROPOSAL]: undefined, 
-  [StorageKey.WC_2_CORE_SUBSCRIPTION]: undefined, 
-  [StorageKey.WC_2_CORE_HISTORY]: undefined, 
-  [StorageKey.WC_2_CORE_EXPIRER]: undefined, 
+  [StorageKey.WC_2_CORE_MESSAGES]: undefined,
+  [StorageKey.WC_2_CLIENT_PROPOSAL]: undefined,
+  [StorageKey.WC_2_CORE_SUBSCRIPTION]: undefined,
+  [StorageKey.WC_2_CORE_HISTORY]: undefined,
+  [StorageKey.WC_2_CORE_EXPIRER]: undefined
 }

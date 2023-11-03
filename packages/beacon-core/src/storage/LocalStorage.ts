@@ -5,8 +5,10 @@ import { Storage, StorageKey, StorageKeyReturnType, defaultValues } from '@airga
  *
  * A storage that can be used in the browser
  */
-export class LocalStorage implements Storage {
-  constructor(private readonly prefix?: string) {}
+export class LocalStorage extends Storage {
+  constructor(private readonly prefix?: string) {
+    super()
+  }
   public static async isSupported(): Promise<boolean> {
     return Promise.resolve(Boolean(typeof window !== 'undefined') && Boolean(window.localStorage))
   }
