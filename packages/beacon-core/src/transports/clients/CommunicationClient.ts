@@ -81,8 +81,5 @@ export abstract class CommunicationClient {
   abstract unsubscribeFromEncryptedMessages(): Promise<void>
   abstract unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void>
   // abstract send(message: string, recipient?: string): Promise<void>
-  public abstract sendMessage(
-    message: string,
-    peer?: PeerInfoType
-  ): Promise<void>
+  public abstract sendMessage(message: string, peer?: PeerInfoType): Promise<void>
 }
