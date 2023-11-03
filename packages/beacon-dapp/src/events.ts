@@ -301,7 +301,7 @@ const showNoPermissionAlert = async (): Promise<void> => {
 }
 
 /**
- * Show a 
+ * Show a
  */
 const showInvalidActiveAccountState = async (): Promise<void> => {
   await openAlert({

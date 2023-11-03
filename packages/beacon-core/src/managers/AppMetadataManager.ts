@@ -14,7 +14,7 @@ export class AppMetadataManager {
   }
 
   public async getAppMetadataList(): Promise<AppMetadata[]> {
-    return await this.storageManager.getAll() ?? []
+    return (await this.storageManager.getAll()) ?? []
   }
 
   public async getAppMetadata(senderId: string): Promise<AppMetadata | undefined> {
