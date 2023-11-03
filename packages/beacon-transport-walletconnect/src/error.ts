@@ -90,7 +90,10 @@ export class ActiveAccountUnspecified extends Error {
 export class InvalidNetworkOrAccount extends Error {
   name = 'InvalidNetworkOrAccount'
 
-  constructor(public network: string, public pkh: string) {
+  constructor(
+    public network: string,
+    public pkh: string
+  ) {
     super(
       `No permission. The combinaison "${network}" and "${pkh}" is not part of the active session.`
     )
