@@ -202,13 +202,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     ) {
       const client = await this.getSignClient()
       try {
-        console.log('this.session.optionalNamespaces: ', this.session)
         await client.request({
           topic: this.session.topic,
           chainId: `${TEZOS_PLACEHOLDER}:${this.getActiveNetwork()}`,
           request: {
             method: PermissionScopeMethods.REQUEST_NEW_ACCOUNT,
-            params: {}
+            params: {
+              id: this.currentMessageId!
+            }
           }
         })
         return
@@ -231,7 +232,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     let session = this.getSession()
     let publicKey: string | undefined
 
-    if (!session.sessionProperties) {
+    if (!session.namespaces.tezos.accounts?.length) {
       const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
       fun && fun()
       this.requestAccountNamespacePromise = new ExposedPromise()
@@ -407,7 +408,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (forceNewConnection) {
       await this.closePairings()
-      await this.closeSessions()
     }
 
     const sessions = signClient.session.getAll()
@@ -427,7 +427,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       try {
         let session = await this.openSession(topic)
 
-        if (!session.sessionProperties) {
+        if (!session.namespaces.tezos.accounts?.length) {
           const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
           fun && fun()
           this.requestAccountNamespacePromise = new ExposedPromise()

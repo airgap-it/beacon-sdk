@@ -468,7 +468,6 @@ export class DAppClient extends Client {
   }
 
   async destroy(): Promise<void> {
-    ;(await this.transport).disconnect()
     await super.destroy()
   }
 
@@ -598,8 +597,13 @@ export class DAppClient extends Client {
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
               walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
               networkType: this.network.type,
-              abortedHandler: () => {
+              abortedHandler: async () => {
                 logger.log('init', 'ABORTED')
+                await Promise.all([
+                  postMessageTransport.disconnect(),
+                  // p2pTransport.disconnect(), do not abort connection manually
+                  walletConnectTransport.disconnect()
+                ])
                 this._initPromise = undefined
               },
               disclaimerText: this.disclaimerText,
@@ -1680,7 +1684,7 @@ export class DAppClient extends Client {
       }
 
       return {
-        name: walletInfo.name ?? selectedApp?.name,
+        name: selectedApp?.name ?? walletInfo.name,
         icon: walletInfo.icon ?? selectedApp?.logo,
         deeplink,
         type
