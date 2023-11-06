@@ -738,7 +738,7 @@ export class DAppClient extends Client {
       this._initPromise = undefined
       // by dispatching two opposite events (one closes the alert the other one opens it)
       // it triggers some sort of race condition in the UI render cycle
-      setTimeout(async () => await this.events.emit(BeaconEvent.NO_PERMISSIONS))
+      // todo await this.events.emit(BeaconEvent.NO_PERMISSIONS)
     }
   }
 
