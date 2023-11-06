@@ -416,6 +416,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             uri = (await wcPayload)?.uri
           } catch (error: any) {
             console.error(error.message)
+            setIsLoading(false)
             handleCloseAlert()
             await openAlert({
               title: 'Invalid state',
@@ -470,6 +471,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           uri = (await wcPayload)?.uri
         } catch (error: any) {
           console.error(error.message)
+          setIsLoading(false)
           handleCloseAlert()
           await openAlert({
             title: 'Invalid state',
