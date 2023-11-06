@@ -412,20 +412,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         let link = ''
 
         if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-          let uri
-          try {
-            uri = (await wcPayload)?.uri
-          } catch (error: any) {
-            console.error(error.message)
-            setIsLoading(false)
-            handleCloseAlert()
-            await openAlert({
-              title: 'Invalid state',
-              body: 'Invalid WalletConnect state detected. Please request permission again to begin the sync process.'
-            })
-            return
-          }
-          if (uri) {
+          const uri = (await wcPayload)?.uri ?? ''
+          if (!!uri.length) {
             link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
           }
         } else {
@@ -467,20 +455,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        let uri
-        try {
-          uri = (await wcPayload)?.uri
-        } catch (error: any) {
-          console.error(error.message)
-          setIsLoading(false)
-          handleCloseAlert()
-          await openAlert({
-            title: 'Invalid state',
-            body: 'Invalid WalletConnect state detected. Please request permission again to begin the sync process.'
-          })
-          return
-        }
-        if (uri) {
+        const uri = (await wcPayload)?.uri ?? ''
+        if (!!uri.length) {
           if (isAndroid(window) || isIOS(window)) {
             let link = `${wallet.links[OSLink.IOS]}/wc?uri=${encodeURIComponent(uri)}`
 
