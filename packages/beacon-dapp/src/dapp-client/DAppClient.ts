@@ -1755,7 +1755,6 @@ export class DAppClient extends Client {
     const transport = await this.transport
 
     if (
-      requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
       (await this.getActiveAccount()) &&
       !(await transport.hasPairings()) &&
@@ -1888,7 +1887,6 @@ export class DAppClient extends Client {
     const transport = await this.transport
 
     if (
-      requestInput.type === BeaconMessageType.PermissionRequest &&
       transport instanceof WalletConnectTransport &&
       (await this.getActiveAccount()) &&
       !(await transport.hasPairings()) &&
