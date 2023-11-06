@@ -452,8 +452,7 @@ export class DAppClient extends Client {
       }
     })()
 
-    // todo check why the alert is not hiding without the following command
-    setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI, ['alert']))
+    await this.events.emit(BeaconEvent.HIDE_UI, ['alert'])
 
     await this.events.emit(BeaconEvent.WC_ACKNOWLEDGE_PENDING, { walletInfo })
   }
@@ -637,10 +636,9 @@ export class DAppClient extends Client {
    */
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
     if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
-      setTimeout(() => this.events.emit(BeaconEvent.HIDE_UI))
       await this.destroy()
       await this.setActiveAccount(undefined)
-      setTimeout(() => this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE))
+      await this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
 
       return
     }
