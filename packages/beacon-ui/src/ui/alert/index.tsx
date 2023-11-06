@@ -400,6 +400,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (config.pairingPayload) {
+        setIsLoading(true)
         // Noopener feature parameter cannot be used, because Chrome will open
         // about:blank#blocked instead and it will no longer work.
         const newTab = window.open('', '_blank')
@@ -652,10 +653,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             {
                               label: 'Connect now',
                               type: 'primary',
-                              onClick: () => {
-                                handleNewTab(config, currentWallet())
-                                setIsLoading(true)
-                              }
+                              onClick: () => handleNewTab(config, currentWallet())
                             }
                           ]}
                         />
