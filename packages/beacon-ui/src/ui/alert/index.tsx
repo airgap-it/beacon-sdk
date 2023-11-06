@@ -411,7 +411,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         let link = ''
 
         if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-          const uri = (await wcPayload)?.uri
+          let uri
+          try {
+            uri = (await wcPayload)?.uri
+          } catch (error: any) {
+            console.error(error.message)
+            handleCloseAlert()
+            return
+          }
           if (uri) {
             link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
           }
@@ -454,8 +461,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = (await wcPayload)?.uri
-
+        let uri
+        try {
+          uri = (await wcPayload)?.uri
+        } catch (error: any) {
+          console.error(error.message)
+          handleCloseAlert()
+          return
+        }
         if (uri) {
           if (isAndroid(window) || isIOS(window)) {
             let link = `${wallet.links[OSLink.IOS]}/wc?uri=${encodeURIComponent(uri)}`
