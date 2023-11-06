@@ -417,6 +417,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           } catch (error: any) {
             console.error(error.message)
             handleCloseAlert()
+            await openAlert({
+              title: 'Invalid state',
+              body: 'Invalid WalletConnect state detected. Please request permission again to begin the sync process.'
+            })
             return
           }
           if (uri) {
@@ -467,6 +471,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         } catch (error: any) {
           console.error(error.message)
           handleCloseAlert()
+          await openAlert({
+            title: 'Invalid state',
+            body: 'Invalid WalletConnect state detected. Please request permission again to begin the sync process.'
+          })
           return
         }
         if (uri) {
