@@ -117,7 +117,7 @@ export class WalletConnectTransport<
     //
   }
 
-  public async getPairingRequestInfo(): Promise<any> {
+  public getPairingRequestInfo(): Promise<any> {
     return this.client.getPairingRequestInfo()
   }
 

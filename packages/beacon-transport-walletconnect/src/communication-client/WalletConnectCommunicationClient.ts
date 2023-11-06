@@ -618,15 +618,23 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   public async getPairingRequestInfo(): Promise<ExtendedWalletConnectPairingRequest> {
-    const { uri, topic } = (await this.init(true)) ?? {}
+    let _uri = '',
+      _topic = ''
+    try {
+      const { uri, topic } = (await this.init(true)) ?? { uri: '', topic: '' }
+      _uri = uri
+      _topic = topic
+    } catch (error: any) {
+      console.warn(error.message)
+    }
 
     return new ExtendedWalletConnectPairingRequest(
-      topic!,
+      _topic,
       'WalletConnect',
       await generateGUID(),
       BEACON_VERSION,
       await generateGUID(),
-      uri!
+      _uri
     )
   }
 

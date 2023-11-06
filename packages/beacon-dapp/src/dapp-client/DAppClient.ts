@@ -118,7 +118,6 @@ import {
   getExtensionList,
   getWebList,
   getiOSList,
-  isMobileOS,
   isBrowser,
   isDesktop
 } from '@airgap/beacon-ui'
@@ -184,7 +183,7 @@ export class DAppClient extends Client {
 
   private _initPromise: Promise<TransportType> | undefined
 
-  private readonly activeAccountLoaded: Promise<void>
+  private readonly activeAccountLoaded: Promise<AccountInfo | undefined>
 
   private readonly appMetadataManager: AppMetadataManager
 
@@ -220,14 +219,18 @@ export class DAppClient extends Client {
       .get(StorageKey.ACTIVE_ACCOUNT)
       .then(async (activeAccountIdentifier) => {
         if (activeAccountIdentifier) {
-          await this.setActiveAccount(await this.accountManager.getAccount(activeAccountIdentifier))
+          const account = await this.accountManager.getAccount(activeAccountIdentifier)
+          await this.setActiveAccount(account)
+          return account
         } else {
           await this.setActiveAccount(undefined)
+          return undefined
         }
       })
       .catch(async (storageError) => {
         await this.setActiveAccount(undefined)
         console.error(storageError)
+        return undefined
       })
 
     this.handleResponse = async (
@@ -370,6 +373,13 @@ export class DAppClient extends Client {
         }
       }
     }
+
+    this.activeAccountLoaded.then((account) => {
+      // we don't want the p2p to connect eagerly for logic/performance issues
+      if (account && account.origin.type !== 'p2p') {
+        this.init()
+      }
+    })
   }
 
   public async initInternalTransports(): Promise<void> {
@@ -1649,10 +1659,7 @@ export class DAppClient extends Client {
     const desktop = (apps as DesktopApp[]).find((app) => app.downloadLink)
     const extension = (apps as ExtensionApp[]).find((app) => app.id)
 
-    if (isMobileOS(window) && mobile) {
-      selectedApp = mobile
-      type = 'mobile'
-    } else if (isBrowser(window) && browser) {
+    if (isBrowser(window) && browser) {
       selectedApp = browser
       type = 'web'
     } else if (isDesktop(window) && desktop) {
@@ -1661,6 +1668,9 @@ export class DAppClient extends Client {
     } else if (isBrowser(window) && extension) {
       selectedApp = extension
       type = 'extension'
+    } else if (mobile) {
+      selectedApp = mobile
+      type = 'mobile'
     }
 
     if (selectedApp) {
@@ -1673,7 +1683,7 @@ export class DAppClient extends Client {
 
       return {
         name: selectedApp?.name ?? walletInfo.name,
-        icon: walletInfo.icon ?? selectedApp?.logo,
+        icon: selectedApp?.logo ?? walletInfo.icon,
         deeplink,
         type
       }

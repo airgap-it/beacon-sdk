@@ -400,6 +400,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (config.pairingPayload) {
+        setIsLoading(true)
         // Noopener feature parameter cannot be used, because Chrome will open
         // about:blank#blocked instead and it will no longer work.
         const newTab = window.open('', '_blank')
@@ -411,8 +412,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         let link = ''
 
         if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-          const uri = (await wcPayload)?.uri
-          if (uri) {
+          const uri = (await wcPayload)?.uri ?? ''
+          if (!!uri.length) {
             link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
           }
         } else {
@@ -454,9 +455,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = (await wcPayload)?.uri
-
-        if (uri) {
+        const uri = (await wcPayload)?.uri ?? ''
+        if (!!uri.length) {
           if (isAndroid(window) || isIOS(window)) {
             let link = `${wallet.links[OSLink.IOS]}/wc?uri=${encodeURIComponent(uri)}`
 
@@ -629,10 +629,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             {
                               label: 'Connect now',
                               type: 'primary',
-                              onClick: () => {
-                                handleNewTab(config, currentWallet())
-                                setIsLoading(true)
-                              }
+                              onClick: () => handleNewTab(config, currentWallet())
                             }
                           ]}
                         />
