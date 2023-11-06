@@ -118,7 +118,6 @@ import {
   getExtensionList,
   getWebList,
   getiOSList,
-  isMobileOS,
   isBrowser,
   isDesktop
 } from '@airgap/beacon-ui'
@@ -1649,10 +1648,7 @@ export class DAppClient extends Client {
     const desktop = (apps as DesktopApp[]).find((app) => app.downloadLink)
     const extension = (apps as ExtensionApp[]).find((app) => app.id)
 
-    if (isMobileOS(window) && mobile) {
-      selectedApp = mobile
-      type = 'mobile'
-    } else if (isBrowser(window) && browser) {
+    if (isBrowser(window) && browser) {
       selectedApp = browser
       type = 'web'
     } else if (isDesktop(window) && desktop) {
@@ -1661,6 +1657,9 @@ export class DAppClient extends Client {
     } else if (isBrowser(window) && extension) {
       selectedApp = extension
       type = 'extension'
+    } else if (mobile) {
+      selectedApp = mobile
+      type = 'mobile'
     }
 
     if (selectedApp) {
@@ -1673,7 +1672,7 @@ export class DAppClient extends Client {
 
       return {
         name: selectedApp?.name ?? walletInfo.name,
-        icon: walletInfo.icon ?? selectedApp?.logo,
+        icon: selectedApp?.logo ?? walletInfo.icon,
         deeplink,
         type
       }
