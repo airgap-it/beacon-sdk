@@ -183,7 +183,7 @@ export class DAppClient extends Client {
 
   private _initPromise: Promise<TransportType> | undefined
 
-  private readonly activeAccountLoaded: Promise<void>
+  private readonly activeAccountLoaded: Promise<AccountInfo | undefined>
 
   private readonly appMetadataManager: AppMetadataManager
 
@@ -219,14 +219,18 @@ export class DAppClient extends Client {
       .get(StorageKey.ACTIVE_ACCOUNT)
       .then(async (activeAccountIdentifier) => {
         if (activeAccountIdentifier) {
-          await this.setActiveAccount(await this.accountManager.getAccount(activeAccountIdentifier))
+          const account = await this.accountManager.getAccount(activeAccountIdentifier)
+          await this.setActiveAccount(account)
+          return account
         } else {
           await this.setActiveAccount(undefined)
+          return undefined
         }
       })
       .catch(async (storageError) => {
         await this.setActiveAccount(undefined)
         console.error(storageError)
+        return undefined
       })
 
     this.handleResponse = async (
@@ -369,6 +373,13 @@ export class DAppClient extends Client {
         }
       }
     }
+
+    this.activeAccountLoaded.then((account) => {
+      // we don't want the p2p to connect eagerly for logic/performance issues
+      if (account && account.origin.type !== 'p2p') {
+        this.init()
+      }
+    })
   }
 
   public async initInternalTransports(): Promise<void> {
