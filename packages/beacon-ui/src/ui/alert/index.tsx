@@ -458,7 +458,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         const uri = (await wcPayload)?.uri ?? ''
         if (!!uri.length) {
           if (isAndroid(window) || isIOS(window)) {
-            let link = `${wallet.links[OSLink.IOS]}/wc?uri=${encodeURIComponent(uri)}`
+            let link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
 
             if (isTwBrowser(window) && isAndroid(window)) {
               link = `${uri}`
