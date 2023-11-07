@@ -232,7 +232,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     let session = this.getSession()
     let publicKey: string | undefined
 
-    if (!session.namespaces.tezos.accounts?.length) {
+    const accounts = session.namespaces.tezos.accounts ?? []
+    if (accounts.length > 0 && accounts[0] === '?') {
       const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
       fun && fun()
       this.requestAccountNamespacePromise = new ExposedPromise()
@@ -426,8 +427,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // to get data required in the pairing response
       try {
         let session = await this.openSession(topic)
+        const accounts = session.namespaces.tezos.accounts ?? []
 
-        if (!session.namespaces.tezos.accounts?.length) {
+        if (accounts.length > 0 && accounts[0] === '?') {
           const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
           fun && fun()
           this.requestAccountNamespacePromise = new ExposedPromise()
