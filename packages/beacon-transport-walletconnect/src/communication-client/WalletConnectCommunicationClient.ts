@@ -233,7 +233,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     let publicKey: string | undefined
 
     const accounts = session.namespaces.tezos.accounts ?? []
-    if (accounts.length > 0 && accounts[0].split(':').at(-1) === '?') {
+    if (accounts.length > 0 && accounts[0].split(':')[2] === '?') {
       const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
       fun && fun()
       this.requestAccountNamespacePromise = new ExposedPromise()
@@ -429,7 +429,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         let session = await this.openSession(topic)
         const accounts = session.namespaces.tezos.accounts ?? []
 
-        if (accounts.length > 0 && accounts[0].split(':').at(-1) === '?') {
+        if (accounts.length > 0 && accounts[0].split(':')[2] === '?') {
           const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
           fun && fun()
           this.requestAccountNamespacePromise = new ExposedPromise()
