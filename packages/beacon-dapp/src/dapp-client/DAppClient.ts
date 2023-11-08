@@ -215,6 +215,23 @@ export class DAppClient extends Client {
 
     this.appMetadataManager = new AppMetadataManager(this.storage)
 
+    // Subscribe to storage changes and update the active account if it changes on other tabs
+    this.storage.subscribeToStorageChanged(async (event) => {
+      if (event.eventType === 'storageCleared') {
+        this.setActiveAccount(undefined)
+      } else if (event.eventType === 'entryModified') {
+        if (event.key === this.storage.getPrefixedKey(StorageKey.ACTIVE_ACCOUNT)) {
+          const accountIdentifier = event.newValue
+          if (!accountIdentifier || accountIdentifier === 'undefined') {
+            this.setActiveAccount(undefined)
+          } else {
+            const account = await this.getAccount(accountIdentifier)
+            this.setActiveAccount(account)
+          }
+        }
+      }
+    })
+
     this.activeAccountLoaded = this.storage
       .get(StorageKey.ACTIVE_ACCOUNT)
       .then(async (activeAccountIdentifier) => {
