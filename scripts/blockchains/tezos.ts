@@ -4,7 +4,7 @@ import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src
 export enum NetworkType {
   MAINNET = 'mainnet',
   GHOSTNET = 'ghostnet', // Long running testnet
-  WEEKLYNET = 'weeklynet', // Testnet, resets every monday
+  WEEKLYNET = 'weeklynet', // Testnet, resets every week
   DAILYNET = 'dailynet', // Testnet, resets every day
   DELPHINET = 'delphinet',
   EDONET = 'edonet',
