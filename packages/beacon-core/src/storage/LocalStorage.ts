@@ -42,7 +42,38 @@ export class LocalStorage extends Storage {
     return Promise.resolve(localStorage.removeItem(this.getPrefixedKey(key)))
   }
 
-  private getPrefixedKey(key: string): string {
+  public async subscribeToStorageChanged(
+    callback: (arg: {
+      eventType: 'storageCleared' | 'entryModified'
+      key: string | null
+      oldValue: string | null
+      newValue: string | null
+    }) => {}
+  ): Promise<void> {
+    window.addEventListener(
+      'storage',
+      (event) => {
+        if (!event.key) {
+          callback({
+            eventType: 'storageCleared',
+            key: null,
+            oldValue: null,
+            newValue: null
+          })
+        } else {
+          callback({
+            eventType: 'entryModified',
+            key: this.getPrefixedKey(event.key),
+            oldValue: event.oldValue,
+            newValue: event.newValue
+          })
+        }
+      },
+      false
+    )
+  }
+
+  public getPrefixedKey(key: string): string {
     return this.prefix ? `${this.prefix}-${key}` : key
   }
 }
