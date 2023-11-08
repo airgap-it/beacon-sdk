@@ -4,7 +4,7 @@ import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src
 export enum NetworkType {
   MAINNET = 'mainnet',
   GHOSTNET = 'ghostnet', // Long running testnet
-  MONDAYNET = 'mondaynet', // Testnet, resets every monday
+  WEEKLYNET = 'weeklynet', // Testnet, resets every monday
   DAILYNET = 'dailynet', // Testnet, resets every day
   DELPHINET = 'delphinet',
   EDONET = 'edonet',
@@ -61,7 +61,7 @@ export const tezosWebList: WebApp[] = [
     links: {
       [NetworkType.MAINNET]: 'https://metamask.tezos.com/',
       [NetworkType.GHOSTNET]: 'https://metamask.tezos.com/',
-      [NetworkType.MONDAYNET]: 'https://metamask.tezos.com/',
+      [NetworkType.WEEKLYNET]: 'https://metamask.tezos.com/',
       [NetworkType.DAILYNET]: 'https://metamask.tezos.com/',
       [NetworkType.DELPHINET]: 'https://metamask.tezos.com/',
       [NetworkType.EDONET]: 'https://metamask.tezos.com/',
@@ -86,7 +86,7 @@ export const tezosWebList: WebApp[] = [
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
       [NetworkType.GHOSTNET]: 'https://ghostnet.kukai.app',
-      [NetworkType.MONDAYNET]: 'https://mondaynet.kukai.app',
+      [NetworkType.WEEKLYNET]: 'https://weeklynet.kukai.app',
       [NetworkType.DAILYNET]: 'https://dailynet.kukai.app',
       [NetworkType.DELPHINET]: 'https://testnet.kukai.app',
       [NetworkType.EDONET]: 'https://edonet.kukai.app',
