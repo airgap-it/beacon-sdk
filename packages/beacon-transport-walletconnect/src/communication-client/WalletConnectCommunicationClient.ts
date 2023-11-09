@@ -493,8 +493,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.updateActiveAccount(event.params.namespaces)
         this.notifyListenersWithPermissionResponse(this.session!, {
           type: this.wcOptions.network,
-          name: this.wcOptions.opts.name,
-          rpcUrl: this.wcOptions.opts.relayUrl
         })
       }
     })
