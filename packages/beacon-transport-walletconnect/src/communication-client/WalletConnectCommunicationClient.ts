@@ -45,7 +45,7 @@ import {
   SignPayloadResponseInput,
   StorageKey
 } from '@airgap/beacon-types'
-import { ExposedPromise, generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
+import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 const logger = new Logger('WalletConnectCommunicationClient')
@@ -58,8 +58,7 @@ export interface PermissionScopeParam {
 export enum PermissionScopeMethods {
   GET_ACCOUNTS = 'tezos_getAccounts',
   OPERATION_REQUEST = 'tezos_send',
-  SIGN = 'tezos_sign',
-  REQUEST_NEW_ACCOUNT = 'tezos_requestNewAccount'
+  SIGN = 'tezos_sign'
 }
 
 export enum PermissionScopeEvents {
@@ -86,8 +85,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private session: SessionTypes.Struct | undefined
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
-
-  private requestAccountNamespacePromise: ExposedPromise | undefined = undefined
 
   private currentMessageId: string | undefined // TODO JGD we shouldn't need this
 
@@ -185,10 +182,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
   }
 
-  private checkTezosMethods(method: PermissionScopeMethods) {
-    return this.session?.namespaces.tezos.methods.includes(method)
-  }
-
   private async notifyListenersWithPermissionResponse(
     session: SessionTypes.Struct,
     network: Network
@@ -260,28 +253,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
 
-    if (
-      this.activeAccount &&
-      this.session &&
-      this.checkTezosMethods(PermissionScopeMethods.REQUEST_NEW_ACCOUNT)
-    ) {
-      const client = await this.getSignClient()
-      try {
-        await client.request({
-          topic: this.session.topic,
-          chainId: `${TEZOS_PLACEHOLDER}:${this.getActiveNetwork()}`,
-          request: {
-            method: PermissionScopeMethods.REQUEST_NEW_ACCOUNT,
-            params: {
-              id: this.currentMessageId!
-            }
-          }
-        })
-        return
-      } catch (error: any) {
-        logger.warn(error.message)
-      }
-    }
+    const session = this.getSession()
 
     if (this.activeAccount) {
       try {
@@ -293,18 +265,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     this.setDefaultAccountAndNetwork()
-
-    let session = this.getSession()
-
-    const accounts = session.namespaces.tezos.accounts ?? []
-    if (accounts.length > 0 && accounts[0].split(':')[2] === '?') {
-      const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-      fun && fun()
-      this.requestAccountNamespacePromise = new ExposedPromise()
-      await this.requestAccountNamespacePromise?.promise
-      session = this.getSession()
-    }
-
     this.notifyListenersWithPermissionResponse(session, message.network)
   }
 
@@ -434,16 +394,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // therefore we must immediately open a session
       // to get data required in the pairing response
       try {
-        let session = await this.openSession(topic)
-        const accounts = session.namespaces.tezos.accounts ?? []
-
-        if (accounts.length > 0 && accounts[0].split(':')[2] === '?') {
-          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-          fun && fun()
-          this.requestAccountNamespacePromise = new ExposedPromise()
-          await this.requestAccountNamespacePromise?.promise
-          session = this.getSession()
-        }
+        const session = await this.openSession(topic)
 
         const pairingResponse: ExtendedWalletConnectPairingResponse =
           new ExtendedWalletConnectPairingResponse(
@@ -486,15 +437,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     signClient.on('session_update', (event) => {
       this.session = signClient.session.get(event.topic)
 
-      if (this.requestAccountNamespacePromise) {
-        this.requestAccountNamespacePromise?.resolve(true)
-        this.requestAccountNamespacePromise = undefined
-      } else {
-        this.updateActiveAccount(event.params.namespaces)
-        this.notifyListenersWithPermissionResponse(this.session!, {
-          type: this.wcOptions.network,
-        })
-      }
+      this.updateActiveAccount(event.params.namespaces)
+      this.notifyListenersWithPermissionResponse(this.session!, {
+        type: this.wcOptions.network
+      })
     })
 
     signClient.on('session_delete', (event) => {
@@ -709,7 +655,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const optionalPermissionScopeParams: PermissionScopeParam = {
       networks: [this.wcOptions.network],
       events: [PermissionScopeEvents.REQUEST_ACKNOWLEDGED],
-      methods: [PermissionScopeMethods.REQUEST_NEW_ACCOUNT]
+      methods: []
     }
 
     const connectParams = {
@@ -721,6 +667,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       },
       pairingTopic: pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
     }
+
+    this.signClient?.core.pairing.ping({ topic: connectParams.pairingTopic }).then(() => {
+      const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+      fun && fun()
+    })
 
     const { approval } = await signClient.connect(connectParams)
 
