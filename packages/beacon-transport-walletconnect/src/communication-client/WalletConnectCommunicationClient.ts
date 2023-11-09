@@ -32,6 +32,7 @@ import {
   ExtendedWalletConnectPairingRequest,
   ExtendedWalletConnectPairingResponse,
   IgnoredResponseInputProperties,
+  Network,
   NetworkType,
   OperationRequest,
   OperationResponseInput,
@@ -188,6 +189,70 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return this.session?.namespaces.tezos.methods.includes(method)
   }
 
+  private async notifyListenersWithPermissionResponse(
+    session: SessionTypes.Struct,
+    network: Network
+  ) {
+    let publicKey: string | undefined
+    if (
+      session.sessionProperties?.pubkey &&
+      session.sessionProperties?.algo &&
+      session.sessionProperties?.address
+    ) {
+      publicKey = session.sessionProperties?.pubkey
+      logger.log(
+        '[requestPermissions]: Have pubkey in sessionProperties, skipping "get_accounts" call',
+        session.sessionProperties
+      )
+    } else {
+      const accounts = this.getTezosNamespace(session.namespaces).accounts
+      const addressOrPbk = accounts[0].split(':', 3)[2]
+
+      if (addressOrPbk.startsWith('edpk')) {
+        publicKey = addressOrPbk
+      } else {
+        if (network.type !== this.wcOptions.network) {
+          throw new Error('Network in permission request is not the same as preferred network!')
+        }
+
+        const result = await this.fetchAccounts(
+          session.topic,
+          `${TEZOS_PLACEHOLDER}:${network.type}`
+        )
+
+        if (!result || result.length < 1) {
+          throw new Error('No account shared by wallet')
+        }
+
+        if (result.some((account) => !account.pubkey)) {
+          throw new Error('Public Key in `tezos_getAccounts` is empty!')
+        }
+
+        publicKey = result[0]?.pubkey
+      }
+    }
+
+    if (!publicKey) {
+      throw new Error('Public Key in `tezos_getAccounts` is empty!')
+    }
+
+    const permissionResponse: PermissionResponseInput = {
+      type: BeaconMessageType.PermissionResponse,
+      appMetadata: {
+        senderId: session.pairingTopic,
+        name: session.peer.metadata.name,
+        icon: session.peer.metadata.icons[0]
+      },
+      publicKey,
+      network,
+      scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
+      id: this.currentMessageId!,
+      walletType: 'implicit'
+    }
+
+    this.notifyListeners(session.pairingTopic, permissionResponse)
+  }
+
   async requestPermissions(message: PermissionRequest) {
     logger.log('#### Requesting permissions')
 
@@ -230,7 +295,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.setDefaultAccountAndNetwork()
 
     let session = this.getSession()
-    let publicKey: string | undefined
 
     const accounts = session.namespaces.tezos.accounts ?? []
     if (accounts.length > 0 && accounts[0].split(':')[2] === '?') {
@@ -241,63 +305,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       session = this.getSession()
     }
 
-    if (
-      session.sessionProperties?.pubkey &&
-      session.sessionProperties?.algo &&
-      session.sessionProperties?.address
-    ) {
-      publicKey = session.sessionProperties?.pubkey
-      logger.log(
-        '[requestPermissions]: Have pubkey in sessionProperties, skipping "get_accounts" call',
-        session.sessionProperties
-      )
-    } else {
-      const accounts = this.getTezosNamespace(session.namespaces).accounts
-      const addressOrPbk = accounts[0].split(':', 3)[2]
-
-      if (addressOrPbk.startsWith('edpk')) {
-        publicKey = addressOrPbk
-      } else {
-        if (message.network.type !== this.wcOptions.network) {
-          throw new Error('Network in permission request is not the same as preferred network!')
-        }
-
-        const result = await this.fetchAccounts(
-          session.topic,
-          `${TEZOS_PLACEHOLDER}:${message.network.type}`
-        )
-
-        if (!result || result.length < 1) {
-          throw new Error('No account shared by wallet')
-        }
-
-        if (result.some((account) => !account.pubkey)) {
-          throw new Error('Public Key in `tezos_getAccounts` is empty!')
-        }
-
-        publicKey = result[0]?.pubkey
-      }
-    }
-
-    if (!publicKey) {
-      throw new Error('Public Key in `tezos_getAccounts` is empty!')
-    }
-
-    const permissionResponse: PermissionResponseInput = {
-      type: BeaconMessageType.PermissionResponse,
-      appMetadata: {
-        senderId: session.pairingTopic,
-        name: session.peer.metadata.name,
-        icon: session.peer.metadata.icons[0]
-      },
-      publicKey,
-      network: message.network,
-      scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
-      id: this.currentMessageId!,
-      walletType: 'implicit'
-    }
-
-    this.notifyListeners(session.pairingTopic, permissionResponse)
+    this.notifyListenersWithPermissionResponse(session, message.network)
   }
 
   /**
@@ -483,6 +491,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.requestAccountNamespacePromise = undefined
       } else {
         this.updateActiveAccount(event.params.namespaces)
+        this.notifyListenersWithPermissionResponse(this.session!, {
+          type: this.wcOptions.network,
+          name: this.wcOptions.opts.name,
+          rpcUrl: this.wcOptions.opts.relayUrl
+        })
       }
     })
 
