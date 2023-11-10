@@ -137,6 +137,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // implementation
   }
 
+  private checkWalletReadiness(topic: string) {
+    this.signClient?.core.pairing
+      .ping({ topic })
+      .then(() => {
+        this.currentMessageId && this.acknowledgeRequest(this.currentMessageId)
+      })
+      .catch((error) => logger.error(error.message))
+  }
+
   async sendMessage(_message: string, _peer?: any): Promise<void> {
     const serializer = new Serializer()
     const message = (await serializer.deserialize(_message)) as any
@@ -282,6 +291,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
 
+    this.checkWalletReadiness(session.pairingTopic)
+
     // TODO: Type
     signClient
       .request<{ signature: string }>({
@@ -330,6 +341,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const network = this.getActiveNetwork()
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
+
+    this.checkWalletReadiness(session.pairingTopic)
 
     signClient
       .request<{
@@ -668,10 +681,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       pairingTopic: pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
     }
 
-    this.signClient?.core.pairing.ping({ topic: connectParams.pairingTopic }).then(() => {
-      const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-      fun && fun()
-    })
+    this.checkWalletReadiness(connectParams.pairingTopic)
 
     const { approval } = await signClient.connect(connectParams)
 
