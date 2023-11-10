@@ -36,6 +36,6 @@
   "dependencies": {
     "@airgap/beacon-core": "4.0.12",
     "@airgap/beacon-utils": "4.0.12",
-    "axios": "0.24.0"
+    "axios": "1.6.0"
   }
 }
