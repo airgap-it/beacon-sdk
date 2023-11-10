@@ -1089,14 +1089,13 @@ export class DAppClient extends Client {
       throw await this.handleRequestError(request, requestError)
     })
 
-    console.log('######## MESSAGE #######')
-    console.log(message)
+    logger.log('requestPermissions', '######## MESSAGE #######')
+    logger.log('requestPermissions', message)
 
     const accountInfo = await this.onNewAccount(message, connectionInfo)
 
-    console.log('######## ACCOUNT INFO #######')
-
-    console.log(JSON.stringify(accountInfo))
+    logger.log('requestPermissions', '######## ACCOUNT INFO #######')
+    logger.log('requestPermissions', JSON.stringify(accountInfo))
 
     await this.accountManager.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)
