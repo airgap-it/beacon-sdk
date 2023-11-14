@@ -492,7 +492,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       } else {
         this.updateActiveAccount(event.params.namespaces)
         this.notifyListenersWithPermissionResponse(this.session!, {
-          type: this.wcOptions.network,
+          type: this.wcOptions.network
         })
       }
     })
@@ -673,24 +673,28 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     await this.closeSessions()
     const signClient = await this.getSignClient()
     const pairings = signClient.pairing.getAll() ?? []
-    for (let pairing of pairings) {
-      await signClient.core.pairing.disconnect({ topic: pairing.topic })
-    }
+    pairings.length &&
+      (await Promise.allSettled(
+        pairings.map((pairing) => signClient.core.pairing.disconnect({ topic: pairing.topic }))
+      ))
     await this.resetWCSnapshot()
   }
 
   private async closeSessions() {
     const signClient = await this.getSignClient()
     const sessions = signClient.session.getAll() ?? []
-    for (let session of sessions) {
-      await signClient.disconnect({
-        topic: session.topic,
-        reason: {
-          code: 0, // TODO: Use constants
-          message: 'Force new connection'
-        }
-      })
-    }
+    sessions.length &&
+      (await Promise.allSettled(
+        sessions.map((session) =>
+          signClient.disconnect({
+            topic: (session as any).topic,
+            reason: {
+              code: 0, // TODO: Use constants
+              message: 'Force new connection'
+            }
+          })
+        )
+      ))
 
     this.clearState()
   }
