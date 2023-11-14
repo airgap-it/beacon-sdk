@@ -454,8 +454,35 @@ export class DAppClient extends Client {
       ClientEvents.RESET_STATE,
       this.channelClosedHandler.bind(this)
     )
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.WC_ACK_NOTIFICATION,
+      this.wcToastHandler.bind(this)
+    )
   }
 
+  private async wcToastHandler(status: string) {
+    const walletInfo = await (async (): Promise<WalletInfo> => {
+      try {
+        return await this.getWalletInfo()
+      } catch {
+        return { name: 'wallet' }
+      }
+    })()
+
+    await this.events.emit(BeaconEvent.HIDE_UI, ['alert'])
+    if (status === 'pending') {
+      this.events.emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
+        message: {} as any,
+        extraInfo: {} as any,
+        walletInfo
+      })
+    } else {
+      this.events.emit(BeaconEvent.PERMISSION_REQUEST_ERROR, {
+        errorResponse: { errorType: BeaconErrorType.ABORTED_ERROR } as any,
+        walletInfo
+      })
+    }
+  }
   private async channelClosedHandler() {
     await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
     this.setActiveAccount(undefined)

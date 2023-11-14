@@ -141,7 +141,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.core.pairing
       .ping({ topic })
       .then(() => {
-        this.currentMessageId && this.acknowledgeRequest(this.currentMessageId)
+        if (this.currentMessageId) {
+          this.acknowledgeRequest(this.currentMessageId)
+        } else {
+          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+          fun && fun('pending')
+        }
       })
       .catch((error) => logger.error(error.message))
   }
@@ -703,14 +708,19 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
     } catch (error: any) {
       logger.error(error.message)
-      const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
-      const errorResponse: ErrorResponseInput = {
-        type: BeaconMessageType.Error,
-        id: this.currentMessageId!,
-        errorType: BeaconErrorType.ABORTED_ERROR
-      } as ErrorResponse
+      if (this.activeListeners.size === 0) {
+        const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+        fun && fun('error')
+      } else {
+        const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
+        const errorResponse: ErrorResponseInput = {
+          type: BeaconMessageType.Error,
+          id: this.currentMessageId!,
+          errorType: BeaconErrorType.ABORTED_ERROR
+        } as ErrorResponse
 
-      this.notifyListeners(_pairingTopic, errorResponse)
+        this.notifyListeners(_pairingTopic, errorResponse)
+      }
     }
 
     if (this.session) {
