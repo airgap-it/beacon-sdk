@@ -286,92 +286,49 @@ export class DAppClient extends Client {
         await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
       }
 
-      if (message.version === '3') {
-        const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
+      const typedMessage =
+        message.version === '3'
+          ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
+          : (message as BeaconMessage)
 
-        if (openRequest && typedMessage.message?.type === BeaconMessageType.Acknowledge) {
-          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
-          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
-          logger.timeLog('handleResponse', message.id, 'acknowledge')
+      const appMetadata =
+        message.version === '3'
+          ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData.appMetadata
+          : (typedMessage as PermissionResponse).appMetadata
 
-          this.events
-            .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
-              message: typedMessage.message as AcknowledgeResponse,
-              extraInfo: {},
-              walletInfo: await this.getWalletInfo()
-            })
-            .catch(console.error)
-        } else if (openRequest) {
-          const appMetadata: AppMetadata | undefined = (
-            typedMessage.message as unknown /* Why is this unkown cast needed? */ as PermissionResponseV3<string>
-          ).blockchainData.appMetadata
-          if (typedMessage.message?.type === BeaconMessageType.PermissionResponse && appMetadata) {
-            await this.appMetadataManager.addAppMetadata(appMetadata)
-          }
+      if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
+        this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
+        logger.log('handleResponse', `acknowledge message received for ${message.id}`)
+        logger.timeLog('handleResponse', message.id, 'acknowledge')
 
-          logger.timeLog('handleResponse', typedMessage.id, 'response')
-          logger.time(false, typedMessage.id)
-
-          if (typedMessage.message?.type === BeaconMessageType.Error) {
-            openRequest.reject(typedMessage.message as ErrorResponse)
-          } else {
-            openRequest.resolve({ message, connectionInfo })
-          }
-          this.openRequests.delete(typedMessage.id)
-        } else {
-          if (typedMessage.message?.type === BeaconMessageType.Disconnect) {
-            await handleDisconnect()
-          } else if (typedMessage.message?.type === BeaconMessageType.ChangeAccountRequest) {
-            await this.onNewAccount(typedMessage.message as ChangeAccountRequest, connectionInfo)
-          } else {
-            logger.error('handleResponse', 'no request found for id ', message.id, message)
-          }
+        this.events
+          .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
+            message: typedMessage as AcknowledgeResponse,
+            extraInfo: {},
+            walletInfo: await this.getWalletInfo()
+          })
+          .catch(console.error)
+      } else if (openRequest) {
+        if (typedMessage.type === BeaconMessageType.PermissionResponse && appMetadata) {
+          await this.appMetadataManager.addAppMetadata(appMetadata)
         }
-      } else {
-        const typedMessage = message as BeaconMessage
 
-        if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
-          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
-          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
+        logger.timeLog('handleResponse', typedMessage.id, 'response')
+        logger.time(false, typedMessage.id)
 
-          logger.timeLog('handleResponse', message.id, 'acknowledge')
-
-          this.events
-            .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
-              message: typedMessage,
-              extraInfo: {},
-              walletInfo: await this.getWalletInfo()
-            })
-            .catch(console.error)
-        } else if (openRequest) {
-          if (
-            typedMessage.type === BeaconMessageType.PermissionResponse &&
-            typedMessage.appMetadata
-          ) {
-            await this.appMetadataManager.addAppMetadata(typedMessage.appMetadata)
-          }
-
-          logger.timeLog('handleResponse', typedMessage.id, 'response')
-          logger.time(false, typedMessage.id)
-
-          if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
-            // TODO: Remove "any" once we remove support for v1 wallets
-            openRequest.reject(typedMessage as any)
-          } else {
-            openRequest.resolve({ message, connectionInfo })
-          }
-          this.openRequests.delete(typedMessage.id)
+        if (typedMessage.type === BeaconMessageType.Error) {
+          openRequest.reject(typedMessage as ErrorResponse)
         } else {
-          if (
-            typedMessage.type === BeaconMessageType.Disconnect ||
-            (message as any)?.typedMessage?.type === BeaconMessageType.Disconnect // TODO: TYPE
-          ) {
-            await handleDisconnect()
-          } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
-            await this.onNewAccount(typedMessage, connectionInfo)
-          } else {
-            logger.error('handleResponse', 'no request found for id ', message.id, message)
-          }
+          openRequest.resolve({ message, connectionInfo })
+        }
+        this.openRequests.delete(typedMessage.id)
+      } else {
+        if (typedMessage.type === BeaconMessageType.Disconnect) {
+          await handleDisconnect()
+        } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
+          await this.onNewAccount(typedMessage as ChangeAccountRequest, connectionInfo)
+        } else {
+          logger.error('handleResponse', 'no request found for id ', message.id, message)
         }
       }
     }
