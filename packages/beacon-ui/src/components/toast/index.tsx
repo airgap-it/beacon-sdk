@@ -63,10 +63,13 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
 
   const onMouseMoveHandler = (event: MouseEvent) => {
     if (isDragging() && event.buttons === 1) {
+      const newX = Math.min(Math.max(event.clientX - offset.x, 0), window.innerWidth - 460)
+      const newY = Math.min(Math.max(event.clientY - offset.y, 0), window.innerHeight - 12)
+      
       setDivPosition({
-        x: event.clientX - offset.x,
-        y: event.clientY - offset.y
-      })
+        x: newX,
+        y: newY,
+      });
     }
   }
 
