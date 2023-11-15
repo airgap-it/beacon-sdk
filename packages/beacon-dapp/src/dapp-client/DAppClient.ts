@@ -261,61 +261,84 @@ export class DAppClient extends Client {
       logger.log('### message ###', JSON.stringify(message))
       logger.log('### connectionInfo ###', connectionInfo)
 
+      const emitAcknowledgedEvent = async (acknowledgeMessage: AcknowledgeResponse) => {
+        this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
+        logger.log('handleResponse', `acknowledge message received for ${message.id}`)
+        logger.timeLog('handleResponse', message.id, 'acknowledge')
+        await this.events
+          .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
+            message: acknowledgeMessage,
+            extraInfo: {},
+            walletInfo: await this.getWalletInfo()
+          })
+          .catch(console.error)
+      }
+
+      const handlePermissionResponse = async (
+        typedMessage: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>
+      ) => {
+        const baseMessage = (typedMessage as BeaconMessageWrapper<BeaconBaseMessage>)
+          .message as unknown as PermissionResponseV3<string>
+        const appMetadata: AppMetadata | undefined = baseMessage.blockchainData
+          ? baseMessage.blockchainData.appMetadata
+          : undefined
+        if (
+          (typedMessage as BeaconMessageWrapper<BeaconBaseMessage>).message?.type ===
+            BeaconMessageType.PermissionResponse &&
+          appMetadata
+        ) {
+          await this.appMetadataManager.addAppMetadata(appMetadata)
+        }
+
+        logger.timeLog('handleResponse', typedMessage.id, 'response')
+        logger.time(false, typedMessage.id)
+
+        if (
+          (typedMessage as BeaconMessageWrapper<BeaconBaseMessage>).message?.type ===
+          BeaconMessageType.Error
+        ) {
+          openRequest?.reject(
+            (typedMessage as BeaconMessageWrapper<BeaconBaseMessage>).message as ErrorResponse
+          )
+        } else {
+          openRequest?.resolve({ message, connectionInfo })
+        }
+
+        this.openRequests.delete((typedMessage as BeaconMessageWrapper<BeaconBaseMessage>).id)
+      }
+
+      const handleDisconnect = async () => {
+        this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
+        const relevantTransport =
+          connectionInfo.origin === Origin.P2P
+            ? this.p2pTransport
+            : connectionInfo.origin === Origin.WALLETCONNECT
+            ? this.walletConnectTransport
+            : this.postMessageTransport ?? (await this.transport)
+
+        if (relevantTransport) {
+          const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
+          const peer: ExtendedPeerInfo | undefined = peers.find(
+            (peerEl) => peerEl.senderId === message.senderId
+          )
+          if (peer) {
+            await relevantTransport.removePeer(peer)
+          }
+          await this.removeAccountsForPeerIds([message.senderId])
+          await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+        }
+      }
+
       if (message.version === '3') {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
         if (openRequest && typedMessage.message?.type === BeaconMessageType.Acknowledge) {
-          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
-          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
-          logger.timeLog('handleResponse', message.id, 'acknowledge')
-
-          this.events
-            .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
-              message: typedMessage.message as AcknowledgeResponse,
-              extraInfo: {},
-              walletInfo: await this.getWalletInfo()
-            })
-            .catch(console.error)
+          await emitAcknowledgedEvent(typedMessage.message as AcknowledgeResponse)
         } else if (openRequest) {
-          const appMetadata: AppMetadata | undefined = (
-            typedMessage.message as unknown /* Why is this unkown cast needed? */ as PermissionResponseV3<string>
-          ).blockchainData.appMetadata
-          if (typedMessage.message?.type === BeaconMessageType.PermissionResponse && appMetadata) {
-            await this.appMetadataManager.addAppMetadata(appMetadata)
-          }
-
-          logger.timeLog('handleResponse', typedMessage.id, 'response')
-          logger.time(false, typedMessage.id)
-
-          if (typedMessage.message?.type === BeaconMessageType.Error) {
-            openRequest.reject(typedMessage.message as ErrorResponse)
-          } else {
-            openRequest.resolve({ message, connectionInfo })
-          }
-          this.openRequests.delete(typedMessage.id)
+          await handlePermissionResponse(typedMessage)
         } else {
           if (typedMessage.message?.type === BeaconMessageType.Disconnect) {
-            this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
-
-            const relevantTransport =
-              connectionInfo.origin === Origin.P2P
-                ? this.p2pTransport
-                : connectionInfo.origin === Origin.WALLETCONNECT
-                ? this.walletConnectTransport
-                : this.postMessageTransport ?? (await this.transport)
-
-            if (relevantTransport) {
-              // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
-              const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
-              const peer: ExtendedPeerInfo | undefined = peers.find(
-                (peerEl) => peerEl.senderId === message.senderId
-              )
-              if (peer) {
-                await relevantTransport.removePeer(peer)
-              }
-              await this.removeAccountsForPeerIds([message.senderId])
-              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-            }
+            await handleDisconnect()
           } else if (typedMessage.message?.type === BeaconMessageType.ChangeAccountRequest) {
             await this.onNewAccount(typedMessage.message as ChangeAccountRequest, connectionInfo)
           } else {
@@ -326,64 +349,14 @@ export class DAppClient extends Client {
         const typedMessage = message as BeaconMessage
 
         if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
-          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
-          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
-
-          logger.timeLog('handleResponse', message.id, 'acknowledge')
-
-          this.events
-            .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
-              message: typedMessage,
-              extraInfo: {},
-              walletInfo: await this.getWalletInfo()
-            })
-            .catch(console.error)
+          await emitAcknowledgedEvent(typedMessage)
         } else if (openRequest) {
-          if (
-            typedMessage.type === BeaconMessageType.PermissionResponse &&
-            typedMessage.appMetadata
-          ) {
-            await this.appMetadataManager.addAppMetadata(typedMessage.appMetadata)
-          }
-
-          logger.timeLog('handleResponse', typedMessage.id, 'response')
-          logger.time(false, typedMessage.id)
-
-          if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
-            // TODO: Remove "any" once we remove support for v1 wallets
-            openRequest.reject(typedMessage as any)
-          } else {
-            openRequest.resolve({ message, connectionInfo })
-          }
-          this.openRequests.delete(typedMessage.id)
+          await handlePermissionResponse(typedMessage)
         } else {
-          if (
-            typedMessage.type === BeaconMessageType.Disconnect ||
-            (message as any)?.typedMessage?.type === BeaconMessageType.Disconnect // TODO: TYPE
-          ) {
-            this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
-
-            const relevantTransport =
-              connectionInfo.origin === Origin.P2P
-                ? this.p2pTransport
-                : connectionInfo.origin === Origin.WALLETCONNECT
-                ? this.walletConnectTransport
-                : this.postMessageTransport ?? (await this.transport)
-
-            if (relevantTransport) {
-              // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
-              const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
-              const peer: ExtendedPeerInfo | undefined = peers.find(
-                (peerEl) => peerEl.senderId === message.senderId
-              )
-              if (peer) {
-                await relevantTransport.removePeer(peer)
-              }
-              await this.removeAccountsForPeerIds([message.senderId])
-              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-            }
+          if (typedMessage.type === BeaconMessageType.Disconnect) {
+            await handleDisconnect()
           } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
-            await this.onNewAccount(typedMessage, connectionInfo)
+            await this.onNewAccount(typedMessage as ChangeAccountRequest, connectionInfo)
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
