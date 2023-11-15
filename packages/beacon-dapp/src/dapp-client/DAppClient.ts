@@ -261,6 +261,31 @@ export class DAppClient extends Client {
       logger.log('### message ###', JSON.stringify(message))
       logger.log('### connectionInfo ###', connectionInfo)
 
+      const handleDisconnect = async (): Promise<void> => {
+        this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
+
+        const relevantTransport =
+          connectionInfo.origin === Origin.P2P
+            ? this.p2pTransport
+            : connectionInfo.origin === Origin.WALLETCONNECT
+            ? this.walletConnectTransport
+            : this.postMessageTransport ?? (await this.transport)
+
+        if (relevantTransport) {
+          const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
+          const peer: ExtendedPeerInfo | undefined = peers.find(
+            (peerEl) => peerEl.senderId === message.senderId
+          )
+
+          if (peer) {
+            await relevantTransport.removePeer(peer)
+          }
+        }
+
+        await this.removeAccountsForPeerIds([message.senderId])
+        await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+      }
+
       if (message.version === '3') {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
@@ -295,27 +320,7 @@ export class DAppClient extends Client {
           this.openRequests.delete(typedMessage.id)
         } else {
           if (typedMessage.message?.type === BeaconMessageType.Disconnect) {
-            this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
-
-            const relevantTransport =
-              connectionInfo.origin === Origin.P2P
-                ? this.p2pTransport
-                : connectionInfo.origin === Origin.WALLETCONNECT
-                ? this.walletConnectTransport
-                : this.postMessageTransport ?? (await this.transport)
-
-            if (relevantTransport) {
-              // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
-              const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
-              const peer: ExtendedPeerInfo | undefined = peers.find(
-                (peerEl) => peerEl.senderId === message.senderId
-              )
-              if (peer) {
-                await relevantTransport.removePeer(peer)
-              }
-              await this.removeAccountsForPeerIds([message.senderId])
-              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-            }
+            await handleDisconnect()
           } else if (typedMessage.message?.type === BeaconMessageType.ChangeAccountRequest) {
             await this.onNewAccount(typedMessage.message as ChangeAccountRequest, connectionInfo)
           } else {
@@ -361,27 +366,7 @@ export class DAppClient extends Client {
             typedMessage.type === BeaconMessageType.Disconnect ||
             (message as any)?.typedMessage?.type === BeaconMessageType.Disconnect // TODO: TYPE
           ) {
-            this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
-
-            const relevantTransport =
-              connectionInfo.origin === Origin.P2P
-                ? this.p2pTransport
-                : connectionInfo.origin === Origin.WALLETCONNECT
-                ? this.walletConnectTransport
-                : this.postMessageTransport ?? (await this.transport)
-
-            if (relevantTransport) {
-              // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
-              const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
-              const peer: ExtendedPeerInfo | undefined = peers.find(
-                (peerEl) => peerEl.senderId === message.senderId
-              )
-              if (peer) {
-                await relevantTransport.removePeer(peer)
-              }
-              await this.removeAccountsForPeerIds([message.senderId])
-              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-            }
+            await handleDisconnect()
           } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
             await this.onNewAccount(typedMessage, connectionInfo)
           } else {
