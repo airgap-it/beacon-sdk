@@ -183,6 +183,8 @@ export class DAppClient extends Client {
 
   private _initPromise: Promise<TransportType> | undefined
 
+  private isInitPending: boolean = false
+
   private readonly activeAccountLoaded: Promise<AccountInfo | undefined>
 
   private readonly appMetadataManager: AppMetadataManager
@@ -1769,9 +1771,16 @@ export class DAppClient extends Client {
   ) {
     const messageId = await generateGUID()
 
+    if (!(await this.getActiveAccount()) && this._initPromise && this.isInitPending) {
+      this._initPromise = undefined
+      this.hideUI(['toast'])
+    }
+
     logger.time(true, messageId)
     logger.log('makeRequest', 'starting')
+    this.isInitPending = true
     await this.init()
+    this.isInitPending = false
     logger.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
