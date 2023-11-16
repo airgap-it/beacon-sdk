@@ -1772,10 +1772,7 @@ export class DAppClient extends Client {
     const messageId = await generateGUID()
 
     if (this._initPromise && this.isInitPending) {
-      await Promise.all([
-        this.postMessageTransport?.disconnect(),
-        this.walletConnectTransport?.disconnect()
-      ])
+      await this.destroy()
       this._initPromise = undefined
       this.hideUI(['toast'])
     }
