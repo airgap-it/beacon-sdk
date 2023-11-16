@@ -267,8 +267,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
 
-    const session = this.getSession()
-
     if (this.activeAccount) {
       try {
         await this.openSession()
@@ -279,7 +277,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     this.setDefaultAccountAndNetwork()
-    this.notifyListenersWithPermissionResponse(session, message.network)
+    this.notifyListenersWithPermissionResponse(this.getSession(), message.network)
   }
 
   /**
