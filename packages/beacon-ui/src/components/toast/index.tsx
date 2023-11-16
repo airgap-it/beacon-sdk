@@ -48,14 +48,6 @@ const [showMoreInfo, setShowMoreInfo] = createSignal<boolean>(true)
 const Toast: Component<ToastProps> = (props: ToastProps) => {
   const hasWalletObject = props.label.includes('{{wallet}}') && props.walletInfo
   const isRequestSentToast = props.label.includes('Request sent to')
-  const debounce = (fun: Function, delay: number) => {
-    let timerId: NodeJS.Timeout
-
-    return (...args: any[]) => {
-      clearTimeout(timerId)
-      timerId = setTimeout(() => fun(...args), delay)
-    }
-  }
 
   const offset = { x: isMobileOS(window) ? 12 : window.innerWidth - 460, y: 12 }
   const [divPosition, setDivPosition] = createSignal(offset)
@@ -63,7 +55,13 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
 
   const onMouseDownHandler = (event: MouseEvent) => {
     event.preventDefault() // prevents inner text highlighting
-    const boundinRect = (event.target as HTMLElement).getBoundingClientRect()
+    const target = event.target as HTMLElement
+
+    if (target.className !== 'toast-header' && target.parentElement?.className !== 'toast-header') {
+      return
+    }
+
+    const boundinRect = target.getBoundingClientRect()
     offset.x = event.clientX - boundinRect.x
     offset.y = event.clientY - boundinRect.y
     setIsDragging(true)
@@ -81,8 +79,6 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
     }
   }
 
-  const debouncedMouseMoveHandler = debounce(onMouseMoveHandler, 15)
-
   const onMouseUpHandler = () => {
     setIsDragging(false)
   }
@@ -94,10 +90,10 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
   // when the mouse is out of the div boundaries but it is still pressed, keep moving the toast
   createEffect(() => {
     if (isDragging()) {
-      window.addEventListener('mousemove', debouncedMouseMoveHandler)
+      window.addEventListener('mousemove', onMouseMoveHandler)
       window.addEventListener('mouseup', onMouseUpHandler)
     } else {
-      window.removeEventListener('mousemove', debouncedMouseMoveHandler)
+      window.removeEventListener('mousemove', onMouseMoveHandler)
       window.removeEventListener('mouseup', onMouseUpHandler)
     }
   })
