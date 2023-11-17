@@ -267,8 +267,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
 
-    const session = this.getSession()
-
     if (this.activeAccount) {
       try {
         await this.openSession()
@@ -279,7 +277,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     this.setDefaultAccountAndNetwork()
-    this.notifyListenersWithPermissionResponse(session, message.network)
+    this.notifyListenersWithPermissionResponse(this.getSession(), message.network)
   }
 
   /**
@@ -697,7 +695,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     try {
       const session = await approval()
       // if I have successfully opened a session and I already have one opened
-      if (session && this.session) {
+      if (session?.controller !== this.session?.controller) {
         this.activeAccount && this.closeActiveSession(this.activeAccount)
         this.session = undefined // close the previous session
       }
