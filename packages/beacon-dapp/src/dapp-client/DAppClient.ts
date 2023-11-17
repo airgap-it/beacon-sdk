@@ -1772,7 +1772,10 @@ export class DAppClient extends Client {
     const messageId = await generateGUID()
 
     if (this._initPromise && this.isInitPending) {
-      await this.destroy()
+      await Promise.all([
+        this.postMessageTransport?.disconnect(),
+        this.walletConnectTransport?.disconnect()
+      ])
       this._initPromise = undefined
       this.hideUI(['toast'])
     }
@@ -1902,10 +1905,21 @@ export class DAppClient extends Client {
     message: U
     connectionInfo: ConnectionContext
   }> {
+    if (this._initPromise && this.isInitPending) {
+      await Promise.all([
+        this.postMessageTransport?.disconnect(),
+        this.walletConnectTransport?.disconnect()
+      ])
+      this._initPromise = undefined
+      this.hideUI(['toast'])
+    }
+
     const messageId = await generateGUID()
     logger.time(true, messageId)
     logger.log('makeRequest', 'starting')
+    this.isInitPending = true
     await this.init()
+    this.isInitPending = false
     logger.timeLog('makeRequest', messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
