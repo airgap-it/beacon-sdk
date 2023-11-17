@@ -18,7 +18,7 @@ export interface WebApp extends AppBase {
   links: {
     [NetworkType.MAINNET]: string
     [NetworkType.GHOSTNET]?: string
-    [NetworkType.MONDAYNET]?: string
+    [NetworkType.WEEKLYNET]?: string
     [NetworkType.DAILYNET]?: string
     [NetworkType.DELPHINET]?: string
     [NetworkType.EDONET]?: string
