@@ -86,7 +86,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
 
-  private currentMessageId: string | undefined // TODO JGD we shouldn't need this
+  /**
+   * this stack stores each active message id
+   * [0] newest message
+   * [length - 1] oldest message
+   */
+  private messageIds: string[] = []
 
   constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
@@ -141,8 +146,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.core.pairing
       .ping({ topic })
       .then(() => {
-        if (this.currentMessageId) {
-          this.acknowledgeRequest(this.currentMessageId)
+        if (this.messageIds.length) {
+          this.acknowledgeRequest(this.messageIds[0])
         } else {
           const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
           fun && fun('pending')
@@ -159,7 +164,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    this.currentMessageId = message.id
+    this.messageIds.unshift(message.id)
 
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
@@ -253,7 +258,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       publicKey,
       network,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
-      id: this.currentMessageId!,
+      id: this.messageIds.shift() ?? '',
       walletType: 'implicit'
     }
 
@@ -314,7 +319,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           type: BeaconMessageType.SignPayloadResponse,
           signingType: signPayloadRequest.signingType,
           signature: response?.signature,
-          id: this.currentMessageId!
+          id: this.messageIds.shift()
         } as SignPayloadResponse
 
         this.notifyListeners(session.pairingTopic, signPayloadResponse)
@@ -322,7 +327,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
-          id: this.currentMessageId!,
+          id: this.messageIds.shift(),
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
@@ -370,7 +375,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           type: BeaconMessageType.OperationResponse,
           transactionHash:
             response.operationHash ?? response.transactionHash ?? response.hash ?? '',
-          id: this.currentMessageId!
+          id: this.messageIds.shift() ?? ''
         }
 
         this.notifyListeners(session.pairingTopic, sendOperationResponse)
@@ -378,7 +383,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
-          id: this.currentMessageId!,
+          id: this.messageIds.shift(),
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
@@ -444,9 +449,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     signClient.on('session_event', (event) => {
       if (
         event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED &&
-        this.currentMessageId
+        this.messageIds.length
       ) {
-        this.acknowledgeRequest(this.currentMessageId)
+        this.acknowledgeRequest(this.messageIds[0])
       }
     })
 
@@ -713,7 +718,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
-          id: this.currentMessageId!,
+          id: this.messageIds.shift(),
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 

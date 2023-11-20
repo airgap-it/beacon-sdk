@@ -177,6 +177,12 @@
 
       beacon.setLogger(x)
 
+      // WC no matching key/topic errors override
+      window.addEventListener('unhandledrejection', function (e) {
+        event.preventDefault();
+        x.error('Error occurred: ' + e.reason.message)
+      })
+
       // Initiate DAppClient
       const client = beacon.getDAppClientInstance({
         name: 'Example DApp', // Name of the DApp,
