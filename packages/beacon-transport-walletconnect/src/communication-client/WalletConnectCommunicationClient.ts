@@ -87,7 +87,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private activeNetwork: string | undefined
 
   /**
-   * this stack stores each active message id
+   * this queue stores each active message id
    * [0] newest message
    * [length - 1] oldest message
    */
@@ -258,7 +258,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       publicKey,
       network,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
-      id: this.messageIds.shift() ?? '',
+      id: this.messageIds.pop() ?? '',
       walletType: 'implicit'
     }
 
@@ -319,7 +319,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           type: BeaconMessageType.SignPayloadResponse,
           signingType: signPayloadRequest.signingType,
           signature: response?.signature,
-          id: this.messageIds.shift()
+          id: this.messageIds.pop()
         } as SignPayloadResponse
 
         this.notifyListeners(session.pairingTopic, signPayloadResponse)
@@ -327,7 +327,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
-          id: this.messageIds.shift(),
+          id: this.messageIds.pop(),
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
@@ -375,7 +375,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           type: BeaconMessageType.OperationResponse,
           transactionHash:
             response.operationHash ?? response.transactionHash ?? response.hash ?? '',
-          id: this.messageIds.shift() ?? ''
+          id: this.messageIds.pop() ?? ''
         }
 
         this.notifyListeners(session.pairingTopic, sendOperationResponse)
@@ -383,7 +383,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
-          id: this.messageIds.shift(),
+          id: this.messageIds.pop(),
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
@@ -718,7 +718,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
-          id: this.messageIds.shift(),
+          id: this.messageIds.pop(),
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
