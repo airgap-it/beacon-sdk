@@ -672,7 +672,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
         return new Promise((resolve) => {
           setTimeout(
-            async () => {
+            () => {
               resolve(this.waitForJoin(roomId, retry + 1))
             },
             100 * (retry > 50 ? 10 : 1)
