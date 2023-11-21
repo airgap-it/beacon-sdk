@@ -179,7 +179,6 @@
 
       // WC no matching key/topic errors override
       window.addEventListener('unhandledrejection', function (e) {
-        event.preventDefault();
         x.error('Error occurred: ' + e.reason.message)
       })
 
@@ -212,7 +211,7 @@
         },
         featuredWallets: ['kukai', 'metamask', 'airgap'],
         network: {
-          type: beacon.NetworkType.GHOSTNET
+          type: beacon.NetworkType.MAINNET
         }
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
