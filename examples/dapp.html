@@ -177,6 +177,11 @@
 
       beacon.setLogger(x)
 
+      // WC no matching key/topic errors override
+      window.addEventListener('unhandledrejection', function (e) {
+        x.error('Error occurred: ' + e.reason.message)
+      })
+
       // Initiate DAppClient
       const client = beacon.getDAppClientInstance({
         name: 'Example DApp', // Name of the DApp,
@@ -206,7 +211,7 @@
         },
         featuredWallets: ['kukai', 'metamask', 'airgap'],
         network: {
-          type: beacon.NetworkType.GHOSTNET
+          type: beacon.NetworkType.MAINNET
         }
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
