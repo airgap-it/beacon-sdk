@@ -65,19 +65,22 @@ export class WalletConnectTransport<
   }
 
   public async hasPairings() {
+    let hasPairings = false
+
     if (await LocalStorage.isSupported()) {
-      return ((await new LocalStorage().get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
-    } else {
-      return !!this.client.signClient?.pairing.getAll()?.length
+      hasPairings = ((await new LocalStorage().get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
     }
+
+    return hasPairings ? hasPairings : !!this.client.signClient?.pairing.getAll()?.length
   }
 
   public async hasSessions() {
+    let hasSessions = false
     if (await LocalStorage.isSupported()) {
-      return ((await new LocalStorage().get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
-    } else {
-      return !!this.client.signClient?.session.getAll()?.length
+      hasSessions =
+        ((await new LocalStorage().get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
     }
+    return hasSessions ? hasSessions : !!this.client.signClient?.session.getAll()?.length
   }
 
   public async closeActiveSession(account: AccountInfo) {
