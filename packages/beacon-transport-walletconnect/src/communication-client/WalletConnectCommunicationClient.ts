@@ -296,6 +296,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         await this.openSession()
       } catch (error: any) {
         logger.error(error.message)
+        this.nextMessage()
         return
       }
     }
@@ -738,7 +739,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
-          id: this.msgQueue.pop()?.id,
+          id: this.msgQueue[this.msgQueue.length - 1]?.id,
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
