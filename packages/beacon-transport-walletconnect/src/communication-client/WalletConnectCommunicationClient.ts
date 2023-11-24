@@ -87,11 +87,19 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private activeNetwork: string | undefined
 
   /**
-   * this queue stores each active message id
+   * this queue stores each active message
    * [0] newest message
    * [length - 1] oldest message
    */
-  private messageIds: string[] = []
+  private msgQueue: BeaconBaseMessage[] = []
+  private nextMessage: Function = async () => {
+    this.msgQueue.length &&
+      this.sendMessage(
+        await new Serializer().serialize(this.msgQueue[this.msgQueue.length - 1]),
+        undefined,
+        false
+      )
+  }
 
   constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
@@ -146,8 +154,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.core.pairing
       .ping({ topic })
       .then(() => {
-        if (this.messageIds.length) {
-          this.acknowledgeRequest(this.messageIds[0])
+        if (this.msgQueue.length) {
+          this.acknowledgeRequest(this.msgQueue[0].id)
         } else {
           const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
           fun && fun('pending')
@@ -156,7 +164,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       .catch((error) => logger.error(error.message))
   }
 
-  async sendMessage(_message: string, _peer?: any): Promise<void> {
+  async sendMessage(_message: string, _peer?: any, enqueue = true): Promise<void> {
     const serializer = new Serializer()
     const message = (await serializer.deserialize(_message)) as any
 
@@ -164,20 +172,31 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    this.messageIds.unshift(message.id)
+    if (enqueue) {
+      this.msgQueue.unshift(message)
+    }
+
+    if (message.type !== BeaconMessageType.PermissionRequest) {
+      this.checkWalletReadiness(this.getSession().pairingTopic)
+    }
+
+    if (enqueue && this.msgQueue.length > 1) {
+      return
+    }
 
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
-        this.requestPermissions(message)
+        await this.requestPermissions(message)
         break
       case BeaconMessageType.OperationRequest:
-        this.sendOperations(message)
+        await this.sendOperations(message)
         break
       case BeaconMessageType.SignPayloadRequest:
-        this.signPayload(message)
+        await this.signPayload(message)
         break
       default:
-        return
+        logger.error('Unrecognized message type')
+        break
     }
   }
 
@@ -258,7 +277,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       publicKey,
       network,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
-      id: this.messageIds.pop() ?? '',
+      id: this.msgQueue.pop()?.id ?? '',
       walletType: 'implicit'
     }
 
@@ -283,6 +302,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.setDefaultAccountAndNetwork()
     this.notifyListenersWithPermissionResponse(this.getSession(), message.network)
+    this.nextMessage()
   }
 
   /**
@@ -298,8 +318,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const network = this.getActiveNetwork()
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
-
-    this.checkWalletReadiness(session.pairingTopic)
 
     // TODO: Type
     signClient
@@ -319,19 +337,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           type: BeaconMessageType.SignPayloadResponse,
           signingType: signPayloadRequest.signingType,
           signature: response?.signature,
-          id: this.messageIds.pop()
+          id: this.msgQueue.pop()?.id
         } as SignPayloadResponse
 
         this.notifyListeners(session.pairingTopic, signPayloadResponse)
+        this.nextMessage()
       })
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
-          id: this.messageIds.pop(),
+          id: this.msgQueue.pop()?.id,
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
         this.notifyListeners(session.pairingTopic, errorResponse)
+        this.nextMessage()
       })
   }
 
@@ -349,8 +369,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const network = this.getActiveNetwork()
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
-
-    this.checkWalletReadiness(session.pairingTopic)
 
     signClient
       .request<{
@@ -375,19 +393,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           type: BeaconMessageType.OperationResponse,
           transactionHash:
             response.operationHash ?? response.transactionHash ?? response.hash ?? '',
-          id: this.messageIds.pop() ?? ''
+          id: this.msgQueue.pop()?.id ?? ''
         }
 
         this.notifyListeners(session.pairingTopic, sendOperationResponse)
+        this.nextMessage()
       })
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
-          id: this.messageIds.pop(),
+          id: this.msgQueue.pop()?.id,
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
         this.notifyListeners(session.pairingTopic, errorResponse)
+        this.nextMessage()
       })
   }
 
@@ -449,9 +469,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     signClient.on('session_event', (event) => {
       if (
         event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED &&
-        this.messageIds.length
+        this.msgQueue.length
       ) {
-        this.acknowledgeRequest(this.messageIds[0])
+        this.acknowledgeRequest(this.msgQueue[0].id)
       }
     })
 
@@ -718,7 +738,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
-          id: this.messageIds.pop(),
+          id: this.msgQueue.pop()?.id,
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
