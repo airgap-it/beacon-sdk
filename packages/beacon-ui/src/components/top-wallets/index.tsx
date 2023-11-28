@@ -60,6 +60,16 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
           </div>
         )}
       </div>
+      <div class="top-wallets-info">
+        <span>
+          Do you wish to report a bug? Open an issue on our{' '}
+          <span class="top-wallets-learn-more">
+            <a href="https://github.com/airgap-it/beacon-sdk/issues/new?labels=bug&template=bug_report.md">
+              GitHub
+            </a>
+          </span>
+        </span>
+      </div>
     </div>
   )
 }
