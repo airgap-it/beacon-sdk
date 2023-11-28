@@ -302,8 +302,7 @@ const showNoPermissionAlert = async (): Promise<void> => {
 const showInvalidActiveAccountState = async (): Promise<void> => {
   await openAlert({
     title: 'Invalid state',
-    body: `A new active account has been received but no handler found 
-    (INVALID STATE: no handler found for BeaconEvent.ACTIVE_ACCOUNT_SET)`
+    body: 'No subscription found for the received active account.'
   })
 }
 
