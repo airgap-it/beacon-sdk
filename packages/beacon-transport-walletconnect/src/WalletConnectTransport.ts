@@ -66,7 +66,6 @@ export class WalletConnectTransport<
 
   public async hasPairings() {
     let hasPairings = false
-
     if (await LocalStorage.isSupported()) {
       hasPairings = ((await new LocalStorage().get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
     }
