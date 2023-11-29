@@ -196,6 +196,7 @@ export class DAppClient extends Client {
   private readonly featuredWallets: string[] | undefined
 
   constructor(config: DAppClientOptions) {
+    const start = performance.now()
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
       ...config
@@ -399,9 +400,13 @@ export class DAppClient extends Client {
         this.init()
       }
     })
+
+    const end = performance.now()
+    logger.log('DAppClient.contructor', `took ${end - start} milliseconds`)
   }
 
   public async initInternalTransports(): Promise<void> {
+    const start = performance.now()
     const keyPair = await this.keyPair
 
     if (this.postMessageTransport || this.p2pTransport || this.walletConnectTransport) {
@@ -441,6 +446,8 @@ export class DAppClient extends Client {
     this.initEvents()
 
     await this.addListener(this.walletConnectTransport)
+    const end = performance.now()
+    logger.log('DAppClient.initInternalTransport', `took ${end - start} milliseconds`)
   }
 
   private initEvents() {
@@ -493,10 +500,14 @@ export class DAppClient extends Client {
   }
 
   async destroy(): Promise<void> {
+    const start = performance.now()
     await super.destroy()
+    const end = performance.now()
+    logger.log('DAppClient.destroy', `took ${end - start} milliseconds`)
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
+    const start = performance.now()
     if (this._initPromise) {
       return this._initPromise
     }
@@ -640,6 +651,9 @@ export class DAppClient extends Client {
       }
     })
 
+    const end = performance.now()
+    logger.log('DAppClient.init', `took ${end - start} milliseconds`)
+
     return this._initPromise
   }
 
@@ -663,6 +677,7 @@ export class DAppClient extends Client {
    * @param account The account that will be set as the active account
    */
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
+    const start = performance.now()
     if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
       await this.destroy()
       await this.setActiveAccount(undefined)
@@ -717,6 +732,9 @@ export class DAppClient extends Client {
     )
 
     await this.events.emit(BeaconEvent.ACTIVE_ACCOUNT_SET, account)
+
+    const end = performance.now()
+    logger.log('DAppClient.setActiveAccount', `took ${end - start} milliseconds`)
 
     return
   }
@@ -798,6 +816,7 @@ export class DAppClient extends Client {
     peer: ExtendedPeerInfo,
     sendDisconnectToPeer: boolean = false
   ): Promise<void> {
+    const start = performance.now()
     const transport = await this.transport
 
     const removePeerResult = transport.removePeer(peer)
@@ -808,6 +827,9 @@ export class DAppClient extends Client {
       await this.sendDisconnectToPeer(peer, transport)
     }
 
+    const end = performance.now()
+    logger.log('DAppClient.removePeer', `took ${end - start} milliseconds`)
+
     return removePeerResult
   }
 
@@ -815,6 +837,7 @@ export class DAppClient extends Client {
    * Remove all peers and all accounts that have been connected through those peers
    */
   public async removeAllPeers(sendDisconnectToPeers: boolean = false): Promise<void> {
+    const start = performance.now()
     const transport = await this.transport
 
     const peers: ExtendedPeerInfo[] = await transport.getPeers()
@@ -827,6 +850,9 @@ export class DAppClient extends Client {
 
       await Promise.all(disconnectPromises)
     }
+
+    const end = performance.now()
+    logger.log('DAppClient.removeAllPeers', `took ${end - start} milliseconds`)
 
     return removePeerResult
   }
@@ -894,6 +920,7 @@ export class DAppClient extends Client {
     payload: string,
     protocolIdentifier: string
   ): Promise<string> {
+    const start = performance.now()
     const activeAccount = await this.getActiveAccount()
 
     if (
@@ -914,6 +941,9 @@ export class DAppClient extends Client {
     if (!url) {
       throw new Error('No Push URL set')
     }
+
+    const end = performance.now()
+    logger.log('DAppClient.sendNotification', `took ${end - start} milliseconds`)
 
     return this.sendNotificationWithAccessToken({
       url,
@@ -946,6 +976,7 @@ export class DAppClient extends Client {
   public async permissionRequest(
     input: PermissionRequestV3<string>
   ): Promise<PermissionResponseV3<string>> {
+    const start = performance.now()
     logger.log('permissionRequest', input)
     const blockchain = this.blockchains.get(input.blockchainIdentifier)
     if (!blockchain) {
@@ -1015,11 +1046,15 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
+    const end = performance.now()
+    logger.log('DAppClient.permissionRequest', `took ${end - start} milliseconds`)
+
     // return output
     return response.message
   }
 
   public async request(input: BlockchainRequestV3<string>): Promise<BlockchainResponseV3<string>> {
+    const start = performance.now()
     logger.log('request', input)
     const blockchain = this.blockchains.get(input.blockchainIdentifier)
     if (!blockchain) {
@@ -1057,6 +1092,9 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
+    const end = performance.now()
+    logger.log('DAppClient.request', `took ${end - start} milliseconds`)
+
     return response.message
   }
 
@@ -1070,6 +1108,7 @@ export class DAppClient extends Client {
   public async requestPermissions(
     input?: RequestPermissionInput
   ): Promise<PermissionResponseOutput> {
+    const start = performance.now()
     // Add error message for deprecation of network
     // TODO: Remove when we remove deprecated preferredNetwork
     if (input?.network !== undefined && this.network.type !== input?.network?.type) {
@@ -1127,6 +1166,9 @@ export class DAppClient extends Client {
       address: accountInfo.address
     })
 
+    const end = performance.now()
+    logger.log('DAppClient.requestPermissions', `took ${end - start} milliseconds`)
+
     return output
   }
 
@@ -1139,6 +1181,7 @@ export class DAppClient extends Client {
    * @param input The message details we need to prepare the ProofOfEventChallenge message.
    */
   public async requestProofOfEventChallenge(input: RequestProofOfEventChallengeInput) {
+    const start = performance.now()
     const activeAccount = await this.getActiveAccount()
 
     if (!activeAccount)
@@ -1183,10 +1226,14 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
+    const end = performance.now()
+    logger.log('DAppClient.requestProofOfEventChallenge', `took ${end - start} milliseconds`)
+
     return message
   }
 
   private async recordProofOfEventChallenge(input: RequestProofOfEventChallengeInput) {
+    const start = performance.now()
     const activeAccount = await this.getActiveAccount()
 
     if (!activeAccount)
@@ -1207,6 +1254,9 @@ export class DAppClient extends Client {
     await this.makeRequest(recordedRequest, true).catch(async (requestError: ErrorResponse) => {
       throw await this.handleRequestError(recordedRequest, requestError)
     })
+
+    const end = performance.now()
+    logger.log('DAppClient.recordProofOfEventChallenge', `took ${end - start} milliseconds`)
   }
 
   /**
@@ -1218,6 +1268,7 @@ export class DAppClient extends Client {
   public async requestSignPayload(
     input: RequestSignPayloadInput
   ): Promise<SignPayloadResponseOutput> {
+    const start = performance.now()
     if (!input.payload) {
       throw await this.sendInternalError('Payload must be provided')
     }
@@ -1282,6 +1333,8 @@ export class DAppClient extends Client {
     })
 
     this.analytics.track('event', 'DAppClient', 'Signature response')
+    const end = performance.now()
+    logger.log('DAppClient.requestSignPayload', `took ${end - start} milliseconds`)
 
     return message
   }
@@ -1351,6 +1404,7 @@ export class DAppClient extends Client {
    * @param input The message details we need to prepare the OperationRequest message.
    */
   public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
+    const start = performance.now()
     if (!input.operationDetails) {
       throw await this.sendInternalError('Operation details must be provided')
     }
@@ -1384,6 +1438,8 @@ export class DAppClient extends Client {
     })
 
     this.analytics.track('event', 'DAppClient', 'Operation response')
+    const end = performance.now()
+    logger.log('DAppClient.requestOperation', `took ${end - start} milliseconds`)
 
     return message
   }
@@ -1395,6 +1451,7 @@ export class DAppClient extends Client {
    * @param input The message details we need to prepare the BroadcastRequest message.
    */
   public async requestBroadcast(input: RequestBroadcastInput): Promise<BroadcastResponseOutput> {
+    const start = performance.now()
     if (!input.signedTransaction) {
       throw await this.sendInternalError('Signed transaction must be provided')
     }
@@ -1430,11 +1487,14 @@ export class DAppClient extends Client {
     })
 
     this.analytics.track('event', 'DAppClient', 'Broadcast response')
+    const end = performance.now()
+    logger.log('DAppClient.requestBroadcast', `took ${end - start} milliseconds`)
 
     return message
   }
 
   protected async setActivePeer(peer?: PeerInfoType): Promise<void> {
+    const start = performance.now()
     if (this._activePeer.isSettled()) {
       // If the promise has already been resolved we need to create a new one.
       this._activePeer = ExposedPromise.resolve(peer)
@@ -1453,6 +1513,8 @@ export class DAppClient extends Client {
     } else if (peer.type === 'p2p-pairing-response') {
       await this.setTransport(this.p2pTransport)
     }
+    const end = performance.now()
+    logger.log('DAppClient.setActivePeer', `took ${end - start} milliseconds`)
   }
 
   /**
@@ -1638,6 +1700,7 @@ export class DAppClient extends Client {
   }
 
   private async getWalletInfo(peer?: PeerInfo, account?: AccountInfo): Promise<WalletInfo> {
+    const start = performance.now()
     const selectedAccount = account ? account : await this.getActiveAccount()
 
     const selectedPeer = peer ? peer : await this.getPeer(selectedAccount)
@@ -1703,6 +1766,9 @@ export class DAppClient extends Client {
         deeplink = (selectedApp as App).deepLink
       }
 
+      const end = performance.now()
+      logger.log('DAppClient.getWalletInfo', `took ${end - start} milliseconds`)
+
       return {
         name: selectedApp?.name ?? walletInfo.name,
         icon: selectedApp?.logo ?? walletInfo.icon,
@@ -1716,6 +1782,7 @@ export class DAppClient extends Client {
 
   private async getPeer(account?: AccountInfo): Promise<PeerInfo | undefined> {
     let peer: PeerInfo | undefined
+    const start = performance.now()
 
     if (account) {
       logger.log('getPeer', 'We have an account', account)
@@ -1737,6 +1804,9 @@ export class DAppClient extends Client {
       peer = await this._activePeer.promise
       logger.log('getPeer', 'Active peer', peer)
     }
+
+    const end = performance.now()
+    logger.log('DAppClient.getPeer', `took ${end - start} milliseconds`)
 
     return peer
   }
@@ -1766,6 +1836,7 @@ export class DAppClient extends Client {
     requestInput: Optional<T, IgnoredRequestInputProperties>,
     skipResponse?: boolean
   ) {
+    const start = performance.now()
     const messageId = await generateGUID()
 
     if (this._initPromise && this.isInitPending) {
@@ -1881,6 +1952,9 @@ export class DAppClient extends Client {
       })
       .catch((emitError) => console.warn(emitError))
 
+    const end = performance.now()
+    logger.log('DAppClient.makeRequest', `took ${end - start} milliseconds`)
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed?.promise as any // TODO: fix type
   }
@@ -1902,6 +1976,7 @@ export class DAppClient extends Client {
     message: U
     connectionInfo: ConnectionContext
   }> {
+    const start = performance.now()
     if (this._initPromise && this.isInitPending) {
       await Promise.all([
         this.postMessageTransport?.disconnect(),
@@ -2013,15 +2088,21 @@ export class DAppClient extends Client {
       })
       .catch((emitError) => console.warn(emitError))
 
+    const end = performance.now()
+    logger.log('DAppClient.makeRequestV3', `took ${end - start} milliseconds`)
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed.promise as any // TODO: fix type
   }
 
   public async disconnect() {
+    const start = performance.now()
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
     await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
+    const end = performance.now()
+    logger.log('DAppClient.disconnect', `took ${end - start} milliseconds`)
   }
 
   /**
@@ -2053,6 +2134,7 @@ export class DAppClient extends Client {
     protocolIdentifier: string
     accessToken: string
   }): Promise<string> {
+    const start = performance.now()
     const { url, recipient, title, body, payload, protocolIdentifier, accessToken } = notification
     const timestamp = new Date().toISOString()
 
@@ -2095,6 +2177,9 @@ export class DAppClient extends Client {
       }
     })
 
+    const end = performance.now()
+    logger.log('DAppClient.sendNotificationWithAccessToken', `took ${end - start} milliseconds`)
+
     return notificationResponse.data
   }
 
@@ -2102,6 +2187,7 @@ export class DAppClient extends Client {
     message: PermissionResponse | ChangeAccountRequest,
     connectionInfo: ConnectionContext
   ): Promise<AccountInfo> {
+    const start = performance.now()
     // TODO: Migration code. Remove sometime after 1.0.0 release.
     const tempPK: string | undefined =
       message.publicKey || (message as any).pubkey || (message as any).pubKey
@@ -2158,6 +2244,9 @@ export class DAppClient extends Client {
 
     await this.accountManager.addAccount(accountInfo)
     await this.setActiveAccount(accountInfo)
+
+    const end = performance.now()
+    logger.log('DAppClient.onNewAccount', `took ${end - start} milliseconds`)
 
     return accountInfo
   }
