@@ -4,7 +4,7 @@ import {
   Serializer,
   ClientEvents,
   Logger,
-  LocalStorage
+  WCStorage
 } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
@@ -43,7 +43,6 @@ import {
   SignPayloadRequest,
   SignPayloadResponse,
   SignPayloadResponseInput,
-  StorageKey
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
@@ -82,6 +81,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private static instance: WalletConnectCommunicationClient
   public signClient: Client | undefined
+  public storage: WCStorage = new WCStorage()
   private session: SessionTypes.Struct | undefined
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
@@ -618,24 +618,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     )
   }
 
-  private async resetWCSnapshot() {
-    if (!(await LocalStorage.isSupported())) {
-      return
-    }
-    const storage = new LocalStorage()
-
-    await Promise.all([
-      storage.delete(StorageKey.WC_2_CLIENT_SESSION),
-      storage.delete(StorageKey.WC_2_CORE_PAIRING),
-      storage.delete(StorageKey.WC_2_CORE_KEYCHAIN),
-      storage.delete(StorageKey.WC_2_CORE_MESSAGES),
-      storage.delete(StorageKey.WC_2_CLIENT_PROPOSAL),
-      storage.delete(StorageKey.WC_2_CORE_SUBSCRIPTION),
-      storage.delete(StorageKey.WC_2_CORE_HISTORY),
-      storage.delete(StorageKey.WC_2_CORE_EXPIRER)
-    ])
-  }
-
   private async closePairings() {
     await this.closeSessions()
     const signClient = await this.getSignClient()
@@ -644,7 +626,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       (await Promise.allSettled(
         pairings.map((pairing) => signClient.core.pairing.disconnect({ topic: pairing.topic }))
       ))
-    await this.resetWCSnapshot()
+    await this.storage.resetState()
   }
 
   private async closeSessions() {
