@@ -36,7 +36,7 @@ export class WCStorage {
 
   async resetState() {
     if (await IndexedDBStorage.doesDatabaseExists()) {
-      this.indexedDB.clearTable()
+      await this.indexedDB.clearTable()
       return
     }
 
