@@ -431,8 +431,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickWallet = async (id: string) => {
-      if (isLoading()) return
-
       setIsLoading(true)
       setShowMoreContent(false)
       const wallet = walletList().find((wallet) => wallet.id === id)
@@ -791,7 +789,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     }
                   >
                     <Wallets
-                      disabled={isLoading()}
                       wallets={walletList().slice(-(walletList().length - (isMobile() ? 3 : 4)))}
                       isMobile={isMobile()}
                       onClickWallet={handleClickWallet}
@@ -891,7 +888,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     }
                   >
                     <TopWallets
-                      disabled={isLoading()}
                       wallets={isMobile() ? walletList().slice(0, 3) : walletList().slice(0, 4)}
                       isMobile={isMobile()}
                       onClickWallet={handleClickWallet}
@@ -915,7 +911,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               extraContent={
                 currentInfo() !== 'top-wallets' || isMobile() ? undefined : (
                   <Wallets
-                    disabled={isLoading()}
                     small
                     wallets={walletList().slice(-(walletList().length - 4))}
                     isMobile={isMobile()}
