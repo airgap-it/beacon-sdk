@@ -227,5 +227,15 @@ export const tezosIosList: App[] = [
     supportedInteractionStandards: ['wallet_connect'],
     universalLink: 'https://wallet.kukai.app',
     deepLink: 'kukai://'
+  },
+  {
+    key: 'fireblocks_ios',
+    name: 'Fireblocks Wallet',
+    shortName: 'Fireblocks',
+    color: '',
+    logo: 'ios-fireblocks.svg',
+    supportedInteractionStandards: ['wallet_connect'],
+    universalLink: 'https://wallet.kukai.app',
+    deepLink: 'kukai://'
   }
 ]
