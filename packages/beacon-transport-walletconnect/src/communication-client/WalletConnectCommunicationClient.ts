@@ -323,6 +323,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         } as SignPayloadResponse
 
         this.notifyListeners(session.pairingTopic, signPayloadResponse)
+        if (this.session && this.messageIds.length) {
+          this.checkWalletReadiness(this.session.pairingTopic)
+        }
       })
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
@@ -332,6 +335,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         } as ErrorResponse
 
         this.notifyListeners(session.pairingTopic, errorResponse)
+        if (this.session && this.messageIds.length) {
+          this.checkWalletReadiness(this.session.pairingTopic)
+        }
       })
   }
 
@@ -379,6 +385,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         }
 
         this.notifyListeners(session.pairingTopic, sendOperationResponse)
+
+        if (this.session && this.messageIds.length) {
+          this.checkWalletReadiness(this.session.pairingTopic)
+        }
       })
       .catch(async () => {
         const errorResponse: ErrorResponseInput = {
@@ -388,6 +398,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         } as ErrorResponse
 
         this.notifyListeners(session.pairingTopic, errorResponse)
+
+        if (this.session && this.messageIds.length) {
+          this.checkWalletReadiness(this.session.pairingTopic)
+        }
       })
   }
 
