@@ -42,7 +42,7 @@ import {
   PermissionScope,
   SignPayloadRequest,
   SignPayloadResponse,
-  SignPayloadResponseInput,
+  SignPayloadResponseInput
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
@@ -470,6 +470,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     signClient.on('session_expire', (event) => {
       this.disconnect(signClient, { type: 'session', topic: event.topic })
+    })
+    signClient.core.pairing.events.on('pairing_delete', (event) => {
+      this.disconnect(signClient, { type: 'pairing', topic: event.topic })
+    })
+    signClient.core.pairing.events.on('pairing_expire', (event) => {
+      this.disconnect(signClient, { type: 'pairing', topic: event.topic })
     })
   }
 
