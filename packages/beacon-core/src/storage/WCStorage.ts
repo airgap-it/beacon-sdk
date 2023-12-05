@@ -6,36 +6,40 @@ export class WCStorage {
   private readonly localStorage = new LocalStorage()
   private readonly indexedDB = new IndexedDBStorage()
 
-  constructor() {}
+  constructor() {
+    IndexedDBStorage.doesDatabaseExist().then((exists) => {
+      if (exists) {
+        this.indexedDB.openDatabase().catch((error) => console.error(error.message))
+      }
+    })
+  }
 
   async hasPairings() {
-    if (await IndexedDBStorage.doesDatabaseExists()) {
-      return ((await this.indexedDB.getRecordByKey(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
+    if (await IndexedDBStorage.doesDatabaseExist()) {
+      return ((await this.indexedDB.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
     }
 
     if (await LocalStorage.isSupported()) {
-      return ((await new LocalStorage().get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
+      return ((await this.localStorage.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
     }
 
     return false
   }
 
   async hasSessions() {
-    if (await IndexedDBStorage.doesDatabaseExists()) {
-      return (
-        ((await this.indexedDB.getRecordByKey(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
-      )
+    if (await IndexedDBStorage.doesDatabaseExist()) {
+      return ((await this.indexedDB.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
     }
 
     if (await LocalStorage.isSupported()) {
-      return ((await new LocalStorage().get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
+      return ((await this.localStorage.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
     }
 
     return false
   }
 
   async resetState() {
-    if (await IndexedDBStorage.doesDatabaseExists()) {
+    if (await IndexedDBStorage.doesDatabaseExist()) {
       await this.indexedDB.clearTable()
       return
     }
