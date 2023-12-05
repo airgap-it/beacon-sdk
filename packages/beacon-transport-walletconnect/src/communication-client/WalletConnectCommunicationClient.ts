@@ -901,11 +901,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private setDefaultAccountAndNetwork() {
     const activeAccount = this.getAccounts()
-    if (activeAccount.length === 1) {
+    if (activeAccount.length) {
       this.activeAccount = activeAccount[0]
     }
     const activeNetwork = this.getNetworks()
-    if (activeNetwork.length === 1) {
+    if (activeNetwork.length) {
       this.activeNetwork = activeNetwork[0]
     }
   }
