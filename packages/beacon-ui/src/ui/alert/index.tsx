@@ -419,7 +419,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             handleCloseAlert()
             setTimeout(() => openAlert({
               title: 'Error',
-              body: 'Unexpected transport error. Please try again'
+              body: 'Unexpected transport error. Please try again.'
             }), 500)
             return
           }
@@ -486,7 +486,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           handleCloseAlert()
           setTimeout(() => openAlert({
             title: 'Error',
-            body: 'Unexpected transport error. Please try again'
+            body: 'Unexpected transport error. Please try again.'
           }), 500)
         }
         setIsLoading(false)
