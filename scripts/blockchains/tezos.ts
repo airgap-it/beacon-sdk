@@ -101,6 +101,32 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app',
       [NetworkType.OXFORDNET]: 'https://oxfordnet.kukai.app'
     }
+  },
+
+  {
+    key: 'tzsafe',
+    name: 'TzSafe',
+    shortName: 'TzSafe',
+    color: 'rgb(235, 52, 72)',
+    logo: 'tzsafe.svg',
+    links: {
+      [NetworkType.MAINNET]: 'https://tzsafe.marigold.dev',
+      [NetworkType.GHOSTNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.MONDAYNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.DAILYNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.DELPHINET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.EDONET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.FLORENCENET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.GRANADANET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.HANGZHOUNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.ITHACANET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.JAKARTANET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.KATHMANDUNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.LIMANET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.MUMBAINET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.NAIROBINET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.OXFORDNET]: 'https://ghostnet.tzsafe.marigold.dev'
+    }
   }
 ]
 
