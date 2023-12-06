@@ -47,4 +47,19 @@ export class ChromeStorage implements Storage {
       })
     })
   }
+
+  public async subscribeToStorageChanged(
+    _callback: (arg: {
+      eventType: 'storageCleared' | 'entryModified'
+      key: string | null
+      oldValue: string | null
+      newValue: string | null
+    }) => {}
+  ): Promise<void> {
+    // TODO
+  }
+
+  public getPrefixedKey(key: string): string {
+    return key
+  }
 }

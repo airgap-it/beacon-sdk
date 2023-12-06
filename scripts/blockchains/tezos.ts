@@ -204,7 +204,7 @@ export const tezosIosList: App[] = [
     color: '',
     supportedInteractionStandards: ['wallet_connect'],
     logo: 'ios-trust.png',
-    universalLink: 'https://trustwallet.com',
+    universalLink: 'https://link.trustwallet.com',
     deepLink: 'trust://'
   },
   {
