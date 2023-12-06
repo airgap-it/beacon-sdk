@@ -7,15 +7,17 @@ export class WCStorage {
   private readonly indexedDB = new IndexedDBStorage()
 
   constructor() {
-    IndexedDBStorage.doesDatabaseExist().then((exists) => {
-      if (exists) {
-        this.indexedDB.openDatabase().catch((error) => console.error(error.message))
-      }
-    })
+    IndexedDBStorage.doesDatabaseAndTableExist()
+      .then(async (exists) => {
+        if (exists) {
+          await this.indexedDB.openDatabase()
+        }
+      })
+      .catch((error) => console.error(error.message))
   }
 
   async hasPairings() {
-    if (await IndexedDBStorage.doesDatabaseExist()) {
+    if (await IndexedDBStorage.doesDatabaseAndTableExist()) {
       return ((await this.indexedDB.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
     }
 
@@ -27,7 +29,7 @@ export class WCStorage {
   }
 
   async hasSessions() {
-    if (await IndexedDBStorage.doesDatabaseExist()) {
+    if (await IndexedDBStorage.doesDatabaseAndTableExist()) {
       return ((await this.indexedDB.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
     }
 
@@ -39,7 +41,7 @@ export class WCStorage {
   }
 
   async resetState() {
-    if (await IndexedDBStorage.doesDatabaseExist()) {
+    if (await IndexedDBStorage.doesDatabaseAndTableExist()) {
       await this.indexedDB.clearTable()
       return
     }

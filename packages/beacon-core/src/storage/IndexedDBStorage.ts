@@ -8,14 +8,39 @@ export class IndexedDBStorage extends Storage {
   private readonly storeName: string = 'keyvaluestorage'
   private db: IDBDatabase | null = null
 
-  static async doesDatabaseExist(): Promise<boolean> {
+  static async doesDatabaseAndTableExist(): Promise<boolean> {
+    const targetDatabaseName = 'WALLET_CONNECT_V2_INDEXED_DB'
+    const targetTableName = 'keyvaluestorage'
+
     const databases = await indexedDB.databases()
 
-    const databaseExists = databases.some(
-      (database) => database.name === 'WALLET_CONNECT_V2_INDEXED_DB'
-    )
+    if (!databases.some((database) => database.name === targetDatabaseName)) {
+      return false // The specified database doesn't exist
+    }
 
-    return databaseExists
+    // Open the database to check if the table exists
+    return new Promise<boolean>((resolve, reject) => {
+      const request = indexedDB.open(targetDatabaseName)
+
+      request.onsuccess = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result
+
+        if (db.objectStoreNames.contains(targetTableName)) {
+          // The table exists in the database
+          resolve(true)
+        } else {
+          // The table doesn't exist in the database
+          resolve(false)
+        }
+
+        db.close()
+      }
+
+      request.onerror = (event) => {
+        console.error('Error opening database:', (event.target as IDBRequest).error)
+        reject(false) // Assume the table doesn't exist if there's an error opening the database
+      }
+    })
   }
 
   openDatabase(): Promise<string> {
