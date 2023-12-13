@@ -112,7 +112,7 @@ export const tezosWebList: WebApp[] = [
     links: {
       [NetworkType.MAINNET]: 'https://tzsafe.marigold.dev',
       [NetworkType.GHOSTNET]: 'https://ghostnet.tzsafe.marigold.dev',
-      [NetworkType.MONDAYNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.WEEKLYNET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.DAILYNET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.DELPHINET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.EDONET]: 'https://ghostnet.tzsafe.marigold.dev',
