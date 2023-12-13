@@ -25,7 +25,7 @@ export class PeerManager<
   }
 
   public async getPeers(): Promise<StorageKeyReturnType[T]> {
-    return await this.storageManager.getAll() ?? []
+    return (await this.storageManager.getAll()) ?? []
   }
 
   public async getPeer(publicKey: string): Promise<ArrayElem<StorageKeyReturnType[T]> | undefined> {

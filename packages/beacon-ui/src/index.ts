@@ -18,4 +18,4 @@ export type { ToastAction } from './ui/toast'
 
 export { getColorMode, setColorMode } from './utils/colorMode'
 
-export { isMobile } from './utils/platform'
+export { isMobile, isMobileOS, isBrowser, isDesktop } from './utils/platform'

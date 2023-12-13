@@ -34,4 +34,25 @@ export abstract class Storage {
    * @param key The storage key
    */
   abstract delete<K extends StorageKey>(key: K): Promise<void>
+
+  /**
+   * This event will fire if the storage was modified by someone else, eg. on another tab
+   *
+   * @param callback The callback to be called when a storage value changes
+   */
+  abstract subscribeToStorageChanged(
+    callback: (arg: {
+      eventType: 'storageCleared' | 'entryModified'
+      key: string | null
+      oldValue: string | null
+      newValue: string | null
+    }) => {}
+  ): Promise<void>
+
+  /**
+   * Get the key with the internal prefix
+   *
+   * @param key the storage key
+   */
+  abstract getPrefixedKey<K extends StorageKey>(key: K): string
 }

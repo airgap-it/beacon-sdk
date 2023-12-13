@@ -78,7 +78,6 @@ export enum BeaconEvent {
   BROADCAST_REQUEST_SENT = 'BROADCAST_REQUEST_SENT',
   BROADCAST_REQUEST_SUCCESS = 'BROADCAST_REQUEST_SUCCESS',
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
-
   ACKNOWLEDGE_RECEIVED = 'ACKNOWLEDGE_RECEIVED',
 
   LOCAL_RATE_LIMIT_REACHED = 'LOCAL_RATE_LIMIT_REACHED',
@@ -229,13 +228,6 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     isBold: true
   })
   actions.push({
-    text: 'Did you make a mistake?',
-    actionText: 'Cancel Request',
-    actionCallback: async (): Promise<void> => {
-      await closeToast()
-    }
-  })
-  actions.push({
     text: 'Wallet not receiving request?',
     actionText: 'Reset Connection',
     actionCallback: async (): Promise<void> => {
@@ -305,13 +297,12 @@ const showNoPermissionAlert = async (): Promise<void> => {
 }
 
 /**
- * Show a 
+ * Show a
  */
 const showInvalidActiveAccountState = async (): Promise<void> => {
   await openAlert({
     title: 'Invalid state',
-    body: `A new active account has been received but no handler found 
-    (INVALID STATE: no handler found for BeaconEvent.ACTIVE_ACCOUNT_SET)`
+    body: 'No subscription found for the received active account.'
   })
 }
 
@@ -744,7 +735,9 @@ export class BeaconEventHandler {
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
     [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
-    [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE],
+    [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [
+      defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE
+    ],
     [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
     [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],

@@ -177,6 +177,11 @@
 
       beacon.setLogger(x)
 
+      // WC no matching key/topic errors override
+      window.addEventListener('unhandledrejection', function (e) {
+        x.error('Error occurred: ' + e.reason.message)
+      })
+
       // Initiate DAppClient
       const client = beacon.getDAppClientInstance({
         name: 'Example DApp', // Name of the DApp,
@@ -204,11 +209,10 @@
           ],
           [beacon.Regions.NORTH_AMERICA_EAST]: []
         },
-        preferredNetwork: beacon.NetworkType.GHOSTNET,
-        featuredWallets: ['airgap', 'metamask']
-        // network: {
-        //   type: beacon.NetworkType.GHOSTNET
-        // }
+        featuredWallets: ['kukai', 'metamask', 'airgap'],
+        network: {
+          type: beacon.NetworkType.GHOSTNET
+        }
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['matrix.papers.tech']
@@ -410,6 +414,13 @@
 
       // Add event listener to the button
       document.getElementById('reset').addEventListener('click', () => {
+        if (document.getElementById('reset').attributes.getNamedItem('disabled') === 'true') {
+          console.log('UI IS LOCKED')
+          return
+        }
+        document.getElementById('reset').innerText = 'Cleaning up and refreshing...'
+        document.getElementById('reset').setAttribute('disabled', 'true')
+
         client.destroy().then(() => {
           window.location.reload()
         })

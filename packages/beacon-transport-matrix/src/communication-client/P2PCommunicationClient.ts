@@ -41,6 +41,8 @@ import { encode } from '@stablelib/utf8'
 
 const logger = new Logger('P2PCommunicationClient')
 
+const RESPONSE_WAIT_TIME_MS: number = 1000
+
 const REGIONS_AND_SERVERS: NodeDistributions = {
   [Regions.EUROPE_WEST]: [
     'beacon-node-1.diamond.papers.tech',
@@ -51,13 +53,21 @@ const REGIONS_AND_SERVERS: NodeDistributions = {
     'beacon-node-1.hope-3.papers.tech',
     'beacon-node-1.hope-4.papers.tech',
     'beacon-node-1.hope-5.papers.tech'
-  ]
+  ],
+  [Regions.NORTH_AMERICA_EAST]: ['beacon-node-1.beacon-server-1.papers.tech'],
+  [Regions.NORTH_AMERICA_WEST]: ['beacon-node-1.beacon-server-2.papers.tech'],
+  [Regions.ASIA_EAST]: ['beacon-node-1.beacon-server-3.papers.tech'],
+  [Regions.AUSTRALIA]: ['beacon-node-1.beacon-server-4.papers.tech']
 }
 
 interface BeaconInfoResponse {
   region: string
   known_servers: string[]
   timestamp: number
+}
+
+const sleep = (time: number) => {
+  return new Promise((resolve) => setTimeout(resolve, time))
 }
 
 /**
@@ -143,18 +153,32 @@ export class P2PCommunicationClient extends CommunicationClient {
     return info
   }
 
-  public async findBestRegion(): Promise<Regions> {
+  /**
+   * To get the fastest region, we can't simply do one request, because sometimes,
+   * DNS and SSL handshakes make "faster" connections slower. So we need to do 2 requests
+   * and check which request was the fastest after 1s.
+   */
+  public async findBestRegionAndGetServer(): Promise<
+    { server: string; timestamp: number } | undefined
+  > {
+    // Select random server from each region
+    // Start request to server from each region
+    // After first response, do request again (this is because the first request can be delayed by DNS/SSL/etc.)
+    // After a specified amount of time, we select the fastest response time
+
     if (this.selectedRegion) {
-      return this.selectedRegion
+      return this.relayServer?.promiseResult
     }
 
     const keys: Regions[] = Object.keys(this.ENABLED_RELAY_SERVERS) as any
 
-    const allPromises: Promise<{
-      region: Regions
-      server: string
-      response: BeaconInfoResponse
-    }>[] = []
+    const results: { time: number; server: string; region: Regions; result: BeaconInfoResponse }[] =
+      []
+
+    const allResponsesReceived = new ExposedPromise()
+    let expectedNumberOfResponses = 0
+
+    const timeoutPromise = new ExposedPromise<boolean>()
 
     keys.forEach((key) => {
       const nodes = this.ENABLED_RELAY_SERVERS[key] ?? []
@@ -163,33 +187,62 @@ export class P2PCommunicationClient extends CommunicationClient {
         return
       }
 
-      const index = Math.floor(Math.random() * nodes.length)
-      allPromises.push(
-        this.getBeaconInfo(nodes[index])
-          .then((res) => ({
+      expectedNumberOfResponses += 2
+
+      const doRequest = (isFinalRequest: boolean = true) => {
+        const timeStart = Date.now()
+        Promise.race([this.getBeaconInfo(server), timeoutPromise.promise]).then((res) => {
+          if (typeof res === 'boolean') {
+            return
+          }
+          results.push({
+            time: Date.now() - timeStart,
+            server: server,
             region: key,
-            server: nodes[index],
-            response: res
-          }))
-          .catch(
-            (err) =>
-              new Promise((_resolve, reject) => {
-                // This workaround is done because Promise.race stops at the first failure, but we need the first success.
-                // TODO: If all promises have been rejected, let's not wait 2000 and abort earlier.
-                setTimeout(() => reject(err), 2000)
-              })
-          )
-      )
+            result: res
+          })
+
+          // If we have received all expected responses, we can continue and don't need to wait anymore
+          if (results.length >= expectedNumberOfResponses) {
+            allResponsesReceived.resolve(undefined)
+          }
+
+          if (!isFinalRequest) {
+            doRequest(true)
+          }
+        })
+      }
+
+      const index = Math.floor(Math.random() * nodes.length)
+      const server = nodes[index]
+      doRequest(false)
     })
 
-    const region = await Promise.race(allPromises)
-    this.selectedRegion = region.region
+    // Sleep for a specified amount of time to let responses come in
+    await Promise.race([allResponsesReceived.promise, sleep(RESPONSE_WAIT_TIME_MS)])
 
-    return region.region
+    let retryCount: number = 0
+    while (results.length <= 0) {
+      // If we have no results yet, we will wait until we get one
+      if (retryCount >= 100) {
+        // If we do not have any server response after 5s, throw error
+        throw new Error('No server responded.')
+      }
+      await sleep(50)
+      retryCount++
+    }
 
-    // Select random server from each region.
-    // Start request to random server from each region
-    // Fastest response wins, region is selected
+    // We have a result after the maximum amount of time, resolve the promise to abort all pending requests
+    timeoutPromise.resolve(true)
+
+    // Select fastest response time
+    const lowestTimeEntry = results.reduce((prev, curr) => {
+      return prev.time < curr.time ? prev : curr
+    })
+
+    this.selectedRegion = lowestTimeEntry.region
+
+    return { server: lowestTimeEntry.server, timestamp: lowestTimeEntry.result.timestamp }
   }
 
   public async getRelayServer(): Promise<{ server: string; timestamp: number }> {
@@ -223,39 +276,23 @@ export class P2PCommunicationClient extends CommunicationClient {
       return { server: node, timestamp: info.timestamp }
     }
 
-    const region = await this.findBestRegion()
+    const server = await this.findBestRegionAndGetServer()
 
-    const regionNodes = this.ENABLED_RELAY_SERVERS[region]
-    if (!regionNodes) {
-      throw new Error(`No servers found for region ${region}`)
+    if (!server) {
+      throw new Error(`No servers found`)
     }
 
-    const nodes = [...regionNodes]
+    this.storage
+      .set(StorageKey.MATRIX_SELECTED_NODE, server.server)
+      .catch((error) => logger.log(error))
 
-    while (nodes.length > 0) {
-      const index = Math.floor(Math.random() * nodes.length)
-      const server = nodes[index]
+    this.relayServer.resolve({
+      server: server.server,
+      timestamp: server.timestamp,
+      localTimestamp: new Date().getTime()
+    })
 
-      try {
-        const response = await this.getBeaconInfo(server)
-        this.storage
-          .set(StorageKey.MATRIX_SELECTED_NODE, server)
-          .catch((error) => logger.log(error))
-
-        this.relayServer.resolve({
-          server,
-          timestamp: response.timestamp,
-          localTimestamp: new Date().getTime()
-        })
-        return { server, timestamp: response.timestamp }
-      } catch (relayError) {
-        logger.log(`Ignoring server "${server}", trying another one...`)
-        nodes.splice(index, 1)
-      }
-    }
-
-    this.relayServer.reject(`No matrix server reachable!`)
-    throw new Error(`No matrix server reachable!`)
+    return { server: server.server, timestamp: server.timestamp }
   }
 
   public async getBeaconInfo(server: string): Promise<BeaconInfoResponse> {
@@ -634,9 +671,12 @@ export class P2PCommunicationClient extends CommunicationClient {
         logger.log(`Waiting for join... Try: ${retry}`)
 
         return new Promise((resolve) => {
-          setTimeout(async () => {
-            resolve(this.waitForJoin(roomId, retry + 1))
-          }, 100 * (retry > 50 ? 10 : 1)) // After the initial 5 seconds, retry only once per second
+          setTimeout(
+            () => {
+              resolve(this.waitForJoin(roomId, retry + 1))
+            },
+            100 * (retry > 50 ? 10 : 1)
+          ) // After the initial 5 seconds, retry only once per second
         })
       } else {
         throw new Error(`No one joined after ${retry} tries.`)
@@ -710,17 +750,15 @@ export class P2PCommunicationClient extends CommunicationClient {
       ? new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_DAPP)
       : new PeerManager(this.storage, StorageKey.TRANSPORT_P2P_PEERS_WALLET)
     const peers = await manager.getPeers()
-    const promiseArray = peers.map(
-      async (peer) => {
-        const hash = `@${await getHexHash(Buffer.from(peer.publicKey, 'hex'))}`
-        if (hash === senderHash) {
-          if (peer.relayServer !== relayServer) {
-            peer.relayServer = relayServer
-            await manager.addPeer(peer as ExtendedP2PPairingResponse)
-          }
+    const promiseArray = peers.map(async (peer) => {
+      const hash = `@${await getHexHash(Buffer.from(peer.publicKey, 'hex'))}`
+      if (hash === senderHash) {
+        if (peer.relayServer !== relayServer) {
+          peer.relayServer = relayServer
+          await manager.addPeer(peer as ExtendedP2PPairingResponse)
         }
       }
-    )
+    })
     await Promise.all(promiseArray)
   }
 

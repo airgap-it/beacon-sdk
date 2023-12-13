@@ -34,9 +34,11 @@ const PairOther: Component<PairOtherProps> = (props: PairOtherProps) => {
         setQrData(codeQR)
       })
     } else if (state === 'walletconnect' && !!props.wcPayload) {
-      props.wcPayload.then(async (payload) => {
-        setQrData(payload.uri)
-      })
+      props.wcPayload
+        .then((payload) => {
+          setQrData(payload.uri)
+        })
+        .catch((error) => console.error(error.message))
     }
     setUiState(state)
   }
