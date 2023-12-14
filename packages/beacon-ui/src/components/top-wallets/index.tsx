@@ -18,9 +18,9 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
       <div class="top-wallets-info">
         <h3>Connect Wallet</h3>
         <span>
-          If you don't have a wallet, you can select a provider and create one now.{' '}
+          Do you wish to report a bug?{' '}
           <span class="top-wallets-learn-more" onClick={() => props.onClickLearnMore()}>
-            Learn more
+            Click here
           </span>
         </span>
       </div>
@@ -59,16 +59,6 @@ const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
             </div>
           </div>
         )}
-      </div>
-      <div class="top-wallets-info">
-        <span>
-          Do you wish to report a bug? Open an issue on our{' '}
-          <span class="top-wallets-learn-more">
-            <a href="https://github.com/airgap-it/beacon-sdk/issues/new?labels=bug&template=bug_report.md">
-              GitHub
-            </a>
-          </span>
-        </span>
       </div>
     </div>
   )
