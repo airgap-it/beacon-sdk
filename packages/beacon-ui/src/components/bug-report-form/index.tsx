@@ -1,14 +1,57 @@
-import { createSignal } from 'solid-js'
+import { createEffect, createSignal } from 'solid-js'
 
 const BugReportForm = () => {
   const [title, setTitle] = createSignal('')
   const [description, setDescription] = createSignal('')
   const [steps, setSteps] = createSignal('')
+  const [isFormValid, setFormValid] = createSignal(false)
+
+  const isTitleValid = () => {
+    return title().trim().length >= 10
+  }
+
+  const isDescriptionValid = () => {
+    return description().trim().length >= 30
+  }
+
+  const areStepsValid = () => {
+    return steps().trim().length >= 30
+  }
+
+  createEffect(() => {
+    setFormValid(isTitleValid() && isDescriptionValid() && areStepsValid())
+  })
 
   const handleSubmit = (event: Event) => {
     event.preventDefault()
-    // Handle form submission here
-    console.log(title(), description(), steps())
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json' // Specify the content type as JSON
+      },
+      body: JSON.stringify({
+        title: title(),
+        description: description(),
+        steps: steps()
+      }) // Convert the data object to JSON string
+    }
+
+    fetch('http://localhost:3000', options)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok')
+        }
+        return response.json() // Parse the response as JSON
+      })
+      .then((data) => {
+        // Handle the response data here
+        console.log(data)
+      })
+      .catch((error) => {
+        // Handle any errors that occurred during the fetch
+        console.error('Fetch error:', error)
+      })
   }
 
   return (
@@ -95,15 +138,27 @@ const BugReportForm = () => {
       </div>
       <button
         type="submit"
-        style={{
-          padding: '10px 20px',
-          'background-color': '#007bff',
-          color: 'white',
-          border: 'none',
-          'border-radius': '5px',
-          cursor: 'pointer',
-          'margin-top': '20px'
-        }}
+        disabled={!isFormValid()}
+        style={
+          isFormValid()
+            ? {
+                padding: '10px 20px',
+                'background-color': '#007bff',
+                color: 'white',
+                border: 'none',
+                'border-radius': '5px',
+                cursor: 'pointer',
+                'margin-top': '20px'
+              }
+            : {
+                padding: '10px 20px',
+                'background-color': '#65afff',
+                color: 'white',
+                border: 'none',
+                'border-radius': '5px',
+                'margin-top': '20px'
+              }
+        }
       >
         Submit
       </button>
