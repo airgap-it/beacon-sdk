@@ -143,17 +143,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private checkWalletReadiness(topic: string) {
-    this.signClient?.core.pairing
-      .ping({ topic })
-      .then(() => {
-        if (this.messageIds.length) {
-          this.acknowledgeRequest(this.messageIds[0])
-        } else {
-          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-          fun && fun('pending')
-        }
-      })
-      .catch((error) => logger.error(error.message))
+    const target = this.signClient?.pairing.getAll().some((el) => el.topic === topic)
+      ? this.signClient?.core.pairing
+      : this.signClient
+    target &&
+      target
+        .ping({ topic })
+        .then(() => {
+          if (this.messageIds.length) {
+            this.acknowledgeRequest(this.messageIds[0])
+          } else {
+            const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+            fun && fun('pending')
+          }
+        })
+        .catch((error) => logger.error(error.message))
   }
 
   async sendMessage(_message: string, _peer?: any): Promise<void> {
@@ -165,6 +169,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     this.messageIds.unshift(message.id)
+
+    console.log('sendMessage: ', message)
 
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
@@ -299,7 +305,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
 
-    this.checkWalletReadiness(session.pairingTopic)
+    this.checkWalletReadiness(session.pairingTopic ?? session.topic)
 
     // TODO: Type
     signClient
@@ -324,7 +330,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         this.notifyListeners(session.pairingTopic, signPayloadResponse)
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic)
+          this.checkWalletReadiness(this.session.pairingTopic ?? session.topic)
         }
       })
       .catch(async () => {
@@ -336,7 +342,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         this.notifyListeners(session.pairingTopic, errorResponse)
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic)
+          this.checkWalletReadiness(this.session.pairingTopic ?? session.topic)
         }
       })
   }
@@ -355,8 +361,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const network = this.getActiveNetwork()
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
-
-    this.checkWalletReadiness(session.pairingTopic)
+    this.checkWalletReadiness(session.pairingTopic ?? session.topic)
 
     signClient
       .request<{
@@ -387,7 +392,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.notifyListeners(session.pairingTopic, sendOperationResponse)
 
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic)
+          this.checkWalletReadiness(this.session.pairingTopic ?? session.topic)
         }
       })
       .catch(async () => {
@@ -400,7 +405,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.notifyListeners(session.pairingTopic, errorResponse)
 
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic)
+          this.checkWalletReadiness(this.session.pairingTopic ?? session.topic)
         }
       })
   }
