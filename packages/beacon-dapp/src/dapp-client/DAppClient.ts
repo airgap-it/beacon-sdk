@@ -1659,7 +1659,7 @@ export class DAppClient extends Client {
 
     if (!walletInfo) {
       walletInfo = {
-        name: selectedPeer?.name ?? (await this.getWalletInfoFromStorage()) ?? '',
+        name: selectedPeer?.name ?? (await this.getWalletInfoFromStorage())?.key ?? '',
         icon: selectedPeer?.icon
       }
     }
@@ -2140,7 +2140,7 @@ export class DAppClient extends Client {
     logger.log('######## MESSAGE #######')
     logger.log('onNewAccount', message)
 
-    const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
+    const walletKey = (await this.storage.get(StorageKey.LAST_SELECTED_WALLET))?.key
 
     const accountInfo: AccountInfo = {
       accountIdentifier: await getAccountIdentifier(address, message.network),

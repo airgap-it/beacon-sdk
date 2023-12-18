@@ -399,42 +399,56 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         return
       }
 
-      if (config.pairingPayload) {
-        setIsLoading(true)
-        // Noopener feature parameter cannot be used, because Chrome will open
-        // about:blank#blocked instead and it will no longer work.
-        const newTab = window.open('', '_blank')
-
-        if (newTab) {
-          newTab.opener = null
-        }
-
-        let link = ''
-
-        if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-          const uri = (await wcPayload)?.uri ?? ''
-          if (!!uri.length) {
-            link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
-          } else {
-            handleCloseAlert()
-            setTimeout(() => openAlert({
-              title: 'Error',
-              body: 'Unexpected transport error. Please try again.'
-            }), 500)
-            return
-          }
-        } else {
-          const serializer = new Serializer()
-          const code = await serializer.serialize(await p2pPayload)
-          link = getTzip10Link(wallet.links[OSLink.WEB], code)
-        }
-
-        if (newTab) {
-          newTab.location.href = link
-        } else {
-          window.open(link, '_blank', 'noopener')
-        }
+      if (!config.pairingPayload) {
+        return
       }
+
+      setIsLoading(true)
+      // Noopener feature parameter cannot be used, because Chrome will open
+      // about:blank#blocked instead and it will no longer work.
+      const newTab = window.open('', '_blank')
+
+      if (newTab) {
+        newTab.opener = null
+      }
+
+      let link = ''
+
+      if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
+        const uri = (await wcPayload)?.uri ?? ''
+        if (!!uri.length) {
+          link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
+        } else {
+          handleCloseAlert()
+          setTimeout(
+            () =>
+              openAlert({
+                title: 'Error',
+                body: 'Unexpected transport error. Please try again.'
+              }),
+            500
+          )
+          return
+        }
+      } else {
+        const serializer = new Serializer()
+        const code = await serializer.serialize(await p2pPayload)
+        link = getTzip10Link(wallet.links[OSLink.WEB], code)
+      }
+
+      if (newTab) {
+        newTab.location.href = link
+      } else {
+        window.open(link, '_blank', 'noopener')
+      }
+
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: wallet.key,
+          type: 'web'
+        })
+      )
     }
 
     const handleClickWallet = async (id: string) => {
@@ -444,7 +458,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setCurrentWallet(wallet)
       if (wallet?.key) {
         analytics()?.track('click', 'ui', 'opened wallet', { key: wallet.key })
-        localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, wallet.key)
       }
 
       if (
@@ -478,16 +491,28 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
               )
             }
+
+            localStorage.setItem(
+              StorageKey.LAST_SELECTED_WALLET,
+              JSON.stringify({
+                key: wallet.key,
+                type: 'ios'
+              })
+            )
           } else {
             setCodeQR(uri)
             setCurrentInfo('install')
           }
         } else {
           handleCloseAlert()
-          setTimeout(() => openAlert({
-            title: 'Error',
-            body: 'Unexpected transport error. Please try again.'
-          }), 500)
+          setTimeout(
+            () =>
+              openAlert({
+                title: 'Error',
+                body: 'Unexpected transport error. Please try again.'
+              }),
+            500
+          )
         }
         setIsLoading(false)
       } else if (wallet?.types.includes('ios') && _isMobileOS) {
@@ -577,6 +602,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         const link = getTzip10Link(currentWallet()?.deepLink || '', code)
         window.open(link, '_blank', 'noopener')
       }
+
+      StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: currentWallet()?.key,
+          type: 'web'
+        })
     }
 
     const handleClickDownloadDesktopApp = async () => {
@@ -591,6 +622,28 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         .map((extension) => extension.id)
         .includes(currentWallet()?.firefoxId || '') ||
       availableExtensions.map((extension) => extension.id).includes(currentWallet()?.id || '')
+
+    const QRCode = ({ isMobile }: any) => {
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: currentWallet()?.key,
+          type: 'ios'
+        })
+      )
+      return (
+        <QR
+          isWalletConnect={
+            currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || false
+          }
+          isMobile={isMobile}
+          walletName={currentWallet()?.name || 'AirGap'}
+          code={codeQR()}
+          onClickLearnMore={handleClickLearnMore}
+          onClickQrCode={handleClickQrCode}
+        />
+      )
+    }
 
     const colorMode = getColorMode()
 
@@ -702,50 +755,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         codeQR().length > 0 &&
                         currentWallet()?.types.includes('ios') &&
                         (currentWallet()?.types.length as number) > 1 && (
-                          <QR
-                            isWalletConnect={
-                              currentWallet()?.supportedInteractionStandards?.includes(
-                                'wallet_connect'
-                              ) || false
-                            }
-                            isMobile={false}
-                            walletName={currentWallet()?.name || 'AirGap'}
-                            code={codeQR()}
-                            onClickLearnMore={handleClickLearnMore}
-                            onClickQrCode={handleClickQrCode}
-                          />
+                          <QRCode isMobile={false} />
                         )}
                       {!isMobile() &&
                         codeQR().length > 0 &&
                         currentWallet()?.types.includes('ios') &&
                         (currentWallet()?.types.length as number) <= 1 && (
-                          <QR
-                            isWalletConnect={
-                              currentWallet()?.supportedInteractionStandards?.includes(
-                                'wallet_connect'
-                              ) || false
-                            }
-                            isMobile={true}
-                            walletName={currentWallet()?.name || 'AirGap'}
-                            code={codeQR()}
-                            onClickLearnMore={handleClickLearnMore}
-                            onClickQrCode={handleClickQrCode}
-                          />
+                          <QRCode isMobile={true} />
                         )}
-                      {isMobile() && codeQR().length > 0 && (
-                        <QR
-                          isWalletConnect={
-                            currentWallet()?.supportedInteractionStandards?.includes(
-                              'wallet_connect'
-                            ) || false
-                          }
-                          isMobile={true}
-                          walletName={currentWallet()?.name || 'AirGap'}
-                          code={codeQR()}
-                          onClickLearnMore={handleClickLearnMore}
-                          onClickQrCode={handleClickQrCode}
-                        />
-                      )}
+                      {isMobile() && codeQR().length > 0 && <QRCode isMobile={true} />}
                     </div>
                   )}
                   {currentInfo() === 'qr' && (
