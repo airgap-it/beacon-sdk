@@ -771,7 +771,7 @@ export class DAppClient extends Client {
       setTimeout(() => {
         this.events.emit(BeaconEvent.HIDE_UI, ['toast'])
         this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-      }, 2000)
+      }, 1500)
     }
   }
 
