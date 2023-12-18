@@ -187,6 +187,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private async fetchAccounts(topic: string, chainId: string) {
     const signClient = await this.getSignClient()
+    if (!signClient) {
+      return
+    }
     return signClient.request<
       [
         {
@@ -295,6 +298,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   async signPayload(signPayloadRequest: SignPayloadRequest) {
     const signClient = await this.getSignClient()
+    
+    if (!signClient) {
+      return
+    }
+
     const session = this.getSession()
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.SIGN)) {
       throw new MissingRequiredScope(PermissionScopeMethods.SIGN)
@@ -351,6 +359,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   async sendOperations(operationRequest: OperationRequest) {
     const signClient = await this.getSignClient()
+
+    if (!signClient) {
+      return
+    }
+
     const session = this.getSession()
 
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.OPERATION_REQUEST)) {
@@ -412,6 +425,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     forceNewConnection: boolean = false
   ): Promise<{ uri: string; topic: string } | undefined> {
     const signClient = await this.getSignClient()
+
+    if (!signClient) {
+      const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+      fun && fun()
+      return
+    }
 
     if (forceNewConnection) {
       await this.closePairings()
@@ -647,35 +666,47 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private async closePairings() {
     await this.closeSessions()
     const signClient = await this.getSignClient()
-    const pairings = signClient.pairing.getAll() ?? []
-    pairings.length &&
-      (await Promise.allSettled(
-        pairings.map((pairing) => signClient.core.pairing.disconnect({ topic: pairing.topic }))
-      ))
+
+    if (signClient) {
+      const pairings = signClient.pairing.getAll() ?? []
+      pairings.length &&
+        (await Promise.allSettled(
+          pairings.map((pairing) => signClient.core.pairing.disconnect({ topic: pairing.topic }))
+        ))
+    }
+
     await this.storage.resetState()
   }
 
   private async closeSessions() {
     const signClient = await this.getSignClient()
-    const sessions = signClient.session.getAll() ?? []
-    sessions.length &&
-      (await Promise.allSettled(
-        sessions.map((session) =>
-          signClient.disconnect({
-            topic: (session as any).topic,
-            reason: {
-              code: 0, // TODO: Use constants
-              message: 'Force new connection'
-            }
-          })
-        )
-      ))
+
+    if (signClient) {
+      const sessions = signClient.session.getAll() ?? []
+      sessions.length &&
+        (await Promise.allSettled(
+          sessions.map((session) =>
+            signClient.disconnect({
+              topic: (session as any).topic,
+              reason: {
+                code: 0, // TODO: Use constants
+                message: 'Force new connection'
+              }
+            })
+          )
+        ))
+    }
 
     this.clearState()
   }
 
   private async openSession(pairingTopic?: string): Promise<SessionTypes.Struct> {
     const signClient = await this.getSignClient()
+
+    if (!signClient) {
+      throw new Error('Transport error.')
+    }
+
     const permissionScopeParams: PermissionScopeParam = {
       networks: [this.wcOptions.network],
       events: [],
@@ -991,10 +1022,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return this.session
   }
 
-  private async getSignClient(): Promise<Client> {
+  private async getSignClient(): Promise<Client | undefined> {
     if (this.signClient === undefined) {
-      this.signClient = await SignClient.init(this.wcOptions.opts)
-      this.subscribeToSessionEvents(this.signClient)
+      try {
+        this.signClient = await SignClient.init(this.wcOptions.opts)
+        this.subscribeToSessionEvents(this.signClient)
+      } catch (error: any) {
+        logger.error(error.message)
+        return undefined
+      }
     }
 
     return this.signClient
