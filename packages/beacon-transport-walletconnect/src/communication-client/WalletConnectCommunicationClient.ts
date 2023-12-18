@@ -170,8 +170,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.messageIds.unshift(message.id)
 
-    console.log('sendMessage: ', message)
-
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
         this.requestPermissions(message)
@@ -427,13 +425,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     const { uri, topic } = await signClient.core.pairing.create()
-    signClient.core.pairing.ping({ topic }).then(async () => {
-      await signClient.core.pairing.activate({ topic })
+    signClient.core.pairing
+      .ping({ topic })
+      .then(async () => {
+        await signClient.core.pairing.activate({ topic })
 
-      // pairings don't have peer details
-      // therefore we must immediately open a session
-      // to get data required in the pairing response
-      try {
+        // pairings don't have peer details
+        // therefore we must immediately open a session
+        // to get data required in the pairing response
         const session = await this.openSession(topic)
 
         const pairingResponse: ExtendedWalletConnectPairingResponse =
@@ -449,13 +448,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.channelOpeningListeners.forEach((listener) => {
           listener(pairingResponse)
         })
-      } catch (error: any) {
+      })
+      .catch((error: any) => {
         logger.error(error.message)
         const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
         fun && fun()
         return
-      }
-    })
+      })
 
     return { uri, topic }
   }

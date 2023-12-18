@@ -760,7 +760,12 @@ export class DAppClient extends Client {
     await this.events.emit(BeaconEvent.HIDE_UI, elements)
 
     if (elements?.includes('alert')) {
-      // if the sync was aborted from the wallet side
+      // if the sync has been aborted
+      await Promise.all([
+        this.postMessageTransport?.disconnect(),
+        // p2pTransport.disconnect(), do not abort connection manually
+        this.walletConnectTransport?.disconnect()
+      ])
       this._initPromise = undefined
     }
   }
