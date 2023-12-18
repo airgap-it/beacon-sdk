@@ -767,6 +767,11 @@ export class DAppClient extends Client {
         this.walletConnectTransport?.disconnect()
       ])
       this._initPromise = undefined
+
+      setTimeout(() => {
+        this.events.emit(BeaconEvent.HIDE_UI, ['toast'])
+        this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+      }, 1000)
     }
   }
 
