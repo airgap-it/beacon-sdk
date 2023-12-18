@@ -446,7 +446,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         StorageKey.LAST_SELECTED_WALLET,
         JSON.stringify({
           key: wallet.key,
-          type: 'web'
+          type: 'web',
+          icon: currentWallet()?.image
         })
       )
     }
@@ -491,14 +492,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
               )
             }
-
-            localStorage.setItem(
-              StorageKey.LAST_SELECTED_WALLET,
-              JSON.stringify({
-                key: wallet.key,
-                type: 'ios'
-              })
-            )
           } else {
             setCodeQR(uri)
             setCurrentInfo('install')
@@ -606,7 +599,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       StorageKey.LAST_SELECTED_WALLET,
         JSON.stringify({
           key: currentWallet()?.key,
-          type: 'web'
+          type: 'desktop',
+          icon: currentWallet()?.image
         })
     }
 
@@ -628,7 +622,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         StorageKey.LAST_SELECTED_WALLET,
         JSON.stringify({
           key: currentWallet()?.key,
-          type: 'ios'
+          type: 'mobile',
+          icon: currentWallet()?.image
         })
       )
       return (

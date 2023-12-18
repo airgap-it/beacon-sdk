@@ -1657,10 +1657,13 @@ export class DAppClient extends Client {
       walletInfo = await this.appMetadataManager.getAppMetadata(selectedAccount.senderId)
     }
 
+    const storageWallet = await this.getWalletInfoFromStorage()
+
     if (!walletInfo) {
       walletInfo = {
-        name: selectedPeer?.name ?? (await this.getWalletInfoFromStorage())?.key ?? '',
-        icon: selectedPeer?.icon
+        name: selectedPeer?.name ?? storageWallet?.key ?? '',
+        icon: selectedPeer?.icon ?? storageWallet?.icon,
+        type: storageWallet?.type
       }
     }
 
@@ -1691,20 +1694,25 @@ export class DAppClient extends Client {
     const desktop = (apps as DesktopApp[]).find((app) => app.downloadLink)
     const extension = (apps as ExtensionApp[]).find((app) => app.id)
 
-    if (isBrowser(window) && browser) {
-      selectedApp = browser
-      type = 'web'
-    } else if (isDesktop(window) && desktop) {
-      selectedApp = desktop
-      type = 'desktop'
-    } else if (isBrowser(window) && extension) {
-      selectedApp = extension
-      type = 'extension'
-    } else if (mobile) {
-      selectedApp = mobile
-      type = 'mobile'
+    const appTypeMap = {
+      extension: { app: extension, type: 'extension' },
+      desktop: { app: desktop, type: 'desktop' },
+      mobile: { app: mobile, type: 'mobile' },
+      web: { app: browser, type: 'web' }
     }
 
+    const defaultType = () => {
+      if (isBrowser(window) && browser) return { app: browser, type: 'web' }
+      if (isDesktop(window) && desktop) return { app: desktop, type: 'desktop' }
+      if (isBrowser(window) && extension) return { app: extension, type: 'extension' }
+      if (mobile) return { app: mobile, type: 'mobile' }
+      return { app: null, type: null }
+    }
+
+    const choice = storageWallet ? appTypeMap[storageWallet.type] : defaultType()
+
+    selectedApp = choice.app as AppBase
+    console.log('selectedApp', selectedApp)
     if (selectedApp) {
       let deeplink: string | undefined
       if (selectedApp.hasOwnProperty('links')) {
