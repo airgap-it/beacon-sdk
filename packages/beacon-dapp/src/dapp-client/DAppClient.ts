@@ -1677,8 +1677,6 @@ export class DAppClient extends Client {
 
     const getOrgName = (name: string) => name.split(/[_\s]+/)[0]
 
-    let selectedApp: AppBase | undefined
-    let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
     const apps: AppBase[] = [
       ...getiOSList(),
       ...getWebList(),
@@ -1701,31 +1699,32 @@ export class DAppClient extends Client {
       web: { app: browser, type: 'web' }
     }
 
-    const defaultType = () => {
+    const defaultType = (): {
+      app: AppBase | undefined
+      type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
+    } => {
       if (isBrowser(window) && browser) return { app: browser, type: 'web' }
       if (isDesktop(window) && desktop) return { app: desktop, type: 'desktop' }
       if (isBrowser(window) && extension) return { app: extension, type: 'extension' }
       if (mobile) return { app: mobile, type: 'mobile' }
-      return { app: null, type: null }
+      return { app: undefined, type: undefined }
     }
 
-    const choice = storageWallet ? appTypeMap[storageWallet.type] : defaultType()
+    const { app, type } = storageWallet ? appTypeMap[storageWallet.type] : defaultType()
 
-    selectedApp = choice.app as AppBase
-    console.log('selectedApp', selectedApp)
-    if (selectedApp) {
+    if (app) {
       let deeplink: string | undefined
-      if (selectedApp.hasOwnProperty('links')) {
-        deeplink = (selectedApp as WebApp).links[selectedAccount?.network.type ?? this.network.type]
-      } else if (selectedApp.hasOwnProperty('deepLink')) {
-        deeplink = (selectedApp as App).deepLink
+      if (app.hasOwnProperty('links')) {
+        deeplink = (app as WebApp).links[selectedAccount?.network.type ?? this.network.type]
+      } else if (app.hasOwnProperty('deepLink')) {
+        deeplink = (app as App).deepLink
       }
 
       return {
-        name: selectedApp?.name ?? walletInfo.name,
-        icon: selectedApp?.logo ?? walletInfo.icon,
+        name: app?.name ?? walletInfo.name,
+        icon: app?.logo ?? walletInfo.icon,
         deeplink,
-        type
+        type: type as any
       }
     }
 

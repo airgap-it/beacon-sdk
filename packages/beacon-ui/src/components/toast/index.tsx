@@ -117,7 +117,7 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
         <Loader />
         {hasWalletObject && props.walletInfo && <>{parseWallet(props.label, props.walletInfo)}</>}
         {!hasWalletObject && <p class="toast-label">props.label</p>}
-        {!isMobileOS(window) && props.openWalletAction && (
+        {props.openWalletAction && (
           <div
             class="toast-action-button"
             onClick={() => {
