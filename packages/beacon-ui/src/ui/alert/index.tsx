@@ -492,6 +492,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
               )
             }
+
+            localStorage.setItem(
+              StorageKey.LAST_SELECTED_WALLET,
+              JSON.stringify({
+                key: wallet.key,
+                type: 'mobile',
+                icon: currentWallet()?.image
+              })
+            )
           } else {
             setCodeQR(uri)
             setCurrentInfo('install')
@@ -534,6 +543,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             )
           }
         }
+
+        localStorage.setItem(
+          StorageKey.LAST_SELECTED_WALLET,
+          JSON.stringify({
+            key: wallet.key,
+            type: 'mobile',
+            icon: currentWallet()?.image
+          })
+        )
+
         setIsLoading(false)
       } else {
         setIsLoading(false)
@@ -576,6 +595,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           windowRef.postMessage(message as any, windowRef.location.origin)
         }
       }
+
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: currentWallet()?.key,
+          type: 'extension',
+          icon: currentWallet()?.image
+        })
+      )
     }
 
     const handleClickInstallExtension = async () => {
@@ -596,12 +624,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         window.open(link, '_blank', 'noopener')
       }
 
-      StorageKey.LAST_SELECTED_WALLET,
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
         JSON.stringify({
           key: currentWallet()?.key,
           type: 'desktop',
           icon: currentWallet()?.image
         })
+      )
     }
 
     const handleClickDownloadDesktopApp = async () => {
