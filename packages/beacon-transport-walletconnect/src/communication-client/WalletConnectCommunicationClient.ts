@@ -45,6 +45,7 @@ import {
   SignPayloadResponseInput
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
+import { isMobileOS } from '@airgap/beacon-ui'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 const logger = new Logger('WalletConnectCommunicationClient')
@@ -637,7 +638,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     try {
-      await signClient.core.pairing.disconnect({ topic: this.session.pairingTopic })
+      // todo close the matching session and not just the first one
+      if (isMobileOS(window)) {
+        await signClient.core.pairing.disconnect({
+          topic: signClient.core.pairing.getPairings()[0]?.topic
+        })
+      } else {
+        await signClient.core.pairing.disconnect({ topic: this.session.pairingTopic })
+      }
     } catch (error: any) {
       // If the pairing was already closed, `disconnect` will throw an error.
       logger.warn(error.message)
