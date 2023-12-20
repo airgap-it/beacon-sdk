@@ -470,6 +470,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       })
       .catch((error: any) => {
         logger.error(error.message)
+        if (error instanceof InvalidSession) {
+          return
+        }
+        const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+        fun && fun()
       })
 
     return { uri, topic }
