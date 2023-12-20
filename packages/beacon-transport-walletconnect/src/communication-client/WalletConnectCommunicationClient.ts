@@ -108,6 +108,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return WalletConnectCommunicationClient.instance
   }
 
+  private getTopicFromSession(session: SessionTypes.Struct): string {
+    return session.pairingTopic?.length ? session.pairingTopic : session.topic
+  }
+
   public async listenForEncryptedMessage(
     senderPublicKey: string,
     messageCallback: (message: string) => void
@@ -258,7 +262,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const permissionResponse: PermissionResponseInput = {
       type: BeaconMessageType.PermissionResponse,
       appMetadata: {
-        senderId: session.pairingTopic,
+        senderId: this.getTopicFromSession(session),
         name: session.peer.metadata.name,
         icon: session.peer.metadata.icons[0]
       },
@@ -269,7 +273,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       walletType: 'implicit'
     }
 
-    this.notifyListeners(session.pairingTopic, permissionResponse)
+    this.notifyListeners(this.getTopicFromSession(session), permissionResponse)
   }
 
   async requestPermissions(message: PermissionRequest) {
@@ -311,7 +315,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
 
-    this.checkWalletReadiness(session.pairingTopic ?? session.topic)
+    this.checkWalletReadiness(this.getTopicFromSession(session))
 
     // TODO: Type
     signClient
@@ -334,9 +338,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: this.messageIds.pop()
         } as SignPayloadResponse
 
-        this.notifyListeners(session.pairingTopic, signPayloadResponse)
+        this.notifyListeners(this.getTopicFromSession(session), signPayloadResponse)
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic ?? session.topic)
+          this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
       .catch(async () => {
@@ -346,9 +350,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        this.notifyListeners(session.pairingTopic, errorResponse)
+        this.notifyListeners(this.getTopicFromSession(session), errorResponse)
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic ?? session.topic)
+          this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
   }
@@ -372,7 +376,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const network = this.getActiveNetwork()
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
-    this.checkWalletReadiness(session.pairingTopic ?? session.topic)
+    this.checkWalletReadiness(this.getTopicFromSession(session))
 
     signClient
       .request<{
@@ -400,10 +404,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: this.messageIds.pop() ?? ''
         }
 
-        this.notifyListeners(session.pairingTopic, sendOperationResponse)
+        this.notifyListeners(this.getTopicFromSession(session), sendOperationResponse)
 
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic ?? session.topic)
+          this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
       .catch(async () => {
@@ -413,10 +417,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        this.notifyListeners(session.pairingTopic, errorResponse)
+        this.notifyListeners(this.getTopicFromSession(session), errorResponse)
 
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic ?? session.topic)
+          this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
   }
@@ -525,7 +529,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       id
     }
 
-    this.notifyListeners(session.pairingTopic, acknowledgeResponse)
+    this.notifyListeners(this.getTopicFromSession(session), acknowledgeResponse)
   }
 
   private async updateActiveAccount(namespaces: SessionTypes.Namespaces) {
@@ -552,7 +556,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           throw new Error('Public key for the new account not provided')
         }
 
-        this.notifyListeners(session.pairingTopic, {
+        this.notifyListeners(this.getTopicFromSession(session), {
           id: await generateGUID(),
           type: BeaconMessageType.ChangeAccountRequest,
           publicKey,
@@ -586,7 +590,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    this.notifyListeners(session.pairingTopic, {
+    this.notifyListeners(this.getTopicFromSession(session), {
       id: await generateGUID(),
       type: BeaconMessageType.Disconnect
     })
@@ -595,14 +599,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private async onPairingClosed(
     signClient: Client,
-    pairingTopic: string
+    topic: string
   ): Promise<SessionTypes.Struct | undefined> {
     const session =
-      this.session?.pairingTopic === pairingTopic
+      this.session?.pairingTopic === topic || this.session?.topic === topic
         ? this.session
         : signClient.session
             .getAll()
-            .find((session: SessionTypes.Struct) => session.pairingTopic === pairingTopic)
+            .find(
+              (session: SessionTypes.Struct) =>
+                session.pairingTopic === topic || session.topic === topic
+            )
 
     if (!session) {
       return undefined
@@ -1004,11 +1011,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // }
   }
 
-  private async notifyListeners(pairingTopic: string, partialResponse: BeaconInputMessage) {
+  private async notifyListeners(topic: string, partialResponse: BeaconInputMessage) {
     const response: BeaconBaseMessage = {
       ...partialResponse,
       version: '2',
-      senderId: pairingTopic
+      senderId: topic
     }
     const serializer = new Serializer()
     const serialized = await serializer.serialize(response)
