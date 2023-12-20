@@ -45,10 +45,14 @@ import {
   SignPayloadResponseInput
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
-import { isMobileOS } from '@airgap/beacon-ui'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 const logger = new Logger('WalletConnectCommunicationClient')
+
+const isMobileOS = (): boolean =>
+  /(Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet|Windows Phone|SymbianOS|Kindle)/i.test(
+    navigator.userAgent
+  )
 
 export interface PermissionScopeParam {
   networks: NetworkType[]
@@ -639,7 +643,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     try {
       // todo close the matching session and not just the first one
-      if (isMobileOS(window)) {
+      if (isMobileOS()) {
         await signClient.core.pairing.disconnect({
           topic: signClient.core.pairing.getPairings()[0]?.topic
         })
