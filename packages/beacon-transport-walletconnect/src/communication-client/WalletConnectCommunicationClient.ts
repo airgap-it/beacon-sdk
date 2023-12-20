@@ -602,14 +602,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     topic: string
   ): Promise<SessionTypes.Struct | undefined> {
     const session =
-      this.session?.pairingTopic === topic || this.session?.topic === topic
+      this.session?.pairingTopic === topic
         ? this.session
         : signClient.session
             .getAll()
-            .find(
-              (session: SessionTypes.Struct) =>
-                session.pairingTopic === topic || session.topic === topic
-            )
+            .find((session: SessionTypes.Struct) => session.pairingTopic === topic)
 
     if (!session) {
       return undefined
@@ -741,9 +738,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.checkWalletReadiness(connectParams.pairingTopic)
 
-    const { approval } = await signClient.connect(connectParams)
-
     try {
+      const { approval } = await signClient.connect(connectParams)
       const session = await approval()
       // if I have successfully opened a session and I already have one opened
       if (session?.controller !== this.session?.controller) {
