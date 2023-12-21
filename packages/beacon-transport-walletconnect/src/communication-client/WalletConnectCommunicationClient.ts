@@ -643,7 +643,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     try {
       // todo close the matching session and not just the first one
-      if (isMobileOS()) {
+      if (!this.session.pairingTopic) {
         await signClient.core.pairing.disconnect({
           topic: signClient.core.pairing.getPairings()[0]?.topic
         })
