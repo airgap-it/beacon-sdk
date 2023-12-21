@@ -474,18 +474,20 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           listener(pairingResponse)
         })
       })
-      .catch((error: any) => {
+      .catch(async (error: any) => {
         logger.error(error.message)
-        
-        if (!signClient.core.pairing.getPairings().find((p) => p.topic === topic)) {
+
+        if (!(await this.storage.hasPairings())) {
           return
         }
+
+        console.log('noup.')
+
         signClient.core.pairing.disconnect({ topic }).catch((error) => logger.warn(error.message))
 
         if (error instanceof InvalidSession) {
           return
         }
-
 
         const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
         fun && fun()
