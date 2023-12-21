@@ -406,9 +406,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         url
       }
 
-      console.log('newWallet', wallet)
-      console.log('stringified', JSON.stringify(wallet))
-
       localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(wallet))
     }
 
