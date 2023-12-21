@@ -476,9 +476,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       })
       .catch((error: any) => {
         logger.error(error.message)
+        
+        if (!signClient.core.pairing.getPairings().find((p) => p.topic === topic)) {
+          return
+        }
+        signClient.core.pairing.disconnect({ topic }).catch((error) => logger.warn(error.message))
+
         if (error instanceof InvalidSession) {
           return
         }
+
+
         const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
         fun && fun()
       })
