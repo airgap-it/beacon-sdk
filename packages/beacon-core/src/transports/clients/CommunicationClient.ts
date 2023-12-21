@@ -1,4 +1,4 @@
-import { PeerInfoType } from '@airgap/beacon-types'
+import { PeerInfoType, StorageKey } from '@airgap/beacon-types'
 import { toHex, getHexHash, sealCryptobox } from '@airgap/beacon-utils'
 import { convertPublicKeyToX25519, convertSecretKeyToX25519, KeyPair } from '@stablelib/ed25519'
 import { clientSessionKeys, serverSessionKeys, SessionKeys } from '@stablelib/x25519-session'
@@ -12,6 +12,12 @@ export abstract class CommunicationClient {
   constructor(protected readonly keyPair?: KeyPair) {}
 
   public eventHandlers: Map<ClientEvents, Function> = new Map()
+
+  // todo move OS
+  protected isMobileOS = (): boolean =>
+    /(Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet|Windows Phone|SymbianOS|Kindle)/i.test(
+      navigator.userAgent
+    )
 
   /**
    * Get the public key
@@ -76,6 +82,19 @@ export abstract class CommunicationClient {
     message: string
   ): Promise<string> {
     return sealCryptobox(message, Buffer.from(recipientPublicKey, 'hex'))
+  }
+
+  protected tryToDeepLink() {
+    const wallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}')
+
+    if (!this.isMobileOS() || !wallet.key || !wallet.url?.length || wallet.type !== 'mobile') {
+      return
+    }
+
+    const a = document.createElement('a')
+    a.setAttribute('href', wallet.url)
+    a.setAttribute('rel', 'noopener')
+    a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
   }
 
   abstract unsubscribeFromEncryptedMessages(): Promise<void>

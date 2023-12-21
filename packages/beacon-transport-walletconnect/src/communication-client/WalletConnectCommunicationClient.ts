@@ -49,11 +49,6 @@ import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 const TEZOS_PLACEHOLDER = 'tezos'
 const logger = new Logger('WalletConnectCommunicationClient')
 
-const isMobileOS = (): boolean =>
-  /(Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet|Windows Phone|SymbianOS|Kindle)/i.test(
-    navigator.userAgent
-  )
-
 export interface PermissionScopeParam {
   networks: NetworkType[]
   methods: PermissionScopeMethods[]
@@ -192,6 +187,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       default:
         return
     }
+
+    this.tryToDeepLink()
   }
 
   private async fetchAccounts(topic: string, chainId: string) {

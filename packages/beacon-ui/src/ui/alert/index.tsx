@@ -394,6 +394,24 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (config.closeButtonCallback) config.closeButtonCallback()
     }
 
+    const updateSelectedWalletWithURL = (url: string) => {
+      let wallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '')
+
+      if (!wallet.key) {
+        return
+      }
+
+      wallet = {
+        ...wallet,
+        url
+      }
+
+      console.log('newWallet', wallet)
+      console.log('stringified', JSON.stringify(wallet))
+
+      localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(wallet))
+    }
+
     const handleNewTab = async (config: AlertConfig, wallet?: MergedWallet) => {
       if (!wallet) {
         return
@@ -477,7 +495,17 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         const uri = (await wcPayload)?.uri ?? ''
         if (!!uri.length) {
           if (isAndroid(window) || isIOS(window)) {
+            localStorage.setItem(
+              StorageKey.LAST_SELECTED_WALLET,
+              JSON.stringify({
+                key: wallet.key,
+                type: 'mobile',
+                icon: currentWallet()?.image
+              })
+            )
+
             let link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
+            updateSelectedWalletWithURL(link)
 
             if (isTwBrowser(window) && isAndroid(window)) {
               link = `${uri}`
@@ -492,15 +520,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
               )
             }
-
-            localStorage.setItem(
-              StorageKey.LAST_SELECTED_WALLET,
-              JSON.stringify({
-                key: wallet.key,
-                type: 'mobile',
-                icon: currentWallet()?.image
-              })
-            )
           } else {
             setCodeQR(uri)
             setCurrentInfo('install')
