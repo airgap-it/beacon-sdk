@@ -395,7 +395,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const updateSelectedWalletWithURL = (url: string) => {
-      let wallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '')
+      let wallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}')
 
       if (!wallet.key) {
         return
