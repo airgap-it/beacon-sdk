@@ -187,8 +187,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       default:
         return
     }
-
-    this.tryToDeepLink()
+    
+    if (this.messageIds.length) {
+      this.tryToDeepLink()
+    }
   }
 
   private async fetchAccounts(topic: string, chainId: string) {
