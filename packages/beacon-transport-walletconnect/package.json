@@ -37,6 +37,6 @@
     "@airgap/beacon-core": "4.0.12",
     "@airgap/beacon-types": "4.0.12",
     "@airgap/beacon-utils": "4.0.12",
-    "@walletconnect/sign-client": "^2.10.6"
+    "@walletconnect/sign-client": "^2.10.0"
   }
 }
