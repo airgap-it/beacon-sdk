@@ -39,6 +39,7 @@ import {
 } from '@airgap/beacon-core'
 import { shortenString } from './utils/shorten-string'
 import { isMobile } from '@airgap/beacon-ui'
+import { ProofOfEventChallengeResponseOutput } from '@airgap/beacon-types'
 
 const logger = new Logger('BeaconEvents')
 
@@ -61,6 +62,9 @@ export enum BeaconEvent {
   PERMISSION_REQUEST_SENT = 'PERMISSION_REQUEST_SENT',
   PERMISSION_REQUEST_SUCCESS = 'PERMISSION_REQUEST_SUCCESS',
   PERMISSION_REQUEST_ERROR = 'PERMISSION_REQUEST_ERROR',
+  PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT = 'PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT',
+  PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS = 'PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS',
+  PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR = 'PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR',
   OPERATION_REQUEST_SENT = 'OPERATION_REQUEST_SENT',
   OPERATION_REQUEST_SUCCESS = 'OPERATION_REQUEST_SUCCESS',
   OPERATION_REQUEST_ERROR = 'OPERATION_REQUEST_ERROR',
@@ -74,7 +78,6 @@ export enum BeaconEvent {
   BROADCAST_REQUEST_SENT = 'BROADCAST_REQUEST_SENT',
   BROADCAST_REQUEST_SUCCESS = 'BROADCAST_REQUEST_SUCCESS',
   BROADCAST_REQUEST_ERROR = 'BROADCAST_REQUEST_ERROR',
-
   ACKNOWLEDGE_RECEIVED = 'ACKNOWLEDGE_RECEIVED',
 
   LOCAL_RATE_LIMIT_REACHED = 'LOCAL_RATE_LIMIT_REACHED',
@@ -87,7 +90,7 @@ export enum BeaconEvent {
 
   SHOW_PREPARE = 'SHOW_PREPARE',
   HIDE_UI = 'HIDE_UI',
-
+  INVALID_ACTIVE_ACCOUNT_STATE = 'INVALID_ACTIVE_ACCOUNT_STATE',
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
@@ -118,6 +121,18 @@ export interface BeaconEventType {
     walletInfo: WalletInfo
   }
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: RequestSentInfo
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: {
+    account: AccountInfo
+    output: ProofOfEventChallengeResponseOutput
+    blockExplorer: BlockExplorer
+    connectionContext: ConnectionContext
+    walletInfo: WalletInfo
+  }
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: {
+    errorResponse: ErrorResponse
+    walletInfo: WalletInfo
+  }
   [BeaconEvent.OPERATION_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: {
     account: AccountInfo
@@ -164,6 +179,7 @@ export interface BeaconEventType {
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
+  [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: undefined
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
   [BeaconEvent.PAIR_INIT]: {
@@ -210,13 +226,6 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
   actions.push({
     text: `No answer from your wallet received yet. Please make sure the wallet is open.`,
     isBold: true
-  })
-  actions.push({
-    text: 'Did you make a mistake?',
-    actionText: 'Cancel Request',
-    actionCallback: async (): Promise<void> => {
-      await closeToast()
-    }
   })
   actions.push({
     text: 'Wallet not receiving request?',
@@ -284,6 +293,16 @@ const showNoPermissionAlert = async (): Promise<void> => {
   await openAlert({
     title: 'No Permission',
     body: 'Please allow the wallet to handle this type of request.'
+  })
+}
+
+/**
+ * Show a
+ */
+const showInvalidActiveAccountState = async (): Promise<void> => {
+  await openAlert({
+    title: 'Invalid state',
+    body: 'No subscription found for the received active account.'
   })
 }
 
@@ -418,7 +437,7 @@ const showInternalErrorAlert = async (
  * @param data The data that is emitted by the PAIR_INIT event
  */
 const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Promise<void> => {
-  console.log('showPairAlert')
+  logger.log('showPairAlert')
   const alertConfig: AlertConfig = {
     title: 'Choose your preferred wallet',
     body: `<p></p>`,
@@ -465,6 +484,25 @@ const showPermissionSuccessAlert = async (
       {
         text: 'Permissions',
         actionText: output.scopes.join(', ')
+      }
+    ]
+  })
+}
+
+const showProofOfEventChallengeSuccessAlert = async (
+  data: BeaconEventType[BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]
+): Promise<void> => {
+  const { output } = data
+
+  await openToast({
+    body: `{{wallet}}\u00A0 has ${output.isAccepted ? 'accepted' : 'refused'} the challenge`,
+    timer: SUCCESS_TIMER,
+    walletInfo: data.walletInfo,
+    state: 'finished',
+    actions: [
+      {
+        text: 'Challenge Id',
+        actionText: output.dAppChallengeId
       }
     ]
   })
@@ -627,6 +665,9 @@ export const defaultEventCallbacks: {
   [BeaconEvent.PERMISSION_REQUEST_SENT]: showSentToast,
   [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: showPermissionSuccessAlert,
   [BeaconEvent.PERMISSION_REQUEST_ERROR]: showErrorToast,
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: showSentToast,
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: showProofOfEventChallengeSuccessAlert,
+  [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: showErrorToast,
   [BeaconEvent.OPERATION_REQUEST_SENT]: showSentToast,
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: showOperationSuccessAlert,
   [BeaconEvent.OPERATION_REQUEST_ERROR]: showErrorToast,
@@ -645,6 +686,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.NO_PERMISSIONS]: showNoPermissionAlert,
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(),
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(),
+  [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: showInvalidActiveAccountState,
   [BeaconEvent.SHOW_PREPARE]: showPrepare,
   [BeaconEvent.HIDE_UI]: hideUI,
   [BeaconEvent.PAIR_INIT]: showPairAlert,
@@ -666,6 +708,15 @@ export class BeaconEventHandler {
     [BeaconEvent.PERMISSION_REQUEST_SENT]: [defaultEventCallbacks.PERMISSION_REQUEST_SENT],
     [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: [defaultEventCallbacks.PERMISSION_REQUEST_SUCCESS],
     [BeaconEvent.PERMISSION_REQUEST_ERROR]: [defaultEventCallbacks.PERMISSION_REQUEST_ERROR],
+    [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: [
+      defaultEventCallbacks.PERMISSION_REQUEST_SENT
+    ],
+    [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: [
+      defaultEventCallbacks.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS
+    ],
+    [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: [
+      defaultEventCallbacks.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
+    ],
     [BeaconEvent.OPERATION_REQUEST_SENT]: [defaultEventCallbacks.OPERATION_REQUEST_SENT],
     [BeaconEvent.OPERATION_REQUEST_SUCCESS]: [defaultEventCallbacks.OPERATION_REQUEST_SUCCESS],
     [BeaconEvent.OPERATION_REQUEST_ERROR]: [defaultEventCallbacks.OPERATION_REQUEST_ERROR],
@@ -684,6 +735,9 @@ export class BeaconEventHandler {
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
     [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
     [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
+    [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [
+      defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE
+    ],
     [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
     [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],

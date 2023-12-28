@@ -6,12 +6,14 @@ import {
   OperationRequestOutput,
   SignPayloadRequestOutput,
   BroadcastRequestOutput,
+  ProofOfEventChallengeRequestOutput,
   ConnectionContext,
   BeaconRequestMessage,
   BeaconMessageWrapper,
   BlockchainRequestV3,
   PermissionRequestV3,
-  BeaconBaseMessage
+  BeaconBaseMessage,
+  ProofOfEventChallengeRecordedMessageOutput
   // EncryptPayloadRequestOutput
 } from '@airgap/beacon-types'
 import { AppMetadataManager, Logger } from '@airgap/beacon-core'
@@ -44,7 +46,7 @@ export class IncomingRequestInterceptor {
    * @param config
    */
   public static async intercept(config: IncomingRequestInterceptorOptions): Promise<void> {
-    console.log('INTERCEPTING REQUEST', config.message)
+    logger.log('INTERCEPTING REQUEST', config.message)
 
     if (config.message.version === '2') {
       IncomingRequestInterceptor.handleV2Message(config as IncomingRequestInterceptorOptionsV2)
@@ -76,7 +78,7 @@ export class IncomingRequestInterceptor {
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
         {
-          console.log('PERMISSION REQUEST V*', message)
+          logger.log('PERMISSION REQUEST V*', message)
           // TODO: Remove v1 compatibility in later version
           if ((message.appMetadata as any).beaconId && !message.appMetadata.senderId) {
             message.appMetadata.senderId = (message.appMetadata as any).beaconId
@@ -141,7 +143,32 @@ export class IncomingRequestInterceptor {
           interceptorCallback(request, connectionInfo)
         }
         break
-
+      case BeaconMessageType.ProofOfEventChallengeRequest:
+        {
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+            appMetadataManager,
+            message.senderId
+          )
+          const request: ProofOfEventChallengeRequestOutput = {
+            appMetadata,
+            ...message
+          }
+          interceptorCallback(request, connectionInfo)
+        }
+        break
+      case BeaconMessageType.ProofOfEventChallengeRecorded:
+        {
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+            appMetadataManager,
+            message.senderId
+          )
+          const request: ProofOfEventChallengeRecordedMessageOutput = {
+            appMetadata,
+            ...message
+          }
+          interceptorCallback(request, connectionInfo)
+        }
+        break
       default:
         logger.log('intercept', 'Message not handled')
         assertNever(message)

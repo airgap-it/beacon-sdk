@@ -21,9 +21,18 @@ export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.BEACON_SDK_SECRET_SEED]: undefined,
   [StorageKey.APP_METADATA_LIST]: [],
   [StorageKey.PERMISSION_LIST]: [],
+  [StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES]: [],
   [StorageKey.BEACON_SDK_VERSION]: undefined,
   [StorageKey.MATRIX_PRESERVED_STATE]: {},
   [StorageKey.MATRIX_PEER_ROOM_IDS]: {},
   [StorageKey.MATRIX_SELECTED_NODE]: undefined,
-  [StorageKey.MULTI_NODE_SETUP_DONE]: undefined
+  [StorageKey.MULTI_NODE_SETUP_DONE]: undefined,
+  [StorageKey.WC_2_CLIENT_SESSION]: undefined,
+  [StorageKey.WC_2_CORE_PAIRING]: undefined,
+  [StorageKey.WC_2_CORE_KEYCHAIN]: undefined,
+  [StorageKey.WC_2_CORE_MESSAGES]: undefined,
+  [StorageKey.WC_2_CLIENT_PROPOSAL]: undefined,
+  [StorageKey.WC_2_CORE_SUBSCRIPTION]: undefined,
+  [StorageKey.WC_2_CORE_HISTORY]: undefined,
+  [StorageKey.WC_2_CORE_EXPIRER]: undefined
 }

@@ -1,11 +1,4 @@
-import {
-  P2PPairingRequest,
-  ExtendedP2PPairingResponse,
-  PostMessagePairingRequest,
-  ExtendedPostMessagePairingResponse,
-  WalletConnectPairingRequest,
-  ExtendedWalletConnectPairingResponse
-} from '@airgap/beacon-types'
+import { PeerInfoType } from '@airgap/beacon-types'
 import { toHex, getHexHash, sealCryptobox } from '@airgap/beacon-utils'
 import { convertPublicKeyToX25519, convertSecretKeyToX25519, KeyPair } from '@stablelib/ed25519'
 import { clientSessionKeys, serverSessionKeys, SessionKeys } from '@stablelib/x25519-session'
@@ -88,14 +81,5 @@ export abstract class CommunicationClient {
   abstract unsubscribeFromEncryptedMessages(): Promise<void>
   abstract unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void>
   // abstract send(message: string, recipient?: string): Promise<void>
-  public abstract sendMessage(
-    message: string,
-    peer?:
-      | P2PPairingRequest
-      | ExtendedP2PPairingResponse
-      | PostMessagePairingRequest
-      | ExtendedPostMessagePairingResponse
-      | WalletConnectPairingRequest
-      | ExtendedWalletConnectPairingResponse
-  ): Promise<void>
+  public abstract sendMessage(message: string, peer?: PeerInfoType): Promise<void>
 }

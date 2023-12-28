@@ -4,7 +4,7 @@ import { App, DesktopApp, ExtensionApp, WebApp } from 'packages/beacon-types/src
 export enum NetworkType {
   MAINNET = 'mainnet',
   GHOSTNET = 'ghostnet', // Long running testnet
-  MONDAYNET = 'mondaynet', // Testnet, resets every monday
+  WEEKLYNET = 'weeklynet', // Testnet, resets every week
   DAILYNET = 'dailynet', // Testnet, resets every day
   DELPHINET = 'delphinet',
   EDONET = 'edonet',
@@ -61,7 +61,7 @@ export const tezosWebList: WebApp[] = [
     links: {
       [NetworkType.MAINNET]: 'https://metamask.tezos.com/',
       [NetworkType.GHOSTNET]: 'https://metamask.tezos.com/',
-      [NetworkType.MONDAYNET]: 'https://metamask.tezos.com/',
+      [NetworkType.WEEKLYNET]: 'https://metamask.tezos.com/',
       [NetworkType.DAILYNET]: 'https://metamask.tezos.com/',
       [NetworkType.DELPHINET]: 'https://metamask.tezos.com/',
       [NetworkType.EDONET]: 'https://metamask.tezos.com/',
@@ -86,7 +86,7 @@ export const tezosWebList: WebApp[] = [
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
       [NetworkType.GHOSTNET]: 'https://ghostnet.kukai.app',
-      [NetworkType.MONDAYNET]: 'https://mondaynet.kukai.app',
+      [NetworkType.WEEKLYNET]: 'https://weeklynet.kukai.app',
       [NetworkType.DAILYNET]: 'https://dailynet.kukai.app',
       [NetworkType.DELPHINET]: 'https://testnet.kukai.app',
       [NetworkType.EDONET]: 'https://edonet.kukai.app',
@@ -101,6 +101,32 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app',
       [NetworkType.OXFORDNET]: 'https://oxfordnet.kukai.app'
     }
+  },
+
+  {
+    key: 'tzsafe',
+    name: 'TzSafe',
+    shortName: 'TzSafe',
+    color: 'rgb(235, 52, 72)',
+    logo: 'tzsafe.svg',
+    links: {
+      [NetworkType.MAINNET]: 'https://tzsafe.marigold.dev',
+      [NetworkType.GHOSTNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.WEEKLYNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.DAILYNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.DELPHINET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.EDONET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.FLORENCENET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.GRANADANET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.HANGZHOUNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.ITHACANET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.JAKARTANET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.KATHMANDUNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.LIMANET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.MUMBAINET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.NAIROBINET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.OXFORDNET]: 'https://ghostnet.tzsafe.marigold.dev'
+    }
   }
 ]
 
@@ -113,6 +139,15 @@ export const tezosDesktopList: DesktopApp[] = [
     logo: 'infinity-wallet.png',
     deepLink: 'infinity://',
     downloadLink: 'https://infinitywallet.io/download'
+  },
+  {
+    key: 'galleon_desktop',
+    name: 'Galleon',
+    shortName: 'Galleon',
+    color: '',
+    logo: 'desktop-galleon.png',
+    deepLink: 'galleon://',
+    downloadLink: 'https://cryptonomic.tech/galleon.html'
   },
   {
     key: 'umami_desktop',
@@ -204,7 +239,7 @@ export const tezosIosList: App[] = [
     color: '',
     supportedInteractionStandards: ['wallet_connect'],
     logo: 'ios-trust.png',
-    universalLink: 'https://trustwallet.com',
+    universalLink: 'https://link.trustwallet.com',
     deepLink: 'trust://'
   },
   {
@@ -217,4 +252,12 @@ export const tezosIosList: App[] = [
     deepLink: 'exodus://wc',
     universalLink: 'https://www.exodus.com/'
   }
+  // {
+  //   name: 'Galleon',
+  //   shortName: 'Galleon',
+  //   color: '',
+  //   logo: 'ios-galleon.png',
+  //   universalLink: 'https://cryptonomic.tech',
+  //   deepLink: 'galleon://'
+  // }
 ]

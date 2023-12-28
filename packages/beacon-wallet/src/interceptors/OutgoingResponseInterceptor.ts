@@ -21,10 +21,11 @@ import {
   BeaconMessageWrapper,
   BlockchainResponseV3,
   PermissionResponseV3,
-  BeaconBaseMessage
+  BeaconBaseMessage,
+  ProofOfEventChallengeResponse
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
-import { getAddressFromPublicKey } from '@airgap/beacon-utils'
+import { getAddressFromPublicKey, CONTRACT_PREFIX, isValidAddress } from '@airgap/beacon-utils'
 
 interface OutgoingResponseInterceptorOptions {
   senderId: string
@@ -70,7 +71,7 @@ export class OutgoingResponseInterceptor {
     const v3Message: PermissionResponseV3<string> | BlockchainResponseV3<string> =
       wrappedMessage.message
 
-    console.log('LOGGING OUTGOING V3', v3Message, appMetadataManager)
+    logger.log('LOGGING OUTGOING V3', v3Message, appMetadataManager)
 
     interceptorCallback(msg as any)
 
@@ -183,10 +184,29 @@ export class OutgoingResponseInterceptor {
           ...message
         }
 
+        if (!response.address && !response.publicKey) {
+          throw new Error('Address or PublicKey must be defined')
+        }
+
         const publicKey = response.publicKey
 
-        const address: string = await getAddressFromPublicKey(publicKey)
+        const address: string = response.address ?? (await getAddressFromPublicKey(publicKey!))
+
+        if (!isValidAddress(address)) {
+          throw new Error(`Invalid address: "${address}"`)
+        }
+
+        if (
+          message.walletType === 'abstracted_account' &&
+          address.substring(0, 3) !== CONTRACT_PREFIX
+        ) {
+          throw new Error(
+            `Invalid abstracted account address "${address}", it should be a ${CONTRACT_PREFIX} address`
+          )
+        }
+
         const appMetadata = await appMetadataManager.getAppMetadata(request.senderId)
+
         if (!appMetadata) {
           throw new Error('AppMetadata not found')
         }
@@ -249,7 +269,16 @@ export class OutgoingResponseInterceptor {
           interceptorCallback(response)
         }
         break
-
+      case BeaconMessageType.ProofOfEventChallengeResponse:
+        {
+          const response: ProofOfEventChallengeResponse = {
+            senderId,
+            version: '2',
+            ...message
+          }
+          interceptorCallback(response)
+        }
+        break
       default:
         logger.log('intercept', 'Message not handled')
         assertNever(message)

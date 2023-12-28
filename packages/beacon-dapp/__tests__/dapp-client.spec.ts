@@ -20,7 +20,8 @@ import {
   StorageKey,
   TezosOperationType,
   TransportStatus,
-  ExtendedP2PPairingRequest
+  ExtendedP2PPairingRequest,
+  ProofOfEventChallengeResponse
 } from '@airgap/beacon-types'
 
 import { MockTransport } from '../../../test/test-utils/MockTransport'
@@ -71,11 +72,13 @@ const account1: AccountInfo = {
     type: Origin.P2P,
     id: peer1.publicKey
   },
-  address: 'tz1',
-  publicKey: 'pubkey1',
+  address: 'KT1',
   network: { type: NetworkType.MAINNET },
   scopes: [PermissionScope.SIGN],
-  connectedAt: new Date().getTime()
+  connectedAt: new Date().getTime(),
+  walletType: 'abstracted_account',
+  verificationType: 'proof_of_event',
+  hasVerifiedChallenge: false
 }
 
 const account2: AccountInfo = {
@@ -89,7 +92,8 @@ const account2: AccountInfo = {
   publicKey: 'pubkey2',
   network: { type: NetworkType.MAINNET },
   scopes: [PermissionScope.SIGN],
-  connectedAt: new Date().getTime()
+  connectedAt: new Date().getTime(),
+  walletType: 'implicit'
 }
 
 /**
@@ -161,7 +165,8 @@ describe(`DAppClient`, () => {
       type: BeaconMessageType.PermissionResponse,
       publicKey: 'pubkey1',
       network: { type: NetworkType.MAINNET },
-      scopes: []
+      scopes: [],
+      walletType: 'implicit'
     }
     const contextInfo: ConnectionContext = {
       origin: Origin.P2P,
@@ -317,7 +322,8 @@ describe(`DAppClient`, () => {
       publicKey: 'pubkey1',
       network: { type: NetworkType.MAINNET },
       scopes: [PermissionScope.SIGN],
-      connectedAt: new Date().getTime()
+      connectedAt: new Date().getTime(),
+      walletType: 'implicit'
     }
 
     const getPeersStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
@@ -565,7 +571,8 @@ describe(`DAppClient`, () => {
       senderId: 'sender-id',
       publicKey: '444e1f4ab90c304a5ac003d367747aab63815f583ff2330ce159d12c1ecceba1',
       network: { type: NetworkType.MAINNET },
-      scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST]
+      scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
+      walletType: 'implicit'
     }
 
     const connectionInfo: ConnectionContext = {
@@ -622,6 +629,60 @@ describe(`DAppClient`, () => {
     })
   })
 
+  it(`should prepare a proof of event challenge request`, async () => {
+    const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
+
+    const permissionResponse: ProofOfEventChallengeResponse = {
+      id: 'my-id',
+      type: BeaconMessageType.ProofOfEventChallengeResponse,
+      version: BEACON_VERSION,
+      senderId: 'sender-id',
+      dAppChallengeId: 'my-id',
+      isAccepted: true
+    }
+
+    const connectionInfo: ConnectionContext = {
+      origin: Origin.P2P,
+      id: 'KT1'
+    }
+    const makeRequestStub = sinon
+      .stub(dAppClient, <any>'makeRequest')
+      .resolves({ message: permissionResponse, connectionInfo })
+
+    const notifySuccessStub = sinon.stub(dAppClient, <any>'notifySuccess').resolves()
+
+    const recordProofOfEventChallengeStub = sinon
+      .stub(dAppClient, <any>'recordProofOfEventChallenge')
+      .resolves()
+
+    const getActiveAccountStub = sinon.stub(dAppClient, <any>'getActiveAccount').resolves(account1)
+
+    const input = {
+      dAppChallengeId: 'my-id',
+      payload: 'my-payload'
+    }
+    const response = await dAppClient.requestProofOfEventChallenge(input)
+
+    expect(notifySuccessStub.callCount, 'notifySuccessStub').to.equal(1)
+    expect(recordProofOfEventChallengeStub.callCount, 'recordProofOfEventChallengeStub').to.equal(1)
+    expect(getActiveAccountStub.callCount, 'getActiveAccountStub').to.equal(2)
+    expect(makeRequestStub.callCount).to.equal(1)
+    expect(makeRequestStub.firstCall.args[0]).to.deep.equal({
+      type: BeaconMessageType.ProofOfEventChallengeRequest,
+      contractAddress: 'KT1',
+      ...input
+    })
+    delete (response as any).accountInfo
+    expect(response).to.deep.equal({
+      id: 'my-id',
+      type: 'proof_of_event_challenge_response',
+      version: BEACON_VERSION,
+      senderId: 'sender-id',
+      dAppChallengeId: 'my-id',
+      isAccepted: true
+    })
+  })
+
   it(`should prepare a sign payload request (RAW)`, async () => {
     const dAppClient = new DAppClient({ name: 'Test', storage: new LocalStorage() })
 
@@ -637,7 +698,8 @@ describe(`DAppClient`, () => {
       network: { type: NetworkType.MAINNET },
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       threshold: undefined,
-      connectedAt: 1599142450653
+      connectedAt: 1599142450653,
+      walletType: 'implicit'
     }
 
     const getPeerStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
@@ -739,7 +801,8 @@ describe(`DAppClient`, () => {
       network: { type: NetworkType.MAINNET },
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       threshold: undefined,
-      connectedAt: 1599142450653
+      connectedAt: 1599142450653,
+      walletType: 'implicit'
     }
 
     const getPeerStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)
@@ -807,7 +870,8 @@ describe(`DAppClient`, () => {
       network: { type: NetworkType.MAINNET },
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
       threshold: undefined,
-      connectedAt: 1599142450653
+      connectedAt: 1599142450653,
+      walletType: 'implicit'
     }
 
     const getPeerStub = sinon.stub(DAppClient.prototype, <any>'getPeer').resolves(peer1)

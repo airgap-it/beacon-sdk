@@ -21,7 +21,10 @@ export abstract class MessageBasedClient extends CommunicationClient {
    */
   protected abstract readonly activeListeners: Map<string, unknown>
 
-  constructor(protected readonly name: string, keyPair: KeyPair) {
+  constructor(
+    protected readonly name: string,
+    keyPair: KeyPair
+  ) {
     super(keyPair)
     this.init().catch(console.error)
   }
@@ -37,13 +40,12 @@ export abstract class MessageBasedClient extends CommunicationClient {
    * Get the pairing request information. This will be shared with the peer during the connection setup
    */
   public async getPairingRequestInfo(): Promise<PostMessagePairingRequest> {
-    return {
-      id: await generateGUID(),
-      type: 'postmessage-pairing-request',
-      name: this.name,
-      version: BEACON_VERSION,
-      publicKey: await this.getPublicKey()
-    }
+    return new PostMessagePairingRequest(
+      await generateGUID(),
+      this.name,
+      await this.getPublicKey(),
+      BEACON_VERSION
+    )
   }
 
   /**
@@ -52,13 +54,12 @@ export abstract class MessageBasedClient extends CommunicationClient {
   public async getPairingResponseInfo(
     request: PostMessagePairingRequest
   ): Promise<PostMessagePairingResponse> {
-    return {
-      id: request.id,
-      type: 'postmessage-pairing-response',
-      name: this.name,
-      version: request.version,
-      publicKey: await this.getPublicKey()
-    }
+    return new PostMessagePairingResponse(
+      request.id,
+      this.name,
+      await this.getPublicKey(),
+      request.version
+    )
   }
 
   /**

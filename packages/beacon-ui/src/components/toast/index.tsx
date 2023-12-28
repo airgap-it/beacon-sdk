@@ -1,7 +1,7 @@
 import { Component, For, createEffect, createSignal } from 'solid-js'
 import { CloseIcon } from '../icons'
 import Loader from '../loader'
-import { isMobileOS } from 'src/utils/platform'
+import { isMobileOS } from '../../utils/platform'
 
 function parseWallet(
   inputString: string,
@@ -55,7 +55,13 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
 
   const onMouseDownHandler = (event: MouseEvent) => {
     event.preventDefault() // prevents inner text highlighting
-    const boundinRect = (event.target as HTMLElement).getBoundingClientRect()
+    const target = event.target as HTMLElement
+
+    if (target.className !== 'toast-header' && target.parentElement?.className !== 'toast-header') {
+      return
+    }
+
+    const boundinRect = target.getBoundingClientRect()
     offset.x = event.clientX - boundinRect.x
     offset.y = event.clientY - boundinRect.y
     setIsDragging(true)
@@ -63,14 +69,21 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
 
   const onMouseMoveHandler = (event: MouseEvent) => {
     if (isDragging() && event.buttons === 1) {
+      const newX = Math.min(Math.max(event.clientX - offset.x, 0), window.innerWidth - 460)
+      const newY = Math.min(Math.max(event.clientY - offset.y, 0), window.innerHeight - 12)
+
       setDivPosition({
-        x: event.clientX - offset.x,
-        y: event.clientY - offset.y
+        x: newX,
+        y: newY
       })
     }
   }
 
   const onMouseUpHandler = () => {
+    setIsDragging(false)
+  }
+
+  const onClickHandler = () => {
     setIsDragging(false)
   }
 
@@ -97,6 +110,8 @@ const Toast: Component<ToastProps> = (props: ToastProps) => {
       style={{ left: `${divPosition().x}px`, top: `${divPosition().y}px` }}
       class={props.open ? 'toast-wrapper-show' : 'toast-wrapper-hide'}
       onMouseDown={onMouseDownHandler}
+      onClick={onClickHandler}
+      onDblClick={onClickHandler}
     >
       <div class="toast-header">
         <Loader />

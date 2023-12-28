@@ -33,13 +33,14 @@ import {
   arrangeTopWallets,
   MergedWallet,
   mergeWallets,
+  OSLink,
   parseWallets,
   Wallet
-} from 'src/utils/wallets'
-import { getTzip10Link } from 'src/utils/get-tzip10-link'
-import { isAndroid, isIOS, isMobileOS, isTwBrowser } from 'src/utils/platform'
-import { getColorMode } from 'src/utils/colorMode'
-import PairOther from 'src/components/pair-other/pair-other'
+} from '../../utils/wallets'
+import { getTzip10Link } from '../../utils/get-tzip10-link'
+import { isAndroid, isIOS, isMobileOS, isTwBrowser } from '../../utils/platform'
+import { getColorMode } from '../../utils/colorMode'
+import PairOther from '../../components/pair-other/pair-other'
 
 // Interfaces
 export interface AlertButton {
@@ -139,16 +140,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
+  const isOnline = navigator.onLine
 
   setAnalytics(config.analytics)
-
-  // TODO: Remove eager connection
-  p2pPayload?.then(() => {
-    console.log('P2P LOADED')
-  })
-  wcPayload?.then(() => {
-    console.log('WC LOADED')
-  })
 
   if (isServer) {
     console.log('DO NOT RUN ON SERVER')
@@ -171,8 +165,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const setDefaultPayload = async () => {
       if (config.pairingPayload) {
         const serializer = new Serializer()
-        const codeQR = await serializer.serialize(await p2pPayload)
-        setCodeQR(codeQR)
+        try {
+          const codeQR = await serializer.serialize(await p2pPayload)
+          setCodeQR(codeQR)
+        } catch (error: any) {
+          console.error('Cannot connect to network: ', error.message)
+        }
       }
     }
 
@@ -183,7 +181,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     // Shadow root
     const shadowRootEl = document.createElement('div')
     if (document.getElementById('beacon-alert-wrapper')) {
-      (document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
+      ;(document.getElementById('beacon-alert-wrapper') as HTMLElement).remove()
     }
     shadowRootEl.setAttribute('id', 'beacon-alert-wrapper')
     shadowRootEl.style.height = '0px'
@@ -335,40 +333,44 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const [isMobile, setIsMobile] = createSignal(_isMobileOS)
     const [windowWidth, setWindowWidth] = createSignal(window.innerWidth)
 
-    const debounce = (fun: Function, delay: number) => {
-      let timerId: NodeJS.Timeout
+    const AlertResize = () => {
+      const debounce = (fun: Function, delay: number) => {
+        let timerId: NodeJS.Timeout
 
-      return (...args: any[]) => {
-        clearTimeout(timerId)
-        timerId = setTimeout(() => fun(...args), delay)
-      }
-    }
-
-    const debouncedSetWindowWidth = debounce(setWindowWidth, 200)
-
-    const updateIsMobile = (isMobileWidth: boolean) => {
-      // to avoid unwanted side effects (because of the OR condition), I always reset the value without checking the previous state
-      setWalletList(createWalletList())
-      setIsMobile(isMobileWidth || _isMobileOS)
-    }
-
-    createEffect(() => {
-      updateIsMobile(windowWidth() <= 800)
-    })
-
-    // Update the windowWidth signal when the window resizes
-    createEffect(() => {
-      const handleResize = () => {
-        debouncedSetWindowWidth(window.innerWidth)
+        return (...args: any[]) => {
+          clearTimeout(timerId)
+          timerId = setTimeout(() => fun(...args), delay)
+        }
       }
 
-      window.addEventListener('resize', handleResize)
+      const debouncedSetWindowWidth = debounce(setWindowWidth, 200)
 
-      // Unsubscribe from the event when the component unmounts
-      onCleanup(() => {
-        window.removeEventListener('resize', handleResize)
+      const updateIsMobile = (isMobileWidth: boolean) => {
+        // to avoid unwanted side effects (because of the OR condition), I always reset the value without checking the previous state
+        setWalletList(createWalletList())
+        setIsMobile(isMobileWidth || _isMobileOS)
+      }
+
+      createEffect(() => {
+        updateIsMobile(windowWidth() <= 800)
       })
-    })
+
+      // Update the windowWidth signal when the window resizes
+      createEffect(() => {
+        const handleResize = () => {
+          debouncedSetWindowWidth(window.innerWidth)
+        }
+
+        window.addEventListener('resize', handleResize)
+
+        // Unsubscribe from the event when the component unmounts
+        onCleanup(() => {
+          window.removeEventListener('resize', handleResize)
+        })
+      })
+
+      return <></>
+    }
 
     const handleClickShowMoreContent = () => {
       analytics()?.track('click', 'ui', 'show more wallets')
@@ -392,9 +394,50 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (config.closeButtonCallback) config.closeButtonCallback()
     }
 
-    const handleClickWallet = async (id: string) => {
-      if (isLoading()) return
+    const handleNewTab = async (config: AlertConfig, wallet?: MergedWallet) => {
+      if (!wallet) {
+        return
+      }
 
+      if (config.pairingPayload) {
+        setIsLoading(true)
+        // Noopener feature parameter cannot be used, because Chrome will open
+        // about:blank#blocked instead and it will no longer work.
+        const newTab = window.open('', '_blank')
+
+        if (newTab) {
+          newTab.opener = null
+        }
+
+        let link = ''
+
+        if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
+          const uri = (await wcPayload)?.uri ?? ''
+          if (!!uri.length) {
+            link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
+          } else {
+            handleCloseAlert()
+            setTimeout(() => openAlert({
+              title: 'Error',
+              body: 'Unexpected transport error. Please try again.'
+            }), 500)
+            return
+          }
+        } else {
+          const serializer = new Serializer()
+          const code = await serializer.serialize(await p2pPayload)
+          link = getTzip10Link(wallet.links[OSLink.WEB], code)
+        }
+
+        if (newTab) {
+          newTab.location.href = link
+        } else {
+          window.open(link, '_blank', 'noopener')
+        }
+      }
+    }
+
+    const handleClickWallet = async (id: string) => {
       setIsLoading(true)
       setShowMoreContent(false)
       const wallet = walletList().find((wallet) => wallet.id === id)
@@ -404,45 +447,23 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, wallet.key)
       }
 
-      if (wallet?.types.includes('web')) {
-        if (config.pairingPayload) {
-          // Noopener feature parameter cannot be used, because Chrome will open
-          // about:blank#blocked instead and it will no longer work.
-          const newTab = window.open('', '_blank')
-
-          if (newTab) {
-            newTab.opener = null
-          }
-
-          let link = ''
-
-          if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-            const uri = (await wcPayload)?.uri
-            if (uri) {
-              link = `${wallet.link}/wc?uri=${encodeURIComponent(uri)}`
-            }
-          } else {
-            const serializer = new Serializer()
-            const code = await serializer.serialize(await p2pPayload)
-            link = getTzip10Link(wallet.link, code)
-          }
-
-          if (newTab) {
-            newTab.location.href = link
-          } else {
-            window.open(link, '_blank', 'noopener')
-          }
-        }
-
+      if (
+        wallet?.types.includes('web') &&
+        !(
+          wallet?.types.includes('extension') ||
+          wallet?.types.includes('desktop') ||
+          wallet?.types.includes('ios')
+        )
+      ) {
+        handleNewTab(config, wallet)
         return
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = (await wcPayload)?.uri
-
-        if (uri) {
+        const uri = (await wcPayload)?.uri ?? ''
+        if (!!uri.length) {
           if (isAndroid(window) || isIOS(window)) {
-            let link = `https://link.trustwallet.com/wc?uri=${encodeURIComponent(uri)}`
+            let link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
 
             if (isTwBrowser(window) && isAndroid(window)) {
               link = `${uri}`
@@ -461,9 +482,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             setCodeQR(uri)
             setCurrentInfo('install')
           }
+        } else {
+          handleCloseAlert()
+          setTimeout(() => openAlert({
+            title: 'Error',
+            body: 'Unexpected transport error. Please try again.'
+          }), 500)
         }
         setIsLoading(false)
-      } else if (wallet?.types.includes('ios') && _isMobileOS) { 
+      } else if (wallet?.types.includes('ios') && _isMobileOS) {
         setCodeQR('')
 
         if (config.pairingPayload) {
@@ -475,7 +502,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               ? wallet.deepLink
               : isAndroid(window)
               ? 'tezos://'
-              : wallet.link,
+              : wallet.links[OSLink.IOS],
             code
           )
 
@@ -491,9 +518,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         }
         setIsLoading(false)
       } else {
-        await setDefaultPayload()
         setIsLoading(false)
         setCurrentInfo('install')
+        await setDefaultPayload()
       }
     }
 
@@ -537,7 +564,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       analytics()?.track('click', 'ui', 'install extension', { key: currentWallet()?.key })
 
       setShowMoreContent(false)
-      window.open(currentWallet()?.link || '', '_blank', 'noopener')
+      window.open(currentWallet()?.links[OSLink.EXTENSION] || '', '_blank', 'noopener')
     }
 
     const handleClickOpenDesktopApp = async () => {
@@ -556,7 +583,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       analytics()?.track('click', 'ui', 'download desktop', { key: currentWallet()?.key })
 
       setShowMoreContent(false)
-      window.open(currentWallet()?.link || '', '_blank', 'noopener')
+      window.open(currentWallet()?.links[OSLink.DESKTOP] || '', '_blank', 'noopener')
     }
 
     const hasExtension = () =>
@@ -570,6 +597,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     dispose = render(
       () => (
         <div class={`theme__${colorMode}`}>
+          <AlertResize />
           {config.pairingPayload && (
             <Alert
               loading={isLoading()}
@@ -603,6 +631,20 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
+                      {!isMobile() && isOnline && currentWallet()?.types.includes('web') && (
+                        <Info
+                          border
+                          title={'Open wallet in a new tab'}
+                          description={`Please connect below to use ${currentWallet()?.name}`}
+                          buttons={[
+                            {
+                              label: 'Connect now',
+                              type: 'primary',
+                              onClick: () => handleNewTab(config, currentWallet())
+                            }
+                          ]}
+                        />
+                      )}
                       {!isMobile() && currentWallet()?.types.includes('extension') && (
                         <Info
                           border
@@ -613,12 +655,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           }
                           description={
                             hasExtension()
-                              ? `Please connect below to use your ${
-                                  currentWallet()?.name
-                                } Wallet browser extension.`
-                              : `To connect your ${
-                                  currentWallet()?.name
-                                } Wallet, install the browser extension.`
+                              ? `Please connect below to use your ${currentWallet()
+                                  ?.name} Wallet browser extension.`
+                              : `To connect your ${currentWallet()
+                                  ?.name} Wallet, install the browser extension.`
                           }
                           buttons={
                             hasExtension()
@@ -762,7 +802,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     }
                   >
                     <Wallets
-                      disabled={isLoading()}
                       wallets={walletList().slice(-(walletList().length - (isMobile() ? 3 : 4)))}
                       isMobile={isMobile()}
                       onClickWallet={handleClickWallet}
@@ -862,7 +901,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     }
                   >
                     <TopWallets
-                      disabled={isLoading()}
                       wallets={isMobile() ? walletList().slice(0, 3) : walletList().slice(0, 4)}
                       isMobile={isMobile()}
                       onClickWallet={handleClickWallet}
@@ -886,7 +924,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               extraContent={
                 currentInfo() !== 'top-wallets' || isMobile() ? undefined : (
                   <Wallets
-                    disabled={isLoading()}
                     small
                     wallets={walletList().slice(-(walletList().length - 4))}
                     isMobile={isMobile()}

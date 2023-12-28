@@ -8,7 +8,8 @@ import {
   ExtendedWalletConnectPairingResponse,
   StorageKey,
   WalletConnectPairingRequest,
-  NetworkType
+  NetworkType,
+  AccountInfo
 } from '@airgap/beacon-types'
 import { Transport, PeerManager } from '@airgap/beacon-core'
 import { SignClientTypes } from '@walletconnect/types'
@@ -63,6 +64,26 @@ export class WalletConnectTransport<
     return super.connect()
   }
 
+  public async hasPairings() {
+    return (await this.client.storage.hasPairings())
+      ? true
+      : !!this.client.signClient?.pairing.getAll()?.length
+  }
+
+  public async hasSessions() {
+    return (await this.client.storage.hasSessions())
+      ? true
+      : !!this.client.signClient?.session.getAll()?.length
+  }
+
+  public async closeActiveSession(account: AccountInfo) {
+    if (!(await this.hasPairings()) || !(await this.hasPairings())) {
+      await this.disconnect()
+    } else {
+      await this.client.closeActiveSession(account.address)
+    }
+  }
+
   public async getPeers(): Promise<T[]> {
     const client = WalletConnectCommunicationClient.getInstance(this.wcOptions)
     const session = client.currentSession()
@@ -92,7 +113,7 @@ export class WalletConnectTransport<
     //
   }
 
-  public async getPairingRequestInfo(): Promise<any> {
+  public getPairingRequestInfo(): Promise<any> {
     return this.client.getPairingRequestInfo()
   }
 

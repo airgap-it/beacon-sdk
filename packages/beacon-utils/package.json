@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-utils",
-  "version": "4.0.12",
+  "version": "4.1.0",
   "description": "This package contains utility functions that are used throughout the beacon-sdk",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@stablelib/ed25519": "^1.0.3",
-    "@stablelib/nacl": "^1.0.3",
+    "@stablelib/nacl": "^1.0.4",
     "@stablelib/random": "^1.0.2",
     "@stablelib/utf8": "^1.0.1",
     "bs58check": "2.1.2"

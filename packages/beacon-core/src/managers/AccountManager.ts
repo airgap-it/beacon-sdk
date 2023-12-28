@@ -15,7 +15,7 @@ export class AccountManager {
   }
 
   public async getAccounts(): Promise<AccountInfo[]> {
-    return await this.storageManager.getAll() ?? []
+    return (await this.storageManager.getAll()) ?? []
   }
 
   public async getAccount(accountIdentifier: string): Promise<AccountInfo | undefined> {
@@ -27,6 +27,24 @@ export class AccountManager {
       accountInfo,
       (account) => account.accountIdentifier === accountInfo.accountIdentifier
     )
+  }
+
+  public async updateAccount(
+    accountIdentifier: string,
+    accountInfo: Partial<AccountInfo>
+  ): Promise<AccountInfo | undefined> {
+    const account = await this.getAccount(accountIdentifier)
+
+    if (!account) return undefined
+
+    const newAccount = { ...account, ...accountInfo }
+    await this.storageManager.addOne(
+      newAccount,
+      (account) => account.accountIdentifier === accountIdentifier,
+      true
+    )
+
+    return newAccount
   }
 
   public async removeAccount(accountIdentifier: string): Promise<void> {

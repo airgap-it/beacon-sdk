@@ -109,7 +109,7 @@ const rune2e = async () => {
     )
   ).asElement()
   if (desktopWallet) {
-    await desktopWallet.click()
+    await (desktopWallet as any).click()
   }
   const pairingPage = await newPagePromise
   const pairingUrl = pairingPage.url()

@@ -3,7 +3,7 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
-import { getAddressFromPublicKey, prefixPublicKey } from '../src/utils/crypto'
+import { getAddressFromPublicKey, isValidAddress, prefixPublicKey } from '../src/utils/crypto'
 import { generateGUID } from '../src/utils/generate-uuid'
 
 // use chai-as-promised plugin
@@ -123,5 +123,13 @@ describe(`Crypto`, () => {
     expect(prefixedPublicKey).to.deep.equal(
       'edpku4US3ZykcZifjzSGFCmFr3zRgCKndE82estE4irj4d5oqDNDvf'
     )
+  })
+
+  it(`should validate valid addresses`, async () => {
+    const address = 'tz1YZkgk9jfxcBTKWvaFTuh5fPxYEueQGDT8'
+
+    const isValid = isValidAddress(address)
+
+    expect(isValid).to.deep.equal(true)
   })
 })
