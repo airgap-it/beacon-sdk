@@ -14,6 +14,18 @@
       window.beaconSdkDebugEnabled = true
     </script>
 
+    <script
+      src="https://browser.sentry-cdn.com/7.91.0/bundle.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      Sentry.init({
+        dsn: 'https://385962b1cc80428186f09e7a237885c8@sentry.papers.tech/208',
+        tracesSampleRate: 1.0
+      })
+    </script>
+
     <script src="./walletbeacon.min.js"></script>
     <script src="./walletbeacon.sapling.min.js"></script>
 
