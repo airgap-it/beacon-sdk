@@ -27,7 +27,7 @@ import * as qrStyles from '../../components/qr/styles.css'
 import * as loaderStyles from '../../components/loader/styles.css'
 import * as pairOtherStyles from '../../components/pair-other/styles.css'
 
-import { Serializer, windowRef } from '@airgap/beacon-core'
+import { Logger, Serializer, windowRef } from '@airgap/beacon-core'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import {
   arrangeTopWallets,
@@ -41,6 +41,8 @@ import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS, isMobileOS, isTwBrowser } from '../../utils/platform'
 import { getColorMode } from '../../utils/colorMode'
 import PairOther from '../../components/pair-other/pair-other'
+
+const logger = new Logger('Alert')
 
 // Interfaces
 export interface AlertButton {
@@ -510,6 +512,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             } else if (isAndroid(window)) {
               window.open(link, '_blank', 'noopener')
             } else if (isIOS(window)) {
+              logger.log('DO DEEPLINK WITH ' + link)
               const a = document.createElement('a')
               a.setAttribute('href', link)
               a.setAttribute('rel', 'noopener')

@@ -177,6 +177,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
         this.requestPermissions(message)
+
+        if (this.messageIds.length) {
+          this.tryToDeepLink()
+        }
         break
       case BeaconMessageType.OperationRequest:
         this.sendOperations(message)
@@ -186,10 +190,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         break
       default:
         return
-    }
-
-    if (this.messageIds.length) {
-      this.tryToDeepLink()
     }
   }
 
@@ -432,6 +432,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   public async init(
     forceNewConnection: boolean = false
   ): Promise<{ uri: string; topic: string } | undefined> {
+    logger.warn('init')
     const signClient = await this.getSignClient()
 
     if (!signClient) {
@@ -451,51 +452,95 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return undefined
     }
 
-    const { uri, topic } = await signClient.core.pairing.create()
-    signClient.core.pairing
-      .ping({ topic })
-      .then(async () => {
-        await signClient.core.pairing.activate({ topic })
+    logger.warn('before create')
 
-        // pairings don't have peer details
-        // therefore we must immediately open a session
-        // to get data required in the pairing response
-        const session = await this.openSession(topic)
+    const permissionScopeParams: PermissionScopeParam = {
+      networks: [this.wcOptions.network],
+      events: [],
+      methods: [
+        PermissionScopeMethods.GET_ACCOUNTS,
+        PermissionScopeMethods.OPERATION_REQUEST,
+        PermissionScopeMethods.SIGN
+      ]
+    }
+    const optionalPermissionScopeParams: PermissionScopeParam = {
+      networks: [this.wcOptions.network],
+      events: [PermissionScopeEvents.REQUEST_ACKNOWLEDGED],
+      methods: []
+    }
 
-        const pairingResponse: ExtendedWalletConnectPairingResponse =
-          new ExtendedWalletConnectPairingResponse(
-            topic,
-            session.peer.metadata.name,
-            session.peer.publicKey,
-            '3',
-            topic,
-            session.peer.metadata.name
-          )
+    const connectParams = {
+      requiredNamespaces: {
+        [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(permissionScopeParams)
+      },
+      optionalNamespaces: {
+        [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
+      }
+    }
 
-        this.channelOpeningListeners.forEach((listener) => {
-          listener(pairingResponse)
-        })
+    const { uri, approval } = await signClient.connect(connectParams)
+
+    // signClient.core.pairing.ping({ topic }).then(async () => {
+    logger.warn('before activate')
+
+    // pairings don't have peer details
+    // therefore we must immediately open a session
+    // to get data required in the pairing response
+
+    logger.warn('before openSession')
+
+    approval().then((session) => {
+      logger.warn('after openSession')
+
+      const pairingResponse: ExtendedWalletConnectPairingResponse =
+        new ExtendedWalletConnectPairingResponse(
+          '',
+          session.peer.metadata.name,
+          session.peer.publicKey,
+          '3',
+          '',
+          session.peer.metadata.name
+        )
+
+      this.channelOpeningListeners.forEach((listener) => {
+        listener(pairingResponse)
       })
-      .catch(async (error: any) => {
-        logger.error(error.message)
 
-        if (!(await this.storage.hasPairings())) {
-          return
-        }
+      if (session?.controller !== this.session?.controller) {
+        logger.debug('Controller doesnt match, closing active session', [session.pairingTopic])
+        this.activeAccount && this.closeActiveSession(this.activeAccount)
+        this.session = undefined // close the previous session
+      }
 
-        console.log('noup.')
+      // I still need this check in the event the user aborts the sync process on the wallet side
+      // but there is already a connection set
+      this.session = this.session ?? session
+      logger.debug('Session is now', [session.pairingTopic])
 
-        signClient.core.pairing.disconnect({ topic }).catch((error) => logger.warn(error.message))
+      this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
+    })
+    // })
+    // .catch(async (error: any) => {
+    //   logger.error(error.message)
 
-        if (error instanceof InvalidSession) {
-          return
-        }
+    //   if (!(await this.storage.hasPairings())) {
+    //     return
+    //   }
 
-        const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
-        fun && fun()
-      })
+    //   console.log('noup.')
 
-    return { uri, topic }
+    //   signClient.core.pairing.disconnect({ topic }).catch((error) => logger.warn(error.message))
+
+    //   if (error instanceof InvalidSession) {
+    //     return
+    //   }
+
+    //   const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+    //   fun && fun()
+    // })
+    logger.warn('return uri and topic')
+
+    return { uri: uri ?? '', topic: '' }
   }
 
   public async close() {
@@ -671,6 +716,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     let _uri = '',
       _topic = ''
     try {
+      logger.warn('getPairingRequestInfo')
       const { uri, topic } = (await this.init(true)) ?? { uri: '', topic: '' }
       _uri = uri
       _topic = topic
