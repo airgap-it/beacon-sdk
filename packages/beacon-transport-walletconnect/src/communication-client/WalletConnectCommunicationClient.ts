@@ -187,7 +187,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       default:
         return
     }
-    
+
     if (this.messageIds.length) {
       this.tryToDeepLink()
     }
@@ -726,6 +726,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async openSession(pairingTopic?: string): Promise<SessionTypes.Struct> {
+    logger.debug('Starting open session with', [pairingTopic])
     const signClient = await this.getSignClient()
 
     if (!signClient) {
@@ -757,13 +758,19 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       pairingTopic: pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
     }
 
+    logger.debug('Checking wallet readiness', [pairingTopic])
+
     this.checkWalletReadiness(connectParams.pairingTopic)
 
     try {
+      logger.debug('connect', [pairingTopic])
       const { approval } = await signClient.connect(connectParams)
+      logger.debug('before await approal', [pairingTopic])
       const session = await approval()
+      logger.debug('after await approal, have session', [pairingTopic])
       // if I have successfully opened a session and I already have one opened
       if (session?.controller !== this.session?.controller) {
+        logger.debug('Controller doesnt match, closing active session', [pairingTopic])
         this.activeAccount && this.closeActiveSession(this.activeAccount)
         this.session = undefined // close the previous session
       }
@@ -771,14 +778,20 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // I still need this check in the event the user aborts the sync process on the wallet side
       // but there is already a connection set
       this.session = this.session ?? session
+      logger.debug('Session is now', [session.pairingTopic, pairingTopic])
+
       this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
     } catch (error: any) {
+      logger.debug('Error happened!', [pairingTopic])
       logger.error(error.message)
       if (this.activeListeners.size === 0) {
+        logger.debug('No active listeners', [pairingTopic])
         const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
         fun && fun('error')
       } else {
         const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
+        logger.debug('New pairing topic?', [pairingTopic])
+
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
           id: this.messageIds.pop(),
@@ -790,9 +803,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     if (this.session) {
+      logger.debug('Have session, returning', [pairingTopic])
+
       return this.session
     } else {
-      throw new InvalidSession('No session set.')
+      logger.debug('Nope, aborting', [pairingTopic])
+      debugger
+      throw new InvalidSession('No session set.' + pairingTopic)
     }
   }
 
