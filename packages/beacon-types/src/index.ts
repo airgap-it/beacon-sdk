@@ -6,7 +6,6 @@ import { AppMetadata } from './types/beacon/AppMetadata'
 import { PermissionRequest } from './types/beacon/messages/PermissionRequest'
 import { ProofOfEventChallengeRequest } from './types/beacon/messages/ProofOfEventChallengeRequest'
 import { ProofOfEventChallengeResponse } from './types/beacon/messages/ProofOfEventChallengeResponse'
-import { ProofOfEventChallengeRecordedRequest } from './types/beacon/messages/ProofOfEventChallengeRecordedRequest'
 import { Network } from './types/beacon/Network'
 import { BeaconBaseMessage } from './types/beacon/BeaconBaseMessage'
 import { BeaconMessageType } from './types/beacon/BeaconMessageType'
@@ -85,7 +84,6 @@ import {
   BroadcastRequestInput,
   BeaconRequestInputMessage,
   IgnoredRequestInputProperties,
-  ProofOfEventChallengeRecordedMessageInput,
   ProofOfEventChallengeRequestInput
 } from './types/beacon/messages/BeaconRequestInputMessage'
 import {
@@ -95,8 +93,7 @@ import {
   OperationRequestOutput,
   BroadcastRequestOutput,
   BeaconRequestOutputMessage,
-  ProofOfEventChallengeRequestOutput,
-  ProofOfEventChallengeRecordedMessageOutput
+  ProofOfEventChallengeRequestOutput
 } from './types/beacon/messages/BeaconRequestOutputMessage'
 import { PermissionInfo } from './types/PermissionInfo'
 import { ConnectionContext } from './types/ConnectionContext'
@@ -213,15 +210,13 @@ export {
   RequestPermissionInput,
   RequestProofOfEventChallengeInput,
   RequestSignPayloadInput,
-  ProofOfEventChallengeRecordedMessageInput,
   // RequestEncryptPayloadInput,
   RequestOperationInput,
   RequestBroadcastInput,
   PermissionInfo,
   PermissionEntity,
   ProofOfEventChallengeRequest,
-  ProofOfEventChallengeResponse,
-  ProofOfEventChallengeRecordedRequest
+  ProofOfEventChallengeResponse
 }
 
 export {
@@ -247,7 +242,6 @@ export {
   PermissionRequestOutput,
   SignPayloadRequestOutput,
   ProofOfEventChallengeRequestOutput,
-  ProofOfEventChallengeRecordedMessageOutput,
   // EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,

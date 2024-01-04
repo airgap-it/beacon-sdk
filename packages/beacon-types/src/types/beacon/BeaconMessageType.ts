@@ -12,7 +12,6 @@ export enum BeaconMessageType {
   // EncryptPayloadResponse = 'encrypt_payload_response',
   ProofOfEventChallengeRequest = 'proof_of_event_challenge_request',
   ProofOfEventChallengeResponse = 'proof_of_event_challenge_response',
-  ProofOfEventChallengeRecorded = 'proof_of_event_challenge_recorded',
   OperationResponse = 'operation_response',
   BroadcastResponse = 'broadcast_response',
   Acknowledge = 'acknowledge',
