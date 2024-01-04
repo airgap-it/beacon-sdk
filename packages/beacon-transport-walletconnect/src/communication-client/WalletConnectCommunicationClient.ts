@@ -71,6 +71,21 @@ type BeaconInputMessage =
   | Optional<DisconnectMessage, IgnoredResponseInputProperties>
   | Optional<ChangeAccountRequest, IgnoredResponseInputProperties>
 
+function getStringBetween(str: string | undefined, startChar: string, endChar: string): string {
+  if (!str || !startChar || !endChar) {
+    return ''
+  }
+
+  const startIndex = str.indexOf(startChar)
+  const endIndex = str.indexOf(endChar, startIndex + 1)
+
+  if (startIndex === -1 || endIndex === -1) {
+    throw new Error('String not found')
+  }
+
+  return str.substring(startIndex + 1, endIndex)
+}
+
 export class WalletConnectCommunicationClient extends CommunicationClient {
   protected readonly activeListeners: Map<string, (message: string) => void> = new Map()
 
@@ -480,48 +495,85 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     const { uri, approval } = await signClient.connect(connectParams)
 
-    // signClient.core.pairing.ping({ topic }).then(async () => {
-    logger.warn('before activate')
+    // Extract topic from uri. Format is wc:topic@2...
+    const topic = getStringBetween(uri, ':', '@')
 
-    // pairings don't have peer details
-    // therefore we must immediately open a session
-    // to get data required in the pairing response
+    if (!topic) {
+      return
+    }
 
-    logger.warn('before openSession')
+    let hasResponse = false
 
-    approval().then((session) => {
-      logger.warn('after openSession')
-
-      const pairingResponse: ExtendedWalletConnectPairingResponse =
-        new ExtendedWalletConnectPairingResponse(
-          '',
-          session.peer.metadata.name,
-          session.peer.publicKey,
-          '3',
-          '',
-          session.peer.metadata.name
-        )
-
-      this.channelOpeningListeners.forEach((listener) => {
-        listener(pairingResponse)
+    signClient.core.pairing
+      .ping({ topic })
+      .then(async () => {
+        if (!hasResponse) {
+          // Only show "waiting for acknowledge" message if pong arrives before response
+          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+          fun && fun('pending')
+        }
+      })
+      .catch((err) => {
+        console.error('--------', err)
       })
 
-      if (session?.controller !== this.session?.controller) {
-        logger.debug('Controller doesnt match, closing active session', [session.pairingTopic])
-        this.activeAccount && this.closeActiveSession(this.activeAccount)
-        this.session = undefined // close the previous session
-      }
+    approval()
+      .then((session) => {
+        logger.debug('session open')
 
-      // I still need this check in the event the user aborts the sync process on the wallet side
-      // but there is already a connection set
-      this.session = this.session ?? session
-      logger.debug('Session is now', [session.pairingTopic])
+        hasResponse = true
 
-      this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
-    })
-    // })
+        const pairingResponse: ExtendedWalletConnectPairingResponse =
+          new ExtendedWalletConnectPairingResponse(
+            session.topic,
+            session.peer.metadata.name,
+            session.peer.publicKey,
+            '3',
+            session.topic,
+            session.peer.metadata.name
+          )
+
+        this.channelOpeningListeners.forEach((listener) => {
+          listener(pairingResponse)
+        })
+
+        if (session?.controller !== this.session?.controller) {
+          logger.debug('Controller doesnt match, closing active session', [session.pairingTopic])
+          this.activeAccount && this.closeActiveSession(this.activeAccount)
+          this.session = undefined // close the previous session
+        }
+
+        // We need this check in the event the user aborts the sync process on the wallet side
+        // but there is already a connection set
+        this.session = this.session ?? session
+        logger.debug('Session is now', [session.pairingTopic])
+
+        this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
+      })
+      .catch(async (error: any) => {
+        logger.error('Error happened!', [error.message])
+
+        if (this.activeListeners.size === 0) {
+          logger.debug('No active listeners', [])
+          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+          fun && fun('error')
+        } else {
+          const _pairingTopic = topic ?? signClient.core.pairing.getPairings()[0]?.topic
+          logger.debug('New pairing topic?', [])
+
+          const errorResponse: ErrorResponseInput = {
+            type: BeaconMessageType.Error,
+            id: this.messageIds.pop(),
+            errorType: BeaconErrorType.ABORTED_ERROR
+          } as ErrorResponse
+
+          this.notifyListeners(_pairingTopic, errorResponse)
+        }
+      })
     // .catch(async (error: any) => {
     //   logger.error(error.message)
+
+    //
 
     //   if (!(await this.storage.hasPairings())) {
     //     return
@@ -538,9 +590,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     //   const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
     //   fun && fun()
     // })
+
     logger.warn('return uri and topic')
 
-    return { uri: uri ?? '', topic: '' }
+    return { uri: uri ?? '', topic: topic }
   }
 
   public async close() {
@@ -854,7 +907,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return this.session
     } else {
       logger.debug('Nope, aborting', [pairingTopic])
-      debugger
+
       throw new InvalidSession('No session set.' + pairingTopic)
     }
   }
