@@ -65,7 +65,11 @@ import {
   AppBase,
   DesktopApp,
   ExtensionApp,
-  WebApp
+  WebApp,
+  SimulatedProofOfEventChallengeRequestInput,
+  SimulatedProofOfEventChallengeRequest,
+  SimulatedProofOfEventChallengeResponse,
+  RequestSimulatedProofOfEventChallengeInput
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -1269,6 +1273,60 @@ export class DAppClient extends Client {
   }
 
   /**
+   * Send a simulated proof of event request to the wallet. The wallet will either accept or decline the challenge.
+   * It's the same than `requestProofOfEventChallenge` but rather than executing operations on the blockchain to prove the identity,
+   * The wallet will return a list of operations that you'll be able to run on your side to verify the identity of the abstracted account
+   * It's **highly recommended** to run a proof of event challenge to check the identity of an abstracted account
+   *
+   * @param input The message details we need to prepare the SimulatedProofOfEventChallenge message.
+   */
+  public async requestSimulatedProofOfEventChallenge(
+    input: RequestSimulatedProofOfEventChallengeInput
+  ) {
+    const activeAccount = await this.getActiveAccount()
+
+    if (!activeAccount)
+      throw new Error('Please request permissions before doing a proof of event challenge')
+    if (
+      activeAccount.walletType !== 'abstracted_account' &&
+      activeAccount.verificationType !== 'proof_of_event'
+    )
+      throw new Error(
+        'This wallet is not an abstracted account and thus cannot perform a simulated proof of event'
+      )
+
+    const request: SimulatedProofOfEventChallengeRequestInput = {
+      type: BeaconMessageType.SimulatedProofOfEventChallengeRequest,
+      contractAddress: activeAccount.address,
+      ...input
+    }
+
+    const { message, connectionInfo } = await this.makeRequest<
+      SimulatedProofOfEventChallengeRequest,
+      SimulatedProofOfEventChallengeResponse
+    >(request).catch(async (requestError: ErrorResponse) => {
+      throw await this.handleRequestError(request, requestError)
+    })
+
+    this.analytics.track(
+      'event',
+      'DAppClient',
+      `Simulated proof of event challenge ${!message.errorMessage ? 'accepted' : 'refused'}`,
+      { address: activeAccount.address }
+    )
+
+    await this.notifySuccess(request, {
+      account: activeAccount,
+      output: message,
+      blockExplorer: this.blockExplorer,
+      connectionContext: connectionInfo,
+      walletInfo: await this.getWalletInfo()
+    })
+
+    return message
+  }
+
+  /**
    * This method will send a "SignPayloadRequest" to the wallet. This method is meant to be used to sign
    * arbitrary data (eg. a string). It will return the signature in the format of "edsig..."
    *
@@ -1658,6 +1716,13 @@ export class DAppClient extends Client {
       | {
           account: AccountInfo
           output: ProofOfEventChallengeResponse
+          blockExplorer: BlockExplorer
+          connectionContext: ConnectionContext
+          walletInfo: WalletInfo
+        }
+      | {
+          account: AccountInfo
+          output: SimulatedProofOfEventChallengeResponse
           blockExplorer: BlockExplorer
           connectionContext: ConnectionContext
           walletInfo: WalletInfo

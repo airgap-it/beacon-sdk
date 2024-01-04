@@ -1,4 +1,8 @@
-import { Optional, ProofOfEventChallengeResponse } from '@airgap/beacon-types'
+import {
+  Optional,
+  ProofOfEventChallengeResponse,
+  SimulatedProofOfEventChallengeResponse
+} from '@airgap/beacon-types'
 import {
   PermissionResponse,
   OperationResponse,
@@ -26,6 +30,13 @@ export type PermissionResponseInput = Optional<
  */
 export type ProofOfEventChallengeResponseInput = Optional<
   ProofOfEventChallengeResponse,
+  IgnoredResponseInputProperties
+>
+/**
+ * @category Wallet
+ */
+export type SimulatedProofOfEventChallengeResponseInput = Optional<
+  SimulatedProofOfEventChallengeResponse,
   IgnoredResponseInputProperties
 >
 /**

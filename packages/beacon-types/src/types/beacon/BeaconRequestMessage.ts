@@ -3,7 +3,8 @@ import {
   OperationRequest,
   SignPayloadRequest,
   BroadcastRequest,
-  ProofOfEventChallengeRequest
+  ProofOfEventChallengeRequest,
+  SimulatedProofOfEventChallengeRequest
   // EncryptPayloadRequest
 } from '@airgap/beacon-types'
 
@@ -17,3 +18,4 @@ export type BeaconRequestMessage =
   // | EncryptPayloadRequest
   | BroadcastRequest
   | ProofOfEventChallengeRequest
+  | SimulatedProofOfEventChallengeRequest

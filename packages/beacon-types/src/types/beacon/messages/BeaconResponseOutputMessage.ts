@@ -5,7 +5,8 @@ import {
   // EncryptPayloadResponse,
   BroadcastResponse,
   AccountInfo,
-  ProofOfEventChallengeResponse
+  ProofOfEventChallengeResponse,
+  SimulatedProofOfEventChallengeResponse
 } from '@airgap/beacon-types'
 
 /**
@@ -26,6 +27,11 @@ export type PermissionResponseOutput = PermissionResponse & {
  * @category DApp
  */
 export type ProofOfEventChallengeResponseOutput = ProofOfEventChallengeResponse
+
+/**
+ * @category DApp
+ */
+export type SimulatedProofOfEventChallengeResponseOutput = SimulatedProofOfEventChallengeResponse
 
 /**
  * @category DApp
@@ -55,3 +61,4 @@ export type BeaconResponseOutputMessage =
   // | EncryptPayloadResponseOutput
   | BroadcastResponseOutput
   | ProofOfEventChallengeResponseOutput
+  | SimulatedProofOfEventChallengeResponseOutput
