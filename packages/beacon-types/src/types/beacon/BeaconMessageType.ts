@@ -13,6 +13,8 @@ export enum BeaconMessageType {
   ProofOfEventChallengeRequest = 'proof_of_event_challenge_request',
   ProofOfEventChallengeResponse = 'proof_of_event_challenge_response',
   ProofOfEventChallengeRecorded = 'proof_of_event_challenge_recorded',
+  SimulatedProofOfEventChallengeRequest = 'simulated_proof_of_event_challenge_request',
+  SimulatedProofOfEventChallengeResponse = 'simulated_proof_of_event_challenge_response',
   OperationResponse = 'operation_response',
   BroadcastResponse = 'broadcast_response',
   Acknowledge = 'acknowledge',
