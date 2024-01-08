@@ -471,6 +471,33 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       )
     }
 
+    const handleDeepLinking = (wallet: MergedWallet, uri: string) => {
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: wallet.key,
+          type: 'mobile',
+          icon: wallet.image
+        })
+      )
+
+      const link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
+      updateSelectedWalletWithURL(link)
+
+      if (isTwBrowser(window) && isAndroid(window)) {
+        window.location.href = `${uri}`
+      }
+      if (isAndroid(window)) {
+        console.log('link', link)
+        window.open(link, '_blank', 'noopener')
+      } else {
+        const a = document.createElement('a')
+        a.setAttribute('href', link)
+        a.setAttribute('rel', 'noopener')
+        a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
+      }
+    }
+
     const handleClickWallet = async (id: string) => {
       setIsLoading(true)
       setShowMoreContent(false)
