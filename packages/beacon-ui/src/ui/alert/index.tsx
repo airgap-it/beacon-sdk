@@ -376,7 +376,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const setInstallState = (wallet?: MergedWallet) => {
-      if (!wallet || (wallet.types.length <= 1 && !wallet.types.includes('ios') && !wallet.types.includes('desktop'))) {
+      if (
+        !wallet ||
+        (wallet.types.length <= 1 &&
+          !wallet.types.includes('ios') &&
+          !wallet.types.includes('desktop')) ||
+        (_isMobileOS && wallet.types.length === 1 && wallet.types.includes('desktop'))
+      ) {
         return
       }
 
