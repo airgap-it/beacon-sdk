@@ -376,7 +376,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const setInstallState = (wallet?: MergedWallet) => {
-      if (!wallet || (wallet.types.length <= 1 && !wallet.types.includes('ios'))) {
+      if (!wallet || (wallet.types.length <= 1 && !wallet.types.includes('ios') && !wallet.types.includes('desktop'))) {
         return
       }
 
@@ -491,6 +491,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       const link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
       updateSelectedWalletWithURL(link)
+      logger.log('DO DEEPLINK WITH ' + link)
 
       if (isTwBrowser(window) && isAndroid(window)) {
         window.location.href = `${uri}`
