@@ -476,6 +476,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setShowMoreContent(false)
       const wallet = walletList().find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
+
       if (wallet?.key) {
         analytics()?.track('click', 'ui', 'opened wallet', { key: wallet.key })
       }
@@ -521,9 +522,17 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             if (isTwBrowser(window) && isAndroid(window)) {
               link = `${uri}`
               window.location.href = link
-            } else if (isAndroid(window)) {
+            } else if (
+              isAndroid(window) &&
+              currentWallet()?.types.includes('ios') &&
+              currentWallet()?.types.length === 1
+            ) {
               window.open(link, '_blank', 'noopener')
-            } else if (isIOS(window)) {
+            } else if (
+              isIOS(window) &&
+              currentWallet()?.types.includes('ios') &&
+              currentWallet()?.types.length === 1
+            ) {
               logger.log('DO DEEPLINK WITH ' + link)
               const a = document.createElement('a')
               a.setAttribute('href', link)
@@ -744,7 +753,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
-                      {!isMobile() && isOnline && currentWallet()?.types.includes('web') && (
+                      {isOnline && currentWallet()?.types.includes('web') && (
                         <Info
                           border
                           title={'Open wallet in a new tab'}
