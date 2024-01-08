@@ -488,7 +488,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         window.location.href = `${uri}`
       }
       if (isAndroid(window)) {
-        console.log('link', link)
         window.open(link, '_blank', 'noopener')
       } else {
         const a = document.createElement('a')
