@@ -540,6 +540,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               a.dispatchEvent(
                 new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
               )
+            } else {
+              setCodeQR(uri)
+              setCurrentInfo('install')
             }
           } else {
             setCodeQR(uri)
