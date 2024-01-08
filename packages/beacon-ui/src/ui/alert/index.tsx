@@ -569,7 +569,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             }
           } else {
             setCodeQR(uri)
-            setCurrentInfo('install')
+            wallet && wallet.types.length > 1 && setCurrentInfo('install')
           }
         } else {
           handleCloseAlert()
@@ -615,7 +615,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         setIsLoading(false)
       } else {
         setIsLoading(false)
-        setCurrentInfo('install')
+        wallet && wallet.types.length > 1 && setCurrentInfo('install')
         await setDefaultPayload()
       }
     }
