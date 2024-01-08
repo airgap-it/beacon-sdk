@@ -119,7 +119,8 @@ import {
   getWebList,
   getiOSList,
   isBrowser,
-  isDesktop
+  isDesktop,
+  isMobileOS
 } from '@airgap/beacon-ui'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 
@@ -768,6 +769,24 @@ export class DAppClient extends Client {
       ])
       this._initPromise = undefined
     }
+  }
+
+  private async tryToAppSwitch() {
+    const wallet = await this.getWalletInfo()
+
+    if (
+      !isMobileOS(window) ||
+      !wallet.type ||
+      wallet.type !== 'mobile' ||
+      !wallet.deeplink?.length
+    ) {
+      return
+    }
+
+    const a = document.createElement('a')
+    a.setAttribute('href', wallet.deeplink)
+    a.setAttribute('rel', 'noopener')
+    a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
   }
 
   /**
@@ -1861,6 +1880,12 @@ export class DAppClient extends Client {
     logger.timeLog('makeRequest', messageId, 'sending')
     try {
       await transport.send(payload, peer)
+      if (
+        request.type !== BeaconMessageType.PermissionRequest ||
+        (this._activeAccount.isResolved() && (await this._activeAccount.promise))
+      ) {
+        this.tryToAppSwitch()
+      }
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
@@ -1991,6 +2016,12 @@ export class DAppClient extends Client {
     logger.timeLog('makeRequest', messageId, 'sending')
     try {
       await transport.send(payload, peer)
+      if (
+        request.message.type !== BeaconMessageType.PermissionRequest ||
+        (this._activeAccount.isResolved() && (await this._activeAccount.promise))
+      ) {
+        this.tryToAppSwitch()
+      }
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
