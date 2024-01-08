@@ -375,6 +375,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       return <></>
     }
 
+    const setInstallState = (wallet?: MergedWallet) => {
+      if (!wallet || (wallet.types.length <= 1 && !wallet.types.includes('ios'))) {
+        return
+      }
+
+      setCurrentInfo('install')
+    }
+
     const handleClickShowMoreContent = () => {
       analytics()?.track('click', 'ui', 'show more wallets')
       setShowMoreContent(!showMoreContent())
@@ -569,7 +577,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             }
           } else {
             setCodeQR(uri)
-            wallet && wallet.types.length > 1 && setCurrentInfo('install')
+            setInstallState(wallet)
           }
         } else {
           handleCloseAlert()
@@ -615,7 +623,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         setIsLoading(false)
       } else {
         setIsLoading(false)
-        wallet && wallet.types.length > 1 && setCurrentInfo('install')
+        setInstallState(wallet)
         await setDefaultPayload()
       }
     }
