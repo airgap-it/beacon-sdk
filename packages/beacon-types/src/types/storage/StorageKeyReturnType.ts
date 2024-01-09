@@ -24,7 +24,13 @@ export interface StorageKeyReturnType {
   [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET]: ExtendedPostMessagePairingResponse[]
   [StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP]: ExtendedWalletConnectPairingResponse[]
   [StorageKey.LAST_SELECTED_WALLET]:
-    | { key: string; type: 'extension' | 'mobile' | 'web' | 'desktop'; icon: string }
+    | {
+        key: string
+        name: string
+        type: 'extension' | 'mobile' | 'web' | 'desktop'
+        icon: string
+        url?: string
+      }
     | undefined
   [StorageKey.ACCOUNTS]: AccountInfo[]
   [StorageKey.ACTIVE_ACCOUNT]: AccountIdentifier | undefined

@@ -463,6 +463,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         StorageKey.LAST_SELECTED_WALLET,
         JSON.stringify({
           key: wallet.key,
+          name: wallet.name,
           type: 'web',
           icon: currentWallet()?.image
         })
@@ -498,6 +499,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               StorageKey.LAST_SELECTED_WALLET,
               JSON.stringify({
                 key: wallet.key,
+                name: wallet.name,
                 type: 'mobile',
                 icon: currentWallet()?.image
               })
@@ -563,15 +565,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         }
 
-        localStorage.setItem(
-          StorageKey.LAST_SELECTED_WALLET,
-          JSON.stringify({
-            key: wallet.key,
-            type: 'mobile',
-            icon: currentWallet()?.image
-          })
-        )
-
         setIsLoading(false)
       } else {
         setIsLoading(false)
@@ -582,7 +575,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     const handleClickOther = async () => {
       analytics()?.track('click', 'ui', 'other wallet')
-
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: 'none',
+          name: 'your wallet',
+          type: 'mobile'
+        })
+      )
       setCurrentInfo('qr')
     }
 
@@ -619,6 +619,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         StorageKey.LAST_SELECTED_WALLET,
         JSON.stringify({
           key: currentWallet()?.key,
+          name: currentWallet()?.name,
           type: 'extension',
           icon: currentWallet()?.image
         })
@@ -647,6 +648,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         StorageKey.LAST_SELECTED_WALLET,
         JSON.stringify({
           key: currentWallet()?.key,
+          name: currentWallet()?.name,
           type: 'desktop',
           icon: currentWallet()?.image
         })
@@ -671,6 +673,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         StorageKey.LAST_SELECTED_WALLET,
         JSON.stringify({
           key: currentWallet()?.key,
+          name: currentWallet()?.name,
           type: 'mobile',
           icon: currentWallet()?.image
         })
