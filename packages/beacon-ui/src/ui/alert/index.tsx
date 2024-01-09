@@ -478,6 +478,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         analytics()?.track('click', 'ui', 'opened wallet', { key: wallet.key })
       }
 
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: wallet?.key,
+          type: 'mobile',
+          icon: currentWallet()?.image
+        })
+      )
+
       if (
         wallet?.types.includes('web') &&
         !(
@@ -547,10 +556,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             isIOS(window) && wallet.deepLink
               ? wallet.deepLink
               : isAndroid(window)
-              ? 'tezos://'
-              : wallet.links[OSLink.IOS],
+              ? wallet.links[OSLink.IOS]
+              : 'tezos://',
             code
           )
+
+          updateSelectedWalletWithURL(link)
 
           if (isAndroid(window)) window.open(link, '_blank', 'noopener')
           else if (isIOS(window)) {
@@ -562,15 +573,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             )
           }
         }
-
-        localStorage.setItem(
-          StorageKey.LAST_SELECTED_WALLET,
-          JSON.stringify({
-            key: wallet.key,
-            type: 'mobile',
-            icon: currentWallet()?.image
-          })
-        )
 
         setIsLoading(false)
       } else {
