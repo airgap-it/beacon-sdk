@@ -61,7 +61,12 @@ import {
   RequestProofOfEventChallengeInput,
   ProofOfEventChallengeRecordedMessageInput,
   ChangeAccountRequest,
-  PeerInfoType
+  PeerInfoType,
+  App,
+  AppBase,
+  DesktopApp,
+  ExtensionApp,
+  WebApp
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -109,7 +114,12 @@ import {
   setExtensionList,
   setWebList,
   setiOSList,
-  getiOSList
+  getiOSList,
+  getDesktopList,
+  getExtensionList,
+  getWebList,
+  isBrowser,
+  isDesktop
 } from '@airgap/beacon-ui'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 
@@ -1633,41 +1643,83 @@ export class DAppClient extends Client {
   }
 
   private async getWalletInfo(peer?: PeerInfo, account?: AccountInfo): Promise<WalletInfo> {
-    // Select account and peer
-    const selectedAccount = account || (await this.getActiveAccount())
-    const selectedPeer = peer || (await this.getPeer(selectedAccount))
+    const selectedAccount = account ? account : await this.getActiveAccount()
 
-    // Attempt to get wallet info for the selected account
-    let walletInfo: WalletInfo | undefined = selectedAccount
-      ? await this.appMetadataManager.getAppMetadata(selectedAccount.senderId)
-      : undefined
+    const selectedPeer = peer ? peer : await this.getPeer(selectedAccount)
 
-    // Use default wallet info if none is found
+    let walletInfo: WalletInfo | undefined
+    if (selectedAccount) {
+      walletInfo = await this.appMetadataManager.getAppMetadata(selectedAccount.senderId)
+    }
+
     const storageWallet = await this.getWalletInfoFromStorage()
+
     if (!walletInfo) {
-      const defaultIcon = getiOSList().find((el) => el.shortName === 'AirGap')?.logo
       walletInfo = {
-        name: selectedPeer?.name ?? storageWallet?.name ?? 'your wallet',
-        icon: selectedPeer?.icon ?? storageWallet?.icon ?? defaultIcon,
+        name: selectedPeer?.name ?? storageWallet?.key ?? '',
+        icon: selectedPeer?.icon ?? storageWallet?.icon,
         type: storageWallet?.type
       }
     }
 
-    // Update storage if placehoder exists
-    if (selectedPeer && storageWallet && storageWallet.key === 'none') {
-      const getOrgName = (name: string) => name.split(/[_\s]+/)[0].toLowerCase()
-      const refWallet = getiOSList().find(
-        (el) => getOrgName(el.key) === getOrgName(walletInfo?.name ?? '')
-      )
+    const lowerCaseCompare = (str1?: string, str2?: string): boolean => {
+      if (str1 && str2) {
+        return str1.toLowerCase() === str2.toLowerCase()
+      }
 
-      if (refWallet) {
-        this.storage.set(StorageKey.LAST_SELECTED_WALLET, {
-          ...storageWallet,
-          key: refWallet.key,
-          name: refWallet.name,
-          icon: refWallet.logo ?? storageWallet.icon,
-          url: refWallet.deepLink
-        })
+      return false
+    }
+
+    const getOrgName = (name: string) => name.split(/[_\s]+/)[0]
+
+    const apps: AppBase[] = [
+      ...getiOSList(),
+      ...getWebList(),
+      ...getDesktopList(),
+      ...getExtensionList()
+    ].filter((app: AppBase) =>
+      lowerCaseCompare(getOrgName(app.key), getOrgName(walletInfo?.name ?? 'wallet'))
+    )
+
+    // TODO: Remove once all wallets send the icon?
+    const mobile = (apps as App[]).find((app) => app.universalLink)
+    const browser = (apps as WebApp[]).find((app) => app.links)
+    const desktop = (apps as DesktopApp[]).find((app) => app.downloadLink)
+    const extension = (apps as ExtensionApp[]).find((app) => app.id)
+
+    const appTypeMap = {
+      extension: { app: extension, type: 'extension' },
+      desktop: { app: desktop, type: 'desktop' },
+      mobile: { app: mobile, type: 'mobile' },
+      web: { app: browser, type: 'web' }
+    }
+
+    const defaultType = (): {
+      app: AppBase | undefined
+      type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
+    } => {
+      if (isBrowser(window) && browser) return { app: browser, type: 'web' }
+      if (isDesktop(window) && desktop) return { app: desktop, type: 'desktop' }
+      if (isBrowser(window) && extension) return { app: extension, type: 'extension' }
+      if (mobile) return { app: mobile, type: 'mobile' }
+      return { app: undefined, type: undefined }
+    }
+
+    const { app, type } = storageWallet ? appTypeMap[storageWallet.type] : defaultType()
+
+    if (app) {
+      let deeplink: string | undefined
+      if (app.hasOwnProperty('links')) {
+        deeplink = (app as WebApp).links[selectedAccount?.network.type ?? this.network.type]
+      } else if (app.hasOwnProperty('deepLink')) {
+        deeplink = (app as App).deepLink
+      }
+
+      return {
+        name: app?.name ?? walletInfo.name,
+        icon: app?.logo ?? walletInfo.icon,
+        deeplink,
+        type: type as any
       }
     }
 
