@@ -578,9 +578,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       localStorage.setItem(
         StorageKey.LAST_SELECTED_WALLET,
         JSON.stringify({
-          key: 'none',
-          name: 'your wallet',
-          type: 'mobile'
+          key: 'wallet',
+          name: 'wallet',
+          type: 'mobile',
+          icon: iOSList.find(el => el.shortName === 'AirGap')?.logo
         })
       )
       setCurrentInfo('qr')
