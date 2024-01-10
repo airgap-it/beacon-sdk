@@ -777,8 +777,14 @@ export class DAppClient extends Client {
       return
     }
 
+    const wallet = await this.getWalletInfo()
+
+    if (wallet.type !== 'mobile') {
+      return
+    }
+
     const link = isIOS(window)
-      ? (await this.getWalletInfo()).deeplink
+      ? wallet.deeplink
       : JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}').url
 
     if (!link?.length) {
