@@ -1,5 +1,6 @@
 import axios from 'axios'
 import * as bs58check from 'bs58check'
+import { encodePoeChallengePayload } from '@airgap/beacon-utils'
 import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../events'
 import {
   ConnectionContext,
@@ -1175,7 +1176,7 @@ export class DAppClient extends Client {
     const request: ProofOfEventChallengeRequestInput = {
       type: BeaconMessageType.ProofOfEventChallengeRequest,
       contractAddress: activeAccount.address,
-      ...input
+      payload: encodePoeChallengePayload(input.payload)
     }
 
     const { message, connectionInfo } = await this.makeRequest<

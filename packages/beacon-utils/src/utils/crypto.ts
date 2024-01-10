@@ -12,6 +12,9 @@ import { sign } from '@stablelib/ed25519'
 export const secretbox_NONCEBYTES = 24 // crypto_secretbox_NONCEBYTES
 export const secretbox_MACBYTES = 16 // crypto_secretbox_MACBYTES
 
+const POE_CHALLENGE_BYTES_LENGTH = 20
+const POE_CHALLENGE_PREFIX = 110
+
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 
 /**
@@ -276,6 +279,17 @@ export const isValidAddress = (address: string): boolean => {
   }
 
   return true
+}
+
+const poeBlake2b = new BLAKE2b(POE_CHALLENGE_BYTES_LENGTH)
+
+export function encodePoeChallengePayload(payload: string) {
+  return bs58check.encode(
+    Buffer.concat([
+      new Uint8Array([POE_CHALLENGE_PREFIX]),
+      Buffer.from(poeBlake2b.update(Buffer.from(payload)).digest())
+    ])
+  )
 }
 
 /* eslint-enable prefer-arrow/prefer-arrow-functions */
