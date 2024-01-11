@@ -41,6 +41,7 @@ import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS, isMobileOS, isTwBrowser } from '../../utils/platform'
 import { getColorMode } from '../../utils/colorMode'
 import PairOther from '../../components/pair-other/pair-other'
+import getDefaultLogo from './getDefautlLogo'
 
 const logger = new Logger('Alert')
 
@@ -581,7 +582,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           key: 'wallet',
           name: 'wallet',
           type: 'mobile',
-          icon: iOSList.find(el => el.shortName === 'AirGap')?.logo
+          icon: getDefaultLogo()
         })
       )
       setCurrentInfo('qr')
@@ -685,7 +686,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || false
           }
           isMobile={isMobile}
-          walletName={currentWallet()?.name || 'AirGap'}
+          walletName={currentWallet()?.name || 'wallet'}
           code={codeQR()}
           onClickLearnMore={handleClickLearnMore}
           onClickQrCode={handleClickQrCode}
