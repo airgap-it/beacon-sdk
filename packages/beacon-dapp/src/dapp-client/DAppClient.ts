@@ -119,7 +119,9 @@ import {
   getExtensionList,
   getWebList,
   isBrowser,
-  isDesktop
+  isDesktop,
+  isMobileOS,
+  isIOS
 } from '@airgap/beacon-ui'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 
@@ -143,6 +145,11 @@ export class DAppClient extends Client {
    * The block explorer used by the SDK
    */
   public readonly blockExplorer: BlockExplorer
+
+  /**
+   * Automatically switch between apps on Mobile Devices (Enabled by Default)
+   */
+  enableAppSwitching: boolean = true
 
   public network: Network
 
@@ -768,6 +775,28 @@ export class DAppClient extends Client {
       ])
       this._initPromise = undefined
     }
+  }
+
+  private async tryToAppSwitch() {
+    if (!isMobileOS(window) || !this.enableAppSwitching) {
+      return
+    }
+
+    const wallet = await this.getWalletInfo()
+
+    if (wallet.type !== 'mobile') {
+      return
+    }
+
+    const link = isIOS(window)
+      ? wallet.deeplink
+      : JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}').url
+
+    if (!link?.length) {
+      return
+    }
+
+    window.location = link
   }
 
   /**
@@ -1797,18 +1826,6 @@ export class DAppClient extends Client {
     logger.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
-    const transport = await this.transport
-
-    if (
-      transport instanceof WalletConnectTransport &&
-      (await this.getActiveAccount()) &&
-      !(await transport.hasPairings()) &&
-      !(await transport.hasSessions())
-    ) {
-      await this.channelClosedHandler()
-      throw new Error('No active pairing nor session found')
-    }
-
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
@@ -1860,7 +1877,13 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'sending message', request)
     logger.timeLog('makeRequest', messageId, 'sending')
     try {
-      await transport.send(payload, peer)
+      ;(await this.transport).send(payload, peer)
+      if (
+        request.type !== BeaconMessageType.PermissionRequest ||
+        (this._activeAccount.isResolved() && (await this._activeAccount.promise))
+      ) {
+        this.tryToAppSwitch()
+      }
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
@@ -1940,24 +1963,6 @@ export class DAppClient extends Client {
       throw new Error('rate limit reached')
     }
 
-    const transport = await this.transport
-
-    if (
-      transport instanceof WalletConnectTransport &&
-      (await this.getActiveAccount()) &&
-      !(await transport.hasPairings()) &&
-      !(await transport.hasSessions())
-    ) {
-      await this.channelClosedHandler()
-      throw new Error('No active pairing nor session found')
-    }
-
-    // if (!(await this.checkPermissions(requestInput.type as BeaconMessageType))) {
-    //   this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
-
-    //   throw new Error('No permissions to send this request to wallet!')
-    // }
-
     if (!this.beaconId) {
       throw await this.sendInternalError('BeaconID not defined')
     }
@@ -1990,7 +1995,13 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'sending message', request)
     logger.timeLog('makeRequest', messageId, 'sending')
     try {
-      await transport.send(payload, peer)
+      ;(await this.transport).send(payload, peer)
+      if (
+        request.message.type !== BeaconMessageType.PermissionRequest ||
+        (this._activeAccount.isResolved() && (await this._activeAccount.promise))
+      ) {
+        this.tryToAppSwitch()
+      }
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',

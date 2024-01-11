@@ -192,10 +192,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
         this.requestPermissions(message)
-
-        if (this.messageIds.length) {
-          this.tryToDeepLink()
-        }
         break
       case BeaconMessageType.OperationRequest:
         this.sendOperations(message)
