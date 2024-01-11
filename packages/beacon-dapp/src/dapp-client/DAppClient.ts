@@ -54,10 +54,6 @@ import {
   PermissionResponseV3,
   BeaconBaseMessage,
   AcknowledgeResponse,
-  App,
-  DesktopApp,
-  ExtensionApp,
-  WebApp,
   ExtendedWalletConnectPairingResponse,
   ProofOfEventChallengeRequest,
   ProofOfEventChallengeResponse,
@@ -66,7 +62,11 @@ import {
   ProofOfEventChallengeRecordedMessageInput,
   ChangeAccountRequest,
   PeerInfoType,
-  AppBase
+  App,
+  AppBase,
+  DesktopApp,
+  ExtensionApp,
+  WebApp
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -114,10 +114,10 @@ import {
   setExtensionList,
   setWebList,
   setiOSList,
+  getiOSList,
   getDesktopList,
   getExtensionList,
   getWebList,
-  getiOSList,
   isBrowser,
   isDesktop
 } from '@airgap/beacon-ui'
