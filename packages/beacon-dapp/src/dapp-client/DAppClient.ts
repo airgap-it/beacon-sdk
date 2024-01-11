@@ -146,6 +146,11 @@ export class DAppClient extends Client {
    */
   public readonly blockExplorer: BlockExplorer
 
+  /**
+   * Automatically switch between apps on Mobile Devices (Enabled by Default)
+   */
+  enableAppSwitching: boolean = true
+
   public network: Network
 
   protected readonly events: BeaconEventHandler = new BeaconEventHandler()
@@ -773,7 +778,7 @@ export class DAppClient extends Client {
   }
 
   private async tryToAppSwitch() {
-    if (!isMobileOS(window)) {
+    if (!isMobileOS(window) || !this.enableAppSwitching) {
       return
     }
 
