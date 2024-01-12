@@ -1052,12 +1052,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               onClickShowMore={handleClickShowMoreContent}
               onCloseClick={() => handleCloseAlert()}
               onBackClick={
-                currentInfo() === 'install' && !isMobile()
+                currentInfo() === 'install'
                   ? () => setCurrentInfo('top-wallets')
                   : currentInfo() === 'qr'
                   ? () => setCurrentInfo('top-wallets')
-                  : currentInfo() === 'install' && isMobile()
-                  ? () => setCurrentInfo('wallets')
                   : currentInfo() === 'wallets' && isMobile()
                   ? () => setCurrentInfo('top-wallets')
                   : currentInfo() === 'help'
