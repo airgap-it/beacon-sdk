@@ -375,6 +375,20 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       return <></>
     }
 
+    const setInstallState = (wallet?: MergedWallet) => {
+      if (
+        !wallet ||
+        (wallet.types.length <= 1 &&
+          !wallet.types.includes('ios') &&
+          !wallet.types.includes('desktop')) ||
+        (_isMobileOS && wallet.types.length === 1 && wallet.types.includes('desktop'))
+      ) {
+        return
+      }
+
+      setCurrentInfo('install')
+    }
+
     const handleClickShowMoreContent = () => {
       analytics()?.track('click', 'ui', 'show more wallets')
       setShowMoreContent(!showMoreContent())
@@ -471,11 +485,39 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       )
     }
 
+    const handleDeepLinking = (wallet: MergedWallet, uri: string) => {
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: wallet.key,
+          type: 'mobile',
+          icon: wallet.image
+        })
+      )
+
+      const link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
+      updateSelectedWalletWithURL(link)
+      logger.log('DO DEEPLINK WITH ' + link)
+
+      if (isTwBrowser(window) && isAndroid(window)) {
+        window.location.href = `${uri}`
+      }
+      if (isAndroid(window)) {
+        window.open(link, '_blank', 'noopener')
+      } else {
+        const a = document.createElement('a')
+        a.setAttribute('href', link)
+        a.setAttribute('rel', 'noopener')
+        a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
+      }
+    }
+
     const handleClickWallet = async (id: string) => {
       setIsLoading(true)
       setShowMoreContent(false)
       const wallet = walletList().find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
+
       if (wallet?.key) {
         analytics()?.track('click', 'ui', 'opened wallet', { key: wallet.key })
       }
@@ -489,52 +531,20 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         })
       )
 
-      if (
-        wallet?.types.includes('web') &&
-        !(
-          wallet?.types.includes('extension') ||
-          wallet?.types.includes('desktop') ||
-          wallet?.types.includes('ios')
-        )
-      ) {
+      if (wallet?.types.includes('web') && wallet?.types.length === 1) {
         handleNewTab(config, wallet)
         return
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
         const uri = (await wcPayload)?.uri ?? ''
+
         if (!!uri.length) {
-          if (isAndroid(window) || isIOS(window)) {
-            localStorage.setItem(
-              StorageKey.LAST_SELECTED_WALLET,
-              JSON.stringify({
-                key: wallet.key,
-                name: wallet.name,
-                type: 'mobile',
-                icon: currentWallet()?.image
-              })
-            )
-
-            let link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
-            updateSelectedWalletWithURL(link)
-
-            if (isTwBrowser(window) && isAndroid(window)) {
-              link = `${uri}`
-              window.location.href = link
-            } else if (isAndroid(window)) {
-              window.open(link, '_blank', 'noopener')
-            } else if (isIOS(window)) {
-              logger.log('DO DEEPLINK WITH ' + link)
-              const a = document.createElement('a')
-              a.setAttribute('href', link)
-              a.setAttribute('rel', 'noopener')
-              a.dispatchEvent(
-                new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
-              )
-            }
+          if (_isMobileOS && wallet.types.includes('ios') && wallet.types.length === 1) {
+            handleDeepLinking(wallet, uri)
           } else {
             setCodeQR(uri)
-            setCurrentInfo('install')
+            setInstallState(wallet)
           }
         } else {
           handleCloseAlert()
@@ -580,7 +590,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         setIsLoading(false)
       } else {
         setIsLoading(false)
-        setCurrentInfo('install')
+        setInstallState(wallet)
         await setDefaultPayload()
       }
     }
@@ -697,7 +707,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || false
           }
           isMobile={isMobile}
-          walletName={currentWallet()?.name || 'wallet'}
+          walletName={currentWallet()?.name || 'AirGap'}
           code={codeQR()}
           onClickLearnMore={handleClickLearnMore}
           onClickQrCode={handleClickQrCode}
@@ -744,7 +754,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
-                      {!isMobile() && isOnline && currentWallet()?.types.includes('web') && (
+                      {isOnline && currentWallet()?.types.includes('web') && (
                         <Info
                           border
                           title={'Open wallet in a new tab'}
@@ -823,7 +833,36 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         (currentWallet()?.types.length as number) <= 1 && (
                           <QRCode isMobile={true} />
                         )}
-                      {isMobile() && codeQR().length > 0 && <QRCode isMobile={true} />}
+                      {isMobile() && currentWallet()?.types.includes('ios') && (
+                        <Info
+                          border
+                          title={'Open wallet in App'}
+                          description={`Please connect below to use ${currentWallet()?.name}`}
+                          buttons={[
+                            {
+                              label: 'Connect now',
+                              type: 'primary',
+                              onClick: async () => {
+                                const wallet = currentWallet()
+
+                                if (!wallet) {
+                                  return
+                                }
+
+                                let syncCode = ''
+                                if (
+                                  wallet.supportedInteractionStandards?.includes('wallet_connect')
+                                ) {
+                                  syncCode = (await wcPayload)?.uri ?? ''
+                                } else {
+                                  syncCode = await new Serializer().serialize(await p2pPayload)
+                                }
+                                handleDeepLinking(wallet, syncCode)
+                              }
+                            }
+                          ]}
+                        />
+                      )}
                     </div>
                   )}
                   {currentInfo() === 'qr' && (
