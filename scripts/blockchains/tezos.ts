@@ -169,6 +169,7 @@ export const tezosDesktopList: DesktopApp[] = [
     downloadLink: 'https://atomex.me/'
   }
 ]
+
 export const tezosIosList: App[] = [
   {
     key: 'airgap_ios',
