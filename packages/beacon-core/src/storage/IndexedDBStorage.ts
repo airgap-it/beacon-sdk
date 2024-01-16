@@ -4,9 +4,14 @@ import { Logger } from '@airgap/beacon-core'
 const logger = new Logger('IndexedDBStorage')
 
 export class IndexedDBStorage extends Storage {
-  private readonly dbName: string = 'WALLET_CONNECT_V2_INDEXED_DB'
-  private readonly storeName: string = 'keyvaluestorage'
   private db: IDBDatabase | null = null
+
+  constructor(
+    private readonly dbName: string = 'WALLET_CONNECT_V2_INDEXED_DB',
+    private readonly storeName: string = 'keyvaluestorage'
+  ) {
+    super()
+  }
 
   static async doesDatabaseAndTableExist(): Promise<boolean> {
     const targetDatabaseName = 'WALLET_CONNECT_V2_INDEXED_DB'
@@ -87,6 +92,66 @@ export class IndexedDBStorage extends Storage {
         getRequest.onerror = (getEvent) => {
           logger.error(`Error getting record with key ${key}:`, getEvent.target)
           reject(getEvent.target)
+        }
+      }
+
+      request.onerror = (event) => {
+        logger.error('Error opening database:', event.target)
+        reject(event.target)
+      }
+    })
+  }
+
+  getAll(): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName)
+
+      request.onsuccess = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result
+
+        const transaction = db.transaction(this.storeName, 'readonly')
+        const objectStore = transaction.objectStore(this.storeName)
+
+        const getAllRequest = objectStore.getAll()
+
+        getAllRequest.onsuccess = () => {
+          const results = getAllRequest.result
+          resolve(results)
+        }
+
+        getAllRequest.onerror = (getAllEvent) => {
+          logger.error(`Error getting all records:`, getAllEvent.target)
+          reject(getAllEvent.target)
+        }
+      }
+
+      request.onerror = (event) => {
+        logger.error('Error opening database:', event.target)
+        reject(event.target)
+      }
+    })
+  }
+
+  getAllKeys(): Promise<IDBValidKey[]> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName)
+
+      request.onsuccess = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result
+
+        const transaction = db.transaction(this.storeName, 'readonly')
+        const objectStore = transaction.objectStore(this.storeName)
+
+        const getAllRequest = objectStore.getAllKeys()
+
+        getAllRequest.onsuccess = () => {
+          const results = getAllRequest.result
+          resolve(results)
+        }
+
+        getAllRequest.onerror = (getAllEvent) => {
+          logger.error(`Error getting all records:`, getAllEvent.target)
+          reject(getAllEvent.target)
         }
       }
 

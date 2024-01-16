@@ -1,4 +1,10 @@
+import { IndexedDBStorage } from '@airgap/beacon-core'
+import { StorageKey } from '@airgap/beacon-types'
 import { createEffect, createSignal } from 'solid-js'
+
+interface StorageObject {
+  [key: string]: string | null
+}
 
 const BugReportForm = () => {
   const [title, setTitle] = createSignal('')
@@ -18,6 +24,76 @@ const BugReportForm = () => {
     return steps().trim().length >= 30
   }
 
+  const localStorageToMetadata = () => {
+    const result: StorageObject = {}
+
+    Object.keys(localStorage)
+      .filter((key) => key.includes('beacon'))
+      .forEach((key) => (result[key] = localStorage.getItem(key)))
+
+    return result
+  }
+
+  const indexDBToMetadata = async () => {
+    const result: StorageObject = {}
+    const db = new IndexedDBStorage()
+
+    if (!(await IndexedDBStorage.doesDatabaseAndTableExist())) {
+      return result
+    }
+
+    try {
+      await db.openDatabase()
+      const keys = (await db.getAllKeys()).map((key) => key.toString())
+      keys.forEach(async (key) => (result[key] = (await db.get(key as StorageKey)) as string))
+    } catch (error: any) {
+      console.error(error.message)
+    }
+
+    return result
+  }
+
+  const currentOS = () => {
+    var ua = navigator.userAgent
+    var osMap = new Map([
+      ['Windows', 'Windows'],
+      ['Macintosh', 'Mac OS'],
+      ['Mac OS X', 'Mac OS X'],
+      ['Linux', 'Linux'],
+      ['Ubuntu', 'Ubuntu'],
+      ['iPhone', 'iOS'],
+      ['iPad', 'iOS'],
+      ['Android', 'Android']
+    ])
+
+    for (let [key, value] of osMap) {
+      if (ua.indexOf(key) !== -1) {
+        return value
+      }
+    }
+    return ua
+  }
+
+  const currentBrowser = () => {
+    var ua = navigator.userAgent
+    var browserMap = new Map([
+      ['Firefox', 'Mozilla Firefox'],
+      ['Opera', 'Opera'],
+      ['OPR', 'Opera'],
+      ['Trident', 'Microsoft Internet Explorer'],
+      ['Edge', 'Microsoft Edge'],
+      ['Chrome', 'Google Chrome'],
+      ['Safari', 'Apple Safari']
+    ])
+
+    for (let [key, value] of browserMap) {
+      if (ua.indexOf(key) !== -1) {
+        return value
+      }
+    }
+    return ua
+  }
+
   createEffect(() => {
     setFormValid(isTitleValid() && isDescriptionValid() && areStepsValid())
   })
@@ -33,7 +109,11 @@ const BugReportForm = () => {
       body: JSON.stringify({
         title: title(),
         description: description(),
-        steps: steps()
+        steps: steps(),
+        os: currentOS(),
+        browser: currentBrowser(),
+        localStorage: JSON.stringify(localStorageToMetadata()),
+        wcStorage: JSON.stringify(indexDBToMetadata())
       }) // Convert the data object to JSON string
     }
 

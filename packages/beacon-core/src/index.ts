@@ -41,6 +41,7 @@ import { windowRef } from './MockWindow'
 import { CommunicationClient } from './transports/clients/CommunicationClient'
 import { ClientEvents } from './transports/clients/ClientEvents'
 import { WCStorage } from './storage/WCStorage'
+import { IndexedDBStorage } from './storage/IndexedDBStorage'
 // import { EncryptionType } from './types/EncryptionType'
 // import { EncryptionOperation } from './types/EncryptionOperation'
 
@@ -68,7 +69,7 @@ export {
 export { Transport, MessageBasedClient, CommunicationClient }
 
 // Storage
-export { ChromeStorage, LocalStorage, WCStorage, getStorage }
+export { ChromeStorage, LocalStorage, WCStorage, IndexedDBStorage, getStorage }
 
 // Managers
 export { PeerManager, AccountManager, AppMetadataManager, PermissionManager }
