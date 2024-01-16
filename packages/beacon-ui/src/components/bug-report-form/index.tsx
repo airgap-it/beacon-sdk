@@ -13,15 +13,15 @@ const BugReportForm = (props: any) => {
   const [isFormValid, setFormValid] = createSignal(false)
 
   const isTitleValid = () => {
-    return title().trim().length >= 10
+    return title().replace(/ /gi, '').length > 10
   }
 
   const isDescriptionValid = () => {
-    return description().trim().length >= 30
+    return description().replace(/ /gi, '').length >= 30
   }
 
   const areStepsValid = () => {
-    return steps().trim().length >= 30
+    return steps().replace(/ /gi, '').length >= 30
   }
 
   const localStorageToMetadata = () => {
