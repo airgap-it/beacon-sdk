@@ -6,7 +6,7 @@ interface StorageObject {
   [key: string]: string | null
 }
 
-const BugReportForm = () => {
+const BugReportForm = (props: any) => {
   const [title, setTitle] = createSignal('')
   const [description, setDescription] = createSignal('')
   const [steps, setSteps] = createSignal('')
@@ -45,7 +45,9 @@ const BugReportForm = () => {
     try {
       await db.openDatabase()
       const keys = (await db.getAllKeys()).map((key) => key.toString())
-      keys.forEach(async (key) => (result[key] = (await db.get(key as StorageKey)) as string))
+      for (const key of keys) {
+        result[key] = (await db.get(key as StorageKey)) as string
+      }
     } catch (error: any) {
       console.error(error.message)
     }
@@ -98,7 +100,7 @@ const BugReportForm = () => {
     setFormValid(isTitleValid() && isDescriptionValid() && areStepsValid())
   })
 
-  const handleSubmit = (event: Event) => {
+  const handleSubmit = async (event: Event) => {
     event.preventDefault()
 
     const options = {
@@ -113,7 +115,7 @@ const BugReportForm = () => {
         os: currentOS(),
         browser: currentBrowser(),
         localStorage: JSON.stringify(localStorageToMetadata()),
-        wcStorage: JSON.stringify(indexDBToMetadata())
+        wcStorage: JSON.stringify(await indexDBToMetadata())
       }) // Convert the data object to JSON string
     }
 
@@ -127,10 +129,12 @@ const BugReportForm = () => {
       .then((data) => {
         // Handle the response data here
         console.log(data)
+        props.onSubmit()
       })
       .catch((error) => {
         // Handle any errors that occurred during the fetch
         console.error('Fetch error:', error)
+        props.onSubmit()
       })
   }
 
@@ -160,7 +164,7 @@ const BugReportForm = () => {
           type="text"
           id="title"
           value={title()}
-          onChange={(e) => setTitle(e.currentTarget.value)}
+          onBlur={(e) => setTitle(e.currentTarget.value)}
           style={{
             width: '100%',
             padding: '10px',
@@ -183,7 +187,7 @@ const BugReportForm = () => {
         <textarea
           id="description"
           value={description()}
-          onChange={(e) => setDescription(e.currentTarget.value)}
+          onBlur={(e) => setDescription(e.currentTarget.value)}
           style={{
             width: '100%',
             padding: '10px',
@@ -206,7 +210,7 @@ const BugReportForm = () => {
         <textarea
           id="steps"
           value={steps()}
-          onChange={(e) => setSteps(e.currentTarget.value)}
+          onBlur={(e) => setSteps(e.currentTarget.value)}
           style={{
             width: '100%',
             padding: '10px',

@@ -418,10 +418,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
           } else {
             handleCloseAlert()
-            setTimeout(() => openAlert({
-              title: 'Error',
-              body: 'Unexpected transport error. Please try again.'
-            }), 500)
+            setTimeout(
+              () =>
+                openAlert({
+                  title: 'Error',
+                  body: 'Unexpected transport error. Please try again.'
+                }),
+              500
+            )
             return
           }
         } else {
@@ -485,10 +489,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         } else {
           handleCloseAlert()
-          setTimeout(() => openAlert({
-            title: 'Error',
-            body: 'Unexpected transport error. Please try again.'
-          }), 500)
+          setTimeout(
+            () =>
+              openAlert({
+                title: 'Error',
+                body: 'Unexpected transport error. Please try again.'
+              }),
+            500
+          )
         }
         setIsLoading(false)
       } else if (wallet?.types.includes('ios') && _isMobileOS) {
@@ -834,7 +842,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           }
                     }
                   >
-                    <BugReportForm />
+                    <BugReportForm
+                      onSubmit={() => {
+                        closeAlert('')
+                      }}
+                    />
                   </div>
                   <div
                     style={
