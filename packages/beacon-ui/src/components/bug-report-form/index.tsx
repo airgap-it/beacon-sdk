@@ -6,6 +6,16 @@ interface StorageObject {
   [key: string]: string | null
 }
 
+interface BugReportRequest {
+  title: string
+  description: string
+  steps: string
+  os: string
+  browser: string
+  localStorage: string
+  wcStorage: string
+}
+
 const BugReportForm = (props: any) => {
   const [title, setTitle] = createSignal('')
   const [description, setDescription] = createSignal('')
@@ -103,20 +113,22 @@ const BugReportForm = (props: any) => {
   const handleSubmit = async (event: Event) => {
     event.preventDefault()
 
+    const request: BugReportRequest = {
+      title: title(),
+      description: description(),
+      steps: steps(),
+      os: currentOS(),
+      browser: currentBrowser(),
+      localStorage: JSON.stringify(localStorageToMetadata()),
+      wcStorage: JSON.stringify(await indexDBToMetadata())
+    }
+
     const options = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json' // Specify the content type as JSON
       },
-      body: JSON.stringify({
-        title: title(),
-        description: description(),
-        steps: steps(),
-        os: currentOS(),
-        browser: currentBrowser(),
-        localStorage: JSON.stringify(localStorageToMetadata()),
-        wcStorage: JSON.stringify(await indexDBToMetadata())
-      }) // Convert the data object to JSON string
+      body: JSON.stringify(request) // Convert the data object to JSON string
     }
 
     fetch('http://localhost:3000', options)
