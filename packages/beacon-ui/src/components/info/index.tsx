@@ -1,5 +1,6 @@
 import { Component, For } from 'solid-js'
 import styles from './styles.css'
+import { QRCodeIcon } from '../icons'
 
 interface InfoProps {
   title: string
@@ -11,6 +12,7 @@ interface InfoProps {
   bigIcon?: boolean
   buttons?: { label: string; type: 'primary' | 'secondary'; onClick: () => void }[]
   downloadLink?: { url: string; label: string }
+  onShowQRCodeClick?: (() => void) | (() => Promise<void>)
 }
 
 const Info: Component<InfoProps> = (props: InfoProps) => {
@@ -43,6 +45,14 @@ const Info: Component<InfoProps> = (props: InfoProps) => {
         <a class="downloadLink" href={props.downloadLink.url}>
           {props.downloadLink.label}
         </a>
+      )}
+      {props.onShowQRCodeClick && (
+        <button
+          id="qr-code-icon"
+          onClick={() => props.onShowQRCodeClick && props.onShowQRCodeClick()}
+        >
+          <QRCodeIcon />
+        </button>
       )}
     </div>
   )

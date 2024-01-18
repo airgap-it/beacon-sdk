@@ -113,6 +113,14 @@
   font-size: smaller
 }
 
+button#qr-code-icon {
+  background-color: transparent;
+  border: none;
+  width: 10%;
+  display: flex;
+  align-self: self-end;
+}
+
 @media only screen and (max-width: 800px) {
   .info-title {
     font-size: 0.9em;

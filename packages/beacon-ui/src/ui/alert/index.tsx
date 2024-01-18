@@ -760,8 +760,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       {isOnline && currentWallet()?.types.includes('web') && (
                         <Info
                           border
-                          title={'Open wallet in a new tab'}
-                          description={`Please connect below to use ${currentWallet()?.name}`}
+                          title={`Connect with ${currentWallet()?.name} Web`}
+                          description={`(It will open the wallet in a new tab)`}
                           buttons={[
                             {
                               label: 'Use Browser',
@@ -776,7 +776,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           border
                           title={
                             hasExtension()
-                              ? `Use Browser Extension`
+                              ? `Connect with ${currentWallet()?.name} Browser Extension`
                               : `Install ${currentWallet()?.name} Wallet`
                           }
                           description={
@@ -808,7 +808,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       {!isMobile() && currentWallet()?.types.includes('desktop') && (
                         <Info
                           border
-                          title={`Open Desktop App`}
+                          title={`Connect with ${currentWallet()?.name} Desktop App`}
                           description={`If you don't have the desktop app installed, click below to download it.`}
                           buttons={[
                             {
@@ -839,8 +839,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       {isMobile() && currentWallet()?.types.includes('ios') && (
                         <Info
                           border
-                          title={'Open wallet in App'}
-                          description={`Please connect below to use ${currentWallet()?.name}`}
+                          title={`Connect with ${currentWallet()?.name} Mobile`}
+                          description={''}
                           buttons={[
                             {
                               label: 'Use App',
@@ -872,6 +872,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                                 }
                               : undefined
                           }
+                          onShowQRCodeClick={() => handleClickWallet(currentWallet()?.id ?? '')}
                         />
                       )}
                     </div>
