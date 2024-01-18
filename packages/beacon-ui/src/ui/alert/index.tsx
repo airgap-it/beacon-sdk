@@ -531,7 +531,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         })
       )
 
-      if (wallet?.types.includes('web') && wallet?.types.length === 1) {
+      if (
+        (wallet?.types.includes('web') && wallet?.types.length === 1) ||
+        (isAndroid(window) && wallet?.name.toLowerCase().includes('kukai'))
+      ) {
         handleNewTab(config, wallet)
         return
       }
@@ -761,7 +764,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           description={`Please connect below to use ${currentWallet()?.name}`}
                           buttons={[
                             {
-                              label: 'Connect now',
+                              label: 'Use browser',
                               type: 'primary',
                               onClick: () => handleNewTab(config, currentWallet())
                             }
@@ -787,7 +790,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             hasExtension()
                               ? [
                                   {
-                                    label: 'Connect now',
+                                    label: 'Use extension',
                                     type: 'primary',
                                     onClick: () => handleClickConnectExtension()
                                   }
@@ -840,7 +843,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           description={`Please connect below to use ${currentWallet()?.name}`}
                           buttons={[
                             {
-                              label: 'Connect now',
+                              label: 'Use app',
                               type: 'primary',
                               onClick: async () => {
                                 const wallet = currentWallet()

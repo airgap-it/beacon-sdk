@@ -134,6 +134,7 @@
 
   .info-button {
     padding: 0.5em 1.6em;
-    font-size: 0.7em;
+    font-size: 1em;
+    font-weight: bold;
   }
 }
