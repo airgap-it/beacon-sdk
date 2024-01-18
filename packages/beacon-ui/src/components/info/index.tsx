@@ -10,6 +10,7 @@ interface InfoProps {
   iconBadge?: boolean
   bigIcon?: boolean
   buttons?: { label: string; type: 'primary' | 'secondary'; onClick: () => void }[]
+  downloadLink?: { url: string; label: string }
 }
 
 const Info: Component<InfoProps> = (props: InfoProps) => {
@@ -38,6 +39,11 @@ const Info: Component<InfoProps> = (props: InfoProps) => {
           )}
         </For>
       </div>
+      {props.downloadLink && (
+        <a class="downloadLink" href={props.downloadLink.url}>
+          {props.downloadLink.label}
+        </a>
+      )}
     </div>
   )
 }

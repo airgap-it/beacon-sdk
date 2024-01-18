@@ -764,7 +764,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           description={`Please connect below to use ${currentWallet()?.name}`}
                           buttons={[
                             {
-                              label: 'Use browser',
+                              label: 'Use Browser',
                               type: 'primary',
                               onClick: () => handleNewTab(config, currentWallet())
                             }
@@ -790,7 +790,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             hasExtension()
                               ? [
                                   {
-                                    label: 'Use extension',
+                                    label: 'Use Extension',
                                     type: 'primary',
                                     onClick: () => handleClickConnectExtension()
                                   }
@@ -843,7 +843,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           description={`Please connect below to use ${currentWallet()?.name}`}
                           buttons={[
                             {
-                              label: 'Use app',
+                              label: 'Use App',
                               type: 'primary',
                               onClick: async () => {
                                 const wallet = currentWallet()
@@ -864,6 +864,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                               }
                             }
                           ]}
+                          downloadLink={
+                            currentWallet()?.name.toLowerCase().includes('kukai') && isIOS(window)
+                              ? {
+                                  label: 'Get Kukai Mobile >',
+                                  url: 'https://ios.kukai.app'
+                                }
+                              : undefined
+                          }
                         />
                       )}
                     </div>

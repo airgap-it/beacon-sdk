@@ -107,6 +107,12 @@
   background-color: #e8f0ff;
 }
 
+.downloadLink {
+  text-decoration: none;
+  color: gray;
+  font-size: smaller
+}
+
 @media only screen and (max-width: 800px) {
   .info-title {
     font-size: 0.9em;
