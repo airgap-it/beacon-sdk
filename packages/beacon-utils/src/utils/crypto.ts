@@ -281,9 +281,9 @@ export const isValidAddress = (address: string): boolean => {
   return true
 }
 
-const poeBlake2b = new BLAKE2b(POE_CHALLENGE_BYTES_LENGTH)
-
 export function encodePoeChallengePayload(payload: string) {
+  const poeBlake2b = new BLAKE2b(POE_CHALLENGE_BYTES_LENGTH)
+
   return bs58check.encode(
     Buffer.concat([
       new Uint8Array([POE_CHALLENGE_PREFIX]),
