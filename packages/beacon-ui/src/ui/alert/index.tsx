@@ -142,7 +142,9 @@ const closeAlerts = async (): Promise<void> =>
 const openAlert = async (config: AlertConfig): Promise<string> => {
   setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
-  const wcPayload = config.pairingPayload?.walletConnectSyncCode()
+  const wcPayload = config.pairingPayload
+    ? config.pairingPayload.walletConnectSyncCode
+    : async () => ({ uri: null })
   const isOnline = navigator.onLine
 
   setAnalytics(config.analytics)
@@ -447,7 +449,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       let link = ''
 
       if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = (await wcPayload)?.uri ?? ''
+        const uri = (await wcPayload())?.uri ?? ''
         if (!!uri.length) {
           link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
         } else {
@@ -537,7 +539,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = (await wcPayload)?.uri ?? ''
+        const uri = (await wcPayload())?.uri ?? ''
 
         if (!!uri.length) {
           if (_isMobileOS && wallet.types.includes('ios') && wallet.types.length === 1) {
@@ -853,7 +855,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                                 if (
                                   wallet.supportedInteractionStandards?.includes('wallet_connect')
                                 ) {
-                                  syncCode = (await wcPayload)?.uri ?? ''
+                                  syncCode = (await wcPayload())?.uri ?? ''
                                 } else {
                                   syncCode = await new Serializer().serialize(await p2pPayload)
                                 }
@@ -895,7 +897,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         walletList={walletList()}
                         onClickLearnMore={handleClickLearnMore}
                         p2pPayload={p2pPayload}
-                        wcPayload={wcPayload}
+                        wcPayload={wcPayload as () => Promise<WalletConnectPairingRequest>}
                       ></PairOther>
                     </div>
                   )}
