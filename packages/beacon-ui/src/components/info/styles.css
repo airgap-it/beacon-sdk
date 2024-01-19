@@ -110,14 +110,13 @@
 .downloadLink {
   text-decoration: none;
   color: gray;
-  font-size: smaller
+  font-size: smaller;
 }
 
 button#qr-code-icon {
   background-color: transparent;
   border: none;
-  width: 10%;
-  display: flex;
+  min-width: 40px;
   align-self: self-end;
 }
 
