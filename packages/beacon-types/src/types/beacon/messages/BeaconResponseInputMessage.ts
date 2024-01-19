@@ -80,3 +80,4 @@ export type BeaconResponseInputMessage =
   | AcknowledgeResponseInput
   | ErrorResponseInput
   | ProofOfEventChallengeResponseInput
+  | SimulatedProofOfEventChallengeResponseInput

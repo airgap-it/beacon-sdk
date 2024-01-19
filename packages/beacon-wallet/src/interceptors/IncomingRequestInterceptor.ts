@@ -169,6 +169,19 @@ export class IncomingRequestInterceptor {
           interceptorCallback(request, connectionInfo)
         }
         break
+      case BeaconMessageType.SimulatedProofOfEventChallengeRequest:
+        {
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+            appMetadataManager,
+            message.senderId
+          )
+          const request: SimulatedProofOfEventChallengeRequestOutput = {
+            appMetadata,
+            ...message
+          }
+          interceptorCallback(request, connectionInfo)
+        }
+        break
       default:
         logger.log('intercept', 'Message not handled')
         assertNever(message)
