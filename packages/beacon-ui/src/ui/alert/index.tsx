@@ -84,7 +84,7 @@ const [currentInfo, setCurrentInfo] = createSignal<
   'top-wallets' | 'wallets' | 'install' | 'help' | 'qr'
 >('top-wallets')
 const [analytics, setAnalytics] = createSignal<AnalyticsInterface | undefined>(undefined)
-
+const [displayQrExtra, setDisplayQrExtra] = createSignal<boolean>(false)
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
 
@@ -872,7 +872,20 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                                 }
                               : undefined
                           }
-                          onShowQRCodeClick={() => handleClickWallet(currentWallet()?.id ?? '')}
+                          onShowQRCodeClick={async () => {
+                            if (
+                              currentWallet()?.supportedInteractionStandards?.includes(
+                                'wallet_connect'
+                              )
+                            ) {
+                              const uri = (await wcPayload)?.uri
+                              uri?.length ? setCodeQR(uri) : closeAlert('')
+                            } else {
+                              await new Serializer().serialize(await p2pPayload)
+                            }
+                            setCurrentInfo('qr')
+                            setDisplayQrExtra(true)
+                          }}
                         />
                       )}
                     </div>
@@ -903,12 +916,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
-                      <PairOther
-                        walletList={walletList()}
-                        onClickLearnMore={handleClickLearnMore}
-                        p2pPayload={p2pPayload}
-                        wcPayload={wcPayload}
-                      ></PairOther>
+                      {!displayQrExtra() ? (
+                        <PairOther
+                          walletList={walletList()}
+                          onClickLearnMore={handleClickLearnMore}
+                          p2pPayload={p2pPayload}
+                          wcPayload={wcPayload}
+                        ></PairOther>
+                      ) : (
+                        <QRCode isMobile={true} />
+                      )}
                     </div>
                   )}
                   <div
