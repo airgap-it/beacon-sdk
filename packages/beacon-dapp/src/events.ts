@@ -501,8 +501,8 @@ const showProofOfEventChallengeSuccessAlert = async (
     state: 'finished',
     actions: [
       {
-        text: 'Payload hash',
-        actionText: output.payloadHash
+        text: 'Signature',
+        actionText: output.signature
       }
     ]
   })
