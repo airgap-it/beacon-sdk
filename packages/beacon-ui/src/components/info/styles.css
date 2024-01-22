@@ -116,11 +116,17 @@
 button#qr-code-icon {
   background-color: transparent;
   border: none;
-  min-width: 40px;
+  min-width: 2.5rem;
   align-self: self-end;
   position: absolute;
   top: 0.3rem;
   right: 0.3rem;
+}
+
+@media only screen and (max-width: 300px) {
+  button#qr-code-icon {
+    min-width: 1.5rem;
+  }
 }
 
 @media only screen and (max-width: 800px) {
