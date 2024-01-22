@@ -402,6 +402,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickQrCode = () => {
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: 'wallet',
+          name: 'wallet',
+          type: 'mobile',
+          icon: getDefaultLogo()
+        })
+      )
+
       analytics()?.track('click', 'ui', 'copy QR code to clipboard')
     }
 
@@ -878,8 +888,23 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                                 'wallet_connect'
                               )
                             ) {
-                              const uri = (await wcPayload)?.uri
-                              uri?.length ? setCodeQR(uri) : closeAlert('')
+                              const uri = (await wcPayload)?.uri ?? ''
+                              const wallet = currentWallet()
+
+                              if (!uri.length || !wallet) {
+                                closeAlert('')
+                                return
+                              }
+
+                              if (
+                                _isMobileOS &&
+                                wallet.types.includes('ios') &&
+                                wallet.types.length === 1
+                              ) {
+                                handleDeepLinking(wallet, uri)
+                              } else {
+                                setCodeQR(uri)
+                              }
                             } else {
                               await new Serializer().serialize(await p2pPayload)
                             }

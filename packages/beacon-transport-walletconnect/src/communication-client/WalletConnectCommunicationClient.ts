@@ -42,7 +42,8 @@ import {
   PermissionScope,
   SignPayloadRequest,
   SignPayloadResponse,
-  SignPayloadResponseInput
+  SignPayloadResponseInput,
+  StorageKey
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
@@ -440,6 +441,35 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       })
   }
 
+  private isMobileSesion(session: SessionTypes.Struct): boolean {
+    const redirect = session.peer.metadata.redirect
+    return (
+      !!redirect &&
+      !!redirect.native &&
+      !redirect.native.includes('http') &&
+      !redirect.native.includes('ws')
+    )
+  }
+  /**
+   * Function used to fix appSwitching with web wallets when pairing through 'Other wallet flow'
+   * @param session the newly created session
+   */
+  private updateStorageWallet(session: SessionTypes.Struct): void {
+    const selectedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}')
+
+    if (!selectedWallet.key || selectedWallet.key !== 'wallet') {
+      return
+    }
+
+    if (this.isMobileSesion(session)) {
+      selectedWallet.type = 'mobile'
+    } else {
+      selectedWallet.type = 'web'
+    }
+
+    localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(selectedWallet))
+  }
+
   public async init(
     forceNewConnection: boolean = false
   ): Promise<{ uri: string; topic: string } | undefined> {
@@ -519,6 +549,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         hasResponse = true
 
+        this.updateStorageWallet(session)
+
         const pairingResponse: ExtendedWalletConnectPairingResponse =
           new ExtendedWalletConnectPairingResponse(
             session.topic,
@@ -566,26 +598,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.notifyListeners(_pairingTopic, errorResponse)
         }
       })
-    // .catch(async (error: any) => {
-    //   logger.error(error.message)
-
-    //
-
-    //   if (!(await this.storage.hasPairings())) {
-    //     return
-    //   }
-
-    //   console.log('noup.')
-
-    //   signClient.core.pairing.disconnect({ topic }).catch((error) => logger.warn(error.message))
-
-    //   if (error instanceof InvalidSession) {
-    //     return
-    //   }
-
-    //   const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
-    //   fun && fun()
-    // })
 
     logger.warn('return uri and topic')
 
