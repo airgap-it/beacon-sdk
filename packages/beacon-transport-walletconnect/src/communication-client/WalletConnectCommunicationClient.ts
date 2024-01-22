@@ -457,7 +457,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private updateStorageWallet(session: SessionTypes.Struct): void {
     const selectedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}')
 
-    if (!selectedWallet.key || selectedWallet.key !== 'wallet') {
+    if (!selectedWallet.key) {
       return
     }
 

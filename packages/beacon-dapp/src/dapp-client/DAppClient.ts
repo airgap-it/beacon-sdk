@@ -1671,6 +1671,18 @@ export class DAppClient extends Client {
     return await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
   }
 
+  private async updateStorageWallet(walletInfo: WalletInfo) {
+    const wallet = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
+
+    if (!wallet) {
+      return
+    }
+
+    wallet.name = walletInfo.name
+    wallet.icon = walletInfo.icon ?? wallet.icon
+    this.storage.set(StorageKey.LAST_SELECTED_WALLET, wallet)
+  }
+
   private async getWalletInfo(peer?: PeerInfo, account?: AccountInfo): Promise<WalletInfo> {
     const selectedAccount = account ? account : await this.getActiveAccount()
 
@@ -1689,6 +1701,8 @@ export class DAppClient extends Client {
         icon: selectedPeer?.icon ?? storageWallet?.icon,
         type: storageWallet?.type
       }
+
+      this.updateStorageWallet(walletInfo)
     }
 
     const lowerCaseCompare = (str1?: string, str2?: string): boolean => {

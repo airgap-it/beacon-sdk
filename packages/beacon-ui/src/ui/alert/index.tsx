@@ -402,16 +402,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickQrCode = () => {
-      localStorage.setItem(
-        StorageKey.LAST_SELECTED_WALLET,
-        JSON.stringify({
-          key: 'wallet',
-          name: 'wallet',
-          type: 'mobile',
-          icon: getDefaultLogo()
-        })
-      )
-
       analytics()?.track('click', 'ui', 'copy QR code to clipboard')
     }
 
