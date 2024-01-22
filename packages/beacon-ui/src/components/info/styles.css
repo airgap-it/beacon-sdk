@@ -118,6 +118,9 @@ button#qr-code-icon {
   border: none;
   min-width: 40px;
   align-self: self-end;
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
 }
 
 @media only screen and (max-width: 800px) {
@@ -137,6 +140,7 @@ button#qr-code-icon {
   .info-wrapper {
     max-height: 180px;
     padding: 1.2em;
+    position: relative;
   }
 
   .info-icon {
