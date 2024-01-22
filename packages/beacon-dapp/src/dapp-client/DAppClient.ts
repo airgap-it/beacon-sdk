@@ -763,17 +763,29 @@ export class DAppClient extends Client {
     await this.events.emit(BeaconEvent.SHOW_PREPARE, { walletInfo })
   }
 
-  public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
+  public async hideUI(elements: ('alert' | 'toast')[], type?: TransportType): Promise<void> {
     await this.events.emit(BeaconEvent.HIDE_UI, ['alert', 'toast'])
 
-    if (elements?.includes('alert')) {
+    if (elements.includes('alert')) {
       // if the sync has been aborted
-      await Promise.all([
-        this.postMessageTransport?.disconnect(),
-        // p2pTransport.disconnect(), do not abort connection manually
-        this.walletConnectTransport?.disconnect()
-      ])
-      this._initPromise = undefined
+      const transport = await this.transport
+
+      if (!type || transport.type === type) {
+        await Promise.all([
+          this.postMessageTransport?.disconnect(),
+          // p2pTransport.disconnect(), do not abort connection manually
+          this.walletConnectTransport?.disconnect()
+        ])
+        this._initPromise = undefined
+      } else {
+        switch (type) {
+          case TransportType.WALLETCONNECT:
+            this.walletConnectTransport?.disconnect()
+            break
+          default:
+            this.postMessageTransport?.disconnect()
+        }
+      }
     }
   }
 

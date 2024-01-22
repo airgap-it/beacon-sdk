@@ -43,7 +43,8 @@ import {
   SignPayloadRequest,
   SignPayloadResponse,
   SignPayloadResponseInput,
-  StorageKey
+  StorageKey,
+  TransportType
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
@@ -585,7 +586,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           error.message.toLowerCase().includes('expir')
         ) {
           const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
-          fun && fun()
+          fun && fun(TransportType.WALLETCONNECT)
           return
         }
 
@@ -905,7 +906,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         error.message.toLowerCase().includes('expir')
       ) {
         const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
-        fun && fun()
+        fun && fun(TransportType.WALLETCONNECT)
       } else {
         logger.debug('Error happened!', [pairingTopic])
         logger.error(error.message)
