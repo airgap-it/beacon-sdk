@@ -111,6 +111,7 @@
   text-decoration: none;
   color: gray;
   font-size: smaller;
+  padding: 0.3rem;
 }
 
 button#qr-code-icon {
