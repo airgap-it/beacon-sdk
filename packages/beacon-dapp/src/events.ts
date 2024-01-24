@@ -502,7 +502,7 @@ const showProofOfEventChallengeSuccessAlert = async (
     actions: [
       {
         text: 'Signature',
-        actionText: output.signature
+        actionText: output.payloadHash
       }
     ]
   })
