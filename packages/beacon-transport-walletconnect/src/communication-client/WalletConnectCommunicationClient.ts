@@ -43,7 +43,8 @@ import {
   SignPayloadRequest,
   SignPayloadResponse,
   SignPayloadResponseInput,
-  StorageKey
+  StorageKey,
+  TransportType
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
@@ -579,6 +580,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
       })
       .catch(async (error: any) => {
+        if (
+          !error.message ||
+          !error.message.length ||
+          error.message.toLowerCase().includes('expir')
+        ) {
+          const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+          fun && fun(TransportType.WALLETCONNECT)
+          return
+        }
+
         logger.error('Error happened!', [error.message])
 
         if (this.activeListeners.size === 0) {
@@ -889,23 +900,32 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
     } catch (error: any) {
-      logger.debug('Error happened!', [pairingTopic])
-      logger.error(error.message)
-      if (this.activeListeners.size === 0) {
-        logger.debug('No active listeners', [pairingTopic])
-        const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-        fun && fun('error')
+      if (
+        !error.message ||
+        !error.message.length ||
+        error.message.toLowerCase().includes('expir')
+      ) {
+        const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+        fun && fun(TransportType.WALLETCONNECT)
       } else {
-        const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
-        logger.debug('New pairing topic?', [pairingTopic])
+        logger.debug('Error happened!', [pairingTopic])
+        logger.error(error.message)
+        if (this.activeListeners.size === 0) {
+          logger.debug('No active listeners', [pairingTopic])
+          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+          fun && fun('error')
+        } else {
+          const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
+          logger.debug('New pairing topic?', [pairingTopic])
 
-        const errorResponse: ErrorResponseInput = {
-          type: BeaconMessageType.Error,
-          id: this.messageIds.pop(),
-          errorType: BeaconErrorType.ABORTED_ERROR
-        } as ErrorResponse
+          const errorResponse: ErrorResponseInput = {
+            type: BeaconMessageType.Error,
+            id: this.messageIds.pop(),
+            errorType: BeaconErrorType.ABORTED_ERROR
+          } as ErrorResponse
 
-        this.notifyListeners(_pairingTopic, errorResponse)
+          this.notifyListeners(_pairingTopic, errorResponse)
+        }
       }
     }
 
