@@ -54,10 +54,6 @@ import {
   PermissionResponseV3,
   BeaconBaseMessage,
   AcknowledgeResponse,
-  App,
-  DesktopApp,
-  ExtensionApp,
-  WebApp,
   ExtendedWalletConnectPairingResponse,
   ProofOfEventChallengeRequest,
   ProofOfEventChallengeResponse,
@@ -66,7 +62,11 @@ import {
   ProofOfEventChallengeRecordedMessageInput,
   ChangeAccountRequest,
   PeerInfoType,
-  AppBase
+  App,
+  AppBase,
+  DesktopApp,
+  ExtensionApp,
+  WebApp
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -114,12 +114,14 @@ import {
   setExtensionList,
   setWebList,
   setiOSList,
+  getiOSList,
   getDesktopList,
   getExtensionList,
   getWebList,
-  getiOSList,
   isBrowser,
-  isDesktop
+  isDesktop,
+  isMobileOS,
+  isIOS
 } from '@airgap/beacon-ui'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 
@@ -143,6 +145,11 @@ export class DAppClient extends Client {
    * The block explorer used by the SDK
    */
   public readonly blockExplorer: BlockExplorer
+
+  /**
+   * Automatically switch between apps on Mobile Devices (Enabled by Default)
+   */
+  enableAppSwitching: boolean = true
 
   public network: Network
 
@@ -756,13 +763,52 @@ export class DAppClient extends Client {
     await this.events.emit(BeaconEvent.SHOW_PREPARE, { walletInfo })
   }
 
-  public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
-    await this.events.emit(BeaconEvent.HIDE_UI, elements)
+  public async hideUI(elements: ('alert' | 'toast')[], type?: TransportType): Promise<void> {
+    await this.events.emit(BeaconEvent.HIDE_UI, ['alert', 'toast'])
 
-    if (elements?.includes('alert')) {
-      // if the sync was aborted from the wallet side
-      this._initPromise = undefined
+    if (elements.includes('alert')) {
+      // if the sync has been aborted
+      const transport = await this.transport
+
+      if (!type || transport.type === type) {
+        await Promise.all([
+          this.postMessageTransport?.disconnect(),
+          // p2pTransport.disconnect(), do not abort connection manually
+          this.walletConnectTransport?.disconnect()
+        ])
+        this._initPromise = undefined
+      } else {
+        switch (type) {
+          case TransportType.WALLETCONNECT:
+            this.walletConnectTransport?.disconnect()
+            break
+          default:
+            this.postMessageTransport?.disconnect()
+        }
+      }
     }
+  }
+
+  private async tryToAppSwitch() {
+    if (!isMobileOS(window) || !this.enableAppSwitching) {
+      return
+    }
+
+    const wallet = await this.getWalletInfo()
+
+    if (wallet.type !== 'mobile') {
+      return
+    }
+
+    const link = isIOS(window)
+      ? wallet.deeplink
+      : JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}').url
+
+    if (!link?.length) {
+      return
+    }
+
+    window.location = link
   }
 
   /**
@@ -1637,6 +1683,18 @@ export class DAppClient extends Client {
     return await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
   }
 
+  private async updateStorageWallet(walletInfo: WalletInfo) {
+    const wallet = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
+
+    if (!wallet) {
+      return
+    }
+
+    wallet.name = walletInfo.name
+    wallet.icon = walletInfo.icon ?? wallet.icon
+    this.storage.set(StorageKey.LAST_SELECTED_WALLET, wallet)
+  }
+
   private async getWalletInfo(peer?: PeerInfo, account?: AccountInfo): Promise<WalletInfo> {
     const selectedAccount = account ? account : await this.getActiveAccount()
 
@@ -1647,11 +1705,16 @@ export class DAppClient extends Client {
       walletInfo = await this.appMetadataManager.getAppMetadata(selectedAccount.senderId)
     }
 
+    const storageWallet = await this.getWalletInfoFromStorage()
+
     if (!walletInfo) {
       walletInfo = {
-        name: selectedPeer?.name ?? (await this.getWalletInfoFromStorage()) ?? '',
-        icon: selectedPeer?.icon
+        name: selectedPeer?.name ?? storageWallet?.key ?? '',
+        icon: selectedPeer?.icon ?? storageWallet?.icon,
+        type: storageWallet?.type
       }
+
+      this.updateStorageWallet(walletInfo)
     }
 
     const lowerCaseCompare = (str1?: string, str2?: string): boolean => {
@@ -1664,8 +1727,6 @@ export class DAppClient extends Client {
 
     const getOrgName = (name: string) => name.split(/[_\s]+/)[0]
 
-    let selectedApp: AppBase | undefined
-    let type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
     const apps: AppBase[] = [
       ...getiOSList(),
       ...getWebList(),
@@ -1681,33 +1742,39 @@ export class DAppClient extends Client {
     const desktop = (apps as DesktopApp[]).find((app) => app.downloadLink)
     const extension = (apps as ExtensionApp[]).find((app) => app.id)
 
-    if (isBrowser(window) && browser) {
-      selectedApp = browser
-      type = 'web'
-    } else if (isDesktop(window) && desktop) {
-      selectedApp = desktop
-      type = 'desktop'
-    } else if (isBrowser(window) && extension) {
-      selectedApp = extension
-      type = 'extension'
-    } else if (mobile) {
-      selectedApp = mobile
-      type = 'mobile'
+    const appTypeMap = {
+      extension: { app: extension, type: 'extension' },
+      desktop: { app: desktop, type: 'desktop' },
+      mobile: { app: mobile, type: 'mobile' },
+      web: { app: browser, type: 'web' }
     }
 
-    if (selectedApp) {
+    const defaultType = (): {
+      app: AppBase | undefined
+      type: 'extension' | 'mobile' | 'web' | 'desktop' | undefined
+    } => {
+      if (isBrowser(window) && browser) return { app: browser, type: 'web' }
+      if (isDesktop(window) && desktop) return { app: desktop, type: 'desktop' }
+      if (isBrowser(window) && extension) return { app: extension, type: 'extension' }
+      if (mobile) return { app: mobile, type: 'mobile' }
+      return { app: undefined, type: undefined }
+    }
+
+    const { app, type } = storageWallet ? appTypeMap[storageWallet.type] : defaultType()
+
+    if (app) {
       let deeplink: string | undefined
-      if (selectedApp.hasOwnProperty('links')) {
-        deeplink = (selectedApp as WebApp).links[selectedAccount?.network.type ?? this.network.type]
-      } else if (selectedApp.hasOwnProperty('deepLink')) {
-        deeplink = (selectedApp as App).deepLink
+      if (app.hasOwnProperty('links')) {
+        deeplink = (app as WebApp).links[selectedAccount?.network.type ?? this.network.type]
+      } else if (app.hasOwnProperty('deepLink')) {
+        deeplink = (app as App).deepLink
       }
 
       return {
-        name: selectedApp?.name ?? walletInfo.name,
-        icon: selectedApp?.logo ?? walletInfo.icon,
+        name: app?.name ?? walletInfo.name,
+        icon: app?.logo ?? walletInfo.icon,
         deeplink,
-        type
+        type: type as any
       }
     }
 
@@ -1785,18 +1852,6 @@ export class DAppClient extends Client {
     logger.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
-    const transport = await this.transport
-
-    if (
-      transport instanceof WalletConnectTransport &&
-      (await this.getActiveAccount()) &&
-      !(await transport.hasPairings()) &&
-      !(await transport.hasSessions())
-    ) {
-      await this.channelClosedHandler()
-      throw new Error('No active pairing nor session found')
-    }
-
     if (await this.addRequestAndCheckIfRateLimited()) {
       this.events
         .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
@@ -1848,7 +1903,13 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'sending message', request)
     logger.timeLog('makeRequest', messageId, 'sending')
     try {
-      await transport.send(payload, peer)
+      ;(await this.transport).send(payload, peer)
+      if (
+        request.type !== BeaconMessageType.PermissionRequest ||
+        (this._activeAccount.isResolved() && (await this._activeAccount.promise))
+      ) {
+        this.tryToAppSwitch()
+      }
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
@@ -1928,24 +1989,6 @@ export class DAppClient extends Client {
       throw new Error('rate limit reached')
     }
 
-    const transport = await this.transport
-
-    if (
-      transport instanceof WalletConnectTransport &&
-      (await this.getActiveAccount()) &&
-      !(await transport.hasPairings()) &&
-      !(await transport.hasSessions())
-    ) {
-      await this.channelClosedHandler()
-      throw new Error('No active pairing nor session found')
-    }
-
-    // if (!(await this.checkPermissions(requestInput.type as BeaconMessageType))) {
-    //   this.events.emit(BeaconEvent.NO_PERMISSIONS).catch((emitError) => console.warn(emitError))
-
-    //   throw new Error('No permissions to send this request to wallet!')
-    // }
-
     if (!this.beaconId) {
       throw await this.sendInternalError('BeaconID not defined')
     }
@@ -1978,7 +2021,13 @@ export class DAppClient extends Client {
     logger.log('makeRequest', 'sending message', request)
     logger.timeLog('makeRequest', messageId, 'sending')
     try {
-      await transport.send(payload, peer)
+      ;(await this.transport).send(payload, peer)
+      if (
+        request.message.type !== BeaconMessageType.PermissionRequest ||
+        (this._activeAccount.isResolved() && (await this._activeAccount.promise))
+      ) {
+        this.tryToAppSwitch()
+      }
     } catch (sendError) {
       this.events.emit(BeaconEvent.INTERNAL_ERROR, {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
@@ -2130,7 +2179,7 @@ export class DAppClient extends Client {
     logger.log('######## MESSAGE #######')
     logger.log('onNewAccount', message)
 
-    const walletKey = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
+    const walletKey = (await this.storage.get(StorageKey.LAST_SELECTED_WALLET))?.key
 
     const accountInfo: AccountInfo = {
       accountIdentifier: await getAccountIdentifier(address, message.network),
