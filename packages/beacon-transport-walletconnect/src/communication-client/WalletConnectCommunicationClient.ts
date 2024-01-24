@@ -42,7 +42,9 @@ import {
   PermissionScope,
   SignPayloadRequest,
   SignPayloadResponse,
-  SignPayloadResponseInput
+  SignPayloadResponseInput,
+  StorageKey,
+  TransportType
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
@@ -124,7 +126,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private getTopicFromSession(session: SessionTypes.Struct): string {
-    return session.pairingTopic?.length ? session.pairingTopic : session.topic
+    return this.signClient?.session.getAll()[0].topic ?? session.topic
   }
 
   public async listenForEncryptedMessage(
@@ -440,6 +442,35 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       })
   }
 
+  private isMobileSesion(session: SessionTypes.Struct): boolean {
+    const redirect = session.peer.metadata.redirect
+    return (
+      !!redirect &&
+      !!redirect.native &&
+      !redirect.native.includes('http') &&
+      !redirect.native.includes('ws')
+    )
+  }
+  /**
+   * Function used to fix appSwitching with web wallets when pairing through 'Other wallet flow'
+   * @param session the newly created session
+   */
+  private updateStorageWallet(session: SessionTypes.Struct): void {
+    const selectedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}')
+
+    if (!selectedWallet.key) {
+      return
+    }
+
+    if (this.isMobileSesion(session)) {
+      selectedWallet.type = 'mobile'
+    } else {
+      selectedWallet.type = 'web'
+    }
+
+    localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(selectedWallet))
+  }
+
   public async init(
     forceNewConnection: boolean = false
   ): Promise<{ uri: string; topic: string } | undefined> {
@@ -519,6 +550,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         hasResponse = true
 
+        this.updateStorageWallet(session)
+
         const pairingResponse: ExtendedWalletConnectPairingResponse =
           new ExtendedWalletConnectPairingResponse(
             session.topic,
@@ -547,6 +580,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
       })
       .catch(async (error: any) => {
+        if (
+          !error.message ||
+          !error.message.length ||
+          error.message.toLowerCase().includes('expir')
+        ) {
+          const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+          fun && fun(TransportType.WALLETCONNECT)
+          return
+        }
+
         logger.error('Error happened!', [error.message])
 
         if (this.activeListeners.size === 0) {
@@ -566,26 +609,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.notifyListeners(_pairingTopic, errorResponse)
         }
       })
-    // .catch(async (error: any) => {
-    //   logger.error(error.message)
-
-    //
-
-    //   if (!(await this.storage.hasPairings())) {
-    //     return
-    //   }
-
-    //   console.log('noup.')
-
-    //   signClient.core.pairing.disconnect({ topic }).catch((error) => logger.warn(error.message))
-
-    //   if (error instanceof InvalidSession) {
-    //     return
-    //   }
-
-    //   const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
-    //   fun && fun()
-    // })
 
     logger.warn('return uri and topic')
 
@@ -877,23 +900,32 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
     } catch (error: any) {
-      logger.debug('Error happened!', [pairingTopic])
-      logger.error(error.message)
-      if (this.activeListeners.size === 0) {
-        logger.debug('No active listeners', [pairingTopic])
-        const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-        fun && fun('error')
+      if (
+        !error.message ||
+        !error.message.length ||
+        error.message.toLowerCase().includes('expir')
+      ) {
+        const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+        fun && fun(TransportType.WALLETCONNECT)
       } else {
-        const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
-        logger.debug('New pairing topic?', [pairingTopic])
+        logger.debug('Error happened!', [pairingTopic])
+        logger.error(error.message)
+        if (this.activeListeners.size === 0) {
+          logger.debug('No active listeners', [pairingTopic])
+          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+          fun && fun('error')
+        } else {
+          const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
+          logger.debug('New pairing topic?', [pairingTopic])
 
-        const errorResponse: ErrorResponseInput = {
-          type: BeaconMessageType.Error,
-          id: this.messageIds.pop(),
-          errorType: BeaconErrorType.ABORTED_ERROR
-        } as ErrorResponse
+          const errorResponse: ErrorResponseInput = {
+            type: BeaconMessageType.Error,
+            id: this.messageIds.pop(),
+            errorType: BeaconErrorType.ABORTED_ERROR
+          } as ErrorResponse
 
-        this.notifyListeners(_pairingTopic, errorResponse)
+          this.notifyListeners(_pairingTopic, errorResponse)
+        }
       }
     }
 

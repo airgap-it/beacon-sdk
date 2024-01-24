@@ -107,6 +107,29 @@
   background-color: #e8f0ff;
 }
 
+.downloadLink {
+  text-decoration: none;
+  color: gray;
+  font-size: smaller;
+  padding: 0.3rem;
+}
+
+button#qr-code-icon {
+  background-color: transparent;
+  border: none;
+  min-width: 2.5rem;
+  align-self: self-end;
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+}
+
+@media only screen and (max-width: 300px) {
+  button#qr-code-icon {
+    min-width: 1.5rem;
+  }
+}
+
 @media only screen and (max-width: 800px) {
   .info-title {
     font-size: 0.9em;
@@ -124,6 +147,7 @@
   .info-wrapper {
     max-height: 180px;
     padding: 1.2em;
+    position: relative;
   }
 
   .info-icon {
@@ -134,6 +158,7 @@
 
   .info-button {
     padding: 0.5em 1.6em;
-    font-size: 0.7em;
+    font-size: 1em;
+    font-weight: bold;
   }
 }

@@ -763,17 +763,29 @@ export class DAppClient extends Client {
     await this.events.emit(BeaconEvent.SHOW_PREPARE, { walletInfo })
   }
 
-  public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
+  public async hideUI(elements: ('alert' | 'toast')[], type?: TransportType): Promise<void> {
     await this.events.emit(BeaconEvent.HIDE_UI, ['alert', 'toast'])
 
-    if (elements?.includes('alert')) {
+    if (elements.includes('alert')) {
       // if the sync has been aborted
-      await Promise.all([
-        this.postMessageTransport?.disconnect(),
-        // p2pTransport.disconnect(), do not abort connection manually
-        this.walletConnectTransport?.disconnect()
-      ])
-      this._initPromise = undefined
+      const transport = await this.transport
+
+      if (!type || transport.type === type) {
+        await Promise.all([
+          this.postMessageTransport?.disconnect(),
+          // p2pTransport.disconnect(), do not abort connection manually
+          this.walletConnectTransport?.disconnect()
+        ])
+        this._initPromise = undefined
+      } else {
+        switch (type) {
+          case TransportType.WALLETCONNECT:
+            this.walletConnectTransport?.disconnect()
+            break
+          default:
+            this.postMessageTransport?.disconnect()
+        }
+      }
     }
   }
 
@@ -1671,6 +1683,18 @@ export class DAppClient extends Client {
     return await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
   }
 
+  private async updateStorageWallet(walletInfo: WalletInfo) {
+    const wallet = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
+
+    if (!wallet) {
+      return
+    }
+
+    wallet.name = walletInfo.name
+    wallet.icon = walletInfo.icon ?? wallet.icon
+    this.storage.set(StorageKey.LAST_SELECTED_WALLET, wallet)
+  }
+
   private async getWalletInfo(peer?: PeerInfo, account?: AccountInfo): Promise<WalletInfo> {
     const selectedAccount = account ? account : await this.getActiveAccount()
 
@@ -1689,6 +1713,8 @@ export class DAppClient extends Client {
         icon: selectedPeer?.icon ?? storageWallet?.icon,
         type: storageWallet?.type
       }
+
+      this.updateStorageWallet(walletInfo)
     }
 
     const lowerCaseCompare = (str1?: string, str2?: string): boolean => {

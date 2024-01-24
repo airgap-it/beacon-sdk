@@ -84,7 +84,7 @@ const [currentInfo, setCurrentInfo] = createSignal<
   'top-wallets' | 'wallets' | 'install' | 'help' | 'qr'
 >('top-wallets')
 const [analytics, setAnalytics] = createSignal<AnalyticsInterface | undefined>(undefined)
-
+const [displayQrExtra, setDisplayQrExtra] = createSignal<boolean>(false)
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
 
@@ -534,7 +534,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         })
       )
 
-      if (wallet?.types.includes('web') && wallet?.types.length === 1) {
+      if (
+        (wallet?.types.includes('web') && wallet?.types.length === 1) ||
+        (isAndroid(window) && wallet?.name.toLowerCase().includes('kukai'))
+      ) {
         handleNewTab(config, wallet)
         return
       }
@@ -760,11 +763,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       {isOnline && currentWallet()?.types.includes('web') && (
                         <Info
                           border
-                          title={'Open wallet in a new tab'}
-                          description={`Please connect below to use ${currentWallet()?.name}`}
+                          title={`Connect with ${currentWallet()?.name} Web`}
+                          description={`(It will open the wallet in a new tab)`}
                           buttons={[
                             {
-                              label: 'Connect now',
+                              label: 'Use Browser',
                               type: 'primary',
                               onClick: () => handleNewTab(config, currentWallet())
                             }
@@ -776,7 +779,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           border
                           title={
                             hasExtension()
-                              ? `Use Browser Extension`
+                              ? `Connect with ${currentWallet()?.name} Browser Extension`
                               : `Install ${currentWallet()?.name} Wallet`
                           }
                           description={
@@ -790,7 +793,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             hasExtension()
                               ? [
                                   {
-                                    label: 'Connect now',
+                                    label: 'Use Extension',
                                     type: 'primary',
                                     onClick: () => handleClickConnectExtension()
                                   }
@@ -808,7 +811,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       {!isMobile() && currentWallet()?.types.includes('desktop') && (
                         <Info
                           border
-                          title={`Open Desktop App`}
+                          title={`Connect with ${currentWallet()?.name} Desktop App`}
                           description={`If you don't have the desktop app installed, click below to download it.`}
                           buttons={[
                             {
@@ -839,11 +842,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       {isMobile() && currentWallet()?.types.includes('ios') && (
                         <Info
                           border
-                          title={'Open wallet in App'}
-                          description={`Please connect below to use ${currentWallet()?.name}`}
+                          title={`Connect with ${currentWallet()?.name} Mobile`}
+                          description={''}
                           buttons={[
                             {
-                              label: 'Connect now',
+                              label: 'Use App',
                               type: 'primary',
                               onClick: async () => {
                                 const wallet = currentWallet()
@@ -866,6 +869,43 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                               }
                             }
                           ]}
+                          downloadLink={
+                            currentWallet()?.name.toLowerCase().includes('kukai') && isIOS(window)
+                              ? {
+                                  label: 'Get Kukai Mobile >',
+                                  url: 'https://ios.kukai.app'
+                                }
+                              : undefined
+                          }
+                          onShowQRCodeClick={async () => {
+                            if (
+                              currentWallet()?.supportedInteractionStandards?.includes(
+                                'wallet_connect'
+                              )
+                            ) {
+                              const uri = (await wcPayload)?.uri ?? ''
+                              const wallet = currentWallet()
+
+                              if (!uri.length || !wallet) {
+                                closeAlert('')
+                                return
+                              }
+
+                              if (
+                                _isMobileOS &&
+                                wallet.types.includes('ios') &&
+                                wallet.types.length === 1
+                              ) {
+                                handleDeepLinking(wallet, uri)
+                              } else {
+                                setCodeQR(uri)
+                              }
+                            } else {
+                              await new Serializer().serialize(await p2pPayload)
+                            }
+                            setCurrentInfo('qr')
+                            setDisplayQrExtra(true)
+                          }}
                         />
                       )}
                     </div>
@@ -896,12 +936,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
-                      <PairOther
-                        walletList={walletList()}
-                        onClickLearnMore={handleClickLearnMore}
-                        p2pPayload={p2pPayload}
-                        wcPayload={wcPayload}
-                      ></PairOther>
+                      {!displayQrExtra() ? (
+                        <PairOther
+                          walletList={walletList()}
+                          onClickLearnMore={handleClickLearnMore}
+                          p2pPayload={p2pPayload}
+                          wcPayload={wcPayload}
+                        ></PairOther>
+                      ) : (
+                        <QRCode isMobile={true} />
+                      )}
                     </div>
                   )}
                   <div
