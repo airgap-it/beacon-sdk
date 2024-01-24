@@ -446,7 +446,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       let link = ''
 
-      if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
+      if (
+        wallet.supportedInteractionStandards?.includes('wallet_connect') &&
+        !wallet.name.toLowerCase().includes('kukai')
+      ) {
         const uri = (await wcPayload)?.uri ?? ''
         if (!!uri.length) {
           link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
@@ -844,6 +847,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                               type: 'primary',
                               onClick: async () => {
                                 const wallet = currentWallet()
+
+                                console.log('currentWallet', wallet)
 
                                 if (!wallet) {
                                   return
