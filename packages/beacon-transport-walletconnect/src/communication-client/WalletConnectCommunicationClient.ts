@@ -126,7 +126,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private getTopicFromSession(session: SessionTypes.Struct): string {
-    return this.signClient?.session.getAll()[0].topic ?? session.topic
+    return this.signClient?.session.getAll()[0]?.topic ?? session.topic
   }
 
   public async listenForEncryptedMessage(
