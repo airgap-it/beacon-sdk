@@ -1264,7 +1264,7 @@
             payload: JSON.stringify({ timestamp: Date.now() })
           })
           .then((response) => {
-            console.log('ProofOfEventChallenge ' + response.isAccepted ? 'accepted' : 'refused')
+            console.log(`ProofOfEventChallenge ${response.isAccepted ? 'accepted' : 'refused'}`)
           })
           .catch((error) => {
             console.log('error during Proof Of Event Challenge', error)

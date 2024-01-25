@@ -499,23 +499,25 @@ const showProofOfEventChallengeSuccessAlert = async (
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
     state: 'finished',
-    actions: [
-      {
-        text: `Signature: ${output.payloadHash}`,
-        actionText: 'Copy to clipboard',
-        actionCallback: async (): Promise<void> => {
-          navigator.clipboard.writeText(output.payloadHash).then(
-            () => {
-              logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
-            },
-            (err) => {
-              logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+    actions: output.isAccepted
+      ? [
+          {
+            text: `Payload hash: ${output.payloadHash}`,
+            actionText: 'Copy to clipboard',
+            actionCallback: async (): Promise<void> => {
+              navigator.clipboard.writeText(output.payloadHash).then(
+                () => {
+                  logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+                },
+                (err) => {
+                  logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+                }
+              )
+              await closeToast()
             }
-          )
-          await closeToast()
-        }
-      }
-    ]
+          }
+        ]
+      : []
   })
 }
 
