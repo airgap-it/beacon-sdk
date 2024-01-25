@@ -501,8 +501,19 @@ const showProofOfEventChallengeSuccessAlert = async (
     state: 'finished',
     actions: [
       {
-        text: 'Signature',
-        actionText: output.payloadHash
+        text: `Signature: ${output.payloadHash}`,
+        actionText: 'Copy to clipboard',
+        actionCallback: async (): Promise<void> => {
+          navigator.clipboard.writeText(output.payloadHash).then(
+            () => {
+              logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+            },
+            (err) => {
+              logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+            }
+          )
+          await closeToast()
+        }
       }
     ]
   })
