@@ -714,7 +714,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (!this.activeAccount) {
       const fun = this.eventHandlers.get(ClientEvents.RESET_STATE)
-      fun && fun()
+      fun && fun(TransportType.WALLETCONNECT)
     }
 
     if (!session) {

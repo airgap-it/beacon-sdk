@@ -492,10 +492,15 @@ export class DAppClient extends Client {
       })
     }
   }
-  private async channelClosedHandler() {
+  private async channelClosedHandler(type: TransportType) {
+    const transport = await this.transport
+
+    if (transport.type !== type) {
+      return
+    }
+
     await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
     this.setActiveAccount(undefined)
-
     await this.destroy()
   }
 
