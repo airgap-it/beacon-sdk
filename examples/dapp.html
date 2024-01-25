@@ -564,63 +564,6 @@
         })
       })
 
-      const register = {
-        branch: 'BLsaZ4kroo72BzCfkNVuiUKQs1P5Vcz1QhrQhxuSguJehiAgPvM',
-        contents: [
-          {
-            amount: '0',
-            destination: 'KT1AiEcg7D2Jm9GKDgguVLBwRPjzjkkPpwds',
-            parameters: {
-              entrypoint: 'commit',
-              value: {
-                bytes:
-                  'a432d7b8799595e50be56af2d91d4225cd57712300f843256cccaf9c25b65bbf94b3fc101a2fc996fa1d447c54b2ca83b3dc2d2480570eca9717b8fc06d593fc'
-              }
-            }
-          }
-        ]
-      }
-
-      // const buy = {
-      //   branch: 'BLsaZ4kroo72BzCfkNVuiUKQs1P5Vcz1QhrQhxuSguJehiAgPvM',
-      //   contents: [
-      //     {
-      //       amount: '10000000',
-      //       destination: 'KT1AiEcg7D2Jm9GKDgguVLBwRPjzjkkPpwds',
-      //       parameters: {
-      //         entrypoint: 'buy',
-      //         value: {
-      //           prim: 'Pair',
-      //           args: [
-      //             { bytes: '686579' },
-      //             {
-      //               prim: 'Pair',
-      //               args: [
-      //                 { int: '3650' },
-      //                 {
-      //                   prim: 'Pair',
-      //                   args: [
-      //                     { string: 'tz1KrnickNwpLhmLPvwMYQUvo47w39WSzoJV' },
-      //                     {
-      //                       prim: 'Pair',
-      //                       args: [
-      //                         {
-      //                           prim: 'Some',
-      //                           args: [{ string: 'tz1KrnickNwpLhmLPvwMYQUvo47w39WSzoJV' }]
-      //                         },
-      //                         { prim: 'Pair', args: [[], { int: '1802724001' }] }
-      //                       ]
-      //                     }
-      //                   ]
-      //                 }
-      //               ]
-      //             }
-      //           ]
-      //         }
-      //       }
-      //     }
-      //   ]
-      // }
       // Add event listener to the button
       document.getElementById('contractCall').addEventListener('click', () => {
         client
@@ -628,92 +571,13 @@
             operationDetails: [
               {
                 kind: beacon.TezosOperationType.TRANSACTION,
-                amount: '10000000',
-                destination: 'KT1AiEcg7D2Jm9GKDgguVLBwRPjzjkkPpwds',
+                amount: '0',
+                destination: 'KT1RxKJyi48W3bZR8HErRiisXZQw19HwLGWj',
                 parameters: {
-                  entrypoint: 'ask',
+                  entrypoint: 'toggleStatus',
                   value: {
-                    token: {
-                      address: 'KT1BYpDXqG6bguodPvkMBASQ49dss3SJRDhY',
-                      token_id: '9'
-                    },
-                    amount: '9950000',
-                    shares: [
-                      {
-                        amount: '2000',
-                        recipient: 'tz1d4bLwFs3uexfpjiBU4LT6FQowWyHbZ73i'
-                      }
-                    ],
-                    target: null,
-                    currency: {
-                      tez: {}
-                    },
-                    editions: '1',
-                    expiry_time: null
+                    prim: 'True'
                   }
-                }
-              },
-              {
-                kind: beacon.TezosOperationType.TRANSACTION,
-                amount: '0',
-                destination: 'KT1AiEcg7D2Jm9GKDgguVLBwRPjzjkkPpwds',
-                parameters: {
-                  entrypoint: 'fulfill_ask',
-                  value: { ask_id: 1, proxy_address: null }
-                }
-              },
-              {
-                kind: beacon.TezosOperationType.TRANSACTION,
-                amount: '0',
-                destination: 'KT1AiEcg7D2Jm9GKDgguVLBwRPjzjkkPpwds',
-                parameters: {
-                  entrypoint: 'fulfill_offer',
-                  value: { offer_id: 1, proxy_address: null }
-                }
-              },
-              {
-                kind: beacon.TezosOperationType.TRANSACTION,
-                amount: '0',
-                destination: 'KT1AiEcg7D2Jm9GKDgguVLBwRPjzjkkPpwds',
-                parameters: {
-                  entrypoint: 'offer',
-                  value: {
-                    proxy: null,
-                    token: {
-                      address: 'KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton',
-                      token_id: '339793'
-                    },
-                    amount: '2120000',
-                    shares: [
-                      {
-                        amount: '1500',
-                        recipient: 'tz1SLgrDBpFWjGCnCwyNpCpQC1v8v2N8M2Ks'
-                      }
-                    ],
-                    target: null,
-                    currency: {
-                      fa12: 'KT1TjnZYs5CGLbmV6yuW169P8Pnr9BiVwwjz'
-                    },
-                    expiry_time: Date.now()
-                  }
-                }
-              },
-              {
-                kind: beacon.TezosOperationType.TRANSACTION,
-                amount: '0',
-                destination: 'KT1AiEcg7D2Jm9GKDgguVLBwRPjzjkkPpwds',
-                parameters: {
-                  entrypoint: 'retract_ask',
-                  value: 1
-                }
-              },
-              {
-                kind: beacon.TezosOperationType.TRANSACTION,
-                amount: '0',
-                destination: 'KT1AiEcg7D2Jm9GKDgguVLBwRPjzjkkPpwds',
-                parameters: {
-                  entrypoint: 'retract_offer',
-                  value: 1
                 }
               }
             ]
