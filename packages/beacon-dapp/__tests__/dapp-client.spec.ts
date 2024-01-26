@@ -638,7 +638,7 @@ describe(`DAppClient`, () => {
       version: BEACON_VERSION,
       senderId: 'sender-id',
       isAccepted: true,
-      signature: 'hello world'
+      payloadHash: 'hello world'
     }
 
     const connectionInfo: ConnectionContext = {
@@ -678,7 +678,7 @@ describe(`DAppClient`, () => {
       version: BEACON_VERSION,
       senderId: 'sender-id',
       isAccepted: true,
-      signature: 'hello world'
+      payloadHash: 'hello world'
     })
   })
 
