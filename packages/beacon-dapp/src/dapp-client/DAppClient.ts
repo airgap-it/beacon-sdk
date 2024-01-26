@@ -715,6 +715,7 @@ export class DAppClient extends Client {
         await this.setTransport(this.p2pTransport)
       } else if (origin === Origin.WALLETCONNECT) {
         await this.setTransport(this.walletConnectTransport)
+        this.walletConnectTransport?.forceUpdate('INIT')
       }
       const peer = await this.getPeer(account)
       await this.setActivePeer(peer)

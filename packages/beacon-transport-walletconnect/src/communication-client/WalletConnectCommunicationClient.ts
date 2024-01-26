@@ -113,6 +113,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
     this.getSignClient()
+    this.storage.onMessageHandler = this.onStorageMessageHandler.bind(this)
+    this.storage.onErrorHandler = this.onStorageErrorHandler.bind(this)
   }
 
   static getInstance(wcOptions: {
@@ -153,6 +155,26 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       messageCallback(pairingResponse)
     }
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
+  }
+
+  private async onStorageMessageHandler(type: string) {
+    logger.debug('onStorageMessageHandler', type)
+
+    this.signClient = undefined
+
+    const client = await this.getSignClient()
+
+    try {
+      this.session = client?.session.getAll()[0] ?? this.session
+      this.activeAccount = this.getAccounts()[0]
+      console.log('onStorageMessageHandler', this.session, this.activeAccount)
+    } catch (err: any) {
+      logger.error('onStorageMessageHandler', err.message)
+    }
+  }
+
+  private onStorageErrorHandler(data: any) {
+    logger.error('onStorageError', data)
   }
 
   async unsubscribeFromEncryptedMessages(): Promise<void> {
@@ -826,6 +848,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     await this.storage.resetState()
+    this.storage.notify('RESET')
   }
 
   private async closeSessions() {

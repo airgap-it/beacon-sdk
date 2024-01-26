@@ -5,6 +5,9 @@ import { IndexedDBStorage } from './IndexedDBStorage'
 export class WCStorage {
   private readonly localStorage = new LocalStorage()
   private readonly indexedDB = new IndexedDBStorage()
+  private channel: BroadcastChannel = new BroadcastChannel('WALLET_CONNECT_V2_INDEXED_DB')
+  onMessageHandler: ((type: string) => void) | undefined
+  onErrorHandler: ((data: any) => void) | undefined
 
   constructor() {
     IndexedDBStorage.doesDatabaseAndTableExist()
@@ -14,6 +17,21 @@ export class WCStorage {
         }
       })
       .catch((error) => console.error(error.message))
+
+    this.channel.onmessage = this.onMessage.bind(this)
+    this.channel.onmessageerror = this.onError.bind(this)
+  }
+
+  private onMessage(message: MessageEvent) {
+    this.onMessageHandler && this.onMessageHandler(message.data.type)
+  }
+
+  private onError({ data }: MessageEvent) {
+    this.onErrorHandler && this.onErrorHandler(data)
+  }
+
+  notify(type: string) {
+    this.channel?.postMessage({ type })
   }
 
   async hasPairings() {
@@ -41,6 +59,7 @@ export class WCStorage {
   }
 
   async resetState() {
+    console.log('resetState called')
     if (await IndexedDBStorage.doesDatabaseAndTableExist()) {
       await this.indexedDB.clearTable()
       return
