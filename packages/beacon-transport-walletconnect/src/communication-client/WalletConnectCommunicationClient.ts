@@ -42,7 +42,8 @@ import {
   PermissionScope,
   SignPayloadRequest,
   SignPayloadResponse,
-  SignPayloadResponseInput
+  SignPayloadResponseInput,
+  TransportType
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
@@ -447,7 +448,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       } catch (error: any) {
         logger.error(error.message)
         const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
-        fun && fun()
+        fun && fun(TransportType.WALLETCONNECT)
         return
       }
     })
@@ -554,7 +555,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (!this.activeAccount) {
       const fun = this.eventHandlers.get(ClientEvents.RESET_STATE)
-      fun && fun()
+      fun && fun(TransportType.WALLETCONNECT)
     }
 
     if (!session) {
