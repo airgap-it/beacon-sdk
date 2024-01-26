@@ -126,7 +126,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private getTopicFromSession(session: SessionTypes.Struct): string {
-    return this.signClient?.session.getAll()[0]?.topic ?? session.topic
+    return session.pairingTopic?.length ? session.pairingTopic : session.topic
   }
 
   public async listenForEncryptedMessage(
@@ -630,10 +630,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     signClient.on('session_update', (event) => {
-      this.session = signClient.session.get(event.topic)
+      const session = signClient.session.get(event.topic)
+
+      if (!session) {
+        logger.warn('session_update', 'topic does not exist')
+        return
+      }
+
+      this.session = session
 
       this.updateActiveAccount(event.params.namespaces)
-      this.notifyListenersWithPermissionResponse(this.session!, {
+      this.notifyListenersWithPermissionResponse(this.session, {
         type: this.wcOptions.network
       })
     })
