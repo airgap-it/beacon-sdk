@@ -157,15 +157,27 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
+  private clearEvents() {
+    this.signClient?.removeAllListeners('session_event')
+    this.signClient?.removeAllListeners('session_update')
+    this.signClient?.removeAllListeners('session_delete')
+    this.signClient?.removeAllListeners('session_expire')
+    this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
+    this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
+  }
+
   private async onStorageMessageHandler(type: string) {
     logger.debug('onStorageMessageHandler', type)
 
+    this.clearEvents()
     this.signClient = undefined
 
     const client = await this.getSignClient()
+    const sessions = client?.session.getAll() ?? []
 
     try {
-      this.session = client?.session.getAll()[0] ?? this.session
+      this.session =
+        sessions?.find((el) => el.topic === this.session?.topic) ?? sessions[0] ?? this.session
       this.activeAccount = this.getAccounts()[0]
       console.log('onStorageMessageHandler', this.session, this.activeAccount)
     } catch (err: any) {
