@@ -35,9 +35,9 @@ export const messageEvents: {
     error: BeaconEvent.UNKNOWN
   },
   [BeaconMessageType.SimulatedProofOfEventChallengeRequest]: {
-    sent: BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT,
-    success: BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS,
-    error: BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
+    sent: BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT,
+    success: BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS,
+    error: BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
   },
   [BeaconMessageType.SimulatedProofOfEventChallengeResponse]: {
     sent: BeaconEvent.UNKNOWN,

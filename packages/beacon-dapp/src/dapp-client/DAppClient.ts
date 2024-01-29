@@ -950,7 +950,8 @@ export class DAppClient extends Client {
     if (
       [
         BeaconMessageType.PermissionRequest,
-        BeaconMessageType.ProofOfEventChallengeRequest
+        BeaconMessageType.ProofOfEventChallengeRequest,
+        BeaconMessageType.SimulatedProofOfEventChallengeRequest
       ].includes(type)
     ) {
       return true

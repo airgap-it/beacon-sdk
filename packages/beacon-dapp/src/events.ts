@@ -544,16 +544,31 @@ const showSimulatedProofOfEventChallengeSuccessAlert = async (
   const { output } = data
 
   await openToast({
-    body: `{{wallet}}\u00A0 has ${!output.errorMessage ? 'accepted' : 'refused'} the challenge`,
+    body: !output.errorMessage
+      ? `{{wallet}}\u00A0 has returned the list of operation`
+      : `{{wallet}}\u00A0 has returned an error`,
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
     state: 'finished',
-    actions: [
-      {
-        text: 'Operation list',
-        actionText: output.operationsList
-      }
-    ]
+    actions: !output.errorMessage
+      ? [
+          {
+            text: 'Operation list',
+            actionText: 'Copy to clipboard',
+            actionCallback: async (): Promise<void> => {
+              navigator.clipboard.writeText(output.operationsList).then(
+                () => {
+                  logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+                },
+                (err) => {
+                  logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+                }
+              )
+              await closeToast()
+            }
+          }
+        ]
+      : [{ text: 'Error message', actionText: output.errorMessage }]
   })
 }
 
@@ -808,7 +823,6 @@ export class BeaconEventHandler {
     [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
   }
-
   constructor(
     eventsToOverride: {
       [key in BeaconEvent]?: {
