@@ -485,7 +485,13 @@ export class DAppClient extends Client {
       })
     }
   }
-  private async channelClosedHandler() {
+  private async channelClosedHandler(type: TransportType) {
+    const transport = await this.transport
+
+    if (type && transport.type !== type) {
+      return
+    }
+
     await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
     this.setActiveAccount(undefined)
 
@@ -756,12 +762,29 @@ export class DAppClient extends Client {
     await this.events.emit(BeaconEvent.SHOW_PREPARE, { walletInfo })
   }
 
-  public async hideUI(elements?: ('alert' | 'toast')[]): Promise<void> {
-    await this.events.emit(BeaconEvent.HIDE_UI, elements)
+  public async hideUI(elements: ('alert' | 'toast')[], type?: TransportType): Promise<void> {
+    await this.events.emit(BeaconEvent.HIDE_UI, ['alert', 'toast'])
 
-    if (elements?.includes('alert')) {
-      // if the sync was aborted from the wallet side
-      this._initPromise = undefined
+    if (elements.includes('alert')) {
+      // if the sync has been aborted
+      const transport = await this.transport
+
+      if (!type || transport.type === type) {
+        await Promise.all([
+          this.postMessageTransport?.disconnect(),
+          // p2pTransport.disconnect(), do not abort connection manually
+          this.walletConnectTransport?.disconnect()
+        ])
+        this._initPromise = undefined
+      } else {
+        switch (type) {
+          case TransportType.WALLETCONNECT:
+            this.walletConnectTransport?.disconnect()
+            break
+          default:
+            this.postMessageTransport?.disconnect()
+        }
+      }
     }
   }
 
@@ -1793,7 +1816,7 @@ export class DAppClient extends Client {
       !(await transport.hasPairings()) &&
       !(await transport.hasSessions())
     ) {
-      await this.channelClosedHandler()
+      await this.channelClosedHandler(transport.type)
       throw new Error('No active pairing nor session found')
     }
 
@@ -1936,7 +1959,7 @@ export class DAppClient extends Client {
       !(await transport.hasPairings()) &&
       !(await transport.hasSessions())
     ) {
-      await this.channelClosedHandler()
+      await this.channelClosedHandler(transport.type)
       throw new Error('No active pairing nor session found')
     }
 
