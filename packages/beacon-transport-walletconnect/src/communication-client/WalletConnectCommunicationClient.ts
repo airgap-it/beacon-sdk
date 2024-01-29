@@ -157,18 +157,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
-  private clearEvents() {
-    this.signClient?.removeAllListeners('session_event')
-    this.signClient?.removeAllListeners('session_update')
-    this.signClient?.removeAllListeners('session_delete')
-    this.signClient?.removeAllListeners('session_expire')
-    this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
-    this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
-  }
-
-  private async onStorageMessageHandler(type: string) {
-    logger.debug('onStorageMessageHandler', type)
-
+  private async refreshState() {
     this.clearEvents()
     this.signClient = undefined
 
@@ -183,6 +172,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     } catch (err: any) {
       logger.error('onStorageMessageHandler', err.message)
     }
+  }
+
+  private clearEvents() {
+    this.signClient?.removeAllListeners('session_event')
+    this.signClient?.removeAllListeners('session_update')
+    this.signClient?.removeAllListeners('session_delete')
+    this.signClient?.removeAllListeners('session_expire')
+    this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
+    this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
+  }
+
+  private async onStorageMessageHandler(type: string) {
+    logger.debug('onStorageMessageHandler', type)
+
+    this.refreshState()
   }
 
   private onStorageErrorHandler(data: any) {
@@ -612,6 +616,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         logger.debug('Session is now', [session.pairingTopic])
 
         this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
+        this.refreshState()
       })
       .catch(async (error: any) => {
         if (

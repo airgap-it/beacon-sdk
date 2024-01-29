@@ -179,7 +179,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     setCurrentInfo('top-wallets')
     setCurrentWallet(undefined)
-    localStorage.removeItem(StorageKey.LAST_SELECTED_WALLET)
+    
+    !config.title.toLowerCase().includes('error') &&
+      localStorage.removeItem(StorageKey.LAST_SELECTED_WALLET)
 
     // Shadow root
     const shadowRootEl = document.createElement('div')
