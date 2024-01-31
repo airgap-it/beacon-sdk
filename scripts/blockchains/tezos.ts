@@ -203,7 +203,7 @@ export const tezosIosList: App[] = [
     color: 'rgb(236, 255, 12)',
     logo: 'ios-feralfile.png',
     universalLink: 'https://app.feralfile.com/apps/tezos',
-    deepLink: 'feralfile-tezos://'
+    deepLink: 'autonomy-tezos://'
   },
   {
     key: 'temple_ios',
