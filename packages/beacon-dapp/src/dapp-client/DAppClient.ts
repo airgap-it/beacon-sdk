@@ -670,10 +670,18 @@ export class DAppClient extends Client {
   }
 
   private async resetInvalidState() {
-    await this.destroy()
-    await this.storage.set(StorageKey.ACTIVE_ACCOUNT, undefined)
-    await this.events.emit(BeaconEvent.ACTIVE_ACCOUNT_SET, undefined)
-    await this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
+    this.accountManager.removeAllAccounts()
+    this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(undefined)
+    this.storage.set(StorageKey.ACTIVE_ACCOUNT, undefined)
+    this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
+    await Promise.all([
+      this.postMessageTransport?.disconnect(),
+      this.walletConnectTransport?.disconnect()
+    ])
+    this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
+    await this.setActivePeer(undefined)
+    await this.setTransport(undefined)
+    this._initPromise = undefined
   }
 
   /**
@@ -690,8 +698,12 @@ export class DAppClient extends Client {
     }
 
     if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
-      await this.resetInvalidState()
-      return
+      const tranport = await this.transport
+
+      if (tranport instanceof WalletConnectTransport && tranport.wasDisconnectedByWallet()) {
+        await this.resetInvalidState()
+        return
+      }
     }
 
     // when I'm resetting the activeAccount

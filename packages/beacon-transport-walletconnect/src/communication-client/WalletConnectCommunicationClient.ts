@@ -102,7 +102,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private session: SessionTypes.Struct | undefined
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
-  wasDisconnectedByWallet: boolean = false
+  readonly disconnectionEvents: Set<string> = new Set()
 
   /**
    * this queue stores each active message id
@@ -169,7 +169,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.session =
         sessions?.find((el) => el.topic === this.session?.topic) ?? sessions[0] ?? this.session
       this.activeAccount = this.getAccounts()[0]
-      console.log('onStorageMessageHandler', this.session, this.activeAccount)
     } catch (err: any) {
       logger.error('onStorageMessageHandler', err.message)
     }
@@ -514,6 +513,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     forceNewConnection: boolean = false
   ): Promise<{ uri: string; topic: string } | undefined> {
     logger.warn('init')
+    this.disconnectionEvents.size && this.disconnectionEvents.clear()
     const signClient = await this.getSignClient()
 
     if (!signClient) {
@@ -670,6 +670,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     signClient.on('session_update', (event) => {
+      this.disconnectionEvents.add('session_update')
       const session = signClient.session.get(event.topic)
 
       if (!session) {
@@ -686,10 +687,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     signClient.on('session_delete', (event) => {
+      this.disconnectionEvents.add('session_delete')
       this.disconnect(signClient, { type: 'session', topic: event.topic })
     })
 
     signClient.on('session_expire', (event) => {
+      this.disconnectionEvents.add('session_expire')
       this.disconnect(signClient, { type: 'session', topic: event.topic })
     })
     signClient.core.pairing.events.on('pairing_delete', (event) => {
@@ -713,7 +716,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private async updateActiveAccount(namespaces: SessionTypes.Namespaces) {
     try {
       const accounts = this.getTezosNamespace(namespaces).accounts
-      if (accounts.length === 1) {
+      if (accounts.length) {
         const [_namespace, chainId, addressOrPbk] = accounts[0].split(':', 3)
         const session = this.getSession()
         let publicKey: string | undefined
@@ -750,7 +753,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     signClient: Client,
     trigger: { type: 'session'; topic: string } | { type: 'pairing'; topic: string }
   ) {
-    console.log('WC disconnect called')
     let session
     if (trigger.type === 'session') {
       session = await this.onSessionClosed(signClient, trigger.topic)
@@ -768,8 +770,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     if (!session) {
       return
     }
-    
-    this.wasDisconnectedByWallet = true
+
     this.notifyListeners(this.getTopicFromSession(session), {
       id: await generateGUID(),
       type: BeaconMessageType.Disconnect

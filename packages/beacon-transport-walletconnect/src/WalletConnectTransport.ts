@@ -65,7 +65,7 @@ export class WalletConnectTransport<
   }
 
   wasDisconnectedByWallet() {
-    return this.client.wasDisconnectedByWallet
+    return !!this.client.disconnectionEvents.size
   }
 
   public async hasPairings() {
