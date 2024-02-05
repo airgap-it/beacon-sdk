@@ -666,7 +666,14 @@ export class DAppClient extends Client {
     const activeAccount = await this._activeAccount.promise
     return !activeAccount
       ? false
-      : activeAccount?.address !== account.address && !this.isGetActiveAccountHandled
+      : activeAccount?.address !== account?.address && !this.isGetActiveAccountHandled
+  }
+
+  private async resetInvalidState() {
+    await this.destroy()
+    await this.storage.set(StorageKey.ACTIVE_ACCOUNT, undefined)
+    await this.events.emit(BeaconEvent.ACTIVE_ACCOUNT_SET, undefined)
+    await this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
   }
 
   /**
@@ -675,11 +682,15 @@ export class DAppClient extends Client {
    * @param account The account that will be set as the active account
    */
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
-    if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
-      await this.destroy()
-      await this.setActiveAccount(undefined)
-      await this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
+    if (!this.isGetActiveAccountHandled) {
+      console.warn(
+        `An active account has been received, but no active subscription was found for BeaconEvent.ACTIVE_ACCOUNT_SET.
+        For more information, visit: https://docs.walletbeacon.io/getting-started/first-dapp.`
+      )
+    }
 
+    if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
+      await this.resetInvalidState()
       return
     }
 
@@ -702,6 +713,15 @@ export class DAppClient extends Client {
       this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(account)
     } else {
       this._activeAccount.resolve(account)
+    }
+
+    if (!this.isGetActiveAccountHandled && this._transport.isResolved()) {
+      const transport = await this.transport
+
+      if (transport instanceof WalletConnectTransport && transport.wasDisconnectedByWallet()) {
+        await this.resetInvalidState()
+        return
+      }
     }
 
     if (account) {
@@ -994,7 +1014,9 @@ export class DAppClient extends Client {
     this.blockchains.delete(chainIdentifier)
   }
 
-  /** Generic messages */
+  /**
+   * @deprecated The method should not be used. Use permissionRequest(): void instead and subscribe to Eventsclear
+   */
   public async permissionRequest(
     input: PermissionRequestV3<string>
   ): Promise<PermissionResponseV3<string>> {

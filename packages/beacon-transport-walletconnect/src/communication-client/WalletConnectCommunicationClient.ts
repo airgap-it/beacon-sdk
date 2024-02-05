@@ -102,6 +102,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private session: SessionTypes.Struct | undefined
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
+  wasDisconnectedByWallet: boolean = false
 
   /**
    * this queue stores each active message id
@@ -749,6 +750,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     signClient: Client,
     trigger: { type: 'session'; topic: string } | { type: 'pairing'; topic: string }
   ) {
+    console.log('WC disconnect called')
     let session
     if (trigger.type === 'session') {
       session = await this.onSessionClosed(signClient, trigger.topic)
@@ -766,7 +768,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     if (!session) {
       return
     }
-
+    
+    this.wasDisconnectedByWallet = true
     this.notifyListeners(this.getTopicFromSession(session), {
       id: await generateGUID(),
       type: BeaconMessageType.Disconnect

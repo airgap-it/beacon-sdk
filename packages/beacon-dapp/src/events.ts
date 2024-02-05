@@ -302,7 +302,8 @@ const showNoPermissionAlert = async (): Promise<void> => {
 const showInvalidActiveAccountState = async (): Promise<void> => {
   await openAlert({
     title: 'Invalid state',
-    body: 'No subscription found for the received active account.'
+    body: `An active account has been received, but no active subscription was found for BeaconEvent.ACTIVE_ACCOUNT_SET.
+    For more information, visit: https://docs.walletbeacon.io/getting-started/first-dapp.`
   })
 }
 
@@ -408,12 +409,12 @@ const showExtensionConnectedAlert = async (): Promise<void> => {
  * Show a "channel closed" alert for 1.5 seconds
  */
 const showChannelClosedAlert = async (): Promise<void> => {
-  await openAlert({
-    title: 'Channel closed',
-    body: `Your peer has closed the connection.`,
-    buttons: [{ text: 'Done', style: 'outline' }],
-    timer: 1500
-  })
+  // await openAlert({
+  //   title: 'Channel closed',
+  //   body: `Your peer has closed the connection.`,
+  //   buttons: [{ text: 'Done', style: 'outline' }],
+  //   timer: 1500
+  // })
 }
 
 const showInternalErrorAlert = async (

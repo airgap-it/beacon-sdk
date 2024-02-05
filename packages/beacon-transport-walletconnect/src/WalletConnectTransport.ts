@@ -64,6 +64,10 @@ export class WalletConnectTransport<
     return super.connect()
   }
 
+  wasDisconnectedByWallet() {
+    return this.client.wasDisconnectedByWallet
+  }
+
   public async hasPairings() {
     return (await this.client.storage.hasPairings())
       ? true
