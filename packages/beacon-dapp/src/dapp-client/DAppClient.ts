@@ -457,7 +457,7 @@ export class DAppClient extends Client {
 
     this.walletConnectTransport.setEventHandler(
       ClientEvents.CLOSE_ALERT,
-      this.hideUI.bind(this, ['alert'])
+      this.hideUI.bind(this, ['alert', 'toast'])
     )
     this.walletConnectTransport.setEventHandler(
       ClientEvents.RESET_STATE,
@@ -802,7 +802,7 @@ export class DAppClient extends Client {
   }
 
   public async hideUI(elements: ('alert' | 'toast')[], type?: TransportType): Promise<void> {
-    await this.events.emit(BeaconEvent.HIDE_UI, ['alert', 'toast'])
+    await this.events.emit(BeaconEvent.HIDE_UI, elements)
 
     if (elements.includes('alert')) {
       // if the sync has been aborted
