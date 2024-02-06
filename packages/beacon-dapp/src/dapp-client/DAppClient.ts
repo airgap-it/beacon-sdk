@@ -1026,9 +1026,6 @@ export class DAppClient extends Client {
     this.blockchains.delete(chainIdentifier)
   }
 
-  /**
-   * @deprecated The method should not be used. Use permissionRequest(): void instead and subscribe to Eventsclear
-   */
   public async permissionRequest(
     input: PermissionRequestV3<string>
   ): Promise<PermissionResponseV3<string>> {
