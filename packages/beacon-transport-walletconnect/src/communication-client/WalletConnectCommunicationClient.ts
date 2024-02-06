@@ -696,9 +696,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.disconnect(signClient, { type: 'session', topic: event.topic })
     })
     signClient.core.pairing.events.on('pairing_delete', (event) => {
+      this.disconnectionEvents.add('pairing_delete')
       this.disconnect(signClient, { type: 'pairing', topic: event.topic })
     })
     signClient.core.pairing.events.on('pairing_expire', (event) => {
+      this.disconnectionEvents.add('pairing_expire')
       this.disconnect(signClient, { type: 'pairing', topic: event.topic })
     })
   }
