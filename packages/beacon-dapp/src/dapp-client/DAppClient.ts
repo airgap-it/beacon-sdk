@@ -803,10 +803,6 @@ export class DAppClient extends Client {
 
   public async hideUI(elements: ('alert' | 'toast')[]): Promise<void> {
     await this.events.emit(BeaconEvent.HIDE_UI, elements)
-
-    if (elements.includes('alert')) {
-      this.isInitPending = true
-    }
   }
 
   private async tryToAppSwitch() {
