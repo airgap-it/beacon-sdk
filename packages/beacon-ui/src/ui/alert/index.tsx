@@ -179,7 +179,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     setCurrentInfo('top-wallets')
     setCurrentWallet(undefined)
-    
+
     !config.title.toLowerCase().includes('error') &&
       localStorage.removeItem(StorageKey.LAST_SELECTED_WALLET)
 
@@ -501,7 +501,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       )
 
       const link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
-      updateSelectedWalletWithURL(link)
+      updateSelectedWalletWithURL(`${wallet.links[OSLink.IOS]}wc?uri=`)
       logger.log('DO DEEPLINK WITH ' + link)
 
       if (isTwBrowser(window) && isAndroid(window)) {

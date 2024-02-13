@@ -83,7 +83,8 @@ import {
   getAccountIdentifier,
   getSenderId,
   Logger,
-  ClientEvents
+  ClientEvents,
+  StorageValidator
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -202,6 +203,8 @@ export class DAppClient extends Client {
 
   private readonly featuredWallets: string[] | undefined
 
+  private readonly storageValidator: StorageValidator
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -223,6 +226,7 @@ export class DAppClient extends Client {
     this.errorMessages = config.errorMessages ?? {}
 
     this.appMetadataManager = new AppMetadataManager(this.storage)
+    this.storageValidator = new StorageValidator(this.storage)
 
     // Subscribe to storage changes and update the active account if it changes on other tabs
     this.storage.subscribeToStorageChanged(async (event) => {
@@ -255,7 +259,7 @@ export class DAppClient extends Client {
       })
       .catch(async (storageError) => {
         await this.setActiveAccount(undefined)
-        console.error(storageError)
+        logger.error(storageError)
         return undefined
       })
 
@@ -400,12 +404,20 @@ export class DAppClient extends Client {
       }
     }
 
-    this.activeAccountLoaded.then((account) => {
-      // we don't want the p2p to connect eagerly for logic/performance issues
-      if (account && account.origin.type !== 'p2p') {
-        this.init()
-      }
-    })
+    this.storageValidator
+      .validate()
+      .then(async (isValid) => {
+        if (!isValid) {
+          await this.resetInvalidState(false)
+        }
+
+        const account = await this.activeAccountLoaded
+
+        if (account && account.origin.type !== 'p2p') {
+          this.init()
+        }
+      })
+      .catch((err) => logger.error(err.message))
   }
 
   public async initInternalTransports(): Promise<void> {
@@ -669,11 +681,12 @@ export class DAppClient extends Client {
       : activeAccount?.address !== account?.address && !this.isGetActiveAccountHandled
   }
 
-  private async resetInvalidState() {
+  private async resetInvalidState(emit: boolean = true) {
     this.accountManager.removeAllAccounts()
     this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(undefined)
     this.storage.set(StorageKey.ACTIVE_ACCOUNT, undefined)
-    this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
+    emit && this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
+    !emit && this.hideUI(['alert'])
     await Promise.all([
       this.postMessageTransport?.disconnect(),
       this.walletConnectTransport?.disconnect()
@@ -816,9 +829,7 @@ export class DAppClient extends Client {
       return
     }
 
-    const link = isIOS(window)
-      ? wallet.deeplink
-      : JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}').url
+    const link = isIOS(window) ? wallet.deeplink : `${wallet.deeplink}wc?uri=` as any
 
     if (!link?.length) {
       return
