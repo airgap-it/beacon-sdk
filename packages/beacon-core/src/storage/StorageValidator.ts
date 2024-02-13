@@ -56,7 +56,7 @@ export class StorageValidator {
     }
   }
 
-  async validate() {
+  async validate(): Promise<boolean> {
     if (!this.innerValidate(await this.storage.get(StorageKey.BEACON_SDK_VERSION), 'str')) {
       return false
     }
@@ -78,7 +78,7 @@ export class StorageValidator {
         'arr'
       )
     ) {
-      return
+      return false
     }
     if (
       !this.innerValidate(

@@ -407,11 +407,26 @@ export class DAppClient extends Client {
     this.storageValidator
       .validate()
       .then(async (isValid) => {
-        if (!isValid) {
-          await this.resetInvalidState(false)
-        }
-
         const account = await this.activeAccountLoaded
+
+        if (!isValid) {
+          const info = await this.getWalletInfo(undefined, account, false)
+          info.type =
+            info.type === 'extension' && account?.origin.type === Origin.P2P ? 'mobile' : info.type
+          await this.storage.set(StorageKey.LAST_SELECTED_WALLET, {
+            icon: info.icon ?? '',
+            key: info.name,
+            type: info.type ?? 'web',
+            name: info.name,
+            url: info.deeplink
+          })
+
+          const nowValid = await this.storageValidator.validate()
+
+          if (!nowValid) {
+            this.resetInvalidState(false)
+          }
+        }
 
         if (account && account.origin.type !== 'p2p') {
           this.init()
@@ -829,7 +844,7 @@ export class DAppClient extends Client {
       return
     }
 
-    const link = isIOS(window) ? wallet.deeplink : `${wallet.deeplink}wc?uri=` as any
+    const link = isIOS(window) ? wallet.deeplink : (`${wallet.deeplink}wc?uri=` as any)
 
     if (!link?.length) {
       return
@@ -1721,7 +1736,11 @@ export class DAppClient extends Client {
     this.storage.set(StorageKey.LAST_SELECTED_WALLET, wallet)
   }
 
-  private async getWalletInfo(peer?: PeerInfo, account?: AccountInfo): Promise<WalletInfo> {
+  private async getWalletInfo(
+    peer?: PeerInfo,
+    account?: AccountInfo,
+    readFromStorage: boolean = true
+  ): Promise<WalletInfo> {
     const selectedAccount = account ? account : await this.getActiveAccount()
 
     const selectedPeer = peer ? peer : await this.getPeer(selectedAccount)
@@ -1731,7 +1750,11 @@ export class DAppClient extends Client {
       walletInfo = await this.appMetadataManager.getAppMetadata(selectedAccount.senderId)
     }
 
-    const storageWallet = await this.getWalletInfoFromStorage()
+    let storageWallet
+
+    if (readFromStorage) {
+      storageWallet = await this.getWalletInfoFromStorage()
+    }
 
     if (!walletInfo) {
       walletInfo = {

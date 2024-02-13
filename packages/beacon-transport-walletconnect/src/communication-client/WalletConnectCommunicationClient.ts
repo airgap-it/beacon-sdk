@@ -530,6 +530,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     if (sessions && sessions.length > 0) {
       this.session = sessions[0]
       this.setDefaultAccountAndNetwork()
+      this.updateStorageWallet(this.session)
       return undefined
     }
 
