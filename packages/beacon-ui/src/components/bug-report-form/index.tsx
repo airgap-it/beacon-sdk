@@ -69,10 +69,8 @@ const BugReportForm = (props: any) => {
     var ua = navigator.userAgent
     var osMap = new Map([
       ['Windows', 'Windows'],
-      ['Macintosh', 'Mac OS'],
-      ['Mac OS X', 'Mac OS X'],
+      ['Mac', 'Mac OS'],
       ['Linux', 'Linux'],
-      ['Ubuntu', 'Ubuntu'],
       ['iPhone', 'iOS'],
       ['iPad', 'iOS'],
       ['Android', 'Android']
@@ -83,19 +81,19 @@ const BugReportForm = (props: any) => {
         return value
       }
     }
-    return ua
+    return 'UNKOWN'
   }
 
   const currentBrowser = () => {
     var ua = navigator.userAgent
     var browserMap = new Map([
-      ['Firefox', 'Mozilla Firefox'],
+      ['Firefox', 'Firefox'],
       ['Opera', 'Opera'],
       ['OPR', 'Opera'],
-      ['Trident', 'Microsoft Internet Explorer'],
-      ['Edge', 'Microsoft Edge'],
-      ['Chrome', 'Google Chrome'],
-      ['Safari', 'Apple Safari']
+      ['Trident', 'Internet Explorer'],
+      ['Edge', 'Edge'],
+      ['Chrome', 'Chrome'],
+      ['Safari', 'Safari']
     ])
 
     for (let [key, value] of browserMap) {
@@ -103,7 +101,7 @@ const BugReportForm = (props: any) => {
         return value
       }
     }
-    return ua
+    return 'UNKOWN'
   }
 
   createEffect(() => {
