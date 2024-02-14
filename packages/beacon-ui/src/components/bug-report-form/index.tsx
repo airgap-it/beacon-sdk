@@ -131,7 +131,7 @@ const BugReportForm = (props: any) => {
       body: JSON.stringify(request) // Convert the data object to JSON string
     }
 
-    fetch('http://localhost:3000', options)
+    fetch('http://localhost:3001/save', options)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
