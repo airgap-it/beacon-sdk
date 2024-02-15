@@ -260,7 +260,7 @@ export const tezosIosList: App[] = [
     logo: 'ios-fireblocks.svg',
     supportedInteractionStandards: ['wallet_connect'],
     universalLink: 'https://wallet.kukai.app',
-    deepLink: 'kukai://'
+    deepLink: undefined
   }
   // {
   //   name: 'Galleon',
