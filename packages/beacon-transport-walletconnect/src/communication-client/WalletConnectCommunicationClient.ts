@@ -158,6 +158,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
+  /**
+   * WC Sign client doesn't sync between intances, meaning that a dApp signClient instance state may
+   * differ from a wallet state
+   */
   private async refreshState() {
     this.clearEvents()
     this.signClient = undefined
@@ -228,6 +232,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     this.messageIds.unshift(message.id)
+
+    if (message.type != BeaconMessageType.PermissionRequest) {
+      await this.refreshState()
+    }
 
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
@@ -514,16 +522,18 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   ): Promise<{ uri: string; topic: string } | undefined> {
     logger.warn('init')
     this.disconnectionEvents.size && this.disconnectionEvents.clear()
+
+    if (forceNewConnection) {
+      await this.closePairings()
+      await this.storage.resetState()
+    }
+
     const signClient = await this.getSignClient()
 
     if (!signClient) {
       const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
       fun && fun()
       return
-    }
-
-    if (forceNewConnection) {
-      await this.closePairings()
     }
 
     const sessions = signClient.session.getAll()
@@ -872,7 +882,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         ))
     }
 
-    await this.storage.resetState()
     this.storage.notify('RESET')
   }
 

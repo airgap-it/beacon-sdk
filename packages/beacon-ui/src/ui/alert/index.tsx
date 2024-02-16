@@ -453,7 +453,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         !wallet.name.toLowerCase().includes('kukai')
       ) {
         const uri = (await wcPayload)?.uri ?? ''
-        if (!!uri.length) {
+        if (uri.length) {
           link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
         } else {
           handleCloseAlert()
@@ -547,7 +547,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
         const uri = (await wcPayload)?.uri ?? ''
 
-        if (!!uri.length) {
+        if (uri.length) {
           if (_isMobileOS && wallet.types.includes('ios') && wallet.types.length === 1) {
             handleDeepLinking(wallet, uri)
           } else {
