@@ -621,6 +621,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.refreshState()
       })
       .catch(async (error: any) => {
+        hasResponse = true
         if (
           !error.message ||
           !error.message.length ||
