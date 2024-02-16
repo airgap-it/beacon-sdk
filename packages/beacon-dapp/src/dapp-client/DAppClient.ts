@@ -840,7 +840,7 @@ export class DAppClient extends Client {
 
     const wallet = await this.getWalletInfo()
 
-    if (wallet.type !== 'mobile') {
+    if (wallet.type !== 'mobile' || !wallet.deeplink) {
       return
     }
 
