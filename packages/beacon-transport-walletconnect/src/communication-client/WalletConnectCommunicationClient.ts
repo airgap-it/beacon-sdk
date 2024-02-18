@@ -624,7 +624,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         logger.debug('Session is now', [session.pairingTopic])
 
         this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
-        this.refreshState()
       })
       .catch(async (error: any) => {
         hasResponse = true
