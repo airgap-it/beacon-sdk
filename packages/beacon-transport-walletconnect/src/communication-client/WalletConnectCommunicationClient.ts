@@ -233,10 +233,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.messageIds.unshift(message.id)
 
-    if (message.type != BeaconMessageType.PermissionRequest) {
-      await this.refreshState()
-    }
-
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
         this.requestPermissions(message)
