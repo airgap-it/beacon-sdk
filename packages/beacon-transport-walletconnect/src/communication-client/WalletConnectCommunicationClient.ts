@@ -43,6 +43,7 @@ import {
   SignPayloadRequest,
   SignPayloadResponse,
   SignPayloadResponseInput,
+  StorageKey,
   TransportType
 } from '@airgap/beacon-types'
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
@@ -72,6 +73,21 @@ type BeaconInputMessage =
   | Optional<DisconnectMessage, IgnoredResponseInputProperties>
   | Optional<ChangeAccountRequest, IgnoredResponseInputProperties>
 
+function getStringBetween(str: string | undefined, startChar: string, endChar: string): string {
+  if (!str || !startChar || !endChar) {
+    return ''
+  }
+
+  const startIndex = str.indexOf(startChar)
+  const endIndex = str.indexOf(endChar, startIndex + 1)
+
+  if (startIndex === -1 || endIndex === -1) {
+    throw new Error('String not found')
+  }
+
+  return str.substring(startIndex + 1, endIndex)
+}
+
 export class WalletConnectCommunicationClient extends CommunicationClient {
   protected readonly activeListeners: Map<string, (message: string) => void> = new Map()
 
@@ -86,6 +102,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private session: SessionTypes.Struct | undefined
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
+  readonly disconnectionEvents: Set<string> = new Set()
 
   /**
    * this queue stores each active message id
@@ -97,6 +114,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
     this.getSignClient()
+    this.storage.onMessageHandler = this.onStorageMessageHandler.bind(this)
+    this.storage.onErrorHandler = this.onStorageErrorHandler.bind(this)
   }
 
   static getInstance(wcOptions: {
@@ -107,6 +126,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       WalletConnectCommunicationClient.instance = new WalletConnectCommunicationClient(wcOptions)
     }
     return WalletConnectCommunicationClient.instance
+  }
+
+  private getTopicFromSession(session: SessionTypes.Struct): string {
+    return session.pairingTopic?.length ? session.pairingTopic : session.topic
   }
 
   public async listenForEncryptedMessage(
@@ -135,6 +158,45 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
+  /**
+   * WC Sign client doesn't sync between intances, meaning that a dApp signClient instance state may
+   * differ from a wallet state
+   */
+  private async refreshState() {
+    this.clearEvents()
+    this.signClient = undefined
+
+    const client = await this.getSignClient()
+    const sessions = client?.session.getAll() ?? []
+
+    try {
+      this.session =
+        sessions?.find((el) => el.topic === this.session?.topic) ?? sessions[0] ?? this.session
+      this.activeAccount = this.getAccounts()[0]
+    } catch (err: any) {
+      logger.error('onStorageMessageHandler', err.message)
+    }
+  }
+
+  private clearEvents() {
+    this.signClient?.removeAllListeners('session_event')
+    this.signClient?.removeAllListeners('session_update')
+    this.signClient?.removeAllListeners('session_delete')
+    this.signClient?.removeAllListeners('session_expire')
+    this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
+    this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
+  }
+
+  private async onStorageMessageHandler(type: string) {
+    logger.debug('onStorageMessageHandler', type)
+
+    this.refreshState()
+  }
+
+  private onStorageErrorHandler(data: any) {
+    logger.error('onStorageError', data)
+  }
+
   async unsubscribeFromEncryptedMessages(): Promise<void> {
     // implementation
   }
@@ -144,17 +206,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private checkWalletReadiness(topic: string) {
-    this.signClient?.core.pairing
-      .ping({ topic })
-      .then(() => {
-        if (this.messageIds.length) {
-          this.acknowledgeRequest(this.messageIds[0])
-        } else {
-          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-          fun && fun('pending')
-        }
-      })
-      .catch((error) => logger.error(error.message))
+    const target = this.signClient?.pairing.getAll().some((el) => el.topic === topic)
+      ? this.signClient?.core.pairing
+      : this.signClient
+    target &&
+      target
+        .ping({ topic })
+        .then(() => {
+          if (this.messageIds.length) {
+            this.acknowledgeRequest(this.messageIds[0])
+          } else {
+            const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+            fun && fun('pending')
+          }
+        })
+        .catch((error) => logger.error(error.message))
   }
 
   async sendMessage(_message: string, _peer?: any): Promise<void> {
@@ -184,6 +250,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private async fetchAccounts(topic: string, chainId: string) {
     const signClient = await this.getSignClient()
+    if (!signClient) {
+      return
+    }
     return signClient.request<
       [
         {
@@ -252,7 +321,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const permissionResponse: PermissionResponseInput = {
       type: BeaconMessageType.PermissionResponse,
       appMetadata: {
-        senderId: session.pairingTopic,
+        senderId: this.getTopicFromSession(session),
         name: session.peer.metadata.name,
         icon: session.peer.metadata.icons[0]
       },
@@ -263,7 +332,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       walletType: 'implicit'
     }
 
-    this.notifyListeners(session.pairingTopic, permissionResponse)
+    this.notifyListeners(this.getTopicFromSession(session), permissionResponse)
   }
 
   async requestPermissions(message: PermissionRequest) {
@@ -292,6 +361,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   async signPayload(signPayloadRequest: SignPayloadRequest) {
     const signClient = await this.getSignClient()
+
+    if (!signClient) {
+      return
+    }
+
     const session = this.getSession()
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.SIGN)) {
       throw new MissingRequiredScope(PermissionScopeMethods.SIGN)
@@ -300,7 +374,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
 
-    this.checkWalletReadiness(session.pairingTopic)
+    this.checkWalletReadiness(this.getTopicFromSession(session))
 
     // TODO: Type
     signClient
@@ -323,9 +397,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: this.messageIds.pop()
         } as SignPayloadResponse
 
-        this.notifyListeners(session.pairingTopic, signPayloadResponse)
+        this.notifyListeners(this.getTopicFromSession(session), signPayloadResponse)
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic)
+          this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
       .catch(async () => {
@@ -335,9 +409,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        this.notifyListeners(session.pairingTopic, errorResponse)
+        this.notifyListeners(this.getTopicFromSession(session), errorResponse)
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic)
+          this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
   }
@@ -348,6 +422,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   async sendOperations(operationRequest: OperationRequest) {
     const signClient = await this.getSignClient()
+
+    if (!signClient) {
+      return
+    }
+
     const session = this.getSession()
 
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.OPERATION_REQUEST)) {
@@ -356,8 +435,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const network = this.getActiveNetwork()
     const account = await this.getPKH()
     this.validateNetworkAndAccount(network, account)
-
-    this.checkWalletReadiness(session.pairingTopic)
+    this.checkWalletReadiness(this.getTopicFromSession(session))
 
     signClient
       .request<{
@@ -385,10 +463,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: this.messageIds.pop() ?? ''
         }
 
-        this.notifyListeners(session.pairingTopic, sendOperationResponse)
+        this.notifyListeners(this.getTopicFromSession(session), sendOperationResponse)
 
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic)
+          this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
       .catch(async () => {
@@ -398,62 +476,190 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           errorType: BeaconErrorType.ABORTED_ERROR
         } as ErrorResponse
 
-        this.notifyListeners(session.pairingTopic, errorResponse)
+        this.notifyListeners(this.getTopicFromSession(session), errorResponse)
 
         if (this.session && this.messageIds.length) {
-          this.checkWalletReadiness(this.session.pairingTopic)
+          this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
+  }
+
+  private isMobileSesion(session: SessionTypes.Struct): boolean {
+    const redirect = session.peer.metadata.redirect
+    return (
+      !!redirect &&
+      !!redirect.native &&
+      !redirect.native.includes('http') &&
+      !redirect.native.includes('ws')
+    )
+  }
+  /**
+   * Function used to fix appSwitching with web wallets when pairing through 'Other wallet flow'
+   * @param session the newly created session
+   */
+  private updateStorageWallet(session: SessionTypes.Struct): void {
+    const selectedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}')
+
+    if (!selectedWallet.key) {
+      return
+    }
+
+    if (this.isMobileSesion(session)) {
+      selectedWallet.type = 'mobile'
+    } else {
+      selectedWallet.type = 'web'
+    }
+
+    localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(selectedWallet))
   }
 
   public async init(
     forceNewConnection: boolean = false
   ): Promise<{ uri: string; topic: string } | undefined> {
-    const signClient = await this.getSignClient()
+    logger.warn('init')
+    this.disconnectionEvents.size && this.disconnectionEvents.clear()
 
     if (forceNewConnection) {
       await this.closePairings()
+      await this.storage.resetState()
+    }
+
+    const signClient = await this.getSignClient()
+
+    if (!signClient) {
+      const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+      fun && fun()
+      return
     }
 
     const sessions = signClient.session.getAll()
     if (sessions && sessions.length > 0) {
       this.session = sessions[0]
       this.setDefaultAccountAndNetwork()
+      this.updateStorageWallet(this.session)
       return undefined
     }
 
-    const { uri, topic } = await signClient.core.pairing.create()
-    signClient.core.pairing.ping({ topic }).then(async () => {
-      await signClient.core.pairing.activate({ topic })
+    logger.warn('before create')
 
-      // pairings don't have peer details
-      // therefore we must immediately open a session
-      // to get data required in the pairing response
-      try {
-        const session = await this.openSession(topic)
+    const permissionScopeParams: PermissionScopeParam = {
+      networks: [this.wcOptions.network],
+      events: [],
+      methods: [
+        PermissionScopeMethods.GET_ACCOUNTS,
+        PermissionScopeMethods.OPERATION_REQUEST,
+        PermissionScopeMethods.SIGN
+      ]
+    }
+    const optionalPermissionScopeParams: PermissionScopeParam = {
+      networks: [this.wcOptions.network],
+      events: [PermissionScopeEvents.REQUEST_ACKNOWLEDGED],
+      methods: []
+    }
+
+    const connectParams = {
+      requiredNamespaces: {
+        [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(permissionScopeParams)
+      },
+      optionalNamespaces: {
+        [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
+      }
+    }
+
+    const { uri, approval } = await signClient.connect(connectParams)
+
+    // Extract topic from uri. Format is wc:topic@2...
+    const topic = getStringBetween(uri, ':', '@')
+
+    if (!topic) {
+      return
+    }
+
+    let hasResponse = false
+
+    signClient.core.pairing
+      .ping({ topic })
+      .then(async () => {
+        if (!hasResponse) {
+          // Only show "waiting for acknowledge" message if pong arrives before response
+          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+          fun && fun('pending')
+        }
+      })
+      .catch((err) => {
+        console.error('--------', err)
+      })
+
+    approval()
+      .then((session) => {
+        logger.debug('session open')
+
+        hasResponse = true
+
+        this.updateStorageWallet(session)
 
         const pairingResponse: ExtendedWalletConnectPairingResponse =
           new ExtendedWalletConnectPairingResponse(
-            topic,
+            session.topic,
             session.peer.metadata.name,
             session.peer.publicKey,
             '3',
-            topic,
+            session.topic,
             session.peer.metadata.name
           )
 
         this.channelOpeningListeners.forEach((listener) => {
           listener(pairingResponse)
         })
-      } catch (error: any) {
-        logger.error(error.message)
-        const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
-        fun && fun(TransportType.WALLETCONNECT)
-        return
-      }
-    })
 
-    return { uri, topic }
+        if (session?.controller !== this.session?.controller) {
+          logger.debug('Controller doesnt match, closing active session', [session.pairingTopic])
+          this.activeAccount && this.closeActiveSession(this.activeAccount)
+          this.session = undefined // close the previous session
+        }
+
+        // We need this check in the event the user aborts the sync process on the wallet side
+        // but there is already a connection set
+        this.session = this.session ?? session
+        logger.debug('Session is now', [session.pairingTopic])
+
+        this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
+      })
+      .catch(async (error: any) => {
+        hasResponse = true
+        if (
+          !error.message ||
+          !error.message.length ||
+          error.message.toLowerCase().includes('expir')
+        ) {
+          const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+          fun && fun(TransportType.WALLETCONNECT)
+          return
+        }
+
+        logger.error('Error happened!', [error.message])
+
+        if (this.activeListeners.size === 0) {
+          logger.debug('No active listeners', [])
+          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+          fun && fun('error')
+        } else {
+          const _pairingTopic = topic ?? signClient.core.pairing.getPairings()[0]?.topic
+          logger.debug('New pairing topic?', [])
+
+          const errorResponse: ErrorResponseInput = {
+            type: BeaconMessageType.Error,
+            id: this.messageIds.pop(),
+            errorType: BeaconErrorType.ABORTED_ERROR
+          } as ErrorResponse
+
+          this.notifyListeners(_pairingTopic, errorResponse)
+        }
+      })
+
+    logger.warn('return uri and topic')
+
+    return { uri: uri ?? '', topic: topic }
   }
 
   public async close() {
@@ -471,25 +677,37 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     signClient.on('session_update', (event) => {
-      this.session = signClient.session.get(event.topic)
+      this.disconnectionEvents.add('session_update')
+      const session = signClient.session.get(event.topic)
+
+      if (!session) {
+        logger.warn('session_update', 'topic does not exist')
+        return
+      }
+
+      this.session = session
 
       this.updateActiveAccount(event.params.namespaces)
-      this.notifyListenersWithPermissionResponse(this.session!, {
+      this.notifyListenersWithPermissionResponse(this.session, {
         type: this.wcOptions.network
       })
     })
 
     signClient.on('session_delete', (event) => {
+      this.disconnectionEvents.add('session_delete')
       this.disconnect(signClient, { type: 'session', topic: event.topic })
     })
 
     signClient.on('session_expire', (event) => {
+      this.disconnectionEvents.add('session_expire')
       this.disconnect(signClient, { type: 'session', topic: event.topic })
     })
     signClient.core.pairing.events.on('pairing_delete', (event) => {
+      this.disconnectionEvents.add('pairing_delete')
       this.disconnect(signClient, { type: 'pairing', topic: event.topic })
     })
     signClient.core.pairing.events.on('pairing_expire', (event) => {
+      this.disconnectionEvents.add('pairing_expire')
       this.disconnect(signClient, { type: 'pairing', topic: event.topic })
     })
   }
@@ -501,13 +719,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       id
     }
 
-    this.notifyListeners(session.pairingTopic, acknowledgeResponse)
+    this.notifyListeners(this.getTopicFromSession(session), acknowledgeResponse)
   }
 
   private async updateActiveAccount(namespaces: SessionTypes.Namespaces) {
     try {
       const accounts = this.getTezosNamespace(namespaces).accounts
-      if (accounts.length === 1) {
+      if (accounts.length) {
         const [_namespace, chainId, addressOrPbk] = accounts[0].split(':', 3)
         const session = this.getSession()
         let publicKey: string | undefined
@@ -528,7 +746,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           throw new Error('Public key for the new account not provided')
         }
 
-        this.notifyListeners(session.pairingTopic, {
+        this.notifyListeners(this.getTopicFromSession(session), {
           id: await generateGUID(),
           type: BeaconMessageType.ChangeAccountRequest,
           publicKey,
@@ -562,7 +780,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    this.notifyListeners(session.pairingTopic, {
+    this.notifyListeners(this.getTopicFromSession(session), {
       id: await generateGUID(),
       type: BeaconMessageType.Disconnect
     })
@@ -571,14 +789,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private async onPairingClosed(
     signClient: Client,
-    pairingTopic: string
+    topic: string
   ): Promise<SessionTypes.Struct | undefined> {
     const session =
-      this.session?.pairingTopic === pairingTopic
+      this.session?.pairingTopic === topic
         ? this.session
         : signClient.session
             .getAll()
-            .find((session: SessionTypes.Struct) => session.pairingTopic === pairingTopic)
+            .find((session: SessionTypes.Struct) => session.pairingTopic === topic)
 
     if (!session) {
       return undefined
@@ -609,7 +827,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     try {
-      await signClient.core.pairing.disconnect({ topic: this.session.pairingTopic })
+      // todo close the matching session and not just the first one
+      if (!this.session.pairingTopic) {
+        await signClient.core.pairing.disconnect({
+          topic: signClient.core.pairing.getPairings()[0]?.topic
+        })
+      } else {
+        await signClient.core.pairing.disconnect({ topic: this.session.pairingTopic })
+      }
     } catch (error: any) {
       // If the pairing was already closed, `disconnect` will throw an error.
       logger.warn(error.message)
@@ -622,6 +847,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     let _uri = '',
       _topic = ''
     try {
+      logger.warn('getPairingRequestInfo')
       const { uri, topic } = (await this.init(true)) ?? { uri: '', topic: '' }
       _uri = uri
       _topic = topic
@@ -642,35 +868,48 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private async closePairings() {
     await this.closeSessions()
     const signClient = await this.getSignClient()
-    const pairings = signClient.pairing.getAll() ?? []
-    pairings.length &&
-      (await Promise.allSettled(
-        pairings.map((pairing) => signClient.core.pairing.disconnect({ topic: pairing.topic }))
-      ))
-    await this.storage.resetState()
+
+    if (signClient) {
+      const pairings = signClient.pairing.getAll() ?? []
+      pairings.length &&
+        (await Promise.allSettled(
+          pairings.map((pairing) => signClient.core.pairing.disconnect({ topic: pairing.topic }))
+        ))
+    }
+
+    this.storage.notify('RESET')
   }
 
   private async closeSessions() {
     const signClient = await this.getSignClient()
-    const sessions = signClient.session.getAll() ?? []
-    sessions.length &&
-      (await Promise.allSettled(
-        sessions.map((session) =>
-          signClient.disconnect({
-            topic: (session as any).topic,
-            reason: {
-              code: 0, // TODO: Use constants
-              message: 'Force new connection'
-            }
-          })
-        )
-      ))
+
+    if (signClient) {
+      const sessions = signClient.session.getAll() ?? []
+      sessions.length &&
+        (await Promise.allSettled(
+          sessions.map((session) =>
+            signClient.disconnect({
+              topic: (session as any).topic,
+              reason: {
+                code: 0, // TODO: Use constants
+                message: 'Force new connection'
+              }
+            })
+          )
+        ))
+    }
 
     this.clearState()
   }
 
   private async openSession(pairingTopic?: string): Promise<SessionTypes.Struct> {
+    logger.debug('Starting open session with', [pairingTopic])
     const signClient = await this.getSignClient()
+
+    if (!signClient) {
+      throw new Error('Transport error.')
+    }
+
     const permissionScopeParams: PermissionScopeParam = {
       networks: [this.wcOptions.network],
       events: [],
@@ -696,14 +935,19 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       pairingTopic: pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
     }
 
+    logger.debug('Checking wallet readiness', [pairingTopic])
+
     this.checkWalletReadiness(connectParams.pairingTopic)
 
-    const { approval } = await signClient.connect(connectParams)
-
     try {
+      logger.debug('connect', [pairingTopic])
+      const { approval } = await signClient.connect(connectParams)
+      logger.debug('before await approal', [pairingTopic])
       const session = await approval()
+      logger.debug('after await approal, have session', [pairingTopic])
       // if I have successfully opened a session and I already have one opened
       if (session?.controller !== this.session?.controller) {
+        logger.debug('Controller doesnt match, closing active session', [pairingTopic])
         this.activeAccount && this.closeActiveSession(this.activeAccount)
         this.session = undefined // close the previous session
       }
@@ -711,28 +955,47 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // I still need this check in the event the user aborts the sync process on the wallet side
       // but there is already a connection set
       this.session = this.session ?? session
+      logger.debug('Session is now', [session.pairingTopic, pairingTopic])
+
       this.validateReceivedNamespace(permissionScopeParams, this.session.namespaces)
     } catch (error: any) {
-      logger.error(error.message)
-      if (this.activeListeners.size === 0) {
-        const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-        fun && fun('error')
+      if (
+        !error.message ||
+        !error.message.length ||
+        error.message.toLowerCase().includes('expir')
+      ) {
+        const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
+        fun && fun(TransportType.WALLETCONNECT)
       } else {
-        const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
-        const errorResponse: ErrorResponseInput = {
-          type: BeaconMessageType.Error,
-          id: this.messageIds.pop(),
-          errorType: BeaconErrorType.ABORTED_ERROR
-        } as ErrorResponse
+        logger.debug('Error happened!', [pairingTopic])
+        logger.error(error.message)
+        if (this.activeListeners.size === 0) {
+          logger.debug('No active listeners', [pairingTopic])
+          const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
+          fun && fun('error')
+        } else {
+          const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
+          logger.debug('New pairing topic?', [pairingTopic])
 
-        this.notifyListeners(_pairingTopic, errorResponse)
+          const errorResponse: ErrorResponseInput = {
+            type: BeaconMessageType.Error,
+            id: this.messageIds.pop(),
+            errorType: BeaconErrorType.ABORTED_ERROR
+          } as ErrorResponse
+
+          this.notifyListeners(_pairingTopic, errorResponse)
+        }
       }
     }
 
     if (this.session) {
+      logger.debug('Have session, returning', [pairingTopic])
+
       return this.session
     } else {
-      throw new InvalidSession('No session set.')
+      logger.debug('Nope, aborting', [pairingTopic])
+
+      throw new InvalidSession('No session set.' + pairingTopic)
     }
   }
 
@@ -968,11 +1231,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // }
   }
 
-  private async notifyListeners(pairingTopic: string, partialResponse: BeaconInputMessage) {
+  private async notifyListeners(topic: string, partialResponse: BeaconInputMessage) {
     const response: BeaconBaseMessage = {
       ...partialResponse,
       version: '2',
-      senderId: pairingTopic
+      senderId: topic
     }
     const serializer = new Serializer()
     const serialized = await serializer.serialize(response)
@@ -986,10 +1249,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return this.session
   }
 
-  private async getSignClient(): Promise<Client> {
+  private async getSignClient(): Promise<Client | undefined> {
     if (this.signClient === undefined) {
-      this.signClient = await SignClient.init(this.wcOptions.opts)
-      this.subscribeToSessionEvents(this.signClient)
+      try {
+        this.signClient = await SignClient.init(this.wcOptions.opts)
+        this.subscribeToSessionEvents(this.signClient)
+      } catch (error: any) {
+        logger.error(error.message)
+        return undefined
+      }
     }
 
     return this.signClient

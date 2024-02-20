@@ -43,6 +43,12 @@ client
     console.log('got permissions', permissions)
   })
   .catch((error) => console.log(error))
+
+// Make sure to listen to all the active account changes. If you do not subscribe, it can lead to problems.
+client.subscribeToEvent(BeaconEvent.ACTIVE_ACCOUNT_SET, async (account) => {
+  // An active account has been set, update the dApp UI
+  console.log(`${BeaconEvent.ACTIVE_ACCOUNT_SET} triggered. New account: `, account)
+})
 ```
 
 For a more complete example, take a look at the `example-dapp.html` file.

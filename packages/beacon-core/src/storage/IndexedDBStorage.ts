@@ -8,39 +8,36 @@ export class IndexedDBStorage extends Storage {
   private readonly storeName: string = 'keyvaluestorage'
   private db: IDBDatabase | null = null
 
-  static async doesDatabaseAndTableExist(): Promise<boolean> {
-    const targetDatabaseName = 'WALLET_CONNECT_V2_INDEXED_DB'
-    const targetTableName = 'keyvaluestorage'
+  constructor() {
+    super()
+    this.init()
+  }
 
-    const databases = await indexedDB.databases()
+  private async init() {
+    const request = indexedDB.open(this.dbName)
 
-    if (!databases.some((database) => database.name === targetDatabaseName)) {
-      return false // The specified database doesn't exist
+    request.onupgradeneeded = (event: any) => {
+      const db = event.target?.result
+
+      // Create the object store if it doesn't exist
+      if (!db.objectStoreNames.contains(this.storeName)) {
+        db.createObjectStore(this.storeName)
+      }
     }
 
-    // Open the database to check if the table exists
-    return new Promise<boolean>((resolve, reject) => {
-      const request = indexedDB.open(targetDatabaseName)
+    request.onsuccess = (event: any) => {
+      console.log(`Database ${this.dbName} and store ${this.dbName} are ready for use.`)
+      const db = event.target?.result
 
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result
+      // Use the database and object store here
+      // ...
 
-        if (db.objectStoreNames.contains(targetTableName)) {
-          // The table exists in the database
-          resolve(true)
-        } else {
-          // The table doesn't exist in the database
-          resolve(false)
-        }
+      db.close()
+    }
 
-        db.close()
-      }
-
-      request.onerror = (event) => {
-        console.error('Error opening database:', (event.target as IDBRequest).error)
-        reject(false) // Assume the table doesn't exist if there's an error opening the database
-      }
-    })
+    request.onerror = (event: any) => {
+      console.error(`Error opening database ${this.dbName}:`, event.target?.error)
+    }
   }
 
   openDatabase(): Promise<string> {
