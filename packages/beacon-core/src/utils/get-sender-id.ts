@@ -12,7 +12,7 @@ const isHex = (str: string): boolean => /^[A-F0-9]+$/i.test(str)
  */
 export const getSenderId = async (publicKey: string): Promise<string> => {
   if (!isHex(publicKey)) {
-    throw new Error('PublicKey needs to be in hex format!')
+    console.error('PublicKey needs to be in hex format!')
   }
 
   const buffer = Buffer.from(hash(Buffer.from(publicKey, 'hex'), 5))
