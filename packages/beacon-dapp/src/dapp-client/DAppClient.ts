@@ -83,7 +83,8 @@ import {
   getAccountIdentifier,
   getSenderId,
   Logger,
-  ClientEvents
+  ClientEvents,
+  StorageValidator
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -202,6 +203,8 @@ export class DAppClient extends Client {
 
   private readonly featuredWallets: string[] | undefined
 
+  private readonly storageValidator: StorageValidator
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -223,6 +226,7 @@ export class DAppClient extends Client {
     this.errorMessages = config.errorMessages ?? {}
 
     this.appMetadataManager = new AppMetadataManager(this.storage)
+    this.storageValidator = new StorageValidator(this.storage)
 
     // Subscribe to storage changes and update the active account if it changes on other tabs
     this.storage.subscribeToStorageChanged(async (event) => {
@@ -255,7 +259,7 @@ export class DAppClient extends Client {
       })
       .catch(async (storageError) => {
         await this.setActiveAccount(undefined)
-        console.error(storageError)
+        logger.error(storageError)
         return undefined
       })
 
@@ -400,12 +404,35 @@ export class DAppClient extends Client {
       }
     }
 
-    this.activeAccountLoaded.then((account) => {
-      // we don't want the p2p to connect eagerly for logic/performance issues
-      if (account && account.origin.type !== 'p2p') {
-        this.init()
-      }
-    })
+    this.storageValidator
+      .validate()
+      .then(async (isValid) => {
+        const account = await this.activeAccountLoaded
+
+        if (!isValid) {
+          const info = await this.getWalletInfo(undefined, account, false)
+          info.type =
+            info.type === 'extension' && account?.origin.type === Origin.P2P ? 'mobile' : info.type
+          await this.storage.set(StorageKey.LAST_SELECTED_WALLET, {
+            icon: info.icon ?? '',
+            key: info.name,
+            type: info.type ?? 'web',
+            name: info.name,
+            url: info.deeplink
+          })
+
+          const nowValid = await this.storageValidator.validate()
+
+          if (!nowValid) {
+            this.resetInvalidState(false)
+          }
+        }
+
+        if (account && account.origin.type !== 'p2p') {
+          this.init()
+        }
+      })
+      .catch((err) => logger.error(err.message))
   }
 
   public async initInternalTransports(): Promise<void> {
@@ -457,7 +484,7 @@ export class DAppClient extends Client {
 
     this.walletConnectTransport.setEventHandler(
       ClientEvents.CLOSE_ALERT,
-      this.hideUI.bind(this, ['alert'])
+      this.hideUI.bind(this, ['alert', 'toast'])
     )
     this.walletConnectTransport.setEventHandler(
       ClientEvents.RESET_STATE,
@@ -666,7 +693,23 @@ export class DAppClient extends Client {
     const activeAccount = await this._activeAccount.promise
     return !activeAccount
       ? false
-      : activeAccount?.address !== account.address && !this.isGetActiveAccountHandled
+      : activeAccount?.address !== account?.address && !this.isGetActiveAccountHandled
+  }
+
+  private async resetInvalidState(emit: boolean = true) {
+    this.accountManager.removeAllAccounts()
+    this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(undefined)
+    this.storage.set(StorageKey.ACTIVE_ACCOUNT, undefined)
+    emit && this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
+    !emit && this.hideUI(['alert'])
+    await Promise.all([
+      this.postMessageTransport?.disconnect(),
+      this.walletConnectTransport?.disconnect()
+    ])
+    this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
+    await this.setActivePeer(undefined)
+    await this.setTransport(undefined)
+    this._initPromise = undefined
   }
 
   /**
@@ -675,12 +718,20 @@ export class DAppClient extends Client {
    * @param account The account that will be set as the active account
    */
   public async setActiveAccount(account?: AccountInfo): Promise<void> {
-    if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
-      await this.destroy()
-      await this.setActiveAccount(undefined)
-      await this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
+    if (!this.isGetActiveAccountHandled) {
+      console.warn(
+        `An active account has been received, but no active subscription was found for BeaconEvent.ACTIVE_ACCOUNT_SET.
+        For more information, visit: https://docs.walletbeacon.io/getting-started/first-dapp.`
+      )
+    }
 
-      return
+    if (account && this._activeAccount.isSettled() && (await this.isInvalidState(account))) {
+      const tranport = await this.transport
+
+      if (tranport instanceof WalletConnectTransport && tranport.wasDisconnectedByWallet()) {
+        await this.resetInvalidState()
+        return
+      }
     }
 
     // when I'm resetting the activeAccount
@@ -704,6 +755,15 @@ export class DAppClient extends Client {
       this._activeAccount.resolve(account)
     }
 
+    if (!this.isGetActiveAccountHandled && this._transport.isResolved()) {
+      const transport = await this.transport
+
+      if (transport instanceof WalletConnectTransport && transport.wasDisconnectedByWallet()) {
+        await this.resetInvalidState()
+        return
+      }
+    }
+
     if (account) {
       const origin = account.origin.type
       await this.initInternalTransports()
@@ -715,6 +775,7 @@ export class DAppClient extends Client {
         await this.setTransport(this.p2pTransport)
       } else if (origin === Origin.WALLETCONNECT) {
         await this.setTransport(this.walletConnectTransport)
+        this.walletConnectTransport?.forceUpdate('INIT')
       }
       const peer = await this.getPeer(account)
       await this.setActivePeer(peer)
@@ -768,30 +829,8 @@ export class DAppClient extends Client {
     await this.events.emit(BeaconEvent.SHOW_PREPARE, { walletInfo })
   }
 
-  public async hideUI(elements: ('alert' | 'toast')[], type?: TransportType): Promise<void> {
-    await this.events.emit(BeaconEvent.HIDE_UI, ['alert', 'toast'])
-
-    if (elements.includes('alert')) {
-      // if the sync has been aborted
-      const transport = await this.transport
-
-      if (!type || transport.type === type) {
-        await Promise.all([
-          this.postMessageTransport?.disconnect(),
-          // p2pTransport.disconnect(), do not abort connection manually
-          this.walletConnectTransport?.disconnect()
-        ])
-        this._initPromise = undefined
-      } else {
-        switch (type) {
-          case TransportType.WALLETCONNECT:
-            this.walletConnectTransport?.disconnect()
-            break
-          default:
-            this.postMessageTransport?.disconnect()
-        }
-      }
-    }
+  public async hideUI(elements: ('alert' | 'toast')[]): Promise<void> {
+    await this.events.emit(BeaconEvent.HIDE_UI, elements)
   }
 
   private async tryToAppSwitch() {
@@ -801,13 +840,11 @@ export class DAppClient extends Client {
 
     const wallet = await this.getWalletInfo()
 
-    if (wallet.type !== 'mobile') {
+    if (wallet.type !== 'mobile' || !wallet.deeplink) {
       return
     }
 
-    const link = isIOS(window)
-      ? wallet.deeplink
-      : JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}').url
+    const link = isIOS(window) ? wallet.deeplink : (`${wallet.deeplink}wc?uri=` as any)
 
     if (!link?.length) {
       return
@@ -993,7 +1030,6 @@ export class DAppClient extends Client {
     this.blockchains.delete(chainIdentifier)
   }
 
-  /** Generic messages */
   public async permissionRequest(
     input: PermissionRequestV3<string>
   ): Promise<PermissionResponseV3<string>> {
@@ -1700,7 +1736,11 @@ export class DAppClient extends Client {
     this.storage.set(StorageKey.LAST_SELECTED_WALLET, wallet)
   }
 
-  private async getWalletInfo(peer?: PeerInfo, account?: AccountInfo): Promise<WalletInfo> {
+  private async getWalletInfo(
+    peer?: PeerInfo,
+    account?: AccountInfo,
+    readFromStorage: boolean = true
+  ): Promise<WalletInfo> {
     const selectedAccount = account ? account : await this.getActiveAccount()
 
     const selectedPeer = peer ? peer : await this.getPeer(selectedAccount)
@@ -1710,7 +1750,11 @@ export class DAppClient extends Client {
       walletInfo = await this.appMetadataManager.getAppMetadata(selectedAccount.senderId)
     }
 
-    const storageWallet = await this.getWalletInfoFromStorage()
+    let storageWallet
+
+    if (readFromStorage) {
+      storageWallet = await this.getWalletInfoFromStorage()
+    }
 
     if (!walletInfo) {
       walletInfo = {

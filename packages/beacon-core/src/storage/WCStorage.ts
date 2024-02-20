@@ -5,20 +5,33 @@ import { IndexedDBStorage } from './IndexedDBStorage'
 export class WCStorage {
   private readonly localStorage = new LocalStorage()
   private readonly indexedDB = new IndexedDBStorage()
+  private channel: BroadcastChannel = new BroadcastChannel('WALLET_CONNECT_V2_INDEXED_DB')
+  onMessageHandler: ((type: string) => void) | undefined
+  onErrorHandler: ((data: any) => void) | undefined
 
   constructor() {
-    IndexedDBStorage.doesDatabaseAndTableExist()
-      .then(async (exists) => {
-        if (exists) {
-          await this.indexedDB.openDatabase()
-        }
-      })
-      .catch((error) => console.error(error.message))
+    this.indexedDB.openDatabase().catch((err) => console.error(err.message))
+    this.channel.onmessage = this.onMessage.bind(this)
+    this.channel.onmessageerror = this.onError.bind(this)
+  }
+
+  private onMessage(message: MessageEvent) {
+    this.onMessageHandler && this.onMessageHandler(message.data.type)
+  }
+
+  private onError({ data }: MessageEvent) {
+    this.onErrorHandler && this.onErrorHandler(data)
+  }
+
+  notify(type: string) {
+    this.channel?.postMessage({ type })
   }
 
   async hasPairings() {
-    if (await IndexedDBStorage.doesDatabaseAndTableExist()) {
-      return ((await this.indexedDB.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]') !== '[]'
+    const pairings = (await this.indexedDB.get(StorageKey.WC_2_CORE_PAIRING)) ?? '[]'
+
+    if (pairings.length) {
+      return true
     }
 
     if (await LocalStorage.isSupported()) {
@@ -29,8 +42,10 @@ export class WCStorage {
   }
 
   async hasSessions() {
-    if (await IndexedDBStorage.doesDatabaseAndTableExist()) {
-      return ((await this.indexedDB.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]') !== '[]'
+    const sessions = (await this.indexedDB.get(StorageKey.WC_2_CLIENT_SESSION)) ?? '[]'
+
+    if (sessions.length) {
+      return true
     }
 
     if (await LocalStorage.isSupported()) {
@@ -41,10 +56,7 @@ export class WCStorage {
   }
 
   async resetState() {
-    if (await IndexedDBStorage.doesDatabaseAndTableExist()) {
-      await this.indexedDB.clearTable()
-      return
-    }
+    await this.indexedDB.clearTable()
 
     if (await LocalStorage.isSupported()) {
       await Promise.all([

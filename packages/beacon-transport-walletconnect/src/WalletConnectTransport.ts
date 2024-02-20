@@ -64,6 +64,10 @@ export class WalletConnectTransport<
     return super.connect()
   }
 
+  wasDisconnectedByWallet() {
+    return !!this.client.disconnectionEvents.size
+  }
+
   public async hasPairings() {
     return (await this.client.storage.hasPairings())
       ? true
@@ -76,12 +80,23 @@ export class WalletConnectTransport<
       : !!this.client.signClient?.session.getAll()?.length
   }
 
+  /**
+   * Forcefully updates any DApps running on the same session
+   * Typical use case: localStorage changes to reflect to indexDB
+   * @param type the message type
+   */
+  public forceUpdate(type: string) {
+    this.client.storage.notify(type)
+  }
+
   public async closeActiveSession(account: AccountInfo) {
     if (!(await this.hasPairings()) || !(await this.hasPairings())) {
       await this.disconnect()
     } else {
       await this.client.closeActiveSession(account.address)
     }
+
+    this.forceUpdate('CLEAR_ACTIVE_ACCOUNT')
   }
 
   public async getPeers(): Promise<T[]> {

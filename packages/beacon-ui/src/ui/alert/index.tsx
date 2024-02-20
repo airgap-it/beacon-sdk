@@ -179,7 +179,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     setCurrentInfo('top-wallets')
     setCurrentWallet(undefined)
-    localStorage.removeItem(StorageKey.LAST_SELECTED_WALLET)
+
+    !config.title.toLowerCase().includes('error') &&
+      localStorage.removeItem(StorageKey.LAST_SELECTED_WALLET)
 
     // Shadow root
     const shadowRootEl = document.createElement('div')
@@ -451,7 +453,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         !wallet.name.toLowerCase().includes('kukai')
       ) {
         const uri = (await wcPayload)?.uri ?? ''
-        if (!!uri.length) {
+        if (uri.length) {
           link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
         } else {
           handleCloseAlert()
@@ -499,7 +501,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       )
 
       const link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
-      updateSelectedWalletWithURL(link)
+      updateSelectedWalletWithURL(`${wallet.links[OSLink.IOS]}wc?uri=`)
       logger.log('DO DEEPLINK WITH ' + link)
 
       if (isTwBrowser(window) && isAndroid(window)) {
@@ -545,7 +547,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
         const uri = (await wcPayload)?.uri ?? ''
 
-        if (!!uri.length) {
+        if (uri.length) {
           if (_isMobileOS && wallet.types.includes('ios') && wallet.types.length === 1) {
             handleDeepLinking(wallet, uri)
           } else {
