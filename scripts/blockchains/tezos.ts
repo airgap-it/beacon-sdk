@@ -251,6 +251,16 @@ export const tezosIosList: App[] = [
     supportedInteractionStandards: ['beacon'],
     deepLink: 'exodus://wc',
     universalLink: 'https://www.exodus.com/'
+  },
+  {
+    key: 'fireblocks_ios',
+    name: 'Fireblocks Wallet',
+    shortName: 'Fireblocks',
+    color: '',
+    logo: 'ios-fireblocks.svg',
+    supportedInteractionStandards: ['wallet_connect'],
+    universalLink: '',
+    deepLink: undefined
   }
   // {
   //   name: 'Galleon',
