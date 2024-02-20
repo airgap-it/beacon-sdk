@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-ui",
-  "version": "4.1.1-beta.5",
+  "version": "4.1.2",
   "description": "This package contains the UI part (alerts and toasts) of the Beacon SDK.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -34,10 +34,10 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "4.1.1-beta.5",
-    "@airgap/beacon-transport-postmessage": "4.1.1-beta.5",
-    "@airgap/beacon-types": "4.1.1-beta.5",
-    "@airgap/beacon-utils": "4.1.1-beta.5",
+    "@airgap/beacon-core": "4.1.2",
+    "@airgap/beacon-transport-postmessage": "4.1.2",
+    "@airgap/beacon-types": "4.1.2",
+    "@airgap/beacon-utils": "4.1.2",
     "qrcode-svg": "^1.1.0",
     "solid-js": "^1.7.11"
   },
