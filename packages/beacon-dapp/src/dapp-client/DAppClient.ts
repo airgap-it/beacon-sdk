@@ -1786,7 +1786,9 @@ export class DAppClient extends Client {
     )
 
     // TODO: Remove once all wallets send the icon?
-    const mobile = (apps as App[]).find((app) => app.universalLink)
+    const mobile = (apps as App[]).find(
+      (app) => app.universalLink || app.key.includes('ios') || app.key.includes('mobile')
+    )
     const browser = (apps as WebApp[]).find((app) => app.links)
     const desktop = (apps as DesktopApp[]).find((app) => app.downloadLink)
     const extension = (apps as ExtensionApp[]).find((app) => app.id)
