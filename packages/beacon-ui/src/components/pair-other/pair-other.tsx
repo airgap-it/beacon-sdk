@@ -7,8 +7,8 @@ import { Serializer } from '@airgap/beacon-core'
 
 export interface PairOtherProps {
   walletList: MergedWallet[]
-  p2pPayload: P2PPairingRequest | undefined
-  wcPayload: WalletConnectPairingRequest | undefined
+  p2pPayload: Promise<P2PPairingRequest> | undefined
+  wcPayload: Promise<WalletConnectPairingRequest> | undefined
   onClickLearnMore: () => void
 }
 
@@ -28,13 +28,17 @@ const PairOther: Component<PairOtherProps> = (props: PairOtherProps) => {
 
   const buttonClickHandler = (state: 'p2p' | 'walletconnect') => {
     if (state === 'p2p' && !!props.p2pPayload) {
-      const serializer = new Serializer()
-      serializer
-        .serialize(props.p2pPayload)
-        .then((codeQR) => setQrData(codeQR))
-        .catch((err) => console.error(err.message))
+      props.p2pPayload.then(async (payload) => {
+        const serializer = new Serializer()
+        const codeQR = await serializer.serialize(payload)
+        setQrData(codeQR)
+      })
     } else if (state === 'walletconnect' && !!props.wcPayload) {
-      setQrData(props.wcPayload.uri)
+      props.wcPayload
+        .then((payload) => {
+          setQrData(payload.uri)
+        })
+        .catch((error) => console.error(error.message))
     }
     setUiState(state)
   }

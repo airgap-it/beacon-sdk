@@ -141,8 +141,8 @@ const closeAlerts = async (): Promise<void> =>
 // eslint-disable-next-line complexity
 const openAlert = async (config: AlertConfig): Promise<string> => {
   setIsLoading(false)
-  const p2pPayload = await config.pairingPayload?.p2pSyncCode()
-  const wcPayload = await config.pairingPayload?.walletConnectSyncCode()
+  const p2pPayload = config.pairingPayload?.p2pSyncCode()
+  const wcPayload = config.pairingPayload?.walletConnectSyncCode()
   const isOnline = navigator.onLine
 
   setAnalytics(config.analytics)
@@ -169,7 +169,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (config.pairingPayload) {
         const serializer = new Serializer()
         try {
-          const codeQR = await serializer.serialize(p2pPayload)
+          const codeQR = await serializer.serialize(await p2pPayload)
           setCodeQR(codeQR)
         } catch (error: any) {
           console.error('Cannot connect to network: ', error.message)
@@ -452,7 +452,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         wallet.supportedInteractionStandards?.includes('wallet_connect') &&
         !wallet.name.toLowerCase().includes('kukai')
       ) {
-        const uri = wcPayload?.uri ?? ''
+        const uri = (await wcPayload)?.uri ?? ''
         if (uri.length) {
           link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
         } else {
@@ -469,7 +469,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         }
       } else {
         const serializer = new Serializer()
-        const code = await serializer.serialize(p2pPayload)
+        const code = await serializer.serialize(await p2pPayload)
         link = getTzip10Link(wallet.links[OSLink.WEB], code)
       }
 
@@ -502,8 +502,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       if (!wallet.links[OSLink.IOS].length) {
         const syncCode = currentWallet()?.supportedInteractionStandards?.includes('wallet_connect')
-          ? wcPayload?.uri ?? ''
-          : await new Serializer().serialize(p2pPayload)
+          ? (await wcPayload)?.uri ?? ''
+          : await new Serializer().serialize(await p2pPayload)
 
         if (!syncCode.length) {
           handleCloseAlert()
@@ -562,7 +562,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = wcPayload?.uri ?? ''
+        const uri = (await wcPayload)?.uri ?? ''
 
         if (uri.length) {
           if (_isMobileOS && wallet.types.includes('ios') && wallet.types.length === 1) {
@@ -588,7 +588,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
         if (config.pairingPayload) {
           const serializer = new Serializer()
-          const code = await serializer.serialize(p2pPayload)
+          const code = await serializer.serialize(await p2pPayload)
 
           const link = getTzip10Link(
             isIOS(window) && wallet.deepLink
@@ -685,9 +685,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setShowMoreContent(false)
       analytics()?.track('click', 'ui', 'open desktop', { key: currentWallet()?.key })
 
-      if (p2pPayload) {
+      if (await p2pPayload) {
         const serializer = new Serializer()
-        const code = await serializer.serialize(p2pPayload)
+        const code = await serializer.serialize(await p2pPayload)
         const link = getTzip10Link(currentWallet()?.deepLink || '', code)
         window.open(link, '_blank', 'noopener')
       }
@@ -880,9 +880,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                                 if (
                                   wallet.supportedInteractionStandards?.includes('wallet_connect')
                                 ) {
-                                  syncCode = wcPayload?.uri ?? ''
+                                  syncCode = (await wcPayload)?.uri ?? ''
                                 } else {
-                                  syncCode = await new Serializer().serialize(p2pPayload)
+                                  syncCode = await new Serializer().serialize(await p2pPayload)
                                 }
                                 handleDeepLinking(wallet, syncCode)
                               }
@@ -901,8 +901,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                               currentWallet()?.supportedInteractionStandards?.includes(
                                 'wallet_connect'
                               )
-                                ? wcPayload?.uri ?? ''
-                                : await new Serializer().serialize(p2pPayload)
+                                ? (await wcPayload)?.uri ?? ''
+                                : await new Serializer().serialize(await p2pPayload)
 
                             const wallet = currentWallet()
 
