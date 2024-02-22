@@ -490,7 +490,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       )
     }
 
-    const handleDeepLinking = (wallet: MergedWallet, uri: string) => {
+    const handleDeepLinking = async (wallet: MergedWallet, uri: string) => {
       localStorage.setItem(
         StorageKey.LAST_SELECTED_WALLET,
         JSON.stringify({
@@ -499,6 +499,23 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           icon: wallet.image
         })
       )
+
+      if (!wallet.links[OSLink.IOS].length) {
+        const syncCode = currentWallet()?.supportedInteractionStandards?.includes('wallet_connect')
+          ? (await wcPayload)?.uri ?? ''
+          : await new Serializer().serialize(await p2pPayload)
+
+        if (!syncCode.length) {
+          handleCloseAlert()
+          return
+        }
+
+        setCodeQR(syncCode)
+        setCurrentInfo('qr')
+        setDisplayQrExtra(true)
+
+        return
+      }
 
       const link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
       updateSelectedWalletWithURL(`${wallet.links[OSLink.IOS]}wc?uri=`)
@@ -668,7 +685,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setShowMoreContent(false)
       analytics()?.track('click', 'ui', 'open desktop', { key: currentWallet()?.key })
 
-      if (p2pPayload) {
+      if (await p2pPayload) {
         const serializer = new Serializer()
         const code = await serializer.serialize(await p2pPayload)
         const link = getTzip10Link(currentWallet()?.deepLink || '', code)
@@ -880,31 +897,30 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                               : undefined
                           }
                           onShowQRCodeClick={async () => {
-                            if (
+                            const syncCode =
                               currentWallet()?.supportedInteractionStandards?.includes(
                                 'wallet_connect'
                               )
-                            ) {
-                              const uri = (await wcPayload)?.uri ?? ''
-                              const wallet = currentWallet()
+                                ? (await wcPayload)?.uri ?? ''
+                                : await new Serializer().serialize(await p2pPayload)
 
-                              if (!uri.length || !wallet) {
-                                closeAlert('')
-                                return
-                              }
+                            const wallet = currentWallet()
 
-                              if (
-                                _isMobileOS &&
-                                wallet.types.includes('ios') &&
-                                wallet.types.length === 1
-                              ) {
-                                handleDeepLinking(wallet, uri)
-                              } else {
-                                setCodeQR(uri)
-                              }
-                            } else {
-                              await new Serializer().serialize(await p2pPayload)
+                            if (!syncCode.length || !wallet) {
+                              handleCloseAlert()
+                              return
                             }
+
+                            if (
+                              _isMobileOS &&
+                              wallet.types.includes('ios') &&
+                              wallet.types.length === 1
+                            ) {
+                              handleDeepLinking(wallet, syncCode)
+                            } else {
+                              setCodeQR(syncCode)
+                            }
+
                             setCurrentInfo('qr')
                             setDisplayQrExtra(true)
                           }}
