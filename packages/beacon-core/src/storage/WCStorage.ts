@@ -10,7 +10,6 @@ export class WCStorage {
   onErrorHandler: ((data: any) => void) | undefined
 
   constructor() {
-    this.indexedDB.openDatabase().catch((err) => console.error(err.message))
     this.channel.onmessage = this.onMessage.bind(this)
     this.channel.onmessageerror = this.onError.bind(this)
   }
