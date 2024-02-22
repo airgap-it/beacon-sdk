@@ -42,6 +42,7 @@ import { isAndroid, isIOS, isMobileOS, isTwBrowser } from '../../utils/platform'
 import { getColorMode } from '../../utils/colorMode'
 import PairOther from '../../components/pair-other/pair-other'
 import getDefaultLogo from './getDefautlLogo'
+import { parseUri } from '@walletconnect/utils'
 
 const logger = new Logger('Alert')
 
@@ -428,6 +429,29 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(wallet))
     }
 
+    const generateLink = async () => {
+      let uri = (await wcPayload)?.uri ?? ''
+
+      // If the initial URI is invalid, try generating a new one
+      if (!parseUri(uri).symKey) {
+        uri = (await config.pairingPayload?.walletConnectSyncCode())?.uri ?? ''
+        if (!parseUri(uri).symKey) {
+          handleCloseAlert()
+          setTimeout(
+            () =>
+              openAlert({
+                title: 'Error',
+                body: 'Unexpected transport error. Please try again.'
+              }),
+            500
+          )
+          return null
+        }
+      }
+
+      return uri
+    }
+
     const handleNewTab = async (config: AlertConfig, wallet?: MergedWallet) => {
       if (!wallet) {
         return
@@ -452,21 +476,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         wallet.supportedInteractionStandards?.includes('wallet_connect') &&
         !wallet.name.toLowerCase().includes('kukai')
       ) {
-        const uri = (await wcPayload)?.uri ?? ''
-        if (uri.length) {
-          link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
-        } else {
-          handleCloseAlert()
-          setTimeout(
-            () =>
-              openAlert({
-                title: 'Error',
-                body: 'Unexpected transport error. Please try again.'
-              }),
-            500
-          )
+        const uri = await generateLink()
+
+        if (!uri) {
           return
         }
+
+        link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
       } else {
         const serializer = new Serializer()
         const code = await serializer.serialize(await p2pPayload)
@@ -562,25 +578,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = (await wcPayload)?.uri ?? ''
+        const uri = await generateLink()
 
-        if (uri.length) {
+        if (uri) {
           if (_isMobileOS && wallet.types.includes('ios') && wallet.types.length === 1) {
             handleDeepLinking(wallet, uri)
           } else {
             setCodeQR(uri)
             setInstallState(wallet)
           }
-        } else {
-          handleCloseAlert()
-          setTimeout(
-            () =>
-              openAlert({
-                title: 'Error',
-                body: 'Unexpected transport error. Please try again.'
-              }),
-            500
-          )
         }
         setIsLoading(false)
       } else if (wallet?.types.includes('ios') && _isMobileOS) {
@@ -869,8 +875,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                               type: 'primary',
                               onClick: async () => {
                                 const wallet = currentWallet()
-
-                                console.log('currentWallet', wallet)
 
                                 if (!wallet) {
                                   return
