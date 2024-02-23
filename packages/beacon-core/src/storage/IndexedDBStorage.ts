@@ -4,10 +4,10 @@ import { Logger } from '@airgap/beacon-core'
 const logger = new Logger('IndexedDBStorage')
 
 export class IndexedDBStorage extends Storage {
-  private readonly dbName: string = 'WALLET_CONNECT_V2_INDEXED_DB'
-  private readonly storeName: string = 'keyvaluestorage'
-
-  constructor() {
+  constructor(
+    private readonly dbName: string = 'WALLET_CONNECT_V2_INDEXED_DB',
+    private readonly storeName: string = 'keyvaluestorage'
+  ) {
     super()
     this.init()
   }
@@ -143,6 +143,66 @@ export class IndexedDBStorage extends Storage {
   getPrefixedKey<K extends StorageKey>(key: K): string {
     logger.debug('getPrefixedKey', key)
     throw new Error('Method not implemented.')
+  }
+
+  getAll(): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName)
+
+      request.onsuccess = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result
+
+        const transaction = db.transaction(this.storeName, 'readonly')
+        const objectStore = transaction.objectStore(this.storeName)
+
+        const getAllRequest = objectStore.getAll()
+
+        getAllRequest.onsuccess = () => {
+          const results = getAllRequest.result
+          resolve(results)
+        }
+
+        getAllRequest.onerror = (getAllEvent) => {
+          logger.error(`Error getting all records:`, getAllEvent.target)
+          reject(getAllEvent.target)
+        }
+      }
+
+      request.onerror = (event) => {
+        logger.error('Error opening database:', event.target)
+        reject(event.target)
+      }
+    })
+  }
+
+  getAllKeys(): Promise<IDBValidKey[]> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName)
+
+      request.onsuccess = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result
+
+        const transaction = db.transaction(this.storeName, 'readonly')
+        const objectStore = transaction.objectStore(this.storeName)
+
+        const getAllRequest = objectStore.getAllKeys()
+
+        getAllRequest.onsuccess = () => {
+          const results = getAllRequest.result
+          resolve(results)
+        }
+
+        getAllRequest.onerror = (getAllEvent) => {
+          logger.error(`Error getting all records:`, getAllEvent.target)
+          reject(getAllEvent.target)
+        }
+      }
+
+      request.onerror = (event) => {
+        logger.error('Error opening database:', event.target)
+        reject(event.target)
+      }
+    })
   }
 
   clearTable(): Promise<void> {
