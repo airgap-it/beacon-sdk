@@ -26,6 +26,7 @@ import * as infoStyles from '../../components/info/styles.css'
 import * as qrStyles from '../../components/qr/styles.css'
 import * as loaderStyles from '../../components/loader/styles.css'
 import * as pairOtherStyles from '../../components/pair-other/styles.css'
+import * as bugReportFormStyles from '../../components/bug-report-form/styles.css'
 
 import { Logger, Serializer, windowRef } from '@airgap/beacon-core'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
@@ -43,7 +44,7 @@ import { getColorMode } from '../../utils/colorMode'
 import PairOther from '../../components/pair-other/pair-other'
 import getDefaultLogo from './getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
-import BugReportForm from 'src/components/bug-report-from'
+import BugReportForm from 'src/components/bug-report-form'
 
 const logger = new Logger('Alert')
 
@@ -233,6 +234,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const style8 = document.createElement('style')
     style8.textContent = pairOtherStyles.default
     shadowRoot.appendChild(style8)
+
+    // Bug report styles
+    const style9 = document.createElement('style')
+    style8.textContent = bugReportFormStyles.default
+    shadowRoot.appendChild(style9)
 
     // Inject font styles
     const styleFonts = document.createElement('style')

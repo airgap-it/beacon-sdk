@@ -1,0 +1,48 @@
+.form-style {
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  min-width: 100%;
+  margin: 0 auto;
+  gap: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.label-style {
+  margin-bottom: 8px;
+}
+
+.input-style,
+.textarea-style {
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.textarea-style {
+  height: 8rem;
+}
+
+.button-style {
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.button-style.valid {
+  background-color: #007bff;
+}
+
+.button-style.invalid {
+  background-color: #65afff;
+}

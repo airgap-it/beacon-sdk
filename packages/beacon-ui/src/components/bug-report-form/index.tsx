@@ -1,6 +1,7 @@
 import { IndexedDBStorage } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
 import { createEffect, createSignal } from 'solid-js'
+import styles from './styles.css'
 
 interface StorageObject {
   [key: string]: string | null
@@ -141,25 +142,9 @@ const BugReportForm = (props: any) => {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{
-        display: 'flex',
-        'flex-direction': 'column',
-        'max-width': '500px',
-        'min-width': '100%',
-        margin: '0 auto',
-        gap: '20px'
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          'flex-direction': 'column',
-          'margin-bottom': '15px'
-        }}
-      >
-        <label for="title" style={{ 'margin-bottom': '8px' }}>
+    <form onSubmit={handleSubmit} class="form-style">
+      <div class="input-group">
+        <label for="title" class="label-style">
           Title
         </label>
         <input
@@ -167,86 +152,35 @@ const BugReportForm = (props: any) => {
           id="title"
           value={title()}
           onBlur={(e) => setTitle(e.currentTarget.value)}
-          style={{
-            width: '100%',
-            padding: '10px',
-            'box-sizing': 'border-box',
-            border: '1px solid #ccc',
-            'border-radius': '4px'
-          }}
+          class="input-style"
         />
       </div>
-      <div
-        style={{
-          display: 'flex',
-          'flex-direction': 'column',
-          'margin-bottom': '15px'
-        }}
-      >
-        <label for="description" style={{ 'margin-bottom': '8px' }}>
+      <div class="input-group">
+        <label for="description" class="label-style">
           Description
         </label>
         <textarea
           id="description"
           value={description()}
           onBlur={(e) => setDescription(e.currentTarget.value)}
-          style={{
-            width: '100%',
-            padding: '10px',
-            'box-sizing': 'border-box',
-            border: '1px solid #ccc',
-            'border-radius': '4px',
-            height: '8rem'
-          }}
+          class="textarea-style"
         />
       </div>
-      <div
-        style={{
-          display: 'flex',
-          'flex-direction': 'column',
-          'margin-bottom': '15px'
-        }}
-      >
-        <label for="steps" style={{ 'margin-bottom': '8px' }}>
+      <div class="input-group">
+        <label for="steps" class="label-style">
           Steps to Reproduce
         </label>
         <textarea
           id="steps"
           value={steps()}
           onBlur={(e) => setSteps(e.currentTarget.value)}
-          style={{
-            width: '100%',
-            padding: '10px',
-            'box-sizing': 'border-box',
-            border: '1px solid #ccc',
-            'border-radius': '4px',
-            height: '8rem'
-          }}
+          class="textarea-style"
         />
       </div>
       <button
         type="submit"
         disabled={!isFormValid()}
-        style={
-          isFormValid()
-            ? {
-                padding: '10px 20px',
-                'background-color': '#007bff',
-                color: 'white',
-                border: 'none',
-                'border-radius': '5px',
-                cursor: 'pointer',
-                'margin-top': '20px'
-              }
-            : {
-                padding: '10px 20px',
-                'background-color': '#65afff',
-                color: 'white',
-                border: 'none',
-                'border-radius': '5px',
-                'margin-top': '20px'
-              }
-        }
+        class={`button-style ${isFormValid() ? 'valid' : 'invalid'}`}
       >
         Submit
       </button>
@@ -254,4 +188,5 @@ const BugReportForm = (props: any) => {
   )
 }
 
+export { styles }
 export default BugReportForm
