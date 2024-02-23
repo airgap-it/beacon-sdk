@@ -46,3 +46,9 @@
 .button-style.invalid {
   background-color: #65afff;
 }
+
+@media screen and (max-height: 700px) {
+  .textarea-style {
+    height: 6rem;
+  }
+}
