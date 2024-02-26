@@ -82,7 +82,7 @@
   border: 2px solid white;
   border-radius: 50%;
   padding: 5px;
-  margin-left: 5px;
+  margin-bottom: 3px;
   width: 1rem;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -113,5 +113,21 @@
   }
   100% {
     opacity: 1;
+  }
+}
+
+.thank-you-message {
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.thank-you-message span {
+  opacity: 0;
+  animation: fadeInLetter 0.3s ease forwards;
+}
+
+@keyframes fadeInLetter {
+  to {
+      opacity: 1;
   }
 }
