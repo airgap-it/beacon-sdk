@@ -22,6 +22,8 @@ const BugReportForm = (props: any) => {
   const [description, setDescription] = createSignal('')
   const [steps, setSteps] = createSignal('')
   const [isFormValid, setFormValid] = createSignal(false)
+  const [isLoading, setIsLoading] = createSignal(false)
+  const [status, setStatus] = createSignal<'success' | 'error' | null>(null)
 
   const isTitleValid = () => {
     return title().replace(/ /gi, '').length > 10
@@ -106,6 +108,7 @@ const BugReportForm = (props: any) => {
 
   const handleSubmit = async (event: Event) => {
     event.preventDefault()
+    setIsLoading(true)
 
     const request: BugReportRequest = {
       title: title(),
@@ -130,6 +133,7 @@ const BugReportForm = (props: any) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
         }
+        setStatus('success')
         return response.json()
       })
       .then((data) => {
@@ -137,8 +141,14 @@ const BugReportForm = (props: any) => {
       })
       .catch((error) => {
         console.error('Error while sending report:', error.message)
+        setStatus('error')
       })
-      .then(() => props.onSubmit())
+      .then(() => {
+        setIsLoading(false)
+        setTimeout(() => {
+          props.onSubmit()
+        }, 2500)
+      })
   }
 
   return (
@@ -180,9 +190,16 @@ const BugReportForm = (props: any) => {
       <button
         type="submit"
         disabled={!isFormValid()}
-        class={`button-style ${isFormValid() ? 'valid' : 'invalid'}`}
+        class={`button-style ${isFormValid() ? 'valid' : 'invalid'} ${
+          isLoading() ? 'button-loading' : ''
+        }`}
       >
-        Submit
+        {!isLoading() && !status() ? 'Submit' : <>&nbsp;</>}
+        {!isLoading() && status() && (
+          <span class={status() === 'success' ? 'icon success-icon' : 'icon error-icon'}>
+            {status() === 'success' ? '✓' : '✕'}
+          </span>
+        )}
       </button>
     </form>
   )
