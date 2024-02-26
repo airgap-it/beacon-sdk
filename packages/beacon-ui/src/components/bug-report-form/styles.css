@@ -47,6 +47,21 @@
   background-color: #65afff;
 }
 
+.permissions-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.permissions-group label {
+  flex-grow: 1;
+  font-size: 0.7rem;
+}
+
+.permissions-group input {
+  flex-shrink: 0;
+}
+
 @media screen and (max-height: 700px) {
   .textarea-style {
     height: 6rem;
@@ -128,6 +143,6 @@
 
 @keyframes fadeInLetter {
   to {
-      opacity: 1;
+    opacity: 1;
   }
 }

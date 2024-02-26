@@ -23,6 +23,7 @@ const BugReportForm = (props: any) => {
   const [steps, setSteps] = createSignal('')
   const [isFormValid, setFormValid] = createSignal(false)
   const [isLoading, setIsLoading] = createSignal(false)
+  const [didUserAllow, setDidUserAllow] = createSignal(false)
   const [status, setStatus] = createSignal<'success' | 'error' | null>(null)
   const [showThankYou, setShowThankYou] = createSignal(false)
 
@@ -104,7 +105,7 @@ const BugReportForm = (props: any) => {
   }
 
   createEffect(() => {
-    setFormValid(isTitleValid() && isDescriptionValid() && areStepsValid())
+    setFormValid(isTitleValid() && isDescriptionValid() && areStepsValid() && didUserAllow())
   })
 
   const handleSubmit = async (event: Event) => {
@@ -189,6 +190,14 @@ const BugReportForm = (props: any) => {
           value={steps()}
           onBlur={(e) => setSteps(e.currentTarget.value)}
           class="textarea-style"
+        />
+      </div>
+      <div class="permissions-group">
+        <label for="user-premissions">You agree to share anonymous data with the developers.</label>
+        <input
+          id="user-premissions"
+          type="checkbox"
+          onChange={() => setDidUserAllow((prev) => !prev)}
         />
       </div>
       <button
