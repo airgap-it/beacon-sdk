@@ -120,9 +120,9 @@ const BugReportForm = (props: any) => {
     const options = {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json' // Specify the content type as JSON
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(request) // Convert the data object to JSON string
+      body: JSON.stringify(request)
     }
 
     fetch('https://beacon-backend.dev.gke.papers.tech/save', options)
@@ -130,7 +130,7 @@ const BugReportForm = (props: any) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
         }
-        return response.json() // Parse the response as JSON
+        return response.json()
       })
       .then((data) => {
         console.log(data)
