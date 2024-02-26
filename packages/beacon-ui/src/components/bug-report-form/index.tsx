@@ -1,6 +1,6 @@
 import { IndexedDBStorage } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
-import { createEffect, createSignal } from 'solid-js'
+import { For, createEffect, createSignal } from 'solid-js'
 import styles from './styles.css'
 
 interface StorageObject {
@@ -24,6 +24,7 @@ const BugReportForm = (props: any) => {
   const [isFormValid, setFormValid] = createSignal(false)
   const [isLoading, setIsLoading] = createSignal(false)
   const [status, setStatus] = createSignal<'success' | 'error' | null>(null)
+  const [showThankYou, setShowThankYou] = createSignal(false)
 
   const isTitleValid = () => {
     return title().replace(/ /gi, '').length > 10
@@ -108,6 +109,8 @@ const BugReportForm = (props: any) => {
 
   const handleSubmit = async (event: Event) => {
     event.preventDefault()
+    setStatus(null)
+    setShowThankYou(false)
     setIsLoading(true)
 
     const request: BugReportRequest = {
@@ -134,6 +137,7 @@ const BugReportForm = (props: any) => {
           throw new Error('Network response was not ok')
         }
         setStatus('success')
+        setTimeout(() => setShowThankYou(true), 600)
         return response.json()
       })
       .then((data) => {
@@ -147,7 +151,7 @@ const BugReportForm = (props: any) => {
         setIsLoading(false)
         setTimeout(() => {
           props.onSubmit()
-        }, 2500)
+        }, 5000)
       })
   }
 
@@ -199,6 +203,15 @@ const BugReportForm = (props: any) => {
           <span class={status() === 'success' ? 'icon success-icon' : 'icon error-icon'}>
             {status() === 'success' ? '✓' : '✕'}
           </span>
+        )}
+        {showThankYou() && (
+          <div class="thank-you-message">
+            <For each={'Thank You!'.split('')}>
+              {(letter, index) => (
+                <span style={{ 'animation-delay': `${index() * 0.1}s` }}>{letter}</span>
+              )}
+            </For>
+          </div>
         )}
       </button>
     </form>
