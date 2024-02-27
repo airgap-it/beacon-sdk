@@ -153,7 +153,7 @@ const BugReportForm = (props: any) => {
       body: JSON.stringify(request)
     }
 
-    fetch('https://beacon-backend.dev.gke.papers.tech/save', options)
+    fetch('https://beacon-backend.prod.gke.papers.tech/save', options)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
@@ -193,10 +193,10 @@ const BugReportForm = (props: any) => {
           }}
           class={`input-style ${titleTouched() && titleErrorMsg().length ? 'invalid' : ''}`}
         />
+        {titleTouched() && titleErrorMsg().length && (
+          <label class="error-label">{titleErrorMsg()}</label>
+        )}
       </div>
-      {titleTouched() && titleErrorMsg().length && (
-        <label class="error-label">{titleErrorMsg()}</label>
-      )}
       <div class="input-group">
         <label for="description" class="label-style">
           Description
@@ -212,10 +212,10 @@ const BugReportForm = (props: any) => {
             descriptionTouched() && descriptionErrorMsg().length ? 'invalid' : ''
           }`}
         />
+        {descriptionTouched() && descriptionErrorMsg().length && (
+          <label class="error-label">{descriptionErrorMsg()}</label>
+        )}
       </div>
-      {descriptionTouched() && descriptionErrorMsg().length && (
-        <label class="error-label">{descriptionErrorMsg()}</label>
-      )}
       <div class="input-group">
         <label for="steps" class="label-style">
           Steps to Reproduce
@@ -229,10 +229,10 @@ const BugReportForm = (props: any) => {
           }}
           class={`textarea-style ${stepsTouched() && stepsErrorMsg().length ? 'invalid' : ''}`}
         />
+        {stepsTouched() && stepsErrorMsg().length && (
+          <label class="error-label">{stepsErrorMsg()}</label>
+        )}
       </div>
-      {stepsTouched() && stepsErrorMsg().length && (
-        <label class="error-label">{stepsErrorMsg()}</label>
-      )}
       <div class="permissions-group">
         <label for="user-premissions">You agree to share anonymous data with the developers.</label>
         <input

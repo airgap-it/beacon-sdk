@@ -28,7 +28,7 @@
 
 .input-style.invalid,
 .textarea-style.invalid {
-  border-color: red;
+  border-color: #f76b8a;
   border-width: medium;
 }
 
@@ -55,8 +55,6 @@
 
 .error-label {
   display: inline;
-  position: relative;
-  top: -1.9rem;
   font-size: 0.7rem;
   color: red;
 }
