@@ -19,8 +19,14 @@ interface BugReportRequest {
 
 const BugReportForm = (props: any) => {
   const [title, setTitle] = createSignal('')
+  const [titleTouched, setTitleTouched] = createSignal(false)
+  const [titleErrorMsg, seTitleErrorMsg] = createSignal('')
   const [description, setDescription] = createSignal('')
+  const [descriptionTouched, setDescriptionTouched] = createSignal(false)
+  const [descriptionErrorMsg, setDescriptionErrorMsg] = createSignal('')
   const [steps, setSteps] = createSignal('')
+  const [stepsTouched, setStepsTouched] = createSignal(false)
+  const [stepsErrorMsg, setStepsErrorMsg] = createSignal('')
   const [isFormValid, setFormValid] = createSignal(false)
   const [isLoading, setIsLoading] = createSignal(false)
   const [didUserAllow, setDidUserAllow] = createSignal(false)
@@ -28,15 +34,26 @@ const BugReportForm = (props: any) => {
   const [showThankYou, setShowThankYou] = createSignal(false)
 
   const isTitleValid = () => {
-    return title().replace(/ /gi, '').length > 10
+    const check = title().replace(/ /gi, '').length > 10
+    const invalidText = check ? '' : 'The title must be at least 10 characters long.'
+    seTitleErrorMsg(invalidText)
+    return check
   }
 
   const isDescriptionValid = () => {
-    return description().replace(/ /gi, '').length >= 30
+    const check = description().replace(/ /gi, '').length >= 30
+    const invalidText = check ? '' : 'The description must be at least 30 characters long.'
+    setDescriptionErrorMsg(invalidText)
+    return check
   }
 
   const areStepsValid = () => {
-    return steps().replace(/ /gi, '').length >= 30
+    const check = steps().replace(/ /gi, '').length >= 30
+    const invalidText = check
+      ? ''
+      : 'Write at least 30 characters to describe the steps to reproduce.'
+    setStepsErrorMsg(invalidText)
+    return check
   }
 
   const localStorageToMetadata = () => {
@@ -105,7 +122,11 @@ const BugReportForm = (props: any) => {
   }
 
   createEffect(() => {
-    setFormValid(isTitleValid() && isDescriptionValid() && areStepsValid() && didUserAllow())
+    const titleValid = isTitleValid(),
+      descriptionValid = isDescriptionValid(),
+      stepsValid = areStepsValid(),
+      userAllow = didUserAllow()
+    setFormValid(titleValid && descriptionValid && stepsValid && userAllow)
   })
 
   const handleSubmit = async (event: Event) => {
@@ -166,10 +187,16 @@ const BugReportForm = (props: any) => {
           type="text"
           id="title"
           value={title()}
-          onBlur={(e) => setTitle(e.currentTarget.value)}
-          class="input-style"
+          onBlur={(e) => {
+            !titleTouched() && setTitleTouched(true)
+            setTitle(e.currentTarget.value)
+          }}
+          class={`input-style ${titleTouched() && titleErrorMsg().length ? 'invalid' : ''}`}
         />
       </div>
+      {titleTouched() && titleErrorMsg().length && (
+        <label class="error-label">{titleErrorMsg()}</label>
+      )}
       <div class="input-group">
         <label for="description" class="label-style">
           Description
@@ -177,10 +204,18 @@ const BugReportForm = (props: any) => {
         <textarea
           id="description"
           value={description()}
-          onBlur={(e) => setDescription(e.currentTarget.value)}
-          class="textarea-style"
+          onBlur={(e) => {
+            !descriptionTouched() && setDescriptionTouched(true)
+            setDescription(e.currentTarget.value)
+          }}
+          class={`textarea-style ${
+            descriptionTouched() && descriptionErrorMsg().length ? 'invalid' : ''
+          }`}
         />
       </div>
+      {descriptionTouched() && descriptionErrorMsg().length && (
+        <label class="error-label">{descriptionErrorMsg()}</label>
+      )}
       <div class="input-group">
         <label for="steps" class="label-style">
           Steps to Reproduce
@@ -188,10 +223,16 @@ const BugReportForm = (props: any) => {
         <textarea
           id="steps"
           value={steps()}
-          onBlur={(e) => setSteps(e.currentTarget.value)}
-          class="textarea-style"
+          onBlur={(e) => {
+            !stepsTouched() && setStepsTouched(true)
+            setSteps(e.currentTarget.value)
+          }}
+          class={`textarea-style ${stepsTouched() && stepsErrorMsg().length ? 'invalid' : ''}`}
         />
       </div>
+      {stepsTouched() && stepsErrorMsg().length && (
+        <label class="error-label">{stepsErrorMsg()}</label>
+      )}
       <div class="permissions-group">
         <label for="user-premissions">You agree to share anonymous data with the developers.</label>
         <input

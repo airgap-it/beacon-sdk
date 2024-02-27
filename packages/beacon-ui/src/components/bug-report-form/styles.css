@@ -23,7 +23,13 @@
   padding: 10px;
   box-sizing: border-box;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 5px;
+}
+
+.input-style.invalid,
+.textarea-style.invalid {
+  border-color: red;
+  border-width: medium;
 }
 
 .textarea-style {
@@ -45,6 +51,14 @@
 
 .button-style.invalid {
   background-color: #65afff;
+}
+
+.error-label {
+  display: inline;
+  position: relative;
+  top: -1.9rem;
+  font-size: 0.7rem;
+  color: red;
 }
 
 .permissions-group {
