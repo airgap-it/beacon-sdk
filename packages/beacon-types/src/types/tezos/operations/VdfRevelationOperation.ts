@@ -1,5 +1,5 @@
 import { TezosOperationType } from '../OperationTypes'
-import { OperationContentsAndResultMetadata } from '../utils'
+import { OperationContentsAndResultMetadata } from '../common'
 
 export interface VdfRevelationOperation {
   kind: TezosOperationType.VDF_REVELATION

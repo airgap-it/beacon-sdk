@@ -1,4 +1,5 @@
 import { TezosOperationType } from '../OperationTypes'
+import { InternalOperationResult, OperationMetadataBalanceUpdates, OperationResultSetDepositsLimit } from '../common'
 
 export interface SetDepositsLimitOperation {
   kind: TezosOperationType.SET_DEPOSITS_LIMIT
@@ -8,4 +9,14 @@ export interface SetDepositsLimitOperation {
   gas_limit: string
   storage_limit: string
   limit?: string
+}
+
+export interface SetDepositsLimitResultOperation extends SetDepositsLimitOperation {
+  metadata: OperationContentsAndResultMetadataSetDepositsLimit
+}
+
+export interface OperationContentsAndResultMetadataSetDepositsLimit {
+  balance_updates?: OperationMetadataBalanceUpdates[]
+  operation_result: OperationResultSetDepositsLimit
+  internal_operation_results?: InternalOperationResult[]
 }

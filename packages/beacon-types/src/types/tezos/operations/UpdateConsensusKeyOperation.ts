@@ -3,7 +3,7 @@ import {
   InternalOperationResult,
   OperationMetadataBalanceUpdates,
   OperationResultUpdateConsensusKey
-} from '../utils'
+} from '../common'
 
 export interface UpdateConsensusKeyOperation {
   kind: TezosOperationType.UPDATE_CONSENSUS_KEY

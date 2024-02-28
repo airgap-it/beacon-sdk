@@ -5,7 +5,7 @@ import {
   OperationMetadataBalanceUpdates,
   OperationResultStatusEnum,
   TezosGenericOperationError
-} from '../utils'
+} from '../common'
 
 export interface SmartRollupRefuteOperation {
   kind: TezosOperationType.SMART_ROLLUP_REFUTE

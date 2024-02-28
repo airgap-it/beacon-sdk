@@ -4,7 +4,7 @@ import {
   OperationMetadataBalanceUpdates,
   OperationResultStatusEnum,
   TezosGenericOperationError
-} from '../utils'
+} from '../common'
 
 export interface SmartRollupCementOperation {
   kind: TezosOperationType.SMART_ROLLUP_CEMENT

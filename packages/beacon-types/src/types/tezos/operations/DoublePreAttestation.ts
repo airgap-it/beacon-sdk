@@ -1,6 +1,6 @@
 import { InlinedPreattestation } from '../InlinedPreattestation'
 import { TezosOperationType } from '../OperationTypes'
-import { OperationContentsAndResultMetadata } from '../utils'
+import { OperationContentsAndResultMetadata } from '../common'
 
 export interface DoublePreAttestationOperation {
   kind: TezosOperationType.DOUBLE_PREATTESTATION_EVIDENCE

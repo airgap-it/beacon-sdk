@@ -98,6 +98,13 @@ export interface OperationResultUpdateConsensusKey {
   errors?: TezosGenericOperationError[]
 }
 
+export interface OperationResultSetDepositsLimit {
+  status: OperationResultStatusEnum
+  consumed_gas?: string
+  errors?: TezosGenericOperationError[]
+  consumed_milligas?: string
+}
+
 export interface OperationMetadataBalanceUpdates {
   kind: MetadataBalanceUpdatesKindEnum
   contract?: string
@@ -306,4 +313,28 @@ export interface SmartRollupPublishCommitment {
   inbox_level: number
   predecessor: string
   number_of_ticks: string
+}
+
+export interface OperationContentsAndResultMetadataExtended1 {
+  balance_updates?: OperationMetadataBalanceUpdates[]
+  delegate: string
+  consensus_power: number
+  consensus_key: string
+}
+
+export interface OperationContentsAndResultMetadataExtended0 {
+  balance_updates?: OperationMetadataBalanceUpdates[]
+  delegate: string
+  slots?: number[]
+  endorsement_power?: number
+  consensus_key?: string
+}
+export interface OperationResultRegisterGlobalConstant {
+  status: OperationResultStatusEnum
+  balance_updates?: OperationBalanceUpdates
+  consumed_gas?: string
+  storage_size?: string
+  global_address?: string
+  errors?: TezosGenericOperationError[]
+  consumed_milligas?: string
 }
