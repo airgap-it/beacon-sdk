@@ -17,6 +17,10 @@ export interface SmartRollupCementOperation {
   metadata: MetadataSmartRollupCement
 }
 
+export interface SmartRollupCementResultOperation extends SmartRollupCementOperation {
+  metadata: MetadataSmartRollupCement
+}
+
 export interface MetadataSmartRollupCement {
   balance_updates?: OperationMetadataBalanceUpdates[]
   operation_result: SmartRollupCement

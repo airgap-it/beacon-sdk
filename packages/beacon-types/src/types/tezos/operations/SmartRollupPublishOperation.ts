@@ -1,5 +1,12 @@
 import { TezosOperationType } from '../OperationTypes'
-import { SmartRollupPublishCommitment } from '../common'
+import {
+  InternalOperationResult,
+  OperationBalanceUpdates,
+  OperationMetadataBalanceUpdates,
+  OperationResultStatusEnum,
+  SmartRollupPublishCommitment,
+  TezosGenericOperationError
+} from '../common'
 
 export interface SmartRollupPublishOperation {
   kind: TezosOperationType.SMART_ROLLUP_PUBLISH
@@ -10,4 +17,23 @@ export interface SmartRollupPublishOperation {
   storage_limit: string
   rollup: string
   commitment: SmartRollupPublishCommitment
+}
+
+export interface SmartRollupPublishResultOperation extends SmartRollupPublishOperation {
+  metadata: MetadataSmartRollupPublish
+}
+
+export interface MetadataSmartRollupPublish {
+  balance_updates?: OperationMetadataBalanceUpdates[]
+  operation_result: OperationResultSmartRollupPublish
+  internal_operation_results?: InternalOperationResult[]
+}
+
+export interface OperationResultSmartRollupPublish {
+  status: OperationResultStatusEnum
+  consumed_milligas?: string
+  staked_hash?: string
+  published_at_level?: number
+  balance_updates?: OperationBalanceUpdates
+  errors?: TezosGenericOperationError[]
 }

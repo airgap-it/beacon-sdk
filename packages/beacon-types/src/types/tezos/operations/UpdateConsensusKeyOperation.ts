@@ -13,6 +13,9 @@ export interface UpdateConsensusKeyOperation {
   gas_limit: string
   storage_limit: string
   pk: string
+}
+
+export interface UpdateConsensusKeyResultOperation extends UpdateConsensusKeyOperation {
   metadata: MetadataUpdateConsensusKeyOperation
 }
 

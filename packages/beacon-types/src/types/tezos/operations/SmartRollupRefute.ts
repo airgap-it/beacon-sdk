@@ -20,6 +20,10 @@ export interface SmartRollupRefuteOperation {
   metadata: MetadataSmartRollupRefute
 }
 
+export interface SmartRollupRefuteResultOperation extends SmartRollupRefuteOperation {
+  metadata: MetadataSmartRollupRefute
+}
+
 export type SmartRollupRefutation = SmartRollupRefutationStart | SmartRollupRefutationMove
 
 export interface SmartRollupRefutationStart {
