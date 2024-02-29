@@ -1,4 +1,5 @@
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
   InternalOperationResult,
   OperationMetadataBalanceUpdates,
@@ -6,7 +7,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface SmartRollupAddMessagesOperation {
+export interface SmartRollupAddMessagesOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_ADD_MESSAGES
   source: string
   fee: string

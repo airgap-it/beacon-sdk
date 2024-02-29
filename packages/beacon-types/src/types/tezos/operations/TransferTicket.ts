@@ -1,5 +1,6 @@
 import { MichelineMichelsonV1Expression } from '../MichelineMichelsonV1Expression'
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
   InternalOperationResult,
   OperationBalanceUpdates,
@@ -9,7 +10,7 @@ import {
   TicketUpdates
 } from '../common'
 
-export interface TransferTicketOperation {
+export interface TransferTicketOperation extends TezosBaseOperation {
   kind: TezosOperationType.TRANSFER_TICKET
   source: string
   fee: string

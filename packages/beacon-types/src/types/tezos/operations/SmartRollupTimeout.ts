@@ -1,4 +1,5 @@
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
   OperationMetadataBalanceUpdates,
   InternalOperationResult,
@@ -8,7 +9,7 @@ import {
 } from '../common'
 import { SmartRollupGameStatus } from './SmartRollupRefute'
 
-export interface SmartRollupTimeoutOperation {
+export interface SmartRollupTimeoutOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_TIMEOUT
   source: string
   fee: string

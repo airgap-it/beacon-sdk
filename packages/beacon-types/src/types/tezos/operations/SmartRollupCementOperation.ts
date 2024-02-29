@@ -1,4 +1,5 @@
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
   InternalOperationResult,
   OperationMetadataBalanceUpdates,
@@ -6,7 +7,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface SmartRollupCementOperation {
+export interface SmartRollupCementOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_CEMENT
   source: string
   fee: string

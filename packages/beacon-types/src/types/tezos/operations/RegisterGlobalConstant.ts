@@ -1,12 +1,13 @@
 import { MichelineMichelsonV1Expression } from '../MichelineMichelsonV1Expression'
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
   InternalOperationResult,
   OperationMetadataBalanceUpdates,
   OperationResultRegisterGlobalConstant
 } from '../common'
 
-export interface RegisterGlobalConstantOperation {
+export interface RegisterGlobalConstantOperation extends TezosBaseOperation {
   kind: TezosOperationType.REGISTER_GLOBAL_CONSTANT
   source: string
   fee: string

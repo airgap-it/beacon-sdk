@@ -1,4 +1,5 @@
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
   InternalOperationResult,
   OperationBalanceUpdates,
@@ -7,7 +8,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface IncreasePaidStorageOperation {
+export interface IncreasePaidStorageOperation extends TezosBaseOperation {
   kind: TezosOperationType.INCREASE_PAID_STORAGE
   source: string
   fee: string

@@ -1,7 +1,12 @@
 import { TezosOperationType } from '../OperationTypes'
-import { InternalOperationResult, OperationMetadataBalanceUpdates, OperationResultSetDepositsLimit } from '../common'
+import { TezosBaseOperation } from '../TezosBaseOperation'
+import {
+  InternalOperationResult,
+  OperationMetadataBalanceUpdates,
+  OperationResultSetDepositsLimit
+} from '../common'
 
-export interface SetDepositsLimitOperation {
+export interface SetDepositsLimitOperation extends TezosBaseOperation {
   kind: TezosOperationType.SET_DEPOSITS_LIMIT
   source: string
   fee: string

@@ -1,7 +1,8 @@
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import { OperationMetadataBalanceUpdates } from '../common'
 
-export interface PreEndorsementOperation {
+export interface PreEndorsementOperation extends TezosBaseOperation {
   kind: TezosOperationType.PREENDORSEMENT
   slot: number
   level: number

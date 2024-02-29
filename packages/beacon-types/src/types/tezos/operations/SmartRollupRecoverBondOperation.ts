@@ -1,4 +1,5 @@
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
   OperationMetadataBalanceUpdates,
   InternalOperationResult,
@@ -7,7 +8,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface SmartRollupRecoverBondOperation {
+export interface SmartRollupRecoverBondOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_RECOVER_BOND
   source: string
   fee: string

@@ -1,5 +1,6 @@
 import { MichelineMichelsonV1Expression } from '../MichelineMichelsonV1Expression'
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
   InternalOperationResult,
   OperationBalanceUpdates,
@@ -9,7 +10,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface SmartRollupOriginateOperation {
+export interface SmartRollupOriginateOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_ORIGINATE
   source: string
   fee: string

@@ -1,4 +1,5 @@
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
   InternalOperationResult,
   OperationBalanceUpdates,
@@ -8,7 +9,7 @@ import {
   TicketUpdates
 } from '../common'
 
-export interface SmartRollupExecuteOutboxMessageOperation {
+export interface SmartRollupExecuteOutboxMessageOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_EXECUTE_OUTBOX_MESSAGE
   source: string
   fee: string

@@ -1,11 +1,12 @@
 import { TezosOperationType } from '../OperationTypes'
+import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
   InternalOperationResult,
   OperationMetadataBalanceUpdates,
   OperationResultUpdateConsensusKey
 } from '../common'
 
-export interface UpdateConsensusKeyOperation {
+export interface UpdateConsensusKeyOperation extends TezosBaseOperation {
   kind: TezosOperationType.UPDATE_CONSENSUS_KEY
   source: string
   fee: string
