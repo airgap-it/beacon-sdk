@@ -2,7 +2,7 @@ import { TezosOperationType } from '../OperationTypes'
 import { TezosBaseOperation } from '../TezosBaseOperation'
 import { OperationMetadataBalanceUpdates } from '../common'
 
-export interface PreEndorsementOperation extends TezosBaseOperation {
+export interface TezosPreEndorsementOperation extends TezosBaseOperation {
   kind: TezosOperationType.PREENDORSEMENT
   slot: number
   level: number
@@ -10,7 +10,7 @@ export interface PreEndorsementOperation extends TezosBaseOperation {
   block_payload_hash: string
 }
 
-export interface PreEndorsementResultOperation extends PreEndorsementOperation {
+export interface TezosPreEndorsementResultOperation extends TezosPreEndorsementOperation {
   metadata: OperationContentsAndResultMetadataPreEndorsement
 }
 

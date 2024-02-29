@@ -6,7 +6,7 @@ import {
   OperationResultUpdateConsensusKey
 } from '../common'
 
-export interface UpdateConsensusKeyOperation extends TezosBaseOperation {
+export interface TezosUpdateConsensusKeyOperation extends TezosBaseOperation {
   kind: TezosOperationType.UPDATE_CONSENSUS_KEY
   source: string
   fee: string
@@ -16,7 +16,7 @@ export interface UpdateConsensusKeyOperation extends TezosBaseOperation {
   pk: string
 }
 
-export interface UpdateConsensusKeyResultOperation extends UpdateConsensusKeyOperation {
+export interface TezosUpdateConsensusKeyResultOperation extends TezosUpdateConsensusKeyOperation {
   metadata: MetadataUpdateConsensusKeyOperation
 }
 

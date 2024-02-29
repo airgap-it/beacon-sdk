@@ -8,7 +8,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface IncreasePaidStorageOperation extends TezosBaseOperation {
+export interface TezosIncreasePaidStorageOperation extends TezosBaseOperation {
   kind: TezosOperationType.INCREASE_PAID_STORAGE
   source: string
   fee: string
@@ -19,7 +19,7 @@ export interface IncreasePaidStorageOperation extends TezosBaseOperation {
   destination: string
 }
 
-export interface IncreasePaidStorageResultOperation extends IncreasePaidStorageOperation {
+export interface IncreasePaidStorageResultOperation extends TezosIncreasePaidStorageOperation {
   metadata: MetadataIncreasePaidStorage
 }
 

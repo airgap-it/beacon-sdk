@@ -8,7 +8,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface SmartRollupRefuteOperation extends TezosBaseOperation {
+export interface TezosSmartRollupRefuteOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_REFUTE
   source: string
   fee: string
@@ -21,7 +21,7 @@ export interface SmartRollupRefuteOperation extends TezosBaseOperation {
   metadata: MetadataSmartRollupRefute
 }
 
-export interface SmartRollupRefuteResultOperation extends SmartRollupRefuteOperation {
+export interface TezosSmartRollupRefuteResultOperation extends TezosSmartRollupRefuteOperation {
   metadata: MetadataSmartRollupRefute
 }
 

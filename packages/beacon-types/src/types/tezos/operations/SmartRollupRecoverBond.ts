@@ -8,7 +8,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface SmartRollupRecoverBondOperation extends TezosBaseOperation {
+export interface TezosSmartRollupRecoverBondOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_RECOVER_BOND
   source: string
   fee: string
@@ -19,7 +19,8 @@ export interface SmartRollupRecoverBondOperation extends TezosBaseOperation {
   staker: string
 }
 
-export interface SmartRollupRecoverBondResultOperation extends SmartRollupRecoverBondOperation {
+export interface TezosSmartRollupRecoverBondResultOperation
+  extends TezosSmartRollupRecoverBondOperation {
   metadata: OperationContentsAndResultMetadataSmartRollupRecoverBond
 }
 

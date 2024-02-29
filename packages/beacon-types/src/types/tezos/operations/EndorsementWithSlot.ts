@@ -3,12 +3,12 @@ import { TezosBaseOperation } from '../TezosBaseOperation'
 import { OperationContentsAndResultMetadataExtended0 } from '../common'
 import { InlinedEndorsement } from './DoubleEndorsementEvidence'
 
-export interface EndorsementWithSlotOperation extends TezosBaseOperation {
+export interface TezosEndorsementWithSlotOperation extends TezosBaseOperation {
   kind: TezosOperationType.ENDORSEMENT_WITH_SLOT
   endorsement: InlinedEndorsement
   slot: number
 }
 
-export interface EndorsementWithSlotResultOperation {
+export interface TezosEndorsementWithSlotResultOperation extends TezosEndorsementWithSlotOperation {
   metadata: OperationContentsAndResultMetadataExtended0
 }

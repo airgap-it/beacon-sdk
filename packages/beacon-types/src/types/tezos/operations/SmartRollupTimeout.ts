@@ -9,7 +9,7 @@ import {
 } from '../common'
 import { SmartRollupGameStatus } from './SmartRollupRefute'
 
-export interface SmartRollupTimeoutOperation extends TezosBaseOperation {
+export interface TezosSmartRollupTimeoutOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_TIMEOUT
   source: string
   fee: string
@@ -20,7 +20,7 @@ export interface SmartRollupTimeoutOperation extends TezosBaseOperation {
   stakers: SmartRollupTimeoutStakers
 }
 
-export interface SmartRollupTimeoutResultOperation extends SmartRollupTimeoutOperation {
+export interface TezosSmartRollupTimeoutResultOperation extends TezosSmartRollupTimeoutOperation {
   metadata: OperationContentsAndResultMetadataSmartRollupTimeout
 }
 

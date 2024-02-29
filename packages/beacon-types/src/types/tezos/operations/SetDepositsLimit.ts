@@ -6,7 +6,7 @@ import {
   OperationResultSetDepositsLimit
 } from '../common'
 
-export interface SetDepositsLimitOperation extends TezosBaseOperation {
+export interface TezosSetDepositsLimitOperation extends TezosBaseOperation {
   kind: TezosOperationType.SET_DEPOSITS_LIMIT
   source: string
   fee: string
@@ -16,7 +16,7 @@ export interface SetDepositsLimitOperation extends TezosBaseOperation {
   limit?: string
 }
 
-export interface SetDepositsLimitResultOperation extends SetDepositsLimitOperation {
+export interface TezosSetDepositsLimitResultOperation extends TezosSetDepositsLimitOperation {
   metadata: OperationContentsAndResultMetadataSetDepositsLimit
 }
 

@@ -2,14 +2,14 @@ import { TezosOperationType } from '../OperationTypes'
 import { TezosBaseOperation } from '../TezosBaseOperation'
 import { OperationMetadataBalanceUpdates } from '../common'
 
-export interface DoublePreEndorsementEvidenceOperation extends TezosBaseOperation {
+export interface TezosDoublePreEndorsementEvidenceOperation extends TezosBaseOperation {
   kind: TezosOperationType.DOUBLE_PREENDORSEMENT_EVIDENCE
   op1: InlinedPreEndorsement
   op2: InlinedPreEndorsement
 }
 
-export interface DoublePreEndorsementEvidenceResultOperation
-  extends DoublePreEndorsementEvidenceOperation {
+export interface TezosDoublePreEndorsementEvidenceResultOperation
+  extends TezosDoublePreEndorsementEvidenceOperation {
   metadata: OperationContentsAndResultMetadata
 }
 

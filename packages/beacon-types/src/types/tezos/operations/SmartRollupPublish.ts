@@ -9,7 +9,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface SmartRollupPublishOperation extends TezosBaseOperation {
+export interface TezosSmartRollupPublishOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_PUBLISH
   source: string
   fee: string
@@ -20,7 +20,7 @@ export interface SmartRollupPublishOperation extends TezosBaseOperation {
   commitment: SmartRollupPublishCommitment
 }
 
-export interface SmartRollupPublishResultOperation extends SmartRollupPublishOperation {
+export interface TezosSmartRollupPublishResultOperation extends TezosSmartRollupPublishOperation {
   metadata: MetadataSmartRollupPublish
 }
 

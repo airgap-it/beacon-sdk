@@ -7,7 +7,7 @@ import {
   OperationResultRegisterGlobalConstant
 } from '../common'
 
-export interface RegisterGlobalConstantOperation extends TezosBaseOperation {
+export interface TezosRegisterGlobalConstantOperation extends TezosBaseOperation {
   kind: TezosOperationType.REGISTER_GLOBAL_CONSTANT
   source: string
   fee: string
@@ -17,7 +17,8 @@ export interface RegisterGlobalConstantOperation extends TezosBaseOperation {
   value: MichelineMichelsonV1Expression
 }
 
-export interface RegisterGlobalConstantResultOperation {
+export interface TezosRegisterGlobalConstantResultOperation
+  extends TezosRegisterGlobalConstantOperation {
   metadata: OperationContentsAndResultMetadataRegisterGlobalConstant
 }
 

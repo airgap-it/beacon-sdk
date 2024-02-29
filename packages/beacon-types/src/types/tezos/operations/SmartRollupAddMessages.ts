@@ -7,7 +7,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface SmartRollupAddMessagesOperation extends TezosBaseOperation {
+export interface TezosSmartRollupAddMessagesOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_ADD_MESSAGES
   source: string
   fee: string
@@ -17,7 +17,8 @@ export interface SmartRollupAddMessagesOperation extends TezosBaseOperation {
   message: string[]
 }
 
-export interface SmartRollupAddMessagesResultOperation extends SmartRollupAddMessagesOperation {
+export interface TezosSmartRollupAddMessagesResultOperation
+  extends TezosSmartRollupAddMessagesOperation {
   metadata: MetadataSmartRollupAddMessages
 }
 

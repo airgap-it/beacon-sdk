@@ -10,7 +10,7 @@ import {
   TicketUpdates
 } from '../common'
 
-export interface TransferTicketOperation extends TezosBaseOperation {
+export interface TezosTransferTicketOperation extends TezosBaseOperation {
   kind: TezosOperationType.TRANSFER_TICKET
   source: string
   fee: string
@@ -25,7 +25,7 @@ export interface TransferTicketOperation extends TezosBaseOperation {
   entrypoint: string
 }
 
-export interface TransferTicketResultOperation extends TransferTicketOperation {
+export interface TezosTransferTicketResultOperation extends TezosTransferTicketOperation {
   metadata: MetadataTransferTicket
 }
 

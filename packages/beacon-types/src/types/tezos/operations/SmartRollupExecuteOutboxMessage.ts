@@ -9,7 +9,7 @@ import {
   TicketUpdates
 } from '../common'
 
-export interface SmartRollupExecuteOutboxMessageOperation extends TezosBaseOperation {
+export interface TezosSmartRollupExecuteOutboxMessageOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_EXECUTE_OUTBOX_MESSAGE
   source: string
   fee: string
@@ -21,8 +21,8 @@ export interface SmartRollupExecuteOutboxMessageOperation extends TezosBaseOpera
   output_proof: string
 }
 
-export interface SmartRollupExecuteOutboxMessageResultOperation
-  extends SmartRollupExecuteOutboxMessageOperation {
+export interface TezosSmartRollupExecuteOutboxMessageResultOperation
+  extends TezosSmartRollupExecuteOutboxMessageOperation {
   metadata: MetadataSmartRollupExecuteOutboxMessage
 }
 

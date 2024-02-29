@@ -2,7 +2,7 @@ import { TezosOperationType } from '../OperationTypes'
 import { TezosBaseOperation } from '../TezosBaseOperation'
 import { OperationMetadataBalanceUpdates } from '../common'
 
-export interface PreAttestationOperation extends TezosBaseOperation {
+export interface TezosPreAttestationOperation extends TezosBaseOperation {
   kind: TezosOperationType.PREATTESTATION
   slot: number
   level: number
@@ -10,7 +10,7 @@ export interface PreAttestationOperation extends TezosBaseOperation {
   block_payload_hash: string
 }
 
-export interface PreAttestationResultOperation extends PreAttestationOperation {
+export interface TezosPreAttestationResultOperation extends TezosPreAttestationOperation {
   metadata: OperationContentsAndResultMetadataPreattestation
 }
 

@@ -3,9 +3,13 @@ import { TezosOperationType } from '../OperationTypes'
 import { TezosBaseOperation } from '../TezosBaseOperation'
 import { OperationContentsAndResultMetadata } from '../common'
 
-export interface DoublePreAttestationOperation extends TezosBaseOperation {
+export interface TezosDoublePreAttestationEvidenceOperation extends TezosBaseOperation {
   kind: TezosOperationType.DOUBLE_PREATTESTATION_EVIDENCE
   op1: InlinedPreattestation
   op2: InlinedPreattestation
+}
+
+export interface TezosDoublePreAttestationOperationEvidence
+  extends TezosDoublePreAttestationEvidenceOperation {
   metadata: OperationContentsAndResultMetadata
 }

@@ -2,14 +2,14 @@ import { TezosOperationType } from '../OperationTypes'
 import { TezosBaseOperation } from '../TezosBaseOperation'
 import { OperationMetadataBalanceUpdates } from '../common'
 
-export interface DrainDelegateOperation extends TezosBaseOperation {
+export interface TezosDrainDelegateOperation extends TezosBaseOperation {
   kind: TezosOperationType.DRAIN_DELEGATE
   consensus_key: string
   delegate: string
   destination: string
 }
 
-export interface DrainDelegateResultOperation extends DrainDelegateOperation {
+export interface TezosDrainDelegateResultOperation extends TezosDrainDelegateOperation {
   metadata: MetadataDrainDelegate
 }
 

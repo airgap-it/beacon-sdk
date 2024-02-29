@@ -7,7 +7,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface SmartRollupCementOperation extends TezosBaseOperation {
+export interface TezosSmartRollupCementOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_CEMENT
   source: string
   fee: string
@@ -18,7 +18,7 @@ export interface SmartRollupCementOperation extends TezosBaseOperation {
   metadata: MetadataSmartRollupCement
 }
 
-export interface SmartRollupCementResultOperation extends SmartRollupCementOperation {
+export interface TezosSmartRollupCementResultOperation extends TezosSmartRollupCementOperation {
   metadata: MetadataSmartRollupCement
 }
 

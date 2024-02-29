@@ -10,7 +10,7 @@ import {
   TezosGenericOperationError
 } from '../common'
 
-export interface SmartRollupOriginateOperation extends TezosBaseOperation {
+export interface TezosSmartRollupOriginateOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_ORIGINATE
   source: string
   fee: string
@@ -23,7 +23,8 @@ export interface SmartRollupOriginateOperation extends TezosBaseOperation {
   whitelist?: string[]
 }
 
-export interface SmartRollupOriginateResultOperation extends SmartRollupOriginateOperation {
+export interface TezosSmartRollupOriginateResultOperation
+  extends TezosSmartRollupOriginateOperation {
   metadata: MetadataSmartRollupOriginate
 }
 
