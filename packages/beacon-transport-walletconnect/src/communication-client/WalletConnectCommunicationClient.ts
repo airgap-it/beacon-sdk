@@ -8,7 +8,7 @@ import {
 } from '@airgap/beacon-core'
 import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
-import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
+import { IPairing, ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
 import { getSdkError } from '@walletconnect/utils'
 import {
   ActiveAccountUnspecified,
@@ -103,6 +103,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private activeAccount: string | undefined
   private activeNetwork: string | undefined
   readonly disconnectionEvents: Set<string> = new Set()
+  private pingInterval: NodeJS.Timeout | undefined
 
   /**
    * this queue stores each active message id
@@ -205,22 +206,36 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // implementation
   }
 
+  private ping(target: Client | IPairing, topic: string) {
+    target
+      .ping({ topic })
+      .then(() => {
+        if (this.messageIds.length) {
+          this.acknowledgeRequest(this.messageIds[0])
+        }
+      })
+      .catch((error) => {
+        logger.error(`ping catch handler: ${error.message}`)
+      })
+      .then(() => {
+        clearInterval(this.pingInterval)
+        this.pingInterval = undefined
+      })
+  }
+
   private checkWalletReadiness(topic: string) {
     const target = this.signClient?.pairing.getAll().some((el) => el.topic === topic)
       ? this.signClient?.core.pairing
       : this.signClient
-    target &&
-      target
-        .ping({ topic })
-        .then(() => {
-          if (this.messageIds.length) {
-            this.acknowledgeRequest(this.messageIds[0])
-          } else {
-            const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
-            fun && fun('pending')
-          }
-        })
-        .catch((error) => logger.error(error.message))
+
+    if (!target || this.pingInterval) {
+      return
+    }
+
+    this.ping(target, topic)
+    this.pingInterval = setInterval(() => {
+      this.ping(target, topic)
+    }, 30000)
   }
 
   async sendMessage(_message: string, _peer?: any): Promise<void> {
