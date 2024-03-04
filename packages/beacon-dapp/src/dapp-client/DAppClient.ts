@@ -668,6 +668,7 @@ export class DAppClient extends Client {
                   // p2pTransport.disconnect(), do not abort connection manually
                   walletConnectTransport.disconnect()
                 ])
+                this._activeAccount.isResolved() && this.clearActiveAccount()
                 this._initPromise = undefined
               },
               disclaimerText: this.disclaimerText,
