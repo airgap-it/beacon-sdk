@@ -24,14 +24,14 @@ export class IndexedDBStorage extends Storage {
     }
 
     request.onsuccess = (event: any) => {
-      console.log(`Database ${this.dbName} and store ${this.dbName} are ready for use.`)
+      logger.log(`Database ${this.dbName} and store ${this.dbName} are ready for use.`)
       const db = event.target?.result
 
       db.close()
     }
 
     request.onerror = (event: any) => {
-      console.error(`Error opening database ${this.dbName}:`, event.target?.error)
+      logger.error(`Error opening database ${this.dbName}:`, event.target?.error)
     }
   }
 
@@ -205,7 +205,7 @@ export class IndexedDBStorage extends Storage {
     })
   }
 
-  clearTable(): Promise<void> {
+  clearStore(): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName)
 
@@ -230,6 +230,76 @@ export class IndexedDBStorage extends Storage {
       request.onerror = (event) => {
         logger.error('Error opening database:', event.target)
         reject(event.target)
+      }
+    })
+  }
+
+  populateStore(targetDBName: string, targetStoreName: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Open the source database
+      const openRequest = indexedDB.open(this.dbName)
+
+      openRequest.onsuccess = (e: Event) => {
+        const db = (e.target as IDBOpenDBRequest).result
+        if (!db) {
+          reject(new Error('Failed to open source database.'))
+          return
+        }
+
+        const transaction = db.transaction(this.storeName, 'readonly')
+        const store = transaction.objectStore(this.storeName)
+
+        // Get all keys and values from the source store
+        const allRecordsRequest = store.getAll()
+        const allKeysRequest = store.getAllKeys()
+
+        allRecordsRequest.onsuccess = () => {
+          allKeysRequest.onsuccess = () => {
+            const records = allRecordsRequest.result
+            const keys = allKeysRequest.result
+
+            // Open the target database
+            const targetDBRequest = indexedDB.open(targetDBName)
+
+            targetDBRequest.onupgradeneeded = (event: any) => {
+              const db = event.target?.result
+
+              if (!db.objectStoreNames.contains(targetStoreName)) {
+                db.createObjectStore(targetStoreName)
+              }
+            }
+
+            targetDBRequest.onsuccess = (e: Event) => {
+              const targetDB = (e.target as IDBOpenDBRequest).result
+              const targetTransaction = targetDB.transaction(targetStoreName, 'readwrite')
+              const targetStore = targetTransaction.objectStore(targetStoreName)
+
+              // Copy each key-value pair to the target store
+              keys.forEach((key, index) => {
+                targetStore.put(records[index], key)
+              })
+
+              targetTransaction.oncomplete = () => {
+                logger.log(
+                  `Key-value pairs copied to ${targetStoreName} in ${targetDBName} successfully.`
+                )
+                resolve()
+              }
+
+              targetTransaction.onerror = () => {
+                reject(new Error('Error copying key-value pairs to the new database.'))
+              }
+            }
+
+            targetDBRequest.onerror = () => {
+              reject(new Error('Error opening target database.'))
+            }
+          }
+        }
+      }
+
+      openRequest.onerror = () => {
+        reject(new Error('Error opening source database.'))
       }
     })
   }

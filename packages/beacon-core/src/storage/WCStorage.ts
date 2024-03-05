@@ -54,8 +54,14 @@ export class WCStorage {
     return false
   }
 
+  backup() {
+    this.indexedDB
+      .populateStore('beacon', 'bug_report')
+      .catch((error) => console.error(error.message))
+  }
+
   async resetState() {
-    await this.indexedDB.clearTable()
+    await this.indexedDB.clearStore()
 
     if (await LocalStorage.isSupported()) {
       await Promise.all([

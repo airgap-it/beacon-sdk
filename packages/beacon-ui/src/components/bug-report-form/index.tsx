@@ -68,7 +68,7 @@ const BugReportForm = (props: any) => {
 
   const indexDBToMetadata = async () => {
     const result: StorageObject = {}
-    const db = new IndexedDBStorage()
+    const db = new IndexedDBStorage('beacon', 'bug_report')
 
     try {
       const keys = (await db.getAllKeys()).map((key) => key.toString())
