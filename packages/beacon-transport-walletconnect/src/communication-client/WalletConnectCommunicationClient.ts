@@ -678,6 +678,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   public async close() {
+    this.storage.backup()
     await this.closePairings()
   }
 
@@ -881,7 +882,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async closePairings() {
-    this.storage.backup()
     await this.closeSessions()
     const signClient = await this.getSignClient()
 
