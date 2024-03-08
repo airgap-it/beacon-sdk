@@ -153,7 +153,7 @@ const BugReportForm = (props: any) => {
       body: JSON.stringify(request)
     }
 
-    fetch('https://beacon-backend.prod.gke.papers.tech/save', options)
+    fetch('https://beacon-backend.prod.gke.papers.tech/bug-report/save', options)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
