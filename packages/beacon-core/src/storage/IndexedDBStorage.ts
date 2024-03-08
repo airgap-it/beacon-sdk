@@ -234,7 +234,11 @@ export class IndexedDBStorage extends Storage {
     })
   }
 
-  populateStore(targetDBName: string, targetStoreName: string): Promise<void> {
+  populateStore(
+    targetDBName: string,
+    targetStoreName: string,
+    skipKeys: string[] = []
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       // Open the source database
       const openRequest = indexedDB.open(this.dbName)
@@ -275,9 +279,11 @@ export class IndexedDBStorage extends Storage {
               const targetStore = targetTransaction.objectStore(targetStoreName)
 
               // Copy each key-value pair to the target store
-              keys.forEach((key, index) => {
-                targetStore.put(records[index], key)
-              })
+              keys
+                .filter((key) => !skipKeys.includes(key.toString()))
+                .forEach((key, index) => {
+                  targetStore.put(records[index], key)
+                })
 
               targetTransaction.oncomplete = () => {
                 logger.log(
