@@ -3,7 +3,12 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
-import { getAddressFromPublicKey, isValidAddress, prefixPublicKey } from '../src/utils/crypto'
+import {
+  encodePoeChallengePayload,
+  getAddressFromPublicKey,
+  isValidAddress,
+  prefixPublicKey
+} from '../src/utils/crypto'
 import { generateGUID } from '../src/utils/generate-uuid'
 
 // use chai-as-promised plugin
@@ -131,5 +136,13 @@ describe(`Crypto`, () => {
     const isValid = isValidAddress(address)
 
     expect(isValid).to.deep.equal(true)
+  })
+
+  describe('encodePoeChallengePayload', () => {
+    it('should encode the payload', () => {
+      expect(encodePoeChallengePayload('hello world')).to.equal(
+        'mSUN2NQ83VXiP7WZWS4Er7QmWpEtGG5TVY'
+      )
+    })
   })
 })

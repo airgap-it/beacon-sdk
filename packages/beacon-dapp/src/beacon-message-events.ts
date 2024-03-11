@@ -34,11 +34,6 @@ export const messageEvents: {
     success: BeaconEvent.UNKNOWN,
     error: BeaconEvent.UNKNOWN
   },
-  [BeaconMessageType.ProofOfEventChallengeRecorded]: {
-    sent: BeaconEvent.UNKNOWN,
-    success: BeaconEvent.UNKNOWN,
-    error: BeaconEvent.UNKNOWN
-  },
   [BeaconMessageType.OperationRequest]: {
     sent: BeaconEvent.OPERATION_REQUEST_SENT,
     success: BeaconEvent.OPERATION_REQUEST_SUCCESS,

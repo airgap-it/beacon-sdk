@@ -12,8 +12,7 @@ import {
   BeaconMessageWrapper,
   BlockchainRequestV3,
   PermissionRequestV3,
-  BeaconBaseMessage,
-  ProofOfEventChallengeRecordedMessageOutput
+  BeaconBaseMessage
   // EncryptPayloadRequestOutput
 } from '@airgap/beacon-types'
 import { AppMetadataManager, Logger } from '@airgap/beacon-core'
@@ -150,19 +149,6 @@ export class IncomingRequestInterceptor {
             message.senderId
           )
           const request: ProofOfEventChallengeRequestOutput = {
-            appMetadata,
-            ...message
-          }
-          interceptorCallback(request, connectionInfo)
-        }
-        break
-      case BeaconMessageType.ProofOfEventChallengeRecorded:
-        {
-          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
-            appMetadataManager,
-            message.senderId
-          )
-          const request: ProofOfEventChallengeRecordedMessageOutput = {
             appMetadata,
             ...message
           }

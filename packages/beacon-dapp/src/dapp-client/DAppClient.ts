@@ -59,7 +59,6 @@ import {
   ProofOfEventChallengeResponse,
   ProofOfEventChallengeRequestInput,
   RequestProofOfEventChallengeInput,
-  ProofOfEventChallengeRecordedMessageInput,
   ChangeAccountRequest,
   PeerInfoType,
   App,
@@ -947,8 +946,7 @@ export class DAppClient extends Client {
     if (
       [
         BeaconMessageType.PermissionRequest,
-        BeaconMessageType.ProofOfEventChallengeRequest,
-        BeaconMessageType.ProofOfEventChallengeRecorded
+        BeaconMessageType.ProofOfEventChallengeRequest
       ].includes(type)
     ) {
       return true
@@ -1242,7 +1240,7 @@ export class DAppClient extends Client {
     const request: ProofOfEventChallengeRequestInput = {
       type: BeaconMessageType.ProofOfEventChallengeRequest,
       contractAddress: activeAccount.address,
-      ...input
+      payload: input.payload
     }
 
     const { message, connectionInfo } = await this.makeRequest<
@@ -1259,10 +1257,6 @@ export class DAppClient extends Client {
       { address: activeAccount.address }
     )
 
-    if (message.isAccepted) {
-      await this.recordProofOfEventChallenge(input)
-    }
-
     await this.notifySuccess(request, {
       account: activeAccount,
       output: message,
@@ -1272,29 +1266,6 @@ export class DAppClient extends Client {
     })
 
     return message
-  }
-
-  private async recordProofOfEventChallenge(input: RequestProofOfEventChallengeInput) {
-    const activeAccount = await this.getActiveAccount()
-
-    if (!activeAccount)
-      throw new Error(
-        'Active account is undefined. Please request permissions before recording a proof of event challenge'
-      )
-
-    let success = true
-    let errorMessage = ''
-
-    const recordedRequest: ProofOfEventChallengeRecordedMessageInput = {
-      type: BeaconMessageType.ProofOfEventChallengeRecorded,
-      dAppChallengeId: input.dAppChallengeId,
-      success,
-      errorMessage
-    }
-
-    await this.makeRequest(recordedRequest, true).catch(async (requestError: ErrorResponse) => {
-      throw await this.handleRequestError(recordedRequest, requestError)
-    })
   }
 
   /**
