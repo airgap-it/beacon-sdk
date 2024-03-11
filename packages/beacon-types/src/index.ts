@@ -6,6 +6,9 @@ import { AppMetadata } from './types/beacon/AppMetadata'
 import { PermissionRequest } from './types/beacon/messages/PermissionRequest'
 import { ProofOfEventChallengeRequest } from './types/beacon/messages/ProofOfEventChallengeRequest'
 import { ProofOfEventChallengeResponse } from './types/beacon/messages/ProofOfEventChallengeResponse'
+import { SimulatedProofOfEventChallengeRequest } from './types/beacon/messages/SimulatedProofOfEventChallengeRequest'
+import { SimulatedProofOfEventChallengeResponse } from './types/beacon/messages/SimulatedProofOfEventChallengeResponse'
+import { ProofOfEventChallengeRecordedRequest } from './types/beacon/messages/ProofOfEventChallengeRecordedRequest'
 import { Network } from './types/beacon/Network'
 import { BeaconBaseMessage } from './types/beacon/BeaconBaseMessage'
 import { BeaconMessageType } from './types/beacon/BeaconMessageType'
@@ -52,6 +55,7 @@ import { ExtendedP2PPairingRequest, P2PPairingRequest } from './types/P2PPairing
 import { BeaconMessage } from './types/beacon/BeaconMessage'
 import { RequestPermissionInput } from './types/RequestPermissionInput'
 import { RequestProofOfEventChallengeInput } from './types/RequestProofOfEventChallengeInput'
+import { RequestSimulatedProofOfEventChallengeInput } from './types/RequestSimulatedProofOfEventChallengeInput'
 import { RequestSignPayloadInput } from './types/RequestSignPayloadInput'
 // import { RequestEncryptPayloadInput } from './types/RequestEncryptPayloadInput'
 import { RequestOperationInput } from './types/RequestOperationInput'
@@ -74,7 +78,8 @@ import {
   OperationResponseOutput,
   BroadcastResponseOutput,
   BeaconResponseOutputMessage,
-  ProofOfEventChallengeResponseOutput
+  ProofOfEventChallengeResponseOutput,
+  SimulatedProofOfEventChallengeResponseOutput
 } from './types/beacon/messages/BeaconResponseOutputMessage'
 import {
   PermissionRequestInput,
@@ -84,7 +89,9 @@ import {
   BroadcastRequestInput,
   BeaconRequestInputMessage,
   IgnoredRequestInputProperties,
-  ProofOfEventChallengeRequestInput
+  ProofOfEventChallengeRecordedMessageInput,
+  ProofOfEventChallengeRequestInput,
+  SimulatedProofOfEventChallengeRequestInput
 } from './types/beacon/messages/BeaconRequestInputMessage'
 import {
   PermissionRequestOutput,
@@ -93,7 +100,9 @@ import {
   OperationRequestOutput,
   BroadcastRequestOutput,
   BeaconRequestOutputMessage,
-  ProofOfEventChallengeRequestOutput
+  ProofOfEventChallengeRequestOutput,
+  SimulatedProofOfEventChallengeRequestOutput,
+  ProofOfEventChallengeRecordedMessageOutput
 } from './types/beacon/messages/BeaconRequestOutputMessage'
 import { PermissionInfo } from './types/PermissionInfo'
 import { ConnectionContext } from './types/ConnectionContext'
@@ -209,6 +218,7 @@ export {
   EncryptedExtensionMessage,
   RequestPermissionInput,
   RequestProofOfEventChallengeInput,
+  RequestSimulatedProofOfEventChallengeInput,
   RequestSignPayloadInput,
   // RequestEncryptPayloadInput,
   RequestOperationInput,
@@ -216,7 +226,10 @@ export {
   PermissionInfo,
   PermissionEntity,
   ProofOfEventChallengeRequest,
-  ProofOfEventChallengeResponse
+  ProofOfEventChallengeResponse,
+  ProofOfEventChallengeRecordedRequest,
+  SimulatedProofOfEventChallengeRequest,
+  SimulatedProofOfEventChallengeResponse
 }
 
 export {
@@ -229,6 +242,7 @@ export {
   ErrorResponseInput,
   PermissionResponseOutput,
   ProofOfEventChallengeResponseOutput,
+  SimulatedProofOfEventChallengeResponseOutput,
   SignPayloadResponseOutput,
   // EncryptPayloadResponseOutput,
   OperationResponseOutput,
@@ -236,12 +250,15 @@ export {
   PermissionRequestInput,
   SignPayloadRequestInput,
   ProofOfEventChallengeRequestInput,
+  SimulatedProofOfEventChallengeRequestInput,
   // EncryptPayloadRequestInput,
   OperationRequestInput,
   BroadcastRequestInput,
   PermissionRequestOutput,
   SignPayloadRequestOutput,
   ProofOfEventChallengeRequestOutput,
+  SimulatedProofOfEventChallengeRequestOutput,
+  ProofOfEventChallengeRecordedMessageOutput,
   // EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,

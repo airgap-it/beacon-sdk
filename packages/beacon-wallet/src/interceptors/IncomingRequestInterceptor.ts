@@ -16,6 +16,7 @@ import {
   // EncryptPayloadRequestOutput
 } from '@airgap/beacon-types'
 import { AppMetadataManager, Logger } from '@airgap/beacon-core'
+import { SimulatedProofOfEventChallengeRequestOutput } from '@airgap/beacon-types/dist/esm/types/beacon/messages/BeaconRequestOutputMessage'
 
 const logger = new Logger('IncomingRequestInterceptor')
 
@@ -149,6 +150,45 @@ export class IncomingRequestInterceptor {
             message.senderId
           )
           const request: ProofOfEventChallengeRequestOutput = {
+            appMetadata,
+            ...message
+          }
+          interceptorCallback(request, connectionInfo)
+        }
+        break
+      case BeaconMessageType.SimulatedProofOfEventChallengeRequest:
+        {
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+            appMetadataManager,
+            message.senderId
+          )
+          const request: SimulatedProofOfEventChallengeRequestOutput = {
+            appMetadata,
+            ...message
+          }
+          interceptorCallback(request, connectionInfo)
+        }
+        break
+      case BeaconMessageType.ProofOfEventChallengeRecorded:
+        {
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+            appMetadataManager,
+            message.senderId
+          )
+          const request: ProofOfEventChallengeRecordedMessageOutput = {
+            appMetadata,
+            ...message
+          }
+          interceptorCallback(request, connectionInfo)
+        }
+        break
+      case BeaconMessageType.SimulatedProofOfEventChallengeRequest:
+        {
+          const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+            appMetadataManager,
+            message.senderId
+          )
+          const request: SimulatedProofOfEventChallengeRequestOutput = {
             appMetadata,
             ...message
           }

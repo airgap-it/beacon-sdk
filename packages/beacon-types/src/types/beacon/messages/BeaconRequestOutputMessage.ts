@@ -1,4 +1,9 @@
-import { Optional, ProofOfEventChallengeRequest } from '@airgap/beacon-types'
+import {
+  Optional,
+  ProofOfEventChallengeRecordedRequest,
+  ProofOfEventChallengeRequest,
+  SimulatedProofOfEventChallengeRequest
+} from '@airgap/beacon-types'
 import {
   AppMetadata,
   PermissionRequest,
@@ -30,6 +35,22 @@ export type PermissionRequestOutput = Optional<PermissionRequest, IgnoredRequest
  */
 export type ProofOfEventChallengeRequestOutput = Optional<
   ProofOfEventChallengeRequest,
+  IgnoredRequestOutputProperties
+> &
+  ExtraResponseOutputProperties
+/**
+ * @category Wallet
+ */
+export type SimulatedProofOfEventChallengeRequestOutput = Optional<
+  SimulatedProofOfEventChallengeRequest,
+  IgnoredRequestOutputProperties
+> &
+  ExtraResponseOutputProperties
+/**
+ * @category Wallet
+ */
+export type ProofOfEventChallengeRecordedMessageOutput = Optional<
+  ProofOfEventChallengeRecordedRequest,
   IgnoredRequestOutputProperties
 > &
   ExtraResponseOutputProperties
@@ -71,3 +92,5 @@ export type BeaconRequestOutputMessage =
   // | EncryptPayloadRequestOutput
   | BroadcastRequestOutput
   | ProofOfEventChallengeRequestOutput
+  | ProofOfEventChallengeRecordedMessageOutput
+  | SimulatedProofOfEventChallengeRequestOutput
