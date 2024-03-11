@@ -2,12 +2,7 @@ import { MichelineMichelsonV1Expression } from '../MichelineMichelsonV1Expressio
 import { TezosOperationType } from '../OperationTypes'
 import { TezosBaseOperation } from '../TezosBaseOperation'
 import {
-  InternalOperationResult,
-  OperationBalanceUpdates,
-  OperationMetadataBalanceUpdates,
-  OperationResultStatusEnum,
   PvmKind,
-  TezosGenericOperationError
 } from '../common'
 
 export interface TezosSmartRollupOriginateOperation extends TezosBaseOperation {
@@ -21,25 +16,4 @@ export interface TezosSmartRollupOriginateOperation extends TezosBaseOperation {
   kernel: string
   parameters_ty: MichelineMichelsonV1Expression
   whitelist?: string[]
-}
-
-export interface TezosSmartRollupOriginateResultOperation
-  extends TezosSmartRollupOriginateOperation {
-  metadata: MetadataSmartRollupOriginate
-}
-
-export interface MetadataSmartRollupOriginate {
-  balance_updates?: OperationMetadataBalanceUpdates[]
-  operation_result: OperationResultSmartRollupOriginate
-  internal_operation_results?: InternalOperationResult[]
-}
-
-export interface OperationResultSmartRollupOriginate {
-  status: OperationResultStatusEnum
-  balance_updates?: OperationBalanceUpdates
-  address?: string
-  genesis_commitment_hash?: string
-  consumed_milligas?: string
-  size?: string
-  errors?: TezosGenericOperationError[]
 }

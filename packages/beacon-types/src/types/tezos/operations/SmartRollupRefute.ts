@@ -1,12 +1,5 @@
 import { TezosOperationType } from '../OperationTypes'
 import { TezosBaseOperation } from '../TezosBaseOperation'
-import {
-  InternalOperationResult,
-  OperationBalanceUpdates,
-  OperationMetadataBalanceUpdates,
-  OperationResultStatusEnum,
-  TezosGenericOperationError
-} from '../common'
 
 export interface TezosSmartRollupRefuteOperation extends TezosBaseOperation {
   kind: TezosOperationType.SMART_ROLLUP_REFUTE
@@ -18,11 +11,6 @@ export interface TezosSmartRollupRefuteOperation extends TezosBaseOperation {
   rollup: string
   opponent: string
   refutation: SmartRollupRefutation
-  metadata: MetadataSmartRollupRefute
-}
-
-export interface TezosSmartRollupRefuteResultOperation extends TezosSmartRollupRefuteOperation {
-  metadata: MetadataSmartRollupRefute
 }
 
 export type SmartRollupRefutation = SmartRollupRefutationStart | SmartRollupRefutationMove
@@ -31,12 +19,6 @@ export interface SmartRollupRefutationStart {
   refutation_kind: SmartRollupRefutationOptions.START
   player_commitment_hash: string
   opponent_commitment_hash: string
-}
-
-export interface MetadataSmartRollupRefute {
-  balance_updates?: OperationMetadataBalanceUpdates[]
-  operation_result: OperationResultSmartRollupRefute
-  internal_operation_results?: InternalOperationResult[]
 }
 
 export interface SmartRollupRefutationMove {
@@ -48,14 +30,6 @@ export interface SmartRollupRefutationMove {
 export enum SmartRollupRefutationOptions {
   START = 'start',
   MOVE = 'move'
-}
-
-export interface OperationResultSmartRollupRefute {
-  status: OperationResultStatusEnum
-  consumed_milligas?: string
-  game_status?: SmartRollupGameStatus
-  balance_updates?: OperationBalanceUpdates
-  errors?: TezosGenericOperationError[]
 }
 
 export type SmartRollupRefutationMoveStep =

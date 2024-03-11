@@ -1,26 +1,6 @@
 import { MichelineMichelsonV1Expression } from './MichelineMichelsonV1Expression'
 import { TezosOperationType } from './OperationTypes'
 
-export interface OperationContentsAndResultMetadata {
-  balance_updates?: OperationMetadataBalanceUpdates[]
-}
-
-export interface OperationMetadataBalanceUpdates {
-  kind: MetadataBalanceUpdatesKindEnum
-  contract?: string
-  change: string
-  origin?: MetadataBalanceUpdatesOriginEnum
-  category?: MetadataBalanceUpdatesCategoryEnum
-  staker?: FrozenStaker | Staker
-  delegate?: string
-  participation?: boolean
-  revelation?: boolean
-  committer?: string
-  bond_id?: BondId
-  cycle?: number
-  delegator?: string
-}
-
 export type MetadataBalanceUpdatesKindEnum =
   | 'contract'
   | 'freezer'
@@ -84,67 +64,11 @@ export type BondId = {
   smart_rollup: string
 }
 
-export type OperationResultStatusEnum = 'applied' | 'failed' | 'skipped' | 'backtracked'
-
 export type InternalOperationResultKindEnum =
   | TezosOperationType.TRANSACTION
   | TezosOperationType.ORIGINATION
   | TezosOperationType.DELEGATION
   | TezosOperationType.EVENT
-
-export interface OperationResultUpdateConsensusKey {
-  status: OperationResultStatusEnum
-  consumed_milligas?: string
-  errors?: TezosGenericOperationError[]
-}
-
-export interface OperationResultSetDepositsLimit {
-  status: OperationResultStatusEnum
-  consumed_gas?: string
-  errors?: TezosGenericOperationError[]
-  consumed_milligas?: string
-}
-
-export interface OperationMetadataBalanceUpdates {
-  kind: MetadataBalanceUpdatesKindEnum
-  contract?: string
-  change: string
-  origin?: MetadataBalanceUpdatesOriginEnum
-  category?: MetadataBalanceUpdatesCategoryEnum
-  staker?: FrozenStaker | Staker
-  delegate?: string
-  participation?: boolean
-  revelation?: boolean
-  committer?: string
-  bond_id?: BondId
-  cycle?: number
-  delegator?: string
-}
-
-export interface InternalOperationResult {
-  kind: InternalOperationResultKindEnum
-  source: string
-  nonce: number
-  amount?: string
-  destination?: string
-  parameters?: TransactionOperationParameter
-  public_key?: string
-  balance?: string
-  delegate?: string
-  script?: ScriptedContracts
-  value?: MichelineMichelsonV1Expression
-  limit?: string
-  result: InternalOperationResultEnum
-  type?: MichelineMichelsonV1Expression
-  tag?: string
-  payload?: MichelineMichelsonV1Expression
-}
-
-export interface TezosGenericOperationError {
-  kind: string
-  id: string
-  delegate?: string
-}
 
 export interface TransactionOperationParameter {
   entrypoint: string
@@ -154,71 +78,6 @@ export interface TransactionOperationParameter {
 export interface ScriptedContracts {
   code: MichelineMichelsonV1Expression[]
   storage: MichelineMichelsonV1Expression
-}
-
-export type InternalOperationResultEnum =
-  | OperationResultReveal
-  | OperationResultTransaction
-  | OperationResultDelegation
-  | OperationResultOrigination
-  | OperationResultEvent
-
-export interface OperationResultReveal {
-  status: OperationResultStatusEnum
-  consumed_gas?: string
-  errors?: TezosGenericOperationError[]
-  consumed_milligas?: string
-}
-
-export interface OperationResultTransaction {
-  status: OperationResultStatusEnum
-  storage?: MichelineMichelsonV1Expression
-  big_map_diff?: ContractBigMapDiff
-  balance_updates?: OperationBalanceUpdates
-  ticket_updates?: TicketUpdates[]
-  ticket_receipt?: TicketReceipt[]
-  originated_contracts?: string[]
-  consumed_gas?: string
-  storage_size?: string
-  paid_storage_size_diff?: string
-  allocated_destination_contract?: boolean
-  errors?: TezosGenericOperationError[]
-  consumed_milligas?: string
-  lazy_storage_diff?: LazyStorageDiff[]
-  ticket_hash?: string
-}
-
-export interface OperationResultReveal {
-  status: OperationResultStatusEnum
-  consumed_gas?: string
-  errors?: TezosGenericOperationError[]
-  consumed_milligas?: string
-}
-
-export interface OperationResultDelegation {
-  status: OperationResultStatusEnum
-  consumed_gas?: string
-  errors?: TezosGenericOperationError[]
-  consumed_milligas?: string
-}
-
-export interface OperationResultOrigination {
-  status: OperationResultStatusEnum
-  big_map_diff?: ContractBigMapDiff
-  balance_updates?: OperationBalanceUpdates
-  originated_contracts?: string[]
-  consumed_gas?: string
-  storage_size?: string
-  paid_storage_size_diff?: string
-  errors?: TezosGenericOperationError[]
-  consumed_milligas?: string
-  lazy_storage_diff?: LazyStorageDiff[]
-}
-
-export interface OperationResultEvent {
-  status: OperationResultStatusEnum
-  consumed_milligas?: string
-  errors?: TezosGenericOperationError[]
 }
 
 export type ContractBigMapDiff = ContractBigMapDiffItem[]
@@ -287,21 +146,6 @@ export interface SaplingTransactionCiphertext {
   nonce_out: string
 }
 
-export type OperationBalanceUpdates = OperationMetadataBalanceUpdates[]
-
-export interface TicketUpdates {
-  ticket_token: {
-    ticketer: string
-    content_type: MichelineMichelsonV1Expression
-    content: MichelineMichelsonV1Expression
-  }
-  updates: {
-    account: string
-    amount: string
-  }[]
-}
-export type TicketReceipt = TicketUpdates
-
 export enum PvmKind {
   WASM2 = 'wasm_2_0_0',
   ARITH = 'arith',
@@ -313,28 +157,4 @@ export interface SmartRollupPublishCommitment {
   inbox_level: number
   predecessor: string
   number_of_ticks: string
-}
-
-export interface OperationContentsAndResultMetadataExtended1 {
-  balance_updates?: OperationMetadataBalanceUpdates[]
-  delegate: string
-  consensus_power: number
-  consensus_key: string
-}
-
-export interface OperationContentsAndResultMetadataExtended0 {
-  balance_updates?: OperationMetadataBalanceUpdates[]
-  delegate: string
-  slots?: number[]
-  endorsement_power?: number
-  consensus_key?: string
-}
-export interface OperationResultRegisterGlobalConstant {
-  status: OperationResultStatusEnum
-  balance_updates?: OperationBalanceUpdates
-  consumed_gas?: string
-  storage_size?: string
-  global_address?: string
-  errors?: TezosGenericOperationError[]
-  consumed_milligas?: string
 }

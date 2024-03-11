@@ -1,11 +1,6 @@
 import { MichelineMichelsonV1Expression } from '../MichelineMichelsonV1Expression'
 import { TezosOperationType } from '../OperationTypes'
 import { TezosBaseOperation } from '../TezosBaseOperation'
-import {
-  InternalOperationResult,
-  OperationMetadataBalanceUpdates,
-  OperationResultRegisterGlobalConstant
-} from '../common'
 
 export interface TezosRegisterGlobalConstantOperation extends TezosBaseOperation {
   kind: TezosOperationType.REGISTER_GLOBAL_CONSTANT
@@ -15,15 +10,4 @@ export interface TezosRegisterGlobalConstantOperation extends TezosBaseOperation
   gas_limit: string
   storage_limit: string
   value: MichelineMichelsonV1Expression
-}
-
-export interface TezosRegisterGlobalConstantResultOperation
-  extends TezosRegisterGlobalConstantOperation {
-  metadata: OperationContentsAndResultMetadataRegisterGlobalConstant
-}
-
-export interface OperationContentsAndResultMetadataRegisterGlobalConstant {
-  balance_updates?: OperationMetadataBalanceUpdates[]
-  operation_result: OperationResultRegisterGlobalConstant
-  internal_operation_results?: InternalOperationResult[]
 }
