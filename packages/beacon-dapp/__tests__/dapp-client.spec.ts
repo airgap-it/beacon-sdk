@@ -637,8 +637,8 @@ describe(`DAppClient`, () => {
       type: BeaconMessageType.ProofOfEventChallengeResponse,
       version: BEACON_VERSION,
       senderId: 'sender-id',
-      dAppChallengeId: 'my-id',
-      isAccepted: true
+      isAccepted: true,
+      payloadHash: 'hello world'
     }
 
     const connectionInfo: ConnectionContext = {
@@ -658,7 +658,6 @@ describe(`DAppClient`, () => {
     const getActiveAccountStub = sinon.stub(dAppClient, <any>'getActiveAccount').resolves(account1)
 
     const input = {
-      dAppChallengeId: 'my-id',
       payload: 'my-payload'
     }
     const response = await dAppClient.requestProofOfEventChallenge(input)
@@ -678,8 +677,8 @@ describe(`DAppClient`, () => {
       type: 'proof_of_event_challenge_response',
       version: BEACON_VERSION,
       senderId: 'sender-id',
-      dAppChallengeId: 'my-id',
-      isAccepted: true
+      isAccepted: true,
+      payloadHash: 'hello world'
     })
   })
 

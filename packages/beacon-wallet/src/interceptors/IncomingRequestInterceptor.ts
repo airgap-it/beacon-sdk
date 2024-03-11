@@ -12,8 +12,7 @@ import {
   BeaconMessageWrapper,
   BlockchainRequestV3,
   PermissionRequestV3,
-  BeaconBaseMessage,
-  ProofOfEventChallengeRecordedMessageOutput
+  BeaconBaseMessage
   // EncryptPayloadRequestOutput
 } from '@airgap/beacon-types'
 import { AppMetadataManager, Logger } from '@airgap/beacon-core'

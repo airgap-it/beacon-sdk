@@ -13,6 +13,12 @@ export abstract class CommunicationClient {
 
   public eventHandlers: Map<ClientEvents, Function> = new Map()
 
+  // todo move OS
+  protected isMobileOS = (): boolean =>
+    /(Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet|Windows Phone|SymbianOS|Kindle)/i.test(
+      navigator.userAgent
+    )
+
   /**
    * Get the public key
    */

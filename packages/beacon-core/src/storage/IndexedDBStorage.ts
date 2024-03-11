@@ -6,65 +6,33 @@ const logger = new Logger('IndexedDBStorage')
 export class IndexedDBStorage extends Storage {
   private readonly dbName: string = 'WALLET_CONNECT_V2_INDEXED_DB'
   private readonly storeName: string = 'keyvaluestorage'
-  private db: IDBDatabase | null = null
 
-  static async doesDatabaseAndTableExist(): Promise<boolean> {
-    const targetDatabaseName = 'WALLET_CONNECT_V2_INDEXED_DB'
-    const targetTableName = 'keyvaluestorage'
-
-    const databases = await indexedDB.databases()
-
-    if (!databases.some((database) => database.name === targetDatabaseName)) {
-      return false // The specified database doesn't exist
-    }
-
-    // Open the database to check if the table exists
-    return new Promise<boolean>((resolve, reject) => {
-      const request = indexedDB.open(targetDatabaseName)
-
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result
-
-        if (db.objectStoreNames.contains(targetTableName)) {
-          // The table exists in the database
-          resolve(true)
-        } else {
-          // The table doesn't exist in the database
-          resolve(false)
-        }
-
-        db.close()
-      }
-
-      request.onerror = (event) => {
-        console.error('Error opening database:', (event.target as IDBRequest).error)
-        reject(false) // Assume the table doesn't exist if there's an error opening the database
-      }
-    })
+  constructor() {
+    super()
+    this.init()
   }
 
-  openDatabase(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 1)
+  private async init() {
+    const request = indexedDB.open(this.dbName)
 
-      request.onupgradeneeded = (event) => {
-        this.db = (event.target as IDBOpenDBRequest).result
+    request.onupgradeneeded = (event: any) => {
+      const db = event.target?.result
 
-        // Create object store if it doesn't exist
-        if (this.db && !this.db.objectStoreNames.contains(this.storeName)) {
-          this.db.createObjectStore(this.storeName, { keyPath: 'id', autoIncrement: true })
-        }
+      if (!db.objectStoreNames.contains(this.storeName)) {
+        db.createObjectStore(this.storeName)
       }
+    }
 
-      request.onsuccess = (event) => {
-        this.db = (event.target as IDBOpenDBRequest).result
-        resolve('Database opened successfully')
-      }
+    request.onsuccess = (event: any) => {
+      console.log(`Database ${this.dbName} and store ${this.dbName} are ready for use.`)
+      const db = event.target?.result
 
-      request.onerror = (event) => {
-        reject(`Error opening database: ${(event.target as IDBOpenDBRequest).error}`)
-      }
-    })
+      db.close()
+    }
+
+    request.onerror = (event: any) => {
+      console.error(`Error opening database ${this.dbName}:`, event.target?.error)
+    }
   }
 
   get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {

@@ -151,6 +151,7 @@
           el.innerText = `'debug' ${name} ${method} ${args.join(', ')}`
           el.setAttribute('style', 'background-color: blue')
           document.getElementById('logger-output').appendChild(el)
+          console.debug('LOGGER', name, method, ...args)
         }
 
         log(name, method, ...args) {
@@ -158,6 +159,7 @@
           el.innerText = `'log' ${name} ${method} ${args.join(', ')}`
           el.setAttribute('style', 'background-color: green')
           document.getElementById('logger-output').appendChild(el)
+          console.log('LOGGER', name, method, ...args)
         }
 
         warn(name, method, ...args) {
@@ -165,6 +167,7 @@
           el.innerText = `'warn' ${name} ${method} ${args.join(', ')}`
           el.setAttribute('style', 'background-color: orange')
           document.getElementById('logger-output').appendChild(el)
+          console.warn('LOGGER', name, method, ...args)
         }
 
         error(name, method, ...args) {
@@ -172,6 +175,7 @@
           el.innerText = `'error' ${name} ${method} ${args.join(', ')}`
           el.setAttribute('style', 'background-color: red')
           document.getElementById('logger-output').appendChild(el)
+          console.error('LOGGER', name, method, ...args)
         }
 
         time(start, label) {
@@ -179,6 +183,7 @@
           el.innerText = `'time' ${start} ${label}`
           el.setAttribute('style', 'background-color: grey')
           document.getElementById('logger-output').appendChild(el)
+          console.time(label)
         }
 
         timeLog(method, ...args) {
@@ -186,6 +191,7 @@
           el.innerText = `'timeLog' ${method} ${args.join(', ')}`
           el.setAttribute('style', 'background-color: grey')
           document.getElementById('logger-output').appendChild(el)
+          console.timeLog(method, ...args)
         }
       }
 
@@ -382,14 +388,8 @@
             dAppChallengeId: 'my-id',
             payload: JSON.stringify({ timestamp: Date.now() })
           })
-          .then(() => {
-            console.log('ProofOfEventChallenge approved')
-
-            const promise = client.getProofOfEventChallenge('my-id')
-
-            promise.then(() => {
-              alert('Proof of event verified')
-            })
+          .then((response) => {
+            console.log(`ProofOfEventChallenge ${response.isAccepted ? 'accepted' : 'refused'}`)
           })
           .catch((error) => {
             console.log('error during Proof Of Event Challenge', error)

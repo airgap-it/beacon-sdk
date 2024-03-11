@@ -27,7 +27,7 @@ import * as qrStyles from '../../components/qr/styles.css'
 import * as loaderStyles from '../../components/loader/styles.css'
 import * as pairOtherStyles from '../../components/pair-other/styles.css'
 
-import { Serializer, windowRef } from '@airgap/beacon-core'
+import { Logger, Serializer, windowRef } from '@airgap/beacon-core'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import {
   arrangeTopWallets,
@@ -41,6 +41,10 @@ import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { isAndroid, isIOS, isMobileOS, isTwBrowser } from '../../utils/platform'
 import { getColorMode } from '../../utils/colorMode'
 import PairOther from '../../components/pair-other/pair-other'
+import getDefaultLogo from './getDefautlLogo'
+import { parseUri } from '@walletconnect/utils'
+
+const logger = new Logger('Alert')
 
 // Interfaces
 export interface AlertButton {
@@ -81,7 +85,7 @@ const [currentInfo, setCurrentInfo] = createSignal<
   'top-wallets' | 'wallets' | 'install' | 'help' | 'qr'
 >('top-wallets')
 const [analytics, setAnalytics] = createSignal<AnalyticsInterface | undefined>(undefined)
-
+const [displayQrExtra, setDisplayQrExtra] = createSignal<boolean>(false)
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
 
@@ -176,7 +180,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     setCurrentInfo('top-wallets')
     setCurrentWallet(undefined)
-    localStorage.removeItem(StorageKey.LAST_SELECTED_WALLET)
+
+    !config.title.toLowerCase().includes('error') &&
+      localStorage.removeItem(StorageKey.LAST_SELECTED_WALLET)
 
     // Shadow root
     const shadowRootEl = document.createElement('div')
@@ -372,6 +378,20 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       return <></>
     }
 
+    const setInstallState = (wallet?: MergedWallet) => {
+      if (
+        !wallet ||
+        (wallet.types.length <= 1 &&
+          !wallet.types.includes('ios') &&
+          !wallet.types.includes('desktop')) ||
+        (_isMobileOS && wallet.types.length === 1 && wallet.types.includes('desktop'))
+      ) {
+        return
+      }
+
+      setCurrentInfo('install')
+    }
+
     const handleClickShowMoreContent = () => {
       analytics()?.track('click', 'ui', 'show more wallets')
       setShowMoreContent(!showMoreContent())
@@ -394,46 +414,139 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (config.closeButtonCallback) config.closeButtonCallback()
     }
 
+    const updateSelectedWalletWithURL = (url: string) => {
+      let wallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}')
+
+      if (!wallet.key) {
+        return
+      }
+
+      wallet = {
+        ...wallet,
+        url
+      }
+
+      localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(wallet))
+    }
+
+    const generateLink = async () => {
+      let uri = (await wcPayload)?.uri ?? ''
+
+      // If the initial URI is invalid, try generating a new one
+      if (!parseUri(uri).symKey) {
+        uri = (await config.pairingPayload?.walletConnectSyncCode())?.uri ?? ''
+        if (!parseUri(uri).symKey) {
+          handleCloseAlert()
+          setTimeout(
+            () =>
+              openAlert({
+                title: 'Error',
+                body: 'Unexpected transport error. Please try again.'
+              }),
+            500
+          )
+          return null
+        }
+      }
+
+      return uri
+    }
+
     const handleNewTab = async (config: AlertConfig, wallet?: MergedWallet) => {
       if (!wallet) {
         return
       }
 
-      if (config.pairingPayload) {
-        setIsLoading(true)
-        // Noopener feature parameter cannot be used, because Chrome will open
-        // about:blank#blocked instead and it will no longer work.
-        const newTab = window.open('', '_blank')
+      if (!config.pairingPayload) {
+        return
+      }
 
-        if (newTab) {
-          newTab.opener = null
+      setIsLoading(true)
+      // Noopener feature parameter cannot be used, because Chrome will open
+      // about:blank#blocked instead and it will no longer work.
+      const newTab = window.open('', '_blank')
+
+      if (newTab) {
+        newTab.opener = null
+      }
+
+      let link = ''
+
+      if (
+        wallet.supportedInteractionStandards?.includes('wallet_connect') &&
+        !wallet.name.toLowerCase().includes('kukai')
+      ) {
+        const uri = await generateLink()
+
+        if (!uri) {
+          return
         }
 
-        let link = ''
+        link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
+      } else {
+        const serializer = new Serializer()
+        const code = await serializer.serialize(await p2pPayload)
+        link = getTzip10Link(wallet.links[OSLink.WEB], code)
+      }
 
-        if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-          const uri = (await wcPayload)?.uri ?? ''
-          if (!!uri.length) {
-            link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
-          } else {
-            handleCloseAlert()
-            setTimeout(() => openAlert({
-              title: 'Error',
-              body: 'Unexpected transport error. Please try again.'
-            }), 500)
-            return
-          }
-        } else {
-          const serializer = new Serializer()
-          const code = await serializer.serialize(await p2pPayload)
-          link = getTzip10Link(wallet.links[OSLink.WEB], code)
+      if (newTab) {
+        newTab.location.href = link
+      } else {
+        window.open(link, '_blank', 'noopener')
+      }
+
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: wallet.key,
+          name: wallet.name,
+          type: 'web',
+          icon: currentWallet()?.image
+        })
+      )
+    }
+
+    const handleDeepLinking = async (wallet: MergedWallet, uri: string) => {
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: wallet.key,
+          type: 'mobile',
+          icon: wallet.image
+        })
+      )
+
+      if (!wallet.links[OSLink.IOS].length) {
+        const syncCode = currentWallet()?.supportedInteractionStandards?.includes('wallet_connect')
+          ? (await wcPayload)?.uri ?? ''
+          : await new Serializer().serialize(await p2pPayload)
+
+        if (!syncCode.length) {
+          handleCloseAlert()
+          return
         }
 
-        if (newTab) {
-          newTab.location.href = link
-        } else {
-          window.open(link, '_blank', 'noopener')
-        }
+        setCodeQR(syncCode)
+        setCurrentInfo('qr')
+        setDisplayQrExtra(true)
+
+        return
+      }
+
+      const link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
+      updateSelectedWalletWithURL(`${wallet.links[OSLink.IOS]}wc?uri=`)
+      logger.log('DO DEEPLINK WITH ' + link)
+
+      if (isTwBrowser(window) && isAndroid(window)) {
+        window.location.href = `${uri}`
+      }
+      if (isAndroid(window)) {
+        window.open(link, '_blank', 'noopener')
+      } else {
+        const a = document.createElement('a')
+        a.setAttribute('href', link)
+        a.setAttribute('rel', 'noopener')
+        a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
       }
     }
 
@@ -442,52 +555,38 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setShowMoreContent(false)
       const wallet = walletList().find((wallet) => wallet.id === id)
       setCurrentWallet(wallet)
+
       if (wallet?.key) {
         analytics()?.track('click', 'ui', 'opened wallet', { key: wallet.key })
-        localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, wallet.key)
       }
 
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: wallet?.key,
+          type: 'mobile',
+          icon: currentWallet()?.image
+        })
+      )
+
       if (
-        wallet?.types.includes('web') &&
-        !(
-          wallet?.types.includes('extension') ||
-          wallet?.types.includes('desktop') ||
-          wallet?.types.includes('ios')
-        )
+        (wallet?.types.includes('web') && wallet?.types.length === 1) ||
+        (isAndroid(window) && wallet?.name.toLowerCase().includes('kukai'))
       ) {
         handleNewTab(config, wallet)
         return
       }
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
-        const uri = (await wcPayload)?.uri ?? ''
-        if (!!uri.length) {
-          if (isAndroid(window) || isIOS(window)) {
-            let link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
+        const uri = await generateLink()
 
-            if (isTwBrowser(window) && isAndroid(window)) {
-              link = `${uri}`
-              window.location.href = link
-            } else if (isAndroid(window)) {
-              window.open(link, '_blank', 'noopener')
-            } else if (isIOS(window)) {
-              const a = document.createElement('a')
-              a.setAttribute('href', link)
-              a.setAttribute('rel', 'noopener')
-              a.dispatchEvent(
-                new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
-              )
-            }
+        if (uri) {
+          if (_isMobileOS && wallet.types.includes('ios') && wallet.types.length === 1) {
+            handleDeepLinking(wallet, uri)
           } else {
             setCodeQR(uri)
-            setCurrentInfo('install')
+            setInstallState(wallet)
           }
-        } else {
-          handleCloseAlert()
-          setTimeout(() => openAlert({
-            title: 'Error',
-            body: 'Unexpected transport error. Please try again.'
-          }), 500)
         }
         setIsLoading(false)
       } else if (wallet?.types.includes('ios') && _isMobileOS) {
@@ -501,10 +600,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             isIOS(window) && wallet.deepLink
               ? wallet.deepLink
               : isAndroid(window)
-              ? 'tezos://'
-              : wallet.links[OSLink.IOS],
+              ? wallet.links[OSLink.IOS]
+              : 'tezos://',
             code
           )
+
+          updateSelectedWalletWithURL(link)
 
           if (isAndroid(window)) window.open(link, '_blank', 'noopener')
           else if (isIOS(window)) {
@@ -516,17 +617,26 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             )
           }
         }
+
         setIsLoading(false)
       } else {
         setIsLoading(false)
-        setCurrentInfo('install')
+        setInstallState(wallet)
         await setDefaultPayload()
       }
     }
 
     const handleClickOther = async () => {
       analytics()?.track('click', 'ui', 'other wallet')
-
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: 'wallet',
+          name: 'wallet',
+          type: 'mobile',
+          icon: getDefaultLogo()
+        })
+      )
       setCurrentInfo('qr')
     }
 
@@ -558,6 +668,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           windowRef.postMessage(message as any, windowRef.location.origin)
         }
       }
+
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: currentWallet()?.key,
+          name: currentWallet()?.name,
+          type: 'extension',
+          icon: currentWallet()?.image
+        })
+      )
     }
 
     const handleClickInstallExtension = async () => {
@@ -571,12 +691,22 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setShowMoreContent(false)
       analytics()?.track('click', 'ui', 'open desktop', { key: currentWallet()?.key })
 
-      if (p2pPayload) {
+      if (await p2pPayload) {
         const serializer = new Serializer()
         const code = await serializer.serialize(await p2pPayload)
         const link = getTzip10Link(currentWallet()?.deepLink || '', code)
         window.open(link, '_blank', 'noopener')
       }
+
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: currentWallet()?.key,
+          name: currentWallet()?.name,
+          type: 'desktop',
+          icon: currentWallet()?.image
+        })
+      )
     }
 
     const handleClickDownloadDesktopApp = async () => {
@@ -591,6 +721,30 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         .map((extension) => extension.id)
         .includes(currentWallet()?.firefoxId || '') ||
       availableExtensions.map((extension) => extension.id).includes(currentWallet()?.id || '')
+
+    const QRCode = ({ isMobile }: any) => {
+      localStorage.setItem(
+        StorageKey.LAST_SELECTED_WALLET,
+        JSON.stringify({
+          key: currentWallet()?.key,
+          name: currentWallet()?.name,
+          type: 'mobile',
+          icon: currentWallet()?.image
+        })
+      )
+      return (
+        <QR
+          isWalletConnect={
+            currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || false
+          }
+          isMobile={isMobile}
+          walletName={currentWallet()?.name || 'AirGap'}
+          code={codeQR()}
+          onClickLearnMore={handleClickLearnMore}
+          onClickQrCode={handleClickQrCode}
+        />
+      )
+    }
 
     const colorMode = getColorMode()
 
@@ -631,14 +785,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
-                      {!isMobile() && isOnline && currentWallet()?.types.includes('web') && (
+                      {isOnline && currentWallet()?.types.includes('web') && (
                         <Info
                           border
-                          title={'Open wallet in a new tab'}
-                          description={`Please connect below to use ${currentWallet()?.name}`}
+                          title={`Connect with ${currentWallet()?.name} Web`}
+                          description={`(It will open the wallet in a new tab)`}
                           buttons={[
                             {
-                              label: 'Connect now',
+                              label: 'Use Browser',
                               type: 'primary',
                               onClick: () => handleNewTab(config, currentWallet())
                             }
@@ -650,7 +804,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           border
                           title={
                             hasExtension()
-                              ? `Use Browser Extension`
+                              ? `Connect with ${currentWallet()?.name} Browser Extension`
                               : `Install ${currentWallet()?.name} Wallet`
                           }
                           description={
@@ -664,7 +818,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             hasExtension()
                               ? [
                                   {
-                                    label: 'Connect now',
+                                    label: 'Use Extension',
                                     type: 'primary',
                                     onClick: () => handleClickConnectExtension()
                                   }
@@ -682,7 +836,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       {!isMobile() && currentWallet()?.types.includes('desktop') && (
                         <Info
                           border
-                          title={`Open Desktop App`}
+                          title={`Connect with ${currentWallet()?.name} Desktop App`}
                           description={`If you don't have the desktop app installed, click below to download it.`}
                           buttons={[
                             {
@@ -702,48 +856,78 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         codeQR().length > 0 &&
                         currentWallet()?.types.includes('ios') &&
                         (currentWallet()?.types.length as number) > 1 && (
-                          <QR
-                            isWalletConnect={
-                              currentWallet()?.supportedInteractionStandards?.includes(
-                                'wallet_connect'
-                              ) || false
-                            }
-                            isMobile={false}
-                            walletName={currentWallet()?.name || 'AirGap'}
-                            code={codeQR()}
-                            onClickLearnMore={handleClickLearnMore}
-                            onClickQrCode={handleClickQrCode}
-                          />
+                          <QRCode isMobile={false} />
                         )}
                       {!isMobile() &&
                         codeQR().length > 0 &&
                         currentWallet()?.types.includes('ios') &&
                         (currentWallet()?.types.length as number) <= 1 && (
-                          <QR
-                            isWalletConnect={
+                          <QRCode isMobile={true} />
+                        )}
+                      {isMobile() && currentWallet()?.types.includes('ios') && (
+                        <Info
+                          border
+                          title={`Connect with ${currentWallet()?.name} Mobile`}
+                          description={''}
+                          buttons={[
+                            {
+                              label: 'Use App',
+                              type: 'primary',
+                              onClick: async () => {
+                                const wallet = currentWallet()
+
+                                if (!wallet) {
+                                  return
+                                }
+
+                                let syncCode = ''
+                                if (
+                                  wallet.supportedInteractionStandards?.includes('wallet_connect')
+                                ) {
+                                  syncCode = (await wcPayload)?.uri ?? ''
+                                } else {
+                                  syncCode = await new Serializer().serialize(await p2pPayload)
+                                }
+                                handleDeepLinking(wallet, syncCode)
+                              }
+                            }
+                          ]}
+                          downloadLink={
+                            currentWallet()?.name.toLowerCase().includes('kukai') && isIOS(window)
+                              ? {
+                                  label: 'Get Kukai Mobile >',
+                                  url: 'https://ios.kukai.app'
+                                }
+                              : undefined
+                          }
+                          onShowQRCodeClick={async () => {
+                            const syncCode =
                               currentWallet()?.supportedInteractionStandards?.includes(
                                 'wallet_connect'
-                              ) || false
+                              )
+                                ? (await wcPayload)?.uri ?? ''
+                                : await new Serializer().serialize(await p2pPayload)
+
+                            const wallet = currentWallet()
+
+                            if (!syncCode.length || !wallet) {
+                              handleCloseAlert()
+                              return
                             }
-                            isMobile={true}
-                            walletName={currentWallet()?.name || 'AirGap'}
-                            code={codeQR()}
-                            onClickLearnMore={handleClickLearnMore}
-                            onClickQrCode={handleClickQrCode}
-                          />
-                        )}
-                      {isMobile() && codeQR().length > 0 && (
-                        <QR
-                          isWalletConnect={
-                            currentWallet()?.supportedInteractionStandards?.includes(
-                              'wallet_connect'
-                            ) || false
-                          }
-                          isMobile={true}
-                          walletName={currentWallet()?.name || 'AirGap'}
-                          code={codeQR()}
-                          onClickLearnMore={handleClickLearnMore}
-                          onClickQrCode={handleClickQrCode}
+
+                            if (
+                              _isMobileOS &&
+                              wallet.types.includes('ios') &&
+                              wallet.types.length === 1
+                            ) {
+                              handleDeepLinking(wallet, syncCode)
+                            } else {
+                              setCodeQR(syncCode)
+                            }
+
+                            setCurrentInfo('qr')
+                            setDisplayQrExtra(true)
+                          }}
                         />
                       )}
                     </div>
@@ -774,12 +958,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
-                      <PairOther
-                        walletList={walletList()}
-                        onClickLearnMore={handleClickLearnMore}
-                        p2pPayload={p2pPayload}
-                        wcPayload={wcPayload}
-                      ></PairOther>
+                      {!displayQrExtra() ? (
+                        <PairOther
+                          walletList={walletList()}
+                          onClickLearnMore={handleClickLearnMore}
+                          p2pPayload={p2pPayload}
+                          wcPayload={wcPayload}
+                        ></PairOther>
+                      ) : (
+                        <QRCode isMobile={true} />
+                      )}
                     </div>
                   )}
                   <div
@@ -935,12 +1123,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               onClickShowMore={handleClickShowMoreContent}
               onCloseClick={() => handleCloseAlert()}
               onBackClick={
-                currentInfo() === 'install' && !isMobile()
+                currentInfo() === 'install'
                   ? () => setCurrentInfo('top-wallets')
                   : currentInfo() === 'qr'
                   ? () => setCurrentInfo('top-wallets')
-                  : currentInfo() === 'install' && isMobile()
-                  ? () => setCurrentInfo('wallets')
                   : currentInfo() === 'wallets' && isMobile()
                   ? () => setCurrentInfo('top-wallets')
                   : currentInfo() === 'help'

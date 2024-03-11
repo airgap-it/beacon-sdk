@@ -1,4 +1,4 @@
-import { Optional, ProofOfEventChallengeRecordedRequest } from '@airgap/beacon-types'
+import { Optional } from '@airgap/beacon-types'
 import {
   PermissionRequest,
   OperationRequest,

@@ -220,7 +220,6 @@ export {
   RequestProofOfEventChallengeInput,
   RequestSimulatedProofOfEventChallengeInput,
   RequestSignPayloadInput,
-  ProofOfEventChallengeRecordedMessageInput,
   // RequestEncryptPayloadInput,
   RequestOperationInput,
   RequestBroadcastInput,
