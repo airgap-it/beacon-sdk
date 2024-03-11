@@ -34,21 +34,6 @@ export const messageEvents: {
     success: BeaconEvent.UNKNOWN,
     error: BeaconEvent.UNKNOWN
   },
-  [BeaconMessageType.SimulatedProofOfEventChallengeRequest]: {
-    sent: BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT,
-    success: BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS,
-    error: BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
-  },
-  [BeaconMessageType.SimulatedProofOfEventChallengeResponse]: {
-    sent: BeaconEvent.UNKNOWN,
-    success: BeaconEvent.UNKNOWN,
-    error: BeaconEvent.UNKNOWN
-  },
-  [BeaconMessageType.ProofOfEventChallengeRecorded]: {
-    sent: BeaconEvent.UNKNOWN,
-    success: BeaconEvent.UNKNOWN,
-    error: BeaconEvent.UNKNOWN
-  },
   [BeaconMessageType.OperationRequest]: {
     sent: BeaconEvent.OPERATION_REQUEST_SENT,
     success: BeaconEvent.OPERATION_REQUEST_SUCCESS,
