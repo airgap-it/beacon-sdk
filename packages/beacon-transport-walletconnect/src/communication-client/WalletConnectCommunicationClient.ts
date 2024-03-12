@@ -10,6 +10,7 @@ import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
 import { IPairing, ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
 import { getSdkError } from '@walletconnect/utils'
+import { Expirer } from '@walletconnect/core'
 import {
   ActiveAccountUnspecified,
   ActiveNetworkUnspecified,
@@ -536,7 +537,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (forceNewConnection) {
       await this.closePairings()
-      await this.storage.resetState()
     }
 
     const signClient = await this.getSignClient()
@@ -880,6 +880,19 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     )
   }
 
+  private async clearCache() {
+    const signClient = await this.getSignClient()
+    signClient?.proposal.map.clear()
+    signClient?.pendingRequest.map.clear()
+    signClient?.session.map.clear()
+    ;(signClient?.core.expirer as Expirer).expirations.clear()
+    signClient?.core.history.records.clear()
+    signClient?.core.crypto.keychain.keychain.clear()
+    signClient?.core.relayer.messages.messages.clear()
+    signClient?.core.pairing.pairings.map.clear()
+    signClient?.core.relayer.subscriber.subscriptions.clear()
+  }
+
   private async closePairings() {
     await this.closeSessions()
     const signClient = await this.getSignClient()
@@ -892,6 +905,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         ))
     }
 
+    await this.clearCache()
+    await this.storage.resetState()
     this.storage.notify('RESET')
   }
 
