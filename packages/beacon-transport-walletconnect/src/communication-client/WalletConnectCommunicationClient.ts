@@ -174,9 +174,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     try {
       this.session =
         sessions?.find((el) => el.topic === this.session?.topic) ?? sessions[0] ?? this.session
-      this.activeAccount = this.getAccounts()[0]
+      this.session && (this.activeAccount = this.getAccounts()[0])
     } catch (err: any) {
-      logger.error('onStorageMessageHandler', err.message)
+      logger.error('refreshState', err.message)
     }
   }
 
@@ -189,10 +189,25 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
   }
 
-  private async onStorageMessageHandler(type: string) {
+  private onStorageMessageHandler(type: string) {
     logger.debug('onStorageMessageHandler', type)
 
     this.refreshState()
+
+    if (type === 'CLEAR_ACTIVE_ACCOUNT') {
+      if (this.messageIds.length) {
+        const errorResponse: any = {
+          type: BeaconMessageType.Disconnect,
+          id: this.messageIds.pop(),
+          errorType: BeaconErrorType.ABORTED_ERROR
+        }
+        this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
+        this.messageIds = [] // reset
+      }
+      this.session = undefined
+      this.activeAccount = undefined
+      return
+    }
   }
 
   private onStorageErrorHandler(data: any) {
@@ -1168,6 +1183,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     const session = this.getSession()
+
+    if (this.messageIds.length) {
+      const errorResponse: any = {
+        type: BeaconMessageType.Disconnect,
+        id: this.messageIds.pop(),
+        errorType: BeaconErrorType.ABORTED_ERROR
+      }
+
+      this.notifyListeners(this.getTopicFromSession(session), errorResponse)
+      this.messageIds = [] // reset
+    }
 
     await this.signClient?.disconnect({
       topic: session.topic,

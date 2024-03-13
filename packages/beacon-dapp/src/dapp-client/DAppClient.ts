@@ -2090,10 +2090,11 @@ export class DAppClient extends Client {
   }
 
   public async disconnect() {
+    await this.postMessageTransport?.disconnect()
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
-    await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
+    await this.clearActiveAccount()
   }
 
   /**
