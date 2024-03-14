@@ -445,7 +445,7 @@ export class DAppClient extends Client {
       .catch((err) => logger.error(err.message))
 
     this.enableMetrics &&
-      fetch('http://localhost:9001/enable-metrics')
+      fetch('https://beacon-backend.prod.gke.papers.tech/enable-metrics')
         .then((res) => this.storage.set(StorageKey.ENABLE_METRICS, res.ok))
         .catch(() => this.storage.set(StorageKey.ENABLE_METRICS, false))
 
