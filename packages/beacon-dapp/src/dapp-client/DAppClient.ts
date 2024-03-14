@@ -150,7 +150,12 @@ export class DAppClient extends Client {
   /**
    * Automatically switch between apps on Mobile Devices (Enabled by Default)
    */
-  enableAppSwitching: boolean = true
+  enableAppSwitching: boolean
+
+  /**
+   * Enable metrics tracking (Disabled by Default)
+   */
+  enableMetrics?: boolean
 
   public network: Network
 
@@ -227,6 +232,11 @@ export class DAppClient extends Client {
 
     this.appMetadataManager = new AppMetadataManager(this.storage)
     this.storageValidator = new StorageValidator(this.storage)
+
+    this.enableAppSwitching =
+      config.enableAppSwitching === undefined ? true : !!config.enableAppSwitching
+
+    this.enableMetrics = config.enableMetrics ? true : false
 
     // Subscribe to storage changes and update the active account if it changes on other tabs
     this.storage.subscribeToStorageChanged(async (event) => {
@@ -433,6 +443,11 @@ export class DAppClient extends Client {
         }
       })
       .catch((err) => logger.error(err.message))
+
+    this.enableMetrics &&
+      fetch('http://localhost:9001/enable-metrics')
+        .then((res) => this.storage.set(StorageKey.ENABLE_METRICS, res.ok))
+        .catch(() => this.storage.set(StorageKey.ENABLE_METRICS, false))
   }
 
   public async initInternalTransports(): Promise<void> {
