@@ -448,6 +448,10 @@ export class DAppClient extends Client {
       fetch('http://localhost:9001/enable-metrics')
         .then((res) => this.storage.set(StorageKey.ENABLE_METRICS, res.ok))
         .catch(() => this.storage.set(StorageKey.ENABLE_METRICS, false))
+
+    generateGUID()
+      .then((id) => this.storage.set(StorageKey.USER_ID, id))
+      .catch((err) => logger.error(err.message))
   }
 
   public async initInternalTransports(): Promise<void> {
