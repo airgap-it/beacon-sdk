@@ -447,10 +447,12 @@ export class DAppClient extends Client {
       })
       .catch((err) => logger.error(err.message))
 
-    this.enableMetrics &&
-      fetch('https://beacon-backend.prod.gke.papers.tech/enable-metrics')
-        .then((res) => this.storage.set(StorageKey.ENABLE_METRICS, res.ok))
-        .catch(() => this.storage.set(StorageKey.ENABLE_METRICS, false))
+    this.sendMetrics(
+      'enable-metrics',
+      undefined,
+      (res) => this.storage.set(StorageKey.ENABLE_METRICS, res.ok),
+      () => this.storage.set(StorageKey.ENABLE_METRICS, false)
+    )
 
     generateGUID()
       .then((id) => {
@@ -879,6 +881,23 @@ export class DAppClient extends Client {
     window.location = link
   }
 
+  private sendMetrics(
+    uri: string,
+    options?: RequestInit,
+    thenHandler?: (res: Response) => void,
+    catchHandler?: (err: Error) => void
+  ) {
+    if (!this.enableMetrics) {
+      return
+    }
+    fetch(`https://beacon-backend.prod.gke.papers.tech/performance-metrics/${uri}`, options)
+      .then((res) => thenHandler && thenHandler(res))
+      .catch((err: Error) => {
+        logger.error(err.message)
+        catchHandler && catchHandler(err)
+      })
+  }
+
   /**
    * Will remove the account from the local storage and set a new active account if necessary.
    *
@@ -1204,29 +1223,27 @@ export class DAppClient extends Client {
     this.analytics.track('event', 'DAppClient', 'Permission requested')
 
     // begin
+    const bdy = {
+      userId: this.userId ?? '1234',
+      os: 'Mac OS',
+      walletName: 'AirGap',
+      walletType: 'web',
+      sdkVersion: SDK_VERSION,
+      transport: 'wc',
+      time: new Date(),
+      action: 'connect',
+      status: 'start'
+    }
 
     const options = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        userId: this.userId ?? '1234',
-        os: 'Mac OS',
-        walletName: 'AirGap',
-        walletType: 'web',
-        sdkVersion: SDK_VERSION,
-        transport: 'wc',
-        time: new Date(),
-        action: 'connect',
-        status: 'start'
-      })
+      body: JSON.stringify(bdy)
     }
 
-    this.enableMetrics &&
-      fetch('https://beacon-backend.prod.gke.papers.tech/performance-metrics/save', options).catch((err) =>
-        logger.error(err.message)
-      )
+    this.sendMetrics('save', options)
 
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
@@ -1235,7 +1252,11 @@ export class DAppClient extends Client {
       throw await this.handleRequestError(request, requestError)
     })
 
-    // end
+    bdy.status = 'success'
+    bdy.time = new Date()
+    options.body = JSON.stringify(bdy)
+
+    this.sendMetrics('save', options)
 
     logger.log('requestPermissions', '######## MESSAGE #######')
     logger.log('requestPermissions', message)
