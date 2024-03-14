@@ -917,7 +917,7 @@ export class DAppClient extends Client {
     if (!this.enableMetrics) {
       return
     }
-    fetch(`http://beacon-backend.prod.gke.papers.tech/${uri}`, options)
+    fetch(`https://beacon-backend.prod.gke.papers.tech/${uri}`, options)
       .then((res) => thenHandler && thenHandler(res))
       .catch((err: Error) => {
         logger.error(err.message)
