@@ -56,3 +56,42 @@ export const isMobileOS = (win: Window): boolean =>
     win,
     /(Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet|Windows Phone|SymbianOS|Kindle)/i
   )
+
+export const currentOS = () => {
+  var ua = navigator.userAgent
+  var osMap = new Map([
+    ['Windows', 'Windows'],
+    ['Mac', 'Mac OS'],
+    ['Linux', 'Linux'],
+    ['iPhone', 'iOS'],
+    ['iPad', 'iOS'],
+    ['Android', 'Android']
+  ])
+
+  for (let [key, value] of osMap) {
+    if (ua.indexOf(key) !== -1) {
+      return value
+    }
+  }
+  return 'UNKOWN'
+}
+
+export const currentBrowser = () => {
+  var ua = navigator.userAgent
+  var browserMap = new Map([
+    ['Firefox', 'Firefox'],
+    ['Opera', 'Opera'],
+    ['OPR', 'Opera'],
+    ['Trident', 'Internet Explorer'],
+    ['Edge', 'Edge'],
+    ['Chrome', 'Chrome'],
+    ['Safari', 'Safari']
+  ])
+
+  for (let [key, value] of browserMap) {
+    if (ua.indexOf(key) !== -1) {
+      return value
+    }
+  }
+  return 'UNKOWN'
+}

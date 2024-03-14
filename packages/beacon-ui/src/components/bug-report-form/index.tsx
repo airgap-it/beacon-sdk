@@ -2,6 +2,7 @@ import { IndexedDBStorage } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
 import { For, createEffect, createSignal } from 'solid-js'
 import styles from './styles.css'
+import { currentBrowser, currentOS } from '../../utils/platform'
 
 interface StorageObject {
   [key: string]: string | null
@@ -80,45 +81,6 @@ const BugReportForm = (props: any) => {
     }
 
     return result
-  }
-
-  const currentOS = () => {
-    var ua = navigator.userAgent
-    var osMap = new Map([
-      ['Windows', 'Windows'],
-      ['Mac', 'Mac OS'],
-      ['Linux', 'Linux'],
-      ['iPhone', 'iOS'],
-      ['iPad', 'iOS'],
-      ['Android', 'Android']
-    ])
-
-    for (let [key, value] of osMap) {
-      if (ua.indexOf(key) !== -1) {
-        return value
-      }
-    }
-    return 'UNKOWN'
-  }
-
-  const currentBrowser = () => {
-    var ua = navigator.userAgent
-    var browserMap = new Map([
-      ['Firefox', 'Firefox'],
-      ['Opera', 'Opera'],
-      ['OPR', 'Opera'],
-      ['Trident', 'Internet Explorer'],
-      ['Edge', 'Edge'],
-      ['Chrome', 'Chrome'],
-      ['Safari', 'Safari']
-    ])
-
-    for (let [key, value] of browserMap) {
-      if (ua.indexOf(key) !== -1) {
-        return value
-      }
-    }
-    return 'UNKOWN'
   }
 
   createEffect(() => {
