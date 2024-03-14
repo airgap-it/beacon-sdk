@@ -84,7 +84,8 @@ import {
   getSenderId,
   Logger,
   ClientEvents,
-  StorageValidator
+  StorageValidator,
+  SDK_VERSION
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -150,12 +151,14 @@ export class DAppClient extends Client {
   /**
    * Automatically switch between apps on Mobile Devices (Enabled by Default)
    */
-  enableAppSwitching: boolean
+  private enableAppSwitching: boolean
 
   /**
    * Enable metrics tracking (Disabled by Default)
    */
-  enableMetrics?: boolean
+  private enableMetrics?: boolean
+
+  private userId?: string
 
   public network: Network
 
@@ -450,7 +453,10 @@ export class DAppClient extends Client {
         .catch(() => this.storage.set(StorageKey.ENABLE_METRICS, false))
 
     generateGUID()
-      .then((id) => this.storage.set(StorageKey.USER_ID, id))
+      .then((id) => {
+        this.userId = id
+        this.storage.set(StorageKey.USER_ID, id)
+      })
       .catch((err) => logger.error(err.message))
   }
 
@@ -1197,12 +1203,39 @@ export class DAppClient extends Client {
 
     this.analytics.track('event', 'DAppClient', 'Permission requested')
 
+    // begin
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId: this.userId ?? '1234',
+        os: 'Mac OS',
+        walletName: 'AirGap',
+        walletType: 'web',
+        sdkVersion: SDK_VERSION,
+        transport: 'wc',
+        time: new Date(),
+        action: 'connect',
+        status: 'start'
+      })
+    }
+
+    this.enableMetrics &&
+      fetch('https://beacon-backend.prod.gke.papers.tech/performance-metrics/save', options).catch((err) =>
+        logger.error(err.message)
+      )
+
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
       PermissionResponse
     >(request).catch(async (requestError: ErrorResponse) => {
       throw await this.handleRequestError(request, requestError)
     })
+
+    // end
 
     logger.log('requestPermissions', '######## MESSAGE #######')
     logger.log('requestPermissions', message)
