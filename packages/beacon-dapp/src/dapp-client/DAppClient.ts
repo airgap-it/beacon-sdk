@@ -455,12 +455,20 @@ export class DAppClient extends Client {
       () => (this.enableMetrics = false)
     )
 
-    generateGUID()
-      .then((id) => {
-        this.userId = id
-        this.storage.set(StorageKey.USER_ID, id)
-      })
-      .catch((err) => logger.error(err.message))
+    this.initUserID().catch((err) => logger.error(err.message))
+  }
+
+  private async initUserID() {
+    const id = await this.storage.get(StorageKey.USER_ID)
+
+    if (id) {
+      this.userId = id
+      return
+    }
+
+    this.userId = await generateGUID()
+
+    this.storage.set(StorageKey.USER_ID, this.userId)
   }
 
   public async initInternalTransports(): Promise<void> {
@@ -887,7 +895,9 @@ export class DAppClient extends Client {
     status: 'start' | 'abort' | 'success' | 'error'
   ): Promise<RequestInit> {
     const wallet = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
-    const transport = this._transport.isResolved() ? await this.transport : { type: 'UNKOWN' }
+    const transport = this._activeAccount.isResolved()
+      ? (await this.getActiveAccount())?.origin.type ?? 'UNKOWN'
+      : 'UNKOWN'
 
     return {
       method: 'POST',
@@ -900,7 +910,7 @@ export class DAppClient extends Client {
         walletName: wallet?.name ?? 'init',
         walletType: wallet?.type ?? 'init',
         sdkVersion: SDK_VERSION,
-        transport: transport.type,
+        transport,
         time: new Date(),
         action,
         status
