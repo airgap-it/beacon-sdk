@@ -14,23 +14,29 @@ interface TopWalletsProps {
 }
 
 const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
-  const enableBugReport = localStorage
-    ? localStorage.getItem(StorageKey.ENABLE_METRICS)
-    : 'false'
+  const enableBugReport = localStorage ? localStorage.getItem(StorageKey.ENABLE_METRICS) : 'false'
 
   return (
     <div class="top-wallets-wrapper">
-      {enableBugReport === 'true' && (
-        <div class="top-wallets-info">
-          <h3>Connect Wallet</h3>
+      <div class="top-wallets-info">
+        <h3>Connect Wallet</h3>
+        {enableBugReport === 'true' && (
           <span>
             Do you wish to report a bug?{' '}
             <span class="top-wallets-learn-more" onClick={() => props.onClickLearnMore()}>
               Click here
             </span>
           </span>
-        </div>
-      )}
+        )}
+        {enableBugReport !== 'true' && (
+          <span>
+            If you don't have a wallet, you can select a provider and create one now.{' '}
+            <span class="top-wallets-learn-more" onClick={() => props.onClickLearnMore()}>
+              Learn more
+            </span>
+          </span>
+        )}
+      </div>
       <div class="top-wallets-wallets-main">
         <For each={props.wallets}>
           {(wallet) => (

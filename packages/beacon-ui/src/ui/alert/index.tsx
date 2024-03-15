@@ -154,6 +154,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
   const isOnline = navigator.onLine
+  const areMetricsEnabled = localStorage
+    ? localStorage.getItem(StorageKey.ENABLE_METRICS) === 'true'
+    : false
 
   setAnalytics(config.analytics)
 
@@ -1035,11 +1038,61 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           }
                     }
                   >
-                    <BugReportForm
-                      onSubmit={() => {
-                        handleCloseAlert()
-                      }}
-                    />
+                    {areMetricsEnabled && (
+                      <BugReportForm
+                        onSubmit={() => {
+                          handleCloseAlert()
+                        }}
+                      />
+                    )}
+                    {!areMetricsEnabled && (
+                      <>
+                        <Info
+                          iconBadge
+                          icon={
+                            <svg
+                              fill="currentColor"
+                              stroke-width="0"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              height="1em"
+                              width="1em"
+                              style="overflow: visible;"
+                              color="white"
+                            >
+                              <path d="M16 12h2v4h-2z"></path>
+                              <path d="M20 7V5c0-1.103-.897-2-2-2H5C3.346 3 2 4.346 2 6v12c0 2.201 1.794 3 3 3h15c1.103 0 2-.897 2-2V9c0-1.103-.897-2-2-2zM5 5h13v2H5a1.001 1.001 0 0 1 0-2zm15 14H5.012C4.55 18.988 4 18.805 4 18V8.815c.314.113.647.185 1 .185h15v10z"></path>
+                            </svg>
+                          }
+                          title="What is a wallet?"
+                          description="Wallets let you send, receive, store and interact with digital assets. Your wallet can be used as an easy way to login, instead of having to remember a password."
+                        />
+                        <Info
+                          iconBadge
+                          icon={
+                            <svg
+                              fill="none"
+                              stroke-width="2"
+                              xmlns="http://www.w3.org/2000/svg"
+                              stroke="currentColor"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              viewBox="0 0 24 24"
+                              height="1em"
+                              width="1em"
+                              style="overflow: visible;"
+                              color="white"
+                            >
+                              <path stroke="none" d="M0 0h24v24H0z"></path>
+                              <rect width="16" height="16" x="4" y="4" rx="2"></rect>
+                              <path d="M9 12h6M12 9v6"></path>
+                            </svg>
+                          }
+                          title="Not sure where to start?"
+                          description="If you are new to the Web3, we recommend that you start by creating a Kukai wallet. Kukai is a fast way of creating your first wallet using your preferred social account."
+                        />
+                      </>
+                    )}
                   </div>
                   <div
                     style={
