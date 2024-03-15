@@ -9,6 +9,7 @@ interface StorageObject {
 }
 
 interface BugReportRequest {
+  userId: string
   title: string
   description: string
   steps: string
@@ -98,6 +99,7 @@ const BugReportForm = (props: any) => {
     setIsLoading(true)
 
     const request: BugReportRequest = {
+      userId: localStorage.getItem(StorageKey.USER_ID)!,
       title: title(),
       description: description(),
       steps: steps(),
