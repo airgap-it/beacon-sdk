@@ -10,6 +10,7 @@ import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
 import { IPairing, ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
 import { getSdkError } from '@walletconnect/utils'
+import { Expirer } from '@walletconnect/core'
 import {
   ActiveAccountUnspecified,
   ActiveNetworkUnspecified,
@@ -173,9 +174,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     try {
       this.session =
         sessions?.find((el) => el.topic === this.session?.topic) ?? sessions[0] ?? this.session
-      this.activeAccount = this.getAccounts()[0]
+      this.session && (this.activeAccount = this.getAccounts()[0])
     } catch (err: any) {
-      logger.error('onStorageMessageHandler', err.message)
+      logger.error('refreshState', err.message)
     }
   }
 
@@ -188,10 +189,25 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
   }
 
-  private async onStorageMessageHandler(type: string) {
+  private onStorageMessageHandler(type: string) {
     logger.debug('onStorageMessageHandler', type)
 
     this.refreshState()
+
+    if (type === 'CLEAR_ACTIVE_ACCOUNT') {
+      if (this.messageIds.length) {
+        const errorResponse: any = {
+          type: BeaconMessageType.Disconnect,
+          id: this.messageIds.pop(),
+          errorType: BeaconErrorType.ABORTED_ERROR
+        }
+        this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
+        this.messageIds = [] // reset
+      }
+      this.session = undefined
+      this.activeAccount = undefined
+      return
+    }
   }
 
   private onStorageErrorHandler(data: any) {
@@ -536,7 +552,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (forceNewConnection) {
       await this.closePairings()
-      await this.storage.resetState()
     }
 
     const signClient = await this.getSignClient()
@@ -880,6 +895,19 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     )
   }
 
+  private async clearCache() {
+    const signClient = await this.getSignClient()
+    signClient?.proposal.map.clear()
+    signClient?.pendingRequest.map.clear()
+    signClient?.session.map.clear()
+    ;(signClient?.core.expirer as Expirer).expirations.clear()
+    signClient?.core.history.records.clear()
+    signClient?.core.crypto.keychain.keychain.clear()
+    signClient?.core.relayer.messages.messages.clear()
+    signClient?.core.pairing.pairings.map.clear()
+    signClient?.core.relayer.subscriber.subscriptions.clear()
+  }
+
   private async closePairings() {
     await this.closeSessions()
     const signClient = await this.getSignClient()
@@ -892,6 +920,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         ))
     }
 
+    await this.clearCache()
+    await this.storage.resetState()
     this.storage.notify('RESET')
   }
 
@@ -1153,6 +1183,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     const session = this.getSession()
+
+    if (this.messageIds.length) {
+      const errorResponse: any = {
+        type: BeaconMessageType.Disconnect,
+        id: this.messageIds.pop(),
+        errorType: BeaconErrorType.ABORTED_ERROR
+      }
+
+      this.notifyListeners(this.getTopicFromSession(session), errorResponse)
+      this.messageIds = [] // reset
+    }
 
     await this.signClient?.disconnect({
       topic: session.topic,

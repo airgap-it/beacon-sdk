@@ -54,7 +54,8 @@
     <br /><br />
     <button id="requestPermissionAndSign">Request Permission And Sign Request</button>
     <br /><br />
-
+    <button id="disconnect" disabled style="opacity: 0.5">Disconnect</button>
+    <br /><br />
     <button id="reset">Reset and Refresh</button>
     <br /><br />
     <button id="requestProofOfEventChallenge" disabled style="opacity: 0.5">
@@ -244,6 +245,9 @@
             document.getElementById('activeAccount').innerText = activeAccount.address
             document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
             document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
+            let btn = document.getElementById('disconnect')
+            btn.style.opacity = '1'
+            btn.disabled = false
 
             if (
               activeAccount.walletType !== 'account_abstracted' &&
@@ -251,7 +255,7 @@
             )
               return
 
-            const btn = document.getElementById('requestProofOfEventChallenge')
+            btn = document.getElementById('requestProofOfEventChallenge')
             btn.style.opacity = '1'
             btn.disabled = false
           } else {
@@ -388,6 +392,14 @@
           })
       }
 
+      // disconnect
+      const disconnect = () => {
+        client
+          .disconnect()
+          .then(() => console.log('disconnected.'))
+          .catch((err) => console.error(err.message))
+      }
+
       document.getElementById('connect').addEventListener('click', () => {
         // Check if we have an active account
         client.getActiveAccount().then((activeAccount) => {
@@ -417,6 +429,11 @@
       // Add event listener to the button
       document.getElementById('requestPermissionAndSign').addEventListener('click', () => {
         requestPermissionAndSign()
+      })
+
+      // Add event listener to the button
+      document.getElementById('disconnect').addEventListener('click', () => {
+        disconnect()
       })
 
       // Add event listener to the button
