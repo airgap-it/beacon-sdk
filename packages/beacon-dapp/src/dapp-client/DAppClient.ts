@@ -721,7 +721,7 @@ export class DAppClient extends Client {
     if (!this.isGetActiveAccountHandled) {
       console.warn(
         `An active account has been received, but no active subscription was found for BeaconEvent.ACTIVE_ACCOUNT_SET.
-        For more information, visit: https://docs.walletbeacon.io/getting-started/first-dapp.`
+        For more information, visit: https://docs.walletbeacon.io/guides/migration-guide`
       )
     }
 
