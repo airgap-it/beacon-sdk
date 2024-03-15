@@ -44,7 +44,7 @@ import { getColorMode } from '../../utils/colorMode'
 import PairOther from '../../components/pair-other/pair-other'
 import getDefaultLogo from './getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
-import BugReportForm from 'src/components/bug-report-form'
+import BugReportForm from '../../components/bug-report-form'
 
 const logger = new Logger('Alert')
 
