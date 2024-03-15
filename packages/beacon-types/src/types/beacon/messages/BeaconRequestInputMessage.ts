@@ -1,4 +1,4 @@
-import { Optional, ProofOfEventChallengeRecordedRequest } from '@airgap/beacon-types'
+import { Optional } from '@airgap/beacon-types'
 import {
   PermissionRequest,
   OperationRequest,
@@ -25,14 +25,6 @@ export type PermissionRequestInput = Optional<PermissionRequest, IgnoredRequestI
  */
 export type ProofOfEventChallengeRequestInput = Optional<
   ProofOfEventChallengeRequest,
-  IgnoredRequestInputProperties
->
-/**
- * @internalapi
- * @category DApp
- */
-export type ProofOfEventChallengeRecordedMessageInput = Optional<
-  ProofOfEventChallengeRecordedRequest,
   IgnoredRequestInputProperties
 >
 /**
@@ -70,4 +62,3 @@ export type BeaconRequestInputMessage =
   | SignPayloadRequestInput
   | BroadcastRequestInput
   | ProofOfEventChallengeRequestInput
-  | ProofOfEventChallengeRecordedMessageInput

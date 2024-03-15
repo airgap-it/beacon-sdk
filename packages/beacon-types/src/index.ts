@@ -6,7 +6,6 @@ import { AppMetadata } from './types/beacon/AppMetadata'
 import { PermissionRequest } from './types/beacon/messages/PermissionRequest'
 import { ProofOfEventChallengeRequest } from './types/beacon/messages/ProofOfEventChallengeRequest'
 import { ProofOfEventChallengeResponse } from './types/beacon/messages/ProofOfEventChallengeResponse'
-import { ProofOfEventChallengeRecordedRequest } from './types/beacon/messages/ProofOfEventChallengeRecordedRequest'
 import { Network } from './types/beacon/Network'
 import { BeaconBaseMessage } from './types/beacon/BeaconBaseMessage'
 import { BeaconMessageType } from './types/beacon/BeaconMessageType'
@@ -85,7 +84,6 @@ import {
   BroadcastRequestInput,
   BeaconRequestInputMessage,
   IgnoredRequestInputProperties,
-  ProofOfEventChallengeRecordedMessageInput,
   ProofOfEventChallengeRequestInput
 } from './types/beacon/messages/BeaconRequestInputMessage'
 import {
@@ -95,8 +93,7 @@ import {
   OperationRequestOutput,
   BroadcastRequestOutput,
   BeaconRequestOutputMessage,
-  ProofOfEventChallengeRequestOutput,
-  ProofOfEventChallengeRecordedMessageOutput
+  ProofOfEventChallengeRequestOutput
 } from './types/beacon/messages/BeaconRequestOutputMessage'
 import { PermissionInfo } from './types/PermissionInfo'
 import { ConnectionContext } from './types/ConnectionContext'
@@ -137,6 +134,29 @@ import { Extension } from './types/Extension'
 import { PermissionEntity } from './types/PermissionEntity'
 import { WalletInfo } from './types/WalletInfo'
 import { ChangeAccountRequest } from './types/beacon/messages/ChangeAccountRequest'
+import { TezosAttestationOperation } from './types/tezos/operations/Attestation'
+import { TezosAttestationWithSlotOperation } from './types/tezos/operations/AttestationWithSlot'
+import { TezosDoubleAttestationEvidenceOperation } from './types/tezos/operations/DoubleAttestationEvidence'
+import { TezosDoublePreEndorsementEvidenceOperation } from './types/tezos/operations/DoublePreEndorsementEvidence'
+import { TezosDrainDelegateOperation } from './types/tezos/operations/DrainDelegate'
+import { TezosEndorsementWithSlotOperation } from './types/tezos/operations/EndorsementWithSlot'
+import { TezosFailingNoopOperation } from './types/tezos/operations/FailingNoop'
+import { TezosIncreasePaidStorageOperation } from './types/tezos/operations/IncreasePaidStorage'
+import { TezosPreAttestationOperation } from './types/tezos/operations/PreAttestation'
+import { TezosRegisterGlobalConstantOperation } from './types/tezos/operations/RegisterGlobalConstant'
+import { TezosSetDepositsLimitOperation } from './types/tezos/operations/SetDepositsLimit'
+import { TezosSmartRollupAddMessagesOperation } from './types/tezos/operations/SmartRollupAddMessages'
+import { TezosSmartRollupExecuteOutboxMessageOperation } from './types/tezos/operations/SmartRollupExecuteOutboxMessage'
+import { TezosSmartRollupPublishOperation } from './types/tezos/operations/SmartRollupPublish'
+import { TezosSmartRollupRecoverBondOperation } from './types/tezos/operations/SmartRollupRecoverBond'
+import { TezosSmartRollupRefuteOperation } from './types/tezos/operations/SmartRollupRefute'
+import { TezosSmartRollupTimeoutOperation } from './types/tezos/operations/SmartRollupTimeout'
+import { TezosTransferTicketOperation } from './types/tezos/operations/TransferTicket'
+import { TezosUpdateConsensusKeyOperation } from './types/tezos/operations/UpdateConsensusKey'
+import { TezosVdfRevelationOperation } from './types/tezos/operations/VdfRevelation'
+import { TezosDoublePreAttestationEvidenceOperation } from './types/tezos/operations/DoublePreAttestationEvidence'
+import { TezosSmartRollupCementOperation } from './types/tezos/operations/SmartRollupCement'
+import { TezosSmartRollupOriginateOperation } from './types/tezos/operations/SmartRollupOriginate'
 
 export * from './types/AnalyticsInterface'
 
@@ -174,7 +194,30 @@ export {
   PartialTezosTransactionOperation,
   PartialTezosDelegationOperation,
   PartialTezosOriginationOperation,
-  PartialTezosRevealOperation
+  PartialTezosRevealOperation,
+  TezosAttestationOperation,
+  TezosPreAttestationOperation,
+  TezosSetDepositsLimitOperation,
+  TezosDoublePreAttestationEvidenceOperation,
+  TezosDoublePreEndorsementEvidenceOperation,
+  TezosAttestationWithSlotOperation,
+  TezosEndorsementWithSlotOperation,
+  TezosDoubleAttestationEvidenceOperation,
+  TezosFailingNoopOperation,
+  TezosRegisterGlobalConstantOperation,
+  TezosTransferTicketOperation,
+  TezosIncreasePaidStorageOperation,
+  TezosUpdateConsensusKeyOperation,
+  TezosDrainDelegateOperation,
+  TezosVdfRevelationOperation,
+  TezosSmartRollupOriginateOperation,
+  TezosSmartRollupAddMessagesOperation,
+  TezosSmartRollupExecuteOutboxMessageOperation,
+  TezosSmartRollupPublishOperation,
+  TezosSmartRollupCementOperation,
+  TezosSmartRollupRecoverBondOperation,
+  TezosSmartRollupRefuteOperation,
+  TezosSmartRollupTimeoutOperation
 }
 
 // Beacon
@@ -213,15 +256,13 @@ export {
   RequestPermissionInput,
   RequestProofOfEventChallengeInput,
   RequestSignPayloadInput,
-  ProofOfEventChallengeRecordedMessageInput,
   // RequestEncryptPayloadInput,
   RequestOperationInput,
   RequestBroadcastInput,
   PermissionInfo,
   PermissionEntity,
   ProofOfEventChallengeRequest,
-  ProofOfEventChallengeResponse,
-  ProofOfEventChallengeRecordedRequest
+  ProofOfEventChallengeResponse
 }
 
 export {
@@ -247,7 +288,6 @@ export {
   PermissionRequestOutput,
   SignPayloadRequestOutput,
   ProofOfEventChallengeRequestOutput,
-  ProofOfEventChallengeRecordedMessageOutput,
   // EncryptPayloadRequestOutput,
   OperationRequestOutput,
   BroadcastRequestOutput,

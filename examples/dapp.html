@@ -54,7 +54,8 @@
     <br /><br />
     <button id="requestPermissionAndSign">Request Permission And Sign Request</button>
     <br /><br />
-
+    <button id="disconnect" disabled style="opacity: 0.5">Disconnect</button>
+    <br /><br />
     <button id="reset">Reset and Refresh</button>
     <br /><br />
     <button id="requestProofOfEventChallenge" disabled style="opacity: 0.5">
@@ -245,6 +246,9 @@
             document.getElementById('activeAccount').innerText = activeAccount.address
             document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
             document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
+            let btn = document.getElementById('disconnect')
+            btn.style.opacity = '1'
+            btn.disabled = false
 
             if (
               activeAccount.walletType !== 'account_abstracted' &&
@@ -252,7 +256,7 @@
             )
               return
 
-            const btn = document.getElementById('requestProofOfEventChallenge')
+            btn = document.getElementById('requestProofOfEventChallenge')
             btn.style.opacity = '1'
             btn.disabled = false
           } else {
@@ -381,18 +385,20 @@
             dAppChallengeId: 'my-id',
             payload: JSON.stringify({ timestamp: Date.now() })
           })
-          .then(() => {
-            console.log('ProofOfEventChallenge approved')
-
-            const promise = client.getProofOfEventChallenge('my-id')
-
-            promise.then(() => {
-              alert('Proof of event verified')
-            })
+          .then((response) => {
+            console.log(`ProofOfEventChallenge ${response.isAccepted ? 'accepted' : 'refused'}`)
           })
           .catch((error) => {
             console.log('error during Proof Of Event Challenge', error)
           })
+      }
+
+      // disconnect
+      const disconnect = () => {
+        client
+          .disconnect()
+          .then(() => console.log('disconnected.'))
+          .catch((err) => console.error(err.message))
       }
 
       document.getElementById('connect').addEventListener('click', () => {
@@ -424,6 +430,11 @@
       // Add event listener to the button
       document.getElementById('requestPermissionAndSign').addEventListener('click', () => {
         requestPermissionAndSign()
+      })
+
+      // Add event listener to the button
+      document.getElementById('disconnect').addEventListener('click', () => {
+        disconnect()
       })
 
       // Add event listener to the button
