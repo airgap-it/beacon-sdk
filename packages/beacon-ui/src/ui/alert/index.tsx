@@ -88,6 +88,7 @@ const [currentInfo, setCurrentInfo] = createSignal<
 >('top-wallets')
 const [analytics, setAnalytics] = createSignal<AnalyticsInterface | undefined>(undefined)
 const [displayQrExtra, setDisplayQrExtra] = createSignal<boolean>(false)
+const [pairingExpired, setPairingExpired] = createSignal(false)
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
 
@@ -118,8 +119,13 @@ const closeAlert = (_: string): Promise<void> => {
 /**
  * Close all alerts
  */
-const closeAlerts = async (): Promise<void> =>
-  new Promise(async (resolve) => {
+const closeAlerts = async (): Promise<void> => {
+  if (currentInfo() === 'help') {
+    console.log('setting status as pairing expired.')
+    setPairingExpired(true)
+    return
+  }
+  return new Promise(async (resolve) => {
     if (isServer) {
       console.log('DO NOT RUN ON SERVER')
       resolve()
@@ -135,6 +141,7 @@ const closeAlerts = async (): Promise<void> =>
     }
     resolve()
   })
+}
 
 /**
  * Show an alert
@@ -1098,7 +1105,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                   : currentInfo() === 'wallets' && isMobile()
                   ? () => setCurrentInfo('top-wallets')
                   : currentInfo() === 'help'
-                  ? () => setCurrentInfo(previousInfo())
+                  ? () => {
+                      if (pairingExpired()) {
+                        handleCloseAlert()
+                        return
+                      }
+                      return setCurrentInfo(previousInfo())
+                    }
                   : undefined
               }
             />
