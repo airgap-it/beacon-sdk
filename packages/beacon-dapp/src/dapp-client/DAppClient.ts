@@ -931,6 +931,7 @@ export class DAppClient extends Client {
       .then((res) => thenHandler && thenHandler(res))
       .catch((err: Error) => {
         logger.error(err.message)
+        this.enableMetrics = false // in the event of a network error, stop sending metrics
         catchHandler && catchHandler(err)
       })
   }
