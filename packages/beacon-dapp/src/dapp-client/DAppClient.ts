@@ -450,8 +450,14 @@ export class DAppClient extends Client {
     this.sendMetrics(
       'enable-metrics',
       undefined,
-      (res) => (this.enableMetrics = res.ok),
-      () => (this.enableMetrics = false)
+      (res) => {
+        this.enableMetrics = res.ok
+        this.storage.set(StorageKey.ENABLE_METRICS, res.ok)
+      },
+      () => {
+        this.enableMetrics = false
+        this.storage.set(StorageKey.ENABLE_METRICS, false)
+      }
     )
 
     this.initUserID().catch((err) => logger.error(err.message))
