@@ -254,6 +254,8 @@ export class DAppClient extends Client {
             const account = await this.getAccount(accountIdentifier)
             this.setActiveAccount(account)
           }
+        } else if (event.key === this.storage.getPrefixedKey(StorageKey.ENABLE_METRICS)) {
+          this.enableMetrics = !!(await this.storage.get(StorageKey.ENABLE_METRICS))
         }
       }
     })
@@ -932,7 +934,7 @@ export class DAppClient extends Client {
     if (!this.enableMetrics) {
       return
     }
-    fetch(`https://beacon-backend.prod.gke.papers.tech/${uri}`, options)
+    fetch(`https://beacon-backend.dev.gke.papers.tech/${uri}`, options)
       .then((res) => thenHandler && thenHandler(res))
       .catch((err: Error) => {
         logger.error(err.message)
