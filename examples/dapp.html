@@ -400,14 +400,15 @@
           })
       }
 
-<<<<<<< HEAD
       // disconnect
       const disconnect = () => {
         client
           .disconnect()
           .then(() => console.log('disconnected.'))
           .catch((err) => console.error(err.message))
-=======
+
+      }
+
       const requestSimulatedProofOfEventChallenge = () => {
         client
           .requestSimulatedProofOfEventChallenge({
@@ -419,7 +420,6 @@
           .catch((error) => {
             console.log('error during Proof Of Event Challenge', error)
           })
->>>>>>> 264e2bd3 (feat: Added the support for tzip-28)
       }
 
       document.getElementById('connect').addEventListener('click', () => {

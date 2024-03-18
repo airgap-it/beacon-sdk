@@ -412,8 +412,6 @@
 
               // Send response back to DApp
               client.respond(response)
-            } else if (message.type === beacon.BeaconMessageType.ProofOfEventChallengeRecorded) {
-              console.log('Proof of event challenge has been recorded')
             } else if (message.type === beacon.BeaconMessageType.ProofOfEventChallengeRequest) {
               const isAccepted = window.confirm(
                 'Do you want to accept the Proof Of Event Challenge ?'
