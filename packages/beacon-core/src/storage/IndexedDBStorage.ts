@@ -145,6 +145,9 @@ export class IndexedDBStorage extends Storage {
     throw new Error('Method not implemented.')
   }
 
+  /**
+   * @returns all stored values
+   */
   getAll(): Promise<string[]> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName)
@@ -175,6 +178,9 @@ export class IndexedDBStorage extends Storage {
     })
   }
 
+  /**
+   * @returns all stored keys in store
+   */
   getAllKeys(): Promise<IDBValidKey[]> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName)
@@ -205,6 +211,9 @@ export class IndexedDBStorage extends Storage {
     })
   }
 
+  /**
+   * @returns clears all stored entries in store
+   */
   clearStore(): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName)
@@ -233,7 +242,12 @@ export class IndexedDBStorage extends Storage {
       }
     })
   }
-
+  /**
+   * it copies over all key value pairs from a source store into a target one
+   * @param targetDBName the name of the target DB
+   * @param targetStoreName the name of the target store
+   * @param skipKeys all the keys to ignore
+   */
   populateStore(
     targetDBName: string,
     targetStoreName: string,
