@@ -88,7 +88,7 @@ import {
   BroadcastRequestInput,
   BeaconRequestInputMessage,
   IgnoredRequestInputProperties,
-  ProofOfEventChallengeRequestInput
+  ProofOfEventChallengeRequestInput,
   SimulatedProofOfEventChallengeRequestInput
 } from './types/beacon/messages/BeaconRequestInputMessage'
 import {
