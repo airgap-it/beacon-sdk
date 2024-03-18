@@ -14,6 +14,8 @@ import {
   ErrorResponse,
   ProofOfEventChallengeRequest,
   ProofOfEventChallengeResponse,
+  SimulatedProofOfEventChallengeRequest,
+  SimulatedProofOfEventChallengeResponse,
   ChangeAccountRequest
 } from '@airgap/beacon-types'
 
@@ -25,6 +27,8 @@ export type BeaconMessage =
   | PermissionResponse
   | ProofOfEventChallengeRequest
   | ProofOfEventChallengeResponse
+  | SimulatedProofOfEventChallengeRequest
+  | SimulatedProofOfEventChallengeResponse
   | OperationRequest
   | OperationResponse
   | SignPayloadRequest

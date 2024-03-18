@@ -62,6 +62,10 @@
       Request Proof Of Event Challenge
     </button>
     <br /><br />
+    <button id="requestSimulatedProofOfEventChallenge" disabled style="opacity: 0.5">
+      Request Simulated Proof Of Event Challenge
+    </button>
+    <br /><br />
     <button id="sendToSelf">Send 1 mutez to myself</button>
     <br /><br />
     <button id="sendToSelfWithPrepare">Send 1 mutez to myself (with 1s prepare delay)</button>
@@ -259,6 +263,10 @@
             btn = document.getElementById('requestProofOfEventChallenge')
             btn.style.opacity = '1'
             btn.disabled = false
+
+            btn = document.getElementById('requestSimulatedProofOfEventChallenge')
+            btn.style.opacity = '1'
+            btn.disabled = false
           } else {
             document.getElementById('activeAccount').innerText = ''
             document.getElementById('activeAccountNetwork').innerText = ''
@@ -399,6 +407,20 @@
           .disconnect()
           .then(() => console.log('disconnected.'))
           .catch((err) => console.error(err.message))
+
+      }
+
+      const requestSimulatedProofOfEventChallenge = () => {
+        client
+          .requestSimulatedProofOfEventChallenge({
+            payload: JSON.stringify({ timestamp: Date.now() })
+          })
+          .then((response) => {
+            console.log('SimulatedProofOfEventChallenge response', response)
+          })
+          .catch((error) => {
+            console.log('error during Proof Of Event Challenge', error)
+          })
       }
 
       document.getElementById('connect').addEventListener('click', () => {
@@ -441,6 +463,13 @@
       document.getElementById('requestProofOfEventChallenge').addEventListener('click', () => {
         requestProofOfEventChallenge()
       })
+
+      // Add event listener to the button
+      document
+        .getElementById('requestSimulatedProofOfEventChallenge')
+        .addEventListener('click', () => {
+          requestSimulatedProofOfEventChallenge()
+        })
 
       // Add event listener to the button
       document.getElementById('reset').addEventListener('click', () => {
