@@ -83,7 +83,8 @@ import {
   getSenderId,
   Logger,
   ClientEvents,
-  StorageValidator
+  StorageValidator,
+  SDK_VERSION
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -121,7 +122,8 @@ import {
   isBrowser,
   isDesktop,
   isMobileOS,
-  isIOS
+  isIOS,
+  currentOS
 } from '@airgap/beacon-ui'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 
@@ -149,7 +151,14 @@ export class DAppClient extends Client {
   /**
    * Automatically switch between apps on Mobile Devices (Enabled by Default)
    */
-  enableAppSwitching: boolean = true
+  private enableAppSwitching: boolean
+
+  /**
+   * Enable metrics tracking (Disabled by Default)
+   */
+  private enableMetrics?: boolean
+
+  private userId?: string
 
   public network: Network
 
@@ -227,6 +236,11 @@ export class DAppClient extends Client {
     this.appMetadataManager = new AppMetadataManager(this.storage)
     this.storageValidator = new StorageValidator(this.storage)
 
+    this.enableAppSwitching =
+      config.enableAppSwitching === undefined ? true : !!config.enableAppSwitching
+
+    this.enableMetrics = config.enableMetrics ? true : false
+
     // Subscribe to storage changes and update the active account if it changes on other tabs
     this.storage.subscribeToStorageChanged(async (event) => {
       if (event.eventType === 'storageCleared') {
@@ -240,6 +254,8 @@ export class DAppClient extends Client {
             const account = await this.getAccount(accountIdentifier)
             this.setActiveAccount(account)
           }
+        } else if (event.key === this.storage.getPrefixedKey(StorageKey.ENABLE_METRICS)) {
+          this.enableMetrics = !!(await this.storage.get(StorageKey.ENABLE_METRICS))
         }
       }
     })
@@ -432,6 +448,34 @@ export class DAppClient extends Client {
         }
       })
       .catch((err) => logger.error(err.message))
+
+    this.sendMetrics(
+      'enable-metrics',
+      undefined,
+      (res) => {
+        this.enableMetrics = res.ok
+        this.storage.set(StorageKey.ENABLE_METRICS, res.ok)
+      },
+      () => {
+        this.enableMetrics = false
+        this.storage.set(StorageKey.ENABLE_METRICS, false)
+      }
+    )
+
+    this.initUserID().catch((err) => logger.error(err.message))
+  }
+
+  private async initUserID() {
+    const id = await this.storage.get(StorageKey.USER_ID)
+
+    if (id) {
+      this.userId = id
+      return
+    }
+
+    this.userId = await generateGUID()
+
+    this.storage.set(StorageKey.USER_ID, this.userId)
   }
 
   public async initInternalTransports(): Promise<void> {
@@ -853,6 +897,52 @@ export class DAppClient extends Client {
     window.location = link
   }
 
+  private async buildPayload(
+    action: 'connect' | 'message' | 'disconnect',
+    status: 'start' | 'abort' | 'success' | 'error'
+  ): Promise<RequestInit> {
+    const wallet = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
+    const transport = this._activeAccount.isResolved()
+      ? (await this.getActiveAccount())?.origin.type ?? 'UNKOWN'
+      : 'UNKOWN'
+
+    return {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId: this.userId,
+        os: currentOS(),
+        walletName: wallet?.name ?? 'init',
+        walletType: wallet?.type ?? 'init',
+        sdkVersion: SDK_VERSION,
+        transport,
+        time: new Date(),
+        action,
+        status
+      })
+    }
+  }
+
+  private sendMetrics(
+    uri: string,
+    options?: RequestInit,
+    thenHandler?: (res: Response) => void,
+    catchHandler?: (err: Error) => void
+  ) {
+    if (!this.enableMetrics) {
+      return
+    }
+    fetch(`https://beacon-backend.prod.gke.papers.tech/${uri}`, options)
+      .then((res) => thenHandler && thenHandler(res))
+      .catch((err: Error) => {
+        logger.error(err.message)
+        this.enableMetrics = false // in the event of a network error, stop sending metrics
+        catchHandler && catchHandler(err)
+      })
+  }
+
   /**
    * Will remove the account from the local storage and set a new active account if necessary.
    *
@@ -1049,13 +1139,20 @@ export class DAppClient extends Client {
 
     logger.log('REQUESTION PERMIMISSION V3', 'xxx', request)
 
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'start'))
+
     const { message: response, connectionInfo } = await this.makeRequestV3<
       PermissionRequestV3<string>,
       BeaconMessageWrapper<PermissionResponseV3<string>>
-    >(request).catch(async (_requestError: ErrorResponse) => {
+    >(request).catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
     })
+
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'start'))
 
     logger.log('RESPONSE V3', response, connectionInfo)
 
@@ -1125,14 +1222,21 @@ export class DAppClient extends Client {
       accountId: activeAccount.accountIdentifier
     }
 
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
+
     const { message: response, connectionInfo } = await this.makeRequestV3<
       BlockchainRequestV3<string>,
       BeaconMessageWrapper<BlockchainResponseV3<string>>
     >(request).catch(async (requestError: ErrorResponse) => {
       console.error(requestError)
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
     })
+
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
     await blockchain.handleResponse({
       request,
@@ -1176,12 +1280,19 @@ export class DAppClient extends Client {
 
     this.analytics.track('event', 'DAppClient', 'Permission requested')
 
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'start'))
+
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
       PermissionResponse
     >(request).catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       throw await this.handleRequestError(request, requestError)
     })
+
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'success'))
 
     logger.log('requestPermissions', '######## MESSAGE #######')
     logger.log('requestPermissions', message)
@@ -1243,12 +1354,19 @@ export class DAppClient extends Client {
       payload: input.payload
     }
 
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
+
     const { message, connectionInfo } = await this.makeRequest<
       ProofOfEventChallengeRequest,
       ProofOfEventChallengeResponse
     >(request).catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       throw await this.handleRequestError(request, requestError)
     })
+
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
     this.analytics.track(
       'event',
@@ -1326,12 +1444,19 @@ export class DAppClient extends Client {
       sourceAddress: input.sourceAddress || activeAccount.address
     }
 
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
+
     const { message, connectionInfo } = await this.makeRequest<
       SignPayloadRequest,
       SignPayloadResponse
     >(request).catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       throw await this.handleRequestError(request, requestError)
     })
+
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
     await this.notifySuccess(request, {
       account: activeAccount,
@@ -1428,11 +1553,18 @@ export class DAppClient extends Client {
 
     this.analytics.track('event', 'DAppClient', 'Operation requested')
 
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
+
     const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       throw await this.handleRequestError(request, requestError)
     })
+
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
     await this.notifySuccess(request, {
       account: activeAccount,
@@ -1474,11 +1606,18 @@ export class DAppClient extends Client {
 
     this.analytics.track('event', 'DAppClient', 'Broadcast requested')
 
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
+
     const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       throw await this.handleRequestError(request, requestError)
     })
+
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
     await this.notifySuccess(request, {
       network: this.network,
@@ -2090,11 +2229,12 @@ export class DAppClient extends Client {
   }
 
   public async disconnect() {
-    await this.postMessageTransport?.disconnect()
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
-    await this.clearActiveAccount()
+    await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
+    this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 
   /**
