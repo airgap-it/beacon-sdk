@@ -22,7 +22,7 @@ interface BugReportRequest {
 const BugReportForm = (props: any) => {
   const [title, setTitle] = createSignal('')
   const [titleTouched, setTitleTouched] = createSignal(false)
-  const [titleErrorMsg, seTitleErrorMsg] = createSignal('')
+  const [titleErrorMsg, setTitleErrorMsg] = createSignal('')
   const [description, setDescription] = createSignal('')
   const [descriptionTouched, setDescriptionTouched] = createSignal(false)
   const [descriptionErrorMsg, setDescriptionErrorMsg] = createSignal('')
@@ -38,7 +38,7 @@ const BugReportForm = (props: any) => {
   const isTitleValid = () => {
     const check = title().replace(/ /gi, '').length > 10
     const invalidText = check ? '' : 'The title must be at least 10 characters long.'
-    seTitleErrorMsg(invalidText)
+    setTitleErrorMsg(invalidText)
     return check
   }
 
