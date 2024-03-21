@@ -477,7 +477,7 @@ export class DAppClient extends Client {
       return
     }
     const keys = Object.values(StorageKey).filter(
-      (key) => !key.includes('wc@2') && !key.includes('secret')
+      (key) => !key.includes('wc@2') && !key.includes('secret') && !key.includes('account')
     ) as unknown as StorageKey[]
 
     for (const key of keys) {
