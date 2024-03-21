@@ -88,7 +88,8 @@ import {
   Logger,
   ClientEvents,
   StorageValidator,
-  SDK_VERSION
+  SDK_VERSION,
+  IndexedDBStorage
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -216,6 +217,8 @@ export class DAppClient extends Client {
   private readonly featuredWallets: string[] | undefined
 
   private readonly storageValidator: StorageValidator
+
+  private readonly bugReportStorage = new IndexedDBStorage('beacon', 'bug_report')
 
   constructor(config: DAppClientOptions) {
     super({
@@ -469,6 +472,19 @@ export class DAppClient extends Client {
     this.initUserID().catch((err) => logger.error(err.message))
   }
 
+  private async createStateSnapshot() {
+    if (!localStorage) {
+      return
+    }
+    const keys = Object.values(StorageKey).filter(
+      (key) => !key.includes('wc@2') && !key.includes('secret')
+    ) as unknown as StorageKey[]
+
+    for (const key of keys) {
+      this.bugReportStorage.set(key, await this.storage.get(key))
+    }
+  }
+
   private async initUserID() {
     const id = await this.storage.get(StorageKey.USER_ID)
 
@@ -579,6 +595,7 @@ export class DAppClient extends Client {
   }
 
   async destroy(): Promise<void> {
+    await this.createStateSnapshot()
     await super.destroy()
   }
 
@@ -2299,6 +2316,7 @@ export class DAppClient extends Client {
   }
 
   public async disconnect() {
+    await this.createStateSnapshot()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
     this.postMessageTransport = undefined
     this.p2pTransport = undefined

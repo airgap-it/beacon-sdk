@@ -58,30 +58,25 @@ const BugReportForm = (props: any) => {
     return check
   }
 
-  const localStorageToMetadata = () => {
-    const result: StorageObject = {}
-
-    Object.keys(localStorage)
-      .filter((key) => key.includes('beacon'))
-      .forEach((key) => (result[key] = localStorage.getItem(key)))
-
-    return result
-  }
-
   const indexDBToMetadata = async () => {
-    const result: StorageObject = {}
+    const wcResult: StorageObject = {}
+    const beaconResult: StorageObject = {}
     const db = new IndexedDBStorage('beacon', 'bug_report')
 
     try {
       const keys = (await db.getAllKeys()).map((key) => key.toString())
       for (const key of keys) {
-        result[key] = (await db.get(key as StorageKey)) as string
+        if (key.includes('beacon')) {
+          beaconResult[key] = (await db.get(key as StorageKey)) as string
+        } else {
+          wcResult[key] = (await db.get(key as StorageKey)) as string
+        }
       }
     } catch (error: any) {
       console.error(error.message)
     }
 
-    return result
+    return [beaconResult, wcResult]
   }
 
   createEffect(() => {
@@ -98,15 +93,17 @@ const BugReportForm = (props: any) => {
     setShowThankYou(false)
     setIsLoading(true)
 
+    const [beaconState, wcState] = await indexDBToMetadata()
+
     const request: BugReportRequest = {
-      userId: localStorage.getItem(StorageKey.USER_ID)!,
+      userId: beaconState[StorageKey.USER_ID]!,
       title: title(),
       description: description(),
       steps: steps(),
       os: currentOS(),
       browser: currentBrowser(),
-      localStorage: JSON.stringify(localStorageToMetadata()),
-      wcStorage: JSON.stringify(await indexDBToMetadata())
+      localStorage: JSON.stringify(beaconState),
+      wcStorage: JSON.stringify(wcState)
     }
 
     const options = {
