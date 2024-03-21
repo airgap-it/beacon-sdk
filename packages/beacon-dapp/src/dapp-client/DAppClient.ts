@@ -710,6 +710,10 @@ export class DAppClient extends Client {
               networkType: this.network.type,
               abortedHandler: async () => {
                 logger.log('init', 'ABORTED')
+                this.sendMetrics(
+                  'performance-metrics/save',
+                  await this.buildPayload('connect', 'abort')
+                )
                 await Promise.all([
                   postMessageTransport.disconnect(),
                   // p2pTransport.disconnect(), do not abort connection manually
