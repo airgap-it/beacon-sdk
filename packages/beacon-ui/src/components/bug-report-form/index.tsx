@@ -1,4 +1,4 @@
-import { IndexedDBStorage } from '@airgap/beacon-core'
+import { IndexedDBStorage, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
 import { For, createEffect, createSignal } from 'solid-js'
 import styles from './styles.css'
@@ -11,6 +11,7 @@ interface StorageObject {
 interface BugReportRequest {
   userId: string
   title: string
+  sdkVersion: string
   description: string
   steps: string
   os: string
@@ -98,6 +99,7 @@ const BugReportForm = (props: any) => {
     const request: BugReportRequest = {
       userId: beaconState[StorageKey.USER_ID]!,
       title: title(),
+      sdkVersion: SDK_VERSION,
       description: description(),
       steps: steps(),
       os: currentOS(),
