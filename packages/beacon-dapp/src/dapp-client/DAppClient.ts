@@ -457,7 +457,7 @@ export class DAppClient extends Client {
       .catch((err) => logger.error(err.message))
 
     this.sendMetrics(
-      'enable-metrics',
+      'enable-metrics?' + this.addQueryParam('version', SDK_VERSION),
       undefined,
       (res) => {
         this.enableMetrics = res.ok
@@ -920,6 +920,10 @@ export class DAppClient extends Client {
     }
 
     window.location = link
+  }
+
+  private addQueryParam(paramName: string, paramValue: string): string {
+    return paramName + '=' + paramValue
   }
 
   private async buildPayload(
