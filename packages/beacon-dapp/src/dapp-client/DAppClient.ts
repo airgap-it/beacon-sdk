@@ -460,10 +460,13 @@ export class DAppClient extends Client {
       'enable-metrics?' + this.addQueryParam('version', SDK_VERSION),
       undefined,
       (res) => {
-        !res.ok &&
-          logger.warn(
-            'Network error encountered. Metrics sharing have been automatically disabled.'
-          )
+        if (!res.ok) {
+          res.status === 426
+            ? console.error('Metrics are no longer supported for this version, please upgrade.')
+            : console.warn(
+                'Network error encountered. Metrics sharing have been automatically disabled.'
+              )
+        }
         this.enableMetrics = res.ok
         this.storage.set(StorageKey.ENABLE_METRICS, res.ok)
       },
@@ -970,7 +973,7 @@ export class DAppClient extends Client {
     fetch(`https://beacon-backend.prod.gke.papers.tech/${uri}`, options)
       .then((res) => thenHandler && thenHandler(res))
       .catch((err: Error) => {
-        logger.warn('Network error encountered. Metrics sharing have been automatically disabled.')
+        console.warn('Network error encountered. Metrics sharing have been automatically disabled.')
         logger.error(err.message)
         this.enableMetrics = false // in the event of a network error, stop sending metrics
         catchHandler && catchHandler(err)
