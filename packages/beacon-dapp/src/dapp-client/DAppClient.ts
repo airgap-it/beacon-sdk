@@ -460,6 +460,10 @@ export class DAppClient extends Client {
       'enable-metrics?' + this.addQueryParam('version', SDK_VERSION),
       undefined,
       (res) => {
+        !res.ok &&
+          logger.warn(
+            'Network error encountered. Metrics sharing have been automatically disabled.'
+          )
         this.enableMetrics = res.ok
         this.storage.set(StorageKey.ENABLE_METRICS, res.ok)
       },
