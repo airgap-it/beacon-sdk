@@ -88,7 +88,8 @@ import {
   Logger,
   ClientEvents,
   StorageValidator,
-  SDK_VERSION
+  SDK_VERSION,
+  IndexedDBStorage
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -216,6 +217,8 @@ export class DAppClient extends Client {
   private readonly featuredWallets: string[] | undefined
 
   private readonly storageValidator: StorageValidator
+
+  private readonly bugReportStorage = new IndexedDBStorage('beacon', 'bug_report')
 
   constructor(config: DAppClientOptions) {
     super({
@@ -454,9 +457,16 @@ export class DAppClient extends Client {
       .catch((err) => logger.error(err.message))
 
     this.sendMetrics(
-      'enable-metrics',
+      'enable-metrics?' + this.addQueryParam('version', SDK_VERSION),
       undefined,
       (res) => {
+        if (!res.ok) {
+          res.status === 426
+            ? console.error('Metrics are no longer supported for this version, please upgrade.')
+            : console.warn(
+                'Network error encountered. Metrics sharing have been automatically disabled.'
+              )
+        }
         this.enableMetrics = res.ok
         this.storage.set(StorageKey.ENABLE_METRICS, res.ok)
       },
@@ -467,6 +477,19 @@ export class DAppClient extends Client {
     )
 
     this.initUserID().catch((err) => logger.error(err.message))
+  }
+
+  private async createStateSnapshot() {
+    if (!localStorage) {
+      return
+    }
+    const keys = Object.values(StorageKey).filter(
+      (key) => !key.includes('wc@2') && !key.includes('secret') && !key.includes('account')
+    ) as unknown as StorageKey[]
+
+    for (const key of keys) {
+      this.bugReportStorage.set(key, await this.storage.get(key))
+    }
   }
 
   private async initUserID() {
@@ -579,6 +602,7 @@ export class DAppClient extends Client {
   }
 
   async destroy(): Promise<void> {
+    await this.createStateSnapshot()
     await super.destroy()
   }
 
@@ -710,6 +734,10 @@ export class DAppClient extends Client {
               networkType: this.network.type,
               abortedHandler: async () => {
                 logger.log('init', 'ABORTED')
+                this.sendMetrics(
+                  'performance-metrics/save',
+                  await this.buildPayload('connect', 'abort')
+                )
                 await Promise.all([
                   postMessageTransport.disconnect(),
                   // p2pTransport.disconnect(), do not abort connection manually
@@ -901,6 +929,10 @@ export class DAppClient extends Client {
     window.location = link
   }
 
+  private addQueryParam(paramName: string, paramValue: string): string {
+    return paramName + '=' + paramValue
+  }
+
   private async buildPayload(
     action: 'connect' | 'message' | 'disconnect',
     status: 'start' | 'abort' | 'success' | 'error'
@@ -941,6 +973,7 @@ export class DAppClient extends Client {
     fetch(`https://beacon-backend.prod.gke.papers.tech/${uri}`, options)
       .then((res) => thenHandler && thenHandler(res))
       .catch((err: Error) => {
+        console.warn('Network error encountered. Metrics sharing have been automatically disabled.')
         logger.error(err.message)
         this.enableMetrics = false // in the event of a network error, stop sending metrics
         catchHandler && catchHandler(err)
@@ -2295,6 +2328,7 @@ export class DAppClient extends Client {
   }
 
   public async disconnect() {
+    await this.createStateSnapshot()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
     this.postMessageTransport = undefined
     this.p2pTransport = undefined

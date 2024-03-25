@@ -1,4 +1,4 @@
-import { IndexedDBStorage } from '@airgap/beacon-core'
+import { IndexedDBStorage, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
 import { For, createEffect, createSignal } from 'solid-js'
 import styles from './styles.css'
@@ -11,6 +11,7 @@ interface StorageObject {
 interface BugReportRequest {
   userId: string
   title: string
+  sdkVersion: string
   description: string
   steps: string
   os: string
@@ -58,30 +59,35 @@ const BugReportForm = (props: any) => {
     return check
   }
 
-  const localStorageToMetadata = () => {
-    const result: StorageObject = {}
-
-    Object.keys(localStorage)
-      .filter((key) => key.includes('beacon'))
-      .forEach((key) => (result[key] = localStorage.getItem(key)))
-
-    return result
-  }
-
   const indexDBToMetadata = async () => {
-    const result: StorageObject = {}
+    const wcResult: StorageObject = {}
+    const beaconResult: StorageObject = {}
     const db = new IndexedDBStorage('beacon', 'bug_report')
 
     try {
       const keys = (await db.getAllKeys()).map((key) => key.toString())
       for (const key of keys) {
-        result[key] = (await db.get(key as StorageKey)) as string
+        if (key.includes('beacon')) {
+          beaconResult[key] = (await db.get(key as StorageKey)) as string
+        } else {
+          wcResult[key] = (await db.get(key as StorageKey)) as string
+        }
       }
     } catch (error: any) {
       console.error(error.message)
     }
 
-    return result
+    return [beaconResult, wcResult]
+  }
+
+  const getUserId = (): string => {
+    if (!localStorage) {
+      return 'UNKOWN'
+    }
+
+    const key = Object.keys(localStorage).find((key) => key.includes('user-id'))
+
+    return key && key.length ? localStorage.getItem(key) ?? 'UNKOWN' : 'UNKOWN'
   }
 
   createEffect(() => {
@@ -98,15 +104,21 @@ const BugReportForm = (props: any) => {
     setShowThankYou(false)
     setIsLoading(true)
 
+    const [beaconState, wcState] = await indexDBToMetadata()
+
     const request: BugReportRequest = {
-      userId: localStorage.getItem(StorageKey.USER_ID)!,
+      userId:
+        beaconState[StorageKey.USER_ID] && beaconState[StorageKey.USER_ID].length
+          ? beaconState[StorageKey.USER_ID]
+          : getUserId(),
       title: title(),
+      sdkVersion: SDK_VERSION,
       description: description(),
       steps: steps(),
       os: currentOS(),
       browser: currentBrowser(),
-      localStorage: JSON.stringify(localStorageToMetadata()),
-      wcStorage: JSON.stringify(await indexDBToMetadata())
+      localStorage: JSON.stringify(beaconState),
+      wcStorage: JSON.stringify(wcState)
     }
 
     const options = {
