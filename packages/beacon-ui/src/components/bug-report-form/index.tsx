@@ -77,15 +77,17 @@ const BugReportForm = (props: any) => {
       console.error(error.message)
     }
 
-    if (
-      (!beaconResult[StorageKey.USER_ID] || !beaconResult[StorageKey.USER_ID].length) &&
-      localStorage
-    ) {
-      const key = Object.keys(localStorage).find((key) => key.includes('user-id'))
-      key?.length && (beaconResult[StorageKey.USER_ID] = localStorage.getItem(key))
+    return [beaconResult, wcResult]
+  }
+
+  const getUserId = (): string => {
+    if (!localStorage) {
+      return 'UNKOWN'
     }
 
-    return [beaconResult, wcResult]
+    const key = Object.keys(localStorage).find((key) => key.includes('user-id'))
+
+    return key && key.length ? localStorage.getItem(key) ?? 'UNKOWN' : 'UNKOWN'
   }
 
   createEffect(() => {
@@ -106,7 +108,9 @@ const BugReportForm = (props: any) => {
 
     const request: BugReportRequest = {
       userId:
-        beaconState[StorageKey.USER_ID] ?? localStorage.getItem(StorageKey.USER_ID) ?? 'UNKOWN',
+        beaconState[StorageKey.USER_ID] && beaconState[StorageKey.USER_ID].length
+          ? beaconState[StorageKey.USER_ID]
+          : getUserId(),
       title: title(),
       sdkVersion: SDK_VERSION,
       description: description(),
