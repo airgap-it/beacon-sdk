@@ -27,7 +27,9 @@ import {
   WalletInfo,
   ExtendedWalletConnectPairingResponse,
   WalletConnectPairingRequest,
-  AnalyticsInterface
+  AnalyticsInterface,
+  ProofOfEventChallengeResponseOutput,
+  SimulatedProofOfEventChallengeResponseOutput
 } from '@airgap/beacon-types'
 import {
   UnknownBeaconError,
@@ -39,7 +41,6 @@ import {
 } from '@airgap/beacon-core'
 import { shortenString } from './utils/shorten-string'
 import { isMobile } from '@airgap/beacon-ui'
-import { ProofOfEventChallengeResponseOutput } from '@airgap/beacon-types'
 
 const logger = new Logger('BeaconEvents')
 
@@ -65,6 +66,9 @@ export enum BeaconEvent {
   PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT = 'PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT',
   PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS = 'PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS',
   PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR = 'PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR',
+  SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT = 'SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT',
+  SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS = 'SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS',
+  SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR = 'SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR',
   OPERATION_REQUEST_SENT = 'OPERATION_REQUEST_SENT',
   OPERATION_REQUEST_SUCCESS = 'OPERATION_REQUEST_SUCCESS',
   OPERATION_REQUEST_ERROR = 'OPERATION_REQUEST_ERROR',
@@ -130,6 +134,18 @@ export interface BeaconEventType {
     walletInfo: WalletInfo
   }
   [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: {
+    errorResponse: ErrorResponse
+    walletInfo: WalletInfo
+  }
+  [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: RequestSentInfo
+  [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: {
+    account: AccountInfo
+    output: SimulatedProofOfEventChallengeResponseOutput
+    blockExplorer: BlockExplorer
+    connectionContext: ConnectionContext
+    walletInfo: WalletInfo
+  }
+  [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: {
     errorResponse: ErrorResponse
     walletInfo: WalletInfo
   }
@@ -302,7 +318,8 @@ const showNoPermissionAlert = async (): Promise<void> => {
 const showInvalidActiveAccountState = async (): Promise<void> => {
   await openAlert({
     title: 'Invalid state',
-    body: 'No subscription found for the received active account.'
+    body: `An active account has been received, but no active subscription was found for BeaconEvent.ACTIVE_ACCOUNT_SET.
+    For more information, visit: https://docs.walletbeacon.io/guides/migration-guide`
   })
 }
 
@@ -408,12 +425,12 @@ const showExtensionConnectedAlert = async (): Promise<void> => {
  * Show a "channel closed" alert for 1.5 seconds
  */
 const showChannelClosedAlert = async (): Promise<void> => {
-  await openAlert({
-    title: 'Channel closed',
-    body: `Your peer has closed the connection.`,
-    buttons: [{ text: 'Done', style: 'outline' }],
-    timer: 1500
-  })
+  // await openAlert({
+  //   title: 'Channel closed',
+  //   body: `Your peer has closed the connection.`,
+  //   buttons: [{ text: 'Done', style: 'outline' }],
+  //   timer: 1500
+  // })
 }
 
 const showInternalErrorAlert = async (
@@ -499,12 +516,59 @@ const showProofOfEventChallengeSuccessAlert = async (
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
     state: 'finished',
-    actions: [
-      {
-        text: 'Challenge Id',
-        actionText: output.dAppChallengeId
-      }
-    ]
+    actions: output.isAccepted
+      ? [
+          {
+            text: `Payload hash: ${output.payloadHash}`,
+            actionText: 'Copy to clipboard',
+            actionCallback: async (): Promise<void> => {
+              navigator.clipboard.writeText(output.payloadHash).then(
+                () => {
+                  logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+                },
+                (err) => {
+                  logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+                }
+              )
+              await closeToast()
+            }
+          }
+        ]
+      : []
+  })
+}
+
+const showSimulatedProofOfEventChallengeSuccessAlert = async (
+  data: BeaconEventType[BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]
+): Promise<void> => {
+  const { output } = data
+
+  await openToast({
+    body: !output.errorMessage
+      ? `{{wallet}}\u00A0 has returned the list of operation`
+      : `{{wallet}}\u00A0 has returned an error`,
+    timer: SUCCESS_TIMER,
+    walletInfo: data.walletInfo,
+    state: 'finished',
+    actions: !output.errorMessage
+      ? [
+          {
+            text: 'Operation list',
+            actionText: 'Copy to clipboard',
+            actionCallback: async (): Promise<void> => {
+              navigator.clipboard.writeText(output.operationsList).then(
+                () => {
+                  logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+                },
+                (err) => {
+                  logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+                }
+              )
+              await closeToast()
+            }
+          }
+        ]
+      : [{ text: 'Error message', actionText: output.errorMessage }]
   })
 }
 
@@ -668,6 +732,10 @@ export const defaultEventCallbacks: {
   [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: showSentToast,
   [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: showProofOfEventChallengeSuccessAlert,
   [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: showErrorToast,
+  [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: showSentToast,
+  [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]:
+    showSimulatedProofOfEventChallengeSuccessAlert,
+  [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: showErrorToast,
   [BeaconEvent.OPERATION_REQUEST_SENT]: showSentToast,
   [BeaconEvent.OPERATION_REQUEST_SUCCESS]: showOperationSuccessAlert,
   [BeaconEvent.OPERATION_REQUEST_ERROR]: showErrorToast,
@@ -717,6 +785,15 @@ export class BeaconEventHandler {
     [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: [
       defaultEventCallbacks.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
     ],
+    [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: [
+      defaultEventCallbacks.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT
+    ],
+    [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: [
+      defaultEventCallbacks.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS
+    ],
+    [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: [
+      defaultEventCallbacks.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
+    ],
     [BeaconEvent.OPERATION_REQUEST_SENT]: [defaultEventCallbacks.OPERATION_REQUEST_SENT],
     [BeaconEvent.OPERATION_REQUEST_SUCCESS]: [defaultEventCallbacks.OPERATION_REQUEST_SUCCESS],
     [BeaconEvent.OPERATION_REQUEST_ERROR]: [defaultEventCallbacks.OPERATION_REQUEST_ERROR],
@@ -746,7 +823,6 @@ export class BeaconEventHandler {
     [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
   }
-
   constructor(
     eventsToOverride: {
       [key in BeaconEvent]?: {

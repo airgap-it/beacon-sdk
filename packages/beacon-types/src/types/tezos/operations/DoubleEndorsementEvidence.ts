@@ -6,7 +6,7 @@ export interface InlinedEndorsement {
   signature?: string
 }
 
-export interface InlinedEndorsementContents {
+export interface InlinedEndorsementContents extends TezosBaseOperation {
   kind: TezosOperationType.ENDORSEMENT
   level: string
 }

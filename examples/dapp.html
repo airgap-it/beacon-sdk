@@ -54,11 +54,16 @@
     <br /><br />
     <button id="requestPermissionAndSign">Request Permission And Sign Request</button>
     <br /><br />
-
+    <button id="disconnect" disabled style="opacity: 0.5">Disconnect</button>
+    <br /><br />
     <button id="reset">Reset and Refresh</button>
     <br /><br />
     <button id="requestProofOfEventChallenge" disabled style="opacity: 0.5">
       Request Proof Of Event Challenge
+    </button>
+    <br /><br />
+    <button id="requestSimulatedProofOfEventChallenge" disabled style="opacity: 0.5">
+      Request Simulated Proof Of Event Challenge
     </button>
     <br /><br />
     <button id="sendToSelf">Send 1 mutez to myself</button>
@@ -147,6 +152,7 @@
           el.innerText = `'debug' ${name} ${method} ${args.join(', ')}`
           el.setAttribute('style', 'background-color: blue')
           document.getElementById('logger-output').appendChild(el)
+          console.debug('LOGGER', name, method, ...args)
         }
 
         log(name, method, ...args) {
@@ -154,6 +160,7 @@
           el.innerText = `'log' ${name} ${method} ${args.join(', ')}`
           el.setAttribute('style', 'background-color: green')
           document.getElementById('logger-output').appendChild(el)
+          console.log('LOGGER', name, method, ...args)
         }
 
         warn(name, method, ...args) {
@@ -161,6 +168,7 @@
           el.innerText = `'warn' ${name} ${method} ${args.join(', ')}`
           el.setAttribute('style', 'background-color: orange')
           document.getElementById('logger-output').appendChild(el)
+          console.warn('LOGGER', name, method, ...args)
         }
 
         error(name, method, ...args) {
@@ -168,6 +176,7 @@
           el.innerText = `'error' ${name} ${method} ${args.join(', ')}`
           el.setAttribute('style', 'background-color: red')
           document.getElementById('logger-output').appendChild(el)
+          console.error('LOGGER', name, method, ...args)
         }
 
         time(start, label) {
@@ -175,6 +184,7 @@
           el.innerText = `'time' ${start} ${label}`
           el.setAttribute('style', 'background-color: grey')
           document.getElementById('logger-output').appendChild(el)
+          console.time(label)
         }
 
         timeLog(method, ...args) {
@@ -182,6 +192,7 @@
           el.innerText = `'timeLog' ${method} ${args.join(', ')}`
           el.setAttribute('style', 'background-color: grey')
           document.getElementById('logger-output').appendChild(el)
+          console.timeLog(method, ...args)
         }
       }
 
@@ -224,7 +235,8 @@
         featuredWallets: ['kukai', 'metamask', 'airgap'],
         network: {
           type: beacon.NetworkType.GHOSTNET
-        }
+        },
+        enableMetrics: true
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['matrix.papers.tech']
@@ -238,6 +250,9 @@
             document.getElementById('activeAccount').innerText = activeAccount.address
             document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
             document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
+            let btn = document.getElementById('disconnect')
+            btn.style.opacity = '1'
+            btn.disabled = false
 
             if (
               activeAccount.walletType !== 'account_abstracted' &&
@@ -245,7 +260,11 @@
             )
               return
 
-            const btn = document.getElementById('requestProofOfEventChallenge')
+            btn = document.getElementById('requestProofOfEventChallenge')
+            btn.style.opacity = '1'
+            btn.disabled = false
+
+            btn = document.getElementById('requestSimulatedProofOfEventChallenge')
             btn.style.opacity = '1'
             btn.disabled = false
           } else {
@@ -374,14 +393,30 @@
             dAppChallengeId: 'my-id',
             payload: JSON.stringify({ timestamp: Date.now() })
           })
-          .then(() => {
-            console.log('ProofOfEventChallenge approved')
+          .then((response) => {
+            console.log(`ProofOfEventChallenge ${response.isAccepted ? 'accepted' : 'refused'}`)
+          })
+          .catch((error) => {
+            console.log('error during Proof Of Event Challenge', error)
+          })
+      }
 
-            const promise = client.getProofOfEventChallenge('my-id')
+      // disconnect
+      const disconnect = () => {
+        client
+          .disconnect()
+          .then(() => console.log('disconnected.'))
+          .catch((err) => console.error(err.message))
 
-            promise.then(() => {
-              alert('Proof of event verified')
-            })
+      }
+
+      const requestSimulatedProofOfEventChallenge = () => {
+        client
+          .requestSimulatedProofOfEventChallenge({
+            payload: JSON.stringify({ timestamp: Date.now() })
+          })
+          .then((response) => {
+            console.log('SimulatedProofOfEventChallenge response', response)
           })
           .catch((error) => {
             console.log('error during Proof Of Event Challenge', error)
@@ -420,9 +455,21 @@
       })
 
       // Add event listener to the button
+      document.getElementById('disconnect').addEventListener('click', () => {
+        disconnect()
+      })
+
+      // Add event listener to the button
       document.getElementById('requestProofOfEventChallenge').addEventListener('click', () => {
         requestProofOfEventChallenge()
       })
+
+      // Add event listener to the button
+      document
+        .getElementById('requestSimulatedProofOfEventChallenge')
+        .addEventListener('click', () => {
+          requestSimulatedProofOfEventChallenge()
+        })
 
       // Add event listener to the button
       document.getElementById('reset').addEventListener('click', () => {

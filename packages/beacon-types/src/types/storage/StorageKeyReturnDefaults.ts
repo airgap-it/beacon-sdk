@@ -28,6 +28,8 @@ export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.MATRIX_SELECTED_NODE]: undefined,
   [StorageKey.MULTI_NODE_SETUP_DONE]: undefined,
   [StorageKey.WC_2_CLIENT_SESSION]: undefined,
+  [StorageKey.USER_ID]: undefined,
+  [StorageKey.ENABLE_METRICS]: undefined,
   [StorageKey.WC_2_CORE_PAIRING]: undefined,
   [StorageKey.WC_2_CORE_KEYCHAIN]: undefined,
   [StorageKey.WC_2_CORE_MESSAGES]: undefined,
