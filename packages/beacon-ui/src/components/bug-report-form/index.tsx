@@ -77,6 +77,14 @@ const BugReportForm = (props: any) => {
       console.error(error.message)
     }
 
+    if (
+      (!beaconResult[StorageKey.USER_ID] || !beaconResult[StorageKey.USER_ID].length) &&
+      localStorage
+    ) {
+      const key = Object.keys(localStorage).find((key) => key.includes('user-id'))
+      key?.length && (beaconResult[StorageKey.USER_ID] = localStorage.getItem(key))
+    }
+
     return [beaconResult, wcResult]
   }
 
@@ -97,7 +105,8 @@ const BugReportForm = (props: any) => {
     const [beaconState, wcState] = await indexDBToMetadata()
 
     const request: BugReportRequest = {
-      userId: beaconState[StorageKey.USER_ID]!,
+      userId:
+        beaconState[StorageKey.USER_ID] ?? localStorage.getItem(StorageKey.USER_ID) ?? 'UNKOWN',
       title: title(),
       sdkVersion: SDK_VERSION,
       description: description(),
