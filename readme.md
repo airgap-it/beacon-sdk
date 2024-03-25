@@ -34,21 +34,23 @@ npm i --save @airgap/beacon-sdk
 ## Example DApp integration
 
 ```ts
-const client = new DAppClient({ name: 'My Sample DApp' })
+import { DAppClient } from '@airgap/beacon-sdk'
 
-client
-  .requestPermissions() // Send a permission request and automatically show UI to the user to select his favorite wallet
-  .then((permissions) => {
-    // Account that has been shared by the wallet
-    console.log('got permissions', permissions)
-  })
-  .catch((error) => console.log(error))
+const dAppClient = new DAppClient({ name: 'My Sample DApp' })
 
-// Make sure to listen to all the active account changes. If you do not subscribe, it can lead to problems.
-client.subscribeToEvent(BeaconEvent.ACTIVE_ACCOUNT_SET, async (account) => {
+// Listen for all the active account changes
+dAppClient.subscribeToEvent(BeaconEvent.ACTIVE_ACCOUNT_SET, async (account) => {
   // An active account has been set, update the dApp UI
-  console.log(`${BeaconEvent.ACTIVE_ACCOUNT_SET} triggered. New account: `, account)
+  console.log(`${BeaconEvent.ACTIVE_ACCOUNT_SET} triggered: `, account)
 })
+
+try {
+  console.log('Requesting permissions...')
+  const permissions = await dAppClient.requestPermissions()
+  console.log('Got permissions:', permissions.address)
+} catch (error) {
+  console.error('Got error:', error)
+}
 ```
 
 For a more complete example, take a look at the `example-dapp.html` file.
