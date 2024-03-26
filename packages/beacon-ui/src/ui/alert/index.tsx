@@ -154,8 +154,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
   const isOnline = navigator.onLine
-  const areMetricsEnabled = localStorage
-    ? localStorage.getItem(StorageKey.ENABLE_METRICS) === 'true'
+  const isBugReportingEnabled = localStorage
+    ? localStorage.getItem(StorageKey.ENABLE_BUG_REPORT) === 'true'
     : false
 
   setAnalytics(config.analytics)
@@ -1040,14 +1040,14 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           }
                     }
                   >
-                    {areMetricsEnabled && (
+                    {isBugReportingEnabled && (
                       <BugReportForm
                         onSubmit={() => {
                           handleCloseAlert()
                         }}
                       />
                     )}
-                    {!areMetricsEnabled && (
+                    {!isBugReportingEnabled && (
                       <>
                         <Info
                           iconBadge
@@ -1171,7 +1171,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               }
             />
           )}
-          {!config.pairingPayload && (
+          {!config.pairingPayload && currentInfo() !== 'help' && (
             <Alert
               open={isOpen()}
               content={
@@ -1218,6 +1218,47 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                     }
                   ]}
                 />
+              }
+              onCloseClick={() => handleCloseAlert()}
+            />
+          )}
+          {!config.pairingPayload && currentInfo() === 'help' && (
+            <Alert
+              open={isOpen()}
+              content={
+                <>
+                  <div
+                    style={
+                      currentInfo() === 'help'
+                        ? {
+                            opacity: 1,
+                            height: 'unset',
+                            overflow: 'unset',
+                            transform: 'scale(1)',
+                            transition: 'all ease 0.3s',
+                            display: 'flex',
+                            'flex-direction': 'column',
+                            gap: '0.9em'
+                          }
+                        : {
+                            opacity: 0,
+                            height: 0,
+                            overflow: 'hidden',
+                            transform: 'scale(1.1)',
+                            transition: 'all ease 0.3s',
+                            display: 'flex',
+                            'flex-direction': 'column',
+                            gap: '0.9em'
+                          }
+                    }
+                  >
+                    <BugReportForm
+                      onSubmit={() => {
+                        handleCloseAlert()
+                      }}
+                    />
+                  </div>
+                </>
               }
               onCloseClick={() => handleCloseAlert()}
             />
