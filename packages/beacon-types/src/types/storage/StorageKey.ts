@@ -22,6 +22,7 @@ export enum StorageKey {
   MULTI_NODE_SETUP_DONE = 'beacon:multi-node-setup',
   USER_ID = 'beacon:user-id',
   ENABLE_METRICS = 'beacon:enable_metrics',
+  ENABLE_BUG_REPORT = 'beacon:enable_bug_report',
   WC_2_CORE_PAIRING = 'wc@2:core:0.3:pairing',
   WC_2_CLIENT_SESSION = 'wc@2:client:0.3:session',
   WC_2_CORE_KEYCHAIN = 'wc@2:core:0.3:keychain',

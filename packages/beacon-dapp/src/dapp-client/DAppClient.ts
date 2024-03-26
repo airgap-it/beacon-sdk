@@ -269,6 +269,8 @@ export class DAppClient extends Client {
           }
         } else if (event.key === this.storage.getPrefixedKey(StorageKey.ENABLE_METRICS)) {
           this.enableMetrics = !!(await this.storage.get(StorageKey.ENABLE_METRICS))
+        } else if (event.key === this.storage.getPrefixedKey(StorageKey.ENABLE_BUG_REPORT)) {
+          this.enableMetrics = !!(await this.storage.get(StorageKey.ENABLE_BUG_REPORT))
         }
       }
     })
@@ -473,9 +475,15 @@ export class DAppClient extends Client {
                 'Network error encountered. Metrics sharing have been automatically disabled.'
               )
         }
-        this.enableMetrics && (this.enableMetrics = res.ok)
-        this.enableBugReport && (this.enableBugReport = res.ok)
-        this.storage.set(StorageKey.ENABLE_METRICS, res.ok)
+        if (this.enableMetrics) {
+          this.enableMetrics = res.ok
+          this.storage.set(StorageKey.ENABLE_METRICS, res.ok)
+        }
+
+        if (this.enableBugReport) {
+          this.enableBugReport = res.ok
+          this.storage.set(StorageKey.ENABLE_BUG_REPORT, res.ok)
+        }
       },
       () => {
         this.enableMetrics = false
