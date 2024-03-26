@@ -196,6 +196,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     !config.title.toLowerCase().includes('error') &&
       localStorage.removeItem(StorageKey.LAST_SELECTED_WALLET)
 
+    config.title.toLowerCase().includes('bug report') && setCurrentInfo('help')
+
     // Shadow root
     const shadowRootEl = document.createElement('div')
     if (document.getElementById('beacon-alert-wrapper')) {

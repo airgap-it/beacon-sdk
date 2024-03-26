@@ -104,6 +104,7 @@ export enum BeaconEvent {
 }
 
 export interface ExtraInfo {
+  enableBugReport?: boolean
   resetCallback?(): Promise<void>
 }
 
@@ -256,6 +257,26 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
       }
     }
   })
+
+  data.extraInfo.enableBugReport &&
+    actions.push({
+      text: 'Do you wish to report a bug?',
+      actionText: 'Open',
+      actionCallback: async (): Promise<void> => {
+        await closeToast()
+        const resetCallback = data.extraInfo.resetCallback
+
+        if (resetCallback) {
+          logger.log('showSentToast', 'resetCallback invoked')
+          await resetCallback()
+        }
+
+        await openAlert({
+          title: 'Bug Report',
+          body: ''
+        })
+      }
+    })
 
   openToast({
     body: `Request sent to\u00A0 {{wallet}}`,

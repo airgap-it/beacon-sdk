@@ -2203,6 +2203,7 @@ export class DAppClient extends Client {
           name: walletInfo.name ?? 'Wallet'
         },
         extraInfo: {
+          enableBugReport: this.enableBugReport,
           resetCallback: async () => {
             this.disconnect()
           }
