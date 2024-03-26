@@ -163,6 +163,11 @@ export class DAppClient extends Client {
    */
   private enableMetrics?: boolean
 
+  /**
+   * Enable bug reporting form (Disabled by Default)
+   */
+  enableBugReport?: boolean
+
   private userId?: string
 
   public network: Network
@@ -247,6 +252,7 @@ export class DAppClient extends Client {
       config.enableAppSwitching === undefined ? true : !!config.enableAppSwitching
 
     this.enableMetrics = config.enableMetrics ? true : false
+    this.enableBugReport = config.enableBugReport ? true : false
 
     // Subscribe to storage changes and update the active account if it changes on other tabs
     this.storage.subscribeToStorageChanged(async (event) => {
@@ -463,11 +469,12 @@ export class DAppClient extends Client {
         if (!res.ok) {
           res.status === 426
             ? console.error('Metrics are no longer supported for this version, please upgrade.')
-            : console.warn(
+            : console.error(
                 'Network error encountered. Metrics sharing have been automatically disabled.'
               )
         }
-        this.enableMetrics = res.ok
+        this.enableMetrics && (this.enableMetrics = res.ok)
+        this.enableBugReport && (this.enableBugReport = res.ok)
         this.storage.set(StorageKey.ENABLE_METRICS, res.ok)
       },
       () => {
@@ -967,7 +974,7 @@ export class DAppClient extends Client {
     thenHandler?: (res: Response) => void,
     catchHandler?: (err: Error) => void
   ) {
-    if (!this.enableMetrics) {
+    if (!this.enableMetrics && !this.enableBugReport) {
       return
     }
     fetch(`https://beacon-backend.prod.gke.papers.tech/${uri}`, options)

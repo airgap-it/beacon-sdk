@@ -142,4 +142,9 @@ export interface DAppClientOptions {
    * Enable metrics tracking (Disabled by Default)
    */
   enableMetrics?: boolean
+
+  /**
+   * Enable bug report (Disabled by Default)
+   */
+  enableBugReport?: boolean
 }
