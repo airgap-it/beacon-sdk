@@ -573,7 +573,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     const lastIndex = signClient.session.keys.length - 1
 
-    if (!this.session && lastIndex > -1) {
+    if (lastIndex > -1) {
       this.session = signClient.session.get(signClient.session.keys[lastIndex])
 
       this.updateStorageWallet(this.session)
