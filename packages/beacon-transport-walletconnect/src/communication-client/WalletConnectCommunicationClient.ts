@@ -908,19 +908,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     )
   }
 
-  private async clearCache() {
-    const signClient = await this.getSignClient()
-    signClient?.proposal.map.clear()
-    signClient?.pendingRequest.map.clear()
-    signClient?.session.map.clear()
-    ;(signClient?.core.expirer as any).expirations.clear()
-    signClient?.core.history.records.clear()
-    signClient?.core.crypto.keychain.keychain.clear()
-    signClient?.core.relayer.messages.messages.clear()
-    signClient?.core.pairing.pairings.map.clear()
-    signClient?.core.relayer.subscriber.subscriptions.clear()
-  }
-
   private async closePairings() {
     await this.closeSessions()
     const signClient = await this.getSignClient()
@@ -929,11 +916,18 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const pairings = signClient.pairing.getAll() ?? []
       pairings.length &&
         (await Promise.allSettled(
-          pairings.map((pairing) => signClient.core.pairing.disconnect({ topic: pairing.topic }))
+          pairings.map((pairing) =>
+            signClient.disconnect({
+              topic: pairing.topic,
+              reason: {
+                code: 0, // TODO: Use constants
+                message: 'Force new connection'
+              }
+            })
+          )
         ))
     }
 
-    await this.clearCache()
     await this.storage.resetState()
     this.storage.notify('RESET')
   }
