@@ -553,7 +553,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (forceNewConnection) {
       await this.closePairings()
-      this.signClient = undefined
     }
 
     const signClient = await this.getSignClient()
