@@ -113,7 +113,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
-    this.getSignClient()
     this.storage.onMessageHandler = this.onStorageMessageHandler.bind(this)
     this.storage.onErrorHandler = this.onStorageErrorHandler.bind(this)
   }
