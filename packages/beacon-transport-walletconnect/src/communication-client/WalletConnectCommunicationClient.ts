@@ -6,9 +6,8 @@ import {
   Logger,
   WCStorage
 } from '@airgap/beacon-core'
-import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
-import { IPairing, ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
+import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
 import { getSdkError } from '@walletconnect/utils'
 import {
   ActiveAccountUnspecified,
@@ -130,7 +129,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private getTopicFromSession(session: SessionTypes.Struct): string {
-    return session.pairingTopic?.length ? session.pairingTopic : session.topic
+    return session.topic
   }
 
   public async listenForEncryptedMessage(
@@ -221,9 +220,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // implementation
   }
 
-  private ping(target: Client | IPairing, topic: string) {
-    target
-      .ping({ topic })
+  private async ping() {
+    const client = await this.getSignClient()
+
+    if (!client || !this.session) {
+      logger.error('No session available.')
+      return
+    }
+
+    client
+      .ping({ topic: this.session.topic })
       .then(() => {
         if (this.messageIds.length) {
           this.acknowledgeRequest(this.messageIds[0])
@@ -238,18 +244,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       })
   }
 
-  private checkWalletReadiness(topic: string) {
-    const target = this.signClient?.pairing.getAll().some((el) => el.topic === topic)
-      ? this.signClient?.core.pairing
-      : this.signClient
-
-    if (!target || this.pingInterval) {
+  private async checkWalletReadiness(_topic: string) {
+    if (this.pingInterval) {
       return
     }
 
-    this.ping(target, topic)
+    this.ping()
     this.pingInterval = setInterval(() => {
-      this.ping(target, topic)
+      this.ping()
     }, 30000)
   }
 
@@ -551,6 +553,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (forceNewConnection) {
       await this.closePairings()
+      this.signClient = undefined
     }
 
     const signClient = await this.getSignClient()
@@ -561,11 +564,22 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    const sessions = signClient.session.getAll()
-    if (sessions && sessions.length > 0) {
-      this.session = sessions[0]
-      this.setDefaultAccountAndNetwork()
+    // const sessions = signClient.session.getAll()
+    // if (sessions && sessions.length > 0) {
+    //   this.session = sessions[0]
+    //   this.setDefaultAccountAndNetwork()
+    //   this.updateStorageWallet(this.session)
+    //   return undefined
+    // }
+
+    const lastIndex = signClient.session.keys.length - 1
+
+    if (!this.session && lastIndex > -1) {
+      this.session = signClient.session.get(signClient.session.keys[lastIndex])
+
       this.updateStorageWallet(this.session)
+      this.setDefaultAccountAndNetwork()
+
       return undefined
     }
 
@@ -895,18 +909,18 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     )
   }
 
-  // private async clearCache() {
-  //   const signClient = await this.getSignClient()
-  //   signClient?.proposal.map.clear()
-  //   signClient?.pendingRequest.map.clear()
-  //   signClient?.session.map.clear()
-  //   ;(signClient?.core.expirer as Expirer).expirations.clear()
-  //   signClient?.core.history.records.clear()
-  //   signClient?.core.crypto.keychain.keychain.clear()
-  //   signClient?.core.relayer.messages.messages.clear()
-  //   signClient?.core.pairing.pairings.map.clear()
-  //   signClient?.core.relayer.subscriber.subscriptions.clear()
-  // }
+  private async clearCache() {
+    const signClient = await this.getSignClient()
+    signClient?.proposal.map.clear()
+    signClient?.pendingRequest.map.clear()
+    signClient?.session.map.clear()
+    ;(signClient?.core.expirer as any).expirations.clear()
+    signClient?.core.history.records.clear()
+    signClient?.core.crypto.keychain.keychain.clear()
+    signClient?.core.relayer.messages.messages.clear()
+    signClient?.core.pairing.pairings.map.clear()
+    signClient?.core.relayer.subscriber.subscriptions.clear()
+  }
 
   private async closePairings() {
     await this.closeSessions()
@@ -920,7 +934,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         ))
     }
 
-    // await this.clearCache()
+    await this.clearCache()
     await this.storage.resetState()
     this.storage.notify('RESET')
   }
@@ -1308,7 +1322,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private async getSignClient(): Promise<Client | undefined> {
     if (this.signClient === undefined) {
       try {
-        this.signClient = await SignClient.init(this.wcOptions.opts)
+        this.signClient = await Client.init(this.wcOptions.opts)
         this.subscribeToSessionEvents(this.signClient)
       } catch (error: any) {
         logger.error(error.message)
