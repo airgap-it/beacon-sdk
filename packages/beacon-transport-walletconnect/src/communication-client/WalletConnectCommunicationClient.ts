@@ -121,8 +121,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     network: NetworkType
     opts: SignClientTypes.Options
   }): WalletConnectCommunicationClient {
-    if (!WalletConnectCommunicationClient.instance) {
-      WalletConnectCommunicationClient.instance = new WalletConnectCommunicationClient(wcOptions)
+    if (!this.instance) {
+      this.instance = new WalletConnectCommunicationClient(wcOptions)
     }
     return WalletConnectCommunicationClient.instance
   }
