@@ -643,7 +643,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         if (session?.controller !== this.session?.controller) {
           logger.debug('Controller doesnt match, closing active session', [session.pairingTopic])
-          this.activeAccount && this.closeActiveSession(this.activeAccount)
+          this.activeAccount && this.closeActiveSession(this.activeAccount, false)
           this.session = undefined // close the previous session
         }
 
@@ -947,9 +947,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.clearState()
   }
 
-  private async openSession(pairingTopic?: string): Promise<SessionTypes.Struct> {
+  private async openSession(): Promise<SessionTypes.Struct> {
+    const signClient = (await this.getSignClient())!
+    const pairingTopic = signClient.core.pairing.getPairings()[0]?.topic
+
     logger.debug('Starting open session with', [pairingTopic])
-    const signClient = await this.getSignClient()
 
     if (!signClient) {
       throw new Error('Transport error.')
@@ -977,12 +979,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
       },
-      pairingTopic: pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
+      pairingTopic
     }
 
     logger.debug('Checking wallet readiness', [pairingTopic])
 
-    this.checkWalletReadiness(connectParams.pairingTopic)
+    this.checkWalletReadiness(pairingTopic)
 
     try {
       logger.debug('connect', [pairingTopic])
@@ -993,7 +995,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // if I have successfully opened a session and I already have one opened
       if (session?.controller !== this.session?.controller) {
         logger.debug('Controller doesnt match, closing active session', [pairingTopic])
-        this.activeAccount && this.closeActiveSession(this.activeAccount)
+        this.activeAccount && this.closeActiveSession(this.activeAccount, false)
         this.session = undefined // close the previous session
       }
 
@@ -1019,7 +1021,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
           fun && fun('error')
         } else {
-          const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
           logger.debug('New pairing topic?', [pairingTopic])
 
           const errorResponse: ErrorResponseInput = {
@@ -1028,7 +1029,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
             errorType: BeaconErrorType.ABORTED_ERROR
           } as ErrorResponse
 
-          this.notifyListeners(_pairingTopic, errorResponse)
+          this.notifyListeners(pairingTopic, errorResponse)
         }
       }
     }
@@ -1174,7 +1175,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
   }
 
-  async closeActiveSession(account: string) {
+  async closeActiveSession(account: string, notify: boolean = true) {
     try {
       this.validateNetworkAndAccount(this.getActiveNetwork(), account)
     } catch (error: any) {
@@ -1184,7 +1185,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     const session = this.getSession()
 
-    if (this.messageIds.length) {
+    if (notify && this.messageIds.length) {
       const errorResponse: any = {
         type: BeaconMessageType.Disconnect,
         id: this.messageIds.pop(),
