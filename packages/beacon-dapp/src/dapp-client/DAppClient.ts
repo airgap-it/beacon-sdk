@@ -1342,7 +1342,6 @@ export class DAppClient extends Client {
     logger.log('requestPermissions', JSON.stringify(accountInfo))
 
     await this.accountManager.addAccount(accountInfo)
-    await this.setActiveAccount(accountInfo)
 
     const output: PermissionResponseOutput = {
       ...message,
