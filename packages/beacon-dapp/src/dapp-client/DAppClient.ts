@@ -820,7 +820,10 @@ export class DAppClient extends Client {
         return
       }
 
-      if (transport instanceof WalletConnectTransport) {
+      if (
+        transport instanceof WalletConnectTransport &&
+        transport.connectionStatus === TransportStatus.CONNECTED
+      ) {
         await transport.closeActiveSession(activeAccount)
       }
     }
@@ -2343,7 +2346,9 @@ export class DAppClient extends Client {
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
-    await Promise.all([this.clearActiveAccount(), transport.disconnect()])
+    await transport.disconnect()
+    await this.clearActiveAccount()
+    await this.hideUI(['toast'])
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 

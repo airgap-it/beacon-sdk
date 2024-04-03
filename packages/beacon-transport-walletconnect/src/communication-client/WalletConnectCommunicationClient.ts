@@ -927,6 +927,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         ))
     }
 
+    this.clearState()
     await this.storage.resetState()
     this.storage.notify('RESET')
   }
@@ -1181,7 +1182,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
   }
 
-  async closeActiveSession(account: string, notify: boolean = true) {
+  /**
+   * it closes the active session
+   * @param account the active account
+   * @param force resets UI state
+   */
+  async closeActiveSession(account: string, force: boolean = true) {
     try {
       this.validateNetworkAndAccount(this.getActiveNetwork(), account)
     } catch (error: any) {
@@ -1191,14 +1197,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     const session = this.getSession()
 
-    if (notify && this.messageIds.length) {
-      const errorResponse: any = {
-        type: BeaconMessageType.Disconnect,
-        id: this.messageIds.pop(),
-        errorType: BeaconErrorType.ABORTED_ERROR
-      }
-
-      this.notifyListeners(this.getTopicFromSession(session), errorResponse)
+    if (force && this.messageIds.length) {
       this.messageIds = [] // reset
     }
 
