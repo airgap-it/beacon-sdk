@@ -2343,7 +2343,8 @@ export class DAppClient extends Client {
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
-    await Promise.all([this.clearActiveAccount(), transport.disconnect()])
+    await this.clearActiveAccount()
+    await transport.disconnect()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 
