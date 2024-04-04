@@ -6,9 +6,8 @@ import {
   Logger,
   WCStorage
 } from '@airgap/beacon-core'
-import { SignClient } from '@walletconnect/sign-client'
 import Client from '@walletconnect/sign-client'
-import { IPairing, ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
+import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
 import { getSdkError } from '@walletconnect/utils'
 import {
   ActiveAccountUnspecified,
@@ -114,7 +113,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
-    this.getSignClient()
     this.storage.onMessageHandler = this.onStorageMessageHandler.bind(this)
     this.storage.onErrorHandler = this.onStorageErrorHandler.bind(this)
   }
@@ -123,14 +121,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     network: NetworkType
     opts: SignClientTypes.Options
   }): WalletConnectCommunicationClient {
-    if (!WalletConnectCommunicationClient.instance) {
-      WalletConnectCommunicationClient.instance = new WalletConnectCommunicationClient(wcOptions)
+    if (!this.instance) {
+      this.instance = new WalletConnectCommunicationClient(wcOptions)
     }
     return WalletConnectCommunicationClient.instance
   }
 
   private getTopicFromSession(session: SessionTypes.Struct): string {
-    return session.pairingTopic?.length ? session.pairingTopic : session.topic
+    return session.topic
   }
 
   public async listenForEncryptedMessage(
@@ -167,15 +165,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.clearEvents()
     this.signClient = undefined
 
-    const client = await this.getSignClient()
-    const sessions = client?.session.getAll() ?? []
+    const client = (await this.getSignClient())!
+    const lastIndex = client.session.keys.length - 1
 
-    try {
-      this.session =
-        sessions?.find((el) => el.topic === this.session?.topic) ?? sessions[0] ?? this.session
-      this.session && (this.activeAccount = this.getAccounts()[0])
-    } catch (err: any) {
-      logger.error('refreshState', err.message)
+    if (lastIndex > -1) {
+      this.session = client.session.get(client.session.keys[lastIndex])
+
+      this.subscribeToSessionEvents(client)
+      this.updateStorageWallet(this.session)
+      this.setDefaultAccountAndNetwork()
+    } else {
+      this.clearState()
     }
   }
 
@@ -221,9 +221,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // implementation
   }
 
-  private ping(target: Client | IPairing, topic: string) {
-    target
-      .ping({ topic })
+  private async ping() {
+    const client = await this.getSignClient()
+
+    if (!client || !this.session) {
+      logger.error('No session available.')
+      return
+    }
+
+    client
+      .ping({ topic: this.session.topic })
       .then(() => {
         if (this.messageIds.length) {
           this.acknowledgeRequest(this.messageIds[0])
@@ -238,18 +245,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       })
   }
 
-  private checkWalletReadiness(topic: string) {
-    const target = this.signClient?.pairing.getAll().some((el) => el.topic === topic)
-      ? this.signClient?.core.pairing
-      : this.signClient
-
-    if (!target || this.pingInterval) {
+  private async checkWalletReadiness(_topic: string) {
+    if (this.pingInterval) {
       return
     }
 
-    this.ping(target, topic)
+    this.ping()
     this.pingInterval = setInterval(() => {
-      this.ping(target, topic)
+      this.ping()
     }, 30000)
   }
 
@@ -561,11 +564,22 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    const sessions = signClient.session.getAll()
-    if (sessions && sessions.length > 0) {
-      this.session = sessions[0]
-      this.setDefaultAccountAndNetwork()
+    // const sessions = signClient.session.getAll()
+    // if (sessions && sessions.length > 0) {
+    //   this.session = sessions[0]
+    //   this.setDefaultAccountAndNetwork()
+    //   this.updateStorageWallet(this.session)
+    //   return undefined
+    // }
+
+    const lastIndex = signClient.session.keys.length - 1
+
+    if (lastIndex > -1) {
+      this.session = signClient.session.get(signClient.session.keys[lastIndex])
+
       this.updateStorageWallet(this.session)
+      this.setDefaultAccountAndNetwork()
+
       return undefined
     }
 
@@ -643,7 +657,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         if (session?.controller !== this.session?.controller) {
           logger.debug('Controller doesnt match, closing active session', [session.pairingTopic])
-          this.activeAccount && this.closeActiveSession(this.activeAccount)
+          this.activeAccount && this.closeActiveSession(this.activeAccount, false)
           this.session = undefined // close the previous session
         }
 
@@ -895,19 +909,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     )
   }
 
-  // private async clearCache() {
-  //   const signClient = await this.getSignClient()
-  //   signClient?.proposal.map.clear()
-  //   signClient?.pendingRequest.map.clear()
-  //   signClient?.session.map.clear()
-  //   ;(signClient?.core.expirer as Expirer).expirations.clear()
-  //   signClient?.core.history.records.clear()
-  //   signClient?.core.crypto.keychain.keychain.clear()
-  //   signClient?.core.relayer.messages.messages.clear()
-  //   signClient?.core.pairing.pairings.map.clear()
-  //   signClient?.core.relayer.subscriber.subscriptions.clear()
-  // }
-
   private async closePairings() {
     await this.closeSessions()
     const signClient = await this.getSignClient()
@@ -916,11 +917,18 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const pairings = signClient.pairing.getAll() ?? []
       pairings.length &&
         (await Promise.allSettled(
-          pairings.map((pairing) => signClient.core.pairing.disconnect({ topic: pairing.topic }))
+          pairings.map((pairing) =>
+            signClient.disconnect({
+              topic: pairing.topic,
+              reason: {
+                code: 0, // TODO: Use constants
+                message: 'Force new connection'
+              }
+            })
+          )
         ))
     }
 
-    // await this.clearCache()
     await this.storage.resetState()
     this.storage.notify('RESET')
   }
@@ -947,9 +955,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.clearState()
   }
 
-  private async openSession(pairingTopic?: string): Promise<SessionTypes.Struct> {
+  private async openSession(): Promise<SessionTypes.Struct> {
+    const signClient = (await this.getSignClient())!
+    const pairingTopic = signClient.core.pairing.getPairings()[0]?.topic
+
     logger.debug('Starting open session with', [pairingTopic])
-    const signClient = await this.getSignClient()
 
     if (!signClient) {
       throw new Error('Transport error.')
@@ -977,12 +987,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
       },
-      pairingTopic: pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
+      pairingTopic
     }
 
     logger.debug('Checking wallet readiness', [pairingTopic])
 
-    this.checkWalletReadiness(connectParams.pairingTopic)
+    this.checkWalletReadiness(pairingTopic)
 
     try {
       logger.debug('connect', [pairingTopic])
@@ -993,7 +1003,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // if I have successfully opened a session and I already have one opened
       if (session?.controller !== this.session?.controller) {
         logger.debug('Controller doesnt match, closing active session', [pairingTopic])
-        this.activeAccount && this.closeActiveSession(this.activeAccount)
+        this.activeAccount && this.closeActiveSession(this.activeAccount, false)
         this.session = undefined // close the previous session
       }
 
@@ -1019,7 +1029,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
           fun && fun('error')
         } else {
-          const _pairingTopic = pairingTopic ?? signClient.core.pairing.getPairings()[0]?.topic
           logger.debug('New pairing topic?', [pairingTopic])
 
           const errorResponse: ErrorResponseInput = {
@@ -1028,7 +1037,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
             errorType: BeaconErrorType.ABORTED_ERROR
           } as ErrorResponse
 
-          this.notifyListeners(_pairingTopic, errorResponse)
+          this.notifyListeners(pairingTopic, errorResponse)
         }
       }
     }
@@ -1174,7 +1183,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
   }
 
-  async closeActiveSession(account: string) {
+  async closeActiveSession(account: string, notify: boolean = true) {
     try {
       this.validateNetworkAndAccount(this.getActiveNetwork(), account)
     } catch (error: any) {
@@ -1184,7 +1193,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     const session = this.getSession()
 
-    if (this.messageIds.length) {
+    if (notify && this.messageIds.length) {
       const errorResponse: any = {
         type: BeaconMessageType.Disconnect,
         id: this.messageIds.pop(),
@@ -1308,7 +1317,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private async getSignClient(): Promise<Client | undefined> {
     if (this.signClient === undefined) {
       try {
-        this.signClient = await SignClient.init(this.wcOptions.opts)
+        this.signClient = await Client.init(this.wcOptions.opts)
         this.subscribeToSessionEvents(this.signClient)
       } catch (error: any) {
         logger.error(error.message)

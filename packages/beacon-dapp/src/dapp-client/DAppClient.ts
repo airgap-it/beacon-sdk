@@ -69,7 +69,8 @@ import {
   SimulatedProofOfEventChallengeRequestInput,
   SimulatedProofOfEventChallengeRequest,
   SimulatedProofOfEventChallengeResponse,
-  RequestSimulatedProofOfEventChallengeInput
+  RequestSimulatedProofOfEventChallengeInput,
+  TransportStatus
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -1341,7 +1342,6 @@ export class DAppClient extends Client {
     logger.log('requestPermissions', JSON.stringify(accountInfo))
 
     await this.accountManager.addAccount(accountInfo)
-    await this.setActiveAccount(accountInfo)
 
     const output: PermissionResponseOutput = {
       ...message,
@@ -2328,12 +2328,23 @@ export class DAppClient extends Client {
   }
 
   public async disconnect() {
+    if (!this._transport.isResolved()) {
+      throw new Error('No transport available.')
+    }
+
+    const transport = await this.transport
+
+    if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
+      throw new Error('Not connected.')
+    }
+
     await this.createStateSnapshot()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
-    await Promise.all([this.clearActiveAccount(), (await this.transport).disconnect()])
+    await this.clearActiveAccount()
+    await transport.disconnect()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 
