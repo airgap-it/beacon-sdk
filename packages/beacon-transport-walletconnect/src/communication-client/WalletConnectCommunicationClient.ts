@@ -165,15 +165,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.clearEvents()
     this.signClient = undefined
 
-    const client = await this.getSignClient()
-    const sessions = client?.session.getAll() ?? []
+    const client = (await this.getSignClient())!
+    const lastIndex = client.session.keys.length - 1
 
-    try {
-      this.session =
-        sessions?.find((el) => el.topic === this.session?.topic) ?? sessions[0] ?? this.session
-      this.session && (this.activeAccount = this.getAccounts()[0])
-    } catch (err: any) {
-      logger.error('refreshState', err.message)
+    if (lastIndex > -1) {
+      this.session = client.session.get(client.session.keys[lastIndex])
+
+      this.subscribeToSessionEvents(client)
+      this.updateStorageWallet(this.session)
+      this.setDefaultAccountAndNetwork()
+    } else {
+      this.clearState()
     }
   }
 
