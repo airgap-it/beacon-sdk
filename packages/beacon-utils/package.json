@@ -39,5 +39,8 @@
     "@stablelib/random": "^1.0.2",
     "@stablelib/utf8": "^1.0.1",
     "bs58check": "2.1.2"
+  },
+  "devDependencies": {
+    "@types/bs58check": "2.1.2"
   }
 }
