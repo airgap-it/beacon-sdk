@@ -163,7 +163,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   private async refreshState() {
     this.clearEvents()
-    this.signClient = undefined
+    await this.closeSignClient()
 
     const client = (await this.getSignClient())!
     const lastIndex = client.session.keys.length - 1
@@ -219,6 +219,24 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   async unsubscribeFromEncryptedMessage(_senderPublicKey: string): Promise<void> {
     // implementation
+  }
+
+  private async closeSignClient() {
+    if (!this.signClient) {
+      logger.error('No client active')
+      return
+    }
+
+    await this.signClient.core.relayer.transportClose()
+    this.signClient.core.events.removeAllListeners()
+    this.signClient.core.relayer.events.removeAllListeners()
+    this.signClient.core.heartbeat.stop()
+    this.signClient.core.relayer.provider.events.removeAllListeners()
+    this.signClient.core.relayer.subscriber.events.removeAllListeners()
+    this.signClient.core.relayer.provider.connection.events.removeAllListeners()
+    this.clearEvents()
+
+    this.signClient = undefined
   }
 
   private async ping() {
@@ -563,14 +581,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       fun && fun()
       return
     }
-
-    // const sessions = signClient.session.getAll()
-    // if (sessions && sessions.length > 0) {
-    //   this.session = sessions[0]
-    //   this.setDefaultAccountAndNetwork()
-    //   this.updateStorageWallet(this.session)
-    //   return undefined
-    // }
 
     const lastIndex = signClient.session.keys.length - 1
 
