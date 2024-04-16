@@ -16,8 +16,22 @@ export class IndexedDBStorage extends Storage {
       .catch((err) => logger.error(err.message))
   }
 
+  private isIndexedDBSupported() {
+    if ('indexedDB' in window) {
+      console.log('IndexedDB is supported in this browser.')
+      return true
+    } else {
+      console.log('IndexedDB is not supported in this browser.')
+      return false
+    }
+  }
+
   private async initDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
+      if (!this.isIndexedDBSupported()) {
+        reject('IndexedDB is not supported.')
+      }
+
       const request = indexedDB.open(this.dbName)
       request.onupgradeneeded = (event) => {
         const request = event.target as IDBOpenDBRequest
@@ -36,6 +50,11 @@ export class IndexedDBStorage extends Storage {
     operation: (store: IDBObjectStore) => Promise<T>
   ): Promise<T> {
     return new Promise((resolve, reject) => {
+      if (!this.db?.objectStoreNames.contains(this.storeName)) {
+        logger.error(`${this.storeName} not found.`)
+        return
+      }
+
       const transaction = this.db?.transaction(this.storeName, mode)
       const objectStore = transaction?.objectStore(this.storeName)
       objectStore && operation(objectStore).then(resolve).catch(reject)
@@ -162,6 +181,12 @@ export class IndexedDBStorage extends Storage {
           getAllKeysRequest.onsuccess = async () => {
             const items = getAllRequest.result
             const keys = getAllKeysRequest.result
+
+            if (!targetDB.objectStoreNames.contains(targetStoreName)) {
+              logger.error(`${this.storeName} not found.`)
+              return
+            }
+
             const targetTransaction = targetDB.transaction(targetStoreName, 'readwrite')
             const targetStore = targetTransaction.objectStore(targetStoreName)
 
@@ -178,7 +203,7 @@ export class IndexedDBStorage extends Storage {
             }
           }
         }
-        
+
         getAllKeysRequest.onerror = () => {
           console.error('Failed to getAllKeys from source:', getAllKeysRequest.error)
           reject(getAllRequest.error)
