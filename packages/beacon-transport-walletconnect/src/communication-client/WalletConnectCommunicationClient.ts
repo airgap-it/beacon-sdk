@@ -162,7 +162,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * differ from a wallet state
    */
   private async refreshState() {
-    this.clearEvents()
     await this.closeSignClient()
 
     const client = (await this.getSignClient())!
