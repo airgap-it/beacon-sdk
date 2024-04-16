@@ -939,6 +939,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         ))
     }
 
+    await this.closeSignClient()
     await this.storage.resetState()
     this.storage.notify('RESET')
   }
