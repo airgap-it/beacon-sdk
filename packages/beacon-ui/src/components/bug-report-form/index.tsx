@@ -1,8 +1,10 @@
-import { IndexedDBStorage, SDK_VERSION } from '@airgap/beacon-core'
+import { IndexedDBStorage, Logger, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
 import { For, createEffect, createSignal } from 'solid-js'
 import styles from './styles.css'
 import { currentBrowser, currentOS } from '../../utils/platform'
+
+const logger = new Logger('BugReport')
 
 interface StorageObject {
   [key: string]: string | null
@@ -35,6 +37,7 @@ const BugReportForm = (props: any) => {
   const [didUserAllow, setDidUserAllow] = createSignal(false)
   const [status, setStatus] = createSignal<'success' | 'error' | null>(null)
   const [showThankYou, setShowThankYou] = createSignal(false)
+  const db = new IndexedDBStorage('beacon', 'bug_report')
 
   const isTitleValid = () => {
     const check = title().replace(/ /gi, '').length > 10
@@ -62,15 +65,14 @@ const BugReportForm = (props: any) => {
   const indexDBToMetadata = async () => {
     const wcResult: StorageObject = {}
     const beaconResult: StorageObject = {}
-    const db = new IndexedDBStorage('beacon', 'bug_report')
     let keys: string[] = []
     let values: string[] = []
 
     try {
       keys = (await db.getAllKeys()).map((key) => key.toString())
-      values = (await db.getAll()).map((value) => value.toString())
+      values = await db.getAll()
     } catch (error: any) {
-      console.error(error.message)
+      logger.error('indexDBToMetadata', 'getAll failed: ', error.message)
       return [beaconResult, wcResult]
     }
 
