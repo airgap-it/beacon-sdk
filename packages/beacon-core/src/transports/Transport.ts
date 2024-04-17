@@ -63,7 +63,7 @@ export abstract class Transport<
   /**
    * The listeners that will be notified when new messages are coming in
    */
-  private listeners: ((message: unknown, connectionInfo: ConnectionContext) => void)[] = []
+  protected listeners: ((message: unknown, connectionInfo: ConnectionContext) => void)[] = []
 
   /**
    * Return the status of the connection

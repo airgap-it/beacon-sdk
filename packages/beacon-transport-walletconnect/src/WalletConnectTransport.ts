@@ -120,7 +120,7 @@ export class WalletConnectTransport<
 
   public async disconnect(): Promise<void> {
     await this.client.close()
-
+    this.listeners = []
     return super.disconnect()
   }
 
