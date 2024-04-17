@@ -18,7 +18,7 @@ export class IndexedDBStorage extends Storage {
   }
 
   private isIndexedDBSupported() {
-    if ('indexedDB' in window) {
+    if (typeof window !== 'undefined' && 'indexedDB' in window) {
       logger.log('isIndexedDBSupported', 'IndexedDB is supported in this browser.')
       return true
     } else {
