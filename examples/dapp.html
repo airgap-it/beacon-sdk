@@ -275,7 +275,8 @@
         })
       }
 
-      client.subscribeToEvent('ACTIVE_ACCOUNT_SET', () => {
+      client.subscribeToEvent('ACTIVE_ACCOUNT_SET', (activeAccount) => {
+        console.log('ACTIVE_ACCOUNT_SET', activeAccount)
         updateActiveAccount()
       })
 
