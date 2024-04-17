@@ -202,7 +202,7 @@
 
       // WC no matching key/topic errors override
       window.addEventListener('unhandledrejection', function (e) {
-        x.error('Error occurred: ' + e.reason.message)
+        x.error('Error occurred: ' + e.message)
       })
 
       // Initiate DAppClient
