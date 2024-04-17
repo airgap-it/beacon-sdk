@@ -706,7 +706,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   public async close() {
-    await this.storage.backup()
+    this.storage.backup()
     await this.closePairings()
   }
 
