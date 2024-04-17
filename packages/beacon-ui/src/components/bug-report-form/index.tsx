@@ -63,18 +63,21 @@ const BugReportForm = (props: any) => {
     const wcResult: StorageObject = {}
     const beaconResult: StorageObject = {}
     const db = new IndexedDBStorage('beacon', 'bug_report')
+    let keys: string[] = []
+    let values: string[] = []
 
     try {
-      const keys = (await db.getAllKeys()).map((key) => key.toString())
-      for (const key of keys) {
-        if (key.includes('beacon')) {
-          beaconResult[key] = (await db.get(key as StorageKey)) as string
-        } else {
-          wcResult[key] = (await db.get(key as StorageKey)) as string
-        }
-      }
+      keys = (await db.getAllKeys()).map((key) => key.toString())
+      values = (await db.getAll()).map((value) => value.toString())
     } catch (error: any) {
       console.error(error.message)
+      return [beaconResult, wcResult]
+    }
+
+    if (keys.length && values.length && keys.length === values.length) {
+      keys.forEach(
+        (key, i) => ((key.includes('beacon') ? beaconResult : wcResult)[key] = values[i])
+      )
     }
 
     return [beaconResult, wcResult]

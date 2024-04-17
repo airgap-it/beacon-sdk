@@ -5,6 +5,7 @@ const logger = new Logger('IndexedDBStorage')
 
 export class IndexedDBStorage extends Storage {
   private db: IDBDatabase | null = null
+  private isSupported: boolean = true
 
   constructor(
     private readonly dbName: string = 'WALLET_CONNECT_V2_INDEXED_DB',
@@ -18,17 +19,18 @@ export class IndexedDBStorage extends Storage {
 
   private isIndexedDBSupported() {
     if ('indexedDB' in window) {
-      console.log('IndexedDB is supported in this browser.')
+      logger.log('isIndexedDBSupported', 'IndexedDB is supported in this browser.')
       return true
     } else {
-      console.log('IndexedDB is not supported in this browser.')
+      logger.error('isIndexedDBSupported', 'IndexedDB is not supported in this browser.')
       return false
     }
   }
 
   private async initDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      if (!this.isIndexedDBSupported()) {
+      this.isSupported = this.isIndexedDBSupported()
+      if (!this.isSupported) {
         reject('IndexedDB is not supported.')
       }
 
@@ -50,9 +52,12 @@ export class IndexedDBStorage extends Storage {
     operation: (store: IDBObjectStore) => Promise<T>
   ): Promise<T> {
     return new Promise((resolve, reject) => {
+      if (!this.isSupported) {
+        reject('IndexedDB is not supported.')
+      }
+
       if (!this.db?.objectStoreNames.contains(this.storeName)) {
-        logger.error(`${this.storeName} not found.`)
-        return
+        reject(`${this.storeName} not found. error: ${new Error().stack}`)
       }
 
       const transaction = this.db?.transaction(this.storeName, mode)
@@ -156,11 +161,16 @@ export class IndexedDBStorage extends Storage {
    * @param targetStoreName the name of the target store
    * @param skipKeys all the keys to ignore
    */
-  public async populateStore(
+  public async fillStore(
     targetDBName: string,
     targetStoreName: string,
     skipKeys: string[] = []
   ): Promise<void> {
+    if (!this.isSupported) {
+      logger.error('fillStore', 'IndexedDB not supported.')
+      return
+    }
+
     const targetDBRequest = indexedDB.open(targetDBName)
 
     targetDBRequest.onerror = (event: any) => {
@@ -176,43 +186,37 @@ export class IndexedDBStorage extends Storage {
     await this.transaction('readonly', async (sourceStore) => {
       const getAllRequest = sourceStore.getAll()
       const getAllKeysRequest = sourceStore.getAllKeys()
-      await new Promise<void>((resolve, reject) => {
-        getAllRequest.onsuccess = async () => {
-          getAllKeysRequest.onsuccess = async () => {
-            const items = getAllRequest.result
-            const keys = getAllKeysRequest.result
 
-            if (!targetDB.objectStoreNames.contains(targetStoreName)) {
-              logger.error(`${this.storeName} not found.`)
-              return
-            }
+      getAllRequest.onsuccess = async () => {
+        getAllKeysRequest.onsuccess = async () => {
+          const items = getAllRequest.result
+          const keys = getAllKeysRequest.result
 
-            const targetTransaction = targetDB.transaction(targetStoreName, 'readwrite')
-            const targetStore = targetTransaction.objectStore(targetStoreName)
+          if (!targetDB.objectStoreNames.contains(targetStoreName)) {
+            logger.error(`${this.storeName} not found. ${new Error().stack}`)
+            return
+          }
 
-            keys
-              .filter((key) => !skipKeys.includes(key.toString()))
-              .forEach((key, index) => {
-                targetStore.put(items[index], key)
-              })
+          const targetTransaction = targetDB.transaction(targetStoreName, 'readwrite')
+          const targetStore = targetTransaction.objectStore(targetStoreName)
 
-            targetTransaction.oncomplete = () => resolve()
-            targetTransaction.onerror = (event: any) => {
-              console.error('Transaction error: ', event.target.error)
-              reject(event.target.error)
-            }
+          keys
+            .filter((key) => !skipKeys.includes(key.toString()))
+            .forEach((key, index) => {
+              targetStore.put(items[index], key)
+            })
+
+          targetTransaction.onerror = (event: any) => {
+            logger.error('Transaction error: ', event.target.error)
           }
         }
-
-        getAllKeysRequest.onerror = () => {
-          console.error('Failed to getAllKeys from source:', getAllKeysRequest.error)
-          reject(getAllRequest.error)
-        }
-        getAllRequest.onerror = () => {
-          console.error('Failed to getAll from source:', getAllRequest.error)
-          reject(getAllRequest.error)
-        }
-      })
+      }
+      getAllKeysRequest.onerror = () => {
+        logger.error('Failed to getAllKeys from source:', getAllKeysRequest.error)
+      }
+      getAllRequest.onerror = () => {
+        logger.error('Failed to getAll from source:', getAllRequest.error)
+      }
     })
   }
 }

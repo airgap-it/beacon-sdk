@@ -481,15 +481,19 @@ export class DAppClient extends Client {
   }
 
   private async createStateSnapshot() {
-    if (!localStorage) {
+    if (!localStorage || !this.enableMetrics) {
       return
     }
     const keys = Object.values(StorageKey).filter(
       (key) => !key.includes('wc@2') && !key.includes('secret') && !key.includes('account')
     ) as unknown as StorageKey[]
 
-    for (const key of keys) {
-      this.bugReportStorage.set(key, await this.storage.get(key))
+    try {
+      for (const key of keys) {
+        await this.bugReportStorage.set(key, await this.storage.get(key))
+      }
+    } catch (err: any) {
+      logger.error('createStateSnapshot', err.message)
     }
   }
 
