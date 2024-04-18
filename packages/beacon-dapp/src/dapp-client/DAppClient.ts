@@ -426,8 +426,15 @@ export class DAppClient extends Client {
         }
       }
 
-      if (!this.openRequests.has('session_update')) {
-        this.openRequests.set('session_update', new ExposedPromise())
+      if (this._transport.isResolved()) {
+        const transport = await this.transport
+
+        if (
+          transport instanceof WalletConnectTransport &&
+          !this.openRequests.has('session_update')
+        ) {
+          this.openRequests.set('session_update', new ExposedPromise())
+        }
       }
     }
 
