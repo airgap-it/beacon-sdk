@@ -718,6 +718,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   public async close() {
     this.storage.backup()
     await this.closePairings()
+    this.activeListeners.clear()
+    this.channelOpeningListeners.clear()
   }
 
   private subscribeToSessionEvents(signClient: Client): void {

@@ -2348,12 +2348,12 @@ export class DAppClient extends Client {
 
     await this.createStateSnapshot()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
+    await this.clearActiveAccount()
     await this.cleanup()
+    await transport.disconnect()
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
-    await this.clearActiveAccount()
-    await transport.disconnect()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 
