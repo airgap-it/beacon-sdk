@@ -872,6 +872,7 @@ export class DAppClient extends Client {
       const peer = await this.getPeer(account)
       await this.setActivePeer(peer)
     } else {
+      await this.cleanup()
       await this.setActivePeer(undefined)
       await this.setTransport(undefined)
     }
@@ -2356,7 +2357,6 @@ export class DAppClient extends Client {
     await this.createStateSnapshot()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
     await this.clearActiveAccount()
-    await this.cleanup()
     await transport.disconnect()
     this.postMessageTransport = undefined
     this.p2pTransport = undefined

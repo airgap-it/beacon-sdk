@@ -93,9 +93,15 @@ export abstract class Client extends BeaconClient {
   }
 
   protected async cleanup() {
+    if (!this.subscriptions.length) {
+      return
+    }
+
     if (this._transport.isResolved()) {
       const transport = await this.transport
-      this.subscriptions.forEach((listener) => transport.removeListener(listener))
+      await Promise.all(
+        this.subscriptions.splice(0).map((listener) => transport.removeListener(listener))
+      )
     }
   }
 
