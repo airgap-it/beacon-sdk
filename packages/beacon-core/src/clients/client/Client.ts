@@ -1,4 +1,4 @@
-import { ExposedPromise, ExposedPromiseStatus, generateGUID } from '@airgap/beacon-utils'
+import { ExposedPromise, generateGUID } from '@airgap/beacon-utils'
 import {
   ConnectionContext,
   TransportType,
@@ -52,6 +52,11 @@ export abstract class Client extends BeaconClient {
 
   protected readonly matrixNodes: NodeDistributions
 
+  private readonly subscriptions: ((
+    message: any,
+    connectionInfo: ConnectionContext
+  ) => Promise<void>)[] = []
+
   protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
   protected get transport(): Promise<Transport<any>> {
     return this._transport.promise
@@ -84,6 +89,13 @@ export abstract class Client extends BeaconClient {
       throw new Error(
         `not overwritten${JSON.stringify(message)} - ${JSON.stringify(connectionInfo)}`
       )
+    }
+  }
+
+  protected async cleanup() {
+    if (this._transport.isResolved()) {
+      const transport = await this.transport
+      this.subscriptions.forEach((listener) => transport.removeListener(listener))
     }
   }
 
@@ -138,7 +150,7 @@ export abstract class Client extends BeaconClient {
    * @param transport A transport that can be provided by the user
    */
   public async init(transport: Transport<any>): Promise<TransportType> {
-    if (this._transport.status === ExposedPromiseStatus.RESOLVED) {
+    if (this._transport.isResolved()) {
       return (await this.transport).type
     }
 
@@ -174,8 +186,10 @@ export abstract class Client extends BeaconClient {
   }
 
   public async destroy(): Promise<void> {
-    if (this._transport.status === ExposedPromiseStatus.RESOLVED) {
-      await (await this.transport).disconnect()
+    if (this._transport.isResolved()) {
+      const transport = await this.transport
+      await this.cleanup()
+      await transport.disconnect()
     }
     await super.destroy()
   }
@@ -200,16 +214,18 @@ export abstract class Client extends BeaconClient {
   }
 
   protected async addListener(transport: Transport<any>): Promise<void> {
-    transport
-      .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
-        if (typeof message === 'string') {
-          const deserializedMessage = (await new Serializer().deserialize(
-            message
-          )) as BeaconRequestMessage
-          this.handleResponse(deserializedMessage, connectionInfo)
-        }
-      })
-      .catch((error) => logger.error('addListener', error))
+    const subscription = async (message: any, connectionInfo: ConnectionContext) => {
+      if (typeof message === 'string') {
+        const deserializedMessage = (await new Serializer().deserialize(
+          message
+        )) as BeaconRequestMessage
+        this.handleResponse(deserializedMessage, connectionInfo)
+      }
+    }
+
+    this.subscriptions.push(subscription)
+
+    transport.addListener(subscription).catch((error) => logger.error('addListener', error))
   }
 
   protected async sendDisconnectToPeer(peer: PeerInfo, transport?: Transport<any>): Promise<void> {
