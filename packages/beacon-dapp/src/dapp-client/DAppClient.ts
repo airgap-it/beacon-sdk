@@ -425,6 +425,10 @@ export class DAppClient extends Client {
           }
         }
       }
+
+      if (!this.openRequests.has('session_update')) {
+        this.openRequests.set('session_update', new ExposedPromise())
+      }
     }
 
     this.storageValidator
@@ -2349,6 +2353,7 @@ export class DAppClient extends Client {
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
     await this.clearActiveAccount()
+    await transport.disconnect()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 

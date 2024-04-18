@@ -323,7 +323,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private async notifyListenersWithPermissionResponse(
     session: SessionTypes.Struct,
-    network: Network
+    network: Network,
+    sessionEventId?: string
   ) {
     let publicKey: string | undefined
     if (
@@ -378,7 +379,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       publicKey,
       network,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
-      id: this.messageIds.pop() ?? '',
+      id: sessionEventId ?? this.messageIds.pop() ?? '',
       walletType: 'implicit'
     }
 
@@ -741,9 +742,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.session = session
 
       this.updateActiveAccount(event.params.namespaces)
-      this.notifyListenersWithPermissionResponse(this.session, {
-        type: this.wcOptions.network
-      })
+      this.notifyListenersWithPermissionResponse(
+        this.session,
+        {
+          type: this.wcOptions.network
+        },
+        'session_update'
+      )
     })
 
     signClient.on('session_delete', (event) => {
