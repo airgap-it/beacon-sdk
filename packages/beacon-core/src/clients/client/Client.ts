@@ -51,11 +51,12 @@ export abstract class Client extends BeaconClient {
   protected requestCounter: number[] = []
 
   protected readonly matrixNodes: NodeDistributions
-
   private readonly subscriptions: ((
     message: any,
     connectionInfo: ConnectionContext
   ) => Promise<void>)[] = []
+
+  private activeTransportListeners = new Set()
 
   protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
   protected get transport(): Promise<Transport<any>> {
@@ -91,7 +92,6 @@ export abstract class Client extends BeaconClient {
       )
     }
   }
-
   protected async cleanup() {
     if (!this.subscriptions.length) {
       return
@@ -220,6 +220,17 @@ export abstract class Client extends BeaconClient {
   }
 
   protected async addListener(transport: Transport<any>): Promise<void> {
+    // in beacon we subscribe to the transport on client init only
+    // unsubscribing from the transport is only beneficial when running
+    // a single page dApp.
+    // However while running a multiple tabs setup one of the dApps disconnects
+    // the others wont't recover until after a page refresh
+    if (this.activeTransportListeners.has(transport.type)) {
+      return
+    }
+
+    this.activeTransportListeners.add(transport.type)
+
     const subscription = async (message: any, connectionInfo: ConnectionContext) => {
       if (typeof message === 'string') {
         const deserializedMessage = (await new Serializer().deserialize(

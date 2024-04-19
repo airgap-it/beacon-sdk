@@ -465,7 +465,6 @@ export class WalletClient extends Client {
       await this.removePeer(peer as any)
     }
 
-    await this.cleanup()
     await transport.disconnect()
 
     return
