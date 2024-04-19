@@ -169,8 +169,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (lastIndex > -1) {
       this.session = client.session.get(client.session.keys[lastIndex])
-
-      this.subscribeToSessionEvents(client)
+      
       this.updateStorageWallet(this.session)
       this.setDefaultAccountAndNetwork()
     } else {
