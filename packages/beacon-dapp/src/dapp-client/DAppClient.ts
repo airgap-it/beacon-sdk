@@ -221,6 +221,8 @@ export class DAppClient extends Client {
 
   private readonly bugReportStorage = new IndexedDBStorage('beacon', 'bug_report')
 
+  private debounceEventResponse: boolean = false
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -353,6 +355,7 @@ export class DAppClient extends Client {
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
           } else if (typedMessage.message?.type === BeaconMessageType.ChangeAccountRequest) {
+            console.log('onNewAccount called.', 1)
             await this.onNewAccount(typedMessage.message as ChangeAccountRequest, connectionInfo)
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
@@ -419,7 +422,11 @@ export class DAppClient extends Client {
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
           } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
-            await this.onNewAccount(typedMessage, connectionInfo)
+            if (!this.debounceEventResponse) {
+              this.debounceEventResponse = true
+              await this.onNewAccount(typedMessage, connectionInfo)
+              this.debounceEventResponse = false
+            }
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
@@ -2452,7 +2459,7 @@ export class DAppClient extends Client {
     const tempPK: string | undefined =
       message.publicKey || (message as any).pubkey || (message as any).pubKey
 
-    const publicKey = !!tempPK ? await prefixPublicKey(tempPK) : undefined
+    const publicKey = !!tempPK ? prefixPublicKey(tempPK) : undefined
 
     if (!publicKey && !message.address) {
       throw new Error('PublicKey or Address must be defined')
