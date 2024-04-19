@@ -51,12 +51,11 @@ export abstract class Client extends BeaconClient {
   protected requestCounter: number[] = []
 
   protected readonly matrixNodes: NodeDistributions
-  private readonly subscriptions: ((
-    message: any,
-    connectionInfo: ConnectionContext
-  ) => Promise<void>)[] = []
 
-  private activeTransportListeners = new Set()
+  private transportListeners: Map<
+    TransportType,
+    (message: any, connectionInfo: ConnectionContext) => Promise<void>
+  > = new Map()
 
   protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
   protected get transport(): Promise<Transport<any>> {
@@ -93,15 +92,18 @@ export abstract class Client extends BeaconClient {
     }
   }
   protected async cleanup() {
-    if (!this.subscriptions.length) {
+    if (!this.transportListeners.size) {
       return
     }
 
     if (this._transport.isResolved()) {
       const transport = await this.transport
       await Promise.all(
-        this.subscriptions.splice(0).map((listener) => transport.removeListener(listener))
+        Array.from(this.transportListeners.values()).map((listener) =>
+          transport.removeListener(listener)
+        )
       )
+      this.transportListeners.clear()
     }
   }
 
@@ -225,11 +227,10 @@ export abstract class Client extends BeaconClient {
     // a single page dApp.
     // However while running a multiple tabs setup one of the dApps disconnects
     // the others wont't recover until after a page refresh
-    if (this.activeTransportListeners.has(transport.type)) {
-      return
-    }
 
-    this.activeTransportListeners.add(transport.type)
+    if (this.transportListeners.has(transport.type)) {
+      await transport.removeListener(this.transportListeners.get(transport.type)!)
+    }
 
     const subscription = async (message: any, connectionInfo: ConnectionContext) => {
       if (typeof message === 'string') {
@@ -240,7 +241,7 @@ export abstract class Client extends BeaconClient {
       }
     }
 
-    this.subscriptions.push(subscription)
+    this.transportListeners.set(transport.type, subscription)
 
     transport.addListener(subscription).catch((error) => logger.error('addListener', error))
   }
