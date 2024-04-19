@@ -862,27 +862,19 @@ export class DAppClient extends Client {
 
       // Select the transport that matches the active account
       if (origin === Origin.EXTENSION) {
-        if (
-          this.postMessageTransport &&
-          this.postMessageTransport.connectionStatus !== TransportStatus.CONNECTED
-        ) {
-          await this.postMessageTransport.connect()
-        }
         await this.setTransport(this.postMessageTransport)
       } else if (origin === Origin.P2P) {
-        if (this.p2pTransport && this.p2pTransport.connectionStatus !== TransportStatus.CONNECTED) {
-          await this.p2pTransport.connect()
-        }
         await this.setTransport(this.p2pTransport)
       } else if (origin === Origin.WALLETCONNECT) {
-        if (
-          this.walletConnectTransport &&
-          this.walletConnectTransport.connectionStatus !== TransportStatus.CONNECTED
-        ) {
-          await this.walletConnectTransport.connect()
-        }
         await this.setTransport(this.walletConnectTransport)
         this.walletConnectTransport?.forceUpdate('INIT')
+      }
+      if (this._transport.isResolved()) {
+        const transport = await this.transport
+
+        if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
+          await transport.connect()
+        }
       }
       const peer = await this.getPeer(account)
       await this.setActivePeer(peer)
