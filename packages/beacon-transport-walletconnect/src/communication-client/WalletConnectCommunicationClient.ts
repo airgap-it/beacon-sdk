@@ -743,14 +743,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       this.session = session
 
-      this.updateActiveAccount(event.params.namespaces)
-      this.notifyListenersWithPermissionResponse(
-        this.session,
-        {
-          type: this.wcOptions.network
-        },
-        'session_update'
-      )
+      this.updateActiveAccount(event.params.namespaces, session)
     })
 
     signClient.on('session_delete', (event) => {
@@ -782,7 +775,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.notifyListeners(this.getTopicFromSession(session), acknowledgeResponse)
   }
 
-  private async updateActiveAccount(namespaces: SessionTypes.Namespaces) {
+  private async updateActiveAccount(
+    namespaces: SessionTypes.Namespaces,
+    session: SessionTypes.Struct
+  ) {
     try {
       const accounts = this.getTezosNamespace(namespaces).accounts
       if (accounts.length) {
@@ -814,6 +810,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
           walletType: 'implicit'
         })
+      } else {
+        this.notifyListenersWithPermissionResponse(
+          session,
+          {
+            type: this.wcOptions.network
+          },
+          'session_update'
+        )
       }
     } catch {}
   }
