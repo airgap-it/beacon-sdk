@@ -225,7 +225,7 @@ export abstract class Client extends BeaconClient {
     // in beacon we subscribe to the transport on client init only
     // unsubscribing from the transport is only beneficial when running
     // a single page dApp.
-    // However while running a multiple tabs setup one of the dApps disconnects
+    // However, while running a multiple tabs setup, if one of the dApps disconnects
     // the others wont't recover until after a page refresh
 
     if (this.transportListeners.has(transport.type)) {
