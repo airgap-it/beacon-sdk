@@ -355,7 +355,6 @@ export class DAppClient extends Client {
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
           } else if (typedMessage.message?.type === BeaconMessageType.ChangeAccountRequest) {
-            console.log('onNewAccount called.', 1)
             await this.onNewAccount(typedMessage.message as ChangeAccountRequest, connectionInfo)
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
