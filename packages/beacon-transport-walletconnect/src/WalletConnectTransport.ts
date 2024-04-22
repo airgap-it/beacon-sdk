@@ -9,7 +9,8 @@ import {
   StorageKey,
   WalletConnectPairingRequest,
   NetworkType,
-  AccountInfo
+  AccountInfo,
+  TransportType
 } from '@airgap/beacon-types'
 import { Transport, PeerManager } from '@airgap/beacon-core'
 import { SignClientTypes } from '@walletconnect/types'
@@ -24,7 +25,7 @@ export class WalletConnectTransport<
   T extends WalletConnectPairingRequest | ExtendedWalletConnectPairingResponse,
   K extends StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP
 > extends Transport<T, K, WalletConnectCommunicationClient> {
-  // public readonly type: TransportType = TransportType.WALLETCONNECT
+  public readonly type: TransportType = TransportType.WALLETCONNECT
 
   constructor(
     name: string,

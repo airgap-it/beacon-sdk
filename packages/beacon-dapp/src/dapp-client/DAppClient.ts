@@ -221,6 +221,8 @@ export class DAppClient extends Client {
 
   private readonly bugReportStorage = new IndexedDBStorage('beacon', 'bug_report')
 
+  private debounceEventResponse: boolean = false
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -419,10 +421,25 @@ export class DAppClient extends Client {
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
           } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
-            await this.onNewAccount(typedMessage, connectionInfo)
+            if (!this.debounceEventResponse) {
+              this.debounceEventResponse = true
+              await this.onNewAccount(typedMessage, connectionInfo)
+              this.debounceEventResponse = false
+            }
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
+        }
+      }
+
+      if (this._transport.isResolved()) {
+        const transport = await this.transport
+
+        if (
+          transport instanceof WalletConnectTransport &&
+          !this.openRequests.has('session_update')
+        ) {
+          this.openRequests.set('session_update', new ExposedPromise())
         }
       }
     }
@@ -606,6 +623,13 @@ export class DAppClient extends Client {
     await this.destroy()
   }
 
+  /**
+   * Destroy the instance.
+   * 
+   * WARNING: Call `destroy` whenever you no longer need dAppClient,
+   * as it frees internal subscriptions to the transport and therefore the instance may no longer work properly.
+   * If you wish to disconnect your dApp, use `disconnect` instead.
+   */
   async destroy(): Promise<void> {
     await this.createStateSnapshot()
     await super.destroy()
@@ -857,6 +881,13 @@ export class DAppClient extends Client {
       } else if (origin === Origin.WALLETCONNECT) {
         await this.setTransport(this.walletConnectTransport)
         this.walletConnectTransport?.forceUpdate('INIT')
+      }
+      if (this._transport.isResolved()) {
+        const transport = await this.transport
+
+        if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
+          await transport.connect()
+        }
       }
       const peer = await this.getPeer(account)
       await this.setActivePeer(peer)
@@ -2344,11 +2375,11 @@ export class DAppClient extends Client {
 
     await this.createStateSnapshot()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
+    await this.clearActiveAccount()
+    await transport.disconnect()
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
-    await this.clearActiveAccount()
-    await transport.disconnect()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 
@@ -2434,7 +2465,7 @@ export class DAppClient extends Client {
     const tempPK: string | undefined =
       message.publicKey || (message as any).pubkey || (message as any).pubKey
 
-    const publicKey = !!tempPK ? await prefixPublicKey(tempPK) : undefined
+    const publicKey = !!tempPK ? prefixPublicKey(tempPK) : undefined
 
     if (!publicKey && !message.address) {
       throw new Error('PublicKey or Address must be defined')
