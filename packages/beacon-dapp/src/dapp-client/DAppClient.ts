@@ -624,6 +624,12 @@ export class DAppClient extends Client {
     await this.destroy()
   }
 
+  /**
+   * Destroy the instance.
+   * WARNING: Call `destroy` whenever you no longer need dAppClient,
+   * as it frees internal subscriptions to the transport and therefore the instance may no longer work properly.
+   * If you wish to disconnect your dApp, use `disconnect` instead.
+   */
   async destroy(): Promise<void> {
     await this.createStateSnapshot()
     await super.destroy()
