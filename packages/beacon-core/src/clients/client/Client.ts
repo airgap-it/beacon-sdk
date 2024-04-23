@@ -198,6 +198,9 @@ export abstract class Client extends BeaconClient {
       const transport = await this.transport
       await this.cleanup()
       await transport.disconnect()
+      if (transport.type === TransportType.WALLETCONNECT) {
+        await (transport as any).doClientCleanup() // any because I cannot import type definition
+      }
     }
     await super.destroy()
   }

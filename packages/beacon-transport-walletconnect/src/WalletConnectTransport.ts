@@ -129,6 +129,10 @@ export class WalletConnectTransport<
     //
   }
 
+  async doClientCleanup() {
+    await this.client.unsubscribeFromEncryptedMessages()
+  }
+
   public getPairingRequestInfo(): Promise<any> {
     return this.client.getPairingRequestInfo()
   }
