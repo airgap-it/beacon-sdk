@@ -169,7 +169,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (lastIndex > -1) {
       this.session = client.session.get(client.session.keys[lastIndex])
-      
+
       this.updateStorageWallet(this.session)
       this.setDefaultAccountAndNetwork()
     } else {
@@ -588,6 +588,22 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       this.updateStorageWallet(this.session)
       this.setDefaultAccountAndNetwork()
+
+      const accounts = this.getTezosNamespace(this.session.namespaces).accounts
+      const [_namespace, chainId, address] = accounts[0].split(':', 3)
+
+      new Promise((resolve) => {
+        setTimeout(resolve, 500)
+      }).then(async () => {
+        this.notifyListeners(this.getTopicFromSession(this.session!), {
+          id: await generateGUID(),
+          type: BeaconMessageType.ChangeAccountRequest,
+          address,
+          network: { type: chainId as NetworkType },
+          scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
+          walletType: 'implicit'
+        })
+      })
 
       return undefined
     }
