@@ -169,7 +169,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (lastIndex > -1) {
       this.session = client.session.get(client.session.keys[lastIndex])
-      
       this.updateStorageWallet(this.session)
       this.setDefaultAccountAndNetwork()
     } else {
@@ -212,7 +211,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   async unsubscribeFromEncryptedMessages(): Promise<void> {
-    // implementation
+    this.activeListeners.clear()
+    this.channelOpeningListeners.clear()
   }
 
   async unsubscribeFromEncryptedMessage(_senderPublicKey: string): Promise<void> {
@@ -585,7 +585,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (lastIndex > -1) {
       this.session = signClient.session.get(signClient.session.keys[lastIndex])
-
       this.updateStorageWallet(this.session)
       this.setDefaultAccountAndNetwork()
 
@@ -717,8 +716,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   public async close() {
     this.storage.backup()
     await this.closePairings()
-    this.activeListeners.clear()
-    this.channelOpeningListeners.clear()
   }
 
   private subscribeToSessionEvents(signClient: Client): void {
