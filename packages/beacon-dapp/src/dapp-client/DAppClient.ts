@@ -469,7 +469,26 @@ export class DAppClient extends Client {
         }
 
         if (account && account.origin.type !== 'p2p') {
-          this.init()
+          await this.init()
+
+          if (this._transport.isResolved()) {
+            const transport = await this.transport
+
+            if (transport instanceof WalletConnectTransport) {
+              await new Promise((resolve) => {
+                setTimeout(resolve, 500)
+              })
+              const partial = await transport.getPartialAccountInfo()
+              if (!partial) {
+                return
+              }
+              const newAccount = await this.accountManager.updateAccount(
+                account.accountIdentifier,
+                partial
+              )
+              this.setActiveAccount(newAccount)
+            }
+          }
         }
       })
       .catch((err) => logger.error(err.message))
@@ -625,7 +644,7 @@ export class DAppClient extends Client {
 
   /**
    * Destroy the instance.
-   * 
+   *
    * WARNING: Call `destroy` whenever you no longer need dAppClient,
    * as it frees internal subscriptions to the transport and therefore the instance may no longer work properly.
    * If you wish to disconnect your dApp, use `disconnect` instead.

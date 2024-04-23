@@ -1,7 +1,6 @@
 import { KeyPair } from '@stablelib/ed25519'
 import { WalletConnectCommunicationClient } from './communication-client/WalletConnectCommunicationClient'
 import {
-  ConnectionContext,
   Origin,
   Storage,
   TransportStatus,
@@ -10,7 +9,8 @@ import {
   WalletConnectPairingRequest,
   NetworkType,
   AccountInfo,
-  TransportType
+  TransportType,
+  ConnectionContext
 } from '@airgap/beacon-types'
 import { Transport, PeerManager } from '@airgap/beacon-core'
 import { SignClientTypes } from '@walletconnect/types'
@@ -63,6 +63,10 @@ export class WalletConnectTransport<
     await this.startOpenChannelListener()
 
     return super.connect()
+  }
+
+  async getPartialAccountInfo() {
+    return this.client.getPartialAccountInfo()
   }
 
   wasDisconnectedByWallet() {

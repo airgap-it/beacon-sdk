@@ -19,6 +19,7 @@ import {
   NotConnected
 } from '../error'
 import {
+  AccountInfo,
   AcknowledgeResponseInput,
   BeaconBaseMessage,
   BeaconErrorType,
@@ -563,6 +564,38 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(selectedWallet))
   }
 
+  async getPartialAccountInfo(): Promise<Partial<AccountInfo> | undefined> {
+    if (!this.session) {
+      return
+    }
+
+    const client = await this.getSignClient()
+
+    if (!client) {
+      return
+    }
+
+    const lastIndex = client.session.keys.length - 1
+
+    if (lastIndex === -1) {
+      return
+    }
+
+    this.session = client.session.get(client.session.keys[lastIndex])
+
+    const accounts = this.getTezosNamespace(this.session.namespaces).accounts
+    const [_namespace, _chainId, address] = accounts[0].split(':', 3)
+
+    this.notifyListenersWithPermissionResponse(this.session, { type: this.wcOptions.network })
+
+    return {
+      address,
+      scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
+      network: { type: this.wcOptions.network },
+      publicKey: this.session.peer.publicKey
+    }
+  }
+
   public async init(
     forceNewConnection: boolean = false
   ): Promise<{ uri: string; topic: string } | undefined> {
@@ -581,6 +614,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
+    console.log('init session getAll', signClient.session.getAll())
+
     const lastIndex = signClient.session.keys.length - 1
 
     if (lastIndex > -1) {
@@ -588,22 +623,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       this.updateStorageWallet(this.session)
       this.setDefaultAccountAndNetwork()
-
-      const accounts = this.getTezosNamespace(this.session.namespaces).accounts
-      const [_namespace, chainId, address] = accounts[0].split(':', 3)
-
-      new Promise((resolve) => {
-        setTimeout(resolve, 500)
-      }).then(async () => {
-        this.notifyListeners(this.getTopicFromSession(this.session!), {
-          id: await generateGUID(),
-          type: BeaconMessageType.ChangeAccountRequest,
-          address,
-          network: { type: chainId as NetworkType },
-          scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
-          walletType: 'implicit'
-        })
-      })
 
       return undefined
     }
@@ -655,7 +674,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         }
       })
       .catch((err) => {
-        console.error('--------', err)
+        logger.error('--------', err)
       })
 
     approval()
@@ -931,7 +950,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       _uri = uri
       _topic = topic
     } catch (error: any) {
-      console.warn(error.message)
+      logger.warn(error.message)
     }
 
     return new ExtendedWalletConnectPairingRequest(
