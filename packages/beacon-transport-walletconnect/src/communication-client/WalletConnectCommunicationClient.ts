@@ -797,7 +797,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         }
 
         if (!publicKey && !address) {
-          throw new Error('Public key for the new account not provided')
+          throw new Error('Public key or address for the new account not provided')
         }
 
         this.notifyListeners(this.getTopicFromSession(session), {
