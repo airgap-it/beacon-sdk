@@ -65,10 +65,6 @@ export class WalletConnectTransport<
     return super.connect()
   }
 
-  async getPartialAccountInfo() {
-    return this.client.getPartialAccountInfo()
-  }
-
   wasDisconnectedByWallet() {
     return !!this.client.disconnectionEvents.size
   }

@@ -469,23 +469,7 @@ export class DAppClient extends Client {
         }
 
         if (account && account.origin.type !== 'p2p') {
-          await this.init()
-
-          if (this._transport.isResolved()) {
-            const transport = await this.transport
-
-            if (transport instanceof WalletConnectTransport) {
-              const partial = await transport.getPartialAccountInfo()
-              if (!partial) {
-                return
-              }
-              const newAccount = await this.accountManager.updateAccount(
-                account.accountIdentifier,
-                partial
-              )
-              this.setActiveAccount(newAccount)
-            }
-          }
+          this.init()
         }
       })
       .catch((err) => logger.error(err.message))

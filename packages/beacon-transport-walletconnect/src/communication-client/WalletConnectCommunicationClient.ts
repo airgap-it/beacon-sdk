@@ -19,7 +19,6 @@ import {
   NotConnected
 } from '../error'
 import {
-  AccountInfo,
   AcknowledgeResponseInput,
   BeaconBaseMessage,
   BeaconErrorType,
@@ -564,38 +563,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(selectedWallet))
   }
 
-  async getPartialAccountInfo(): Promise<Partial<AccountInfo> | undefined> {
-    if (!this.session) {
-      return
-    }
-
-    const client = await this.getSignClient()
-
-    if (!client) {
-      return
-    }
-
-    const lastIndex = client.session.keys.length - 1
-
-    if (lastIndex === -1) {
-      return
-    }
-
-    this.session = client.session.get(client.session.keys[lastIndex])
-
-    const accounts = this.getTezosNamespace(this.session.namespaces).accounts
-    const [_namespace, _chainId, address] = accounts[0].split(':', 3)
-
-    this.notifyListenersWithPermissionResponse(this.session, { type: this.wcOptions.network })
-
-    return {
-      address,
-      scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
-      network: { type: this.wcOptions.network },
-      publicKey: this.session.peer.publicKey
-    }
-  }
-
   public async init(
     forceNewConnection: boolean = false
   ): Promise<{ uri: string; topic: string } | undefined> {
@@ -767,6 +734,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     signClient.on('session_update', (event) => {
+      console.log('session_update received', event)
       this.disconnectionEvents.add('session_update')
       const session = signClient.session.get(event.topic)
 
@@ -819,6 +787,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         const [_namespace, chainId, addressOrPbk] = accounts[0].split(':', 3)
         const session = this.getSession()
         let publicKey: string | undefined
+        let address: string | undefined
 
         this.activeNetwork = chainId
 
@@ -826,13 +795,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           publicKey = addressOrPbk
           this.activeAccount = await getAddressFromPublicKey(publicKey)
         } else {
+          address = addressOrPbk
           this.activeAccount = addressOrPbk
-          const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
-
-          publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
         }
 
-        if (!publicKey) {
+        if (!publicKey && !address) {
           throw new Error('Public key for the new account not provided')
         }
 
@@ -840,6 +807,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           id: await generateGUID(),
           type: BeaconMessageType.ChangeAccountRequest,
           publicKey,
+          address,
           network: { type: chainId as NetworkType },
           scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
           walletType: 'implicit'
