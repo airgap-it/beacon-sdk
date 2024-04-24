@@ -475,9 +475,6 @@ export class DAppClient extends Client {
             const transport = await this.transport
 
             if (transport instanceof WalletConnectTransport) {
-              await new Promise((resolve) => {
-                setTimeout(resolve, 500)
-              })
               const partial = await transport.getPartialAccountInfo()
               if (!partial) {
                 return
