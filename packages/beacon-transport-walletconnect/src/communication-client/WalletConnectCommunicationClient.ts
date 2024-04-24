@@ -581,8 +581,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    console.log('init session getAll', signClient.session.getAll())
-
     const lastIndex = signClient.session.keys.length - 1
 
     if (lastIndex > -1) {
@@ -734,7 +732,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     signClient.on('session_update', (event) => {
-      console.log('session_update received', event)
       this.disconnectionEvents.add('session_update')
       const session = signClient.session.get(event.topic)
 
