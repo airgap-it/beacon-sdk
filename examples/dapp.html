@@ -184,7 +184,7 @@
           el.innerText = `'time' ${start} ${label}`
           el.setAttribute('style', 'background-color: grey')
           document.getElementById('logger-output').appendChild(el)
-          console.time(label)
+          start ? console.time(label) : console.timeEnd(label)
         }
 
         timeLog(method, ...args) {
