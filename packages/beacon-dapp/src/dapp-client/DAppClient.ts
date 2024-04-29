@@ -223,6 +223,8 @@ export class DAppClient extends Client {
 
   private debounceEventResponse: boolean = false
 
+  private debounceSetActiveAccount: boolean = false
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -848,8 +850,10 @@ export class DAppClient extends Client {
         return
       }
 
-      if (transport instanceof WalletConnectTransport) {
+      if (!this.debounceSetActiveAccount && transport instanceof WalletConnectTransport) {
+        this.debounceSetActiveAccount = true
         await transport.disconnect()
+        this.debounceSetActiveAccount = false
       }
     }
 
