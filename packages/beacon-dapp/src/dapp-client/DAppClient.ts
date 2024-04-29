@@ -625,7 +625,7 @@ export class DAppClient extends Client {
 
   /**
    * Destroy the instance.
-   * 
+   *
    * WARNING: Call `destroy` whenever you no longer need dAppClient,
    * as it frees internal subscriptions to the transport and therefore the instance may no longer work properly.
    * If you wish to disconnect your dApp, use `disconnect` instead.
@@ -849,7 +849,7 @@ export class DAppClient extends Client {
       }
 
       if (transport instanceof WalletConnectTransport) {
-        await transport.closeActiveSession(activeAccount)
+        await transport.disconnect()
       }
     }
 
@@ -2376,7 +2376,9 @@ export class DAppClient extends Client {
     await this.createStateSnapshot()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
     await this.clearActiveAccount()
-    await transport.disconnect()
+    if (!(transport instanceof WalletConnectTransport)) {
+      await transport.disconnect()
+    }
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
