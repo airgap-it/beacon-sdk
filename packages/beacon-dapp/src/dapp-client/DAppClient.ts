@@ -628,7 +628,7 @@ export class DAppClient extends Client {
   /**
    * Destroy the instance.
    *
-   * WARNING: Call `destroy` whenever you no longer need dAppClient,
+   * WARNING: Call `destroy` whenever you no longer need dAppClient
    * as it frees internal subscriptions to the transport and therefore the instance may no longer work properly.
    * If you wish to disconnect your dApp, use `disconnect` instead.
    */
