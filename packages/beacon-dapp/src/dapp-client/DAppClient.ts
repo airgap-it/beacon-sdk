@@ -765,6 +765,10 @@ export class DAppClient extends Client {
                   // p2pTransport.disconnect(), do not abort connection manually
                   walletConnectTransport.disconnect()
                 ])
+                this.postMessageTransport =
+                  this.walletConnectTransport =
+                  this.p2pTransport =
+                    undefined
                 this._activeAccount.isResolved() && this.clearActiveAccount()
                 this._initPromise = undefined
               },
@@ -843,6 +847,8 @@ export class DAppClient extends Client {
 
       if (!this.debounceSetActiveAccount && transport instanceof WalletConnectTransport) {
         this.debounceSetActiveAccount = true
+        this._initPromise = undefined
+        this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
         await transport.disconnect()
         this.debounceSetActiveAccount = false
       }
