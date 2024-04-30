@@ -185,25 +185,34 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
   }
 
+  private abortErrorBuilder() {
+    if (!this.messageIds.length) {
+      return
+    }
+
+    const errorResponse: any = {
+      type: BeaconMessageType.Disconnect,
+      id: this.messageIds.pop(),
+      errorType: BeaconErrorType.ABORTED_ERROR
+    }
+    this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
+    this.messageIds = [] // reset
+  }
+
   private onStorageMessageHandler(type: string) {
     logger.debug('onStorageMessageHandler', type)
 
-    this.refreshState()
+    if (type === 'RESET') {
+      this.abortErrorBuilder()
+      this.clearEvents()
+      // no need to invoke `closeSignClinet` as the other tab already closed the connection
+      this.signClient = undefined
+      this.clearState()
 
-    if (type === 'CLEAR_ACTIVE_ACCOUNT') {
-      if (this.messageIds.length) {
-        const errorResponse: any = {
-          type: BeaconMessageType.Disconnect,
-          id: this.messageIds.pop(),
-          errorType: BeaconErrorType.ABORTED_ERROR
-        }
-        this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
-        this.messageIds = [] // reset
-      }
-      this.session = undefined
-      this.activeAccount = undefined
       return
     }
+
+    this.refreshState()
   }
 
   private onStorageErrorHandler(data: any) {
@@ -715,6 +724,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async close() {
     this.storage.backup()
+    this.abortErrorBuilder()
     await this.closePairings()
     this.unsubscribeFromEncryptedMessages()
   }
