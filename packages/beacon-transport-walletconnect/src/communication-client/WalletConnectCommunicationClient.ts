@@ -185,19 +185,25 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
   }
 
+  private abortErrorBuilder() {
+    if (!this.messageIds.length) {
+      return
+    }
+
+    const errorResponse: any = {
+      type: BeaconMessageType.Disconnect,
+      id: this.messageIds.pop(),
+      errorType: BeaconErrorType.ABORTED_ERROR
+    }
+    this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
+    this.messageIds = [] // reset
+  }
+
   private onStorageMessageHandler(type: string) {
     logger.debug('onStorageMessageHandler', type)
 
     if (type === 'RESET') {
-      if (this.messageIds.length) {
-        const errorResponse: any = {
-          type: BeaconMessageType.Disconnect,
-          id: this.messageIds.pop(),
-          errorType: BeaconErrorType.ABORTED_ERROR
-        }
-        this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
-        this.messageIds = [] // reset
-      }
+      this.abortErrorBuilder()
       this.clearEvents()
       // no need to invoke `closeSignClinet` as the other tab already closed the connection
       this.signClient = undefined
@@ -718,6 +724,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async close() {
     this.storage.backup()
+    this.abortErrorBuilder()
     await this.closePairings()
     this.unsubscribeFromEncryptedMessages()
   }
