@@ -188,9 +188,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private onStorageMessageHandler(type: string) {
     logger.debug('onStorageMessageHandler', type)
 
-    this.refreshState()
-
-    if (type === 'CLEAR_ACTIVE_ACCOUNT') {
+    if (type === 'RESET') {
       if (this.messageIds.length) {
         const errorResponse: any = {
           type: BeaconMessageType.Disconnect,
@@ -200,10 +198,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
         this.messageIds = [] // reset
       }
-      this.session = undefined
-      this.activeAccount = undefined
+      this.clearEvents()
+      // no need to invoke `closeSignClinet` as the other tab already closed the connection
+      this.signClient = undefined
+      this.clearState()
+
       return
     }
+
+    this.refreshState()
   }
 
   private onStorageErrorHandler(data: any) {

@@ -9,7 +9,6 @@ import {
   StorageKey,
   WalletConnectPairingRequest,
   NetworkType,
-  AccountInfo,
   TransportType
 } from '@airgap/beacon-types'
 import { Transport, PeerManager } from '@airgap/beacon-core'
@@ -88,16 +87,6 @@ export class WalletConnectTransport<
    */
   public forceUpdate(type: string) {
     this.client.storage.notify(type)
-  }
-
-  public async closeActiveSession(account: AccountInfo) {
-    if (!(await this.hasPairings()) || !(await this.hasPairings())) {
-      await this.disconnect()
-    } else {
-      await this.client.closeActiveSession(account.address)
-    }
-
-    this.forceUpdate('CLEAR_ACTIVE_ACCOUNT')
   }
 
   public async getPeers(): Promise<T[]> {

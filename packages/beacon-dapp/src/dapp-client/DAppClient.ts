@@ -613,7 +613,7 @@ export class DAppClient extends Client {
 
     await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
     this.setActiveAccount(undefined)
-    await this.destroy()
+    await this.disconnect()
   }
 
   /**
