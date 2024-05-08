@@ -1811,7 +1811,17 @@ export class DAppClient extends Client {
 
     const result = super.setTransport(transport)
 
-    await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport)
+    const event = transport ? { ...(transport as any) } : undefined
+
+    // remove keyPair, to prevent dApps from accidentaly leaking the privateKey
+    if (event) {
+      event.client = {
+        ...event.client,
+        keyPair: undefined
+      }
+    }
+
+    await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, event)
 
     return result
   }
