@@ -4,7 +4,8 @@ import {
   Serializer,
   ClientEvents,
   Logger,
-  WCStorage
+  WCStorage,
+  SDK_VERSION
 } from '@airgap/beacon-core'
 import Client from '@walletconnect/sign-client'
 import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
@@ -623,6 +624,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       },
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
+      },
+      sessionProperties: {
+        ['BEACON_SDK_VERSION']: SDK_VERSION
       }
     }
 
