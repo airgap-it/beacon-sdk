@@ -541,7 +541,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     const roomId = await this.getRelevantRoom(recipient)
 
     // Before we send the message, we have to wait for the join to be accepted.
-    await this.waitForJoin(roomId) // TODO: This can probably be removed because we are now waiting inside the get room method
+    // await this.waitForJoin(roomId) // TODO: This can probably be removed because we are now waiting inside the get room method
 
     const encryptedMessage = await encryptCryptoboxPayload(message, sharedKey.send)
 
