@@ -104,7 +104,7 @@ describe(`Crypto`, () => {
 
   describe('generateGUID', () => {
     it(`should create a GUID`, async () => {
-      const GUID = await generateGUID()
+      const GUID = generateGUID()
 
       expect(typeof GUID).to.deep.equal('string')
     })

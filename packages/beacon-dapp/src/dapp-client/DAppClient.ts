@@ -515,7 +515,7 @@ export class DAppClient extends Client {
       return
     }
 
-    this.userId = await generateGUID()
+    this.userId = generateGUID()
 
     this.storage.set(StorageKey.USER_ID, this.userId)
   }
@@ -2160,7 +2160,7 @@ export class DAppClient extends Client {
     requestInput: Optional<T, IgnoredRequestInputProperties>,
     skipResponse?: boolean
   ) {
-    const messageId = await generateGUID()
+    const messageId = generateGUID()
 
     if (this._initPromise && this.isInitPending) {
       await Promise.all([
@@ -2294,7 +2294,7 @@ export class DAppClient extends Client {
       this.hideUI(['toast'])
     }
 
-    const messageId = await generateGUID()
+    const messageId = generateGUID()
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
     await this.init()

@@ -111,7 +111,7 @@ export abstract class BeaconClient {
     if (storageValue && typeof storageValue === 'string') {
       this._keyPair.resolve(await getKeypairFromSeed(storageValue))
     } else {
-      const key = await generateGUID()
+      const key = generateGUID()
       await this.storage.set(StorageKey.BEACON_SDK_SECRET_SEED, key)
       this._keyPair.resolve(await getKeypairFromSeed(key))
     }

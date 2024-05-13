@@ -41,7 +41,7 @@ export abstract class MessageBasedClient extends CommunicationClient {
    */
   public async getPairingRequestInfo(): Promise<PostMessagePairingRequest> {
     return new PostMessagePairingRequest(
-      await generateGUID(),
+      generateGUID(),
       this.name,
       await this.getPublicKey(),
       BEACON_VERSION

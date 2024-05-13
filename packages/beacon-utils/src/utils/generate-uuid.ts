@@ -4,7 +4,7 @@ import { randomBytes } from '@stablelib/random'
 /**
  * Generate a random GUID
  */
-export async function generateGUID(): Promise<string> {
+export function generateGUID(): string {
   const buf = randomBytes(16)
 
   return [buf.slice(0, 4), buf.slice(4, 6), buf.slice(6, 8), buf.slice(8, 10), buf.slice(10, 16)]

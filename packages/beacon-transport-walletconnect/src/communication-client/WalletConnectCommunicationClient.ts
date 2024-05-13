@@ -810,7 +810,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         }
 
         this.notifyListeners(this.getTopicFromSession(session), {
-          id: await generateGUID(),
+          id: generateGUID(),
           type: BeaconMessageType.ChangeAccountRequest,
           publicKey,
           network: { type: chainId as NetworkType },
@@ -852,7 +852,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     this.notifyListeners(this.getTopicFromSession(session), {
-      id: await generateGUID(),
+      id: generateGUID(),
       type: BeaconMessageType.Disconnect
     })
     this.clearState()
@@ -929,9 +929,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return new ExtendedWalletConnectPairingRequest(
       _topic,
       'WalletConnect',
-      await generateGUID(),
+      generateGUID(),
       BEACON_VERSION,
-      await generateGUID(),
+      generateGUID(),
       _uri
     )
   }

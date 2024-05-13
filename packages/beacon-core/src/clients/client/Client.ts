@@ -53,9 +53,11 @@ export abstract class Client extends BeaconClient {
   protected readonly matrixNodes: NodeDistributions
 
   private transportListeners: Map<
-    TransportType,
+    string,
     (message: any, connectionInfo: ConnectionContext) => Promise<void>
   > = new Map()
+  // this ID is needed to support multitab
+  private clientTransportID: string = generateGUID()
 
   protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
   protected get transport(): Promise<Transport<any>> {
@@ -99,9 +101,9 @@ export abstract class Client extends BeaconClient {
     if (this._transport.isResolved()) {
       const transport = await this.transport
       await Promise.all(
-        Array.from(this.transportListeners.values()).map((listener) =>
-          transport.removeListener(listener)
-        )
+        Array.from(this.transportListeners.keys())
+          .filter((key) => key.includes(this.clientTransportID))
+          .map((key) => transport.removeListener(this.transportListeners.get(key)!))
       )
       this.transportListeners.clear()
     }
@@ -230,9 +232,10 @@ export abstract class Client extends BeaconClient {
     // a single page dApp.
     // However, while running a multiple tabs setup, if one of the dApps disconnects
     // the others wont't recover until after a page refresh
+    const key = `${this.clientTransportID}:${transport.type}`
 
-    if (this.transportListeners.has(transport.type)) {
-      await transport.removeListener(this.transportListeners.get(transport.type)!)
+    if (this.transportListeners.has(key)) {
+      await transport.removeListener(this.transportListeners.get(key)!)
     }
 
     const subscription = async (message: any, connectionInfo: ConnectionContext) => {
@@ -244,14 +247,14 @@ export abstract class Client extends BeaconClient {
       }
     }
 
-    this.transportListeners.set(transport.type, subscription)
+    this.transportListeners.set(key, subscription)
 
     transport.addListener(subscription).catch((error) => logger.error('addListener', error))
   }
 
   protected async sendDisconnectToPeer(peer: PeerInfo, transport?: Transport<any>): Promise<void> {
     const request: DisconnectMessage = {
-      id: await generateGUID(),
+      id: generateGUID(),
       version: peer.version,
       senderId: await getSenderId(await this.beaconId),
       type: BeaconMessageType.Disconnect

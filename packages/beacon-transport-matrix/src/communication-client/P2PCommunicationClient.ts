@@ -117,7 +117,7 @@ export class P2PCommunicationClient extends CommunicationClient {
 
   public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
     const info: P2PPairingRequest = new P2PPairingRequest(
-      await generateGUID(),
+      generateGUID(),
       this.name,
       await this.getPublicKey(),
       BEACON_VERSION,
