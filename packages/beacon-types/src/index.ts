@@ -99,7 +99,7 @@ import {
   BroadcastRequestOutput,
   BeaconRequestOutputMessage,
   ProofOfEventChallengeRequestOutput,
-  SimulatedProofOfEventChallengeRequestOutput,
+  SimulatedProofOfEventChallengeRequestOutput
 } from './types/beacon/messages/BeaconRequestOutputMessage'
 import { PermissionInfo } from './types/PermissionInfo'
 import { ConnectionContext } from './types/ConnectionContext'
@@ -109,7 +109,21 @@ import {
   PartialTezosOperation,
   PartialTezosDelegationOperation,
   PartialTezosOriginationOperation,
-  PartialTezosRevealOperation
+  PartialTezosRevealOperation,
+  PartialTezosSmartRollupOriginateOperation,
+  PartialTezosSmartRollupAddMessagesOperation,
+  PartialTezosSmartRollupExecuteOutboxMessageOperation,
+  PartialTezosSmartRollupPublishOperation,
+  PartialTezosSmartRollupCementOperation,
+  PartialTezosSmartRollupRecoverBondOperation,
+  PartialTezosSmartRollupRefuteOperation,
+  PartialTezosSmartRollupTimeoutOperation,
+  PartialTezosDalPublishCommitmentOperation,
+  PartialTezosIncreasePaidStorageOperation,
+  PartialTezosRegisterGlobalConstantOperation,
+  PartialTezosTransferTicketOperation,
+  PartialTezosUpdateConsensusKeyOperation,
+  PartialTezosSetDepositsLimitOperation
 } from './types/tezos/PartialTezosOperation'
 import { ExtendedPeerInfo, PeerInfo, PeerInfoType } from './types/PeerInfo'
 import { AcknowledgeResponse } from './types/beacon/messages/AcknowledgeResponse'
@@ -163,6 +177,7 @@ import { TezosVdfRevelationOperation } from './types/tezos/operations/VdfRevelat
 import { TezosDoublePreAttestationEvidenceOperation } from './types/tezos/operations/DoublePreAttestationEvidence'
 import { TezosSmartRollupCementOperation } from './types/tezos/operations/SmartRollupCement'
 import { TezosSmartRollupOriginateOperation } from './types/tezos/operations/SmartRollupOriginate'
+import { TezosDalPublishCommitmentOperation } from './types/tezos/operations/DalPublishCommitment'
 
 export * from './types/AnalyticsInterface'
 
@@ -201,6 +216,20 @@ export {
   PartialTezosDelegationOperation,
   PartialTezosOriginationOperation,
   PartialTezosRevealOperation,
+  PartialTezosSmartRollupOriginateOperation,
+  PartialTezosSmartRollupAddMessagesOperation,
+  PartialTezosSmartRollupExecuteOutboxMessageOperation,
+  PartialTezosSmartRollupPublishOperation,
+  PartialTezosSmartRollupCementOperation,
+  PartialTezosSmartRollupRecoverBondOperation,
+  PartialTezosSmartRollupRefuteOperation,
+  PartialTezosSmartRollupTimeoutOperation,
+  PartialTezosDalPublishCommitmentOperation,
+  PartialTezosRegisterGlobalConstantOperation,
+  PartialTezosTransferTicketOperation,
+  PartialTezosIncreasePaidStorageOperation,
+  PartialTezosUpdateConsensusKeyOperation,
+  PartialTezosSetDepositsLimitOperation,
   TezosAttestationOperation,
   TezosPreAttestationOperation,
   TezosSetDepositsLimitOperation,
@@ -223,7 +252,8 @@ export {
   TezosSmartRollupCementOperation,
   TezosSmartRollupRecoverBondOperation,
   TezosSmartRollupRefuteOperation,
-  TezosSmartRollupTimeoutOperation
+  TezosSmartRollupTimeoutOperation,
+  TezosDalPublishCommitmentOperation
 }
 
 // Beacon
