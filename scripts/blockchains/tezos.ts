@@ -103,8 +103,7 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.MUMBAINET]: 'https://mumbainet.kukai.app',
       [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app',
       [NetworkType.OXFORDNET]: 'https://oxfordnet.kukai.app',
-      [NetworkType.PARISNET]: 'https://parisnet.kukai.app',
-      
+      [NetworkType.PARISNET]: 'https://parisnet.kukai.app'
     }
   },
 

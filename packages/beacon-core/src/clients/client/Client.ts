@@ -1,4 +1,4 @@
-import { ExposedPromise, ExposedPromiseStatus, generateGUID } from '@airgap/beacon-utils'
+import { ExposedPromise, generateGUID } from '@airgap/beacon-utils'
 import {
   ConnectionContext,
   TransportType,
@@ -52,6 +52,11 @@ export abstract class Client extends BeaconClient {
 
   protected readonly matrixNodes: NodeDistributions
 
+  private transportListeners: Map<
+    TransportType,
+    (message: any, connectionInfo: ConnectionContext) => Promise<void>
+  > = new Map()
+
   protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
   protected get transport(): Promise<Transport<any>> {
     return this._transport.promise
@@ -84,6 +89,21 @@ export abstract class Client extends BeaconClient {
       throw new Error(
         `not overwritten${JSON.stringify(message)} - ${JSON.stringify(connectionInfo)}`
       )
+    }
+  }
+  protected async cleanup() {
+    if (!this.transportListeners.size) {
+      return
+    }
+
+    if (this._transport.isResolved()) {
+      const transport = await this.transport
+      await Promise.all(
+        Array.from(this.transportListeners.values()).map((listener) =>
+          transport.removeListener(listener)
+        )
+      )
+      this.transportListeners.clear()
     }
   }
 
@@ -138,7 +158,7 @@ export abstract class Client extends BeaconClient {
    * @param transport A transport that can be provided by the user
    */
   public async init(transport: Transport<any>): Promise<TransportType> {
-    if (this._transport.status === ExposedPromiseStatus.RESOLVED) {
+    if (this._transport.isResolved()) {
       return (await this.transport).type
     }
 
@@ -174,8 +194,13 @@ export abstract class Client extends BeaconClient {
   }
 
   public async destroy(): Promise<void> {
-    if (this._transport.status === ExposedPromiseStatus.RESOLVED) {
-      await (await this.transport).disconnect()
+    if (this._transport.isResolved()) {
+      const transport = await this.transport
+      await this.cleanup()
+      await transport.disconnect()
+      if (transport.type === TransportType.WALLETCONNECT) {
+        await (transport as any).doClientCleanup() // any because I cannot import the type definition
+      }
     }
     await super.destroy()
   }
@@ -200,16 +225,28 @@ export abstract class Client extends BeaconClient {
   }
 
   protected async addListener(transport: Transport<any>): Promise<void> {
-    transport
-      .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
-        if (typeof message === 'string') {
-          const deserializedMessage = (await new Serializer().deserialize(
-            message
-          )) as BeaconRequestMessage
-          this.handleResponse(deserializedMessage, connectionInfo)
-        }
-      })
-      .catch((error) => logger.error('addListener', error))
+    // in beacon we subscribe to the transport on client init only
+    // unsubscribing from the transport is only beneficial when running
+    // a single page dApp.
+    // However, while running a multiple tabs setup, if one of the dApps disconnects
+    // the others wont't recover until after a page refresh
+
+    if (this.transportListeners.has(transport.type)) {
+      await transport.removeListener(this.transportListeners.get(transport.type)!)
+    }
+
+    const subscription = async (message: any, connectionInfo: ConnectionContext) => {
+      if (typeof message === 'string') {
+        const deserializedMessage = (await new Serializer().deserialize(
+          message
+        )) as BeaconRequestMessage
+        this.handleResponse(deserializedMessage, connectionInfo)
+      }
+    }
+
+    this.transportListeners.set(transport.type, subscription)
+
+    transport.addListener(subscription).catch((error) => logger.error('addListener', error))
   }
 
   protected async sendDisconnectToPeer(peer: PeerInfo, transport?: Transport<any>): Promise<void> {
