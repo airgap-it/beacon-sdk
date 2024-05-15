@@ -443,7 +443,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.SIGN,
           params: {
-            account: account,
+            account: account.startsWith('edpk') ? await getAddressFromPublicKey(account) : account,
             payload: signPayloadRequest.payload
           }
         }
@@ -509,7 +509,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.OPERATION_REQUEST,
           params: {
-            account,
+            account: account.startsWith('edpk') ? await getAddressFromPublicKey(account) : account,
             operations: operationRequest.operationDetails
           }
         }
