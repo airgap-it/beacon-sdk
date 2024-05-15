@@ -14,7 +14,6 @@ export enum TezosOperationType {
   DOUBLE_BAKING_EVIDENCE = 'double_baking_evidence',
   PROPOSALS = 'proposals',
   BALLOT = 'ballot',
-  // ---
   ATTESTATION = 'attestation',
   PREATTESTATION = 'preattestation',
   PREENDORSEMENT = 'preendorsement',
@@ -40,5 +39,6 @@ export enum TezosOperationType {
   SMART_ROLLUP_CEMENT = 'smart_rollup_cement',
   SMART_ROLLUP_RECOVER_BOND = 'smart_rollup_recover_bond',
   SMART_ROLLUP_REFUTE = 'smart_rollup_refute',
-  SMART_ROLLUP_TIMEOUT = 'smart_rollup_timeout'
+  SMART_ROLLUP_TIMEOUT = 'smart_rollup_timeout',
+  DAL_PUBLISH_COMMITMENT = 'dal_publish_commitment'
 }

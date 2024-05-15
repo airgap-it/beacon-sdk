@@ -56,7 +56,7 @@ export class WCStorage {
 
   backup() {
     this.indexedDB
-      .populateStore('beacon', 'bug_report', [StorageKey.WC_2_CORE_KEYCHAIN])
+      .fillStore('beacon', 'bug_report', [StorageKey.WC_2_CORE_KEYCHAIN])
       .catch((error) => console.error(error.message))
   }
 

@@ -162,16 +162,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * differ from a wallet state
    */
   private async refreshState() {
-    this.clearEvents()
-    this.signClient = undefined
+    await this.closeSignClient()
 
     const client = (await this.getSignClient())!
     const lastIndex = client.session.keys.length - 1
 
     if (lastIndex > -1) {
       this.session = client.session.get(client.session.keys[lastIndex])
-
-      this.subscribeToSessionEvents(client)
       this.updateStorageWallet(this.session)
       this.setDefaultAccountAndNetwork()
     } else {
@@ -188,25 +185,34 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
   }
 
+  private abortErrorBuilder() {
+    if (!this.messageIds.length) {
+      return
+    }
+
+    const errorResponse: any = {
+      type: BeaconMessageType.Disconnect,
+      id: this.messageIds.pop(),
+      errorType: BeaconErrorType.ABORTED_ERROR
+    }
+    this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
+    this.messageIds = [] // reset
+  }
+
   private onStorageMessageHandler(type: string) {
     logger.debug('onStorageMessageHandler', type)
 
-    this.refreshState()
+    if (type === 'RESET') {
+      this.abortErrorBuilder()
+      this.clearEvents()
+      // no need to invoke `closeSignClinet` as the other tab already closed the connection
+      this.signClient = undefined
+      this.clearState()
 
-    if (type === 'CLEAR_ACTIVE_ACCOUNT') {
-      if (this.messageIds.length) {
-        const errorResponse: any = {
-          type: BeaconMessageType.Disconnect,
-          id: this.messageIds.pop(),
-          errorType: BeaconErrorType.ABORTED_ERROR
-        }
-        this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
-        this.messageIds = [] // reset
-      }
-      this.session = undefined
-      this.activeAccount = undefined
       return
     }
+
+    this.refreshState()
   }
 
   private onStorageErrorHandler(data: any) {
@@ -214,11 +220,30 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   async unsubscribeFromEncryptedMessages(): Promise<void> {
-    // implementation
+    this.activeListeners.clear()
+    this.channelOpeningListeners.clear()
   }
 
   async unsubscribeFromEncryptedMessage(_senderPublicKey: string): Promise<void> {
     // implementation
+  }
+
+  private async closeSignClient() {
+    if (!this.signClient) {
+      logger.error('No client active')
+      return
+    }
+
+    await this.signClient.core.relayer.transportClose()
+    this.signClient.core.events.removeAllListeners()
+    this.signClient.core.relayer.events.removeAllListeners()
+    this.signClient.core.heartbeat.stop()
+    this.signClient.core.relayer.provider.events.removeAllListeners()
+    this.signClient.core.relayer.subscriber.events.removeAllListeners()
+    this.signClient.core.relayer.provider.connection.events.removeAllListeners()
+    this.clearEvents()
+
+    this.signClient = undefined
   }
 
   private async ping() {
@@ -306,7 +331,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private async notifyListenersWithPermissionResponse(
     session: SessionTypes.Struct,
-    network: Network
+    network: Network,
+    sessionEventId?: string
   ) {
     let publicKey: string | undefined
     if (
@@ -361,7 +387,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       publicKey,
       network,
       scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
-      id: this.messageIds.pop() ?? '',
+      id: sessionEventId ?? this.messageIds.pop() ?? '',
       walletType: 'implicit'
     }
 
@@ -564,19 +590,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    // const sessions = signClient.session.getAll()
-    // if (sessions && sessions.length > 0) {
-    //   this.session = sessions[0]
-    //   this.setDefaultAccountAndNetwork()
-    //   this.updateStorageWallet(this.session)
-    //   return undefined
-    // }
-
     const lastIndex = signClient.session.keys.length - 1
 
     if (lastIndex > -1) {
       this.session = signClient.session.get(signClient.session.keys[lastIndex])
-
       this.updateStorageWallet(this.session)
       this.setDefaultAccountAndNetwork()
 
@@ -707,7 +724,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async close() {
     this.storage.backup()
+    this.abortErrorBuilder()
     await this.closePairings()
+    this.unsubscribeFromEncryptedMessages()
   }
 
   private subscribeToSessionEvents(signClient: Client): void {
@@ -731,10 +750,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       this.session = session
 
-      this.updateActiveAccount(event.params.namespaces)
-      this.notifyListenersWithPermissionResponse(this.session, {
-        type: this.wcOptions.network
-      })
+      this.updateActiveAccount(event.params.namespaces, session)
     })
 
     signClient.on('session_delete', (event) => {
@@ -766,7 +782,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.notifyListeners(this.getTopicFromSession(session), acknowledgeResponse)
   }
 
-  private async updateActiveAccount(namespaces: SessionTypes.Namespaces) {
+  private async updateActiveAccount(
+    namespaces: SessionTypes.Namespaces,
+    session: SessionTypes.Struct
+  ) {
     try {
       const accounts = this.getTezosNamespace(namespaces).accounts
       if (accounts.length) {
@@ -798,6 +817,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           scopes: [PermissionScope.SIGN, PermissionScope.OPERATION_REQUEST],
           walletType: 'implicit'
         })
+      } else {
+        this.notifyListenersWithPermissionResponse(
+          session,
+          {
+            type: this.wcOptions.network
+          },
+          'session_update'
+        )
       }
     } catch {}
   }
@@ -929,6 +956,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         ))
     }
 
+    await this.closeSignClient()
     await this.storage.resetState()
     this.storage.notify('RESET')
   }

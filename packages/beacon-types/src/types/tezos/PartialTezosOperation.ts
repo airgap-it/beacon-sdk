@@ -34,6 +34,7 @@ import { TezosRevealOperation } from './operations/Reveal'
 import { TezosSeedNonceRevelationOperation } from './operations/SeedNonceRevelation'
 import { TezosTransactionOperation } from './operations/Transaction'
 import { TezosPreEndorsementOperation } from './operations/PreEndorsement'
+import { TezosDalPublishCommitmentOperation } from './operations/DalPublishCommitment'
 
 /**
  * @publicapi
@@ -172,6 +173,11 @@ export type PartialTezosSmartRollupTimeoutOperation = Optional<
   omittedProperties
 >
 
+export type PartialTezosDalPublishCommitmentOperation = Optional<
+  TezosDalPublishCommitmentOperation,
+  omittedProperties
+>
+
 /**
  * @publicapi
  * @category Tezos
@@ -211,3 +217,4 @@ export type PartialTezosOperation =
   | PartialTezosSmartRollupRecoverBondOperation
   | PartialTezosSmartRollupRefuteOperation
   | PartialTezosSmartRollupTimeoutOperation
+  | PartialTezosDalPublishCommitmentOperation

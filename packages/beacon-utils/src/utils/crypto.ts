@@ -204,7 +204,7 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
  *
  * @param publicKey
  */
-export async function prefixPublicKey(publicKey: string): Promise<string> {
+export function prefixPublicKey(publicKey: string): string {
   if (publicKey.length !== 64) {
     return publicKey
   }

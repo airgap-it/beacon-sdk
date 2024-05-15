@@ -221,6 +221,10 @@ export class DAppClient extends Client {
 
   private readonly bugReportStorage = new IndexedDBStorage('beacon', 'bug_report')
 
+  private debounceEventResponse: boolean = false
+
+  private debounceSetActiveAccount: boolean = false
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -303,7 +307,6 @@ export class DAppClient extends Client {
         if (openRequest && typedMessage.message?.type === BeaconMessageType.Acknowledge) {
           this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
           logger.log('handleResponse', `acknowledge message received for ${message.id}`)
-          logger.timeLog('handleResponse', message.id, 'acknowledge')
 
           this.events
             .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
@@ -319,9 +322,6 @@ export class DAppClient extends Client {
           if (typedMessage.message?.type === BeaconMessageType.PermissionResponse && appMetadata) {
             await this.appMetadataManager.addAppMetadata(appMetadata)
           }
-
-          logger.timeLog('handleResponse', typedMessage.id, 'response')
-          logger.time(false, typedMessage.id)
 
           if (typedMessage.message?.type === BeaconMessageType.Error) {
             openRequest.reject(typedMessage.message as ErrorResponse)
@@ -365,8 +365,6 @@ export class DAppClient extends Client {
           logger.log('handleResponse', `acknowledge message received for ${message.id}`)
           this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
 
-          logger.timeLog('handleResponse', message.id, 'acknowledge')
-
           this.events
             .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
               message: typedMessage,
@@ -381,9 +379,6 @@ export class DAppClient extends Client {
           ) {
             await this.appMetadataManager.addAppMetadata(typedMessage.appMetadata)
           }
-
-          logger.timeLog('handleResponse', typedMessage.id, 'response')
-          logger.time(false, typedMessage.id)
 
           if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
             // TODO: Remove "any" once we remove support for v1 wallets
@@ -419,10 +414,25 @@ export class DAppClient extends Client {
               await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
             }
           } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
-            await this.onNewAccount(typedMessage, connectionInfo)
+            if (!this.debounceEventResponse) {
+              this.debounceEventResponse = true
+              await this.onNewAccount(typedMessage, connectionInfo)
+              this.debounceEventResponse = false
+            }
           } else {
             logger.error('handleResponse', 'no request found for id ', message.id, message)
           }
+        }
+      }
+
+      if (this._transport.isResolved()) {
+        const transport = await this.transport
+
+        if (
+          transport instanceof WalletConnectTransport &&
+          !this.openRequests.has('session_update')
+        ) {
+          this.openRequests.set('session_update', new ExposedPromise())
         }
       }
     }
@@ -481,15 +491,19 @@ export class DAppClient extends Client {
   }
 
   private async createStateSnapshot() {
-    if (!localStorage) {
+    if (!localStorage || !this.enableMetrics) {
       return
     }
     const keys = Object.values(StorageKey).filter(
       (key) => !key.includes('wc@2') && !key.includes('secret') && !key.includes('account')
     ) as unknown as StorageKey[]
 
-    for (const key of keys) {
-      this.bugReportStorage.set(key, await this.storage.get(key))
+    try {
+      for (const key of keys) {
+        await this.bugReportStorage.set(key, await this.storage.get(key))
+      }
+    } catch (err: any) {
+      logger.error('createStateSnapshot', err.message)
     }
   }
 
@@ -599,9 +613,16 @@ export class DAppClient extends Client {
 
     await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
     this.setActiveAccount(undefined)
-    await this.destroy()
+    await this.disconnect()
   }
 
+  /**
+   * Destroy the instance.
+   *
+   * WARNING: Call `destroy` whenever you no longer need dAppClient
+   * as it frees internal subscriptions to the transport and therefore the instance may no longer work properly.
+   * If you wish to disconnect your dApp, use `disconnect` instead.
+   */
   async destroy(): Promise<void> {
     await this.createStateSnapshot()
     await super.destroy()
@@ -744,6 +765,10 @@ export class DAppClient extends Client {
                   // p2pTransport.disconnect(), do not abort connection manually
                   walletConnectTransport.disconnect()
                 ])
+                this.postMessageTransport =
+                  this.walletConnectTransport =
+                  this.p2pTransport =
+                    undefined
                 this._activeAccount.isResolved() && this.clearActiveAccount()
                 this._initPromise = undefined
               },
@@ -820,8 +845,12 @@ export class DAppClient extends Client {
         return
       }
 
-      if (transport instanceof WalletConnectTransport) {
-        await transport.closeActiveSession(activeAccount)
+      if (!this.debounceSetActiveAccount && transport instanceof WalletConnectTransport) {
+        this.debounceSetActiveAccount = true
+        this._initPromise = undefined
+        this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
+        await transport.disconnect()
+        this.debounceSetActiveAccount = false
       }
     }
 
@@ -853,6 +882,13 @@ export class DAppClient extends Client {
       } else if (origin === Origin.WALLETCONNECT) {
         await this.setTransport(this.walletConnectTransport)
         this.walletConnectTransport?.forceUpdate('INIT')
+      }
+      if (this._transport.isResolved()) {
+        const transport = await this.transport
+
+        if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
+          await transport.connect()
+        }
       }
       const peer = await this.getPeer(account)
       await this.setActivePeer(peer)
@@ -1180,6 +1216,8 @@ export class DAppClient extends Client {
 
     this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'start'))
 
+    const logId = `makeRequestV3 ${Date.now()}`
+    logger.time(true, logId)
     const { message: response, connectionInfo } = await this.makeRequestV3<
       PermissionRequestV3<string>,
       BeaconMessageWrapper<PermissionResponseV3<string>>
@@ -1187,9 +1225,11 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
     })
+    logger.time(false, logId)
 
     this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'start'))
 
@@ -1263,6 +1303,8 @@ export class DAppClient extends Client {
 
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
 
+    const logId = `makeRequestV3 ${Date.now()}`
+    logger.time(true, logId)
     const { message: response, connectionInfo } = await this.makeRequestV3<
       BlockchainRequestV3<string>,
       BeaconMessageWrapper<BlockchainResponseV3<string>>
@@ -1271,10 +1313,11 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
     })
-
+    logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
     await blockchain.handleResponse({
@@ -1321,6 +1364,8 @@ export class DAppClient extends Client {
 
     this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'start'))
 
+    const logId = `makeRequest ${Date.now()}`
+    logger.time(true, logId)
     const { message, connectionInfo } = await this.makeRequest<
       PermissionRequest,
       PermissionResponse
@@ -1328,9 +1373,10 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
-
+    logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'success'))
 
     logger.log('requestPermissions', '######## MESSAGE #######')
@@ -1393,7 +1439,8 @@ export class DAppClient extends Client {
     }
 
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
-
+    const logId = `makeRequest ${Date.now()}`
+    logger.time(true, logId)
     const { message, connectionInfo } = await this.makeRequest<
       ProofOfEventChallengeRequest,
       ProofOfEventChallengeResponse
@@ -1401,9 +1448,10 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
-
+    logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
     this.analytics.track(
@@ -1452,14 +1500,16 @@ export class DAppClient extends Client {
       contractAddress: activeAccount.address,
       ...input
     }
-
+    const logId = `makeRequest ${Date.now()}`
+    logger.time(true, logId)
     const { message, connectionInfo } = await this.makeRequest<
       SimulatedProofOfEventChallengeRequest,
       SimulatedProofOfEventChallengeResponse
     >(request).catch(async (requestError: ErrorResponse) => {
+      logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
-
+    logger.time(false, logId)
     this.analytics.track(
       'event',
       'DAppClient',
@@ -1537,7 +1587,8 @@ export class DAppClient extends Client {
     }
 
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
-
+    const logId = `makeRequest ${Date.now()}`
+    logger.time(true, logId)
     const { message, connectionInfo } = await this.makeRequest<
       SignPayloadRequest,
       SignPayloadResponse
@@ -1545,9 +1596,10 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
-
+    logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
     await this.notifySuccess(request, {
@@ -1646,16 +1698,18 @@ export class DAppClient extends Client {
     this.analytics.track('event', 'DAppClient', 'Operation requested')
 
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
-
+    const logId = `makeRequest ${Date.now()}`
+    logger.time(true, logId)
     const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
-
+    logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
     await this.notifySuccess(request, {
@@ -1699,16 +1753,18 @@ export class DAppClient extends Client {
     this.analytics.track('event', 'DAppClient', 'Broadcast requested')
 
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
-
+    const logId = `makeRequest ${Date.now()}`
+    logger.time(true, logId)
     const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
       request
     ).catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
-
+    logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
     await this.notifySuccess(request, {
@@ -1755,7 +1811,17 @@ export class DAppClient extends Client {
 
     const result = super.setTransport(transport)
 
-    await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, transport)
+    const event = transport ? { ...(transport as any) } : undefined
+
+    // remove keyPair, to prevent dApps from accidentaly leaking the privateKey
+    if (event) {
+      event.client = {
+        ...event.client,
+        keyPair: undefined
+      }
+    }
+
+    await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, event)
 
     return result
   }
@@ -2105,12 +2171,10 @@ export class DAppClient extends Client {
       this.hideUI(['toast'])
     }
 
-    logger.time(true, messageId)
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
     await this.init()
     this.isInitPending = false
-    logger.timeLog(messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -2162,7 +2226,6 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
-    logger.timeLog('makeRequest', messageId, 'sending')
     try {
       ;(await this.transport).send(payload, peer)
       if (
@@ -2184,10 +2247,8 @@ export class DAppClient extends Client {
           }
         ]
       })
-      logger.timeLog('makeRequest', messageId, 'send error')
       throw sendError
     }
-    logger.timeLog('makeRequest', messageId, 'sent')
 
     this.events
       .emit(messageEvents[requestInput.type].sent, {
@@ -2234,12 +2295,10 @@ export class DAppClient extends Client {
     }
 
     const messageId = await generateGUID()
-    logger.time(true, messageId)
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
     await this.init()
     this.isInitPending = false
-    logger.timeLog('makeRequest', messageId, 'init done')
     logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -2280,7 +2339,6 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
-    logger.timeLog('makeRequest', messageId, 'sending')
     try {
       ;(await this.transport).send(payload, peer)
       if (
@@ -2302,10 +2360,8 @@ export class DAppClient extends Client {
           }
         ]
       })
-      logger.timeLog('makeRequest', messageId, 'send error')
       throw sendError
     }
-    logger.timeLog('makeRequest', messageId, 'sent')
 
     const index = requestInput.type as any as BeaconMessageType
 
@@ -2340,11 +2396,13 @@ export class DAppClient extends Client {
 
     await this.createStateSnapshot()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
+    await this.clearActiveAccount()
+    if (!(transport instanceof WalletConnectTransport)) {
+      await transport.disconnect()
+    }
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
-    await this.clearActiveAccount()
-    await transport.disconnect()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 
@@ -2430,7 +2488,7 @@ export class DAppClient extends Client {
     const tempPK: string | undefined =
       message.publicKey || (message as any).pubkey || (message as any).pubKey
 
-    const publicKey = !!tempPK ? await prefixPublicKey(tempPK) : undefined
+    const publicKey = !!tempPK ? prefixPublicKey(tempPK) : undefined
 
     if (!publicKey && !message.address) {
       throw new Error('PublicKey or Address must be defined')
