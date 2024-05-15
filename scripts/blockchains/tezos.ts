@@ -18,6 +18,7 @@ export enum NetworkType {
   MUMBAINET = 'mumbainet',
   NAIROBINET = 'nairobinet',
   OXFORDNET = 'oxfordnet',
+  PARISNET = 'parisnet',
   CUSTOM = 'custom'
 }
 
@@ -74,7 +75,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.LIMANET]: 'https://metamask.tezos.com/',
       [NetworkType.MUMBAINET]: 'https://metamask.tezos.com/',
       [NetworkType.NAIROBINET]: 'https://metamask.tezos.com/',
-      [NetworkType.OXFORDNET]: 'https://metamask.tezos.com/'
+      [NetworkType.OXFORDNET]: 'https://metamask.tezos.com/',
+      [NetworkType.PARISNET]: 'https://metamask.tezos.com/'
     }
   },
   {
@@ -100,7 +102,9 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.LIMANET]: 'https://limanet.kukai.app',
       [NetworkType.MUMBAINET]: 'https://mumbainet.kukai.app',
       [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app',
-      [NetworkType.OXFORDNET]: 'https://oxfordnet.kukai.app'
+      [NetworkType.OXFORDNET]: 'https://oxfordnet.kukai.app',
+      [NetworkType.PARISNET]: 'https://parisnet.kukai.app',
+      
     }
   },
 
@@ -126,7 +130,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.LIMANET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.MUMBAINET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.NAIROBINET]: 'https://ghostnet.tzsafe.marigold.dev',
-      [NetworkType.OXFORDNET]: 'https://ghostnet.tzsafe.marigold.dev'
+      [NetworkType.OXFORDNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.PARISNET]: 'https://ghostnet.tzsafe.marigold.dev'
     }
   }
 ]
