@@ -21,11 +21,11 @@ export default [
     plugins: [
       resolve({ extensions }),
       commonjs(),
-      postcss({
-        extract: true,
-        minimize: true,
-        sourceMap: true
-      }),
+      // postcss({
+      //   extract: true,
+      //   minimize: true,
+      //   sourceMap: true
+      // }),
       css(),
       typescript({
         tsconfig: 'tsconfig.json'
@@ -56,11 +56,11 @@ export default [
     plugins: [
       resolve({ extensions }),
       commonjs(),
-      postcss({
-        extract: true,
-        minimize: true,
-        sourceMap: true
-      }),
+      // postcss({
+      //   extract: true,
+      //   minimize: true,
+      //   sourceMap: true
+      // }),
       css(),
       typescript({
         tsconfig: 'tsconfig.json'
