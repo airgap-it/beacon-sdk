@@ -1,77 +1,44 @@
-import postcss from 'rollup-plugin-postcss'
-import css from 'rollup-plugin-import-css'
+import resolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
 import typescript from 'rollup-plugin-typescript2'
 import babel from '@rollup/plugin-babel'
-import terser from '@rollup/plugin-terser'
-import commonjs from '@rollup/plugin-commonjs'
-import resolve from '@rollup/plugin-node-resolve'
-import withSolid from 'rollup-preset-solid'
+import json from '@rollup/plugin-json' // Import the JSON plugin
+import css from 'rollup-plugin-import-css'
+// import terser from '@rollup/plugin-terser'
 
 const extensions = ['.js', '.jsx', '.ts', '.tsx']
 
-export default [
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/bundle.js',
-      format: 'iife',
-      name: 'MyApp',
+export default {
+  input: 'src/index.ts', // Update this to your entry file
+  output: [
+    {
+      file: 'dist/cjs/index.js',
+      format: 'cjs',
       sourcemap: true
     },
-    plugins: [
-      resolve({ extensions }),
-      commonjs(),
-      // postcss({
-      //   extract: true,
-      //   minimize: true,
-      //   sourceMap: true
-      // }),
-      css(),
-      typescript({
-        tsconfig: 'tsconfig.json'
-      }),
-      babel({
-        extensions,
-        babelHelpers: 'bundled',
-        include: ['src/**/*'],
-        presets: ['solid', '@babel/preset-env']
-      }),
-      terser()
-    ]
-  },
-  {
-    input: 'src/index.ts',
-    output: [
-      {
-        file: 'dist/cjs/index.js',
-        format: 'cjs',
-        sourcemap: true
-      },
-      {
-        file: 'dist/esm/index.js',
-        format: 'esm',
-        sourcemap: true
-      }
-    ],
-    plugins: [
-      resolve({ extensions }),
-      commonjs(),
-      // postcss({
-      //   extract: true,
-      //   minimize: true,
-      //   sourceMap: true
-      // }),
-      css(),
-      typescript({
-        tsconfig: 'tsconfig.json'
-      }),
-      babel({
-        extensions,
-        babelHelpers: 'bundled',
-        include: ['src/**/*'],
-        presets: ['solid', '@babel/preset-env']
-      }),
-      terser()
-    ]
-  }
-]
+    {
+      file: 'dist/esm/index.js',
+      format: 'esm',
+      sourcemap: true
+    }
+  ],
+  plugins: [
+    resolve({ extensions }),
+    commonjs(),
+    json(), 
+    typescript({
+      tsconfig: 'tsconfig.json'
+    }),
+    css(),
+    babel({
+      extensions,
+      babelHelpers: 'bundled',
+      presets: [
+        '@babel/preset-typescript', // Add TypeScript preset
+        'solid'
+      ]
+    }),
+    // terser() // minify the output
+  ],
+  external: ['solid-js', 'solid-js/web'] // Specify dependencies to be excluded from the bundle
+}
