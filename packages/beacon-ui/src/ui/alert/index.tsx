@@ -489,10 +489,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       let link = ''
 
-      if (
-        wallet.supportedInteractionStandards?.includes('wallet_connect') &&
-        !wallet.name.toLowerCase().includes('kukai')
-      ) {
+      if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
         const uri = await generateLink()
 
         if (!uri) {
@@ -586,10 +583,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         })
       )
 
-      if (
-        (wallet?.types.includes('web') && wallet?.types.length === 1) ||
-        (isAndroid(window) && wallet?.name.toLowerCase().includes('kukai'))
-      ) {
+      if (wallet?.types.includes('web') && wallet?.types.length === 1) {
         handleNewTab(config, wallet)
         return
       }
