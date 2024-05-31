@@ -46,7 +46,7 @@ import {
   StorageKey,
   TransportType
 } from '@airgap/beacon-types'
-import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
+import { generateGUID, getAddressFromPublicKey, isPublicKey } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 const BEACON_SDK_VERSION = 'beacon_sdk_version'
@@ -351,7 +351,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const accounts = this.getTezosNamespace(session.namespaces).accounts
       const addressOrPbk = accounts[0].split(':', 3)[2]
 
-      if (addressOrPbk.startsWith('edpk')) {
+      if (isPublicKey(addressOrPbk)) {
         publicKey = addressOrPbk
       } else {
         if (network.type !== this.wcOptions.network) {
@@ -445,7 +445,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.SIGN,
           params: {
-            account: account.startsWith('edpk') ? await getAddressFromPublicKey(account) : account,
+            account: isPublicKey(account) ? await getAddressFromPublicKey(account) : account,
             payload: signPayloadRequest.payload
           }
         }
@@ -511,7 +511,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.OPERATION_REQUEST,
           params: {
-            account: account.startsWith('edpk') ? await getAddressFromPublicKey(account) : account,
+            account: isPublicKey(account) ? await getAddressFromPublicKey(account) : account,
             operations: operationRequest.operationDetails
           }
         }
@@ -800,7 +800,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         this.activeNetwork = chainId
 
-        if (addressOrPbk.startsWith('edpk')) {
+        if (isPublicKey(addressOrPbk)) {
           publicKey = addressOrPbk
           this.activeAccount = await getAddressFromPublicKey(publicKey)
         } else {

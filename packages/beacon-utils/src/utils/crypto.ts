@@ -292,4 +292,18 @@ export function encodePoeChallengePayload(payload: string) {
   )
 }
 
+export function isPublicKey(publicKey: string) {
+  const ed25519Regex = /^edpk[1-9A-HJ-NP-Za-km-z]{50}$/
+  const secp256k1Regex = /^sppk[1-9A-HJ-NP-Za-km-z]{50}$/
+  const p256Regex = /^p2pk[1-9A-HJ-NP-Za-km-z]{50}$/
+  const bls12_381Regex = /^BLpk[1-9A-HJ-NP-Za-km-z]{50}$/
+
+  return (
+    ed25519Regex.test(publicKey) ||
+    secp256k1Regex.test(publicKey) ||
+    p256Regex.test(publicKey) ||
+    bls12_381Regex.test(publicKey)
+  )
+}
+
 /* eslint-enable prefer-arrow/prefer-arrow-functions */
