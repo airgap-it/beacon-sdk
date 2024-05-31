@@ -5,6 +5,16 @@ import { MichelineMichelsonV1Expression } from './MichelineMichelsonV1Expression
  * @category Tezos
  */
 export interface TezosTransactionParameters {
-  entrypoint: 'default' | 'root' | 'do' | 'set_delegate' | 'remove_delegate' | string
+  entrypoint:
+    | 'default'
+    | 'deposit'
+    | 'do'
+    | 'finalize_unstake'
+    | 'remove_delegate'
+    | 'root'
+    | 'set_delegate'
+    | 'set_delegate_parameters'
+    | 'stake'
+    | 'unstake'
   value: MichelineMichelsonV1Expression
 }
