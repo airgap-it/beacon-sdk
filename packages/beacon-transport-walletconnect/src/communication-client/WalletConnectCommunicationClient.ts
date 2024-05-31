@@ -4,7 +4,8 @@ import {
   Serializer,
   ClientEvents,
   Logger,
-  WCStorage
+  WCStorage,
+  SDK_VERSION
 } from '@airgap/beacon-core'
 import Client from '@walletconnect/sign-client'
 import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
@@ -48,6 +49,7 @@ import {
 import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
+const BEACON_SDK_VERSION = 'beacon_sdk_version'
 const logger = new Logger('WalletConnectCommunicationClient')
 
 export interface PermissionScopeParam {
@@ -623,6 +625,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       },
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
+      },
+      sessionProperties: {
+        [BEACON_SDK_VERSION]: SDK_VERSION
       }
     }
 
@@ -1014,6 +1019,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       },
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
+      },
+      sessionProperties: {
+        [BEACON_SDK_VERSION]: SDK_VERSION
       },
       pairingTopic
     }
