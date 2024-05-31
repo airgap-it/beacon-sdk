@@ -16,5 +16,6 @@ export interface TezosTransactionParameters {
     | 'set_delegate_parameters'
     | 'stake'
     | 'unstake'
+    | string
   value: MichelineMichelsonV1Expression
 }
