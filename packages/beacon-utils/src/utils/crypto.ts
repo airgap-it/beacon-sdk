@@ -169,6 +169,11 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
     p2pk: {
       length: 55,
       prefix: Buffer.from(new Uint8Array([6, 161, 164]))
+    },
+    // tz4...
+    BLpk: {
+      length: 55,
+      prefix: Buffer.from(new Uint8Array([6, 161, 166]))
     }
   }
 
