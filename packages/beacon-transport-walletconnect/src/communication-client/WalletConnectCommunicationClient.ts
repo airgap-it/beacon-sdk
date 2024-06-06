@@ -351,7 +351,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const accounts = this.getTezosNamespace(session.namespaces).accounts
       const addressOrPbk = accounts[0].split(':', 3)[2]
 
-      if (isPublicKey(addressOrPbk)) {
+      if (await isPublicKey(addressOrPbk)) {
         publicKey = addressOrPbk
       } else {
         if (network.type !== this.wcOptions.network) {
@@ -445,7 +445,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.SIGN,
           params: {
-            account: isPublicKey(account) ? await getAddressFromPublicKey(account) : account,
+            account: (await isPublicKey(account))
+              ? await getAddressFromPublicKey(account)
+              : account,
             payload: signPayloadRequest.payload
           }
         }
@@ -511,7 +513,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.OPERATION_REQUEST,
           params: {
-            account: isPublicKey(account) ? await getAddressFromPublicKey(account) : account,
+            account: (await isPublicKey(account))
+              ? await getAddressFromPublicKey(account)
+              : account,
             operations: operationRequest.operationDetails
           }
         }
@@ -801,9 +805,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.activeNetwork = chainId
         this.activeAccountOrPbk = addressOrPbk
 
-        if (!isPublicKey(addressOrPbk)) {
+        if (!(await isPublicKey(addressOrPbk))) {
           const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
           publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
+        } else {
+          publicKey = addressOrPbk
         }
 
         if (!publicKey) {
