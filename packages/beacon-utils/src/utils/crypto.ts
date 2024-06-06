@@ -304,8 +304,7 @@ export async function isPublicKey(publicKey: string) {
 
   try {
     await getAddressFromPublicKey(publicKey)
-  } catch (err: any) {
-    console.error(err.message)
+  } catch {
     return false
   }
 
