@@ -297,18 +297,23 @@ export function encodePoeChallengePayload(payload: string) {
   )
 }
 
-export async function isPublicKey(publicKey: string) {
+/**
+ * Shallow Check (SC): Perform a superficial check to determine if the string contains a public key.
+ * Do not use this function to validate the key itself.
+ * @param publicKey the public key to analyze
+ * @returns true if it contains a known prefix, false otherwise
+ */
+export function isPublicKeySC(publicKey: string): boolean {
   if (!publicKey) {
     return false
   }
 
-  try {
-    await getAddressFromPublicKey(publicKey)
-  } catch {
-    return false
-  }
-
-  return true
+  return (
+    publicKey.startsWith('edpk') ||
+    publicKey.startsWith('sppk') ||
+    publicKey.startsWith('p2pk') ||
+    publicKey.startsWith('BLpk')
+  )
 }
 
 /* eslint-enable prefer-arrow/prefer-arrow-functions */

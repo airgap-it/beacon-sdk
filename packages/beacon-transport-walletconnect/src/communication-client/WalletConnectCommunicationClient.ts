@@ -46,7 +46,7 @@ import {
   StorageKey,
   TransportType
 } from '@airgap/beacon-types'
-import { generateGUID, getAddressFromPublicKey, isPublicKey } from '@airgap/beacon-utils'
+import { generateGUID, getAddressFromPublicKey, isPublicKeySC } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
 const BEACON_SDK_VERSION = 'beacon_sdk_version'
@@ -351,7 +351,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const accounts = this.getTezosNamespace(session.namespaces).accounts
       const addressOrPbk = accounts[0].split(':', 3)[2]
 
-      if (await isPublicKey(addressOrPbk)) {
+      if (isPublicKeySC(addressOrPbk)) {
         publicKey = addressOrPbk
       } else {
         if (network.type !== this.wcOptions.network) {
@@ -445,9 +445,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.SIGN,
           params: {
-            account: (await isPublicKey(account))
-              ? await getAddressFromPublicKey(account)
-              : account,
+            account: isPublicKeySC(account) ? await getAddressFromPublicKey(account) : account,
             payload: signPayloadRequest.payload
           }
         }
@@ -513,9 +511,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.OPERATION_REQUEST,
           params: {
-            account: (await isPublicKey(account))
-              ? await getAddressFromPublicKey(account)
-              : account,
+            account: isPublicKeySC(account) ? await getAddressFromPublicKey(account) : account,
             operations: operationRequest.operationDetails
           }
         }
@@ -805,7 +801,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.activeNetwork = chainId
         this.activeAccountOrPbk = addressOrPbk
 
-        if (!(await isPublicKey(addressOrPbk))) {
+        if (!isPublicKeySC(addressOrPbk)) {
           const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
           publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
         } else {

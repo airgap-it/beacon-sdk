@@ -14,7 +14,7 @@ export {
   isValidAddress,
   prefixPublicKey,
   encodePoeChallengePayload,
-  isPublicKey
+  isPublicKeySC
 } from './utils/crypto'
 export { generateGUID } from './utils/generate-uuid'
 
