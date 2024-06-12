@@ -132,6 +132,7 @@ import {
   currentOS
 } from '@airgap/beacon-ui'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
+import { MultiTabChannel } from '../utils/multi-tab-channel'
 
 const logger = new Logger('DAppClient')
 
@@ -224,6 +225,8 @@ export class DAppClient extends Client {
   private debounceEventResponse: boolean = false
 
   private debounceSetActiveAccount: boolean = false
+
+  private multiTabChannel = new MultiTabChannel(this.onBCMessageHandler.bind(this))
 
   constructor(config: DAppClientOptions) {
     super({
@@ -488,6 +491,22 @@ export class DAppClient extends Client {
     )
 
     this.initUserID().catch((err) => logger.error(err.message))
+  }
+
+  private onBCMessageHandler(message: any) {
+    switch (message.type) {
+      case 'request_permissions':
+        this.requestPermissions(message.data)
+        break
+      case 'send_operations':
+        this.requestOperation(message.data)
+        break
+      case 'sign_payload':
+        this.requestSignPayload(message.data)
+        break
+      default:
+        logger.error('onBCMessageHandler', 'message type not recognized', message.type)
+    }
   }
 
   private async createStateSnapshot() {
@@ -1341,13 +1360,25 @@ export class DAppClient extends Client {
    */
   public async requestPermissions(
     input?: RequestPermissionInput
-  ): Promise<PermissionResponseOutput> {
+  ): Promise<PermissionResponseOutput | undefined> {
     // Add error message for deprecation of network
     // TODO: Remove when we remove deprecated preferredNetwork
     if (input?.network !== undefined && this.network.type !== input?.network?.type) {
       console.error(
         '[BEACON] The network specified in the DAppClient constructor does not match the network set in the permission request. Please set the network in the constructor. Setting it during the Permission Request is deprecated.'
       )
+    }
+
+    if (
+      this._transport.isResolved() &&
+      (await this.transport).type === TransportType.WALLETCONNECT &&
+      !this.multiTabChannel.isLeader()
+    ) {
+      this.multiTabChannel.postMessage({
+        type: 'request_permissions',
+        data: input
+      })
+      return
     }
 
     const request: PermissionRequestInput = {
@@ -1536,7 +1567,7 @@ export class DAppClient extends Client {
    */
   public async requestSignPayload(
     input: RequestSignPayloadInput
-  ): Promise<SignPayloadResponseOutput> {
+  ): Promise<SignPayloadResponseOutput | undefined> {
     if (!input.payload) {
       throw await this.sendInternalError('Payload must be provided')
     }
@@ -1549,6 +1580,18 @@ export class DAppClient extends Client {
 
     if (typeof payload !== 'string') {
       throw new Error('Payload must be a string')
+    }
+
+    if (
+      this._transport.isResolved() &&
+      (await this.transport).type === TransportType.WALLETCONNECT &&
+      !this.multiTabChannel.isLeader()
+    ) {
+      this.multiTabChannel.postMessage({
+        type: 'sign_payload',
+        data: input
+      })
+      return
     }
 
     const signingType = ((): SigningType => {
@@ -1678,7 +1721,9 @@ export class DAppClient extends Client {
    *
    * @param input The message details we need to prepare the OperationRequest message.
    */
-  public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
+  public async requestOperation(
+    input: RequestOperationInput
+  ): Promise<OperationResponseOutput | undefined> {
     if (!input.operationDetails) {
       throw await this.sendInternalError('Operation details must be provided')
     }
@@ -1686,6 +1731,18 @@ export class DAppClient extends Client {
 
     if (!activeAccount) {
       throw await this.sendInternalError('No active account!')
+    }
+
+    if (
+      this._transport.isResolved() &&
+      (await this.transport).type === TransportType.WALLETCONNECT &&
+      !this.multiTabChannel.isLeader()
+    ) {
+      this.multiTabChannel.postMessage({
+        type: 'send_operations',
+        data: input
+      })
+      return
     }
 
     const request: OperationRequestInput = {
