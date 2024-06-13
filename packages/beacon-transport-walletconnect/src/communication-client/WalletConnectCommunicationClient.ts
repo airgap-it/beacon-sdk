@@ -115,8 +115,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
-    this.storage.onMessageHandler = this.onStorageMessageHandler.bind(this)
-    this.storage.onErrorHandler = this.onStorageErrorHandler.bind(this)
   }
 
   static getInstance(wcOptions: {
@@ -159,25 +157,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
-  /**
-   * WC Sign client doesn't sync between intances, meaning that a dApp signClient instance state may
-   * differ from a wallet state
-   */
-  private async refreshState() {
-    await this.closeSignClient()
-
-    const client = (await this.getSignClient())!
-    const lastIndex = client.session.keys.length - 1
-
-    if (lastIndex > -1) {
-      this.session = client.session.get(client.session.keys[lastIndex])
-      this.updateStorageWallet(this.session)
-      this.setDefaultAccountAndNetwork()
-    } else {
-      this.clearState()
-    }
-  }
-
   private clearEvents() {
     this.signClient?.removeAllListeners('session_event')
     this.signClient?.removeAllListeners('session_update')
@@ -201,26 +180,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.messageIds = [] // reset
   }
 
-  private onStorageMessageHandler(type: string) {
-    logger.debug('onStorageMessageHandler', type)
-
-    if (type === 'RESET') {
-      this.abortErrorBuilder()
-      this.clearEvents()
-      // no need to invoke `closeSignClinet` as the other tab already closed the connection
-      this.signClient = undefined
-      this.clearState()
-
-      return
-    }
-
-    this.refreshState()
-  }
-
-  private onStorageErrorHandler(data: any) {
-    logger.error('onStorageError', data)
-  }
-
   async unsubscribeFromEncryptedMessages(): Promise<void> {
     this.activeListeners.clear()
     this.channelOpeningListeners.clear()
@@ -230,7 +189,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // implementation
   }
 
-  private async closeSignClient() {
+  async closeSignClient() {
     if (!this.signClient) {
       logger.error('No client active')
       return
@@ -961,7 +920,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     await this.closeSignClient()
     await this.storage.resetState()
-    this.storage.notify('RESET')
   }
 
   private async closeSessions() {

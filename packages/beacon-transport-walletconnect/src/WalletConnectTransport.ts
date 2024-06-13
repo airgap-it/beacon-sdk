@@ -68,6 +68,10 @@ export class WalletConnectTransport<
     return !!this.client.disconnectionEvents.size
   }
 
+  closeClient() {
+    this.client.closeSignClient()
+  }
+
   public async hasPairings() {
     return (await this.client.storage.hasPairings())
       ? true
@@ -78,15 +82,6 @@ export class WalletConnectTransport<
     return (await this.client.storage.hasSessions())
       ? true
       : !!this.client.signClient?.session.getAll()?.length
-  }
-
-  /**
-   * Forcefully updates any DApps running on the same session
-   * Typical use case: localStorage changes to reflect to indexDB
-   * @param type the message type
-   */
-  public forceUpdate(type: string) {
-    this.client.storage.notify(type)
   }
 
   public async getPeers(): Promise<T[]> {

@@ -193,8 +193,6 @@ export class DAppClient extends Client {
     >
   >()
 
-  private readonly otherTabsOpenRequests = new Set<string>()
-
   /**
    * The currently active account. For all requests that are associated to a specific request (operation request, signing request),
    * the active account is used to determine the network and destination wallet
@@ -226,7 +224,7 @@ export class DAppClient extends Client {
 
   private debounceSetActiveAccount: boolean = false
 
-  private multiTabChannel = MultiTabChannel.getInstance(this.onBCMessageHandler.bind(this))
+  private multiTabChannel = new MultiTabChannel(this.onBCMessageHandler.bind(this))
 
   constructor(config: DAppClientOptions) {
     super({
@@ -297,19 +295,6 @@ export class DAppClient extends Client {
       message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
-      if (this.otherTabsOpenRequests.has(message.id) && this.multiTabChannel.isLeader()) {
-        this.multiTabChannel.postMessage({
-          type: 'RESPONSE',
-          id: message.id,
-          data: {
-            message,
-            connectionInfo
-          }
-        })
-        this.otherTabsOpenRequests.delete(message.id)
-        return
-      }
-
       const openRequest = this.openRequests.get(message.id)
 
       logger.log('### openRequest ###', openRequest)
@@ -451,14 +436,6 @@ export class DAppClient extends Client {
   }
 
   private onBCMessageHandler(message: any) {
-    if (
-      message.type === 'request_permissions' ||
-      message.type === 'send_operations' ||
-      message.type === 'sign_payload'
-    ) {
-      this.otherTabsOpenRequests.add(message.id)
-    }
-
     switch (message.type) {
       case 'request_permissions':
         this.requestPermissions(message.data)
@@ -868,7 +845,6 @@ export class DAppClient extends Client {
         await this.setTransport(this.p2pTransport)
       } else if (origin === Origin.WALLETCONNECT) {
         await this.setTransport(this.walletConnectTransport)
-        this.walletConnectTransport?.forceUpdate('INIT')
       }
       if (this._transport.isResolved()) {
         const transport = await this.transport
