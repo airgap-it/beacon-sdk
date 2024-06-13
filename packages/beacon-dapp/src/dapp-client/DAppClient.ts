@@ -449,6 +449,9 @@ export class DAppClient extends Client {
       case 'RESPONSE':
         this.handleResponse(message.data.message, message.data.connectionInfo)
         break
+      case 'DISCONNECT':
+        this.disconnect()
+        break
       default:
         logger.error('onBCMessageHandler', 'message type not recognized', `message: ${message}`)
     }
@@ -819,7 +822,13 @@ export class DAppClient extends Client {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
-        await transport.disconnect()
+        if (this.multiTabChannel.isLeader()) {
+          await transport.disconnect()
+        } else {
+          this.multiTabChannel.postMessage({
+            type: 'DISCONNECT'
+          })
+        }
         this.debounceSetActiveAccount = false
       }
     }
