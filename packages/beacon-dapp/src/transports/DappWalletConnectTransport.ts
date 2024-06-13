@@ -25,9 +25,17 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
     name: string,
     keyPair: KeyPair,
     storage: Storage,
-    wcOptions: { network: NetworkType; opts: SignClientTypes.Options }
+    wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
+    isLeader: boolean
   ) {
-    super(name, keyPair, storage, StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP, wcOptions)
+    super(
+      name,
+      keyPair,
+      storage,
+      StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP,
+      wcOptions,
+      isLeader
+    )
     this.client.listenForChannelOpening(async (peer: ExtendedWalletConnectPairingResponse) => {
       await this.addPeer(peer)
       this._isConnected = TransportStatus.CONNECTED

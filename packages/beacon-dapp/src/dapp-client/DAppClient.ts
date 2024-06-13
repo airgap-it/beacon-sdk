@@ -516,10 +516,16 @@ export class DAppClient extends Client {
       }
     }
 
-    this.walletConnectTransport = new DappWalletConnectTransport(this.name, keyPair, this.storage, {
-      network: this.network.type,
-      opts: wcOptions
-    })
+    this.walletConnectTransport = new DappWalletConnectTransport(
+      this.name,
+      keyPair,
+      this.storage,
+      {
+        network: this.network.type,
+        opts: wcOptions
+      },
+      this.multiTabChannel.isLeader()
+    )
 
     this.initEvents()
 

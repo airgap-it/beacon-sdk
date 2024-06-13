@@ -31,7 +31,8 @@ export class WalletConnectTransport<
     _keyPair: KeyPair,
     storage: Storage,
     storageKey: K,
-    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }
+    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
+    private isLeader: boolean
   ) {
     super(
       name,
@@ -51,7 +52,9 @@ export class WalletConnectTransport<
 
     this._isConnected = TransportStatus.CONNECTING
 
-    await this.client.init()
+    if (this.isLeader) {
+      await this.client.init()
+    }
 
     const knownPeers = await this.getPeers()
 
