@@ -3,6 +3,7 @@ import { createLeaderElection, BroadcastChannel } from 'broadcast-channel'
 
 type Message = {
   type: string
+  id: string
   data: any
 }
 
@@ -63,9 +64,6 @@ export class MultiTabChannel {
   }
 
   postMessage(message: any): void {
-    this.channel.postMessage({
-      type: message.type,
-      data: message.data
-    })
+    this.channel.postMessage(message)
   }
 }
