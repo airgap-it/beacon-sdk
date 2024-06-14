@@ -24,9 +24,9 @@ export class MultiTabChannel {
   }
 
   private async init() {
-    const isLeader = await this.elector.hasLeader()
+    const hasLeader = await this.elector.hasLeader()
 
-    if (!isLeader) {
+    if (!hasLeader) {
       await this.elector.awaitLeadership()
     }
 
