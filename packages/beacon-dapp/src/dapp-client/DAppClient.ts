@@ -224,7 +224,14 @@ export class DAppClient extends Client {
 
   private debounceSetActiveAccount: boolean = false
 
-  private multiTabChannel = new MultiTabChannel(this.onBCMessageHandler.bind(this))
+  private multiTabChannel = new MultiTabChannel(
+    'beacon-sdk-channel-1',
+    this.onBCMessageHandler.bind(this)
+  )
+  private multiTabUIChannel = new MultiTabChannel(
+    'beacon-sdk-channel-2',
+    this.onBCUIHandler.bind(this)
+  )
 
   constructor(config: DAppClientOptions) {
     super({
@@ -295,6 +302,8 @@ export class DAppClient extends Client {
       message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
+      this.sendUIMessage(message)
+
       const openRequest = this.openRequests.get(message.id)
 
       logger.log('### openRequest ###', openRequest)
@@ -435,7 +444,27 @@ export class DAppClient extends Client {
     this.initUserID().catch((err) => logger.error(err.message))
   }
 
+  private sendUIMessage(message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>) {
+    if (!this.multiTabChannel.isLeader()) {
+      return
+    }
+
+    const typedMessage =
+      message.version === '3'
+        ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
+        : (message as BeaconMessage)
+
+    this.multiTabUIChannel.postMessage({
+      type: typedMessage.type,
+      data: typedMessage
+    })
+  }
+
   private onBCMessageHandler(message: any) {
+    if (!this.multiTabChannel.isLeader()) {
+      return
+    }
+
     switch (message.type) {
       case 'request_permissions':
         this.requestPermissions(message.data)
@@ -453,7 +482,37 @@ export class DAppClient extends Client {
         this.disconnect()
         break
       default:
-        logger.error('onBCMessageHandler', 'message type not recognized', `message: ${message}`)
+        logger.error('onBCMessageHandler', 'message type not recognized', message)
+    }
+  }
+
+  private async onBCUIHandler(message: any) {
+    if (this.multiTabChannel.isLeader()) {
+      return
+    }
+
+    const walletInfo = await this.getWalletInfo()
+
+    switch (message.type) {
+      case BeaconMessageType.Acknowledge:
+        this.events.emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
+          message: {} as any,
+          extraInfo: {} as any,
+          walletInfo
+        })
+        break
+      case 'request_success':
+        this.events.emit(messageEvents[message.data.type as BeaconMessageType].success)
+        break
+      case BeaconMessageType.Error:
+        this.events.emit(BeaconEvent.OPERATION_REQUEST_ERROR, {
+          errorResponse: message.data,
+          walletInfo,
+          errorMessages: this.errorMessages
+        })
+        break
+      default:
+        logger.error('onBCUIHandler', 'message type not recognized', message)
     }
   }
 
@@ -1337,6 +1396,16 @@ export class DAppClient extends Client {
         type: 'request_permissions',
         data: input
       })
+      this.events
+        .emit(messageEvents[BeaconMessageType.PermissionRequest].sent, {
+          walletInfo: await this.getWalletInfo(),
+          extraInfo: {
+            resetCallback: async () => {
+              this.disconnect()
+            }
+          }
+        })
+        .catch((emitError) => console.warn(emitError))
       return
     }
 
@@ -1550,6 +1619,16 @@ export class DAppClient extends Client {
         type: 'sign_payload',
         data: input
       })
+      this.events
+        .emit(messageEvents[BeaconMessageType.SignPayloadRequest].sent, {
+          walletInfo: await this.getWalletInfo(),
+          extraInfo: {
+            resetCallback: async () => {
+              this.disconnect()
+            }
+          }
+        })
+        .catch((emitError) => console.warn(emitError))
       return
     }
 
@@ -1701,6 +1780,16 @@ export class DAppClient extends Client {
         type: 'send_operations',
         data: input
       })
+      this.events
+        .emit(messageEvents[BeaconMessageType.OperationRequest].sent, {
+          walletInfo: await this.getWalletInfo(),
+          extraInfo: {
+            resetCallback: async () => {
+              this.disconnect()
+            }
+          }
+        })
+        .catch((emitError) => console.warn(emitError))
       return
     }
 

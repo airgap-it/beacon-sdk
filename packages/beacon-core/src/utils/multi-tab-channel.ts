@@ -1,5 +1,5 @@
 import { Logger } from '@airgap/beacon-core'
-import { createLeaderElection, BroadcastChannel } from 'broadcast-channel'
+import { createLeaderElection, BroadcastChannel, LeaderElector } from 'broadcast-channel'
 
 type Message = {
   type: string
@@ -10,16 +10,18 @@ type Message = {
 const logger = new Logger('MultiTabChannel')
 
 export class MultiTabChannel {
-  private channel = new BroadcastChannel('beacon-sdk_channel')
-  private elector = createLeaderElection(this.channel)
+  private channel: BroadcastChannel
+  private elector: LeaderElector
   private eventListeners = [
     () => this.onBeforeUnloadHandler(),
     (message: any) => this.onMessageHandler(message)
   ]
   private bcMessageHandler: Function
 
-  constructor(onBCMessageHandler: Function) {
+  constructor(name: string, onBCMessageHandler: Function) {
     this.bcMessageHandler = onBCMessageHandler
+    this.channel = new BroadcastChannel(name)
+    this.elector = createLeaderElection(this.channel)
     this.init().then(() => logger.debug('MultiTabChannel', 'constructor', 'init', 'done'))
   }
 
@@ -54,9 +56,7 @@ export class MultiTabChannel {
       return
     }
 
-    if (this.isLeader()) {
-      this.bcMessageHandler(message)
-    }
+    this.bcMessageHandler(message)
   }
 
   isLeader(): boolean {
