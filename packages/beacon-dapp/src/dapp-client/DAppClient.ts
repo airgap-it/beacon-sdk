@@ -225,7 +225,7 @@ export class DAppClient extends Client {
   private debounceSetActiveAccount: boolean = false
 
   private multiTabChannel = new MultiTabChannel(
-    'beacon-sdk-channel-1',
+    'beacon-sdk-channel',
     this.onBCMessageHandler.bind(this),
     this.onElectedLeaderhandler.bind(this)
   )
@@ -881,7 +881,6 @@ export class DAppClient extends Client {
         this._initPromise = undefined
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
         if (this.multiTabChannel.isLeader()) {
-          await this.multiTabChannel.killLeader()
           await transport.disconnect()
         } else {
           this.multiTabChannel.postMessage({
