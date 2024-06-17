@@ -229,11 +229,6 @@ export class DAppClient extends Client {
     this.onBCMessageHandler.bind(this),
     this.onElectedLeaderhandler.bind(this)
   )
-  private multiTabUIChannel = new MultiTabChannel(
-    'beacon-sdk-channel-2',
-    this.onBCUIHandler.bind(this),
-    () => {}
-  )
 
   constructor(config: DAppClientOptions) {
     super({
@@ -456,7 +451,7 @@ export class DAppClient extends Client {
         ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
         : (message as BeaconMessage)
 
-    this.multiTabUIChannel.postMessage({
+    this.multiTabChannel.postMessage({
       type: typedMessage.type,
       data: typedMessage
     })
@@ -480,10 +475,8 @@ export class DAppClient extends Client {
     await tranport.connect()
   }
 
-  private onBCMessageHandler(message: any) {
-    if (!this.multiTabChannel.isLeader()) {
-      return
-    }
+  private async onBCMessageHandler(message: any) {
+    const walletInfo = await this.getWalletInfo()
 
     switch (message.type) {
       case 'request_permissions':
@@ -501,19 +494,7 @@ export class DAppClient extends Client {
       case 'DISCONNECT':
         this.disconnect()
         break
-      default:
-        logger.error('onBCMessageHandler', 'message type not recognized', message)
-    }
-  }
-
-  private async onBCUIHandler(message: any) {
-    if (this.multiTabChannel.isLeader()) {
-      return
-    }
-
-    const walletInfo = await this.getWalletInfo()
-
-    switch (message.type) {
+      // UI
       case BeaconMessageType.Acknowledge:
         this.events.emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
           message: {} as any,
@@ -521,9 +502,7 @@ export class DAppClient extends Client {
           walletInfo
         })
         break
-      case 'request_success':
-        this.events.emit(messageEvents[message.data.type as BeaconMessageType].success)
-        break
+      // TODO SUCCESS
       case BeaconMessageType.Error:
         this.events.emit(BeaconEvent.OPERATION_REQUEST_ERROR, {
           errorResponse: message.data,
@@ -532,7 +511,7 @@ export class DAppClient extends Client {
         })
         break
       default:
-        logger.error('onBCUIHandler', 'message type not recognized', message)
+        logger.error('onBCMessageHandler', 'message type not recognized', message)
     }
   }
 
@@ -902,6 +881,7 @@ export class DAppClient extends Client {
         this._initPromise = undefined
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
         if (this.multiTabChannel.isLeader()) {
+          await this.multiTabChannel.killLeader()
           await transport.disconnect()
         } else {
           this.multiTabChannel.postMessage({

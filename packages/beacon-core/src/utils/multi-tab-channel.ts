@@ -39,22 +39,19 @@ export class MultiTabChannel {
     }
 
     window.addEventListener('beforeunload', this.eventListeners[0])
-    this.channel.addEventListener('message', this.eventListeners[1])
+    this.channel.onmessage = this.eventListeners[1]
   }
 
   private async onBeforeUnloadHandler() {
-    if (this.elector.isLeader) {
-      await this.elector.die()
-      this.channel.postMessage({ type: 'LEADER_DEAD' })
-    }
+    await this.killLeader()
 
     window.removeEventListener('beforeunload', this.eventListeners[0])
-    this.channel.removeEventListener('message', this.eventListeners[1])
+    this.channel.removeEventListener('message', this.channel.onmessage)
   }
 
-  private async onMessageHandler(message: Message) {
+  private onMessageHandler(message: Message) {
     if (message.type === 'LEADER_DEAD') {
-      await this.elector.awaitLeadership()
+      this.elector.awaitLeadership().then(() => logger.log('The tab is now the leader'))
 
       if (this.isLeader()) {
         this.onElectedLeaderHandler()
@@ -67,6 +64,15 @@ export class MultiTabChannel {
 
   isLeader(): boolean {
     return this.elector.isLeader
+  }
+
+  async killLeader() {
+    if (!this.isLeader) {
+      return
+    }
+
+    await this.elector.die()
+    this.postMessage({ type: 'LEADER_DEAD' })
   }
 
   postMessage(message: any): void {
