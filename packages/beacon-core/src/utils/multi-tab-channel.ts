@@ -48,9 +48,9 @@ export class MultiTabChannel {
     this.channel.removeEventListener('message', this.eventListeners[1])
   }
 
-  private onMessageHandler(message: Message) {
+  private async onMessageHandler(message: Message) {
     if (message.type === 'LEADER_DEAD') {
-      this.elector.awaitLeadership().then(() => logger.log('The tab is now the leader'))
+      await this.elector.awaitLeadership()
 
       if (this.isLeader()) {
         this.onElectedLeaderHandler()
