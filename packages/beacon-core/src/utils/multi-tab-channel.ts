@@ -16,10 +16,12 @@ export class MultiTabChannel {
     () => this.onBeforeUnloadHandler(),
     (message: any) => this.onMessageHandler(message)
   ]
-  private bcMessageHandler: Function
+  private onBCMessageHandler: Function
+  private onElectedLeaderHandler: Function
 
-  constructor(name: string, onBCMessageHandler: Function) {
-    this.bcMessageHandler = onBCMessageHandler
+  constructor(name: string, onBCMessageHandler: Function, onElectedLeaderHandler: Function) {
+    this.onBCMessageHandler = onBCMessageHandler
+    this.onElectedLeaderHandler = onElectedLeaderHandler
     this.channel = new BroadcastChannel(name)
     this.elector = createLeaderElection(this.channel)
     this.init().then(() => logger.debug('MultiTabChannel', 'constructor', 'init', 'done'))
@@ -53,10 +55,14 @@ export class MultiTabChannel {
   private async onMessageHandler(message: Message) {
     if (message.type === 'LEADER_DEAD') {
       await this.elector.awaitLeadership()
+
+      if (this.isLeader()) {
+        this.onElectedLeaderHandler()
+      }
       return
     }
 
-    this.bcMessageHandler(message)
+    this.onBCMessageHandler(message)
   }
 
   isLeader(): boolean {

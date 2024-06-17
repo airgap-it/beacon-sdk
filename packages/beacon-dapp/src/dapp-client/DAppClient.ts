@@ -226,11 +226,13 @@ export class DAppClient extends Client {
 
   private multiTabChannel = new MultiTabChannel(
     'beacon-sdk-channel-1',
-    this.onBCMessageHandler.bind(this)
+    this.onBCMessageHandler.bind(this),
+    this.onElectedLeaderhandler.bind(this)
   )
   private multiTabUIChannel = new MultiTabChannel(
     'beacon-sdk-channel-2',
-    this.onBCUIHandler.bind(this)
+    this.onBCUIHandler.bind(this),
+    () => {}
   )
 
   constructor(config: DAppClientOptions) {
@@ -458,6 +460,24 @@ export class DAppClient extends Client {
       type: typedMessage.type,
       data: typedMessage
     })
+  }
+
+  private async onElectedLeaderhandler() {
+    if (!this._transport.isResolved()) {
+      return
+    }
+
+    const tranport = await this.transport
+
+    if (tranport.type !== TransportType.WALLETCONNECT) {
+      return
+    }
+
+    if (tranport.connectionStatus === TransportStatus.CONNECTED) {
+      return
+    }
+
+    await tranport.connect()
   }
 
   private onBCMessageHandler(message: any) {

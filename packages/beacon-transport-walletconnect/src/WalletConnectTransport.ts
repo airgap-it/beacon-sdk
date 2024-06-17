@@ -46,15 +46,13 @@ export class WalletConnectTransport<
   }
 
   public async connect(): Promise<void> {
-    if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
+    if (this._isConnected !== TransportStatus.NOT_CONNECTED || !this.isLeader) {
       return
     }
 
     this._isConnected = TransportStatus.CONNECTING
 
-    if (this.isLeader) {
-      await this.client.init()
-    }
+    await this.client.init()
 
     const knownPeers = await this.getPeers()
 
