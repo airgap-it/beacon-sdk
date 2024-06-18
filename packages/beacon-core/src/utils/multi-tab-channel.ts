@@ -65,6 +65,14 @@ export class MultiTabChannel {
     return this.elector.isLeader
   }
 
+  async getLeadership() {
+    return this.elector.awaitLeadership()
+  }
+
+  async hasLeader(): Promise<boolean> {
+    return this.elector.hasLeader()
+  }
+
   postMessage(message: any): void {
     this.channel.postMessage(message)
   }

@@ -577,6 +577,12 @@ export class DAppClient extends Client {
       }
     }
 
+    const becomeLeader = async () => {
+      await this.multiTabChannel.getLeadership()
+
+      return this.multiTabChannel.isLeader()
+    }
+
     this.walletConnectTransport = new DappWalletConnectTransport(
       this.name,
       keyPair,
@@ -585,7 +591,9 @@ export class DAppClient extends Client {
         network: this.network.type,
         opts: wcOptions
       },
-      this.multiTabChannel.isLeader()
+      (await this.multiTabChannel.hasLeader())
+        ? this.multiTabChannel.isLeader()
+        : await becomeLeader()
     )
 
     this.initEvents()
