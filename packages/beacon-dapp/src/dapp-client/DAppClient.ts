@@ -457,6 +457,18 @@ export class DAppClient extends Client {
     })
   }
 
+  private async checkIfBCLeaderExists() {
+    const hasLeader = await this.multiTabChannel.hasLeader()
+
+    if (hasLeader) {
+      return this.multiTabChannel.isLeader()
+    }
+
+    await this.multiTabChannel.getLeadership()
+
+    return this.multiTabChannel.isLeader()
+  }
+
   private async onElectedLeaderhandler() {
     if (!this._transport.isResolved()) {
       return
@@ -577,12 +589,6 @@ export class DAppClient extends Client {
       }
     }
 
-    const becomeLeader = async () => {
-      await this.multiTabChannel.getLeadership()
-
-      return this.multiTabChannel.isLeader()
-    }
-
     this.walletConnectTransport = new DappWalletConnectTransport(
       this.name,
       keyPair,
@@ -591,9 +597,7 @@ export class DAppClient extends Client {
         network: this.network.type,
         opts: wcOptions
       },
-      (await this.multiTabChannel.hasLeader())
-        ? this.multiTabChannel.isLeader()
-        : await becomeLeader()
+      this.checkIfBCLeaderExists.bind(this)
     )
 
     this.initEvents()

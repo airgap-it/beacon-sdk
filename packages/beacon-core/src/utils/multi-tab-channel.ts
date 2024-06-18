@@ -18,6 +18,9 @@ export class MultiTabChannel {
   ]
   private onBCMessageHandler: Function
   private onElectedLeaderHandler: Function
+  // Auxiliary variable needed for handling beforeUnload.
+  // Closing a tab causes the elector to be killed immediately
+  private wasLeader: boolean = false
 
   constructor(name: string, onBCMessageHandler: Function, onElectedLeaderHandler: Function) {
     this.onBCMessageHandler = onBCMessageHandler
@@ -32,6 +35,7 @@ export class MultiTabChannel {
 
     if (!hasLeader) {
       await this.elector.awaitLeadership()
+      this.wasLeader = this.isLeader()
     }
 
     this.channel.onmessage = this.eventListeners[1]
@@ -39,7 +43,7 @@ export class MultiTabChannel {
   }
 
   private async onBeforeUnloadHandler() {
-    if (this.isLeader()) {
+    if (this.wasLeader) {
       await this.elector.die()
       this.postMessage({ type: 'LEADER_DEAD' })
     }
@@ -51,6 +55,8 @@ export class MultiTabChannel {
   private async onMessageHandler(message: Message) {
     if (message.type === 'LEADER_DEAD') {
       await this.elector.awaitLeadership()
+
+      this.wasLeader = this.isLeader()
 
       if (this.isLeader()) {
         this.onElectedLeaderHandler()

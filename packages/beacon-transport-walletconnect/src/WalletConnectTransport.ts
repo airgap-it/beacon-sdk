@@ -32,7 +32,7 @@ export class WalletConnectTransport<
     storage: Storage,
     storageKey: K,
     private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    private isLeader: boolean
+    private isLeader: Function
   ) {
     super(
       name,
@@ -46,16 +46,16 @@ export class WalletConnectTransport<
   }
 
   public async connect(): Promise<void> {
-    if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
+    if ([TransportStatus.CONNECTED, TransportStatus.CONNECTING].includes(this._isConnected)) {
       return
     }
 
     this._isConnected = TransportStatus.CONNECTING
 
-    if (this.isLeader) {
+    const isLeader = await this.isLeader()
+
+    if (isLeader) {
       await this.client.init()
-    } else {
-      this._isConnected = TransportStatus.SECONDARY_TAB_CONNECTED
     }
 
     const knownPeers = await this.getPeers()
@@ -65,8 +65,11 @@ export class WalletConnectTransport<
     }
 
     await this.startOpenChannelListener()
+    await super.connect()
 
-    return super.connect()
+    if (!isLeader) {
+      this._isConnected = TransportStatus.SECONDARY_TAB_CONNECTED
+    }
   }
 
   wasDisconnectedByWallet() {
