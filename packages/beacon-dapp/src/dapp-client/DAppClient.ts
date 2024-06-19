@@ -388,7 +388,9 @@ export class DAppClient extends Client {
         } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
           await this.onNewAccount(typedMessage as ChangeAccountRequest, connectionInfo)
         } else {
-          logger.error('handleResponse', 'no request found for id ', message.id, message)
+          // This needs to be a debug log because, due to the BC feature,
+          // IDs generated in another tab will also be handled here.
+          logger.debug('handleResponse', 'no request found for id ', message.id, message)
         }
       }
 
@@ -492,8 +494,7 @@ export class DAppClient extends Client {
       case BeaconMessageType.PermissionRequest:
       case BeaconMessageType.OperationRequest:
       case BeaconMessageType.SignPayloadRequest:
-        this.openRequestsOtherTabs.add(message.id)
-        this.makeRequest(message.data, false, message.id)
+        this.prepareRequest(message)
         break
       case 'RESPONSE':
         this.handleResponse(message.data.message, message.data.connectionInfo)
@@ -504,6 +505,15 @@ export class DAppClient extends Client {
       default:
         logger.error('onBCMessageHandler', 'message type not recognized', message)
     }
+  }
+
+  private prepareRequest(message: any) {
+    if (!this.multiTabChannel.isLeader()) {
+      return
+    }
+
+    this.openRequestsOtherTabs.add(message.id)
+    this.makeRequest(message.data, false, message.id)
   }
 
   private async createStateSnapshot() {
