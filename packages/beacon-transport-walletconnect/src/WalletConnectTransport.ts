@@ -36,7 +36,7 @@ export class WalletConnectTransport<
   ) {
     super(
       name,
-      WalletConnectCommunicationClient.getInstance(wcOptions),
+      WalletConnectCommunicationClient.getInstance(wcOptions, isLeader),
       new PeerManager<K>(storage, storageKey)
     )
   }
@@ -93,7 +93,7 @@ export class WalletConnectTransport<
   }
 
   public async getPeers(): Promise<T[]> {
-    const client = WalletConnectCommunicationClient.getInstance(this.wcOptions)
+    const client = WalletConnectCommunicationClient.getInstance(this.wcOptions, this.isLeader)
     const session = client.currentSession()
     if (!session) {
       return []
