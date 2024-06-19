@@ -320,7 +320,6 @@ export class DAppClient extends Client {
           },
           id: message.id
         })
-        // this.sendUIMessage(message)
 
         if (typedMessage.type !== BeaconMessageType.Acknowledge) {
           this.openRequestsOtherTabs.delete(message.id)
@@ -458,22 +457,6 @@ export class DAppClient extends Client {
     this.initUserID().catch((err) => logger.error(err.message))
   }
 
-  // private sendUIMessage(message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>) {
-  //   if (!this.multiTabChannel.isLeader()) {
-  //     return
-  //   }
-
-  //   const typedMessage =
-  //     message.version === '3'
-  //       ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
-  //       : (message as BeaconMessage)
-
-  //   this.multiTabChannel.postMessage({
-  //     type: typedMessage.type,
-  //     data: typedMessage
-  //   })
-  // }
-
   private async checkIfBCLeaderExists() {
     const hasLeader = await this.multiTabChannel.hasLeader()
 
@@ -505,8 +488,6 @@ export class DAppClient extends Client {
   }
 
   private async onBCMessageHandler(message: any) {
-    // const walletInfo = await this.getWalletInfo()
-
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
       case BeaconMessageType.OperationRequest:
@@ -520,22 +501,6 @@ export class DAppClient extends Client {
       case 'DISCONNECT':
         this.disconnect()
         break
-      // UI
-      // case BeaconMessageType.Acknowledge:
-      //   this.events.emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
-      //     message: {} as any,
-      //     extraInfo: {} as any,
-      //     walletInfo
-      //   })
-      //   break
-      // // TODO SUCCESS
-      // case BeaconMessageType.Error:
-      //   this.events.emit(BeaconEvent.OPERATION_REQUEST_ERROR, {
-      //     errorResponse: message.data,
-      //     walletInfo,
-      //     errorMessages: this.errorMessages
-      //   })
-      //   break
       default:
         logger.error('onBCMessageHandler', 'message type not recognized', message)
     }
