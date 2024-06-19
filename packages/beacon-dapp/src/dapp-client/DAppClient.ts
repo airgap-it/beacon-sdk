@@ -500,7 +500,7 @@ export class DAppClient extends Client {
         this.handleResponse(message.data.message, message.data.connectionInfo)
         break
       case 'DISCONNECT':
-        this.disconnect()
+        this._transport.isResolved() && this.disconnect()
         break
       default:
         logger.error('onBCMessageHandler', 'message type not recognized', message)
