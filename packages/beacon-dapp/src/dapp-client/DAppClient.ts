@@ -1414,23 +1414,20 @@ export class DAppClient extends Client {
 
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = this.multiTabChannel.isLeader()
-      ? await this.makeRequest<PermissionRequest, PermissionResponse>(request).catch(
-          async (requestError: ErrorResponse) => {
-            requestError.errorType === BeaconErrorType.ABORTED_ERROR
-              ? this.sendMetrics(
-                  'performance-metrics/save',
-                  await this.buildPayload('message', 'abort')
-                )
-              : this.sendMetrics(
-                  'performance-metrics/save',
-                  await this.buildPayload('message', 'error')
-                )
-            logger.time(false, logId)
-            throw await this.handleRequestError(request, requestError)
-          }
-        )
-      : (await this.makeRequestBC<PermissionRequest, PermissionResponse>(request))!
+
+    const res = this.multiTabChannel.isLeader() || !this._activeAccount.isResolved() || !(await this.getActiveAccount())
+      ? this.makeRequest<PermissionRequest, PermissionResponse>(request)
+      : this.makeRequestBC<PermissionRequest, PermissionResponse>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
+      throw await this.handleRequestError(request, requestError)
+    })
+
+    const { message, connectionInfo } = (await res)!
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'success'))
 
@@ -1644,23 +1641,20 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = this.multiTabChannel.isLeader()
-      ? await this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request).catch(
-          async (requestError: ErrorResponse) => {
-            requestError.errorType === BeaconErrorType.ABORTED_ERROR
-              ? this.sendMetrics(
-                  'performance-metrics/save',
-                  await this.buildPayload('message', 'abort')
-                )
-              : this.sendMetrics(
-                  'performance-metrics/save',
-                  await this.buildPayload('message', 'error')
-                )
-            logger.time(false, logId)
-            throw await this.handleRequestError(request, requestError)
-          }
-        )
-      : (await this.makeRequestBC<SignPayloadRequest, SignPayloadResponse>(request))!
+    const res = this.multiTabChannel.isLeader()
+      ? this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request)
+      : this.makeRequestBC<SignPayloadRequest, SignPayloadResponse>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
+      throw await this.handleRequestError(request, requestError)
+    })
+
+    const { message, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1762,23 +1756,21 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = this.multiTabChannel.isLeader()
-      ? await this.makeRequest<OperationRequest, OperationResponse>(request).catch(
-          async (requestError: ErrorResponse) => {
-            requestError.errorType === BeaconErrorType.ABORTED_ERROR
-              ? this.sendMetrics(
-                  'performance-metrics/save',
-                  await this.buildPayload('message', 'abort')
-                )
-              : this.sendMetrics(
-                  'performance-metrics/save',
-                  await this.buildPayload('message', 'error')
-                )
-            logger.time(false, logId)
-            throw await this.handleRequestError(request, requestError)
-          }
-        )
-      : (await this.makeRequestBC<OperationRequest, OperationResponse>(request))!
+
+    const res = this.multiTabChannel.isLeader()
+      ? this.makeRequest<OperationRequest, OperationResponse>(request)
+      : this.makeRequestBC<OperationRequest, OperationResponse>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
+      throw await this.handleRequestError(request, requestError)
+    })
+
+    const { message, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
