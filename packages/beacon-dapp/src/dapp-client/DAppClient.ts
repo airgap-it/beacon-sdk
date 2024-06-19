@@ -491,13 +491,13 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo()
 
     switch (message.type) {
-      case 'request_permissions':
+      case BeaconMessageType.PermissionRequest:
         this.requestPermissions(message.data)
         break
-      case 'send_operations':
+      case BeaconMessageType.OperationRequest:
         this.requestOperation(message.data)
         break
-      case 'sign_payload':
+      case BeaconMessageType.SignPayloadRequest:
         this.requestSignPayload(message.data)
         break
       case 'RESPONSE':
@@ -1389,35 +1389,13 @@ export class DAppClient extends Client {
    */
   public async requestPermissions(
     input?: RequestPermissionInput
-  ): Promise<PermissionResponseOutput | undefined> {
+  ): Promise<PermissionResponseOutput> {
     // Add error message for deprecation of network
     // TODO: Remove when we remove deprecated preferredNetwork
     if (input?.network !== undefined && this.network.type !== input?.network?.type) {
       console.error(
         '[BEACON] The network specified in the DAppClient constructor does not match the network set in the permission request. Please set the network in the constructor. Setting it during the Permission Request is deprecated.'
       )
-    }
-
-    if (
-      this._transport.isResolved() &&
-      (await this.transport).type === TransportType.WALLETCONNECT &&
-      !this.multiTabChannel.isLeader()
-    ) {
-      this.multiTabChannel.postMessage({
-        type: 'request_permissions',
-        data: input
-      })
-      this.events
-        .emit(messageEvents[BeaconMessageType.PermissionRequest].sent, {
-          walletInfo: await this.getWalletInfo(),
-          extraInfo: {
-            resetCallback: async () => {
-              this.disconnect()
-            }
-          }
-        })
-        .catch((emitError) => console.warn(emitError))
-      return
     }
 
     const request: PermissionRequestInput = {
@@ -1436,16 +1414,23 @@ export class DAppClient extends Client {
 
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<
-      PermissionRequest,
-      PermissionResponse
-    >(request).catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request, requestError)
-    })
+    const { message, connectionInfo } = this.multiTabChannel.isLeader()
+      ? await this.makeRequest<PermissionRequest, PermissionResponse>(request).catch(
+          async (requestError: ErrorResponse) => {
+            requestError.errorType === BeaconErrorType.ABORTED_ERROR
+              ? this.sendMetrics(
+                  'performance-metrics/save',
+                  await this.buildPayload('message', 'abort')
+                )
+              : this.sendMetrics(
+                  'performance-metrics/save',
+                  await this.buildPayload('message', 'error')
+                )
+            logger.time(false, logId)
+            throw await this.handleRequestError(request, requestError)
+          }
+        )
+      : (await this.makeRequestBC<PermissionRequest, PermissionResponse>(request))!
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'success'))
 
@@ -1606,7 +1591,7 @@ export class DAppClient extends Client {
    */
   public async requestSignPayload(
     input: RequestSignPayloadInput
-  ): Promise<SignPayloadResponseOutput | undefined> {
+  ): Promise<SignPayloadResponseOutput> {
     if (!input.payload) {
       throw await this.sendInternalError('Payload must be provided')
     }
@@ -1619,28 +1604,6 @@ export class DAppClient extends Client {
 
     if (typeof payload !== 'string') {
       throw new Error('Payload must be a string')
-    }
-
-    if (
-      this._transport.isResolved() &&
-      (await this.transport).type === TransportType.WALLETCONNECT &&
-      !this.multiTabChannel.isLeader()
-    ) {
-      this.multiTabChannel.postMessage({
-        type: 'sign_payload',
-        data: input
-      })
-      this.events
-        .emit(messageEvents[BeaconMessageType.SignPayloadRequest].sent, {
-          walletInfo: await this.getWalletInfo(),
-          extraInfo: {
-            resetCallback: async () => {
-              this.disconnect()
-            }
-          }
-        })
-        .catch((emitError) => console.warn(emitError))
-      return
     }
 
     const signingType = ((): SigningType => {
@@ -1681,16 +1644,23 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<
-      SignPayloadRequest,
-      SignPayloadResponse
-    >(request).catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request, requestError)
-    })
+    const { message, connectionInfo } = this.multiTabChannel.isLeader()
+      ? await this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request).catch(
+          async (requestError: ErrorResponse) => {
+            requestError.errorType === BeaconErrorType.ABORTED_ERROR
+              ? this.sendMetrics(
+                  'performance-metrics/save',
+                  await this.buildPayload('message', 'abort')
+                )
+              : this.sendMetrics(
+                  'performance-metrics/save',
+                  await this.buildPayload('message', 'error')
+                )
+            logger.time(false, logId)
+            throw await this.handleRequestError(request, requestError)
+          }
+        )
+      : (await this.makeRequestBC<SignPayloadRequest, SignPayloadResponse>(request))!
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1770,9 +1740,7 @@ export class DAppClient extends Client {
    *
    * @param input The message details we need to prepare the OperationRequest message.
    */
-  public async requestOperation(
-    input: RequestOperationInput
-  ): Promise<OperationResponseOutput | undefined> {
+  public async requestOperation(input: RequestOperationInput): Promise<OperationResponseOutput> {
     if (!input.operationDetails) {
       throw await this.sendInternalError('Operation details must be provided')
     }
@@ -1780,28 +1748,6 @@ export class DAppClient extends Client {
 
     if (!activeAccount) {
       throw await this.sendInternalError('No active account!')
-    }
-
-    if (
-      this._transport.isResolved() &&
-      (await this.transport).type === TransportType.WALLETCONNECT &&
-      !this.multiTabChannel.isLeader()
-    ) {
-      this.multiTabChannel.postMessage({
-        type: 'send_operations',
-        data: input
-      })
-      this.events
-        .emit(messageEvents[BeaconMessageType.OperationRequest].sent, {
-          walletInfo: await this.getWalletInfo(),
-          extraInfo: {
-            resetCallback: async () => {
-              this.disconnect()
-            }
-          }
-        })
-        .catch((emitError) => console.warn(emitError))
-      return
     }
 
     const request: OperationRequestInput = {
@@ -1816,15 +1762,23 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
-      request
-    ).catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request, requestError)
-    })
+    const { message, connectionInfo } = this.multiTabChannel.isLeader()
+      ? await this.makeRequest<OperationRequest, OperationResponse>(request).catch(
+          async (requestError: ErrorResponse) => {
+            requestError.errorType === BeaconErrorType.ABORTED_ERROR
+              ? this.sendMetrics(
+                  'performance-metrics/save',
+                  await this.buildPayload('message', 'abort')
+                )
+              : this.sendMetrics(
+                  'performance-metrics/save',
+                  await this.buildPayload('message', 'error')
+                )
+            logger.time(false, logId)
+            throw await this.handleRequestError(request, requestError)
+          }
+        )
+      : (await this.makeRequestBC<OperationRequest, OperationResponse>(request))!
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -2497,6 +2451,55 @@ export class DAppClient extends Client {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed.promise as any // TODO: fix type
+  }
+
+  private async makeRequestBC<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
+    request: Optional<T, IgnoredRequestInputProperties>
+  ): Promise<
+    | {
+        message: U
+        connectionInfo: ConnectionContext
+      }
+    | undefined
+  > {
+    if (!this._transport.isResolved()) {
+      return
+    }
+
+    const transport = await this.transport
+
+    if (transport.type !== TransportType.WALLETCONNECT) {
+      return
+    }
+
+    const id = await generateGUID()
+
+    this.multiTabChannel.postMessage({
+      type: request.type,
+      data: request,
+      id
+    })
+
+    this.events
+      .emit(messageEvents[BeaconMessageType.PermissionRequest].sent, {
+        walletInfo: await this.getWalletInfo(),
+        extraInfo: {
+          resetCallback: () => this.disconnect()
+        }
+      })
+      .catch((emitError) => console.warn(emitError))
+
+    const exposed = new ExposedPromise<
+      {
+        message: U
+        connectionInfo: ConnectionContext
+      },
+      ErrorResponse
+    >()
+
+    this.addOpenRequest(id, exposed as any)
+
+    return exposed.promise
   }
 
   public async disconnect() {
