@@ -179,6 +179,8 @@ export class DAppClient extends Client {
   protected wcRelayUrl?: string
 
   private isGetActiveAccountHandled: boolean = false
+
+  private readonly openRequestsOtherTabs = new Set<string>()
   /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
    */
@@ -299,7 +301,33 @@ export class DAppClient extends Client {
       message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
-      this.sendUIMessage(message)
+      const typedMessage =
+        message.version === '3'
+          ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
+          : (message as BeaconMessage)
+
+      const appMetadata =
+        message.version === '3'
+          ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData.appMetadata
+          : (typedMessage as PermissionResponse).appMetadata
+
+      if (this.openRequestsOtherTabs.has(message.id)) {
+        this.multiTabChannel.postMessage({
+          type: 'RESPONSE',
+          data: {
+            message,
+            connectionInfo
+          },
+          id: message.id
+        })
+        // this.sendUIMessage(message)
+
+        if (typedMessage.type !== BeaconMessageType.Acknowledge) {
+          this.openRequestsOtherTabs.delete(message.id)
+        }
+
+        return
+      }
 
       const openRequest = this.openRequests.get(message.id)
 
@@ -332,16 +360,6 @@ export class DAppClient extends Client {
         await this.removeAccountsForPeerIds([message.senderId])
         await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
       }
-
-      const typedMessage =
-        message.version === '3'
-          ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
-          : (message as BeaconMessage)
-
-      const appMetadata =
-        message.version === '3'
-          ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData.appMetadata
-          : (typedMessage as PermissionResponse).appMetadata
 
       if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
         this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
@@ -441,21 +459,21 @@ export class DAppClient extends Client {
     this.initUserID().catch((err) => logger.error(err.message))
   }
 
-  private sendUIMessage(message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>) {
-    if (!this.multiTabChannel.isLeader()) {
-      return
-    }
+  // private sendUIMessage(message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>) {
+  //   if (!this.multiTabChannel.isLeader()) {
+  //     return
+  //   }
 
-    const typedMessage =
-      message.version === '3'
-        ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
-        : (message as BeaconMessage)
+  //   const typedMessage =
+  //     message.version === '3'
+  //       ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
+  //       : (message as BeaconMessage)
 
-    this.multiTabChannel.postMessage({
-      type: typedMessage.type,
-      data: typedMessage
-    })
-  }
+  //   this.multiTabChannel.postMessage({
+  //     type: typedMessage.type,
+  //     data: typedMessage
+  //   })
+  // }
 
   private async checkIfBCLeaderExists() {
     const hasLeader = await this.multiTabChannel.hasLeader()
@@ -488,17 +506,14 @@ export class DAppClient extends Client {
   }
 
   private async onBCMessageHandler(message: any) {
-    const walletInfo = await this.getWalletInfo()
+    // const walletInfo = await this.getWalletInfo()
 
     switch (message.type) {
       case BeaconMessageType.PermissionRequest:
-        this.requestPermissions(message.data)
-        break
       case BeaconMessageType.OperationRequest:
-        this.requestOperation(message.data)
-        break
       case BeaconMessageType.SignPayloadRequest:
-        this.requestSignPayload(message.data)
+        this.openRequestsOtherTabs.add(message.id)
+        this.makeRequest(message.data, false, message.id)
         break
       case 'RESPONSE':
         this.handleResponse(message.data.message, message.data.connectionInfo)
@@ -507,21 +522,21 @@ export class DAppClient extends Client {
         this.disconnect()
         break
       // UI
-      case BeaconMessageType.Acknowledge:
-        this.events.emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
-          message: {} as any,
-          extraInfo: {} as any,
-          walletInfo
-        })
-        break
-      // TODO SUCCESS
-      case BeaconMessageType.Error:
-        this.events.emit(BeaconEvent.OPERATION_REQUEST_ERROR, {
-          errorResponse: message.data,
-          walletInfo,
-          errorMessages: this.errorMessages
-        })
-        break
+      // case BeaconMessageType.Acknowledge:
+      //   this.events.emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
+      //     message: {} as any,
+      //     extraInfo: {} as any,
+      //     walletInfo
+      //   })
+      //   break
+      // // TODO SUCCESS
+      // case BeaconMessageType.Error:
+      //   this.events.emit(BeaconEvent.OPERATION_REQUEST_ERROR, {
+      //     errorResponse: message.data,
+      //     walletInfo,
+      //     errorMessages: this.errorMessages
+      //   })
+      //   break
       default:
         logger.error('onBCMessageHandler', 'message type not recognized', message)
     }
@@ -1415,9 +1430,12 @@ export class DAppClient extends Client {
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
 
-    const res = this.multiTabChannel.isLeader() || !this._activeAccount.isResolved() || !(await this.getActiveAccount())
-      ? this.makeRequest<PermissionRequest, PermissionResponse>(request)
-      : this.makeRequestBC<PermissionRequest, PermissionResponse>(request)
+    const res =
+      this.multiTabChannel.isLeader() ||
+      !this._activeAccount.isResolved() ||
+      !(await this.getActiveAccount())
+        ? this.makeRequest<PermissionRequest, PermissionResponse>(request)
+        : this.makeRequestBC<PermissionRequest, PermissionResponse>(request)
 
     res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
@@ -2209,20 +2227,23 @@ export class DAppClient extends Client {
 
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
-    skipResponse?: undefined | false
+    skipResponse?: undefined | false,
+    otherTabMessageId?: string
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
   }>
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
-    skipResponse: true
+    skipResponse: true,
+    otherTabMessageId?: string
   ): Promise<undefined>
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
-    skipResponse?: boolean
+    skipResponse?: boolean,
+    otherTabMessageId?: string
   ) {
-    const messageId = await generateGUID()
+    const messageId = otherTabMessageId ?? (await generateGUID())
 
     if (this._initPromise && this.isInitPending) {
       await Promise.all([
@@ -2312,19 +2333,21 @@ export class DAppClient extends Client {
       throw sendError
     }
 
-    this.events
-      .emit(messageEvents[requestInput.type].sent, {
-        walletInfo: {
-          ...walletInfo,
-          name: walletInfo.name ?? 'Wallet'
-        },
-        extraInfo: {
-          resetCallback: async () => {
-            this.disconnect()
+    if (!otherTabMessageId) {
+      this.events
+        .emit(messageEvents[requestInput.type].sent, {
+          walletInfo: {
+            ...walletInfo,
+            name: walletInfo.name ?? 'Wallet'
+          },
+          extraInfo: {
+            resetCallback: async () => {
+              this.disconnect()
+            }
           }
-        }
-      })
-      .catch((emitError) => console.warn(emitError))
+        })
+        .catch((emitError) => console.warn(emitError))
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed?.promise as any // TODO: fix type
