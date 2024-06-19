@@ -494,7 +494,13 @@ export class DAppClient extends Client {
       case BeaconMessageType.PermissionRequest:
       case BeaconMessageType.OperationRequest:
       case BeaconMessageType.SignPayloadRequest:
+      case BeaconMessageType.BroadcastRequest:
+      case BeaconMessageType.ProofOfEventChallengeRequest:
+      case BeaconMessageType.SimulatedProofOfEventChallengeRequest:
         this.prepareRequest(message)
+        break
+      case BeaconMessageType.BlockchainRequest:
+        this.prepareRequest(message, true)
         break
       case 'RESPONSE':
         this.handleResponse(message.data.message, message.data.connectionInfo)
@@ -507,13 +513,15 @@ export class DAppClient extends Client {
     }
   }
 
-  private prepareRequest(message: any) {
+  private prepareRequest(message: any, isV3 = false) {
     if (!this.multiTabChannel.isLeader()) {
       return
     }
 
     this.openRequestsOtherTabs.add(message.id)
-    this.makeRequest(message.data, false, message.id)
+    isV3
+      ? this.makeRequestV3(message.data, message.id)
+      : this.makeRequest(message.data, false, message.id)
   }
 
   private async createStateSnapshot() {
@@ -1342,18 +1350,24 @@ export class DAppClient extends Client {
 
     const logId = `makeRequestV3 ${Date.now()}`
     logger.time(true, logId)
-    const { message: response, connectionInfo } = await this.makeRequestV3<
-      BlockchainRequestV3<string>,
-      BeaconMessageWrapper<BlockchainResponseV3<string>>
-    >(request).catch(async (requestError: ErrorResponse) => {
-      console.error(requestError)
+    const res = this.multiTabChannel.isLeader()
+      ? this.makeRequestV3<
+          BlockchainRequestV3<string>,
+          BeaconMessageWrapper<BlockchainResponseV3<string>>
+        >(request)
+      : this.makeRequestBC<any, any>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
-      throw new Error('TODO')
+      throw new Error(requestError.errorData)
       // throw await this.handleRequestError(request, requestError)
     })
+
+    const { message: response, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1485,16 +1499,20 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<
-      ProofOfEventChallengeRequest,
-      ProofOfEventChallengeResponse
-    >(request).catch(async (requestError: ErrorResponse) => {
+    const res = this.multiTabChannel.isLeader()
+      ? this.makeRequest<ProofOfEventChallengeRequest, ProofOfEventChallengeResponse>(request)
+      : this.makeRequestBC<ProofOfEventChallengeRequest, ProofOfEventChallengeResponse>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
+
+    const { message, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1534,10 +1552,11 @@ export class DAppClient extends Client {
     if (
       activeAccount.walletType !== 'abstracted_account' &&
       activeAccount.verificationType !== 'proof_of_event'
-    )
+    ) {
       throw new Error(
         'This wallet is not an abstracted account and thus cannot perform a simulated proof of event'
       )
+    }
 
     const request: SimulatedProofOfEventChallengeRequestInput = {
       type: BeaconMessageType.SimulatedProofOfEventChallengeRequest,
@@ -1546,13 +1565,27 @@ export class DAppClient extends Client {
     }
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<
-      SimulatedProofOfEventChallengeRequest,
-      SimulatedProofOfEventChallengeResponse
-    >(request).catch(async (requestError: ErrorResponse) => {
+
+    const res = this.multiTabChannel.isLeader()
+      ? this.makeRequest<
+          SimulatedProofOfEventChallengeRequest,
+          SimulatedProofOfEventChallengeResponse
+        >(request)
+      : this.makeRequestBC<
+          SimulatedProofOfEventChallengeRequest,
+          SimulatedProofOfEventChallengeResponse
+        >(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
+
+    const { message, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.analytics.track(
       'event',
@@ -1809,15 +1842,20 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
-      request
-    ).catch(async (requestError: ErrorResponse) => {
+    const res = this.multiTabChannel.isLeader()
+      ? this.makeRequest<BroadcastRequest, BroadcastResponse>(request)
+      : this.makeRequestBC<BroadcastRequest, BroadcastResponse>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
+
+    const { message, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -2339,7 +2377,8 @@ export class DAppClient extends Client {
     T extends BlockchainMessage<string>,
     U extends BeaconMessageWrapper<BlockchainMessage<string>>
   >(
-    requestInput: T
+    requestInput: T,
+    otherTabMessageId?: string
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -2353,7 +2392,7 @@ export class DAppClient extends Client {
       this.hideUI(['toast'])
     }
 
-    const messageId = await generateGUID()
+    const messageId = otherTabMessageId ?? (await generateGUID())
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
     await this.init()
