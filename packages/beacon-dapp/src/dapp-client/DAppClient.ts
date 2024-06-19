@@ -364,7 +364,6 @@ export class DAppClient extends Client {
       if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
         this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
         logger.log('handleResponse', `acknowledge message received for ${message.id}`)
-        logger.timeLog('handleResponse', message.id, 'acknowledge')
 
         this.events
           .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
