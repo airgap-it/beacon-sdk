@@ -4,7 +4,8 @@ import {
   Serializer,
   ClientEvents,
   Logger,
-  WCStorage
+  WCStorage,
+  SDK_VERSION
 } from '@airgap/beacon-core'
 import Client from '@walletconnect/sign-client'
 import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
@@ -45,9 +46,10 @@ import {
   StorageKey,
   TransportType
 } from '@airgap/beacon-types'
-import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
+import { generateGUID, getAddressFromPublicKey, isPublicKeySC } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
+const BEACON_SDK_VERSION = 'beacon_sdk_version'
 const logger = new Logger('WalletConnectCommunicationClient')
 
 export interface PermissionScopeParam {
@@ -99,7 +101,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   public signClient: Client | undefined
   public storage: WCStorage = new WCStorage()
   private session: SessionTypes.Struct | undefined
-  private activeAccount: string | undefined
+  private activeAccountOrPbk: string | undefined
   private activeNetwork: string | undefined
   readonly disconnectionEvents: Set<string> = new Set()
   private pingInterval: NodeJS.Timeout | undefined
@@ -349,7 +351,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const accounts = this.getTezosNamespace(session.namespaces).accounts
       const addressOrPbk = accounts[0].split(':', 3)[2]
 
-      if (addressOrPbk.startsWith('edpk')) {
+      if (isPublicKeySC(addressOrPbk)) {
         publicKey = addressOrPbk
       } else {
         if (network.type !== this.wcOptions.network) {
@@ -401,7 +403,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
 
-    if (this.activeAccount) {
+    if (this.activeAccountOrPbk) {
       try {
         await this.openSession()
       } catch (error: any) {
@@ -443,7 +445,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.SIGN,
           params: {
-            account: account,
+            account: isPublicKeySC(account) ? await getAddressFromPublicKey(account) : account,
             payload: signPayloadRequest.payload
           }
         }
@@ -509,7 +511,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.OPERATION_REQUEST,
           params: {
-            account,
+            account: isPublicKeySC(account) ? await getAddressFromPublicKey(account) : account,
             operations: operationRequest.operationDetails
           }
         }
@@ -623,6 +625,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       },
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
+      },
+      sessionProperties: {
+        [BEACON_SDK_VERSION]: SDK_VERSION
       }
     }
 
@@ -674,7 +679,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         if (session?.controller !== this.session?.controller) {
           logger.debug('Controller doesnt match, closing active session', [session.pairingTopic])
-          this.activeAccount && this.closeActiveSession(this.activeAccount, false)
+          this.activeAccountOrPbk && this.closeActiveSession(this.activeAccountOrPbk, false)
           this.session = undefined // close the previous session
         }
 
@@ -794,15 +799,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         let publicKey: string | undefined
 
         this.activeNetwork = chainId
+        this.activeAccountOrPbk = addressOrPbk
 
-        if (addressOrPbk.startsWith('edpk')) {
-          publicKey = addressOrPbk
-          this.activeAccount = await getAddressFromPublicKey(publicKey)
-        } else {
-          this.activeAccount = addressOrPbk
+        if (!isPublicKeySC(addressOrPbk)) {
           const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
-
           publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
+        } else {
+          publicKey = addressOrPbk
         }
 
         if (!publicKey) {
@@ -842,7 +845,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       session = await this.onPairingClosed(signClient, trigger.topic)
     }
 
-    if (!this.activeAccount) {
+    if (!this.activeAccountOrPbk) {
       const fun = this.eventHandlers.get(ClientEvents.RESET_STATE)
       fun && fun(TransportType.WALLETCONNECT)
     }
@@ -1015,6 +1018,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
       },
+      sessionProperties: {
+        [BEACON_SDK_VERSION]: SDK_VERSION
+      },
       pairingTopic
     }
 
@@ -1031,7 +1037,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // if I have successfully opened a session and I already have one opened
       if (session?.controller !== this.session?.controller) {
         logger.debug('Controller doesnt match, closing active session', [pairingTopic])
-        this.activeAccount && this.closeActiveSession(this.activeAccount, false)
+        this.activeAccountOrPbk && this.closeActiveSession(this.activeAccountOrPbk, false)
         this.session = undefined // close the previous session
       }
 
@@ -1261,7 +1267,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private setDefaultAccountAndNetwork() {
     const activeAccount = this.getAccounts()
     if (activeAccount.length) {
-      this.activeAccount = activeAccount[0]
+      this.activeAccountOrPbk = activeAccount[0]
     }
     const activeNetwork = this.getNetworks()
     if (activeNetwork.length) {
@@ -1368,16 +1374,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * @error ActiveAccountUnspecified thrown when there are multiple Tezos account in the session and none is set as the active one
    */
   async getPKH() {
-    if (!this.activeAccount) {
+    if (!this.activeAccountOrPbk) {
       this.getSession()
       throw new ActiveAccountUnspecified()
     }
-    return this.activeAccount
+    return this.activeAccountOrPbk
   }
 
   private clearState() {
     this.session = undefined
-    this.activeAccount = undefined
+    this.activeAccountOrPbk = undefined
     this.activeNetwork = undefined
   }
 }

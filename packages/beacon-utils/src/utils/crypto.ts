@@ -169,6 +169,11 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
     p2pk: {
       length: 55,
       prefix: Buffer.from(new Uint8Array([6, 161, 164]))
+    },
+    // tz4...
+    BLpk: {
+      length: 55,
+      prefix: Buffer.from(new Uint8Array([6, 161, 166]))
     }
   }
 
@@ -289,6 +294,25 @@ export function encodePoeChallengePayload(payload: string) {
       new Uint8Array([POE_CHALLENGE_PREFIX]),
       Buffer.from(poeBlake2b.update(Buffer.from(payload)).digest())
     ])
+  )
+}
+
+/**
+ * Shallow Check (SC): Perform a superficial check to determine if the string contains a public key.
+ * Do not use this function to validate the key itself.
+ * @param publicKey the public key to analyze
+ * @returns true if it contains a known prefix, false otherwise
+ */
+export function isPublicKeySC(publicKey: string): boolean {
+  if (!publicKey) {
+    return false
+  }
+
+  return (
+    publicKey.startsWith('edpk') ||
+    publicKey.startsWith('sppk') ||
+    publicKey.startsWith('p2pk') ||
+    publicKey.startsWith('BLpk')
   )
 }
 
