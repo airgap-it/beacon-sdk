@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 import * as sinon from 'sinon'
 
-import { getDAppClientInstance } from '../../src/utils/get-instance'
+import { getDAppClientInstance } from '../src/utils/get-instance'
 
 // use chai-as-promised plugin
 chai.use(chaiAsPromised)

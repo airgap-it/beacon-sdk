@@ -31,11 +31,12 @@ export class WalletConnectTransport<
     _keyPair: KeyPair,
     storage: Storage,
     storageKey: K,
-    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }
+    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
+    private isLeader: Function
   ) {
     super(
       name,
-      WalletConnectCommunicationClient.getInstance(wcOptions),
+      WalletConnectCommunicationClient.getInstance(wcOptions, isLeader),
       new PeerManager<K>(storage, storageKey)
     )
   }
@@ -45,13 +46,17 @@ export class WalletConnectTransport<
   }
 
   public async connect(): Promise<void> {
-    if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
+    if ([TransportStatus.CONNECTED, TransportStatus.CONNECTING].includes(this._isConnected)) {
       return
     }
 
     this._isConnected = TransportStatus.CONNECTING
 
-    await this.client.init()
+    const isLeader = await this.isLeader()
+
+    if (isLeader) {
+      await this.client.init()
+    }
 
     const knownPeers = await this.getPeers()
 
@@ -60,12 +65,19 @@ export class WalletConnectTransport<
     }
 
     await this.startOpenChannelListener()
+    await super.connect()
 
-    return super.connect()
+    if (!isLeader) {
+      this._isConnected = TransportStatus.SECONDARY_TAB_CONNECTED
+    }
   }
 
   wasDisconnectedByWallet() {
     return !!this.client.disconnectionEvents.size
+  }
+
+  closeClient() {
+    this.client.closeSignClient()
   }
 
   public async hasPairings() {
@@ -80,17 +92,8 @@ export class WalletConnectTransport<
       : !!this.client.signClient?.session.getAll()?.length
   }
 
-  /**
-   * Forcefully updates any DApps running on the same session
-   * Typical use case: localStorage changes to reflect to indexDB
-   * @param type the message type
-   */
-  public forceUpdate(type: string) {
-    this.client.storage.notify(type)
-  }
-
   public async getPeers(): Promise<T[]> {
-    const client = WalletConnectCommunicationClient.getInstance(this.wcOptions)
+    const client = WalletConnectCommunicationClient.getInstance(this.wcOptions, this.isLeader)
     const session = client.currentSession()
     if (!session) {
       return []
