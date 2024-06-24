@@ -447,23 +447,20 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const generateLink = async () => {
-      let uri = (await wcPayload)?.uri ?? ''
+      const uri = (await wcPayload)?.uri ?? ''
 
-      // If the initial URI is invalid, try generating a new one
+      // check whether the uri contains a valid symmetric key or not
       if (!parseUri(uri).symKey) {
-        uri = (await config.pairingPayload?.walletConnectSyncCode())?.uri ?? ''
-        if (!parseUri(uri).symKey) {
-          handleCloseAlert()
-          setTimeout(
-            () =>
-              openAlert({
-                title: 'Error',
-                body: 'Unexpected transport error. Please try again.'
-              }),
-            500
-          )
-          return null
-        }
+        handleCloseAlert()
+        setTimeout(
+          () =>
+            openAlert({
+              title: 'Error',
+              body: 'Network error occurred. Please check your internet connection.'
+            }),
+          500
+        )
+        return ''
       }
 
       return uri
@@ -489,10 +486,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       let link = ''
 
-      if (
-        wallet.supportedInteractionStandards?.includes('wallet_connect') &&
-        !wallet.name.toLowerCase().includes('kukai')
-      ) {
+      if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
         const uri = await generateLink()
 
         if (!uri) {
@@ -586,10 +580,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         })
       )
 
-      if (
-        (wallet?.types.includes('web') && wallet?.types.length === 1) ||
-        (isAndroid(window) && wallet?.name.toLowerCase().includes('kukai'))
-      ) {
+      if (wallet?.types.includes('web') && wallet?.types.length === 1) {
         handleNewTab(config, wallet)
         return
       }
