@@ -45,6 +45,7 @@ import PairOther from '../../components/pair-other/pair-other'
 import getDefaultLogo from './getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
 import BugReportForm from '../../components/bug-report-form'
+import { checkInternetConnection } from '@airgap/beacon-utils'
 
 const logger = new Logger('Alert')
 
@@ -153,7 +154,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
-  const isOnline = navigator.onLine
+  const isOnline = await checkInternetConnection()
   const areMetricsEnabled = localStorage
     ? localStorage.getItem(StorageKey.ENABLE_METRICS) === 'true'
     : false
@@ -461,7 +462,8 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     const generateLink = async () => {
       const uri = (await wcPayload)?.uri ?? ''
 
-      if (parseUri(uri).symKey) {
+      // check whether the uri contains a valid symmetric key or not
+      if (!parseUri(uri).symKey) {
         showNetworkErrorAlert()
         return ''
       }
