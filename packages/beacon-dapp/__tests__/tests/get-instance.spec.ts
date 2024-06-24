@@ -11,6 +11,9 @@ const expect = chai.expect
 
 describe(`getDAppClientInstance`, () => {
   beforeEach(async () => {
+    ;(global as any).navigator = {
+      userAgent: 'node.js'
+    }
     sinon.restore()
   })
 

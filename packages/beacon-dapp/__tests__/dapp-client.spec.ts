@@ -134,6 +134,9 @@ describe(`DAppClient`, () => {
   beforeEach(() => {
     sinon.restore()
     ;(windowRef as any).beaconCreatedClientInstance = false
+    ;(global as any).navigator = {
+      userAgent: 'node.js'
+    }
   })
 
   it(`should throw an error if initialized with an empty object`, async () => {
