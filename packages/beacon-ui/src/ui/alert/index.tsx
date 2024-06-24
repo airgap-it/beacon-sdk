@@ -45,7 +45,6 @@ import PairOther from '../../components/pair-other/pair-other'
 import getDefaultLogo from './getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
 import BugReportForm from '../../components/bug-report-form'
-import { checkInternetConnection } from '@airgap/beacon-utils'
 
 const logger = new Logger('Alert')
 
@@ -154,7 +153,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
-  const isOnline = await checkInternetConnection()
+  const isOnline = navigator.onLine
   const areMetricsEnabled = localStorage
     ? localStorage.getItem(StorageKey.ENABLE_METRICS) === 'true'
     : false
@@ -567,11 +566,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickWallet = async (id: string) => {
-      if (!isOnline) {
-        showNetworkErrorAlert()
-        return
-      }
-
       setIsLoading(true)
       setShowMoreContent(false)
       const wallet = walletList().find((wallet) => wallet.id === id)
@@ -803,7 +797,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
-                      {currentWallet()?.types.includes('web') && (
+                      {isOnline && currentWallet()?.types.includes('web') && (
                         <Info
                           border
                           title={`Connect with ${currentWallet()?.name} Web`}
