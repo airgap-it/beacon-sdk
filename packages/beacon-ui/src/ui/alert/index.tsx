@@ -431,18 +431,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (config.closeButtonCallback) config.closeButtonCallback()
     }
 
-    const showNetworkErrorAlert = () => {
-      handleCloseAlert()
-      setTimeout(
-        () =>
-          openAlert({
-            title: 'Error',
-            body: 'Network error occurred. Please check your internet connection.'
-          }),
-        500
-      )
-    }
-
     const updateSelectedWalletWithURL = (url: string) => {
       let wallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}')
 
@@ -463,7 +451,15 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       // check whether the uri contains a valid symmetric key or not
       if (!parseUri(uri).symKey) {
-        showNetworkErrorAlert()
+        handleCloseAlert()
+        setTimeout(
+          () =>
+            openAlert({
+              title: 'Error',
+              body: 'Network error occurred. Please check your internet connection.'
+            }),
+          500
+        )
         return ''
       }
 
