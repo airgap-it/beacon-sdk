@@ -17,6 +17,7 @@ export {
   isPublicKeySC
 } from './utils/crypto'
 export { generateGUID } from './utils/generate-uuid'
+export { checkInternetConnection } from './utils/check-connectivity'
 
 export const CONTRACT_PREFIX = 'KT1'
 export const secretbox_NONCEBYTES = 24 // crypto_secretbox_NONCEBYTES

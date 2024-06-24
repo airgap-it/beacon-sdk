@@ -431,6 +431,18 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (config.closeButtonCallback) config.closeButtonCallback()
     }
 
+    const showNetworkErrorAlert = () => {
+      handleCloseAlert()
+      setTimeout(
+        () =>
+          openAlert({
+            title: 'Error',
+            body: 'Network error occurred. Please check your internet connection.'
+          }),
+        500
+      )
+    }
+
     const updateSelectedWalletWithURL = (url: string) => {
       let wallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}')
 
@@ -447,23 +459,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const generateLink = async () => {
-      let uri = (await wcPayload)?.uri ?? ''
+      const uri = (await wcPayload)?.uri ?? ''
 
-      // If the initial URI is invalid, try generating a new one
-      if (!parseUri(uri).symKey) {
-        uri = (await config.pairingPayload?.walletConnectSyncCode())?.uri ?? ''
-        if (!parseUri(uri).symKey) {
-          handleCloseAlert()
-          setTimeout(
-            () =>
-              openAlert({
-                title: 'Error',
-                body: 'Unexpected transport error. Please try again.'
-              }),
-            500
-          )
-          return null
-        }
+      if (parseUri(uri).symKey) {
+        showNetworkErrorAlert()
+        return ''
       }
 
       return uri
@@ -565,6 +565,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const handleClickWallet = async (id: string) => {
+      if (!isOnline) {
+        showNetworkErrorAlert()
+        return
+      }
+
       setIsLoading(true)
       setShowMoreContent(false)
       const wallet = walletList().find((wallet) => wallet.id === id)
@@ -796,7 +801,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             }
                       }
                     >
-                      {isOnline && currentWallet()?.types.includes('web') && (
+                      {currentWallet()?.types.includes('web') && (
                         <Info
                           border
                           title={`Connect with ${currentWallet()?.name} Web`}
