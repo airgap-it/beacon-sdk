@@ -820,7 +820,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           ]}
                         />
                       )}
-                      {!isMobile() && currentWallet()?.types.includes('extension') && (
+                      {currentWallet()?.types.includes('extension') && (
                         <Info
                           border
                           title={
