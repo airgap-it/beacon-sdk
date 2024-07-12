@@ -895,6 +895,13 @@ export class DAppClient extends Client {
           this.multiTabChannel.postMessage({
             type: 'DISCONNECT'
           })
+          Array.from(this.openRequests.values()).forEach((promise) =>
+            promise.reject({
+              type: BeaconMessageType.Error,
+              errorType: BeaconErrorType.ABORTED_ERROR
+            } as any)
+          )
+          this.openRequests.clear()
         }
         this.debounceSetActiveAccount = false
       }
