@@ -904,7 +904,7 @@ export class DAppClient extends Client {
               errorType: BeaconErrorType.ABORTED_ERROR,
               id,
               senderId: '',
-              version: '1'
+              version: '2'
             })
           })
         this.openRequests.clear()
