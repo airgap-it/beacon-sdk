@@ -891,6 +891,7 @@ export class DAppClient extends Client {
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
         if (this.multiTabChannel.isLeader()) {
           await transport.disconnect()
+          this.openRequestsOtherTabs.clear()
         } else {
           this.multiTabChannel.postMessage({
             type: 'DISCONNECT'
