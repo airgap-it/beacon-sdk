@@ -755,7 +755,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       this.session = session
 
-      this.updateActiveAccount(event.params.namespaces, session)
+      this.updateActiveAccount(this.getTezosNamespace(event.params.namespaces).accounts, session)
     })
 
     signClient.on('session_delete', (event) => {
@@ -787,12 +787,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.notifyListeners(this.getTopicFromSession(session), acknowledgeResponse)
   }
 
-  private async updateActiveAccount(
-    namespaces: SessionTypes.Namespaces,
-    session: SessionTypes.Struct
-  ) {
+  private async updateActiveAccount(accounts: string[], session: SessionTypes.Struct) {
     try {
-      const accounts = this.getTezosNamespace(namespaces).accounts
       if (accounts.length) {
         const [_namespace, chainId, addressOrPbk] = accounts[0].split(':', 3)
         const session = this.getSession()
@@ -802,8 +798,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.activeAccountOrPbk = addressOrPbk
 
         if (!isPublicKeySC(addressOrPbk)) {
-          const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
-          publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
+          const token = accounts[1] ? accounts[1].split(':', 3)[2] : ''
+          if (isPublicKeySC(token)) {
+            publicKey = token
+          } else {
+            const result = await this.fetchAccounts(
+              session.topic,
+              `${TEZOS_PLACEHOLDER}:${chainId}`
+            )
+            publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
+          }
         } else {
           publicKey = addressOrPbk
         }
