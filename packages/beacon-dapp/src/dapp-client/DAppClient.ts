@@ -387,10 +387,6 @@ export class DAppClient extends Client {
           await handleDisconnect()
         } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
           await this.onNewAccount(typedMessage as ChangeAccountRequest, connectionInfo)
-        } else {
-          // This needs to be a debug log because, due to the BC feature,
-          // IDs generated in another tab will also be handled here.
-          logger.debug('handleResponse', 'no request found for id ', message.id, message)
         }
       }
 
