@@ -387,10 +387,6 @@ export class DAppClient extends Client {
           await handleDisconnect()
         } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
           await this.onNewAccount(typedMessage as ChangeAccountRequest, connectionInfo)
-        } else {
-          // This needs to be a debug log because, due to the BC feature,
-          // IDs generated in another tab will also be handled here.
-          logger.debug('handleResponse', 'no request found for id ', message.id, message)
         }
       }
 
@@ -891,18 +887,24 @@ export class DAppClient extends Client {
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
         if (this.multiTabChannel.isLeader()) {
           await transport.disconnect()
+          this.openRequestsOtherTabs.clear()
         } else {
           this.multiTabChannel.postMessage({
             type: 'DISCONNECT'
           })
-          Array.from(this.openRequests.values()).forEach((promise) =>
+        }
+        Array.from(this.openRequests.entries())
+          .filter(([id, _promise]) => id !== 'session_update')
+          .forEach(([id, promise]) => {
             promise.reject({
               type: BeaconMessageType.Error,
-              errorType: BeaconErrorType.ABORTED_ERROR
-            } as any)
-          )
-          this.openRequests.clear()
-        }
+              errorType: BeaconErrorType.ABORTED_ERROR,
+              id,
+              senderId: '',
+              version: '2'
+            })
+          })
+        this.openRequests.clear()
         this.debounceSetActiveAccount = false
       }
     }
