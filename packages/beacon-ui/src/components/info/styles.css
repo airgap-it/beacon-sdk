@@ -43,12 +43,12 @@
   text-align: center;
   color: #334155;
   margin: 0px;
-  font-size: 1rem;
+  font-size: 16px;
 }
 
 .info-description {
   text-align: center;
-  font-size: 0.8rem;
+  font-size: 12.8px;
   font-weight: 300;
   color: #7c828b;
   line-height: 1.25rem;
@@ -58,7 +58,7 @@
 }
 
 .info-data {
-  font-size: 0.8rem;
+  font-size: 12.8px;
   font-weight: 300;
   color: #7c828b;
   line-height: 1.25rem;
@@ -84,7 +84,7 @@
   transition: all ease 0.2s;
   cursor: pointer;
   margin-top: 1rem;
-  font-size: 0.8rem;
+  font-size: 12.8px;
 }
 
 .info-button:hover {
@@ -132,7 +132,7 @@ button#qr-code-icon {
 
 @media only screen and (max-width: 800px) {
   .info-title {
-    font-size: 0.9rem;
+    font-size: 14.4px;
     line-height: 1rem;
   }
 
@@ -158,7 +158,7 @@ button#qr-code-icon {
 
   .info-button {
     padding: 0.5em 1.6em;
-    font-size: 1rem;
+    font-size: 16px;
     font-weight: bold;
   }
 }
