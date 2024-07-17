@@ -1780,7 +1780,7 @@ export class DAppClient extends Client {
 
     if (
       input.operationDetails.some(
-        (detail: any) => detail.amount && detail.amount > Number.MAX_SAFE_INTEGER * 1_000_000
+        (detail: any) => detail.amount && Number(detail.amount) > Number.MAX_SAFE_INTEGER * 1_000_000
       )
     ) {
       throw await this.sendInternalError('The amount requested is too large.')
