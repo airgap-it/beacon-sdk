@@ -1778,6 +1778,14 @@ export class DAppClient extends Client {
       throw await this.sendInternalError('No active account!')
     }
 
+    if (
+      input.operationDetails.some(
+        (detail: any) => detail.amount && detail.amount > Number.MAX_SAFE_INTEGER * 1_000_000
+      )
+    ) {
+      throw await this.sendInternalError('The amount requested is too large.')
+    }
+
     const request: OperationRequestInput = {
       type: BeaconMessageType.OperationRequest,
       network: activeAccount.network || this.network,
