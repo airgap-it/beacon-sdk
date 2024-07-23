@@ -53,6 +53,9 @@ export class MultiTabChannel {
   }
 
   private async onMessageHandler(message: Message) {
+    if (this.channel.isClosed) {
+      return
+    }
     if (message.type === 'LEADER_DEAD') {
       await this.elector.awaitLeadership()
 
@@ -72,14 +75,35 @@ export class MultiTabChannel {
   }
 
   async getLeadership() {
+    if (this.channel.isClosed) {
+      return
+    }
     return this.elector.awaitLeadership()
   }
 
   async hasLeader(): Promise<boolean> {
+    if (this.channel.isClosed) {
+      return false;
+    }
     return this.elector.hasLeader()
   }
 
   postMessage(message: any): void {
+    if (this.channel.isClosed) {
+      return
+    }
     this.channel.postMessage(message)
+  }
+
+  async destroy() {
+    if (!this.channel || this.channel.isClosed) {
+      return
+    }
+    if (this.wasLeader) {
+      await this.elector.die()
+      this.postMessage({ type: 'LEADER_DEAD' })
+    }
+    this.channel.removeEventListener('message', this.eventListeners[1])
+    await this.channel.close()
   }
 }

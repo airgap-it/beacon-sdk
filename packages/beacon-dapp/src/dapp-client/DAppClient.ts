@@ -662,6 +662,10 @@ export class DAppClient extends Client {
   async destroy(): Promise<void> {
     await this.createStateSnapshot()
     await super.destroy()
+    await this.postMessageTransport?.disconnect()
+    await this.p2pTransport?.disconnect()
+    await this.walletConnectTransport?.disconnect()
+    this.multiTabChannel.destroy()
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
