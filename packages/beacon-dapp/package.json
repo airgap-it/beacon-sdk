@@ -39,7 +39,6 @@
     "@airgap/beacon-transport-matrix": "4.2.2",
     "@airgap/beacon-transport-postmessage": "4.2.2",
     "@airgap/beacon-transport-walletconnect": "4.2.2",
-    "@airgap/beacon-ui": "4.2.2",
-    "broadcast-channel": "^7.0.0"
+    "@airgap/beacon-ui": "4.2.2"
   }
 }

@@ -455,18 +455,6 @@ export class DAppClient extends Client {
     this.initUserID().catch((err) => logger.error(err.message))
   }
 
-  private async checkIfBCLeaderExists() {
-    const hasLeader = await this.multiTabChannel.hasLeader()
-
-    if (hasLeader) {
-      return this.multiTabChannel.isLeader()
-    }
-
-    await this.multiTabChannel.getLeadership()
-
-    return this.multiTabChannel.isLeader()
-  }
-
   private async onElectedLeaderhandler() {
     if (!this._transport.isResolved()) {
       return
@@ -510,7 +498,7 @@ export class DAppClient extends Client {
   }
 
   private prepareRequest(message: any, isV3 = false) {
-    if (!this.multiTabChannel.isLeader()) {
+    if (!this.multiTabChannel.isLeader) {
       return
     }
 
@@ -590,7 +578,7 @@ export class DAppClient extends Client {
         network: this.network.type,
         opts: wcOptions
       },
-      this.checkIfBCLeaderExists.bind(this)
+      () => this.multiTabChannel.isLeader
     )
 
     this.initEvents()
@@ -885,7 +873,7 @@ export class DAppClient extends Client {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
-        if (this.multiTabChannel.isLeader()) {
+        if (this.multiTabChannel.isLeader) {
           await transport.disconnect()
           this.openRequestsOtherTabs.clear()
         } else {
@@ -1359,7 +1347,7 @@ export class DAppClient extends Client {
 
     const logId = `makeRequestV3 ${Date.now()}`
     logger.time(true, logId)
-    const res = this.multiTabChannel.isLeader()
+    const res = this.multiTabChannel.isLeader
       ? this.makeRequestV3<
           BlockchainRequestV3<string>,
           BeaconMessageWrapper<BlockchainResponseV3<string>>
@@ -1428,7 +1416,7 @@ export class DAppClient extends Client {
     logger.time(true, logId)
 
     const res =
-      this.multiTabChannel.isLeader() ||
+      this.multiTabChannel.isLeader ||
       !this._activeAccount.isResolved() ||
       !(await this.getActiveAccount())
         ? this.makeRequest<PermissionRequest, PermissionResponse>(request)
@@ -1508,7 +1496,7 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const res = this.multiTabChannel.isLeader()
+    const res = this.multiTabChannel.isLeader
       ? this.makeRequest<ProofOfEventChallengeRequest, ProofOfEventChallengeResponse>(request)
       : this.makeRequestBC<ProofOfEventChallengeRequest, ProofOfEventChallengeResponse>(request)
 
@@ -1575,7 +1563,7 @@ export class DAppClient extends Client {
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
 
-    const res = this.multiTabChannel.isLeader()
+    const res = this.multiTabChannel.isLeader
       ? this.makeRequest<
           SimulatedProofOfEventChallengeRequest,
           SimulatedProofOfEventChallengeResponse
@@ -1675,7 +1663,7 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const res = this.multiTabChannel.isLeader()
+    const res = this.multiTabChannel.isLeader
       ? this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request)
       : this.makeRequestBC<SignPayloadRequest, SignPayloadResponse>(request)
 
@@ -1791,7 +1779,7 @@ export class DAppClient extends Client {
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
 
-    const res = this.multiTabChannel.isLeader()
+    const res = this.multiTabChannel.isLeader
       ? this.makeRequest<OperationRequest, OperationResponse>(request)
       : this.makeRequestBC<OperationRequest, OperationResponse>(request)
 
@@ -1851,7 +1839,7 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const res = this.multiTabChannel.isLeader()
+    const res = this.multiTabChannel.isLeader
       ? this.makeRequest<BroadcastRequest, BroadcastResponse>(request)
       : this.makeRequestBC<BroadcastRequest, BroadcastResponse>(request)
 
