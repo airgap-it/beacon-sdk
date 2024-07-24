@@ -54,13 +54,13 @@ export class MultiTabChannel {
 
   private onMessageHandler(message: any) {
     if (message.data.type === 'REQUEST_LEADERSHIP' && this.isLeader) {
-      this.postMessage({ type: 'LEADER_EXISTS' })
+      this.postMessage({ type: 'LEADER_EXISTS', id: message.data.id })
       this.neighborhood.push(message.data.id!)
       return
     }
 
     if (message.data.type === 'LEADER_EXISTS') {
-      clearTimeout(this.leaderElectionTimeout)
+      message.data.id === this.id && clearTimeout(this.leaderElectionTimeout)
       return
     }
 
