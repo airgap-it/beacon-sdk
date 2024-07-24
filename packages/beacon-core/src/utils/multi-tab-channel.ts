@@ -1,12 +1,8 @@
-import { Logger } from '@airgap/beacon-core'
-
 type Message = {
   type: string
   id?: string
   data?: any
 }
-
-const logger = new Logger('MultiTabChannel')
 
 export class MultiTabChannel {
   private id: string = String(Date.now())
@@ -26,12 +22,12 @@ export class MultiTabChannel {
     this.onBCMessageHandler = onBCMessageHandler
     this.onElectedLeaderHandler = onElectedLeaderHandler
     this.channel = new BroadcastChannel(name)
-    this.init().then(() => logger.debug('MultiTabChannel', 'constructor', 'init', 'done'))
+    this.init()
   }
 
-  private async init() {
+  private init() {
     this.postMessage({ type: 'REQUEST_LEADERSHIP', id: this.id })
-    this.leaderElectionTimeout = setTimeout(() => (this.isLeader = true), 1500)
+    this.leaderElectionTimeout = setTimeout(() => (this.isLeader = true), 1000)
     this.channel.onmessage = this.eventListeners[1]
     window?.addEventListener('beforeunload', this.eventListeners[0])
   }
@@ -40,7 +36,7 @@ export class MultiTabChannel {
     return Math.floor(Math.random() * this.neighborhood.length)
   }
 
-  private async onBeforeUnloadHandler() {
+  private onBeforeUnloadHandler() {
     if (this.isLeader) {
       this.postMessage({
         type: 'LEADER_DEAD',
@@ -56,7 +52,7 @@ export class MultiTabChannel {
     this.channel.removeEventListener('message', this.eventListeners[1])
   }
 
-  private async onMessageHandler(message: any) {
+  private onMessageHandler(message: any) {
     if (message.data.type === 'REQUEST_LEADERSHIP' && this.isLeader) {
       this.postMessage({ type: 'LEADER_EXISTS' })
       this.neighborhood.push(message.data.id!)
