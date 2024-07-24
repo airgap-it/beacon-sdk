@@ -18,8 +18,9 @@ export class MultiTabChannel {
   ]
   private onBCMessageHandler: Function
   private onElectedLeaderHandler: Function
+  private leaderElectionTimeout: NodeJS.Timeout | undefined
 
-  isLeader: boolean = true
+  isLeader: boolean = false
 
   constructor(name: string, onBCMessageHandler: Function, onElectedLeaderHandler: Function) {
     this.onBCMessageHandler = onBCMessageHandler
@@ -30,6 +31,7 @@ export class MultiTabChannel {
 
   private async init() {
     this.postMessage({ type: 'REQUEST_LEADERSHIP', id: this.id })
+    this.leaderElectionTimeout = setTimeout(() => (this.isLeader = true), 1500)
     this.channel.onmessage = this.eventListeners[1]
     window?.addEventListener('beforeunload', this.eventListeners[0])
   }
@@ -62,7 +64,7 @@ export class MultiTabChannel {
     }
 
     if (message.data.type === 'LEADER_EXISTS') {
-      this.isLeader = false
+      clearTimeout(this.leaderElectionTimeout)
       return
     }
 
