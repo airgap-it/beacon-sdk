@@ -69,10 +69,12 @@ export class MultiTabChannel {
       return
     }
 
-    if (message.data.type === 'LEADER_DEAD' && message.data.id === this.id) {
-      this.isLeader = true
-      this.neighborhood = message.data.data.filter((id: string) => this.id !== id)
-      this.onElectedLeaderHandler()
+    if (message.data.type === 'LEADER_DEAD') {
+      if (message.data.id === this.id) {
+        this.isLeader = true
+        this.neighborhood = message.data.data.filter((id: string) => this.id !== id)
+        this.onElectedLeaderHandler()
+      }
       return
     }
 
