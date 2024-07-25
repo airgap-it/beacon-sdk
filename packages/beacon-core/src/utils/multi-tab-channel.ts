@@ -44,6 +44,7 @@ export class MultiTabChannel {
         data: this.neighborhood
       })
       this.neighborhood.splice(0)
+      this.isLeader = false
     } else {
       this.postMessage({ type: 'CHILD_DEAD' })
     }
