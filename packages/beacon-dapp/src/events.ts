@@ -200,6 +200,7 @@ export interface BeaconEventType {
   [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
   [BeaconEvent.PAIR_INIT]: {
     p2pPeerInfo: () => Promise<P2PPairingRequest>
+    libp2pPeerInfo: () => Promise<P2PPairingRequest>
     postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
     walletConnectPeerInfo: () => Promise<WalletConnectPairingRequest>
     networkType: NetworkType

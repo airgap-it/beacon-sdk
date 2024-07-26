@@ -1,15 +1,20 @@
-import { CommunicationClient } from '@airgap/beacon-core'
-import { PeerInfoType } from '@airgap/beacon-types'
+import { BEACON_VERSION, CommunicationClient } from '@airgap/beacon-core'
+import { P2PPairingRequest, PeerInfoType } from '@airgap/beacon-types'
 import { AcurastClient, KeyPair } from '@acurast/dapp'
 import { forgeMessage, Message } from '@acurast/transport-websocket'
 import { hexFrom } from '../utils/bytes'
 import { KeyPair as KP } from '@stablelib/ed25519'
+import { generateGUID } from '@airgap/beacon-utils'
 
 export class WebSocketP2PCommunicationClient extends CommunicationClient {
   private client: AcurastClient
   private listeners: Map<string, (message: string) => void> = new Map()
 
-  constructor(urls: string[], keyPair: KeyPair) {
+  constructor(
+    private name: string,
+    private urls: string[],
+    keyPair: KeyPair
+  ) {
     super(keyPair as unknown as KP)
     this.client = this.initClient(urls)
   }
@@ -49,6 +54,16 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     messageCallback: (message: string) => void
   ) {
     this.listeners.set(this.client.idFromPublicKey(senderPublicKey), messageCallback)
+  }
+
+  public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
+    return new P2PPairingRequest(
+      await generateGUID(),
+      this.name,
+      await this.getPublicKey(),
+      BEACON_VERSION,
+      this.urls[Math.floor(Math.random() * this.urls.length)]
+    )
   }
 
   async sendMessage(message: string, peer?: PeerInfoType): Promise<void> {

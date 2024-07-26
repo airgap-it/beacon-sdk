@@ -29,7 +29,7 @@ export class WebSocketP2PTransport<
   ) {
     super(
       name,
-      new WebSocketP2PCommunicationClient(urls, keyPair),
+      new WebSocketP2PCommunicationClient(name, urls, keyPair),
       new PeerManager(storage, storageKey)
     )
   }
@@ -41,6 +41,10 @@ export class WebSocketP2PTransport<
 
   async disconnect(): Promise<void> {
     await this.client.close()
+  }
+
+  public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
+    return this.client.getPairingRequestInfo()
   }
 
   async listen(publicKey: string): Promise<void> {

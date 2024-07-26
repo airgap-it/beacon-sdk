@@ -804,8 +804,12 @@ export class DAppClient extends Client {
           this.events
             .emit(BeaconEvent.PAIR_INIT, {
               p2pPeerInfo: () => {
-                p2pTransport.connect().then().catch(console.error)
+                p2pTransport.connect().then().catch(logger.error)
                 return p2pTransport.getPairingRequestInfo()
+              },
+              libp2pPeerInfo: () => {
+                libp2pTransport.connect().then().catch(logger.error)
+                return libp2pTransport.getPairingRequestInfo()
               },
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
               walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
