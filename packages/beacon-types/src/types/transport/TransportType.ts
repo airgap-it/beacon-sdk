@@ -6,5 +6,6 @@ export enum TransportType {
   WALLETCONNECT = 'walletconnect',
   POST_MESSAGE = 'post_message',
   LEDGER = 'ledger',
-  P2P = 'p2p'
+  P2P = 'p2p',
+  LIBP2P = 'libp2p'
 }

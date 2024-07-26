@@ -6,6 +6,7 @@ import {
   Storage,
   StorageKey,
   Origin,
+  TransportType
 } from '@airgap/beacon-types'
 import { KeyPair } from '@acurast/dapp'
 
@@ -16,8 +17,9 @@ const DEFAULT_NODES = [
 
 export class WebSocketP2PTransport<
   T extends P2PPairingRequest | ExtendedP2PPairingResponse,
-  K extends StorageKey.TRANSPORT_P2P_PEERS_DAPP | StorageKey.TRANSPORT_P2P_PEERS_WALLET
+  K extends StorageKey.TRANSPORT_LIBP2P_PEERS_DAPP | StorageKey.TRANSPORT_LIBP2P_PEERS_WALLET
 > extends Transport<T, K, WebSocketP2PCommunicationClient> {
+  public readonly type: TransportType = TransportType.LIBP2P
   constructor(
     name: string,
     keyPair: KeyPair,

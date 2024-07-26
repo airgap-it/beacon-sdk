@@ -4,6 +4,8 @@
 export enum StorageKey {
   TRANSPORT_P2P_PEERS_DAPP = 'beacon:communication-peers-dapp',
   TRANSPORT_P2P_PEERS_WALLET = 'beacon:communication-peers-wallet',
+  TRANSPORT_LIBP2P_PEERS_DAPP = 'beacon:libp2p-peers-dapp',
+  TRANSPORT_LIBP2P_PEERS_WALLET = 'beacon:libp2p-peers-wallet',
   TRANSPORT_POSTMESSAGE_PEERS_DAPP = 'beacon:postmessage-peers-dapp',
   TRANSPORT_POSTMESSAGE_PEERS_WALLET = 'beacon:postmessage-peers-wallet',
   TRANSPORT_WALLETCONNECT_PEERS_DAPP = 'beacon:walletconnect-peers-dapp',
