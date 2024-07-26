@@ -1,2 +1,3 @@
-export { P2PCommunicationClient } from './communication-client/P2PCommunicationClient'
-export { P2PTransport } from './P2PTransport'
+export { WebSocketP2PCommunicationClient } from './communication-client/WebSocketP2PCommunicationClient'
+
+export { WebSocketP2PTransport } from './WebSocketP2PTransport'
