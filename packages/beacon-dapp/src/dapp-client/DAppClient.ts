@@ -133,6 +133,7 @@ import {
   currentOS
 } from '@airgap/beacon-ui'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
+import { DappLibP2PTransport } from '../transports/DappLibP2PTransport'
 
 const logger = new Logger('DAppClient')
 
@@ -174,6 +175,7 @@ export class DAppClient extends Client {
   protected postMessageTransport: DappPostMessageTransport | undefined
   protected p2pTransport: DappP2PTransport | undefined
   protected walletConnectTransport: DappWalletConnectTransport | undefined
+  protected libp2pTransport: DappLibP2PTransport | undefined
 
   protected wcProjectId?: string
   protected wcRelayUrl?: string
@@ -338,12 +340,7 @@ export class DAppClient extends Client {
       const handleDisconnect = async (): Promise<void> => {
         this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
 
-        const relevantTransport =
-          connectionInfo.origin === Origin.P2P
-            ? this.p2pTransport
-            : connectionInfo.origin === Origin.WALLETCONNECT
-            ? this.walletConnectTransport
-            : this.postMessageTransport ?? (await this.transport)
+        const relevantTransport = await this.transport
 
         if (relevantTransport) {
           const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
@@ -553,7 +550,12 @@ export class DAppClient extends Client {
   public async initInternalTransports(): Promise<void> {
     const keyPair = await this.keyPair
 
-    if (this.postMessageTransport || this.p2pTransport || this.walletConnectTransport) {
+    if (
+      this.postMessageTransport ||
+      this.p2pTransport ||
+      this.walletConnectTransport ||
+      this.libp2pTransport
+    ) {
       return
     }
 
@@ -596,6 +598,10 @@ export class DAppClient extends Client {
     this.initEvents()
 
     await this.addListener(this.walletConnectTransport)
+
+    this.libp2pTransport = new DappLibP2PTransport(this.name, keyPair, this.storage)
+
+    await this.addListener(this.libp2pTransport)
   }
 
   private initEvents() {
@@ -696,11 +702,19 @@ export class DAppClient extends Client {
           if (this.walletConnectTransport) {
             this.walletConnectTransport.stopListeningForNewPeers().catch(console.error)
           }
+          if (this.libp2pTransport) {
+            // todo?
+          }
         }
 
         await this.initInternalTransports()
 
-        if (!this.postMessageTransport || !this.p2pTransport || !this.walletConnectTransport) {
+        if (
+          !this.postMessageTransport ||
+          !this.p2pTransport ||
+          !this.walletConnectTransport ||
+          !this.libp2pTransport
+        ) {
           return
         }
 
@@ -715,11 +729,14 @@ export class DAppClient extends Client {
             resolve(await super.init(this.p2pTransport))
           } else if (origin === Origin.WALLETCONNECT) {
             resolve(await super.init(this.walletConnectTransport))
+          } else if (origin === Origin.LIBP2P) {
+            resolve(await super.init(this.libp2pTransport))
           }
         } else {
           const p2pTransport = this.p2pTransport
           const postMessageTransport = this.postMessageTransport
           const walletConnectTransport = this.walletConnectTransport
+          const libp2pTransport = this.libp2pTransport
 
           postMessageTransport
             .listenForNewPeer((peer) => {
@@ -772,6 +789,9 @@ export class DAppClient extends Client {
             })
             .catch(console.error)
 
+          // todo libp2pTransport.listenForNewPeer
+          console.log(libp2pTransport)
+
           PostMessageTransport.getAvailableExtensions()
             .then(async (extensions) => {
               this.analytics.track('event', 'DAppClient', 'Extensions detected', { extensions })
@@ -804,6 +824,7 @@ export class DAppClient extends Client {
                 this.postMessageTransport =
                   this.walletConnectTransport =
                   this.p2pTransport =
+                  this.libp2pTransport =
                     undefined
                 this._activeAccount.isResolved() && this.clearActiveAccount()
                 this._initPromise = undefined
@@ -844,7 +865,11 @@ export class DAppClient extends Client {
       this.postMessageTransport?.disconnect(),
       this.walletConnectTransport?.disconnect()
     ])
-    this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
+    this.postMessageTransport =
+      this.p2pTransport =
+      this.walletConnectTransport =
+      this.libp2pTransport =
+        undefined
     await this.setActivePeer(undefined)
     await this.setTransport(undefined)
     this._initPromise = undefined
@@ -884,7 +909,11 @@ export class DAppClient extends Client {
       if (!this.debounceSetActiveAccount && transport instanceof WalletConnectTransport) {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
-        this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
+        this.postMessageTransport =
+          this.p2pTransport =
+          this.walletConnectTransport =
+          this.libp2pTransport =
+            undefined
         if (this.multiTabChannel.isLeader()) {
           await transport.disconnect()
           this.openRequestsOtherTabs.clear()
@@ -936,6 +965,8 @@ export class DAppClient extends Client {
         await this.setTransport(this.p2pTransport)
       } else if (origin === Origin.WALLETCONNECT) {
         await this.setTransport(this.walletConnectTransport)
+      } else if (origin === Origin.LIBP2P) {
+        await this.setTransport(this.libp2pTransport)
       }
       if (this._transport.isResolved()) {
         const transport = await this.transport
@@ -2015,6 +2046,7 @@ export class DAppClient extends Client {
         this.postMessageTransport = undefined
         this.p2pTransport = undefined
         this.walletConnectTransport = undefined
+        this.libp2pTransport = undefined
         await this.setTransport()
         await this.setActivePeer()
       }
@@ -2219,7 +2251,10 @@ export class DAppClient extends Client {
       const p2pPeers: ExtendedP2PPairingResponse[] = (await this.p2pTransport?.getPeers()) ?? []
       const walletConnectPeers: ExtendedWalletConnectPairingResponse[] =
         (await this.walletConnectTransport?.getPeers()) ?? []
-      const peers = [...postMessagePeers, ...p2pPeers, ...walletConnectPeers]
+
+      // todo libp2p transport
+      const libp2pPeers: ExtendedP2PPairingResponse[] = []
+      const peers = [...postMessagePeers, ...p2pPeers, ...walletConnectPeers, ...libp2pPeers]
 
       logger.log('getPeer', 'Found peers', peers, account)
 
@@ -2269,7 +2304,8 @@ export class DAppClient extends Client {
     if (this._initPromise && this.isInitPending) {
       await Promise.all([
         this.postMessageTransport?.disconnect(),
-        this.walletConnectTransport?.disconnect()
+        this.walletConnectTransport?.disconnect(),
+        this.libp2pTransport?.disconnect()
       ])
       this._initPromise = undefined
       this.hideUI(['toast'])
@@ -2395,7 +2431,8 @@ export class DAppClient extends Client {
     if (this._initPromise && this.isInitPending) {
       await Promise.all([
         this.postMessageTransport?.disconnect(),
-        this.walletConnectTransport?.disconnect()
+        this.walletConnectTransport?.disconnect(),
+        this.libp2pTransport?.disconnect()
       ])
       this._initPromise = undefined
       this.hideUI(['toast'])
@@ -2559,6 +2596,7 @@ export class DAppClient extends Client {
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
+    this.libp2pTransport = undefined
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 
