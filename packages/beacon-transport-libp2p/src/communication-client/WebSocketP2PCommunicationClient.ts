@@ -1,9 +1,9 @@
 import { BEACON_VERSION, CommunicationClient } from '@airgap/beacon-core'
 import { P2PPairingRequest, PeerInfoType } from '@airgap/beacon-types'
-import { AcurastClient, KeyPair } from '@acurast/dapp'
+import { AcurastClient } from '@acurast/dapp'
 import { forgeMessage, Message } from '@acurast/transport-websocket'
 import { hexFrom } from '../utils/bytes'
-import { KeyPair as KP } from '@stablelib/ed25519'
+import { KeyPair } from '@stablelib/ed25519'
 import { generateGUID } from '@airgap/beacon-utils'
 
 export class WebSocketP2PCommunicationClient extends CommunicationClient {
@@ -15,7 +15,7 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     private urls: string[],
     keyPair: KeyPair
   ) {
-    super(keyPair as unknown as KP)
+    super(keyPair)
     this.client = this.initClient(urls)
   }
 

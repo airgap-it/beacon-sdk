@@ -599,7 +599,32 @@ export class DAppClient extends Client {
 
     await this.addListener(this.walletConnectTransport)
 
-    this.libp2pTransport = new DappLibP2PTransport(this.name, keyPair, this.storage)
+    const acurastKeyPair = await crypto.subtle.generateKey(
+      {
+        name: 'ECDSA',
+        namedCurve: 'P-256'
+      },
+      true,
+      ['sign']
+    )
+
+    const [privateKeyRaw, publicKeyRaw] = await Promise.all([
+      crypto.subtle
+        .exportKey('jwk', acurastKeyPair.privateKey)
+        .then((jwk) => Buffer.from(jwk.d as any, 'base64')),
+      crypto.subtle
+        .exportKey('raw', acurastKeyPair.publicKey)
+        .then((arrayBuffer) => Buffer.from(arrayBuffer))
+    ])
+
+    this.libp2pTransport = new DappLibP2PTransport(
+      this.name,
+      {
+        publicKey: publicKeyRaw,
+        secretKey: privateKeyRaw
+      },
+      this.storage
+    )
 
     await this.addListener(this.libp2pTransport)
   }
@@ -804,12 +829,12 @@ export class DAppClient extends Client {
           this.events
             .emit(BeaconEvent.PAIR_INIT, {
               p2pPeerInfo: () => {
-                p2pTransport.connect().then().catch(logger.error)
+                p2pTransport.connect().then().catch(console.error)
                 return p2pTransport.getPairingRequestInfo()
               },
-              libp2pPeerInfo: () => {
-                libp2pTransport.connect().then().catch(logger.error)
-                return libp2pTransport.getPairingRequestInfo()
+              libp2pPeerInfo: async () => {
+                await libp2pTransport.connect()
+                return await libp2pTransport.getPairingRequestInfo()
               },
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
               walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),

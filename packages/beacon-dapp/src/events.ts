@@ -461,6 +461,7 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
     body: `<p></p>`,
     pairingPayload: {
       p2pSyncCode: data.p2pPeerInfo,
+      libp2pPeerInfo: data.libp2pPeerInfo,
       walletConnectSyncCode: data.walletConnectPeerInfo,
       postmessageSyncCode: data.postmessagePeerInfo,
       networkType: data.networkType

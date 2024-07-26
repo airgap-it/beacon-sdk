@@ -63,6 +63,7 @@ export interface AlertConfig {
   buttons?: AlertButton[]
   pairingPayload?: {
     p2pSyncCode: () => Promise<P2PPairingRequest>
+    libp2pPeerInfo: () => Promise<P2PPairingRequest>
     postmessageSyncCode: () => Promise<PostMessagePairingRequest>
     walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
     networkType: NetworkType
@@ -152,6 +153,7 @@ const closeAlerts = async (): Promise<void> => {
 const openAlert = async (config: AlertConfig): Promise<string> => {
   setIsLoading(false)
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
+  const libp2pPayload = config.pairingPayload?.libp2pPeerInfo()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
   const isOnline = navigator.onLine
   const areMetricsEnabled = localStorage
@@ -178,11 +180,16 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     windowRef.addEventListener('message', extensionsUpdatedFn)
 
-    const setDefaultPayload = async () => {
+    const setDefaultPayload = async (wallet: MergedWallet) => {
       if (config.pairingPayload) {
         const serializer = new Serializer()
         try {
-          const codeQR = await serializer.serialize(await p2pPayload)
+          const codeQR = await serializer.serialize(
+            wallet.supportedInteractionStandards &&
+              wallet.supportedInteractionStandards.includes('beaconLibp2p')
+              ? await libp2pPayload
+              : await p2pPayload
+          )
           setCodeQR(codeQR)
         } catch (error: any) {
           console.error('Cannot connect to network: ', error.message)
@@ -499,7 +506,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
         link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(uri)}`
       } else {
         const serializer = new Serializer()
-        const code = await serializer.serialize(await p2pPayload)
+        const code = await serializer.serialize(
+          wallet.supportedInteractionStandards?.includes('beaconLibp2p')
+            ? await libp2pPayload
+            : await p2pPayload
+        )
         link = getTzip10Link(wallet.links[OSLink.WEB], code)
       }
 
@@ -533,7 +544,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (!wallet.links[OSLink.IOS].length) {
         const syncCode = currentWallet()?.supportedInteractionStandards?.includes('wallet_connect')
           ? (await wcPayload)?.uri ?? ''
-          : await new Serializer().serialize(await p2pPayload)
+          : await new Serializer().serialize(
+              wallet.supportedInteractionStandards?.includes('beaconLibp2p')
+                ? await libp2pPayload
+                : await p2pPayload
+            )
 
         if (!syncCode.length) {
           handleCloseAlert()
@@ -608,7 +623,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
         if (config.pairingPayload) {
           const serializer = new Serializer()
-          const code = await serializer.serialize(await p2pPayload)
+          const code = await serializer.serialize(
+            wallet.supportedInteractionStandards?.includes('beaconLibp2p')
+              ? await libp2pPayload
+              : await p2pPayload
+          )
 
           const link = getTzip10Link(
             isIOS(window) && wallet.deepLink
@@ -636,7 +655,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       } else {
         setIsLoading(false)
         setInstallState(wallet)
-        await setDefaultPayload()
+        wallet && (await setDefaultPayload(wallet))
       }
     }
 
@@ -705,9 +724,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       setShowMoreContent(false)
       analytics()?.track('click', 'ui', 'open desktop', { key: currentWallet()?.key })
 
-      if (await p2pPayload) {
+      if ((await libp2pPayload) || undefined) {
         const serializer = new Serializer()
-        const code = await serializer.serialize(await p2pPayload)
+        const code = await serializer.serialize(
+          currentWallet()?.supportedInteractionStandards?.includes('beaconLibp2p')
+            ? await libp2pPayload
+            : await p2pPayload
+        )
         const link = getTzip10Link(currentWallet()?.deepLink || '', code)
         window.open(link, '_blank', 'noopener')
       }
@@ -900,7 +923,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                                 ) {
                                   syncCode = (await wcPayload)?.uri ?? ''
                                 } else {
-                                  syncCode = await new Serializer().serialize(await p2pPayload)
+                                  syncCode = await new Serializer().serialize(
+                                    wallet.supportedInteractionStandards?.includes('beaconLibp2p')
+                                      ? await libp2pPayload
+                                      : undefined
+                                  )
                                 }
                                 handleDeepLinking(wallet, syncCode)
                               }
@@ -915,14 +942,17 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                               : undefined
                           }
                           onShowQRCodeClick={async () => {
+                            const wallet = currentWallet()
                             const syncCode =
                               currentWallet()?.supportedInteractionStandards?.includes(
                                 'wallet_connect'
                               )
                                 ? (await wcPayload)?.uri ?? ''
-                                : await new Serializer().serialize(await p2pPayload)
-
-                            const wallet = currentWallet()
+                                : await new Serializer().serialize(
+                                    wallet?.supportedInteractionStandards?.includes('beaconLibp2p')
+                                      ? await libp2pPayload
+                                      : await p2pPayload
+                                  )
 
                             if (!syncCode.length || !wallet) {
                               handleCloseAlert()
@@ -976,7 +1006,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         <PairOther
                           walletList={walletList()}
                           onClickLearnMore={handleClickLearnMore}
-                          p2pPayload={p2pPayload}
+                          p2pPayload={
+                            currentWallet()?.supportedInteractionStandards?.includes('beaconLibp2p')
+                              ? libp2pPayload
+                              : p2pPayload
+                          }
                           wcPayload={wcPayload}
                         ></PairOther>
                       ) : (

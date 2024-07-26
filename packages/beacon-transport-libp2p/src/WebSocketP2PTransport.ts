@@ -8,7 +8,7 @@ import {
   Origin,
   TransportType
 } from '@airgap/beacon-types'
-import { KeyPair } from '@acurast/dapp'
+import { KeyPair } from '@stablelib/ed25519'
 
 const DEFAULT_NODES = [
   'wss://websocket-proxy-1.prod.gke.acurast.com/',
@@ -43,7 +43,7 @@ export class WebSocketP2PTransport<
     await this.client.close()
   }
 
-  public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
+  public getPairingRequestInfo(): Promise<P2PPairingRequest> {
     return this.client.getPairingRequestInfo()
   }
 

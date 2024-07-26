@@ -6,7 +6,7 @@ export interface AppBase {
   shortName: string
   color: string
   logo: string
-  supportedInteractionStandards?: ('wallet_connect' | 'beacon')[] // 'wallet_connect' or 'beacon'
+  supportedInteractionStandards?: ('wallet_connect' | 'beacon' | 'beaconLibp2p')[] // 'wallet_connect' or 'beacon'
 }
 
 export interface ExtensionApp extends AppBase {
