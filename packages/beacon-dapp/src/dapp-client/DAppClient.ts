@@ -1071,6 +1071,16 @@ export class DAppClient extends Client {
       })
   }
 
+  private async checkMakeRequest() {
+    return (
+      !this._transport.isResolved() ||
+      (this._transport.isResolved() &&
+        (!((await this.transport) instanceof WalletConnectTransport) ||
+          ((await this.transport) instanceof WalletConnectTransport &&
+            this.multiTabChannel.isLeader())))
+    )
+  }
+
   /**
    * Will remove the account from the local storage and set a new active account if necessary.
    *
@@ -1359,7 +1369,7 @@ export class DAppClient extends Client {
 
     const logId = `makeRequestV3 ${Date.now()}`
     logger.time(true, logId)
-    const res = this.multiTabChannel.isLeader()
+    const res = (await this.checkMakeRequest())
       ? this.makeRequestV3<
           BlockchainRequestV3<string>,
           BeaconMessageWrapper<BlockchainResponseV3<string>>
@@ -1428,9 +1438,7 @@ export class DAppClient extends Client {
     logger.time(true, logId)
 
     const res =
-      this.multiTabChannel.isLeader() ||
-      !this._activeAccount.isResolved() ||
-      !(await this.getActiveAccount())
+      (await this.checkMakeRequest()) || !(await this.getActiveAccount())
         ? this.makeRequest<PermissionRequest, PermissionResponse>(request)
         : this.makeRequestBC<PermissionRequest, PermissionResponse>(request)
 
@@ -1508,7 +1516,7 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const res = this.multiTabChannel.isLeader()
+    const res = (await this.checkMakeRequest())
       ? this.makeRequest<ProofOfEventChallengeRequest, ProofOfEventChallengeResponse>(request)
       : this.makeRequestBC<ProofOfEventChallengeRequest, ProofOfEventChallengeResponse>(request)
 
@@ -1575,7 +1583,7 @@ export class DAppClient extends Client {
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
 
-    const res = this.multiTabChannel.isLeader()
+    const res = (await this.checkMakeRequest())
       ? this.makeRequest<
           SimulatedProofOfEventChallengeRequest,
           SimulatedProofOfEventChallengeResponse
@@ -1675,7 +1683,7 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const res = this.multiTabChannel.isLeader()
+    const res = (await this.checkMakeRequest())
       ? this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request)
       : this.makeRequestBC<SignPayloadRequest, SignPayloadResponse>(request)
 
@@ -1791,7 +1799,7 @@ export class DAppClient extends Client {
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
 
-    const res = this.multiTabChannel.isLeader()
+    const res = (await this.checkMakeRequest())
       ? this.makeRequest<OperationRequest, OperationResponse>(request)
       : this.makeRequestBC<OperationRequest, OperationResponse>(request)
 
@@ -1851,7 +1859,7 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const res = this.multiTabChannel.isLeader()
+    const res = (await this.checkMakeRequest())
       ? this.makeRequest<BroadcastRequest, BroadcastResponse>(request)
       : this.makeRequestBC<BroadcastRequest, BroadcastResponse>(request)
 
