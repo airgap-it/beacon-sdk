@@ -4,17 +4,13 @@
     ".devcontainer",
     ".github",
     ".gitlab",
-    "assets",
     "dist",
     "docs",
-    "e2e",
-    "examples",
     "node_modules",
     "*/node_modules",
     "scripts",
     "test",
-    "__tests__",
-    "webpack_builds"
+    "__tests__"
   ],
   "compilerOptions": {
     "target": "es6",

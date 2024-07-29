@@ -1,5 +1,0 @@
-export const enum ClientEvents {
-  CLOSE_ALERT = 'CLOSE_ALERT',
-  RESET_STATE = 'RESET_STATE',
-  WC_ACK_NOTIFICATION = 'WC_ACK_NOTIFICATION'
-}

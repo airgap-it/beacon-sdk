@@ -25,12 +25,6 @@ coverage
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
-# Bower dependency directory (https://bower.io/)
-bower_components
-
-# node-waf configuration
-.lock-wscript
-
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 
@@ -64,29 +58,3 @@ dist/
 
 .history
 
-storage.json
-audit.json
-gl-dependency-scanning-report.json
-
-e2e/output
-combined.webm
-
-examples/walletbeacon.min.js
-
-lib
-docs
-
-webpack_builds
-
-packages/beacon-blockchain-tezos/src/ui/alert/alert-templates.ts
-packages/beacon-blockchain-tezos/src/ui/alert/wallet-lists.ts
-packages/beacon-blockchain-tezos/src/ui/toast/toast-templates.ts
-packages/beacon-blockchain-tezos-sapling/src/ui/alert/alert-templates.ts
-packages/beacon-blockchain-tezos-sapling/src/ui/alert/wallet-lists.ts
-packages/beacon-blockchain-tezos-sapling/src/ui/toast/toast-templates.ts
-packages/beacon-blockchain-substrate/src/ui/alert/alert-templates.ts
-packages/beacon-blockchain-substrate/src/ui/alert/wallet-lists.ts
-packages/beacon-blockchain-substrate/src/ui/toast/toast-templates.ts
-packages/beacon-ui/src/ui/alert/alert-templates.ts
-packages/beacon-ui/src/ui/alert/wallet-lists.ts
-packages/beacon-ui/src/ui/toast/toast-templates.ts

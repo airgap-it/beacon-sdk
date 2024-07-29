@@ -25,7 +25,7 @@ If applicable, add screenshots or logs to help explain your problem.
 
 **Environment**
 
-- Device: [e.g. iPhone X]
+ - Device: [e.g. iPhone X]
  - OS: [e.g. iOS 14]
  - Browser [e.g. stock browser, safari]
 
