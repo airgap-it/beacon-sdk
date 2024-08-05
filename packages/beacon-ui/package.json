@@ -38,7 +38,7 @@
     "@airgap/beacon-transport-postmessage": "4.2.2",
     "@airgap/beacon-types": "4.2.2",
     "@airgap/beacon-utils": "4.2.2",
-    "@walletconnect/utils": "2.11.2",
+    "@walletconnect/utils": "2.14.0",
     "qrcode-svg": "^1.1.0",
     "solid-js": "^1.7.11"
   },
