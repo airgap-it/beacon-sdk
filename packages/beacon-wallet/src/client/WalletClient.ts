@@ -42,6 +42,7 @@ import { WalletClientOptions } from './WalletClientOptions'
 import { WalletP2PTransport } from '../transports/WalletP2PTransport'
 import { IncomingRequestInterceptor } from '../interceptors/IncomingRequestInterceptor'
 import { OutgoingResponseInterceptor } from '../interceptors/OutgoingResponseInterceptor'
+import { WalletWebSocketP2PTransport } from '../transports/WalletWebSocketP2PTransport'
 
 const logger = new Logger('WalletClient')
 
@@ -64,6 +65,7 @@ export class WalletClient extends Client {
 
   private readonly permissionManager: PermissionManager
   private readonly appMetadataManager: AppMetadataManager
+  private readonly enableWSP: boolean
 
   /**
    * This array stores pending requests, meaning requests we received and have not yet handled / sent a response.
@@ -80,18 +82,50 @@ export class WalletClient extends Client {
     })
     this.permissionManager = new PermissionManager(this.storage)
     this.appMetadataManager = new AppMetadataManager(this.storage)
+    this.enableWSP = config.enableWSP ?? false
+  }
+
+  private async generateAcurastKeyPair() {
+    const acurastKeyPair = await crypto.subtle.generateKey(
+      {
+        name: 'ECDSA',
+        namedCurve: 'P-256'
+      },
+      true,
+      ['sign']
+    )
+
+    const [privateKeyRaw, publicKeyRaw] = await Promise.all([
+      crypto.subtle
+        .exportKey('jwk', acurastKeyPair.privateKey)
+        .then((jwk) => Buffer.from(jwk.d as any, 'base64')),
+      crypto.subtle
+        .exportKey('raw', acurastKeyPair.publicKey)
+        .then((arrayBuffer) => Buffer.from(arrayBuffer))
+    ])
+
+    return {
+      publicKey: publicKeyRaw,
+      secretKey: privateKeyRaw
+    }
   }
 
   public async init(): Promise<TransportType> {
     const keyPair = await this.keyPair // We wait for keypair here so the P2P Transport creation is not delayed and causing issues
-    const p2pTransport = new WalletP2PTransport(
-      this.name,
-      keyPair,
-      this.storage,
-      this.matrixNodes,
-      this.iconUrl,
-      this.appUrl
-    )
+    const p2pTransport = this.enableWSP
+      ? new WalletWebSocketP2PTransport(
+          this.name,
+          await this.generateAcurastKeyPair(),
+          this.storage
+        )
+      : new WalletP2PTransport(
+          this.name,
+          keyPair,
+          this.storage,
+          this.matrixNodes,
+          this.iconUrl,
+          this.appUrl
+        )
 
     return super.init(p2pTransport)
   }

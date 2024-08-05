@@ -36,11 +36,12 @@ export class WebSocketP2PTransport<
 
   async connect() {
     await this.client.connect()
-    super.connect()
+    return super.connect()
   }
 
   async disconnect(): Promise<void> {
     await this.client.close()
+    return super.disconnect()
   }
 
   public getPairingRequestInfo(): Promise<P2PPairingRequest> {
@@ -50,7 +51,7 @@ export class WebSocketP2PTransport<
   async listen(publicKey: string): Promise<void> {
     this.client.listenForEncryptedMessage(publicKey, (message) =>
       this.notifyListeners(message, {
-        origin: Origin.P2P,
+        origin: Origin.LIBP2P,
         id: publicKey
       })
     )

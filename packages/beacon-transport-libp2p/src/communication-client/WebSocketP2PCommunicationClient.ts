@@ -1,5 +1,10 @@
 import { BEACON_VERSION, CommunicationClient } from '@airgap/beacon-core'
-import { P2PPairingRequest, PeerInfoType } from '@airgap/beacon-types'
+import {
+  ExtendedP2PPairingResponse,
+  P2PPairingRequest,
+  P2PPairingResponse,
+  PeerInfoType
+} from '@airgap/beacon-types'
 import { AcurastClient } from '@acurast/dapp'
 import { forgeMessage, Message } from '@acurast/transport-websocket'
 import { hexFrom } from '../utils/bytes'
@@ -8,6 +13,10 @@ import { generateGUID } from '@airgap/beacon-utils'
 
 export class WebSocketP2PCommunicationClient extends CommunicationClient {
   private client: AcurastClient
+  private readonly channelOpeningListeners: Map<
+    string,
+    (pairingResponse: ExtendedP2PPairingResponse) => void
+  > = new Map()
   private listeners: Map<string, (message: string) => void> = new Map()
 
   constructor(
@@ -31,6 +40,7 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
 
   async unsubscribeFromEncryptedMessages(): Promise<void> {
     this.listeners.clear()
+    this.channelOpeningListeners.clear()
   }
 
   /**
@@ -39,6 +49,7 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
    */
   async unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void> {
     this.listeners.delete(this.client.idFromPublicKey(senderPublicKey))
+    this.channelOpeningListeners.delete('channelOpening')
   }
 
   connect() {
@@ -47,6 +58,15 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
 
   close() {
     return this.client.close()
+  }
+
+  public async listenForChannelOpening(
+    messageCallback: (pairingResponse: ExtendedP2PPairingResponse) => void
+  ): Promise<void> {
+    const callbackFunction = async (pairingResponse: ExtendedP2PPairingResponse): Promise<void> => {
+      messageCallback(pairingResponse)
+    }
+    this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
   async listenForEncryptedMessage(
@@ -66,11 +86,31 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     )
   }
 
-  async sendMessage(message: string, peer?: PeerInfoType): Promise<void> {
-    if (!peer) {
-      return
-    }
+  public async getPairingResponseInfo(request: P2PPairingRequest): Promise<P2PPairingResponse> {
+    const info: P2PPairingResponse = new P2PPairingResponse(
+      request.id,
+      this.name,
+      await this.getPublicKey(),
+      request.version,
+      request.relayServer
+    )
 
-    this.client.send(peer.publicKey, message)
+    return info
+  }
+
+  public async sendPairingResponse(pairingRequest: P2PPairingRequest): Promise<void> {
+    // TODO add encryption
+    const message = JSON.stringify(await this.getPairingResponseInfo(pairingRequest))
+    const msg = [
+      '@channel-open',
+      this.client.idFromPublicKey(pairingRequest.publicKey),
+      message
+    ].join(':')
+
+    this.sendMessage(msg, { publicKey: pairingRequest.publicKey } as any)
+  }
+
+  async sendMessage(message: string, { publicKey }: PeerInfoType): Promise<void> {
+    this.client.send(this.client.idFromPublicKey(publicKey), message)
   }
 }

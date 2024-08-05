@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-wallet",
-  "version": "4.2.2",
+  "version": "4.2.6",
   "description": "Use this package in your wallet to instanciate a WalletClient object and communicate to dApps.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -37,6 +37,7 @@
   "dependencies": {
     "@airgap/beacon-core": "4.2.2",
     "@airgap/beacon-transport-matrix": "4.2.2",
-    "@airgap/beacon-transport-postmessage": "4.2.2"
+    "@airgap/beacon-transport-postmessage": "4.2.2",
+    "@airgap/beacon-transport-libp2p": "file:packages/beacon-transport-libp2p"
   }
 }

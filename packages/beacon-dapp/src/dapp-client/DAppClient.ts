@@ -814,8 +814,22 @@ export class DAppClient extends Client {
             })
             .catch(console.error)
 
-          // todo libp2pTransport.listenForNewPeer
-          console.log(libp2pTransport)
+          libp2pTransport
+            .listenForNewPeer((peer) => {
+              logger.log('init', 'libp2p transport peer connected', peer)
+              this.analytics.track('event', 'DAppClient', 'Beacon Wallet connected', {
+                peerName: peer.name
+              })
+              this.events
+                .emit(BeaconEvent.PAIR_SUCCESS, peer)
+                .catch((emitError) => console.warn(emitError))
+
+              this.setActivePeer(peer).catch(console.error)
+              this.setTransport(this.libp2pTransport).catch(console.error)
+              stopListening()
+              resolve(TransportType.LIBP2P)
+            })
+            .catch(console.error)
 
           PostMessageTransport.getAvailableExtensions()
             .then(async (extensions) => {
