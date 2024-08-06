@@ -20,7 +20,7 @@ export class WebSocketP2PTransport<
   constructor(
     name: string,
     keyPair: KeyPair,
-    pkHash: string,
+    private pkHash: string,
     storage: Storage,
     storageKey: K,
     urls: string[] = DEFAULT_NODES
@@ -34,6 +34,7 @@ export class WebSocketP2PTransport<
 
   async connect() {
     await this.client.connect()
+    await this.listen(this.pkHash)
     return super.connect()
   }
 
