@@ -18,14 +18,17 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     (pairingResponse: ExtendedP2PPairingResponse) => void
   > = new Map()
   private listeners: Map<string, (message: string) => void> = new Map()
+  private selectedNode: string
 
   constructor(
     private name: string,
     private urls: string[],
-    keyPair: KeyPair
+    keyPair: KeyPair,
+    private senderId: string
   ) {
     super(keyPair)
-    this.client = this.initClient(urls)
+    this.selectedNode = this.urls[Math.floor(Math.random() * this.urls.length)]
+    this.client = this.initClient([this.selectedNode])
   }
 
   private initClient(urls: string[]): AcurastClient {
@@ -47,8 +50,8 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
    * Unsubscribe from the specified listener
    * @param senderPublicKey
    */
-  async unsubscribeFromEncryptedMessage(senderPublicKey: string): Promise<void> {
-    this.listeners.delete(this.client.idFromPublicKey(senderPublicKey))
+  async unsubscribeFromEncryptedMessage(senderId: string): Promise<void> {
+    this.listeners.delete(senderId)
     this.channelOpeningListeners.delete('channelOpening')
   }
 
@@ -70,46 +73,46 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
   }
 
   async listenForEncryptedMessage(
-    senderPublicKey: string,
+    senderId: string,
     messageCallback: (message: string) => void
   ) {
-    this.listeners.set(this.client.idFromPublicKey(senderPublicKey), messageCallback)
+    this.listeners.set(senderId, messageCallback)
   }
 
   public async getPairingRequestInfo(): Promise<P2PPairingRequest> {
     return new P2PPairingRequest(
       await generateGUID(),
       this.name,
-      await this.getPublicKey(),
+      this.senderId,
       BEACON_VERSION,
-      this.urls[Math.floor(Math.random() * this.urls.length)]
+      this.selectedNode
     )
   }
 
   public async getPairingResponseInfo(request: P2PPairingRequest): Promise<P2PPairingResponse> {
-    const info: P2PPairingResponse = new P2PPairingResponse(
+    return new P2PPairingResponse(
       request.id,
       this.name,
-      await this.getPublicKey(),
+      this.senderId,
       request.version,
-      request.relayServer
+      this.selectedNode
     )
-
-    return info
   }
 
   public async sendPairingResponse(pairingRequest: P2PPairingRequest): Promise<void> {
-    // TODO add encryption
-    const message = JSON.stringify(await this.getPairingResponseInfo(pairingRequest))
-    const msg = [
-      '@channel-open',
-      this.client.idFromPublicKey(pairingRequest.publicKey),
-      message
-    ].join(':')
-
-    this.sendMessage(msg, { publicKey: pairingRequest.publicKey } as any)
+    this.sendRequest(
+      pairingRequest.publicKey,
+      JSON.stringify(await this.getPairingResponseInfo(pairingRequest))
+    )
   }
 
+  async sendRequest(senderId: string, message: string) {
+    this.client.send(senderId, message)
+  }
+
+  /**
+   * @deprecated The method should not be used. Use `sendRequest` instead.
+   */
   async sendMessage(message: string, { publicKey }: PeerInfoType): Promise<void> {
     this.client.send(this.client.idFromPublicKey(publicKey), message)
   }

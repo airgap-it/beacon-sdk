@@ -616,6 +616,12 @@ export class DAppClient extends Client {
         .exportKey('raw', acurastKeyPair.publicKey)
         .then((arrayBuffer) => Buffer.from(arrayBuffer))
     ])
+    const publicKeyCompressedSize = (publicKeyRaw.length - 1) / 2
+      const publicKeyCompressed = Buffer.concat([
+        new Uint8Array([publicKeyRaw[2 * publicKeyCompressedSize] % 2 ? 3 : 2]),
+        publicKeyRaw.subarray(1, publicKeyCompressedSize + 1)
+      ])
+    const publicKeyHash = await crypto.subtle.digest('SHA-256', publicKeyCompressed)
 
     this.libp2pTransport = new DappLibP2PTransport(
       this.name,
@@ -623,6 +629,7 @@ export class DAppClient extends Client {
         publicKey: publicKeyRaw,
         secretKey: privateKeyRaw
       },
+      Buffer.from(publicKeyHash.slice(0, 16)).toString('hex'),
       this.storage
     )
 

@@ -10,10 +10,7 @@ import {
 } from '@airgap/beacon-types'
 import { KeyPair } from '@stablelib/ed25519'
 
-const DEFAULT_NODES = [
-  'wss://websocket-proxy-1.prod.gke.acurast.com/',
-  'wss://websocket-proxy-2.prod.gke.acurast.com/'
-]
+const DEFAULT_NODES = ['ws://localhost:9001/', 'ws://localhost:9002/']
 
 export class WebSocketP2PTransport<
   T extends P2PPairingRequest | ExtendedP2PPairingResponse,
@@ -23,13 +20,14 @@ export class WebSocketP2PTransport<
   constructor(
     name: string,
     keyPair: KeyPair,
+    pkHash: string,
     storage: Storage,
     storageKey: K,
     urls: string[] = DEFAULT_NODES
   ) {
     super(
       name,
-      new WebSocketP2PCommunicationClient(name, urls, keyPair),
+      new WebSocketP2PCommunicationClient(name, urls, keyPair, pkHash),
       new PeerManager(storage, storageKey)
     )
   }

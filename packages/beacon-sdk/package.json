@@ -35,15 +35,17 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-blockchain-substrate": "4.2.2",
-    "@airgap/beacon-blockchain-tezos": "4.2.2",
-    "@airgap/beacon-core": "4.2.2",
-    "@airgap/beacon-dapp": "4.2.2",
-    "@airgap/beacon-transport-matrix": "4.2.2",
-    "@airgap/beacon-transport-postmessage": "4.2.2",
-    "@airgap/beacon-types": "4.2.2",
-    "@airgap/beacon-ui": "4.2.2",
-    "@airgap/beacon-utils": "4.2.2",
-    "@airgap/beacon-wallet": "4.2.2"
+    "@airgap/beacon-blockchain-substrate": "file:packages/beacon-blockchain-substrate",
+    "@airgap/beacon-blockchain-tezos": "file:packages/beacon-blockchain-tezos",
+    "@airgap/beacon-blockchain-tezos-sapling": "file:packages/beacon-blockchain-tezos-sapling",
+    "@airgap/beacon-core": "file:packages/beacon-core",
+    "@airgap/beacon-dapp": "file:packages/beacon-dapp",
+    "@airgap/beacon-transport-matrix": "file:packages/beacon-transport-matrix",
+    "@airgap/beacon-transport-postmessage": "file:packages/beacon-transport-postmessage",
+    "@airgap/beacon-transport-walletconnect": "file:packages/beacon-transport-walletconnect",
+    "@airgap/beacon-types": "file:packages/beacon-types",
+    "@airgap/beacon-ui": "file:packages/beacon-ui",
+    "@airgap/beacon-utils": "file:packages/beacon-utils",
+    "@airgap/beacon-wallet": "file:packages/beacon-wallet"
   }
 }
