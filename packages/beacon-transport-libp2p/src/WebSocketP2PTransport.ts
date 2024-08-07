@@ -11,7 +11,7 @@ import {
 } from '@airgap/beacon-types'
 import { KeyPair } from '@stablelib/ed25519'
 
-const DEFAULT_NODES = ['ws://localhost:9001/', 'ws://localhost:9002/']
+const DEFAULT_NODES = ['wss://websocket-proxy-1.prod.gke.acurast.com', 'wss://websocket-proxy-2.prod.gke.acurast.com']
 const logger = new Logger('P2PTransport')
 
 export abstract class WebSocketP2PTransport<
