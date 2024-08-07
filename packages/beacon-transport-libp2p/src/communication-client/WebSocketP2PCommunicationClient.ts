@@ -6,7 +6,6 @@ import {
   PeerInfoType
 } from '@airgap/beacon-types'
 import { AcurastClient } from '@acurast/dapp'
-import { forgeMessage, Message } from '@acurast/transport-websocket'
 import { hexFrom } from '../utils/bytes'
 import { KeyPair } from '@stablelib/ed25519'
 import { generateGUID } from '@airgap/beacon-utils'
@@ -17,7 +16,7 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     string,
     (pairingResponse: ExtendedP2PPairingResponse) => void
   > = new Map()
-  private listeners: Map<string, (message: string) => void> = new Map()
+  private listeners: Map<string, (message: any) => void> = new Map()
   private selectedNode: string
 
   constructor(
@@ -35,7 +34,7 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     const client = new AcurastClient(urls)
     client.onMessage((message) => {
       const fun = this.listeners.get(hexFrom(message.recipient))
-      fun && fun(hexFrom(forgeMessage(message as Message)))
+      fun && fun(JSON.parse(Buffer.from(message.payload).toString('utf-8')))
     })
 
     return client
@@ -72,10 +71,7 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
-  async listenForEncryptedMessage(
-    senderId: string,
-    messageCallback: (message: string) => void
-  ) {
+  async listenForEncryptedMessage(senderId: string, messageCallback: (message: any) => void) {
     this.listeners.set(senderId, messageCallback)
   }
 
