@@ -1,4 +1,4 @@
-import { BEACON_VERSION, CommunicationClient } from '@airgap/beacon-core'
+import { SDK_VERSION, CommunicationClient } from '@airgap/beacon-core'
 import {
   ExtendedP2PPairingResponse,
   P2PPairingRequest,
@@ -6,14 +6,13 @@ import {
   PeerInfoType
 } from '@airgap/beacon-types'
 import { AcurastClient } from '@acurast/dapp'
-import { hexFrom } from '../utils/bytes'
 import { KeyPair } from '@stablelib/ed25519'
 import { generateGUID } from '@airgap/beacon-utils'
 
 export class WebSocketP2PCommunicationClient extends CommunicationClient {
   private client: AcurastClient
   private readonly channelOpeningListeners: Map<
-    string,
+    'channelOpening',
     (pairingResponse: ExtendedP2PPairingResponse) => void
   > = new Map()
   private listeners: Map<string, (message: any) => void> = new Map()
@@ -32,9 +31,18 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
 
   private initClient(urls: string[]): AcurastClient {
     const client = new AcurastClient(urls)
-    client.onMessage((message) => {
-      const fun = this.listeners.get(hexFrom(message.recipient))
-      fun && fun(JSON.parse(Buffer.from(message.payload).toString('utf-8')))
+    client.onMessage(async (message) => {
+      let parsed: any = Buffer.from(message.payload).toString('utf-8')
+      try {
+        parsed = JSON.parse(parsed)
+      } catch {}
+
+      if (this.channelOpeningListeners.size) {
+        this.channelOpeningListeners.get('channelOpening')!(parsed)
+        this.channelOpeningListeners.delete('channelOpening')
+      } else {
+        this.listeners.forEach((fun) => fun(parsed))
+      }
     })
 
     return client
@@ -80,19 +88,13 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
       await generateGUID(),
       this.name,
       this.senderId,
-      BEACON_VERSION,
+      SDK_VERSION,
       this.selectedNode
     )
   }
 
   public async getPairingResponseInfo(request: P2PPairingRequest): Promise<P2PPairingResponse> {
-    return new P2PPairingResponse(
-      request.id,
-      this.name,
-      this.senderId,
-      request.version,
-      this.selectedNode
-    )
+    return new P2PPairingResponse(request.id, this.name, this.senderId, '4', this.selectedNode)
   }
 
   public async sendPairingResponse(pairingRequest: P2PPairingRequest): Promise<void> {

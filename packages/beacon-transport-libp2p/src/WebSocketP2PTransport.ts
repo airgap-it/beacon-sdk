@@ -1,4 +1,4 @@
-import { PeerManager, Transport } from '@airgap/beacon-core'
+import { Logger, PeerManager, Transport } from '@airgap/beacon-core'
 import { WebSocketP2PCommunicationClient } from './communication-client/WebSocketP2PCommunicationClient'
 import {
   P2PPairingRequest,
@@ -6,13 +6,15 @@ import {
   Storage,
   StorageKey,
   Origin,
-  TransportType
+  TransportType,
+  PeerInfo
 } from '@airgap/beacon-types'
 import { KeyPair } from '@stablelib/ed25519'
 
 const DEFAULT_NODES = ['ws://localhost:9001/', 'ws://localhost:9002/']
+const logger = new Logger('P2PTransport')
 
-export class WebSocketP2PTransport<
+export abstract class WebSocketP2PTransport<
   T extends P2PPairingRequest | ExtendedP2PPairingResponse,
   K extends StorageKey.TRANSPORT_LIBP2P_PEERS_DAPP | StorageKey.TRANSPORT_LIBP2P_PEERS_WALLET
 > extends Transport<T, K, WebSocketP2PCommunicationClient> {
@@ -20,7 +22,7 @@ export class WebSocketP2PTransport<
   constructor(
     name: string,
     keyPair: KeyPair,
-    private pkHash: string,
+    pkHash: string,
     storage: Storage,
     storageKey: K,
     urls: string[] = DEFAULT_NODES
@@ -34,8 +36,35 @@ export class WebSocketP2PTransport<
 
   async connect() {
     await this.client.connect()
-    await this.listen(this.pkHash)
+
+    const knownPeers = await this.getPeers()
+
+    if (knownPeers.length > 0) {
+      logger.log('connect', `connecting to ${knownPeers.length} peers`)
+      const connectionPromises = knownPeers.map(async (peer) => this.listen(peer.publicKey))
+      Promise.all(connectionPromises).catch((error) => logger.error('connect', error))
+    }
+
+    await this.startOpenChannelListener()
     return super.connect()
+  }
+
+  async send(message: string, peer?: PeerInfo): Promise<void> {
+    if (peer) {
+      return this.client.sendRequest(peer.publicKey, message)
+    } else {
+      const knownPeers = await this.getPeers()
+      // A broadcast request has to be sent everywhere.
+      const promises = knownPeers.map((peerEl) =>
+        this.client.sendRequest(peerEl.publicKey, message)
+      )
+
+      return (await Promise.all(promises))[0]
+    }
+  }
+
+  async startOpenChannelListener() {
+    return
   }
 
   async disconnect(): Promise<void> {
