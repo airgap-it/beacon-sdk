@@ -1075,12 +1075,13 @@ export class DAppClient extends Client {
   }
 
   private async checkMakeRequest() {
+    const isResolved = this._transport.isResolved()
+    const isWCInstance = isResolved && (await this.transport) instanceof WalletConnectTransport
+    const isLeader = this.multiTabChannel.isLeader()
+    const isMobile = isMobileOS(window)
+
     return (
-      !this._transport.isResolved() ||
-      (this._transport.isResolved() &&
-        (!((await this.transport) instanceof WalletConnectTransport) ||
-          ((await this.transport) instanceof WalletConnectTransport &&
-            this.multiTabChannel.isLeader())))
+      !isResolved || (isResolved && (!isWCInstance || (isWCInstance && (isLeader || isMobile))))
     )
   }
 

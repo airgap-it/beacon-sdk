@@ -674,7 +674,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       })
       .then(async () => {
         const isLeader = await this.isLeader()
-        if (!isLeader) {
+        if (!isLeader && !this.isMobileOS()) {
           await this.closeSignClient()
         }
       })
