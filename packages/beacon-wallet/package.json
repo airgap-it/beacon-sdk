@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-wallet",
-  "version": "4.2.7",
+  "version": "4.2.8",
   "description": "Use this package in your wallet to instanciate a WalletClient object and communicate to dApps.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",

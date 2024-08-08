@@ -17,16 +17,49 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
   > = new Map()
   private listeners: Map<string, (message: any) => void> = new Map()
   private selectedNode: string
+  private senderId: string = ''
+  protected override keyPair: KeyPair | undefined = undefined
 
   constructor(
     private name: string,
-    private urls: string[],
-    keyPair: KeyPair,
-    private senderId: string
+    private urls: string[]
   ) {
-    super(keyPair)
+    super()
     this.selectedNode = this.urls[Math.floor(Math.random() * this.urls.length)]
     this.client = this.initClient([this.selectedNode])
+  }
+
+  private async initKeyPair() {
+    const acurastKeyPair = await crypto.subtle.generateKey(
+      {
+        name: 'ECDSA',
+        namedCurve: 'P-256'
+      },
+      true,
+      ['sign']
+    )
+
+    const [privateKeyRaw, publicKeyRaw] = await Promise.all([
+      crypto.subtle
+        .exportKey('jwk', acurastKeyPair.privateKey)
+        .then((jwk) => Buffer.from(jwk.d as any, 'base64')),
+      crypto.subtle
+        .exportKey('raw', acurastKeyPair.publicKey)
+        .then((arrayBuffer) => Buffer.from(arrayBuffer))
+    ])
+    const publicKeyCompressedSize = (publicKeyRaw.length - 1) / 2
+    const publicKeyCompressed = Buffer.concat([
+      new Uint8Array([publicKeyRaw[2 * publicKeyCompressedSize] % 2 ? 3 : 2]),
+      publicKeyRaw.subarray(1, publicKeyCompressedSize + 1)
+    ])
+    const publicKeyHash = await crypto.subtle.digest('SHA-256', publicKeyCompressed)
+    const senderId = Buffer.from(publicKeyHash.slice(0, 16)).toString('hex')
+
+    return {
+      publicKey: publicKeyRaw,
+      secretKey: privateKeyRaw,
+      senderId
+    }
   }
 
   private initClient(urls: string[]): AcurastClient {
@@ -62,8 +95,14 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.delete('channelOpening')
   }
 
-  connect() {
-    return this.client.start(this.keyPair!)
+  async connect() {
+    const { publicKey, secretKey, senderId } = await this.initKeyPair()
+    this.keyPair = {
+      publicKey,
+      secretKey
+    }
+    this.senderId = senderId
+    await this.client.start(this.keyPair)
   }
 
   close() {

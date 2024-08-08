@@ -599,39 +599,7 @@ export class DAppClient extends Client {
 
     await this.addListener(this.walletConnectTransport)
 
-    const acurastKeyPair = await crypto.subtle.generateKey(
-      {
-        name: 'ECDSA',
-        namedCurve: 'P-256'
-      },
-      true,
-      ['sign']
-    )
-
-    const [privateKeyRaw, publicKeyRaw] = await Promise.all([
-      crypto.subtle
-        .exportKey('jwk', acurastKeyPair.privateKey)
-        .then((jwk) => Buffer.from(jwk.d as any, 'base64')),
-      crypto.subtle
-        .exportKey('raw', acurastKeyPair.publicKey)
-        .then((arrayBuffer) => Buffer.from(arrayBuffer))
-    ])
-    const publicKeyCompressedSize = (publicKeyRaw.length - 1) / 2
-      const publicKeyCompressed = Buffer.concat([
-        new Uint8Array([publicKeyRaw[2 * publicKeyCompressedSize] % 2 ? 3 : 2]),
-        publicKeyRaw.subarray(1, publicKeyCompressedSize + 1)
-      ])
-    const publicKeyHash = await crypto.subtle.digest('SHA-256', publicKeyCompressed)
-
-    this.libp2pTransport = new DappLibP2PTransport(
-      this.name,
-      {
-        publicKey: publicKeyRaw,
-        secretKey: privateKeyRaw
-      },
-      Buffer.from(publicKeyHash.slice(0, 16)).toString('hex'),
-      this.storage
-    )
+    this.libp2pTransport = new DappLibP2PTransport(this.name, this.storage)
 
     await this.addListener(this.libp2pTransport)
   }

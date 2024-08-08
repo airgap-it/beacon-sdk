@@ -5,7 +5,6 @@ import {
   TransportStatus
 } from '@airgap/beacon-types'
 import { WebSocketP2PTransport } from '@airgap/beacon-transport-libp2p'
-import { KeyPair } from '@stablelib/ed25519'
 import { Logger } from '@airgap/beacon-core'
 
 const logger = new Logger('DappLibP2PTransport')
@@ -16,12 +15,10 @@ export class DappLibP2PTransport extends WebSocketP2PTransport<
 > {
   constructor(
     name: string,
-    keyPair: KeyPair,
-    senderId: string,
     storage: Storage,
     urls?: string[]
   ) {
-    super(name, keyPair, senderId, storage, StorageKey.TRANSPORT_LIBP2P_PEERS_DAPP, urls)
+    super(name, storage, StorageKey.TRANSPORT_LIBP2P_PEERS_DAPP, urls)
   }
 
   public async startOpenChannelListener(): Promise<void> {

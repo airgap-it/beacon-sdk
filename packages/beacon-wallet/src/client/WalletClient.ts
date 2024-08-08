@@ -85,44 +85,10 @@ export class WalletClient extends Client {
     this.enableWSP = config.enableWSP ?? false
   }
 
-  private async generateAcurastKeyPair() {
-    const acurastKeyPair = await crypto.subtle.generateKey(
-      {
-        name: 'ECDSA',
-        namedCurve: 'P-256'
-      },
-      true,
-      ['sign']
-    )
-
-    const [privateKeyRaw, publicKeyRaw] = await Promise.all([
-      crypto.subtle
-        .exportKey('jwk', acurastKeyPair.privateKey)
-        .then((jwk) => Buffer.from(jwk.d as any, 'base64')),
-      crypto.subtle
-        .exportKey('raw', acurastKeyPair.publicKey)
-        .then((arrayBuffer) => Buffer.from(arrayBuffer))
-    ])
-
-    const publicKeyCompressedSize = (publicKeyRaw.length - 1) / 2
-    const publicKeyCompressed = Buffer.concat([
-      new Uint8Array([publicKeyRaw[2 * publicKeyCompressedSize] % 2 ? 3 : 2]),
-      publicKeyRaw.subarray(1, publicKeyCompressedSize + 1)
-    ])
-    const publicKeyHash = await crypto.subtle.digest('SHA-256', publicKeyCompressed)
-
-    return {
-      publicKey: publicKeyRaw,
-      secretKey: privateKeyRaw,
-      senderId: Buffer.from(publicKeyHash.slice(0, 16)).toString('hex')
-    }
-  }
-
   public async init(): Promise<TransportType> {
     const keyPair = await this.keyPair // We wait for keypair here so the P2P Transport creation is not delayed and causing issues
-    const { publicKey, secretKey, senderId } = await this.generateAcurastKeyPair()
     const p2pTransport = this.enableWSP
-      ? new WalletWebSocketP2PTransport(this.name, { publicKey, secretKey }, senderId, this.storage)
+      ? new WalletWebSocketP2PTransport(this.name, this.storage)
       : new WalletP2PTransport(
           this.name,
           keyPair,
