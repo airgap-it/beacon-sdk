@@ -2528,6 +2528,13 @@ export class DAppClient extends Client {
       id
     })
 
+    if (
+      request.type !== BeaconMessageType.PermissionRequest ||
+      (this._activeAccount.isResolved() && (await this._activeAccount.promise))
+    ) {
+      this.tryToAppSwitch()
+    }
+
     this.events
       .emit(messageEvents[BeaconMessageType.PermissionRequest].sent, {
         walletInfo: await this.getWalletInfo(),
