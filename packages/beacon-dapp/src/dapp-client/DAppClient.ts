@@ -509,10 +509,13 @@ export class DAppClient extends Client {
     }
   }
 
-  private prepareRequest(message: any, isV3 = false) {
+  private async prepareRequest(message: any, isV3 = false) {
     if (!this.multiTabChannel.isLeader()) {
       return
     }
+
+    // block until the transport is ready
+    await this._transport.promise
 
     this.openRequestsOtherTabs.add(message.id)
     isV3
