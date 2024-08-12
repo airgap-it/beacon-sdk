@@ -1323,14 +1323,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       'wss://relay.walletconnect.com',
       'wss://relay.walletconnect.org'
     ]
+    let errMessages = []
     for (const relayUrl of urls) {
       try {
         return await Client.init({ ...this.wcOptions.opts, relayUrl })
       } catch (err: any) {
-        logger.warn(`Failed to connect to ${relayUrl}`)
+        errMessages.push(err.message)
+        logger.warn(`Failed to connect to ${relayUrl}: ${err.message}`)
       }
     }
-    throw new Error('Failed to connect to relayer.')
+    throw new Error(`Failed to connect to relayer: ${errMessages.join(',').slice(0, -1)}`)
   }
 
   private async getSignClient(): Promise<Client | undefined> {
