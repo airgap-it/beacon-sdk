@@ -1319,9 +1319,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private async tryConnectToRelayer() {
     const urls = [
       this.wcOptions.opts.relayUrl,
+      undefined,
       'wss://relay.walletconnect.com',
-      'wss://relay.walletconnect.org',
-      undefined
+      'wss://relay.walletconnect.org'
     ]
     for (const relayUrl of urls) {
       try {
