@@ -458,6 +458,19 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       return uri
     }
 
+    const generateWCError = (title: string) => {
+      const errorMessage = localStorage ? localStorage.getItem('beacon:wc-init-error') : undefined
+      const description: any = (
+        <>
+          <h3 style={{ color: '#FF4136' }}>
+            A network error occurred. This issue is not caused by your wallet provider.
+          </h3>
+          <span>{errorMessage}</span>
+        </>
+      )
+      return <Info title={title} description={description} />
+    }
+
     const handleNewTab = async (config: AlertConfig, wallet?: MergedWallet) => {
       if (!wallet) {
         return
@@ -741,7 +754,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       const isConnected =
         !currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking()
       return (
-        <>
+        <div class="info-border">
           {isConnected ? (
             <QR
               isWalletConnect={
@@ -754,34 +767,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
               onClickQrCode={handleClickQrCode}
             />
           ) : (
-            <div
-              class="qr-wrapper"
-              style={
-                isMobile
-                  ? {
-                      'flex-direction': 'column',
-                      'align-items': 'center',
-                      'justify-content': 'center',
-                      height: '340px',
-                      'text-align': 'center',
-                      border: 'none'
-                    }
-                  : { height: 'auto' }
-              }
-            >
-              <div class="qr-left" style={{ 'text-align': 'center' }}>
-                {!isMobile && <h3>Or scan to connect</h3>}
-                {!isMobile && (
-                  <span style={{ color: '#FF4136' }}>
-                    {`Failed to connect to WalletConnect relayer ${
-                      localStorage ? ': ' + localStorage.getItem('WC_INIT_ERROR') : ''
-                    }`}
-                  </span>
-                )}
-              </div>
-            </div>
+            generateWCError(`Connect with ${currentWallet()?.name} Mobile`)
           )}
-        </>
+        </div>
       )
     }
 
@@ -903,7 +891,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         (currentWallet()?.types.length as number) <= 1 && (
                           <QRCode isMobile={true} />
                         )}
-                      {isMobile() && currentWallet()?.types.includes('ios') && (
+                      {(isMobile() &&
+                        currentWallet()?.types.includes('ios') &&
+                        !currentWallet()?.supportedInteractionStandards?.includes(
+                          'wallet_connect'
+                        )) ||
+                      isWCWorking() ? (
                         <Info
                           border
                           title={`Connect with ${currentWallet()?.name} Mobile`}
@@ -968,6 +961,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                             setDisplayQrExtra(true)
                           }}
                         />
+                      ) : (
+                        <div class="info-border">
+                          {generateWCError(`Connect with ${currentWallet()?.name} Mobile`)}
+                        </div>
                       )}
                     </div>
                   )}
