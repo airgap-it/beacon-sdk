@@ -544,7 +544,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     if (!signClient) {
       const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
       fun && fun()
-      return
+      throw new Error('Failed to connect to the relayer.')
     }
 
     const lastIndex = signClient.session.keys.length - 1
@@ -586,7 +586,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       }
     }
 
-    const { uri, approval } = await signClient.connect(connectParams)
+    const { uri, approval } = await signClient.connect({ ...connectParams }).catch((error) => {
+      logger.error(`Init error: ${error.message}`)
+      localStorage && localStorage.setItem('WC_INIT_ERROR', error.message)
+      throw new Error(error.message)
+    })
 
     // Extract topic from uri. Format is wc:topic@2...
     const topic = getStringBetween(uri, ':', '@')
@@ -1312,13 +1316,31 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return this.session
   }
 
+  private async tryConnectToRelayer() {
+    const urls = [
+      this.wcOptions.opts.relayUrl,
+      'wss://relay.walletconnect.com',
+      'wss://relay.walletconnect.org',
+      undefined
+    ]
+    for (const url of urls) {
+      try {
+        return await Client.init({ ...this.wcOptions.opts, relayUrl: url })
+      } catch (err: any) {
+        logger.warn(`Failed to connect to ${url}`)
+      }
+    }
+    throw new Error('Failed to connect to relayer.')
+  }
+
   private async getSignClient(): Promise<Client | undefined> {
     if (this.signClient === undefined) {
       try {
-        this.signClient = await Client.init(this.wcOptions.opts)
+        this.signClient = await this.tryConnectToRelayer()
         this.subscribeToSessionEvents(this.signClient)
       } catch (error: any) {
         logger.error(error.message)
+        localStorage && localStorage.setItem('WC_INIT_ERROR', error.message)
         return undefined
       }
     }

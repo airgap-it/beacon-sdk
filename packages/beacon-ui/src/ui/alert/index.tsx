@@ -773,7 +773,9 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                 {!isMobile && <h3>Or scan to connect</h3>}
                 {!isMobile && (
                   <span style={{ color: '#FF4136' }}>
-                    Failed to connect to WalletConnect relayer: [REASON]
+                    {`Failed to connect to WalletConnect relayer ${
+                      localStorage ? ': ' + localStorage.getItem('WC_INIT_ERROR') : ''
+                    }`}
                   </span>
                 )}
               </div>
