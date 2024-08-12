@@ -542,8 +542,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const signClient = await this.getSignClient()
 
     if (!signClient) {
-      const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
-      fun && fun()
       throw new Error('Failed to connect to the relayer.')
     }
 
@@ -1317,22 +1315,23 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async tryConnectToRelayer() {
-    const urls = [
+    const urls = new Set([
       this.wcOptions.opts.relayUrl,
       undefined,
       'wss://relay.walletconnect.com',
       'wss://relay.walletconnect.org'
-    ]
-    let errMessages = []
+    ])
+    let errMessages = new Set()
+
     for (const relayUrl of urls) {
       try {
         return await Client.init({ ...this.wcOptions.opts, relayUrl })
       } catch (err: any) {
-        errMessages.push(err.message)
+        errMessages.add(err.message)
         logger.warn(`Failed to connect to ${relayUrl}: ${err.message}`)
       }
     }
-    throw new Error(`Failed to connect to relayer: ${errMessages.join(',').slice(0, -1)}`)
+    throw new Error(`Failed to connect to relayer: ${Array.from(errMessages).join(',')}`)
   }
 
   private async getSignClient(): Promise<Client | undefined> {
