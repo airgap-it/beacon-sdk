@@ -1321,7 +1321,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       'wss://relay.walletconnect.com',
       'wss://relay.walletconnect.org'
     ])
-    let errMessages = new Set()
+    const errMessages = new Set()
 
     for (const relayUrl of urls) {
       try {
