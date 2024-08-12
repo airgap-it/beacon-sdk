@@ -465,7 +465,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           <h3 style={{ color: '#FF4136', margin: '0.6px' }}>
             A network error occurred. This issue is not caused by your wallet provider.
           </h3>
-          <span>{errorMessage}</span>
+          {errorMessage && <span>{errorMessage}</span>}
         </>
       )
       return <Info title={title} description={description} border />

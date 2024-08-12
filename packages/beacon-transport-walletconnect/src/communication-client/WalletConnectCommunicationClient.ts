@@ -588,7 +588,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     const { uri, approval } = await signClient.connect({ ...connectParams }).catch((error) => {
       logger.error(`Init error: ${error.message}`)
-      localStorage && localStorage.setItem('WC_INIT_ERROR', error.message)
+      localStorage && localStorage.setItem('beacon:wc-init-error', error.message)
       throw new Error(error.message)
     })
 
@@ -1342,7 +1342,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.subscribeToSessionEvents(this.signClient)
       } catch (error: any) {
         logger.error(error.message)
-        localStorage && localStorage.setItem('WC_INIT_ERROR', error.message)
+        localStorage && localStorage.setItem('beacon:wc-init-error', error.message)
         return undefined
       }
     }
