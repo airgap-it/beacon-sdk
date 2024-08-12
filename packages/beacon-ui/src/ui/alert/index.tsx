@@ -89,6 +89,7 @@ const [currentInfo, setCurrentInfo] = createSignal<
 const [analytics, setAnalytics] = createSignal<AnalyticsInterface | undefined>(undefined)
 const [displayQrExtra, setDisplayQrExtra] = createSignal<boolean>(false)
 const [pairingExpired, setPairingExpired] = createSignal(false)
+const [isWCWorking, setIsWCWorking] = createSignal(true)
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
 
@@ -451,16 +452,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       // check whether the uri contains a valid symmetric key or not
       if (!parseUri(uri).symKey) {
-        handleCloseAlert()
-        setTimeout(
-          () =>
-            openAlert({
-              title: 'Error',
-              body: 'Network error occurred. Please check your internet connection.'
-            }),
-          500
-        )
-        return ''
+        setIsWCWorking(false)
       }
 
       return uri
@@ -746,17 +738,48 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           icon: currentWallet()?.image
         })
       )
+      const isConnected =
+        !currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking()
       return (
-        <QR
-          isWalletConnect={
-            currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || false
-          }
-          isMobile={isMobile}
-          walletName={currentWallet()?.name || 'AirGap'}
-          code={codeQR()}
-          onClickLearnMore={handleClickLearnMore}
-          onClickQrCode={handleClickQrCode}
-        />
+        <>
+          {isConnected ? (
+            <QR
+              isWalletConnect={
+                currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || false
+              }
+              isMobile={isMobile}
+              walletName={currentWallet()?.name || 'AirGap'}
+              code={codeQR()}
+              onClickLearnMore={handleClickLearnMore}
+              onClickQrCode={handleClickQrCode}
+            />
+          ) : (
+            <div
+              class="qr-wrapper"
+              style={
+                isMobile
+                  ? {
+                      'flex-direction': 'column',
+                      'align-items': 'center',
+                      'justify-content': 'center',
+                      height: '340px',
+                      'text-align': 'center',
+                      border: 'none'
+                    }
+                  : { height: 'auto' }
+              }
+            >
+              <div class="qr-left" style={{ 'text-align': 'center' }}>
+                {!isMobile && <h3>Or scan to connect</h3>}
+                {!isMobile && (
+                  <span style={{ color: '#FF4136' }}>
+                    Failed to connect to WalletConnect relayer: [REASON]
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )
     }
 

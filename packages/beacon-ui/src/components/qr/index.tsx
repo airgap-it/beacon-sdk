@@ -75,28 +75,6 @@ const QR: Component<QRProps> = (props: QRProps) => {
             {`Scan QR code with a ${
               props.isWalletConnect ? 'WalletConnect' : 'Beacon'
             }-compatible wallet.`}
-            {props.onClickLearnMore && (
-              <span
-                class="qr-more-info"
-                onClick={() => {
-                  if (props.onClickLearnMore) props.onClickLearnMore()
-                }}
-              >
-                Learn more
-              </span>
-            )}
-          </span>
-        )}
-
-        {!props.isMobile && props.onClickLearnMore && (
-          <span
-            style={{ 'margin-top': 'auto' }}
-            class="qr-more-info"
-            onClick={() => {
-              if (props.onClickLearnMore) props.onClickLearnMore()
-            }}
-          >
-            Learn more
           </span>
         )}
       </div>
