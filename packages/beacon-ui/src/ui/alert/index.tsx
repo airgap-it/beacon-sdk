@@ -599,6 +599,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
         const uri = await generateLink()
 
+        if (!uri && wallet?.name.toLowerCase().includes('kukai')) {
+          setCodeQR('error')
+          setInstallState(wallet)
+          setIsLoading(false)
+          return
+        }
+
         if (uri) {
           if (_isMobileOS && wallet.types.includes('ios') && wallet.types.length === 1) {
             handleDeepLinking(wallet, uri)
