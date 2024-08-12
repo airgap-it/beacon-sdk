@@ -891,12 +891,12 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         (currentWallet()?.types.length as number) <= 1 && (
                           <QRCode isMobile={true} />
                         )}
-                      {(isMobile() &&
-                        currentWallet()?.types.includes('ios') &&
-                        !currentWallet()?.supportedInteractionStandards?.includes(
-                          'wallet_connect'
-                        )) ||
-                      isWCWorking() ? (
+                      {isMobile() &&
+                      currentWallet()?.types.includes('ios') &&
+                      (!currentWallet()?.supportedInteractionStandards?.includes(
+                        'wallet_connect'
+                      ) ||
+                        isWCWorking()) ? (
                         <Info
                           border
                           title={`Connect with ${currentWallet()?.name} Mobile`}
