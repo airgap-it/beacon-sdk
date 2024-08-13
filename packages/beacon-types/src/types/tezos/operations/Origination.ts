@@ -1,4 +1,5 @@
 import { TezosBaseOperation, TezosOperationType } from '../../..'
+import { ScriptedContracts } from '../common'
 
 /**
  * @internalapi
@@ -13,5 +14,5 @@ export interface TezosOriginationOperation extends TezosBaseOperation {
   storage_limit: string
   balance: string
   delegate?: string
-  script: string
+  script: ScriptedContracts
 }
