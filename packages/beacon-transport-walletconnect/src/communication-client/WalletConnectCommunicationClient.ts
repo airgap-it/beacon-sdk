@@ -383,7 +383,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.SIGN)
     }
     const network = this.getActiveNetwork()
-    const account = await this.getPKH()
+    const account = await this.getAccountOrPK()
     this.validateNetworkAndAccount(network, account)
 
     this.checkWalletReadiness(this.getTopicFromSession(session))
@@ -445,7 +445,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.OPERATION_REQUEST)
     }
     const network = this.getActiveNetwork()
-    const account = await this.getPKH()
+    const account = await this.getAccountOrPK()
     this.validateNetworkAndAccount(network, account)
     this.checkWalletReadiness(this.getTopicFromSession(session))
 
@@ -1330,10 +1330,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   /**
-   * @description Access the public key hash of the active account
+   * @description Access the public key hash (or public key) of the active account
    * @error ActiveAccountUnspecified thrown when there are multiple Tezos account in the session and none is set as the active one
    */
-  async getPKH() {
+  async getAccountOrPK() {
     if (!this.activeAccountOrPbk) {
       this.getSession()
       throw new ActiveAccountUnspecified()
