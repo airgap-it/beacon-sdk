@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-sdk",
-  "version": "4.2.2",
+  "version": "4.2.3-alpha.0",
   "description": "The `beacon-sdk` simplifies and abstracts the communication between dApps and wallets over different transport layers.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -35,17 +35,16 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-blockchain-substrate": "file:packages/beacon-blockchain-substrate",
-    "@airgap/beacon-blockchain-tezos": "file:packages/beacon-blockchain-tezos",
-    "@airgap/beacon-blockchain-tezos-sapling": "file:packages/beacon-blockchain-tezos-sapling",
-    "@airgap/beacon-core": "file:packages/beacon-core",
-    "@airgap/beacon-dapp": "file:packages/beacon-dapp",
-    "@airgap/beacon-transport-matrix": "file:packages/beacon-transport-matrix",
-    "@airgap/beacon-transport-postmessage": "file:packages/beacon-transport-postmessage",
-    "@airgap/beacon-transport-walletconnect": "file:packages/beacon-transport-walletconnect",
-    "@airgap/beacon-types": "file:packages/beacon-types",
-    "@airgap/beacon-ui": "file:packages/beacon-ui",
-    "@airgap/beacon-utils": "file:packages/beacon-utils",
-    "@airgap/beacon-wallet": "file:packages/beacon-wallet"
+    "@airgap/beacon-blockchain-substrate": "4.2.3-alpha.0",
+    "@airgap/beacon-blockchain-tezos": "4.2.3-alpha.0",
+    "@airgap/beacon-core": "4.2.3-alpha.0",
+    "@airgap/beacon-dapp": "4.2.3-alpha.0",
+    "@airgap/beacon-transport-libp2p": "4.2.3-alpha.0",
+    "@airgap/beacon-transport-matrix": "4.2.3-alpha.0",
+    "@airgap/beacon-transport-postmessage": "4.2.3-alpha.0",
+    "@airgap/beacon-types": "4.2.3-alpha.0",
+    "@airgap/beacon-ui": "4.2.3-alpha.0",
+    "@airgap/beacon-utils": "4.2.3-alpha.0",
+    "@airgap/beacon-wallet": "4.2.3-alpha.0"
   }
 }
