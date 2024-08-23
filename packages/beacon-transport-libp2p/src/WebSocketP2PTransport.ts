@@ -7,10 +7,10 @@ import {
   StorageKey,
   Origin,
   TransportType,
-  PeerInfo
+  PeerInfo,
+  NodeDistributions,
 } from '@airgap/beacon-types'
 
-const DEFAULT_NODES = ['wss://websocket-proxy-1.prod.gke.acurast.com', 'wss://websocket-proxy-2.prod.gke.acurast.com']
 const logger = new Logger('P2PTransport')
 
 export abstract class WebSocketP2PTransport<
@@ -22,7 +22,7 @@ export abstract class WebSocketP2PTransport<
     name: string,
     storage: Storage,
     storageKey: K,
-    urls: string[] = DEFAULT_NODES
+    urls?: NodeDistributions
   ) {
     super(
       name,

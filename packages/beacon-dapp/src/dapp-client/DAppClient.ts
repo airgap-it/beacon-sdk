@@ -599,7 +599,7 @@ export class DAppClient extends Client {
 
     await this.addListener(this.walletConnectTransport)
 
-    this.libp2pTransport = new DappLibP2PTransport(this.name, this.storage)
+    this.libp2pTransport = new DappLibP2PTransport(this.name, this.storage, this.libp2pNodes)
 
     await this.addListener(this.libp2pTransport)
   }

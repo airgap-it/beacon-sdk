@@ -1,5 +1,6 @@
 import {
   ExtendedP2PPairingResponse,
+  NodeDistributions,
   Storage,
   StorageKey,
   TransportStatus
@@ -16,7 +17,7 @@ export class DappLibP2PTransport extends WebSocketP2PTransport<
   constructor(
     name: string,
     storage: Storage,
-    urls?: string[]
+    urls?: NodeDistributions
   ) {
     super(name, storage, StorageKey.TRANSPORT_LIBP2P_PEERS_DAPP, urls)
   }

@@ -38,6 +38,15 @@ export interface ClientOptions {
    */
   matrixNodes?: NodeDistributions
 
+
+  /**
+   * A list of ws proxy nodes to connect to. If a non-empty array is passed, the default options will be overwritten.
+   * One node will be randomly selected based on the local keypair and the other nodes will be used as a fallback in case the primary node goes down.
+   *
+   * Only provide the hostname, no https:// prefix. Eg. { [Regions.EUROPE_WEST]: ['wss://...'] }
+   */
+  libp2pNodes?: NodeDistributions
+
   /**
    * Automatically switch between apps on Mobile Devices (Enabled by Default)
    */

@@ -1,13 +1,20 @@
 import { SDK_VERSION, CommunicationClient } from '@airgap/beacon-core'
 import {
   ExtendedP2PPairingResponse,
+  NodeDistributions,
   P2PPairingRequest,
   P2PPairingResponse,
-  PeerInfoType
+  PeerInfoType,
+  Regions
 } from '@airgap/beacon-types'
 import { AcurastClient } from '@acurast/dapp'
 import { KeyPair } from '@stablelib/ed25519'
 import { generateGUID } from '@airgap/beacon-utils'
+
+const DEFAULT_NODES: NodeDistributions = {
+  [Regions.EUROPE_WEST]: ['wss://websocket-proxy-1.prod.gke.acurast.com'],
+  [Regions.NORTH_AMERICA_EAST]: ['wss://websocket-proxy-2.prod.gke.acurast.com']
+}
 
 export class WebSocketP2PCommunicationClient extends CommunicationClient {
   private client: AcurastClient
@@ -22,11 +29,20 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
 
   constructor(
     private name: string,
-    private urls: string[]
+    private nodes: NodeDistributions = DEFAULT_NODES
   ) {
     super()
-    this.selectedNode = this.urls[Math.floor(Math.random() * this.urls.length)]
+    this.selectedNode = this.getNode()
     this.client = this.initClient([this.selectedNode])
+  }
+
+  // TODO implement discovery algorithm
+  private getNode(): string {
+    const regions = Object.keys(this.nodes)
+    const randomRegion = regions[Math.floor(Math.random() * regions.length)]
+    const urls = this.nodes[randomRegion]
+    const randomUrl = urls[Math.floor(Math.random() * urls.length)]
+    return randomUrl
   }
 
   private async initKeyPair() {
