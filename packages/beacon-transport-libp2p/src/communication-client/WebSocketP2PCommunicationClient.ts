@@ -12,8 +12,8 @@ import { KeyPair } from '@stablelib/ed25519'
 import { generateGUID } from '@airgap/beacon-utils'
 
 const DEFAULT_NODES: NodeDistributions = {
-  [Regions.EUROPE_WEST]: ['wss://websocket-proxy-1.prod.gke.acurast.com'],
-  [Regions.NORTH_AMERICA_EAST]: ['wss://websocket-proxy-2.prod.gke.acurast.com']
+  [Regions.EUROPE_WEST]: ['websocket-proxy-1.prod.gke.acurast.com'],
+  [Regions.NORTH_AMERICA_EAST]: ['websocket-proxy-2.prod.gke.acurast.com']
 }
 
 export class WebSocketP2PCommunicationClient extends CommunicationClient {
@@ -79,7 +79,7 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
   }
 
   private initClient(urls: string[]): AcurastClient {
-    const client = new AcurastClient(urls)
+    const client = new AcurastClient(urls.map((url) => `wss://${url}`))
     client.onMessage(async (message) => {
       let parsed: any = Buffer.from(message.payload).toString('utf-8')
       try {
