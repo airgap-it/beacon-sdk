@@ -10,6 +10,7 @@ import {
 import { AcurastClient } from '@acurast/dapp'
 import { KeyPair } from '@stablelib/ed25519'
 import { generateGUID } from '@airgap/beacon-utils'
+import { ec } from 'elliptic'
 
 const DEFAULT_NODES: NodeDistributions = {
   [Regions.EUROPE_WEST]: ['websocket-proxy-1.prod.gke.acurast.com'],
@@ -25,6 +26,7 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
   private listeners: Map<string, (message: any) => void> = new Map()
   private selectedNode: string
   private senderId: string = ''
+  private seed: string
   protected override keyPair: KeyPair | undefined = undefined
 
   constructor(
@@ -32,8 +34,17 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     private nodes: NodeDistributions = DEFAULT_NODES
   ) {
     super()
+    this.seed = this.getSeed()
     this.selectedNode = this.getNode()
     this.client = this.initClient([this.selectedNode])
+  }
+
+  private getSeed(): string {
+    const key = Object.keys(localStorage).find((_key) => _key.includes('sdk-secret-seed'))
+    if (!key) {
+      throw new Error('Seed is missing.')
+    }
+    return localStorage.getItem(key)!
   }
 
   // TODO implement discovery algorithm
@@ -46,28 +57,26 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
   }
 
   private async initKeyPair() {
-    const acurastKeyPair = await crypto.subtle.generateKey(
-      {
-        name: 'ECDSA',
-        namedCurve: 'P-256'
-      },
-      true,
-      ['sign']
-    )
+    const ecdsa = new ec('p256') // Using the P-256 curve
 
-    const [privateKeyRaw, publicKeyRaw] = await Promise.all([
-      crypto.subtle
-        .exportKey('jwk', acurastKeyPair.privateKey)
-        .then((jwk) => Buffer.from(jwk.d as any, 'base64')),
-      crypto.subtle
-        .exportKey('raw', acurastKeyPair.publicKey)
-        .then((arrayBuffer) => Buffer.from(arrayBuffer))
-    ])
+    // Generate key pair from seed
+    const seedBuffer = Buffer.from(this.seed, 'utf-8')
+
+    // Use Web Crypto API to create a SHA-256 hash
+    const hashBuffer = await crypto.subtle.digest('SHA-256', seedBuffer)
+    const privateKeyHex = Buffer.from(hashBuffer).toString('hex')
+
+    const keyPair = ecdsa.keyFromPrivate(privateKeyHex)
+
+    const privateKeyRaw = Buffer.from(keyPair.getPrivate().toString('hex'), 'hex')
+    const publicKeyRaw = Buffer.from(keyPair.getPublic().encode('array', false))
+
     const publicKeyCompressedSize = (publicKeyRaw.length - 1) / 2
     const publicKeyCompressed = Buffer.concat([
       new Uint8Array([publicKeyRaw[2 * publicKeyCompressedSize] % 2 ? 3 : 2]),
       publicKeyRaw.subarray(1, publicKeyCompressedSize + 1)
     ])
+
     const publicKeyHash = await crypto.subtle.digest('SHA-256', publicKeyCompressed)
     const senderId = Buffer.from(publicKeyHash.slice(0, 16)).toString('hex')
 
