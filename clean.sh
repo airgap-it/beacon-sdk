@@ -21,6 +21,7 @@ rm -rf ./packages/beacon-core/node_modules
 rm -rf ./packages/beacon-dapp/node_modules
 rm -rf ./packages/beacon-sdk/node_modules
 rm -rf ./packages/beacon-transport-matrix/node_modules
+rm -rf ./packages/beacon-transport-libp2p/node_modules
 rm -rf ./packages/beacon-transport-postmessage/node_modules
 rm -rf ./packages/beacon-types/node_modules
 rm -rf ./packages/beacon-ui/node_modules

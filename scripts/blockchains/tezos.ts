@@ -182,7 +182,8 @@ export const tezosIosList: App[] = [
     color: 'rgb(4, 235, 204)',
     logo: 'ios-airgap.png',
     universalLink: 'https://wallet.airgap.it',
-    deepLink: 'airgap-wallet://'
+    deepLink: 'airgap-wallet://',
+    supportedInteractionStandards: ['beaconLibp2p']
   },
   {
     key: 'plenty_wallet_ios',

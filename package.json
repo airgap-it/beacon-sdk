@@ -56,7 +56,8 @@
     "bump:major": "lerna version --no-git-tag-version major --exact --yes",
     "bump:minor": "lerna version --no-git-tag-version minor --exact --yes",
     "bump:patch": "lerna version --no-git-tag-version patch --exact --yes",
-    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --exact --yes"
+    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --exact --yes",
+    "bump:alpha": "lerna version --no-git-tag-version prerelease --preid alpha --exact --yes"
   },
   "author": "Papers AG <contact@papers.ch> (https://papers.ch)",
   "dependencies": {
@@ -66,6 +67,7 @@
     "@airgap/beacon-core": "file:packages/beacon-core",
     "@airgap/beacon-dapp": "file:packages/beacon-dapp",
     "@airgap/beacon-transport-matrix": "file:packages/beacon-transport-matrix",
+    "@airgap/beacon-transport-libp2p": "file:packages/beacon-transport-libp2p",
     "@airgap/beacon-transport-postmessage": "file:packages/beacon-transport-postmessage",
     "@airgap/beacon-transport-walletconnect": "file:packages/beacon-transport-walletconnect",
     "@airgap/beacon-types": "file:packages/beacon-types",

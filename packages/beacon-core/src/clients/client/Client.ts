@@ -51,6 +51,7 @@ export abstract class Client extends BeaconClient {
   protected requestCounter: number[] = []
 
   protected readonly matrixNodes: NodeDistributions
+  protected readonly libp2pNodes?: NodeDistributions
 
   private transportListeners: Map<
     TransportType,
@@ -81,6 +82,7 @@ export abstract class Client extends BeaconClient {
 
     this.accountManager = new AccountManager(config.storage)
     this.matrixNodes = config.matrixNodes ?? {}
+    this.libp2pNodes = config.libp2pNodes
 
     this.handleResponse = (
       message: BeaconBaseMessage | BeaconMessageWrapper<BeaconBaseMessage>,

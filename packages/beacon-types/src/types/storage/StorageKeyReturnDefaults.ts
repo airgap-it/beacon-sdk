@@ -11,6 +11,8 @@ export type StorageKeyReturnDefaults = { [key in StorageKey]: StorageKeyReturnTy
 export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.TRANSPORT_P2P_PEERS_DAPP]: [],
   [StorageKey.TRANSPORT_P2P_PEERS_WALLET]: [],
+  [StorageKey.TRANSPORT_LIBP2P_PEERS_DAPP]: [],
+  [StorageKey.TRANSPORT_LIBP2P_PEERS_WALLET]: [],
   [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP]: [],
   [StorageKey.TRANSPORT_POSTMESSAGE_PEERS_WALLET]: [],
   [StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP]: [],
