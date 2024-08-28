@@ -8,9 +8,7 @@ VERSION=$(node -pe 'const version = JSON.parse(process.argv[1]).version; version
 
 if [ -z "$VERSION" ]
 then
-  echo "version is not beta or alpha, proceeding with standard publish"
-  npx lerna publish from-package --contents ./ --yes
-  # lerna exec -- "npm publish || exit 0" # Uncomment if you need to handle already published packages separately
+  echo "cannot publish non-beta/non-alpha version"
 else
   if [[ "$VERSION" == *"beta"* ]]
   then
