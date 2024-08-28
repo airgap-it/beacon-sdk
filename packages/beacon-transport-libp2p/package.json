@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-transport-libp2p",
-  "version": "4.2.3-alpha.0",
+  "version": "4.2.3-alpha.1",
   "description": "This package contains methods to facilitate communication over the Beacon network, a decentralised P2P network that is based on the matrix protocol.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -36,8 +36,8 @@
   "dependencies": {
     "@acurast/dapp": "^1.0.1-beta.6",
     "@acurast/transport-websocket": "^1.0.1-beta.6",
-    "@airgap/beacon-core": "4.2.3-alpha.0",
-    "@airgap/beacon-utils": "4.2.3-alpha.0",
+    "@airgap/beacon-core": "4.2.3-alpha.1",
+    "@airgap/beacon-utils": "4.2.3-alpha.1",
     "elliptic": "6.5.7"
   },
   "devDependencies": {
