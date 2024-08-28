@@ -1,10 +1,10 @@
-# `@airgap/beacon-transport-matrix`
+# `@airgap/beacon-transport-libp2p`
 
 This package is part of the `@airgap/beacon-sdk` project. [Read more](https://github.com/airgap-it/beacon-sdk)
 
 ## Introduction
 
-This package contains methods to facilitate communication over the Beacon network, a decentralised P2P network that is based on the matrix protocol.
+This package contains methods to facilitate communication over the Beacon network, a decentralised P2P network that is based on the ipfs protocol.
 
 Unless you need to import types from this package, you probably don't need to add it to your project.
 

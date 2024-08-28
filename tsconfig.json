@@ -45,6 +45,10 @@
       "packages/beacon-transport-matrix/lib/beacon-transport-matrix",
       "packages/beacon-transport-matrix/lib"
     ],
+    "beacon-transport-libp2p": [
+      "packages/beacon-transport-libp2p/lib/beacon-transport-libp2p",
+      "packages/beacon-transport-libp2p/lib"
+    ],
     "beacon-transport-postmessage": [
       "packages/beacon-transport-postmessage/lib/beacon-transport-postmessage",
       "packages/beacon-transport-postmessage/lib"

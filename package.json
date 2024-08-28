@@ -67,6 +67,7 @@
     "@airgap/beacon-core": "file:packages/beacon-core",
     "@airgap/beacon-dapp": "file:packages/beacon-dapp",
     "@airgap/beacon-transport-matrix": "file:packages/beacon-transport-matrix",
+    "@airgap/beacon-transport-libp2p": "file:packages/beacon-transport-libp2p",
     "@airgap/beacon-transport-postmessage": "file:packages/beacon-transport-postmessage",
     "@airgap/beacon-transport-walletconnect": "file:packages/beacon-transport-walletconnect",
     "@airgap/beacon-types": "file:packages/beacon-types",
