@@ -9,5 +9,5 @@
 coverage
 dist
 node_modules
-npm-ci-publish-beta-only.sh
+npm-ci-publish-beta-and-alpha-only.sh
 npm-ci-publish.sh
