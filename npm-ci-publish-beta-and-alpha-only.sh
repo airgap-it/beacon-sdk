@@ -2,7 +2,7 @@
 echo "//registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN" > .npmrc
 
 git update-index --assume-unchanged npm-ci-publish.sh
-git update-index --assume-unchanged npm-ci-publish-beta-only.sh
+git update-index --assume-unchanged npm-ci-publish-beta-and-alpha-only.sh
 
 VERSION=$(node -pe 'const version = JSON.parse(process.argv[1]).version; version.includes("beta") || version.includes("alpha") ? version : ""' "$(cat lerna.json)")
 
