@@ -26,7 +26,6 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
   private listeners: Map<string, (message: any) => void> = new Map()
   private selectedNode: string
   private senderId: string = ''
-  private seed: string
   protected override keyPair: KeyPair | undefined = undefined
 
   constructor(
@@ -34,7 +33,6 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     private nodes: NodeDistributions = DEFAULT_NODES
   ) {
     super()
-    this.seed = this.getSeed()
     this.selectedNode = this.getNode()
     this.client = this.initClient([this.selectedNode])
   }
@@ -60,7 +58,7 @@ export class WebSocketP2PCommunicationClient extends CommunicationClient {
     const ecdsa = new ec('p256') // Using the P-256 curve
 
     // Generate key pair from seed
-    const seedBuffer = Buffer.from(this.seed, 'utf-8')
+    const seedBuffer = Buffer.from(this.getSeed(), 'utf-8')
 
     // Use Web Crypto API to create a SHA-256 hash
     const hashBuffer = await crypto.subtle.digest('SHA-256', seedBuffer)
