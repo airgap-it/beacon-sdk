@@ -163,6 +163,7 @@ import { TezosEndorsementWithSlotOperation } from './types/tezos/operations/Endo
 import { TezosFailingNoopOperation } from './types/tezos/operations/FailingNoop'
 import { TezosIncreasePaidStorageOperation } from './types/tezos/operations/IncreasePaidStorage'
 import { TezosPreAttestationOperation } from './types/tezos/operations/PreAttestation'
+import { TezosPreEndorsementOperation } from './types/tezos/operations/PreEndorsement'
 import { TezosRegisterGlobalConstantOperation } from './types/tezos/operations/RegisterGlobalConstant'
 import { TezosSetDepositsLimitOperation } from './types/tezos/operations/SetDepositsLimit'
 import { TezosSmartRollupAddMessagesOperation } from './types/tezos/operations/SmartRollupAddMessages'
@@ -232,6 +233,7 @@ export {
   PartialTezosSetDepositsLimitOperation,
   TezosAttestationOperation,
   TezosPreAttestationOperation,
+  TezosPreEndorsementOperation,
   TezosSetDepositsLimitOperation,
   TezosDoublePreAttestationEvidenceOperation,
   TezosDoublePreEndorsementEvidenceOperation,
