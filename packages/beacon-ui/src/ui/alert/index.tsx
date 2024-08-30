@@ -463,7 +463,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       const description: any = (
         <>
           <h3 style={{ color: '#FF4136', margin: '0.6px' }}>
-            A network error occurred. This issue is not caused by your wallet provider.
+            A network error occurred. This issue is not caused by your wallet.
           </h3>
           {errorMessage && <span>{errorMessage}</span>}
         </>
