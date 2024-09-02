@@ -2518,6 +2518,14 @@ export class DAppClient extends Client {
       return
     }
 
+    if (await this.addRequestAndCheckIfRateLimited()) {
+      this.events
+        .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
+        .catch((emitError) => console.warn(emitError))
+
+      throw new Error('rate limit reached')
+    }
+
     const id = await generateGUID()
 
     this.multiTabChannel.postMessage({
