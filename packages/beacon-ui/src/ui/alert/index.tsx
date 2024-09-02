@@ -459,12 +459,20 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const generateWCError = (title: string) => {
-      const errorMessage = localStorage ? localStorage.getItem('beacon:wc-init-error') : undefined
+      const errorMessage = localStorage ? localStorage.getItem(StorageKey.WC_INIT_ERROR) : undefined
       const description: any = (
         <>
-          <h3 style={{ color: '#FF4136', margin: '0.6px' }}>
-            A network error occurred. This issue is not caused by your wallet.
-          </h3>
+          <h3 style={{ color: '#FF4136', margin: '0.6px' }}>A network error occurred.</h3>
+          <h4>
+            This issue does not concern your wallet or dApp. If the problem persists, please report
+            it to Beacon{' '}
+            <span
+              style={{ 'text-decoration': 'underline', color: '#007bff', cursor: 'pointer' }}
+              onClick={() => setCurrentInfo('help')}
+            >
+              here
+            </span>
+          </h4>
           {errorMessage && <span>{errorMessage}</span>}
         </>
       )
