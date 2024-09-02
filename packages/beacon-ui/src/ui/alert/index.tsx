@@ -465,7 +465,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           <h3 style={{ color: '#FF4136', margin: '0.6px' }}>A network error occurred.</h3>
           <h4>
             This issue does not concern your wallet or dApp. If the problem persists, please report
-            it to Beacon{' '}
+            it to the Beacon team{' '}
             <span
               style={{ 'text-decoration': 'underline', color: '#007bff', cursor: 'pointer' }}
               onClick={() => setCurrentInfo('help')}
