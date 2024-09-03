@@ -584,7 +584,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       }
     }
 
-    const { uri, approval } = await signClient.connect({ ...connectParams }).catch((error) => {
+    const { uri, approval } = await signClient.connect(connectParams).catch((error) => {
       logger.error(`Init error: ${error.message}`)
       localStorage && localStorage.setItem(StorageKey.WC_INIT_ERROR, error.message)
       throw new Error(error.message)
