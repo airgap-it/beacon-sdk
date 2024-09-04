@@ -85,7 +85,7 @@ export class ActiveAccountUnspecified extends Error {
 
 /**
  *  @category Error
- *  @description Error that indicates the combinaison pkh-network is not part of the active session
+ *  @description Error that indicates the combination pkh-network is not part of the active session
  */
 export class InvalidNetworkOrAccount extends Error {
   name = 'InvalidNetworkOrAccount'
@@ -95,7 +95,7 @@ export class InvalidNetworkOrAccount extends Error {
     public pkh: string
   ) {
     super(
-      `No permission. The combinaison "${network}" and "${pkh}" is not part of the active session.`
+      `No permission. The combination "${network}" and "${pkh}" is not part of the active session.`
     )
   }
 }

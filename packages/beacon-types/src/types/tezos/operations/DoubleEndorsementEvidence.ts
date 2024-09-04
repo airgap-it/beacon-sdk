@@ -9,6 +9,9 @@ export interface InlinedEndorsement {
 export interface InlinedEndorsementContents extends TezosBaseOperation {
   kind: TezosOperationType.ENDORSEMENT
   level: string
+  slot?: number
+  round?: number
+  block_payload_hash?: string
 }
 
 /**

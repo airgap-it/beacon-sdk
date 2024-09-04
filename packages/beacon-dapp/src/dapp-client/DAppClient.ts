@@ -90,7 +90,8 @@ import {
   ClientEvents,
   StorageValidator,
   SDK_VERSION,
-  IndexedDBStorage
+  IndexedDBStorage,
+  MultiTabChannel
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -178,6 +179,8 @@ export class DAppClient extends Client {
   protected wcRelayUrl?: string
 
   private isGetActiveAccountHandled: boolean = false
+
+  private readonly openRequestsOtherTabs = new Set<string>()
   /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
    */
@@ -221,9 +224,13 @@ export class DAppClient extends Client {
 
   private readonly bugReportStorage = new IndexedDBStorage('beacon', 'bug_report')
 
-  private debounceEventResponse: boolean = false
-
   private debounceSetActiveAccount: boolean = false
+
+  private multiTabChannel = new MultiTabChannel(
+    'beacon-sdk-channel',
+    this.onBCMessageHandler.bind(this),
+    this.onElectedLeaderhandler.bind(this)
+  )
 
   constructor(config: DAppClientOptions) {
     super({
@@ -294,6 +301,33 @@ export class DAppClient extends Client {
       message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
+      const typedMessage =
+        message.version === '3'
+          ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
+          : (message as BeaconMessage)
+
+      const appMetadata =
+        message.version === '3'
+          ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData.appMetadata
+          : (typedMessage as PermissionResponse).appMetadata
+
+      if (this.openRequestsOtherTabs.has(message.id)) {
+        this.multiTabChannel.postMessage({
+          type: 'RESPONSE',
+          data: {
+            message,
+            connectionInfo
+          },
+          id: message.id
+        })
+
+        if (typedMessage.type !== BeaconMessageType.Acknowledge) {
+          this.openRequestsOtherTabs.delete(message.id)
+        }
+
+        return
+      }
+
       const openRequest = this.openRequests.get(message.id)
 
       logger.log('### openRequest ###', openRequest)
@@ -301,127 +335,58 @@ export class DAppClient extends Client {
       logger.log('### message ###', JSON.stringify(message))
       logger.log('### connectionInfo ###', connectionInfo)
 
-      if (message.version === '3') {
-        const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
+      const handleDisconnect = async (): Promise<void> => {
+        this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
 
-        if (openRequest && typedMessage.message?.type === BeaconMessageType.Acknowledge) {
-          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
-          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
+        const relevantTransport =
+          connectionInfo.origin === Origin.P2P
+            ? this.p2pTransport
+            : connectionInfo.origin === Origin.WALLETCONNECT
+            ? this.walletConnectTransport
+            : this.postMessageTransport ?? (await this.transport)
 
-          this.events
-            .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
-              message: typedMessage.message as AcknowledgeResponse,
-              extraInfo: {},
-              walletInfo: await this.getWalletInfo()
-            })
-            .catch(console.error)
-        } else if (openRequest) {
-          const appMetadata: AppMetadata | undefined = (
-            typedMessage.message as unknown /* Why is this unkown cast needed? */ as PermissionResponseV3<string>
-          ).blockchainData.appMetadata
-          if (typedMessage.message?.type === BeaconMessageType.PermissionResponse && appMetadata) {
-            await this.appMetadataManager.addAppMetadata(appMetadata)
-          }
+        if (relevantTransport) {
+          const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
+          const peer: ExtendedPeerInfo | undefined = peers.find(
+            (peerEl) => peerEl.senderId === message.senderId
+          )
 
-          if (typedMessage.message?.type === BeaconMessageType.Error) {
-            openRequest.reject(typedMessage.message as ErrorResponse)
-          } else {
-            openRequest.resolve({ message, connectionInfo })
-          }
-          this.openRequests.delete(typedMessage.id)
-        } else {
-          if (typedMessage.message?.type === BeaconMessageType.Disconnect) {
-            this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
-
-            const relevantTransport =
-              connectionInfo.origin === Origin.P2P
-                ? this.p2pTransport
-                : connectionInfo.origin === Origin.WALLETCONNECT
-                ? this.walletConnectTransport
-                : this.postMessageTransport ?? (await this.transport)
-
-            if (relevantTransport) {
-              // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
-              const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
-              const peer: ExtendedPeerInfo | undefined = peers.find(
-                (peerEl) => peerEl.senderId === message.senderId
-              )
-              if (peer) {
-                await relevantTransport.removePeer(peer)
-              }
-              await this.removeAccountsForPeerIds([message.senderId])
-              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-            }
-          } else if (typedMessage.message?.type === BeaconMessageType.ChangeAccountRequest) {
-            await this.onNewAccount(typedMessage.message as ChangeAccountRequest, connectionInfo)
-          } else {
-            logger.error('handleResponse', 'no request found for id ', message.id, message)
+          if (peer) {
+            await relevantTransport.removePeer(peer)
           }
         }
-      } else {
-        const typedMessage = message as BeaconMessage
 
-        if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
-          logger.log('handleResponse', `acknowledge message received for ${message.id}`)
-          this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
+        await this.removeAccountsForPeerIds([message.senderId])
+        await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+      }
 
-          this.events
-            .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
-              message: typedMessage,
-              extraInfo: {},
-              walletInfo: await this.getWalletInfo()
-            })
-            .catch(console.error)
-        } else if (openRequest) {
-          if (
-            typedMessage.type === BeaconMessageType.PermissionResponse &&
-            typedMessage.appMetadata
-          ) {
-            await this.appMetadataManager.addAppMetadata(typedMessage.appMetadata)
-          }
+      if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
+        this.analytics.track('event', 'DAppClient', 'Acknowledge received from Wallet')
+        logger.log('handleResponse', `acknowledge message received for ${message.id}`)
 
-          if (typedMessage.type === BeaconMessageType.Error || (message as any).errorType) {
-            // TODO: Remove "any" once we remove support for v1 wallets
-            openRequest.reject(typedMessage as any)
-          } else {
-            openRequest.resolve({ message, connectionInfo })
-          }
-          this.openRequests.delete(typedMessage.id)
+        this.events
+          .emit(BeaconEvent.ACKNOWLEDGE_RECEIVED, {
+            message: typedMessage as AcknowledgeResponse,
+            extraInfo: {},
+            walletInfo: await this.getWalletInfo()
+          })
+          .catch(console.error)
+      } else if (openRequest) {
+        if (typedMessage.type === BeaconMessageType.PermissionResponse && appMetadata) {
+          await this.appMetadataManager.addAppMetadata(appMetadata)
+        }
+
+        if (typedMessage.type === BeaconMessageType.Error) {
+          openRequest.reject(typedMessage as ErrorResponse)
         } else {
-          if (
-            typedMessage.type === BeaconMessageType.Disconnect ||
-            (message as any)?.typedMessage?.type === BeaconMessageType.Disconnect // TODO: TYPE
-          ) {
-            this.analytics.track('event', 'DAppClient', 'Disconnect received from Wallet')
-
-            const relevantTransport =
-              connectionInfo.origin === Origin.P2P
-                ? this.p2pTransport
-                : connectionInfo.origin === Origin.WALLETCONNECT
-                ? this.walletConnectTransport
-                : this.postMessageTransport ?? (await this.transport)
-
-            if (relevantTransport) {
-              // TODO: Handle removing it from the right transport (if it was received from the non-active transport)
-              const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
-              const peer: ExtendedPeerInfo | undefined = peers.find(
-                (peerEl) => peerEl.senderId === message.senderId
-              )
-              if (peer) {
-                await relevantTransport.removePeer(peer)
-              }
-              await this.removeAccountsForPeerIds([message.senderId])
-              await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
-            }
-          } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
-            if (!this.debounceEventResponse) {
-              this.debounceEventResponse = true
-              await this.onNewAccount(typedMessage, connectionInfo)
-              this.debounceEventResponse = false
-            }
-          } else {
-            logger.error('handleResponse', 'no request found for id ', message.id, message)
-          }
+          openRequest.resolve({ message, connectionInfo })
+        }
+        this.openRequests.delete(typedMessage.id)
+      } else {
+        if (typedMessage.type === BeaconMessageType.Disconnect) {
+          await handleDisconnect()
+        } else if (typedMessage.type === BeaconMessageType.ChangeAccountRequest) {
+          await this.onNewAccount(typedMessage as ChangeAccountRequest, connectionInfo)
         }
       }
 
@@ -490,6 +455,74 @@ export class DAppClient extends Client {
     this.initUserID().catch((err) => logger.error(err.message))
   }
 
+  private async checkIfBCLeaderExists() {
+    const hasLeader = await this.multiTabChannel.hasLeader()
+
+    if (hasLeader) {
+      return this.multiTabChannel.isLeader()
+    }
+
+    await this.multiTabChannel.getLeadership()
+
+    return this.multiTabChannel.isLeader()
+  }
+
+  private async onElectedLeaderhandler() {
+    if (!this._transport.isResolved()) {
+      return
+    }
+
+    const tranport = await this.transport
+
+    if (tranport.type !== TransportType.WALLETCONNECT) {
+      return
+    }
+
+    if (tranport.connectionStatus === TransportStatus.CONNECTED) {
+      return
+    }
+
+    await tranport.connect()
+  }
+
+  private async onBCMessageHandler(message: any) {
+    switch (message.type) {
+      case BeaconMessageType.PermissionRequest:
+      case BeaconMessageType.OperationRequest:
+      case BeaconMessageType.SignPayloadRequest:
+      case BeaconMessageType.BroadcastRequest:
+      case BeaconMessageType.ProofOfEventChallengeRequest:
+      case BeaconMessageType.SimulatedProofOfEventChallengeRequest:
+        this.prepareRequest(message)
+        break
+      case BeaconMessageType.BlockchainRequest:
+        this.prepareRequest(message, true)
+        break
+      case 'RESPONSE':
+        this.handleResponse(message.data.message, message.data.connectionInfo)
+        break
+      case 'DISCONNECT':
+        this._transport.isResolved() && this.disconnect()
+        break
+      default:
+        logger.error('onBCMessageHandler', 'message type not recognized', message)
+    }
+  }
+
+  private async prepareRequest(message: any, isV3 = false) {
+    if (!this.multiTabChannel.isLeader()) {
+      return
+    }
+
+    // block until the transport is ready
+    await this._transport.promise
+
+    this.openRequestsOtherTabs.add(message.id)
+    isV3
+      ? this.makeRequestV3(message.data, message.id)
+      : this.makeRequest(message.data, false, message.id)
+  }
+
   private async createStateSnapshot() {
     if (!localStorage || !this.enableMetrics) {
       return
@@ -552,10 +585,16 @@ export class DAppClient extends Client {
       }
     }
 
-    this.walletConnectTransport = new DappWalletConnectTransport(this.name, keyPair, this.storage, {
-      network: this.network.type,
-      opts: wcOptions
-    })
+    this.walletConnectTransport = new DappWalletConnectTransport(
+      this.name,
+      keyPair,
+      this.storage,
+      {
+        network: this.network.type,
+        opts: wcOptions
+      },
+      this.checkIfBCLeaderExists.bind(this)
+    )
 
     this.initEvents()
 
@@ -849,7 +888,26 @@ export class DAppClient extends Client {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
-        await transport.disconnect()
+        if (this.multiTabChannel.isLeader()) {
+          await transport.disconnect()
+          this.openRequestsOtherTabs.clear()
+        } else {
+          this.multiTabChannel.postMessage({
+            type: 'DISCONNECT'
+          })
+        }
+        Array.from(this.openRequests.entries())
+          .filter(([id, _promise]) => id !== 'session_update')
+          .forEach(([id, promise]) => {
+            promise.reject({
+              type: BeaconMessageType.Error,
+              errorType: BeaconErrorType.ABORTED_ERROR,
+              id,
+              senderId: '',
+              version: '2'
+            })
+          })
+        this.openRequests.clear()
         this.debounceSetActiveAccount = false
       }
     }
@@ -881,7 +939,6 @@ export class DAppClient extends Client {
         await this.setTransport(this.p2pTransport)
       } else if (origin === Origin.WALLETCONNECT) {
         await this.setTransport(this.walletConnectTransport)
-        this.walletConnectTransport?.forceUpdate('INIT')
       }
       if (this._transport.isResolved()) {
         const transport = await this.transport
@@ -1015,6 +1072,14 @@ export class DAppClient extends Client {
         this.enableMetrics = false // in the event of a network error, stop sending metrics
         catchHandler && catchHandler(err)
       })
+  }
+
+  private async checkMakeRequest() {
+    const isResolved = this._transport.isResolved()
+    const isWCInstance = isResolved && (await this.transport) instanceof WalletConnectTransport
+    const isLeader = this.multiTabChannel.isLeader()
+
+    return !isResolved || (isResolved && (!isWCInstance || (isWCInstance && isLeader)))
   }
 
   /**
@@ -1305,18 +1370,24 @@ export class DAppClient extends Client {
 
     const logId = `makeRequestV3 ${Date.now()}`
     logger.time(true, logId)
-    const { message: response, connectionInfo } = await this.makeRequestV3<
-      BlockchainRequestV3<string>,
-      BeaconMessageWrapper<BlockchainResponseV3<string>>
-    >(request).catch(async (requestError: ErrorResponse) => {
-      console.error(requestError)
+    const res = (await this.checkMakeRequest())
+      ? this.makeRequestV3<
+          BlockchainRequestV3<string>,
+          BeaconMessageWrapper<BlockchainResponseV3<string>>
+        >(request)
+      : this.makeRequestBC<any, any>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
-      throw new Error('TODO')
+      throw new Error(requestError.errorData)
       // throw await this.handleRequestError(request, requestError)
     })
+
+    const { message: response, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1366,16 +1437,21 @@ export class DAppClient extends Client {
 
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<
-      PermissionRequest,
-      PermissionResponse
-    >(request).catch(async (requestError: ErrorResponse) => {
+
+    const res =
+      (await this.checkMakeRequest()) || !(await this.getActiveAccount())
+        ? this.makeRequest<PermissionRequest, PermissionResponse>(request)
+        : this.makeRequestBC<PermissionRequest, PermissionResponse>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
+
+    const { message, connectionInfo } = (await res)!
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'success'))
 
@@ -1441,16 +1517,20 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<
-      ProofOfEventChallengeRequest,
-      ProofOfEventChallengeResponse
-    >(request).catch(async (requestError: ErrorResponse) => {
+    const res = (await this.checkMakeRequest())
+      ? this.makeRequest<ProofOfEventChallengeRequest, ProofOfEventChallengeResponse>(request)
+      : this.makeRequestBC<ProofOfEventChallengeRequest, ProofOfEventChallengeResponse>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
+
+    const { message, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1490,10 +1570,11 @@ export class DAppClient extends Client {
     if (
       activeAccount.walletType !== 'abstracted_account' &&
       activeAccount.verificationType !== 'proof_of_event'
-    )
+    ) {
       throw new Error(
         'This wallet is not an abstracted account and thus cannot perform a simulated proof of event'
       )
+    }
 
     const request: SimulatedProofOfEventChallengeRequestInput = {
       type: BeaconMessageType.SimulatedProofOfEventChallengeRequest,
@@ -1502,13 +1583,27 @@ export class DAppClient extends Client {
     }
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<
-      SimulatedProofOfEventChallengeRequest,
-      SimulatedProofOfEventChallengeResponse
-    >(request).catch(async (requestError: ErrorResponse) => {
+
+    const res = (await this.checkMakeRequest())
+      ? this.makeRequest<
+          SimulatedProofOfEventChallengeRequest,
+          SimulatedProofOfEventChallengeResponse
+        >(request)
+      : this.makeRequestBC<
+          SimulatedProofOfEventChallengeRequest,
+          SimulatedProofOfEventChallengeResponse
+        >(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
+      requestError.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
+
+    const { message, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.analytics.track(
       'event',
@@ -1589,16 +1684,20 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<
-      SignPayloadRequest,
-      SignPayloadResponse
-    >(request).catch(async (requestError: ErrorResponse) => {
+    const res = (await this.checkMakeRequest())
+      ? this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request)
+      : this.makeRequestBC<SignPayloadRequest, SignPayloadResponse>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
+
+    const { message, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1700,15 +1799,21 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<OperationRequest, OperationResponse>(
-      request
-    ).catch(async (requestError: ErrorResponse) => {
+
+    const res = (await this.checkMakeRequest())
+      ? this.makeRequest<OperationRequest, OperationResponse>(request)
+      : this.makeRequestBC<OperationRequest, OperationResponse>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
+
+    const { message, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1755,15 +1860,20 @@ export class DAppClient extends Client {
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
     const logId = `makeRequest ${Date.now()}`
     logger.time(true, logId)
-    const { message, connectionInfo } = await this.makeRequest<BroadcastRequest, BroadcastResponse>(
-      request
-    ).catch(async (requestError: ErrorResponse) => {
+    const res = (await this.checkMakeRequest())
+      ? this.makeRequest<BroadcastRequest, BroadcastResponse>(request)
+      : this.makeRequestBC<BroadcastRequest, BroadcastResponse>(request)
+
+    res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
+
+    const { message, connectionInfo } = (await res)!
+
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -2147,20 +2257,23 @@ export class DAppClient extends Client {
 
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
-    skipResponse?: undefined | false
+    skipResponse?: undefined | false,
+    otherTabMessageId?: string
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
   }>
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
-    skipResponse: true
+    skipResponse: true,
+    otherTabMessageId?: string
   ): Promise<undefined>
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
-    skipResponse?: boolean
+    skipResponse?: boolean,
+    otherTabMessageId?: string
   ) {
-    const messageId = await generateGUID()
+    const messageId = otherTabMessageId ?? (await generateGUID())
 
     if (this._initPromise && this.isInitPending) {
       await Promise.all([
@@ -2250,19 +2363,21 @@ export class DAppClient extends Client {
       throw sendError
     }
 
-    this.events
-      .emit(messageEvents[requestInput.type].sent, {
-        walletInfo: {
-          ...walletInfo,
-          name: walletInfo.name ?? 'Wallet'
-        },
-        extraInfo: {
-          resetCallback: async () => {
-            this.disconnect()
+    if (!otherTabMessageId) {
+      this.events
+        .emit(messageEvents[requestInput.type].sent, {
+          walletInfo: {
+            ...walletInfo,
+            name: walletInfo.name ?? 'Wallet'
+          },
+          extraInfo: {
+            resetCallback: async () => {
+              this.disconnect()
+            }
           }
-        }
-      })
-      .catch((emitError) => console.warn(emitError))
+        })
+        .catch((emitError) => console.warn(emitError))
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed?.promise as any // TODO: fix type
@@ -2280,7 +2395,8 @@ export class DAppClient extends Client {
     T extends BlockchainMessage<string>,
     U extends BeaconMessageWrapper<BlockchainMessage<string>>
   >(
-    requestInput: T
+    requestInput: T,
+    otherTabMessageId?: string
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -2294,7 +2410,7 @@ export class DAppClient extends Client {
       this.hideUI(['toast'])
     }
 
-    const messageId = await generateGUID()
+    const messageId = otherTabMessageId ?? (await generateGUID())
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
     await this.init()
@@ -2381,6 +2497,70 @@ export class DAppClient extends Client {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return exposed.promise as any // TODO: fix type
+  }
+
+  private async makeRequestBC<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
+    request: Optional<T, IgnoredRequestInputProperties>
+  ): Promise<
+    | {
+        message: U
+        connectionInfo: ConnectionContext
+      }
+    | undefined
+  > {
+    if (!this._transport.isResolved()) {
+      return
+    }
+
+    const transport = await this.transport
+
+    if (transport.type !== TransportType.WALLETCONNECT) {
+      return
+    }
+
+    if (await this.addRequestAndCheckIfRateLimited()) {
+      this.events
+        .emit(BeaconEvent.LOCAL_RATE_LIMIT_REACHED)
+        .catch((emitError) => console.warn(emitError))
+
+      throw new Error('rate limit reached')
+    }
+
+    const id = await generateGUID()
+
+    this.multiTabChannel.postMessage({
+      type: request.type,
+      data: request,
+      id
+    })
+
+    if (
+      request.type !== BeaconMessageType.PermissionRequest ||
+      (this._activeAccount.isResolved() && (await this._activeAccount.promise))
+    ) {
+      this.tryToAppSwitch()
+    }
+
+    this.events
+      .emit(messageEvents[BeaconMessageType.PermissionRequest].sent, {
+        walletInfo: await this.getWalletInfo(),
+        extraInfo: {
+          resetCallback: () => this.disconnect()
+        }
+      })
+      .catch((emitError) => console.warn(emitError))
+
+    const exposed = new ExposedPromise<
+      {
+        message: U
+        connectionInfo: ConnectionContext
+      },
+      ErrorResponse
+    >()
+
+    this.addOpenRequest(id, exposed as any)
+
+    return exposed.promise
   }
 
   public async disconnect() {

@@ -4,7 +4,8 @@ import {
   Serializer,
   ClientEvents,
   Logger,
-  WCStorage
+  WCStorage,
+  SDK_VERSION
 } from '@airgap/beacon-core'
 import Client from '@walletconnect/sign-client'
 import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
@@ -45,9 +46,10 @@ import {
   StorageKey,
   TransportType
 } from '@airgap/beacon-types'
-import { generateGUID, getAddressFromPublicKey } from '@airgap/beacon-utils'
+import { generateGUID, getAddressFromPublicKey, isPublicKeySC } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
+const BEACON_SDK_VERSION = 'beacon_sdk_version'
 const logger = new Logger('WalletConnectCommunicationClient')
 
 export interface PermissionScopeParam {
@@ -99,7 +101,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   public signClient: Client | undefined
   public storage: WCStorage = new WCStorage()
   private session: SessionTypes.Struct | undefined
-  private activeAccount: string | undefined
+  private activeAccountOrPbk: string | undefined
   private activeNetwork: string | undefined
   readonly disconnectionEvents: Set<string> = new Set()
   private pingInterval: NodeJS.Timeout | undefined
@@ -111,18 +113,22 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   private messageIds: string[] = []
 
-  constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
+  constructor(
+    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
+    private isLeader: Function
+  ) {
     super()
-    this.storage.onMessageHandler = this.onStorageMessageHandler.bind(this)
-    this.storage.onErrorHandler = this.onStorageErrorHandler.bind(this)
   }
 
-  static getInstance(wcOptions: {
-    network: NetworkType
-    opts: SignClientTypes.Options
-  }): WalletConnectCommunicationClient {
+  static getInstance(
+    wcOptions: {
+      network: NetworkType
+      opts: SignClientTypes.Options
+    },
+    isLeader: Function
+  ): WalletConnectCommunicationClient {
     if (!this.instance) {
-      this.instance = new WalletConnectCommunicationClient(wcOptions)
+      this.instance = new WalletConnectCommunicationClient(wcOptions, isLeader)
     }
     return WalletConnectCommunicationClient.instance
   }
@@ -157,25 +163,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
-  /**
-   * WC Sign client doesn't sync between intances, meaning that a dApp signClient instance state may
-   * differ from a wallet state
-   */
-  private async refreshState() {
-    await this.closeSignClient()
-
-    const client = (await this.getSignClient())!
-    const lastIndex = client.session.keys.length - 1
-
-    if (lastIndex > -1) {
-      this.session = client.session.get(client.session.keys[lastIndex])
-      this.updateStorageWallet(this.session)
-      this.setDefaultAccountAndNetwork()
-    } else {
-      this.clearState()
-    }
-  }
-
   private clearEvents() {
     this.signClient?.removeAllListeners('session_event')
     this.signClient?.removeAllListeners('session_update')
@@ -183,40 +170,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.removeAllListeners('session_expire')
     this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
     this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
-  }
-
-  private abortErrorBuilder() {
-    if (!this.messageIds.length) {
-      return
-    }
-
-    const errorResponse: any = {
-      type: BeaconMessageType.Disconnect,
-      id: this.messageIds.pop(),
-      errorType: BeaconErrorType.ABORTED_ERROR
-    }
-    this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
-    this.messageIds = [] // reset
-  }
-
-  private onStorageMessageHandler(type: string) {
-    logger.debug('onStorageMessageHandler', type)
-
-    if (type === 'RESET') {
-      this.abortErrorBuilder()
-      this.clearEvents()
-      // no need to invoke `closeSignClinet` as the other tab already closed the connection
-      this.signClient = undefined
-      this.clearState()
-
-      return
-    }
-
-    this.refreshState()
-  }
-
-  private onStorageErrorHandler(data: any) {
-    logger.error('onStorageError', data)
   }
 
   async unsubscribeFromEncryptedMessages(): Promise<void> {
@@ -228,7 +181,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // implementation
   }
 
-  private async closeSignClient() {
+  async closeSignClient() {
     if (!this.signClient) {
       logger.error('No client active')
       return
@@ -349,7 +302,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       const accounts = this.getTezosNamespace(session.namespaces).accounts
       const addressOrPbk = accounts[0].split(':', 3)[2]
 
-      if (addressOrPbk.startsWith('edpk')) {
+      if (isPublicKeySC(addressOrPbk)) {
         publicKey = addressOrPbk
       } else {
         if (network.type !== this.wcOptions.network) {
@@ -371,6 +324,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         publicKey = result[0]?.pubkey
       }
+    }
+
+    if (this.signClient && !this.isLeader() && this.isMobileOS()) {
+      await this.closeSignClient()
     }
 
     if (!publicKey) {
@@ -401,7 +358,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.GET_ACCOUNTS)
     }
 
-    if (this.activeAccount) {
+    if (this.activeAccountOrPbk) {
       try {
         await this.openSession()
       } catch (error: any) {
@@ -430,7 +387,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.SIGN)
     }
     const network = this.getActiveNetwork()
-    const account = await this.getPKH()
+    const account = await this.getAccountOrPK()
     this.validateNetworkAndAccount(network, account)
 
     this.checkWalletReadiness(this.getTopicFromSession(session))
@@ -443,7 +400,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.SIGN,
           params: {
-            account: account,
+            account: isPublicKeySC(account) ? await getAddressFromPublicKey(account) : account,
             payload: signPayloadRequest.payload
           }
         }
@@ -492,7 +449,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       throw new MissingRequiredScope(PermissionScopeMethods.OPERATION_REQUEST)
     }
     const network = this.getActiveNetwork()
-    const account = await this.getPKH()
+    const account = await this.getAccountOrPK()
     this.validateNetworkAndAccount(network, account)
     this.checkWalletReadiness(this.getTopicFromSession(session))
 
@@ -509,7 +466,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         request: {
           method: PermissionScopeMethods.OPERATION_REQUEST,
           params: {
-            account,
+            account: isPublicKeySC(account) ? await getAddressFromPublicKey(account) : account,
             operations: operationRequest.operationDetails
           }
         }
@@ -585,9 +542,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const signClient = await this.getSignClient()
 
     if (!signClient) {
-      const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
-      fun && fun()
-      return
+      throw new Error('Failed to connect to the relayer.')
     }
 
     const lastIndex = signClient.session.keys.length - 1
@@ -623,10 +578,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       },
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
+      },
+      sessionProperties: {
+        [BEACON_SDK_VERSION]: SDK_VERSION
       }
     }
 
-    const { uri, approval } = await signClient.connect(connectParams)
+    const { uri, approval } = await signClient.connect(connectParams).catch((error) => {
+      logger.error(`Init error: ${error.message}`)
+      localStorage && localStorage.setItem(StorageKey.WC_INIT_ERROR, error.message)
+      throw new Error(error.message)
+    })
 
     // Extract topic from uri. Format is wc:topic@2...
     const topic = getStringBetween(uri, ':', '@')
@@ -674,7 +636,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         if (session?.controller !== this.session?.controller) {
           logger.debug('Controller doesnt match, closing active session', [session.pairingTopic])
-          this.activeAccount && this.closeActiveSession(this.activeAccount, false)
+          this.activeAccountOrPbk && this.closeActiveSession(this.activeAccountOrPbk, false)
           this.session = undefined // close the previous session
         }
 
@@ -716,6 +678,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.notifyListeners(_pairingTopic, errorResponse)
         }
       })
+      .then(async () => {
+        const isLeader = await this.isLeader()
+        if (!isLeader && !this.isMobileOS()) {
+          await this.closeSignClient()
+        }
+      })
 
     logger.warn('return uri and topic')
 
@@ -724,9 +692,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async close() {
     this.storage.backup()
-    this.abortErrorBuilder()
     await this.closePairings()
     this.unsubscribeFromEncryptedMessages()
+    this.messageIds = []
   }
 
   private subscribeToSessionEvents(signClient: Client): void {
@@ -750,7 +718,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       this.session = session
 
-      this.updateActiveAccount(event.params.namespaces, session)
+      this.updateActiveAccount(this.getTezosNamespace(event.params.namespaces).accounts, session)
     })
 
     signClient.on('session_delete', (event) => {
@@ -782,27 +750,29 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.notifyListeners(this.getTopicFromSession(session), acknowledgeResponse)
   }
 
-  private async updateActiveAccount(
-    namespaces: SessionTypes.Namespaces,
-    session: SessionTypes.Struct
-  ) {
+  private async updateActiveAccount(accounts: string[], session: SessionTypes.Struct) {
     try {
-      const accounts = this.getTezosNamespace(namespaces).accounts
       if (accounts.length) {
         const [_namespace, chainId, addressOrPbk] = accounts[0].split(':', 3)
         const session = this.getSession()
         let publicKey: string | undefined
 
         this.activeNetwork = chainId
+        this.activeAccountOrPbk = addressOrPbk
 
-        if (addressOrPbk.startsWith('edpk')) {
-          publicKey = addressOrPbk
-          this.activeAccount = await getAddressFromPublicKey(publicKey)
+        if (!isPublicKeySC(addressOrPbk)) {
+          const token = accounts[1] ? accounts[1].split(':', 3)[2] : ''
+          if (isPublicKeySC(token)) {
+            publicKey = token
+          } else {
+            const result = await this.fetchAccounts(
+              session.topic,
+              `${TEZOS_PLACEHOLDER}:${chainId}`
+            )
+            publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
+          }
         } else {
-          this.activeAccount = addressOrPbk
-          const result = await this.fetchAccounts(session.topic, `${TEZOS_PLACEHOLDER}:${chainId}`)
-
-          publicKey = result?.find(({ address: _address }) => addressOrPbk === _address)?.pubkey
+          publicKey = addressOrPbk
         }
 
         if (!publicKey) {
@@ -842,7 +812,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       session = await this.onPairingClosed(signClient, trigger.topic)
     }
 
-    if (!this.activeAccount) {
+    if (!this.activeAccountOrPbk) {
       const fun = this.eventHandlers.get(ClientEvents.RESET_STATE)
       fun && fun(TransportType.WALLETCONNECT)
     }
@@ -958,7 +928,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     await this.closeSignClient()
     await this.storage.resetState()
-    this.storage.notify('RESET')
   }
 
   private async closeSessions() {
@@ -1015,6 +984,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
       },
+      sessionProperties: {
+        [BEACON_SDK_VERSION]: SDK_VERSION
+      },
       pairingTopic
     }
 
@@ -1031,7 +1003,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       // if I have successfully opened a session and I already have one opened
       if (session?.controller !== this.session?.controller) {
         logger.debug('Controller doesnt match, closing active session', [pairingTopic])
-        this.activeAccount && this.closeActiveSession(this.activeAccount, false)
+        this.activeAccountOrPbk && this.closeActiveSession(this.activeAccountOrPbk, false)
         this.session = undefined // close the previous session
       }
 
@@ -1261,7 +1233,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private setDefaultAccountAndNetwork() {
     const activeAccount = this.getAccounts()
     if (activeAccount.length) {
-      this.activeAccount = activeAccount[0]
+      this.activeAccountOrPbk = activeAccount[0]
     }
     const activeNetwork = this.getNetworks()
     if (activeNetwork.length) {
@@ -1342,13 +1314,34 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return this.session
   }
 
+  private async tryConnectToRelayer() {
+    const urls = new Set([
+      this.wcOptions.opts.relayUrl,
+      undefined,
+      'wss://relay.walletconnect.com',
+      'wss://relay.walletconnect.org'
+    ])
+    const errMessages = new Set()
+
+    for (const relayUrl of urls) {
+      try {
+        return await Client.init({ ...this.wcOptions.opts, relayUrl })
+      } catch (err: any) {
+        errMessages.add(err.message)
+        logger.warn(`Failed to connect to ${relayUrl}: ${err.message}`)
+      }
+    }
+    throw new Error(`Failed to connect to relayer: ${Array.from(errMessages).join(',')}`)
+  }
+
   private async getSignClient(): Promise<Client | undefined> {
     if (this.signClient === undefined) {
       try {
-        this.signClient = await Client.init(this.wcOptions.opts)
+        this.signClient = await this.tryConnectToRelayer()
         this.subscribeToSessionEvents(this.signClient)
       } catch (error: any) {
         logger.error(error.message)
+        localStorage && localStorage.setItem(StorageKey.WC_INIT_ERROR, error.message)
         return undefined
       }
     }
@@ -1364,20 +1357,20 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   /**
-   * @description Access the public key hash of the active account
+   * @description Access the public key hash (or public key) of the active account
    * @error ActiveAccountUnspecified thrown when there are multiple Tezos account in the session and none is set as the active one
    */
-  async getPKH() {
-    if (!this.activeAccount) {
+  async getAccountOrPK() {
+    if (!this.activeAccountOrPbk) {
       this.getSession()
       throw new ActiveAccountUnspecified()
     }
-    return this.activeAccount
+    return this.activeAccountOrPbk
   }
 
   private clearState() {
     this.session = undefined
-    this.activeAccount = undefined
+    this.activeAccountOrPbk = undefined
     this.activeNetwork = undefined
   }
 }
