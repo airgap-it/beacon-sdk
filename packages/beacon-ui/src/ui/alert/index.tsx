@@ -89,6 +89,7 @@ const [currentInfo, setCurrentInfo] = createSignal<
 const [analytics, setAnalytics] = createSignal<AnalyticsInterface | undefined>(undefined)
 const [displayQrExtra, setDisplayQrExtra] = createSignal<boolean>(false)
 const [pairingExpired, setPairingExpired] = createSignal(false)
+const [isWCWorking, setIsWCWorking] = createSignal(true)
 type VoidFunction = () => void
 let dispose: null | VoidFunction = null
 
@@ -451,19 +452,31 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       // check whether the uri contains a valid symmetric key or not
       if (!parseUri(uri).symKey) {
-        handleCloseAlert()
-        setTimeout(
-          () =>
-            openAlert({
-              title: 'Error',
-              body: 'Network error occurred. Please check your internet connection.'
-            }),
-          500
-        )
-        return ''
+        setIsWCWorking(false)
       }
 
       return uri
+    }
+
+    const generateWCError = (title: string) => {
+      const errorMessage = localStorage ? localStorage.getItem(StorageKey.WC_INIT_ERROR) : undefined
+      const description: any = (
+        <>
+          <h3 style={{ color: '#FF4136', margin: '0.6px' }}>A network error occurred.</h3>
+          <h4>
+            This issue does not concern your wallet or dApp. If the problem persists, please report
+            it to the Beacon team{' '}
+            <span
+              style={{ 'text-decoration': 'underline', color: '#007bff', cursor: 'pointer' }}
+              onClick={() => setCurrentInfo('help')}
+            >
+              here
+            </span>
+          </h4>
+          {errorMessage && <span>{errorMessage}</span>}
+        </>
+      )
+      return <Info title={title} description={description} border />
     }
 
     const handleNewTab = async (config: AlertConfig, wallet?: MergedWallet) => {
@@ -593,6 +606,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
       if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
         const uri = await generateLink()
+
+        if (!uri && wallet?.name.toLowerCase().includes('kukai')) {
+          setCodeQR('error')
+          setInstallState(wallet)
+          setIsLoading(false)
+          return
+        }
 
         if (uri) {
           if (_isMobileOS && wallet.types.includes('ios') && wallet.types.length === 1) {
@@ -746,17 +766,25 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           icon: currentWallet()?.image
         })
       )
+      const isConnected =
+        !currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking()
       return (
-        <QR
-          isWalletConnect={
-            currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || false
-          }
-          isMobile={isMobile}
-          walletName={currentWallet()?.name || 'AirGap'}
-          code={codeQR()}
-          onClickLearnMore={handleClickLearnMore}
-          onClickQrCode={handleClickQrCode}
-        />
+        <>
+          {isConnected ? (
+            <QR
+              isWalletConnect={
+                currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || false
+              }
+              isMobile={isMobile}
+              walletName={currentWallet()?.name || 'AirGap'}
+              code={codeQR()}
+              onClickLearnMore={handleClickLearnMore}
+              onClickQrCode={handleClickQrCode}
+            />
+          ) : (
+            generateWCError(`Connect with ${currentWallet()?.name} Mobile`)
+          )}
+        </>
       )
     }
 
@@ -878,72 +906,78 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                         (currentWallet()?.types.length as number) <= 1 && (
                           <QRCode isMobile={true} />
                         )}
-                      {isMobile() && currentWallet()?.types.includes('ios') && (
-                        <Info
-                          border
-                          title={`Connect with ${currentWallet()?.name} Mobile`}
-                          description={''}
-                          buttons={[
-                            {
-                              label: 'Use App',
-                              type: 'primary',
-                              onClick: async () => {
-                                const wallet = currentWallet()
+                      {isMobile() &&
+                        currentWallet()?.types.includes('ios') &&
+                        (!currentWallet()?.supportedInteractionStandards?.includes(
+                          'wallet_connect'
+                        ) || isWCWorking() ? (
+                          <Info
+                            border
+                            title={`Connect with ${currentWallet()?.name} Mobile`}
+                            description={''}
+                            buttons={[
+                              {
+                                label: 'Use App',
+                                type: 'primary',
+                                onClick: async () => {
+                                  const wallet = currentWallet()
 
-                                if (!wallet) {
-                                  return
-                                }
+                                  if (!wallet) {
+                                    return
+                                  }
 
-                                let syncCode = ''
-                                if (
-                                  wallet.supportedInteractionStandards?.includes('wallet_connect')
-                                ) {
-                                  syncCode = (await wcPayload)?.uri ?? ''
-                                } else {
-                                  syncCode = await new Serializer().serialize(await p2pPayload)
+                                  let syncCode = ''
+                                  if (
+                                    wallet.supportedInteractionStandards?.includes('wallet_connect')
+                                  ) {
+                                    syncCode = (await wcPayload)?.uri ?? ''
+                                  } else {
+                                    syncCode = await new Serializer().serialize(await p2pPayload)
+                                  }
+                                  handleDeepLinking(wallet, syncCode)
                                 }
-                                handleDeepLinking(wallet, syncCode)
                               }
+                            ]}
+                            downloadLink={
+                              currentWallet()?.name.toLowerCase().includes('kukai') && isIOS(window)
+                                ? {
+                                    label: 'Get Kukai Mobile >',
+                                    url: 'https://ios.kukai.app'
+                                  }
+                                : undefined
                             }
-                          ]}
-                          downloadLink={
-                            currentWallet()?.name.toLowerCase().includes('kukai') && isIOS(window)
-                              ? {
-                                  label: 'Get Kukai Mobile >',
-                                  url: 'https://ios.kukai.app'
-                                }
-                              : undefined
-                          }
-                          onShowQRCodeClick={async () => {
-                            const syncCode =
-                              currentWallet()?.supportedInteractionStandards?.includes(
-                                'wallet_connect'
-                              )
-                                ? (await wcPayload)?.uri ?? ''
-                                : await new Serializer().serialize(await p2pPayload)
+                            onShowQRCodeClick={async () => {
+                              const syncCode =
+                                currentWallet()?.supportedInteractionStandards?.includes(
+                                  'wallet_connect'
+                                )
+                                  ? (await wcPayload)?.uri ?? ''
+                                  : await new Serializer().serialize(await p2pPayload)
 
-                            const wallet = currentWallet()
+                              const wallet = currentWallet()
 
-                            if (!syncCode.length || !wallet) {
-                              handleCloseAlert()
-                              return
-                            }
+                              if (!syncCode.length || !wallet) {
+                                handleCloseAlert()
+                                return
+                              }
 
-                            if (
-                              _isMobileOS &&
-                              wallet.types.includes('ios') &&
-                              wallet.types.length === 1
-                            ) {
-                              handleDeepLinking(wallet, syncCode)
-                            } else {
-                              setCodeQR(syncCode)
-                            }
+                              if (
+                                _isMobileOS &&
+                                wallet.types.includes('ios') &&
+                                wallet.types.length === 1
+                              ) {
+                                handleDeepLinking(wallet, syncCode)
+                              } else {
+                                setCodeQR(syncCode)
+                              }
 
-                            setCurrentInfo('qr')
-                            setDisplayQrExtra(true)
-                          }}
-                        />
-                      )}
+                              setCurrentInfo('qr')
+                              setDisplayQrExtra(true)
+                            }}
+                          />
+                        ) : (
+                          generateWCError(`Connect with ${currentWallet()?.name} Mobile`)
+                        ))}
                     </div>
                   )}
                   {currentInfo() === 'qr' && (

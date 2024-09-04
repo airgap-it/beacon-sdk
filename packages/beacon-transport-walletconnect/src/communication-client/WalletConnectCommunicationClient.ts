@@ -326,6 +326,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       }
     }
 
+    if (this.signClient && !this.isLeader() && this.isMobileOS()) {
+      await this.closeSignClient()
+    }
+
     if (!publicKey) {
       throw new Error('Public Key in `tezos_getAccounts` is empty!')
     }
@@ -538,9 +542,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const signClient = await this.getSignClient()
 
     if (!signClient) {
-      const fun = this.eventHandlers.get(ClientEvents.CLOSE_ALERT)
-      fun && fun()
-      return
+      throw new Error('Failed to connect to the relayer.')
     }
 
     const lastIndex = signClient.session.keys.length - 1
@@ -582,7 +584,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       }
     }
 
-    const { uri, approval } = await signClient.connect(connectParams)
+    const { uri, approval } = await signClient.connect(connectParams).catch((error) => {
+      logger.error(`Init error: ${error.message}`)
+      localStorage && localStorage.setItem(StorageKey.WC_INIT_ERROR, error.message)
+      throw new Error(error.message)
+    })
 
     // Extract topic from uri. Format is wc:topic@2...
     const topic = getStringBetween(uri, ':', '@')
@@ -674,7 +680,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       })
       .then(async () => {
         const isLeader = await this.isLeader()
-        if (!isLeader) {
+        if (!isLeader && !this.isMobileOS()) {
           await this.closeSignClient()
         }
       })
@@ -1308,13 +1314,34 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     return this.session
   }
 
+  private async tryConnectToRelayer() {
+    const urls = new Set([
+      this.wcOptions.opts.relayUrl,
+      undefined,
+      'wss://relay.walletconnect.com',
+      'wss://relay.walletconnect.org'
+    ])
+    const errMessages = new Set()
+
+    for (const relayUrl of urls) {
+      try {
+        return await Client.init({ ...this.wcOptions.opts, relayUrl })
+      } catch (err: any) {
+        errMessages.add(err.message)
+        logger.warn(`Failed to connect to ${relayUrl}: ${err.message}`)
+      }
+    }
+    throw new Error(`Failed to connect to relayer: ${Array.from(errMessages).join(',')}`)
+  }
+
   private async getSignClient(): Promise<Client | undefined> {
     if (this.signClient === undefined) {
       try {
-        this.signClient = await Client.init(this.wcOptions.opts)
+        this.signClient = await this.tryConnectToRelayer()
         this.subscribeToSessionEvents(this.signClient)
       } catch (error: any) {
         logger.error(error.message)
+        localStorage && localStorage.setItem(StorageKey.WC_INIT_ERROR, error.message)
         return undefined
       }
     }
