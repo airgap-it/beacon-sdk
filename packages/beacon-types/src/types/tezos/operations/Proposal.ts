@@ -6,6 +6,7 @@ import { TezosBaseOperation, TezosOperationType } from '../../..'
  */
 export interface TezosProposalOperation extends TezosBaseOperation {
   kind: TezosOperationType.PROPOSALS
+  source: string
   period: string
   proposals: string[]
 }
