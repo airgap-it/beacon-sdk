@@ -1,6 +1,6 @@
+import React, { useState, useEffect } from 'react'
 import { IndexedDBStorage, Logger, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
-import { For, createEffect, createSignal } from 'solid-js'
 import styles from './styles.css'
 import { currentBrowser, currentOS } from '../../utils/platform'
 
@@ -22,39 +22,39 @@ interface BugReportRequest {
   wcStorage: string
 }
 
-const BugReportForm = (props: any) => {
-  const [title, setTitle] = createSignal('')
-  const [titleTouched, setTitleTouched] = createSignal(false)
-  const [titleErrorMsg, setTitleErrorMsg] = createSignal('')
-  const [description, setDescription] = createSignal('')
-  const [descriptionTouched, setDescriptionTouched] = createSignal(false)
-  const [descriptionErrorMsg, setDescriptionErrorMsg] = createSignal('')
-  const [steps, setSteps] = createSignal('')
-  const [stepsTouched, setStepsTouched] = createSignal(false)
-  const [stepsErrorMsg, setStepsErrorMsg] = createSignal('')
-  const [isFormValid, setFormValid] = createSignal(false)
-  const [isLoading, setIsLoading] = createSignal(false)
-  const [didUserAllow, setDidUserAllow] = createSignal(false)
-  const [status, setStatus] = createSignal<'success' | 'error' | null>(null)
-  const [showThankYou, setShowThankYou] = createSignal(false)
+const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
+  const [title, setTitle] = useState('')
+  const [titleTouched, setTitleTouched] = useState(false)
+  const [titleErrorMsg, setTitleErrorMsg] = useState('')
+  const [description, setDescription] = useState('')
+  const [descriptionTouched, setDescriptionTouched] = useState(false)
+  const [descriptionErrorMsg, setDescriptionErrorMsg] = useState('')
+  const [steps, setSteps] = useState('')
+  const [stepsTouched, setStepsTouched] = useState(false)
+  const [stepsErrorMsg, setStepsErrorMsg] = useState('')
+  const [isFormValid, setFormValid] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [didUserAllow, setDidUserAllow] = useState(false)
+  const [status, setStatus] = useState<'success' | 'error' | null>(null)
+  const [showThankYou, setShowThankYou] = useState(false)
   const db = new IndexedDBStorage('beacon', 'bug_report')
 
   const isTitleValid = () => {
-    const check = title().replace(/ /gi, '').length > 10
+    const check = title.trim().length > 10
     const invalidText = check ? '' : 'The title must be at least 10 characters long.'
     setTitleErrorMsg(invalidText)
     return check
   }
 
   const isDescriptionValid = () => {
-    const check = description().replace(/ /gi, '').length >= 30
+    const check = description.trim().length >= 30
     const invalidText = check ? '' : 'The description must be at least 30 characters long.'
     setDescriptionErrorMsg(invalidText)
     return check
   }
 
   const areStepsValid = () => {
-    const check = steps().replace(/ /gi, '').length >= 30
+    const check = steps.trim().length >= 30
     const invalidText = check
       ? ''
       : 'Write at least 30 characters to describe the steps to reproduce.'
@@ -91,19 +91,18 @@ const BugReportForm = (props: any) => {
     }
 
     const key = Object.keys(localStorage).find((key) => key.includes('user-id'))
-
     return key && key.length ? localStorage.getItem(key) ?? 'UNKNOWN' : 'UNKNOWN'
   }
 
-  createEffect(() => {
+  useEffect(() => {
     const titleValid = isTitleValid(),
       descriptionValid = isDescriptionValid(),
       stepsValid = areStepsValid(),
-      userAllow = didUserAllow()
+      userAllow = didUserAllow
     setFormValid(titleValid && descriptionValid && stepsValid && userAllow)
-  })
+  }, [title, description, steps, didUserAllow])
 
-  const handleSubmit = async (event: Event) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setStatus(null)
     setShowThankYou(false)
@@ -116,10 +115,10 @@ const BugReportForm = (props: any) => {
         beaconState[StorageKey.USER_ID] && beaconState[StorageKey.USER_ID].length
           ? beaconState[StorageKey.USER_ID]
           : getUserId(),
-      title: title(),
+      title,
       sdkVersion: SDK_VERSION,
-      description: description(),
-      steps: steps(),
+      description,
+      steps,
       os: currentOS(),
       browser: currentBrowser(),
       localStorage: JSON.stringify(beaconState),
@@ -159,89 +158,85 @@ const BugReportForm = (props: any) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} class="form-style">
-      <div class="input-group">
-        <label for="title" class="label-style">
+    <form onSubmit={handleSubmit} className="form-style">
+      <div className="input-group">
+        <label htmlFor="title" className="label-style">
           Title
         </label>
         <input
           type="text"
           id="title"
-          value={title()}
-          onBlur={(e) => {
-            !titleTouched() && setTitleTouched(true)
-            setTitle(e.currentTarget.value)
-          }}
-          class={`input-style ${titleTouched() && titleErrorMsg().length ? 'invalid' : ''}`}
+          value={title}
+          onChange={(e) => setTitle(e.currentTarget.value)}
+          onBlur={() => setTitleTouched(true)}
+          className={`input-style ${titleTouched && titleErrorMsg.length ? 'invalid' : ''}`}
         />
-        {titleTouched() && titleErrorMsg().length && (
-          <label class="error-label">{titleErrorMsg()}</label>
+        {titleTouched && titleErrorMsg.length > 0 && (
+          <label className="error-label">{titleErrorMsg}</label>
         )}
       </div>
-      <div class="input-group">
-        <label for="description" class="label-style">
+      <div className="input-group">
+        <label htmlFor="description" className="label-style">
           Description
         </label>
         <textarea
           id="description"
-          value={description()}
-          onBlur={(e) => {
-            !descriptionTouched() && setDescriptionTouched(true)
-            setDescription(e.currentTarget.value)
-          }}
-          class={`textarea-style ${
-            descriptionTouched() && descriptionErrorMsg().length ? 'invalid' : ''
+          value={description}
+          onChange={(e) => setDescription(e.currentTarget.value)}
+          onBlur={() => setDescriptionTouched(true)}
+          className={`textarea-style ${
+            descriptionTouched && descriptionErrorMsg.length ? 'invalid' : ''
           }`}
         />
-        {descriptionTouched() && descriptionErrorMsg().length && (
-          <label class="error-label">{descriptionErrorMsg()}</label>
+        {descriptionTouched && descriptionErrorMsg.length > 0 && (
+          <label className="error-label">{descriptionErrorMsg}</label>
         )}
       </div>
-      <div class="input-group">
-        <label for="steps" class="label-style">
+      <div className="input-group">
+        <label htmlFor="steps" className="label-style">
           Steps to Reproduce
         </label>
         <textarea
           id="steps"
-          value={steps()}
-          onBlur={(e) => {
-            !stepsTouched() && setStepsTouched(true)
-            setSteps(e.currentTarget.value)
-          }}
-          class={`textarea-style ${stepsTouched() && stepsErrorMsg().length ? 'invalid' : ''}`}
+          value={steps}
+          onChange={(e) => setSteps(e.currentTarget.value)}
+          onBlur={() => setStepsTouched(true)}
+          className={`textarea-style ${stepsTouched && stepsErrorMsg.length ? 'invalid' : ''}`}
         />
-        {stepsTouched() && stepsErrorMsg().length && (
-          <label class="error-label">{stepsErrorMsg()}</label>
+        {stepsTouched && stepsErrorMsg.length > 0 && (
+          <label className="error-label">{stepsErrorMsg}</label>
         )}
       </div>
-      <div class="permissions-group">
-        <label for="user-premissions">You agree to share anonymous data with the developers.</label>
+      <div className="permissions-group">
+        <label htmlFor="user-permissions">
+          You agree to share anonymous data with the developers.
+        </label>
         <input
-          id="user-premissions"
+          id="user-permissions"
           type="checkbox"
           onChange={() => setDidUserAllow((prev) => !prev)}
         />
       </div>
       <button
         type="submit"
-        disabled={!isFormValid()}
-        class={`button-style ${isFormValid() ? 'valid' : 'invalid'} ${
-          isLoading() ? 'button-loading' : ''
+        disabled={!isFormValid}
+        className={`button-style ${isFormValid ? 'valid' : 'invalid'} ${
+          isLoading ? 'button-loading' : ''
         }`}
       >
-        {!isLoading() && !status() ? 'Submit' : <>&nbsp;</>}
-        {!isLoading() && status() && (
-          <span class={status() === 'success' ? 'icon success-icon' : 'icon error-icon'}>
-            {status() === 'success' ? '✓' : '✕'}
+        {!isLoading && !status ? 'Submit' : <>&nbsp;</>}
+        {!isLoading && status && (
+          <span className={status === 'success' ? 'icon success-icon' : 'icon error-icon'}>
+            {status === 'success' ? '✓' : '✕'}
           </span>
         )}
-        {showThankYou() && (
-          <div class="thank-you-message">
-            <For each={'Thank You!'.split('')}>
-              {(letter, index) => (
-                <span style={{ 'animation-delay': `${index() * 0.1}s` }}>{letter}</span>
-              )}
-            </For>
+        {showThankYou && (
+          <div className="thank-you-message">
+            {'Thank You!'.split('').map((letter, index) => (
+              <span key={index} style={{ animationDelay: `${index * 0.1}s` }}>
+                {letter}
+              </span>
+            ))}
           </div>
         )}
       </button>

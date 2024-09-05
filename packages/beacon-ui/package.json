@@ -40,7 +40,8 @@
     "@airgap/beacon-utils": "4.3.3",
     "@walletconnect/utils": "2.14.0",
     "qrcode-svg": "^1.1.0",
-    "solid-js": "^1.7.11"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.4",
@@ -52,9 +53,14 @@
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-svg": "^2.0.0",
     "rollup-plugin-typescript2": "^0.35.0",
-    "rollup-preset-solid": "^2.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@babel/preset-react": "^7.24.6",
     "typescript": "^5.2.2",
+    "@types/react": "^18.2.28",
+    "@types/react-dom": "^18.2.13",
     "vite": "^4.4.9",
-    "vite-plugin-solid": "^2.7.0"
+    "@vitejs/plugin-react": "^4.1.0"
   }
 }
