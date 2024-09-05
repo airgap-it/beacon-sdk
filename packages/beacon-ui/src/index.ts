@@ -1,4 +1,4 @@
-export { openAlert, closeAlerts } from './ui/alert'
+export { openAlert, closeAlert, closeAlerts } from './ui/alert'
 export type { AlertButton, AlertConfig } from './ui/alert'
 
 export {

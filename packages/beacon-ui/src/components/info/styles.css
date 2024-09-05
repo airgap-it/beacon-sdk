@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.5em;
   border-radius: 10px;
   padding: 30px;
 }
@@ -20,7 +20,7 @@
   justify-content: center;
   align-items: center;
   font-size: 28px;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.2em;
 }
 
 .info-badge {
@@ -43,25 +43,25 @@
   text-align: center;
   color: #334155;
   margin: 0px;
-  font-size: 16px;
+  font-size: 1em;
 }
 
 .info-description {
   text-align: center;
-  font-size: 12.8px;
+  font-size: 0.8em;
   font-weight: 300;
   color: #7c828b;
-  line-height: 1.25rem;
+  line-height: 1.25em;
   margin: 6px 0px 12px 0px;
   margin: 0px;
   max-width: 300px;
 }
 
 .info-data {
-  font-size: 12.8px;
+  font-size: 0.8em;
   font-weight: 300;
   color: #7c828b;
-  line-height: 1.25rem;
+  line-height: 1.25em;
   margin: 6px 0px 12px 0px;
   margin: 0px;
   overflow: scroll;
@@ -71,7 +71,7 @@
 .info-buttons {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.6em;
 }
 
 .info-button {
@@ -79,12 +79,12 @@
   background-color: #3880ff;
   border: 1px solid #3880ff;
   color: white;
-  padding: 0.6rem 1.2rem;
+  padding: 0.6em 1.2em;
   width: 180px;
   transition: all ease 0.2s;
   cursor: pointer;
-  margin-top: 1rem;
-  font-size: 12.8px;
+  margin-top: 1em;
+  font-size: 0.8em;
 }
 
 .info-button:hover {
@@ -96,11 +96,11 @@
   background-color: transparent;
   border: 1px solid #3880ff;
   color: #3880ff;
-  padding: 0.6em 1.2rem;
+  padding: 0.6em 1.2em;
   width: 180px;
   transition: all ease 0.2s;
   cursor: pointer;
-  margin-top: 1rem;
+  margin-top: 1em;
 }
 
 .info-button-secondary:hover {
@@ -132,16 +132,16 @@ button#qr-code-icon {
 
 @media only screen and (max-width: 800px) {
   .info-title {
-    font-size: 14.4px;
-    line-height: 1rem;
+    font-size: 0.9em;
+    line-height: 1em;
   }
 
   .info-description {
-    font-size: 0.65rem;
+    font-size: 0.65em;
   }
 
   .qr-more-info {
-    font-size: 0.75rem;
+    font-size: 0.75em;
   }
 
   .info-wrapper {
@@ -153,12 +153,12 @@ button#qr-code-icon {
   .info-icon {
     width: 40px;
     height: 40px;
-    font-size: 1.8rem;
+    font-size: 1.8em;
   }
 
   .info-button {
     padding: 0.5em 1.6em;
-    font-size: 16px;
+    font-size: 1em;
     font-weight: bold;
   }
 }
