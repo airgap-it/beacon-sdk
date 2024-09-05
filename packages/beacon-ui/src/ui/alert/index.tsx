@@ -7,6 +7,7 @@ import {
 } from '@airgap/beacon-types'
 import { createRoot, Root } from 'react-dom/client'
 import Alert from '../../components/alert'
+import AlertContent from './components/alert-content'
 
 // Interfaces
 export interface AlertButton {
@@ -50,13 +51,13 @@ const closeAlerts = () => {
   closeAlert()
 }
 
-const AlertRoot = () => {
+const AlertRoot = (_props: any) => {
   return (
     <Alert
       open={true}
       loading={false}
       onCloseClick={() => closeAlert()}
-      content={<h1>Hello New World!</h1>}
+      content={<AlertContent title={'test'} body={'test'} data={'test'} />}
     />
   )
 }
