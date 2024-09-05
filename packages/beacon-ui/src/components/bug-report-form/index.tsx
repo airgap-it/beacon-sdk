@@ -1,6 +1,6 @@
-import { IndexedDBStorage, Logger, BACKEND_URL, SDK_VERSION } from '@airgap/beacon-core'
+import React, { useState, useEffect } from 'react'
+import { IndexedDBStorage, Logger, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
-import { For, createEffect, createSignal } from 'solid-js'
 import styles from './styles.css'
 import { currentBrowser, currentOS } from '../../utils/platform'
 
@@ -22,51 +22,44 @@ interface BugReportRequest {
   wcStorage: string
 }
 
-const BugReportForm = (props: any) => {
-  const [title, setTitle] = createSignal('')
-  const [titleTouched, setTitleTouched] = createSignal(false)
-  const [description, setDescription] = createSignal('')
-  const [descriptionTouched, setDescriptionTouched] = createSignal(false)
-  const [isFormValid, setFormValid] = createSignal(false)
-  const [isLoading, setIsLoading] = createSignal(false)
-  const [didUserAllow, setDidUserAllow] = createSignal(false)
-  const [status, setStatus] = createSignal<'success' | 'error' | null>(null)
-  const [showThankYou, setShowThankYou] = createSignal(false)
-  const db = new IndexedDBStorage('beacon', ['bug_report', 'metrics'])
+const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
+  const [title, setTitle] = useState('')
+  const [titleTouched, setTitleTouched] = useState(false)
+  const [titleErrorMsg, setTitleErrorMsg] = useState('')
+  const [description, setDescription] = useState('')
+  const [descriptionTouched, setDescriptionTouched] = useState(false)
+  const [descriptionErrorMsg, setDescriptionErrorMsg] = useState('')
+  const [steps, setSteps] = useState('')
+  const [stepsTouched, setStepsTouched] = useState(false)
+  const [stepsErrorMsg, setStepsErrorMsg] = useState('')
+  const [isFormValid, setFormValid] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [didUserAllow, setDidUserAllow] = useState(false)
+  const [status, setStatus] = useState<'success' | 'error' | null>(null)
+  const [showThankYou, setShowThankYou] = useState(false)
+  const db = new IndexedDBStorage('beacon', 'bug_report')
 
-  createEffect(() => {
-    setDescription(prefillDescriptionField())
-  })
-
-  const getStorageKeys = () => {
-    if (!localStorage) {
-      return []
-    }
-
-    const wcKey = Object.keys(localStorage).find((key) => key.includes('wc-init-error'))
-    const beaconKey = Object.keys(localStorage).find((key) => key.includes('beacon-last-error'))
-
-    return [wcKey, beaconKey] as const
+  const isTitleValid = () => {
+    const check = title.trim().length > 10
+    const invalidText = check ? '' : 'The title must be at least 10 characters long.'
+    setTitleErrorMsg(invalidText)
+    return check
   }
 
-  const prefillDescriptionField = () => {
-    const [wcKey, beaconKey] = getStorageKeys()
+  const isDescriptionValid = () => {
+    const check = description.trim().length >= 30
+    const invalidText = check ? '' : 'The description must be at least 30 characters long.'
+    setDescriptionErrorMsg(invalidText)
+    return check
+  }
 
-    if (!wcKey && !beaconKey) {
-      return ''
-    }
-
-    let output = ''
-
-    if (wcKey) {
-      output += `WalletConnect error: ${localStorage.getItem(wcKey)} \n\n`
-    }
-
-    if (beaconKey) {
-      output += `Beacon error: ${localStorage.getItem(beaconKey)} \n\n`
-    }
-
-    return output
+  const areStepsValid = () => {
+    const check = steps.trim().length >= 30
+    const invalidText = check
+      ? ''
+      : 'Write at least 30 characters to describe the steps to reproduce.'
+    setStepsErrorMsg(invalidText)
+    return check
   }
 
   const indexDBToMetadata = async () => {
@@ -98,86 +91,18 @@ const BugReportForm = (props: any) => {
     }
 
     const key = Object.keys(localStorage).find((key) => key.includes('user-id'))
-
     return key && key.length ? localStorage.getItem(key) ?? 'UNKNOWN' : 'UNKNOWN'
   }
 
-  createEffect(() => {
-    setFormValid(didUserAllow())
-  })
+  useEffect(() => {
+    const titleValid = isTitleValid(),
+      descriptionValid = isDescriptionValid(),
+      stepsValid = areStepsValid(),
+      userAllow = didUserAllow
+    setFormValid(titleValid && descriptionValid && stepsValid && userAllow)
+  }, [title, description, steps, didUserAllow])
 
-  /**
-   * Recursively removes all properties whose key contains "seed"
-   * from an object/array. Also, if a string is valid JSON,
-   * it will attempt to clean its parsed value.
-   */
-  const clean = (value: any): any => {
-    if (Array.isArray(value)) {
-      // Process each element in the array.
-      return value.map(clean)
-    } else if (value !== null && typeof value === 'object') {
-      // Process an object by filtering its keys.
-      const result: Record<string, any> = {}
-      for (const key in value) {
-        if (Object.prototype.hasOwnProperty.call(value, key)) {
-          // Remove any property with "seed" in its name (case insensitive)
-          if (key.toLowerCase().includes('seed')) continue
-          result[key] = clean(value[key])
-        }
-      }
-      return result
-    } else if (typeof value === 'string') {
-      // Try to parse the string as JSON.
-      try {
-        const parsed = JSON.parse(value)
-        // If it parsed successfully, clean the parsed value
-        // and re-stringify it so that we preserve the original type.
-        return JSON.stringify(clean(parsed))
-      } catch (err) {
-        // If parsing fails, just return the original string.
-        return value
-      }
-    }
-    // For primitives (number, boolean, etc.), just return the value.
-    return value
-  }
-
-  const sendRequest = (
-    url: string,
-    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-    body: any
-  ) => {
-    const options = {
-      method,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    }
-
-    return fetch(url, method === 'GET' ? undefined : options)
-  }
-
-  const sendMetrics = async () => {
-    const metrics = await db.getAll('metrics')
-
-    if (!metrics || metrics.length === 0) {
-      return
-    }
-
-    const payload = metrics.map((metric) => JSON.parse(metric))
-
-    sendRequest(`${BACKEND_URL}/performance-metrics/saveAll`, 'POST', payload)
-      .then(() => {
-        db.clearStore('metrics')
-      })
-      .catch((error) => {
-        console.error('Error while sending metrics:', error.message)
-        setStatus('error')
-      })
-  }
-
-  const handleSubmit = async (event: Event) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setStatus(null)
     setShowThankYou(false)
@@ -190,10 +115,10 @@ const BugReportForm = (props: any) => {
         beaconState[StorageKey.USER_ID] && beaconState[StorageKey.USER_ID].length
           ? beaconState[StorageKey.USER_ID]
           : getUserId(),
-      title: title(),
+      title,
       sdkVersion: SDK_VERSION,
-      description: description(),
-      steps: '<#EMPTY#>',
+      description,
+      steps,
       os: currentOS(),
       browser: currentBrowser(),
       localStorage: JSON.stringify(clean(beaconState)),
@@ -225,64 +150,85 @@ const BugReportForm = (props: any) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} class="form-style">
-      <div class="input-group">
-        <label for="title" class="label-style">
+    <form onSubmit={handleSubmit} className="form-style">
+      <div className="input-group">
+        <label htmlFor="title" className="label-style">
           Title
         </label>
         <input
           type="text"
           id="title"
-          value={title()}
-          onBlur={(e) => {
-            !titleTouched() && setTitleTouched(true)
-            setTitle(e.currentTarget.value)
-          }}
-          class={`input-style`}
+          value={title}
+          onChange={(e) => setTitle(e.currentTarget.value)}
+          onBlur={() => setTitleTouched(true)}
+          className={`input-style ${titleTouched && titleErrorMsg.length ? 'invalid' : ''}`}
         />
+        {titleTouched && titleErrorMsg.length > 0 && (
+          <label className="error-label">{titleErrorMsg}</label>
+        )}
       </div>
-      <div class="input-group">
-        <label for="description" class="label-style">
+      <div className="input-group">
+        <label htmlFor="description" className="label-style">
           Description
         </label>
         <textarea
           id="description"
-          value={description()}
-          onBlur={(e) => {
-            !descriptionTouched() && setDescriptionTouched(true)
-            setDescription(e.currentTarget.value)
-          }}
-          class={`textarea-style `}
+          value={description}
+          onChange={(e) => setDescription(e.currentTarget.value)}
+          onBlur={() => setDescriptionTouched(true)}
+          className={`textarea-style ${
+            descriptionTouched && descriptionErrorMsg.length ? 'invalid' : ''
+          }`}
         />
+        {descriptionTouched && descriptionErrorMsg.length > 0 && (
+          <label className="error-label">{descriptionErrorMsg}</label>
+        )}
       </div>
-      <div class="permissions-group">
-        <label for="user-premissions">You agree to share anonymous data with the developers.</label>
+      <div className="input-group">
+        <label htmlFor="steps" className="label-style">
+          Steps to Reproduce
+        </label>
+        <textarea
+          id="steps"
+          value={steps}
+          onChange={(e) => setSteps(e.currentTarget.value)}
+          onBlur={() => setStepsTouched(true)}
+          className={`textarea-style ${stepsTouched && stepsErrorMsg.length ? 'invalid' : ''}`}
+        />
+        {stepsTouched && stepsErrorMsg.length > 0 && (
+          <label className="error-label">{stepsErrorMsg}</label>
+        )}
+      </div>
+      <div className="permissions-group">
+        <label htmlFor="user-permissions">
+          You agree to share anonymous data with the developers.
+        </label>
         <input
-          id="user-premissions"
+          id="user-permissions"
           type="checkbox"
           onChange={() => setDidUserAllow((prev) => !prev)}
         />
       </div>
       <button
         type="submit"
-        disabled={!isFormValid()}
-        class={`button-style ${isFormValid() ? 'valid' : 'invalid'} ${
-          isLoading() ? 'button-loading' : ''
+        disabled={!isFormValid}
+        className={`button-style ${isFormValid ? 'valid' : 'invalid'} ${
+          isLoading ? 'button-loading' : ''
         }`}
       >
-        {!isLoading() && !status() ? 'Submit' : <>&nbsp;</>}
-        {!isLoading() && status() && (
-          <span class={status() === 'success' ? 'icon success-icon' : 'icon error-icon'}>
-            {status() === 'success' ? '✓' : '✕'}
+        {!isLoading && !status ? 'Submit' : <>&nbsp;</>}
+        {!isLoading && status && (
+          <span className={status === 'success' ? 'icon success-icon' : 'icon error-icon'}>
+            {status === 'success' ? '✓' : '✕'}
           </span>
         )}
-        {showThankYou() && (
-          <div class="thank-you-message">
-            <For each={'Thank You!'.split('')}>
-              {(letter, index) => (
-                <span style={{ 'animation-delay': `${index() * 0.1}s` }}>{letter}</span>
-              )}
-            </For>
+        {showThankYou && (
+          <div className="thank-you-message">
+            {'Thank You!'.split('').map((letter, index) => (
+              <span key={index} style={{ animationDelay: `${index * 0.1}s` }}>
+                {letter}
+              </span>
+            ))}
           </div>
         )}
       </button>

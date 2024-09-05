@@ -1,11 +1,11 @@
-import { Component } from 'solid-js'
-import styles from './styles.css'
+import React from "react";
+import styles from "./styles.css";
 
 interface LoaderProps {}
 
-const Loader: Component<LoaderProps> = (_: LoaderProps) => {
-  return <div class="loader"></div>
-}
+const Loader: React.FC<LoaderProps> = () => {
+  return <div className="loader"></div>;
+};
 
-export { styles }
-export default Loader
+export { styles };
+export default Loader;

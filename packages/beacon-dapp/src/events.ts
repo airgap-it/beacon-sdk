@@ -442,7 +442,7 @@ const showRateLimitReached = async (): Promise<void> => {
     body: 'Rate limit reached. Please slow down',
     buttons: [{ label: 'Done', type: 'primary', onClick: () => closeAlerts() }],
     timer: 3000
-  }).catch((toastError) => console.error(toastError))
+  })
 }
 
 /**
