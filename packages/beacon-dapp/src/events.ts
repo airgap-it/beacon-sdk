@@ -291,16 +291,17 @@ const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => 
 }
 
 const hideUI = async (elements?: ('alert' | 'toast')[]): Promise<void> => {
-  if (elements) {
-    if (elements.includes('alert')) {
-      await closeAlerts()
-    }
-    if (elements.includes('toast')) {
-      await closeToast()
-    }
-  } else {
-    await closeToast()
-  }
+  // if (elements) {
+  //   if (elements.includes('alert')) {
+  //     await closeAlerts()
+  //   }
+  //   if (elements.includes('toast')) {
+  //     await closeToast()
+  //   }
+  // } else {
+  //   await closeToast()
+  // }
+  console.log('todo', elements)
 }
 
 /**
