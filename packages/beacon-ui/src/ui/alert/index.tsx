@@ -5,9 +5,11 @@ import {
   NetworkType,
   AnalyticsInterface
 } from '@airgap/beacon-types'
-import { createRoot, Root } from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 import Alert from '../../components/alert'
 import AlertContent from './components/alert-content'
+import { useEffect, useState } from 'react'
+import { Subject } from 'src/utils/subject'
 
 export interface AlertButton {
   label: string
@@ -33,17 +35,23 @@ export interface AlertConfig {
   featuredWallets?: string[]
 }
 
-let root: Root | undefined
+let initDone: boolean = false
+const show$ = new Subject<boolean>()
 
-const openAlert = (_config: AlertConfig) => {
+const createAlert = () => {
   const el = document.createElement('beacon-modal')
   document.body.prepend(el)
-  const _root = root ? root : (root = createRoot(el))
-  setTimeout(() => _root.render(<AlertRoot />), 50)
+  setTimeout(() => createRoot(el).render(<AlertRoot />), 50)
+  initDone = true
+}
+
+const openAlert = (_config: AlertConfig) => {
+  !initDone && createAlert()
+  show$.next(true)
 }
 
 const closeAlert = () => {
-  root?.unmount()
+  show$.next(false)
 }
 
 const closeAlerts = () => {
@@ -51,13 +59,21 @@ const closeAlerts = () => {
 }
 
 const AlertRoot = (_props: any) => {
+  const [isAlertVisible, setIsAlertVisible] = useState(true)
+  useEffect(() => {
+    show$.subscribe((value) => setIsAlertVisible(value))
+  }, [])
   return (
-    <Alert
-      open={true}
-      loading={false}
-      onCloseClick={() => closeAlert()}
-      content={<AlertContent title={'test'} body={'test'} data={'test'} />}
-    />
+    <>
+      {isAlertVisible && (
+        <Alert
+          open={true}
+          loading={false}
+          onCloseClick={() => closeAlert()}
+          content={<AlertContent />}
+        />
+      )}
+    </>
   )
 }
 
