@@ -1,7 +1,7 @@
-import InfoAlert from '../info-alert'
+import PairingAlert from '../pairing-alert'
 
-const AlertContent = ({ title, body, data }: any) => {
-  return <InfoAlert title={title} body={body} data={data} />
+const AlertContent = () => {
+  return <PairingAlert />
 }
 
 export default AlertContent
