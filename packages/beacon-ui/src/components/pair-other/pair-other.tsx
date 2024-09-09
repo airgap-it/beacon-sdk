@@ -5,7 +5,7 @@ import {
   P2PPairingRequest,
   WalletConnectPairingRequest,
 } from "@airgap/beacon-types";
-import styles from "./styles.css";
+import "./styles.css";
 import { Serializer } from "@airgap/beacon-core";
 
 export interface PairOtherProps {
@@ -84,5 +84,5 @@ const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
   );
 };
 
-export { styles };
+
 export default PairOther;

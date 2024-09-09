@@ -1,9 +1,9 @@
 import { createRoot } from 'react-dom/client'
-import Alert from '../../components/alert'
 import AlertContent from './components/alert-content'
 import { useEffect, useState } from 'react'
 import { Subject } from '../../utils/subject'
 import { AlertConfig } from './common'
+import PairingAlert from './components/pairing-alert'
 
 let initDone: boolean = false
 const show$ = new Subject<boolean>()
@@ -36,10 +36,10 @@ const AlertRoot = (_props: any) => {
   return (
     <>
       {isAlertVisible && (
-        <Alert
+        <PairingAlert
           open={true}
           loading={false}
-          onCloseClick={() => closeAlert()}
+          onClose={() => closeAlert()}
           content={<AlertContent />}
         />
       )}

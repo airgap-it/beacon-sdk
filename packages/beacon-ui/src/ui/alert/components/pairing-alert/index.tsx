@@ -12,7 +12,7 @@ import useWallets from '../../hooks/useWallets'
 
 // todo remove any
 const PairingAlert: React.FC<any> = (props) => {
-  const { wcPayload, p2pPayload, postPayload, onCloseHandler } = props
+  const { wcPayload, p2pPayload, postPayload, onClose } = props
   const wallets = useWallets()
   const [
     wallet,
@@ -33,7 +33,7 @@ const PairingAlert: React.FC<any> = (props) => {
     handleClickDownloadDesktopApp,
     handleUpdateState,
     handleUpdateQRCode
-  ] = useConnect(wcPayload, p2pPayload, postPayload, wallets, onCloseHandler)
+  ] = useConnect(wcPayload, p2pPayload, postPayload, wallets, onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
   const areMetricsEnabled = localStorage
@@ -96,7 +96,7 @@ const PairingAlert: React.FC<any> = (props) => {
   return (
     <Alert
       loading={isLoading}
-      onCloseClick={onCloseHandler}
+      onCloseClick={onClose}
       open={true}
       showMore={showMoreContent}
       content={
@@ -241,7 +241,7 @@ const PairingAlert: React.FC<any> = (props) => {
                         : p2pPayload
 
                       if (!syncCode.length || !wallet) {
-                        onCloseHandler()
+                        onClose()
                         return
                       }
 
@@ -336,7 +336,7 @@ const PairingAlert: React.FC<any> = (props) => {
                   }
             }
           >
-            {areMetricsEnabled && <BugReportForm onSubmit={onCloseHandler} />}
+            {areMetricsEnabled && <BugReportForm onSubmit={onClose} />}
             {!areMetricsEnabled && (
               <>
                 <Info
