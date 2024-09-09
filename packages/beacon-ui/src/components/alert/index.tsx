@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
 import Loader from '../loader'
 import { AlertProps } from '../../ui/alert/common'
+import './styles.css'
 
 const Alert: React.FC<AlertProps> = (props: AlertProps) => {
   useEffect(() => {

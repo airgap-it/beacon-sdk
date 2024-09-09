@@ -1,7 +1,7 @@
 import React from "react";
 import { MergedWallet } from "../../utils/wallets";
 import Wallet from "../wallet";
-import styles from "./styles.css";
+import "./styles.css";
 
 interface WalletProps {
   wallets: MergedWallet[];
@@ -35,5 +35,5 @@ const Wallets: React.FC<WalletProps> = (props: WalletProps) => {
   );
 };
 
-export { styles };
+
 export default Wallets;
