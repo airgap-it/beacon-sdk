@@ -120,6 +120,6 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
     return arrangedWallets
   }, [])
 
-  return wallets
+  return new Map(wallets.map((wallet) => [wallet.id, wallet]))
 }
 export default useWallets
