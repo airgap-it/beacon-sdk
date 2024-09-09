@@ -5,7 +5,7 @@ import {
   P2PPairingRequest,
   WalletConnectPairingRequest,
 } from "@airgap/beacon-types";
-import "./styles.css";
+
 import { Serializer } from "@airgap/beacon-core";
 
 export interface PairOtherProps {
