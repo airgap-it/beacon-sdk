@@ -1,7 +1,7 @@
 import React from "react";
 import { MergedWallet } from "../../utils/wallets";
 import Wallet from "../wallet";
-import styles from "./styles.css";
+import "./styles.css";
 import { StorageKey } from "@airgap/beacon-types";
 
 interface TopWalletsProps {
@@ -83,5 +83,5 @@ const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
   );
 };
 
-export { styles };
+
 export default TopWallets;

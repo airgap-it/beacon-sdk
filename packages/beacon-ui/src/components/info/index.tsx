@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./styles.css";
+import "./styles.css";
 import { QRCodeIcon } from "../icons";
 
 interface InfoProps {
@@ -64,5 +64,5 @@ const Info: React.FC<InfoProps> = (props: InfoProps) => {
   );
 };
 
-export { styles };
+
 export default Info;
