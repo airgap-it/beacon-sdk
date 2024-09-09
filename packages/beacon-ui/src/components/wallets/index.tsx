@@ -16,17 +16,15 @@ const Wallets: React.FC<WalletProps> = (props: WalletProps) => {
   return (
     <Grid2 container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
       {props.wallets.map((wallet) => (
-        <Grid2 size={6}>
-          <Wallet
-            key={wallet.id}
-            disabled={props.disabled}
-            name={wallet.name}
-            description={wallet.descriptions.join(' & ')}
-            image={wallet.image}
-            small={props.small}
-            onClick={() => props.onClickWallet(wallet.id)}
-          />
-        </Grid2>
+        <Wallet
+          key={wallet.id}
+          disabled={props.disabled}
+          name={wallet.name}
+          description={wallet.descriptions.join(' & ')}
+          image={wallet.image}
+          small={props.small}
+          onClick={() => props.onClickWallet(wallet.id)}
+        />
       ))}
       <button className="wallets-button" onClick={props.onClickOther}>
         {props.isMobile ? 'Pair wallet on another device' : 'Show QR code'}

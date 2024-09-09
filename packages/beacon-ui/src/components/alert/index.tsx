@@ -3,10 +3,9 @@ import { Modal, Box, Grid2, Button } from '@mui/material'
 import { LeftIcon, LogoIcon, CloseIcon } from '../icons'
 // import Loader from '../loader'
 // import useIsMobile from 'src/ui/alert/hooks/useIsMobile'
-import './styles.css'
 
 const Alert: React.FC<AlertProps> = (props: AlertProps) => {
-  // const isMobile = useIsMobile()
+  // todo const isMobile = useIsMobile()
 
   return (
     <Modal open={true} onClose={props.onCloseClick}>
@@ -20,7 +19,7 @@ const Alert: React.FC<AlertProps> = (props: AlertProps) => {
           bgcolor: 'grey',
           border: '2px solid #000',
           boxShadow: 24,
-          borderRadius: '10px',
+          borderRadius: '30px',
           p: 4
         }}
       >

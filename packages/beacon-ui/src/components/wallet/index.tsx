@@ -1,56 +1,30 @@
-import React from "react";
-
+import { Button, Grid2 } from '@mui/material'
+import React from 'react'
 
 interface WalletProps {
-  name: string;
-  image: string;
-  description?: string;
-  small?: boolean;
-  mobile?: boolean;
-  onClick: () => void;
-  tags?: string[];
-  disabled?: boolean;
+  name: string
+  image: string
+  description?: string
+  small?: boolean
+  mobile?: boolean
+  onClick: () => void
+  tags?: string[]
+  disabled?: boolean
 }
 
 const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
+  console.log(props.name, props.tags)
   return (
-    <div className={props.disabled ? "wallet-disabled" : ""}>
-      {!props.small && (
-        <div
-          className={`wallet-main ${props.mobile ? "wallet-main-mobile" : ""}`}
-          onClick={props.onClick}
-        >
-          <div
-            className={`wallet-main-left ${
-              props.mobile ? "wallet-main-left-mobile" : ""
-            }`}
-          >
-            <h3>{props.name}</h3>
-            {props.description && <p>{props.description}</p>}
-            {props.tags && props.tags.length > 0 && (
-              <div className="wallet-main-tags">
-                {props.tags.map((tag, index) => (
-                  <span key={index} className="wallet-main-tag">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="wallet-main-right">
-            <img src={props.image} alt={`${props.name} logo`} />
-          </div>
+    <Grid2 size={6} alignSelf={'baseline'}>
+      <Button variant="outlined">
+        <div style={{ padding: '10px' }}>
+          <h3 style={{ margin: 0 }}>{props.name}</h3>
+          {props.description && <p style={{ fontSize: '10px', margin: 0 }}>{props.description}</p>}
         </div>
-      )}
-      {props.small && (
-        <div className="wallet-small" onClick={props.onClick}>
-          <img src={props.image} alt={`${props.name} logo`} />
-          <h3>{props.name}</h3>
-        </div>
-      )}
-    </div>
-  );
-};
+        <img src={props.image} alt={`${props.name} logo`} width={50} height={50} />
+      </Button>
+    </Grid2>
+  )
+}
 
-
-export default Wallet;
+export default Wallet
