@@ -3,7 +3,7 @@ import { MergedWallet } from '../../utils/wallets'
 import Wallet from '../wallet'
 
 import { StorageKey } from '@airgap/beacon-types'
-import { Button, Grid2 } from '@mui/material'
+import { Grid2 } from '@mui/material'
 
 interface TopWalletsProps {
   wallets: MergedWallet[]
@@ -39,18 +39,14 @@ const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
       </div>
       <Grid2 container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         {props.wallets.map((wallet) => (
-          <Grid2 size={6}>
-            <Button variant="outlined">
-              <Wallet
-                key={wallet.id}
-                disabled={props.disabled}
-                name={wallet.name}
-                description={wallet.descriptions.join(' & ')}
-                image={wallet.image}
-                onClick={() => props.onClickWallet(wallet.id)}
-              />
-            </Button>
-          </Grid2>
+          <Wallet
+            key={wallet.id}
+            disabled={props.disabled}
+            name={wallet.name}
+            description={wallet.descriptions.join(' & ')}
+            image={wallet.image}
+            onClick={() => props.onClickWallet(wallet.id)}
+          />
         ))}
         {props.otherWallets && (
           <div className="top-wallets-other-wallets" onClick={props.otherWallets.onClick}>
