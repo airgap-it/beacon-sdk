@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./styles.css";
+import "./styles.css";
 
 interface WalletProps {
   name: string;
@@ -52,5 +52,5 @@ const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
   );
 };
 
-export { styles };
+
 export default Wallet;

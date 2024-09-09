@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { IndexedDBStorage, Logger, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
-import styles from './styles.css'
 import { currentBrowser, currentOS } from '../../utils/platform'
+import './styles.css'
 
 const logger = new Logger('BugReport')
 
@@ -236,5 +236,4 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
   )
 }
 
-export { styles }
 export default BugReportForm
