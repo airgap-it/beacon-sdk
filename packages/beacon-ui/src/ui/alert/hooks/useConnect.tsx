@@ -5,9 +5,9 @@ import { getTzip10Link } from 'src/utils/get-tzip10-link'
 import { isTwBrowser, isAndroid } from 'src/utils/platform'
 import { MergedWallet, OSLink } from 'src/utils/wallets'
 import { Serializer } from '@airgap/beacon-core'
-import { AlertConfig } from '..'
 import getDefaultLogo from '../getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
+import { AlertConfig } from '../common'
 
 const logger = new Logger('useConnect')
 
@@ -20,7 +20,7 @@ const useConnect = (
   // const [wallet, setWallet] = useState<MergedWallet>()
   const [isLoading, setIsLoading] = useState(false)
   const [qrCode, setQRCode] = useState<string>()
-  const [info, setInfo] = useState<'top-wallets' | 'wallets' | 'install' | 'help' | 'qr'>(
+  const [state, setState] = useState<'top-wallets' | 'wallets' | 'install' | 'help' | 'qr'>(
     'top-wallets'
   )
   const [displayQRExtra, setDisplayQRExtra] = useState(false)
@@ -124,7 +124,7 @@ const useConnect = (
       }
 
       setQRCode(syncCode)
-      setInfo('qr')
+      setState('qr')
       setDisplayQRExtra(true)
 
       return
@@ -157,7 +157,7 @@ const useConnect = (
         icon: getDefaultLogo()
       })
     )
-    setInfo('qr')
+    setState('qr')
   }, [])
 
   const handleClickConnectExtension = useCallback(async (wallet: MergedWallet) => {
@@ -228,7 +228,7 @@ const useConnect = (
   return [
     isLoading,
     qrCode,
-    info,
+    state,
     displayQRExtra,
     showMoreContent,
     handleNewTab,
@@ -238,7 +238,7 @@ const useConnect = (
     handleClickInstallExtension,
     handleClickOpenDesktopApp,
     handleClickDownloadDesktopApp
-  ]
+  ] as const
 }
 
 export default useConnect

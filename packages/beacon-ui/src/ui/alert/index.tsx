@@ -1,40 +1,9 @@
-import {
-  P2PPairingRequest,
-  PostMessagePairingRequest,
-  WalletConnectPairingRequest,
-  NetworkType,
-  AnalyticsInterface
-} from '@airgap/beacon-types'
 import { createRoot } from 'react-dom/client'
 import Alert from '../../components/alert'
 import AlertContent from './components/alert-content'
 import { useEffect, useState } from 'react'
-import { Subject } from 'src/utils/subject'
-
-// Interfaces
-export interface AlertButton {
-  text: string
-  style?: 'solid' | 'outline'
-  actionCallback?(): Promise<void>
-}
-
-export interface AlertConfig {
-  title: string
-  body?: string
-  data?: string
-  timer?: number
-  buttons?: AlertButton[]
-  pairingPayload?: {
-    p2pSyncCode: () => Promise<P2PPairingRequest>
-    postmessageSyncCode: () => Promise<PostMessagePairingRequest>
-    walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
-    networkType: NetworkType
-  }
-  closeButtonCallback?(): void
-  disclaimerText?: string
-  analytics?: AnalyticsInterface
-  featuredWallets?: string[]
-}
+import { Subject } from '../../utils/subject'
+import { AlertConfig } from './common'
 
 let initDone: boolean = false
 const show$ = new Subject<boolean>()
