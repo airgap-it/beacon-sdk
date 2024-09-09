@@ -1,12 +1,19 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
 import Loader from '../loader'
-import { AlertProps } from '../../ui/common'
-import './styles.css'
-import useIsMobile from '../../ui/alert/hooks/useIsMobile'
+import { AlertProps } from '../../ui/alert/common'
 
-const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
-  const isMobile = useIsMobile()
+const Alert: React.FC<AlertProps> = (props: AlertProps) => {
+  useEffect(() => {
+    const prevBodyOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow
+    }
+  }, [])
+
+  const isMobile = window.innerWidth <= 800
 
   return (
     <div
@@ -57,7 +64,7 @@ const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
           <Loader />
         </div>
         <div className="alert-body" style={{ marginBottom: props.extraContent ? '' : '1.8em' }}>
-          {props.children}
+          {props.content}
           {!isMobile && (
             <div className={props.showMore ? 'alert-body-extra-show' : 'alert-body-extra-hide'}>
               {props.extraContent && <div className="alert-divider"></div>}
@@ -66,10 +73,7 @@ const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
           )}
         </div>
         {!isMobile && props.extraContent && (
-          <div
-            className="alert-footer"
-            onClick={() => props.onClickShowMore && props.onClickShowMore()}
-          >
+          <div className="alert-footer" onClick={props.onClickShowMore}>
             {props.showMore ? 'Show less' : 'Show more'}
           </div>
         )}
