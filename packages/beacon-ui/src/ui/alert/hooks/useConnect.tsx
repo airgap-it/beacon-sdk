@@ -224,7 +224,7 @@ const useConnect = (
     }
   }, [])
 
-  const handleClickOther = useCallback(async () => {
+  const handleClickOther = useCallback(() => {
     localStorage.setItem(
       StorageKey.LAST_SELECTED_WALLET,
       JSON.stringify({
@@ -271,7 +271,7 @@ const useConnect = (
     )
   }, [])
 
-  const handleClickInstallExtension = useCallback(async () => {
+  const handleClickInstallExtension = useCallback(() => {
     setShowMoreContent(false)
     window.open(wallet?.links[OSLink.EXTENSION] || '', '_blank', 'noopener')
   }, [])
@@ -297,7 +297,7 @@ const useConnect = (
     )
   }, [])
 
-  const handleClickDownloadDesktopApp = useCallback(async () => {
+  const handleClickDownloadDesktopApp = useCallback(() => {
     setShowMoreContent(false)
     window.open(wallet?.links[OSLink.DESKTOP] || '', '_blank', 'noopener')
   }, [])
