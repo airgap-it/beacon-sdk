@@ -1,49 +1,43 @@
-import React from "react";
-import "./styles.css";
-import { QRCodeIcon } from "../icons";
+import React from 'react'
+
+import { QRCodeIcon } from '../icons'
 
 interface InfoProps {
-  title: string;
-  description?: string;
-  data?: string;
-  icon?: any;
-  border?: boolean;
-  iconBadge?: boolean;
-  bigIcon?: boolean;
+  title: string
+  description?: string
+  data?: string
+  icon?: any
+  border?: boolean
+  iconBadge?: boolean
+  bigIcon?: boolean
   buttons?: {
-    label: string;
-    type: "primary" | "secondary";
-    onClick: () => void;
-  }[];
-  downloadLink?: { url: string; label: string };
-  onShowQRCodeClick?: (() => void) | (() => Promise<void>);
+    label: string
+    type: 'primary' | 'secondary'
+    onClick: () => void
+  }[]
+  downloadLink?: { url: string; label: string }
+  onShowQRCodeClick?: (() => void) | (() => Promise<void>)
 }
 
 const Info: React.FC<InfoProps> = (props: InfoProps) => {
   return (
-    <div className={`info-wrapper ${props.border ? "info-border" : ""}`}>
+    <div className={`info-wrapper ${props.border ? 'info-border' : ''}`}>
       {props.icon && (
         <div
-          className={`info-icon ${props.iconBadge ? "info-badge" : ""}`}
-          style={props.bigIcon ? { fontSize: "3.4em" } : {}}
+          className={`info-icon ${props.iconBadge ? 'info-badge' : ''}`}
+          style={props.bigIcon ? { fontSize: '3.4em' } : {}}
         >
           {props.icon}
         </div>
       )}
       <h3 className="info-title">{props.title}</h3>
-      {props.description && (
-        <div className="info-description">{props.description}</div>
-      )}
+      {props.description && <div className="info-description">{props.description}</div>}
       {props.data && <pre className="info-data">{props.data}</pre>}
       <div className="info-buttons">
         {props.buttons?.map((button, index) => (
           <button
             key={index}
-            className={
-              button.type !== "secondary"
-                ? "info-button"
-                : "info-button-secondary"
-            }
+            className={button.type !== 'secondary' ? 'info-button' : 'info-button-secondary'}
             onClick={button.onClick}
           >
             {button.label}
@@ -61,8 +55,7 @@ const Info: React.FC<InfoProps> = (props: InfoProps) => {
         </button>
       )}
     </div>
-  );
-};
+  )
+}
 
-
-export default Info;
+export default Info

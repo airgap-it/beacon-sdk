@@ -1,7 +1,7 @@
 import React from "react";
 import { MergedWallet } from "../../utils/wallets";
 import Wallet from "../wallet";
-import "./styles.css";
+
 
 interface WalletProps {
   wallets: MergedWallet[];

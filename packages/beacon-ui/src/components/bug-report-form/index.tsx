@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { IndexedDBStorage, Logger, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
 import { currentBrowser, currentOS } from '../../utils/platform'
-import './styles.css'
+
 
 const logger = new Logger('BugReport')
 

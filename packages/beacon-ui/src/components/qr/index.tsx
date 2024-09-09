@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { getTzip10Link } from '../../utils/get-tzip10-link'
 import { getQrData } from '../../utils/qr'
-import './styles.css'
+
 
 const COPY_RESET_TIMEOUT = 3000
 
