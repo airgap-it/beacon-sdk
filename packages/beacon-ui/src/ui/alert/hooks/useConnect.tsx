@@ -4,7 +4,6 @@ import { useCallback, useState } from 'react'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
 import { isTwBrowser, isAndroid, isMobileOS, isIOS } from 'src/utils/platform'
 import { MergedWallet, OSLink } from 'src/utils/wallets'
-import { Serializer } from '@airgap/beacon-core'
 import getDefaultLogo from '../getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
 import { AlertConfig } from '../common'
@@ -77,16 +76,13 @@ const useConnect = (
       setQRCode('')
 
       if (config.pairingPayload) {
-        const serializer = new Serializer()
-        const code = await serializer.serialize(await p2pPayload)
-
         const link = getTzip10Link(
           isIOS(window) && wallet.deepLink
             ? wallet.deepLink
             : isAndroid(window)
             ? wallet.links[OSLink.IOS]
             : 'tezos://',
-          code
+          p2pPayload
         )
 
         updateSelectedWalletWithURL(link)
@@ -158,9 +154,7 @@ const useConnect = (
 
       link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(wcPayload)}`
     } else {
-      const serializer = new Serializer()
-      const code = await serializer.serialize(p2pPayload)
-      link = getTzip10Link(wallet.links[OSLink.WEB], code)
+      link = getTzip10Link(wallet.links[OSLink.WEB], p2pPayload)
     }
 
     if (newTab) {
@@ -192,8 +186,8 @@ const useConnect = (
 
     if (!wallet?.links[OSLink.IOS].length) {
       const syncCode = wallet?.supportedInteractionStandards?.includes('wallet_connect')
-        ? wcPayload ?? ''
-        : await new Serializer().serialize(p2pPayload)
+        ? wcPayload
+        : p2pPayload
 
       if (!syncCode.length) {
         onCloseHandler()
@@ -239,12 +233,9 @@ const useConnect = (
 
   const handleClickConnectExtension = useCallback(async () => {
     setShowMoreContent(false)
-    const serializer = new Serializer()
-    const postmessageCode = await serializer.serialize(postPayload)
-
     const message: ExtensionMessage<string> = {
       target: ExtensionMessageTarget.EXTENSION,
-      payload: postmessageCode,
+      payload: postPayload,
       targetId: wallet?.id
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -253,7 +244,7 @@ const useConnect = (
     if (wallet?.firefoxId) {
       const message: ExtensionMessage<string> = {
         target: ExtensionMessageTarget.EXTENSION,
-        payload: postmessageCode,
+        payload: postPayload,
         targetId: wallet?.firefoxId
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -280,9 +271,7 @@ const useConnect = (
     setShowMoreContent(false)
 
     if (p2pPayload) {
-      const serializer = new Serializer()
-      const code = await serializer.serialize(p2pPayload)
-      const link = getTzip10Link(wallet?.deepLink || '', code)
+      const link = getTzip10Link(wallet?.deepLink || '', p2pPayload)
       window.open(link, '_blank', 'noopener')
     }
 
