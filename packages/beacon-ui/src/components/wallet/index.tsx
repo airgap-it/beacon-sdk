@@ -13,7 +13,6 @@ interface WalletProps {
 }
 
 const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
-  console.log(props.name, props.tags)
   return (
     <Grid2 size={6} alignSelf={'baseline'}>
       <Button variant="outlined">

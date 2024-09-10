@@ -5,6 +5,7 @@ import {
   NetworkType,
   AnalyticsInterface
 } from '@airgap/beacon-types'
+import { MergedWallet } from '../../utils/wallets'
 
 export interface AlertButton {
   text: string
@@ -24,14 +25,13 @@ export interface AlertConfig {
     walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
     networkType: NetworkType
   }
-  closeButtonCallback?(): void
+  closeButtonCallback?: () => void
   disclaimerText?: string
   analytics?: AnalyticsInterface
   featuredWallets?: string[]
 }
 
 export interface AlertProps {
-  content: any
   open: boolean
   showMore?: boolean
   extraContent?: any
@@ -39,4 +39,11 @@ export interface AlertProps {
   onCloseClick: () => void
   onClickShowMore?: () => void
   onBackClick?: () => void
+}
+
+export interface PairOtherProps {
+  walletList: MergedWallet[]
+  p2pPayload: string
+  wcPayload: string
+  onClickLearnMore: () => void
 }
