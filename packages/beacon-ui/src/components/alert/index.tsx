@@ -2,10 +2,10 @@ import { AlertProps } from '../../ui/alert/common'
 import { Modal, Box, Grid2, Button } from '@mui/material'
 import { LeftIcon, LogoIcon, CloseIcon } from '../icons'
 // import Loader from '../loader'
-// import useIsMobile from 'src/ui/alert/hooks/useIsMobile'
+import useIsMobile from 'src/ui/alert/hooks/useIsMobile'
 
 const Alert: React.FC<AlertProps> = (props: AlertProps) => {
-  // todo const isMobile = useIsMobile()
+  const isMobile = useIsMobile()
 
   return (
     <Modal open={true} onClose={props.onCloseClick}>
@@ -28,11 +28,31 @@ const Alert: React.FC<AlertProps> = (props: AlertProps) => {
             <LeftIcon />
           </Button>
           <LogoIcon />
-          <Button variant="outlined">
+          <Button variant="outlined" onClick={props.onCloseClick}>
             <CloseIcon />
           </Button>
         </Grid2>
-        <Grid2 container>{props.content}</Grid2>
+        <Grid2 container>
+          {props.content}
+          {!isMobile && (
+            <Grid2 container>
+              {props.extraContent && <Grid2>---</Grid2>}
+              {props.extraContent}
+            </Grid2>
+          )}
+        </Grid2>
+        <Grid2 container>{props.extraContent}</Grid2>
+        {!isMobile && props.extraContent && (
+          <Grid2
+            style={{ cursor: 'pointer', justifyContent: 'center' }}
+            onClick={() => {
+              if (props.onClickShowMore) props.onClickShowMore()
+            }}
+            container
+          >
+            {props.showMore ? 'Show less' : 'Show more'}
+          </Grid2>
+        )}
       </Box>
     </Modal>
   )
