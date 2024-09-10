@@ -818,23 +818,20 @@ export class DAppClient extends Client {
             this._initPromise = undefined
           }
 
+          await p2pTransport.connect()
+
+          const serializer = new Serializer()
+          const p2pPeerInfo = await serializer.serialize(await p2pTransport.getPairingRequestInfo())
+          const walletConnectPeerInfo = (await walletConnectTransport.getPairingRequestInfo()).uri
+          const postmessagePeerInfo = await serializer.serialize(
+            await postMessageTransport.getPairingRequestInfo()
+          )
+
           this.events
             .emit(BeaconEvent.PAIR_INIT, {
-              p2pPeerInfo: () => {
-                p2pTransport
-                  .connect()
-                  .then()
-                  .catch((err) => {
-                    logger.error(err)
-                    if (err.message === 'The account is deactivated.') {
-                      this.hideUI(['alert'])
-                      abortHandler()
-                    }
-                  })
-                return p2pTransport.getPairingRequestInfo()
-              },
-              postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
-              walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
+              p2pPeerInfo,
+              postmessagePeerInfo,
+              walletConnectPeerInfo,
               networkType: this.network.type,
               abortedHandler: abortHandler.bind(this),
               disclaimerText: this.disclaimerText,

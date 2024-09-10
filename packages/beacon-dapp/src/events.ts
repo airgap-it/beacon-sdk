@@ -11,9 +11,7 @@ import {
 import {
   BeaconErrorType,
   ExtendedPostMessagePairingResponse,
-  PostMessagePairingRequest,
   ExtendedP2PPairingResponse,
-  P2PPairingRequest,
   AccountInfo,
   ErrorResponse,
   PermissionResponseOutput,
@@ -26,7 +24,6 @@ import {
   AcknowledgeResponse,
   WalletInfo,
   ExtendedWalletConnectPairingResponse,
-  WalletConnectPairingRequest,
   AnalyticsInterface,
   ProofOfEventChallengeResponseOutput,
   SimulatedProofOfEventChallengeResponseOutput
@@ -201,9 +198,9 @@ export interface BeaconEventType {
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
   [BeaconEvent.PAIR_INIT]: {
-    p2pPeerInfo: () => Promise<P2PPairingRequest>
-    postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
-    walletConnectPeerInfo: () => Promise<WalletConnectPairingRequest>
+    p2pPeerInfo: string
+    postmessagePeerInfo: string
+    walletConnectPeerInfo: string
     networkType: NetworkType
     abortedHandler?(): void
     disclaimerText?: string
