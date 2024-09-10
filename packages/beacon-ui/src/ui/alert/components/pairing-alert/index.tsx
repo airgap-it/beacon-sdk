@@ -10,15 +10,13 @@ import { StorageKey } from '@airgap/beacon-types'
 import QR from 'src/components/qr'
 import useWallets from '../../hooks/useWallets'
 import { AlertConfig } from '../../common'
-import { useEffect, useState } from 'react'
-import { Serializer } from '@airgap/beacon-core'
 
-// todo remove any
 const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => {
-  // const { wcPayload, p2pPayload, postPayload, onClose } = props
-  const [wcPayload, setWcPayload] = useState<string>('')
-  const [p2pPayload, setP2pPayload] = useState<string>('')
-  const [postPayload, setPostPayload] = useState<string>('')
+  const {
+    walletConnectSyncCode: wcPayload,
+    p2pSyncCode: p2pPayload,
+    postmessageSyncCode: postPayload
+  } = props.pairingPayload!
   const wallets = useWallets()
   const [
     wallet,
@@ -105,22 +103,6 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
       </>
     )
   }
-
-  useEffect(() => {
-    const serializer = new Serializer()
-    props.pairingPayload
-      ?.p2pSyncCode()
-      .then(async (req) => setP2pPayload(await serializer.serialize(req)))
-      .catch((err) => console.error(err.message))
-    props.pairingPayload
-      ?.walletConnectSyncCode()
-      .then((req) => setWcPayload(req.uri))
-      .catch((err) => console.error(err.message))
-    props.pairingPayload
-      ?.postmessageSyncCode()
-      .then(async (req) => setPostPayload(await serializer.serialize(req)))
-      .catch((err) => console.error(err.message))
-  }, [])
 
   return (
     <Alert

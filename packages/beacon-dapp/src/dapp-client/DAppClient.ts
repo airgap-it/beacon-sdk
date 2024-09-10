@@ -820,22 +820,20 @@ export class DAppClient extends Client {
             this._initPromise = undefined
           }
 
+          await p2pTransport.connect()
+
+          const serializer = new Serializer()
+          const p2pPeerInfo = await serializer.serialize(await p2pTransport.getPairingRequestInfo())
+          const walletConnectPeerInfo = (await walletConnectTransport.getPairingRequestInfo()).uri
+          const postmessagePeerInfo = await serializer.serialize(
+            await postMessageTransport.getPairingRequestInfo()
+          )
+
           this.events
             .emit(BeaconEvent.PAIR_INIT, {
-              p2pPeerInfo: () => {
-                p2pTransport
-                  .connect()
-                  .then()
-                  .catch(async (err) => {
-                    logger.error(err)
-                    await this.hideUI(['alert']) // hide pairing alert
-                    setTimeout(() => this.events.emit(BeaconEvent.GENERIC_ERROR, err.message), 1000)
-                    abortHandler()
-                  })
-                return p2pTransport.getPairingRequestInfo()
-              },
-              postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
-              walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
+              p2pPeerInfo,
+              postmessagePeerInfo,
+              walletConnectPeerInfo,
               networkType: this.network.type,
               abortedHandler: abortHandler.bind(this),
               disclaimerText: this.disclaimerText,
