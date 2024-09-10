@@ -4,7 +4,7 @@ import { LeftIcon, LogoIcon, CloseIcon } from '../icons'
 // import Loader from '../loader'
 import useIsMobile from 'src/ui/alert/hooks/useIsMobile'
 
-const Alert: React.FC<AlertProps> = (props: AlertProps) => {
+const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
   const isMobile = useIsMobile()
 
   return (
@@ -33,7 +33,7 @@ const Alert: React.FC<AlertProps> = (props: AlertProps) => {
           </Button>
         </Grid2>
         <Grid2 container>
-          {props.content}
+          {props.children}
           {!isMobile && (
             <Grid2 container>
               {props.extraContent && <Grid2>---</Grid2>}
