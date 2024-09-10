@@ -1,5 +1,4 @@
 import { createRoot } from 'react-dom/client'
-import AlertContent from './components/alert-content'
 import { useEffect, useState } from 'react'
 import { Subject } from '../../utils/subject'
 import { AlertConfig } from './common'
@@ -33,19 +32,7 @@ const AlertRoot = (props: AlertConfig) => {
   useEffect(() => {
     show$.subscribe((value) => setIsAlertVisible(value))
   }, [])
-  return (
-    <>
-      {isAlertVisible && (
-        <PairingAlert
-          {...props}
-          open={true}
-          loading={false}
-          onClose={() => closeAlert()}
-          content={<AlertContent />}
-        />
-      )}
-    </>
-  )
+  return <>{isAlertVisible && <PairingAlert {...props} closeButtonCallback={closeAlert} />}</>
 }
 
 export { openAlert, closeAlert, closeAlerts }
