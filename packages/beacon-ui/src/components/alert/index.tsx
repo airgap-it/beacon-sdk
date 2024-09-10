@@ -37,17 +37,14 @@ const Alert: React.FC<AlertProps> = (props: AlertProps) => {
           {!isMobile && (
             <Grid2 container>
               {props.extraContent && <Grid2>---</Grid2>}
-              {props.extraContent}
+              {props.showMore && props.extraContent}
             </Grid2>
           )}
         </Grid2>
-        <Grid2 container>{props.extraContent}</Grid2>
         {!isMobile && props.extraContent && (
           <Grid2
             style={{ cursor: 'pointer', justifyContent: 'center' }}
-            onClick={() => {
-              if (props.onClickShowMore) props.onClickShowMore()
-            }}
+            onClick={() => props.onClickShowMore && props.onClickShowMore()}
             container
           >
             {props.showMore ? 'Show less' : 'Show more'}
