@@ -309,6 +309,8 @@ const useConnect = (
 
   const handleUpdateQRCode = useCallback((uri: string) => setQRCode(uri), [])
 
+  const handleShowMoreContent = useCallback(() => setShowMoreContent((prev) => !prev), [])
+
   return [
     wallet,
     isMobile,
@@ -327,7 +329,8 @@ const useConnect = (
     handleClickOpenDesktopApp,
     handleClickDownloadDesktopApp,
     handleUpdateState,
-    handleUpdateQRCode
+    handleUpdateQRCode,
+    handleShowMoreContent
   ] as const
 }
 

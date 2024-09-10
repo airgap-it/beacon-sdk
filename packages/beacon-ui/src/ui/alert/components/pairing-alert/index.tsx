@@ -32,7 +32,8 @@ const PairingAlert: React.FC<any> = (props) => {
     handleClickOpenDesktopApp,
     handleClickDownloadDesktopApp,
     handleUpdateState,
-    handleUpdateQRCode
+    handleUpdateQRCode,
+    handleShowMoreContent
   ] = useConnect(wcPayload, p2pPayload, postPayload, wallets, onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
@@ -95,6 +96,7 @@ const PairingAlert: React.FC<any> = (props) => {
 
   return (
     <Alert
+      {...props}
       loading={isLoading}
       onCloseClick={onClose}
       open={true}
@@ -422,6 +424,37 @@ const PairingAlert: React.FC<any> = (props) => {
           </div>
         </div>
       }
+      extraContent={
+        state !== 'top-wallets' || isMobile ? undefined : (
+          <Wallets
+            small
+            wallets={walletList.slice(-(walletList.length - 4))}
+            isMobile={isMobile}
+            onClickWallet={(id) => handleClickWallet(id, props)}
+            onClickOther={handleClickOther}
+          />
+        )
+      }
+      onClickShowMore={handleShowMoreContent}
+      onBackClick={() => {
+        switch (state) {
+          case 'install':
+          case 'qr':
+          case 'wallets':
+            if (state === 'wallets' && !isMobile) return undefined
+            return () => handleUpdateState('top-wallets')
+          case 'help':
+            return () => {
+              // todo if (pairingExpired) {
+              //   handleCloseAlert();
+              //   return;
+              // }
+              // todo return setCurrentInfo(previousInfo());
+            }
+          default:
+            return undefined
+        }
+      }}
     />
   )
 }

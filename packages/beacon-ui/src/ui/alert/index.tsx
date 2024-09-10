@@ -8,15 +8,15 @@ import PairingAlert from './components/pairing-alert'
 let initDone: boolean = false
 const show$ = new Subject<boolean>()
 
-const createAlert = () => {
+const createAlert = (config: AlertConfig) => {
   const el = document.createElement('beacon-modal')
   document.body.prepend(el)
-  setTimeout(() => createRoot(el).render(<AlertRoot />), 50)
+  setTimeout(() => createRoot(el).render(<AlertRoot {...config} />), 50)
   initDone = true
 }
 
-const openAlert = (_config: AlertConfig) => {
-  !initDone && createAlert()
+const openAlert = (config: AlertConfig) => {
+  !initDone && createAlert(config)
   show$.next(true)
 }
 
@@ -28,7 +28,7 @@ const closeAlerts = () => {
   closeAlert()
 }
 
-const AlertRoot = (_props: any) => {
+const AlertRoot = (props: AlertConfig) => {
   const [isAlertVisible, setIsAlertVisible] = useState(true)
   useEffect(() => {
     show$.subscribe((value) => setIsAlertVisible(value))
@@ -37,6 +37,7 @@ const AlertRoot = (_props: any) => {
     <>
       {isAlertVisible && (
         <PairingAlert
+          {...props}
           open={true}
           loading={false}
           onClose={() => closeAlert()}
