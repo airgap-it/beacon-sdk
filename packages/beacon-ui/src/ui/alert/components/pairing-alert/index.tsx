@@ -110,15 +110,15 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
     const serializer = new Serializer()
     props.pairingPayload
       ?.p2pSyncCode()
-      .then(async (code) => setP2pPayload(await serializer.serialize(code)))
+      .then(async (req) => setP2pPayload(await serializer.serialize(req)))
       .catch((err) => console.error(err.message))
     props.pairingPayload
       ?.walletConnectSyncCode()
-      .then((code) => setWcPayload(code.uri))
+      .then((req) => setWcPayload(req.uri))
       .catch((err) => console.error(err.message))
     props.pairingPayload
       ?.postmessageSyncCode()
-      .then(async (code) => setPostPayload(await serializer.serialize(code)))
+      .then(async (req) => setPostPayload(await serializer.serialize(req)))
       .catch((err) => console.error(err.message))
   }, [])
 
