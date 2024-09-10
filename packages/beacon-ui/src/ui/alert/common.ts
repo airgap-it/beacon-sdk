@@ -1,10 +1,4 @@
-import {
-  P2PPairingRequest,
-  PostMessagePairingRequest,
-  WalletConnectPairingRequest,
-  NetworkType,
-  AnalyticsInterface
-} from '@airgap/beacon-types'
+import { NetworkType, AnalyticsInterface } from '@airgap/beacon-types'
 import { MergedWallet } from '../../utils/wallets'
 
 export interface AlertButton {
@@ -20,9 +14,9 @@ export interface AlertConfig {
   timer?: number
   buttons?: AlertButton[]
   pairingPayload?: {
-    p2pSyncCode: () => Promise<P2PPairingRequest>
-    postmessageSyncCode: () => Promise<PostMessagePairingRequest>
-    walletConnectSyncCode: () => Promise<WalletConnectPairingRequest>
+    p2pSyncCode: string
+    postmessageSyncCode: string
+    walletConnectSyncCode: string
     networkType: NetworkType
   }
   closeButtonCallback?: () => void
