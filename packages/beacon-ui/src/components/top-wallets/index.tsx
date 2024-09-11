@@ -18,26 +18,32 @@ const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
   const enableBugReport = localStorage ? localStorage.getItem(StorageKey.ENABLE_METRICS) : 'false'
 
   return (
-    <div className="top-wallets-wrapper">
-      <div className="top-wallets-info">
-        <h3>Connect Wallet</h3>
-        {enableBugReport === 'true' ? (
-          <span>
-            Do you wish to report a bug?{' '}
-            <span className="top-wallets-learn-more" onClick={props.onClickLearnMore}>
-              Click here
-            </span>
+    <Grid2 container justifyContent={'center'} alignItems={'center'} flexDirection={'column'}>
+      <h3>Connect Wallet</h3>
+      {enableBugReport === 'true' ? (
+        <span>
+          Do you wish to report a bug?{' '}
+          <span
+            style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}
+            onClick={props.onClickLearnMore}
+          >
+            Click here
           </span>
-        ) : (
-          <span>
-            If you don't have a wallet, you can select a provider and create one now.{' '}
-            <span className="top-wallets-learn-more" onClick={props.onClickLearnMore}>
-              Learn more
-            </span>
-          </span>
-        )}
-      </div>
-      <Grid2 container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} padding={'10px'}>
+        </span>
+      ) : (
+        <span>
+          If you don't have a wallet, you can select a provider and create one now.{' '}
+          <span onClick={props.onClickLearnMore}>Learn more</span>
+        </span>
+      )}
+      <Grid2
+        container
+        justifyContent={'center'}
+        alignItems={'center'}
+        rowSpacing={1}
+        gap={0}
+        columnSpacing={1}
+      >
         {props.wallets.map((wallet) => (
           <Wallet
             key={wallet.id}
@@ -49,24 +55,20 @@ const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
           />
         ))}
         {props.otherWallets && (
-          <div className="top-wallets-other-wallets" onClick={props.otherWallets.onClick}>
-            <div className="top-wallets-other-wallets-left">
+          <Grid2 container onClick={props.otherWallets.onClick}>
+            <Grid2 container>
               <h3>Other Wallets</h3>
               <p>See other wallets you can use to connect</p>
-            </div>
-            <div className="top-wallets-other-wallets-right">
+            </Grid2>
+            <Grid2 container>
               <img src={props.otherWallets.images[0]} alt="Other Wallet 1" />
-              <img
-                className="top-wallets-other-wallets-center-wallet"
-                src={props.otherWallets.images[1]}
-                alt="Other Wallet 2"
-              />
+              <img src={props.otherWallets.images[1]} alt="Other Wallet 2" />
               <img src={props.otherWallets.images[2]} alt="Other Wallet 3" />
-            </div>
-          </div>
+            </Grid2>
+          </Grid2>
         )}
       </Grid2>
-    </div>
+    </Grid2>
   )
 }
 
