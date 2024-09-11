@@ -18,7 +18,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
     p2pSyncCode: p2pPayload,
     postmessageSyncCode: postPayload
   } = props.pairingPayload!
-  const wallets = useWallets()
+  const wallets = useWallets(props.pairingPayload?.networkType, props.featuredWallets)
   const [
     wallet,
     isMobile,
