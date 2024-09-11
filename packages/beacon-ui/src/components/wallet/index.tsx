@@ -14,7 +14,7 @@ interface WalletProps {
 
 const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
   return (
-    <Grid2 size={props.small ? undefined : 6} alignSelf={'baseline'}>
+    <Grid2 size={props.small ? undefined : 6} alignSelf={'baseline'} padding={'5px'}>
       <Button
         variant="outlined"
         onClick={props.onClick}
