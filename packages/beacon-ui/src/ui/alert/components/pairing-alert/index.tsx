@@ -134,32 +134,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
     >
       <Grid2 container>
         {state === 'install' && (
-          <Grid2
-            container
-            style={
-              state === 'install' || state === 'qr'
-                ? {
-                    opacity: 1,
-                    height: 'unset',
-                    overflow: 'unset',
-                    transform: 'scale(1)',
-                    transition: 'all ease 0.3s',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.9em'
-                  }
-                : {
-                    opacity: 0,
-                    height: 0,
-                    overflow: 'hidden',
-                    transform: 'scale(1.1)',
-                    transition: 'all ease 0.3s',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.9em'
-                  }
-            }
-          >
+          <Grid2 container justifyContent={'center'} spacing={2}>
             {isOnline && wallet?.types.includes('web') && (
               <Info
                 border
