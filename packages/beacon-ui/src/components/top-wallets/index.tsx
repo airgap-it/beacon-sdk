@@ -37,7 +37,7 @@ const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
           </span>
         )}
       </div>
-      <Grid2 container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+      <Grid2 container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} padding={'10px'}>
         {props.wallets.map((wallet) => (
           <Wallet
             key={wallet.id}
