@@ -27,6 +27,7 @@ const Info: React.FC<InfoProps> = (props: InfoProps) => {
       justifyContent={'center'}
       alignItems={'center'}
       flexDirection={'column'}
+      width={'100%'}
       sx={
         props.border
           ? {
