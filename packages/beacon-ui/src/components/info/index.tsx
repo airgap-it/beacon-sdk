@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { QRCodeIcon } from '../icons'
+import { Button, Grid2 } from '@mui/material'
 
 interface InfoProps {
   title: string
@@ -21,40 +22,39 @@ interface InfoProps {
 
 const Info: React.FC<InfoProps> = (props: InfoProps) => {
   return (
-    <div className={`info-wrapper ${props.border ? 'info-border' : ''}`}>
-      {props.icon && (
-        <div
-          className={`info-icon ${props.iconBadge ? 'info-badge' : ''}`}
-          style={props.bigIcon ? { fontSize: '3.4em' } : {}}
-        >
-          {props.icon}
-        </div>
-      )}
-      <h3 className="info-title">{props.title}</h3>
-      {props.description && <div className="info-description">{props.description}</div>}
-      {props.data && <pre className="info-data">{props.data}</pre>}
-      <div className="info-buttons">
+    <Grid2
+      container
+      justifyContent={'center'}
+      alignItems={'center'}
+      flexDirection={'column'}
+      sx={
+        props.border
+          ? {
+              borderStyle: 'solid',
+              borderWidth: 'thin',
+              borderColor: 'black'
+            }
+          : undefined
+      }
+    >
+      {props.icon && <Grid2 container>{props.icon}</Grid2>}
+      <h3>{props.title}</h3>
+      {props.description && <span>{props.description}</span>}
+      {props.data && <pre>{props.data}</pre>}
+      <Grid2 container>
         {props.buttons?.map((button, index) => (
-          <button
-            key={index}
-            className={button.type !== 'secondary' ? 'info-button' : 'info-button-secondary'}
-            onClick={button.onClick}
-          >
+          <Button key={index} onClick={button.onClick}>
             {button.label}
-          </button>
+          </Button>
         ))}
-      </div>
-      {props.downloadLink && (
-        <a className="downloadLink" href={props.downloadLink.url}>
-          {props.downloadLink.label}
-        </a>
-      )}
+      </Grid2>
+      {props.downloadLink && <a href={props.downloadLink.url}>{props.downloadLink.label}</a>}
       {props.onShowQRCodeClick && (
-        <button id="qr-code-icon" onClick={props.onShowQRCodeClick}>
+        <Button id="qr-code-icon" onClick={props.onShowQRCodeClick}>
           <QRCodeIcon />
-        </button>
+        </Button>
       )}
-    </div>
+    </Grid2>
   )
 }
 
