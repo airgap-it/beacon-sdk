@@ -14,13 +14,22 @@ interface WalletProps {
 
 const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
   return (
-    <Grid2 size={6} alignSelf={'baseline'}>
-      <Button variant="outlined" onClick={props.onClick}>
-        <div style={{ padding: '10px' }}>
-          <h3 style={{ margin: 0 }}>{props.name}</h3>
-          {props.description && <p style={{ fontSize: '10px', margin: 0 }}>{props.description}</p>}
-        </div>
-        <img src={props.image} alt={`${props.name} logo`} width={50} height={50} />
+    <Grid2 size={props.small ? undefined : 6} alignSelf={'baseline'}>
+      <Button size={'small'} variant="outlined" onClick={props.onClick}>
+        {!props.small && (
+          <Grid2 container>
+            <h3 style={{ margin: 0 }}>{props.name}</h3>
+            {props.description && (
+              <p style={{ fontSize: '10px', margin: 0 }}>{props.description}</p>
+            )}
+          </Grid2>
+        )}
+        <img
+          src={props.image}
+          alt={`${props.name} logo`}
+          width={props.small ? 25 : 50}
+          height={props.small ? 25 : 50}
+        />
       </Button>
     </Grid2>
   )
