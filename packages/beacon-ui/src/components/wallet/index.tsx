@@ -15,7 +15,7 @@ interface WalletProps {
 const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
   return (
     <Grid2 size={6} alignSelf={'baseline'}>
-      <Button variant="outlined">
+      <Button variant="outlined" onClick={props.onClick}>
         <div style={{ padding: '10px' }}>
           <h3 style={{ margin: 0 }}>{props.name}</h3>
           {props.description && <p style={{ fontSize: '10px', margin: 0 }}>{props.description}</p>}

@@ -23,10 +23,13 @@ const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
           p: 4
         }}
       >
-        <Grid2 container spacing={8} alignItems={'center'} justifyContent={'center'}>
-          <Button variant="outlined">
-            <LeftIcon />
-          </Button>
+        <Grid2 container spacing={10} alignItems={'center'} justifyContent={'center'}>
+          {props.onBackClick && (
+            <Button variant="outlined" onClick={props.onBackClick}>
+              <LeftIcon />
+            </Button>
+          )}
+          {!props.onBackClick && <Grid2 size={2} />}
           <LogoIcon />
           <Button variant="outlined" onClick={props.onCloseClick}>
             <CloseIcon />

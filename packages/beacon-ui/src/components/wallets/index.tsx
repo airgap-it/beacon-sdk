@@ -23,7 +23,9 @@ const Wallets: React.FC<WalletProps> = (props: WalletProps) => {
           description={wallet.descriptions.join(' & ')}
           image={wallet.image}
           small={props.small}
-          onClick={() => props.onClickWallet(wallet.id)}
+          onClick={() => {
+            props.onClickWallet(wallet.id)
+          }}
         />
       ))}
       <button className="wallets-button" onClick={props.onClickOther}>

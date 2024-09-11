@@ -10,6 +10,7 @@ import { StorageKey } from '@airgap/beacon-types'
 import QR from 'src/components/qr'
 import useWallets from '../../hooks/useWallets'
 import { AlertConfig } from '../../common'
+import { Grid2 } from '@mui/material'
 
 const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => {
   const {
@@ -122,29 +123,19 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
         )
       }
       onClickShowMore={handleShowMoreContent}
-      onBackClick={() => {
-        switch (state) {
-          case 'install':
-          case 'qr':
-          case 'wallets':
-            if (state === 'wallets' && !isMobile) return undefined
-            return () => handleUpdateState('top-wallets')
-          case 'help':
-            return () => {
-              // todo if (pairingExpired) {
-              //   handleCloseAlert();
-              //   return;
-              // }
-              // todo return setCurrentInfo(previousInfo());
-            }
-          default:
-            return undefined
-        }
-      }}
+      onBackClick={
+        state === 'install' ||
+        state === 'qr' ||
+        (state === 'wallets' && isMobile) ||
+        state === 'help'
+          ? () => handleUpdateState('top-wallets')
+          : undefined
+      }
     >
-      <div>
+      <Grid2 container>
         {state === 'install' && (
-          <div
+          <Grid2
+            container
             style={
               state === 'install' || state === 'qr'
                 ? {
@@ -299,10 +290,11 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
               ) : (
                 generateWCError(`Connect with ${wallet?.name} Mobile`)
               ))}
-          </div>
+          </Grid2>
         )}
         {state === 'qr' && (
-          <div
+          <Grid2
+            container
             style={{
               opacity: 1,
               height: 'unset',
@@ -324,9 +316,10 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
             ) : (
               <QRCode isMobile={true} />
             )}
-          </div>
+          </Grid2>
         )}
-        <div
+        <Grid2
+          container
           style={
             state === 'wallets'
               ? {
@@ -351,8 +344,9 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
             onClickWallet={(id) => handleClickWallet(id, props)}
             onClickOther={handleClickOther}
           />
-        </div>
-        <div
+        </Grid2>
+        <Grid2
+          container
           style={
             state === 'help'
               ? {
@@ -428,8 +422,9 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
               />
             </>
           )}
-        </div>
-        <div
+        </Grid2>
+        <Grid2
+          container
           style={
             state !== 'install' && state !== 'qr' && state !== 'wallets' && state !== 'help'
               ? {
@@ -462,8 +457,8 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                 : undefined
             }
           />
-        </div>
-      </div>
+        </Grid2>
+      </Grid2>
     </Alert>
   )
 }
