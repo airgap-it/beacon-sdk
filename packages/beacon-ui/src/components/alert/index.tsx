@@ -41,19 +41,15 @@ const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
             <CloseIcon />
           </Button>
         </Grid2>
-        <Grid2 container>
+        <Grid2 textAlign={'center'} container>
           {props.children}
-          {!isMobile && (
-            <Grid2 container>
-              {props.extraContent && <Grid2>---</Grid2>}
-              {props.showMore && props.extraContent}
-            </Grid2>
-          )}
+          {!isMobile && <Grid2 container>{props.showMore && props.extraContent}</Grid2>}
         </Grid2>
         {!isMobile && props.extraContent && (
           <Grid2
             style={{ cursor: 'pointer', justifyContent: 'center' }}
             onClick={() => props.onClickShowMore && props.onClickShowMore()}
+            marginTop={'15px'}
             container
           >
             {props.showMore ? 'Show less' : 'Show more'}

@@ -14,7 +14,13 @@ interface WalletProps {
 
 const Wallets: React.FC<WalletProps> = (props: WalletProps) => {
   return (
-    <Grid2 container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+    <Grid2
+      container
+      rowSpacing={1}
+      columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+      justifyContent={'center'}
+      padding={'10px'}
+    >
       {props.wallets.map((wallet) => (
         <Wallet
           key={wallet.id}
