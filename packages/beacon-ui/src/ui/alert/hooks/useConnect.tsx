@@ -29,6 +29,20 @@ const useConnect = (
   const [isWCWorking, setIsWCWorking] = useState(true)
   const isMobile = isMobileOS(window) || useIsMobile()
 
+  const setInstallState = (wallet?: MergedWallet) => {
+    if (
+      !wallet ||
+      (wallet.types.length <= 1 &&
+        !wallet.types.includes('ios') &&
+        !wallet.types.includes('desktop')) ||
+      (isMobileOS(window) && wallet.types.length === 1 && wallet.types.includes('desktop'))
+    ) {
+      return
+    }
+
+    setState('install')
+  }
+
   const handleClickWallet = async (id: string, config: AlertConfig) => {
     setIsLoading(true)
     setShowMoreContent(false)
@@ -58,7 +72,7 @@ const useConnect = (
 
       if (!isValid && wallet?.name.toLowerCase().includes('kukai')) {
         setQRCode('error')
-        // setInstallState(wallet)
+        setInstallState(wallet)
         setIsLoading(false)
         return
       }
@@ -68,7 +82,7 @@ const useConnect = (
           handleDeepLinking(wcPayload)
         } else {
           setQRCode(wcPayload)
-          // setInstallState(wallet)
+          setInstallState(wallet)
         }
       }
       setIsLoading(false)
@@ -101,8 +115,8 @@ const useConnect = (
       setIsLoading(false)
     } else {
       setIsLoading(false)
-      // setInstallState(wallet)
-      // await setDefaultPayload()
+      setInstallState(wallet)
+      config.pairingPayload && setQRCode(p2pPayload)
     }
   }
 
