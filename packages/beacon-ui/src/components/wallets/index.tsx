@@ -1,7 +1,7 @@
 import React from 'react'
 import { MergedWallet } from '../../utils/wallets'
 import Wallet from '../wallet'
-import { Grid2 } from '@mui/material'
+import { Button, Grid2 } from '@mui/material'
 
 interface WalletProps {
   wallets: MergedWallet[]
@@ -34,9 +34,9 @@ const Wallets: React.FC<WalletProps> = (props: WalletProps) => {
           }}
         />
       ))}
-      <button className="wallets-button" onClick={props.onClickOther}>
+      <Button onClick={props.onClickOther} variant='contained' size='large'>
         {props.isMobile ? 'Pair wallet on another device' : 'Show QR code'}
-      </button>
+      </Button>
     </Grid2>
   )
 }
