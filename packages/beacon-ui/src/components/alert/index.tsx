@@ -7,6 +7,14 @@ import useIsMobile from 'src/ui/alert/hooks/useIsMobile'
 const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
   const isMobile = useIsMobile()
 
+  const backButton = props.onBackClick ? (
+    <Button variant="outlined" onClick={props.onBackClick}>
+      <LeftIcon />
+    </Button>
+  ) : (
+    <Grid2 width={'3rem'} height={'1rem'} />
+  )
+
   return (
     <Modal open={true} onClose={props.onCloseClick}>
       <Box
@@ -30,12 +38,7 @@ const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
           justifyContent={'center'}
           flexWrap={'nowrap'}
         >
-          {props.onBackClick && (
-            <Button variant="outlined" onClick={props.onBackClick}>
-              <LeftIcon />
-            </Button>
-          )}
-          {!props.onBackClick && <Grid2 />}
+          {backButton}
           <LogoIcon />
           <Button variant="outlined" onClick={props.onCloseClick}>
             <CloseIcon />
