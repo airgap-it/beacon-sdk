@@ -82,7 +82,7 @@ export abstract class Transport<
   }
 
   /**
-   * @deprecated use checkIfReady on your transport instance instead.
+   * @deprecated use `waitForResolution` on your transport instance instead.
    * Returns a promise that resolves to true if the transport is available, false if it is not
    */
   public static async isAvailable(): Promise<boolean> {
@@ -92,7 +92,7 @@ export abstract class Transport<
   /**
    * Returns a promise that blocks the execution flow when awaited if the transport hasn't resolved yet; otherwise, it returns true.
    */
-  checkIfReady(): Promise<boolean> {
+  waitForResolution(): Promise<boolean> {
     return this.isReady.promise
   }
 

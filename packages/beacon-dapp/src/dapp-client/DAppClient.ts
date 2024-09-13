@@ -516,7 +516,7 @@ export class DAppClient extends Client {
 
     // block until the transport is ready
     const transport = await this._transport.promise
-    await transport.checkIfReady()
+    await transport.waitForResolution()
 
     this.openRequestsOtherTabs.add(message.id)
     isV3
