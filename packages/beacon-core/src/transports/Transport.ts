@@ -11,6 +11,7 @@ import { PeerManager } from '../managers/PeerManager'
 import { ArrayElem } from '../managers/StorageManager'
 import { CommunicationClient } from './clients/CommunicationClient'
 import { ClientEvents } from './clients/ClientEvents'
+import { ExposedPromise } from '@airgap/beacon-utils'
 
 const logger = new Logger('Transport')
 
@@ -72,6 +73,8 @@ export abstract class Transport<
     return this._isConnected
   }
 
+  private _isAvailable = new ExposedPromise<boolean>()
+
   constructor(name: string, client: S, peerManager: PeerManager<K>) {
     this.name = name
     this.client = client
@@ -81,8 +84,8 @@ export abstract class Transport<
   /**
    * Returns a promise that resolves to true if the transport is available, false if it is not
    */
-  public static async isAvailable(): Promise<boolean> {
-    return Promise.resolve(false)
+  public get isAvailable(): Promise<boolean> {
+    return this._isAvailable.promise
   }
 
   /**
@@ -91,6 +94,8 @@ export abstract class Transport<
   public async connect(): Promise<void> {
     logger.log('connect')
     this._isConnected = TransportStatus.CONNECTED
+
+    this._isAvailable.resolve(true)
 
     return
   }
@@ -101,6 +106,8 @@ export abstract class Transport<
   public async disconnect(): Promise<void> {
     logger.log('disconnect')
     this._isConnected = TransportStatus.NOT_CONNECTED
+
+    this._isAvailable = new ExposedPromise<boolean>()
 
     return
   }
