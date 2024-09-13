@@ -514,7 +514,7 @@ export class DAppClient extends Client {
       return
     }
 
-    // block until the transport is available
+    // block until the transport is ready
     const transport = await this._transport.promise
     await transport.checkIfReady()
 
