@@ -911,9 +911,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async closePairings() {
-    await this.closeSessions()
+    if (!this.signClient) {
+      return
+    }
 
-    if (!this.signClient) return
+    await this.closeSessions()
 
     const pairings = this.signClient.pairing.getAll() ?? []
     pairings.length &&
@@ -935,22 +937,24 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async closeSessions() {
-    if (this.signClient) {
-      const sessions = this.signClient.session.getAll() ?? []
-      sessions.length &&
-        (await Promise.allSettled(
-          sessions.map(
-            (session) =>
-              this.signClient?.disconnect({
-                topic: (session as any).topic,
-                reason: {
-                  code: 0, // TODO: Use constants
-                  message: 'Force new connection'
-                }
-              })
-          )
-        ))
+    if (!this.signClient) {
+      return
     }
+
+    const sessions = this.signClient.session.getAll() ?? []
+    sessions.length &&
+      (await Promise.allSettled(
+        sessions.map(
+          (session) =>
+            this.signClient?.disconnect({
+              topic: (session as any).topic,
+              reason: {
+                code: 0, // TODO: Use constants
+                message: 'Force new connection'
+              }
+            })
+        )
+      ))
 
     this.clearState()
   }
