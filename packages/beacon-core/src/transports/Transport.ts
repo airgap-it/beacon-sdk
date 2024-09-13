@@ -73,7 +73,7 @@ export abstract class Transport<
     return this._isConnected
   }
 
-  private _isAvailable = new ExposedPromise<boolean>()
+  private isReady = new ExposedPromise<boolean>()
 
   constructor(name: string, client: S, peerManager: PeerManager<K>) {
     this.name = name
@@ -82,10 +82,18 @@ export abstract class Transport<
   }
 
   /**
+   * @deprecated use checkIfReady on your transport instance instead.
    * Returns a promise that resolves to true if the transport is available, false if it is not
    */
-  public get isAvailable(): Promise<boolean> {
-    return this._isAvailable.promise
+  public static async isAvailable(): Promise<boolean> {
+    return Promise.resolve(false)
+  }
+
+  /**
+   * Returns a promise that blocks the execution flow when awaited if the transport hasn't resolved yet; otherwise, it returns true.
+   */
+  checkIfReady(): Promise<boolean> {
+    return this.isReady.promise
   }
 
   /**
@@ -95,7 +103,7 @@ export abstract class Transport<
     logger.log('connect')
     this._isConnected = TransportStatus.CONNECTED
 
-    this._isAvailable.resolve(true)
+    this.isReady.resolve(true)
 
     return
   }
@@ -107,7 +115,7 @@ export abstract class Transport<
     logger.log('disconnect')
     this._isConnected = TransportStatus.NOT_CONNECTED
 
-    this._isAvailable = new ExposedPromise<boolean>()
+    this.isReady = new ExposedPromise<boolean>()
 
     return
   }
