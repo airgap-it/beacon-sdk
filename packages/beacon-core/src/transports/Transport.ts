@@ -82,7 +82,6 @@ export abstract class Transport<
   }
 
   /**
-   * @deprecated use `waitForResolution` on your transport instance instead.
    * Returns a promise that resolves to true if the transport is available, false if it is not
    */
   public static async isAvailable(): Promise<boolean> {
