@@ -336,6 +336,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     if (this.signClient && !this.isLeader() && this.isMobileOS()) {
       await this.closeSignClient()
+      this.clearState()
     }
 
     if (!publicKey) {
@@ -686,6 +687,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         const isLeader = await this.isLeader()
         if (!isLeader && !this.isMobileOS()) {
           await this.closeSignClient()
+          this.clearState()
         }
       })
 
