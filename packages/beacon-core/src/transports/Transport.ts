@@ -11,7 +11,6 @@ import { PeerManager } from '../managers/PeerManager'
 import { ArrayElem } from '../managers/StorageManager'
 import { CommunicationClient } from './clients/CommunicationClient'
 import { ClientEvents } from './clients/ClientEvents'
-import { ExposedPromise } from '@airgap/beacon-utils'
 
 const logger = new Logger('Transport')
 
@@ -73,8 +72,6 @@ export abstract class Transport<
     return this._isConnected
   }
 
-  private isReady = new ExposedPromise<boolean>()
-
   constructor(name: string, client: S, peerManager: PeerManager<K>) {
     this.name = name
     this.client = client
@@ -89,20 +86,11 @@ export abstract class Transport<
   }
 
   /**
-   * Returns a promise that blocks the execution flow when awaited if the transport hasn't resolved yet; otherwise, it returns true.
-   */
-  waitForResolution(): Promise<boolean> {
-    return this.isReady.promise
-  }
-
-  /**
    * Connect the transport
    */
   public async connect(): Promise<void> {
     logger.log('connect')
     this._isConnected = TransportStatus.CONNECTED
-
-    this.isReady.resolve(true)
 
     return
   }
@@ -113,8 +101,6 @@ export abstract class Transport<
   public async disconnect(): Promise<void> {
     logger.log('disconnect')
     this._isConnected = TransportStatus.NOT_CONNECTED
-
-    this.isReady = new ExposedPromise<boolean>()
 
     return
   }

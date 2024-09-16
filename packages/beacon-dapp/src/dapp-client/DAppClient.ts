@@ -515,7 +515,7 @@ export class DAppClient extends Client {
     }
 
     // block until the transport is ready
-    const transport = await this._transport.promise
+    const transport = (await this._transport.promise) as DappWalletConnectTransport
     await transport.waitForResolution()
 
     this.openRequestsOtherTabs.add(message.id)
