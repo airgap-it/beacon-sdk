@@ -26,7 +26,7 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
     keyPair: KeyPair,
     storage: Storage,
     wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    isLeader: Function
+    isLeader: () => Promise<boolean>
   ) {
     super(
       name,
@@ -38,7 +38,9 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
     )
     this.client.listenForChannelOpening(async (peer: ExtendedWalletConnectPairingResponse) => {
       await this.addPeer(peer)
-      this._isConnected = TransportStatus.CONNECTED
+      this._isConnected = (await isLeader())
+        ? TransportStatus.CONNECTED
+        : TransportStatus.SECONDARY_TAB_CONNECTED
       if (this.newPeerListener) {
         this.newPeerListener(peer)
         this.newPeerListener = undefined // TODO: Remove this once we use the id
