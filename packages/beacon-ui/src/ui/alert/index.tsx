@@ -623,6 +623,10 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           }
         }
         setIsLoading(false)
+      } else if (_isMobileOS && hasExtension()) {
+        handleClickConnectExtension()
+
+        setIsLoading(false)
       } else if (wallet?.types.includes('ios') && _isMobileOS) {
         setCodeQR('')
 
@@ -841,7 +845,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           ]}
                         />
                       )}
-                      {!isMobile() && currentWallet()?.types.includes('extension') && (
+                      {currentWallet()?.types.includes('extension') && (
                         <Info
                           border
                           title={
