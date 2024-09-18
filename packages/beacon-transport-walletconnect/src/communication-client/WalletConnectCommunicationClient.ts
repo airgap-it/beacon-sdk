@@ -1048,8 +1048,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       },
       sessionProperties: {
         [BEACON_SDK_VERSION]: SDK_VERSION
-      }
-      // pairingTopic
+      },
+      pairingTopic
     }
 
     logger.debug('Checking wallet readiness', [pairingTopic])
