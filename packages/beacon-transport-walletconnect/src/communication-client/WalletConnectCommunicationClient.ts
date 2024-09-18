@@ -111,18 +111,24 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   private messageIds: string[] = []
 
-  constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
+  constructor(
+    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
+    private isLeader: Function
+  ) {
     super()
     this.storage.onMessageHandler = this.onStorageMessageHandler.bind(this)
     this.storage.onErrorHandler = this.onStorageErrorHandler.bind(this)
   }
 
-  static getInstance(wcOptions: {
-    network: NetworkType
-    opts: SignClientTypes.Options
-  }): WalletConnectCommunicationClient {
+  static getInstance(
+    wcOptions: {
+      network: NetworkType
+      opts: SignClientTypes.Options
+    },
+    isLeader: Function
+  ): WalletConnectCommunicationClient {
     if (!this.instance) {
-      this.instance = new WalletConnectCommunicationClient(wcOptions)
+      this.instance = new WalletConnectCommunicationClient(wcOptions, isLeader)
     }
     return WalletConnectCommunicationClient.instance
   }
@@ -722,6 +728,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.notifyListeners(_pairingTopic, errorResponse)
         }
       })
+      .then(async () => {
+        const isLeader = await this.isLeader()
+        if (!isLeader && !this.isMobileOS()) {
+          await this.closeSignClient()
+          this.clearState()
+        }
+      })
 
     logger.warn('return uri and topic')
 
@@ -950,48 +963,50 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async closePairings() {
-    await this.closeSessions()
-    const signClient = await this.getSignClient()
-
-    if (signClient) {
-      const pairings = signClient.pairing.getAll() ?? []
-      pairings.length &&
-        (await Promise.allSettled(
-          pairings.map((pairing) =>
-            signClient.disconnect({
-              topic: pairing.topic,
-              reason: {
-                code: 0, // TODO: Use constants
-                message: 'Force new connection'
-              }
-            })
-          )
-        ))
+    if (!this.signClient) {
+      return
     }
 
+    await this.closeSessions()
+    const signClient = (await this.getSignClient())!
+
+    const pairings = signClient.pairing.getAll() ?? []
+    pairings.length &&
+      (await Promise.allSettled(
+        pairings.map((pairing) =>
+          signClient.disconnect({
+            topic: pairing.topic,
+            reason: {
+              code: 0, // TODO: Use constants
+              message: 'Force new connection'
+            }
+          })
+        )
+      ))
     await this.closeSignClient()
     await this.storage.resetState()
-    this.storage.notify('RESET')
   }
 
   private async closeSessions() {
-    const signClient = await this.getSignClient()
-
-    if (signClient) {
-      const sessions = signClient.session.getAll() ?? []
-      sessions.length &&
-        (await Promise.allSettled(
-          sessions.map((session) =>
-            signClient.disconnect({
-              topic: (session as any).topic,
-              reason: {
-                code: 0, // TODO: Use constants
-                message: 'Force new connection'
-              }
-            })
-          )
-        ))
+    if (!this.signClient) {
+      return
     }
+
+    const signClient = (await this.getSignClient())!
+
+    const sessions = signClient.session.getAll() ?? []
+    sessions.length &&
+      (await Promise.allSettled(
+        sessions.map((session) =>
+          signClient.disconnect({
+            topic: (session as any).topic,
+            reason: {
+              code: 0, // TODO: Use constants
+              message: 'Force new connection'
+            }
+          })
+        )
+      ))
 
     this.clearState()
   }
