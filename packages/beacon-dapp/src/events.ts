@@ -40,7 +40,7 @@ import {
   // EncryptionOperation
 } from '@airgap/beacon-core'
 import { shortenString } from './utils/shorten-string'
-import { isMobile } from '@airgap/beacon-ui'
+import { isMobile, isMobileOS } from '@airgap/beacon-ui'
 
 const logger = new Logger('BeaconEvents')
 
@@ -261,6 +261,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     body: `Request sent to\u00A0 {{wallet}}`,
     walletInfo: data.walletInfo,
     state: 'loading',
+    timer: isMobileOS(window) ? SUCCESS_TIMER : undefined,
     actions,
     openWalletAction
   }).catch((toastError) => console.error(toastError))

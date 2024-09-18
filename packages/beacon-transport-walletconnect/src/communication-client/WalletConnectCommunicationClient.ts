@@ -182,15 +182,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
   }
 
-  private clearEvents() {
-    this.signClient?.removeAllListeners('session_event')
-    this.signClient?.removeAllListeners('session_update')
-    this.signClient?.removeAllListeners('session_delete')
-    this.signClient?.removeAllListeners('session_expire')
-    this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
-    this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
-  }
-
   private abortErrorBuilder() {
     if (!this.messageIds.length) {
       return
@@ -206,11 +197,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private onStorageMessageHandler(type: string) {
+    if (!this.isMobileOS()) {
+      return
+    }
+
     logger.debug('onStorageMessageHandler', type)
 
     if (type === 'RESET') {
       this.abortErrorBuilder()
-      this.clearEvents()
       // no need to invoke `closeSignClinet` as the other tab already closed the connection
       this.signClient = undefined
       this.clearState()
@@ -236,9 +230,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private async closeSignClient() {
     if (!this.signClient) {
-      logger.error('No client active')
       return
     }
+
     if (!this.isMobileOS()) {
       await this.signClient.core.relayer.transportClose()
       this.signClient.core.events.removeAllListeners()
@@ -249,7 +243,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.signClient.core.relayer.provider.connection.events.removeAllListeners()
     }
 
-    this.clearEvents()
     this.signClient = undefined
   }
 
@@ -278,7 +271,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async checkWalletReadiness(_topic: string) {
-    if (this.pingInterval) {
+    if (this.isMobileOS() || this.pingInterval) {
       return
     }
 
@@ -749,7 +742,15 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.messageIds = []
   }
 
+  private hasAlreadySubscribed(signClient: Client) {
+    return signClient.events.listenerCount('session_update') > 0
+  }
+
   private subscribeToSessionEvents(signClient: Client): void {
+    if (this.hasAlreadySubscribed(signClient)) {
+      return
+    }
+
     signClient.on('session_event', (event) => {
       if (
         event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED &&
