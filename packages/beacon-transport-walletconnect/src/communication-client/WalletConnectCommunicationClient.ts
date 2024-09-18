@@ -4,8 +4,7 @@ import {
   Serializer,
   ClientEvents,
   Logger,
-  WCStorage,
-  SDK_VERSION
+  WCStorage
 } from '@airgap/beacon-core'
 import Client from '@walletconnect/sign-client'
 import { ProposalTypes, SessionTypes, SignClientTypes } from '@walletconnect/types'
@@ -49,7 +48,6 @@ import {
 import { generateGUID, getAddressFromPublicKey, isPublicKeySC } from '@airgap/beacon-utils'
 
 const TEZOS_PLACEHOLDER = 'tezos'
-const BEACON_SDK_VERSION = 'beacon_sdk_version'
 const logger = new Logger('WalletConnectCommunicationClient')
 
 export interface PermissionScopeParam {
@@ -113,22 +111,18 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   private messageIds: string[] = []
 
-  constructor(
-    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    private isLeader: Function
-  ) {
+  constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
+    this.storage.onMessageHandler = this.onStorageMessageHandler.bind(this)
+    this.storage.onErrorHandler = this.onStorageErrorHandler.bind(this)
   }
 
-  static getInstance(
-    wcOptions: {
-      network: NetworkType
-      opts: SignClientTypes.Options
-    },
-    isLeader: Function
-  ): WalletConnectCommunicationClient {
+  static getInstance(wcOptions: {
+    network: NetworkType
+    opts: SignClientTypes.Options
+  }): WalletConnectCommunicationClient {
     if (!this.instance) {
-      this.instance = new WalletConnectCommunicationClient(wcOptions, isLeader)
+      this.instance = new WalletConnectCommunicationClient(wcOptions)
     }
     return WalletConnectCommunicationClient.instance
   }
@@ -163,6 +157,25 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
+  /**
+   * WC Sign client doesn't sync between intances, meaning that a dApp signClient instance state may
+   * differ from a wallet state
+   */
+  private async refreshState() {
+    await this.closeSignClient()
+
+    const client = (await this.getSignClient())!
+    const lastIndex = client.session.keys.length - 1
+
+    if (lastIndex > -1) {
+      this.session = client.session.get(client.session.keys[lastIndex])
+      this.updateStorageWallet(this.session)
+      this.setDefaultAccountAndNetwork()
+    } else {
+      this.clearState()
+    }
+  }
+
   private clearEvents() {
     this.signClient?.removeAllListeners('session_event')
     this.signClient?.removeAllListeners('session_update')
@@ -170,6 +183,40 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.removeAllListeners('session_expire')
     this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
     this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
+  }
+
+  private abortErrorBuilder() {
+    if (!this.messageIds.length) {
+      return
+    }
+
+    const errorResponse: any = {
+      type: BeaconMessageType.Disconnect,
+      id: this.messageIds.pop(),
+      errorType: BeaconErrorType.ABORTED_ERROR
+    }
+    this.session && this.notifyListeners(this.getTopicFromSession(this.session), errorResponse)
+    this.messageIds = [] // reset
+  }
+
+  private onStorageMessageHandler(type: string) {
+    logger.debug('onStorageMessageHandler', type)
+
+    if (type === 'RESET') {
+      this.abortErrorBuilder()
+      this.clearEvents()
+      // no need to invoke `closeSignClinet` as the other tab already closed the connection
+      this.signClient = undefined
+      this.clearState()
+
+      return
+    }
+
+    this.refreshState()
+  }
+
+  private onStorageErrorHandler(data: any) {
+    logger.error('onStorageError', data)
   }
 
   async unsubscribeFromEncryptedMessages(): Promise<void> {
@@ -181,21 +228,22 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     // implementation
   }
 
-  async closeSignClient() {
+  private async closeSignClient() {
     if (!this.signClient) {
       logger.error('No client active')
       return
     }
+    if (!this.isMobileOS()) {
+      await this.signClient.core.relayer.transportClose()
+      this.signClient.core.events.removeAllListeners()
+      this.signClient.core.relayer.events.removeAllListeners()
+      this.signClient.core.heartbeat.stop()
+      this.signClient.core.relayer.provider.events.removeAllListeners()
+      this.signClient.core.relayer.subscriber.events.removeAllListeners()
+      this.signClient.core.relayer.provider.connection.events.removeAllListeners()
+    }
 
-    await this.signClient.core.relayer.transportClose()
-    this.signClient.core.events.removeAllListeners()
-    this.signClient.core.relayer.events.removeAllListeners()
-    this.signClient.core.heartbeat.stop()
-    this.signClient.core.relayer.provider.events.removeAllListeners()
-    this.signClient.core.relayer.subscriber.events.removeAllListeners()
-    this.signClient.core.relayer.provider.connection.events.removeAllListeners()
     this.clearEvents()
-
     this.signClient = undefined
   }
 
@@ -324,11 +372,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         publicKey = result[0]?.pubkey
       }
-    }
-
-    if (this.signClient && !this.isLeader() && this.isMobileOS()) {
-      await this.closeSignClient()
-      this.clearState()
     }
 
     if (!publicKey) {
@@ -579,10 +622,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       },
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
-      },
-      sessionProperties: {
-        [BEACON_SDK_VERSION]: SDK_VERSION
       }
+      // sessionProperties: {
+      //   [BEACON_SDK_VERSION]: SDK_VERSION
+      // }
     }
 
     const { uri, approval } = await signClient.connect(connectParams).catch((error) => {
@@ -679,13 +722,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.notifyListeners(_pairingTopic, errorResponse)
         }
       })
-      .then(async () => {
-        const isLeader = await this.isLeader()
-        if (!isLeader && !this.isMobileOS()) {
-          await this.closeSignClient()
-          this.clearState()
-        }
-      })
 
     logger.warn('return uri and topic')
 
@@ -694,6 +730,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async close() {
     this.storage.backup()
+    this.abortErrorBuilder()
     await this.closePairings()
     this.unsubscribeFromEncryptedMessages()
     this.messageIds = []
@@ -720,7 +757,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
       this.session = session
 
-      this.updateActiveAccount(this.getTezosNamespace(event.params.namespaces).accounts, session)
+      this.updateActiveAccount(event.params.namespaces, session)
     })
 
     signClient.on('session_delete', (event) => {
@@ -752,8 +789,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.notifyListeners(this.getTopicFromSession(session), acknowledgeResponse)
   }
 
-  private async updateActiveAccount(accounts: string[], session: SessionTypes.Struct) {
+  private async updateActiveAccount(
+    namespaces: SessionTypes.Namespaces,
+    session: SessionTypes.Struct
+  ) {
     try {
+      const accounts = this.getTezosNamespace(namespaces).accounts
       if (accounts.length) {
         const [_namespace, chainId, addressOrPbk] = accounts[0].split(':', 3)
         const session = this.getSession()
@@ -909,50 +950,48 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async closePairings() {
-    if (!this.signClient) {
-      return
+    await this.closeSessions()
+    const signClient = await this.getSignClient()
+
+    if (signClient) {
+      const pairings = signClient.pairing.getAll() ?? []
+      pairings.length &&
+        (await Promise.allSettled(
+          pairings.map((pairing) =>
+            signClient.disconnect({
+              topic: pairing.topic,
+              reason: {
+                code: 0, // TODO: Use constants
+                message: 'Force new connection'
+              }
+            })
+          )
+        ))
     }
 
-    await this.closeSessions()
-    const signClient = (await this.getSignClient())!
-
-    const pairings = signClient.pairing.getAll() ?? []
-    pairings.length &&
-      (await Promise.allSettled(
-        pairings.map((pairing) =>
-          signClient.disconnect({
-            topic: pairing.topic,
-            reason: {
-              code: 0, // TODO: Use constants
-              message: 'Force new connection'
-            }
-          })
-        )
-      ))
     await this.closeSignClient()
     await this.storage.resetState()
+    this.storage.notify('RESET')
   }
 
   private async closeSessions() {
-    if (!this.signClient) {
-      return
+    const signClient = await this.getSignClient()
+
+    if (signClient) {
+      const sessions = signClient.session.getAll() ?? []
+      sessions.length &&
+        (await Promise.allSettled(
+          sessions.map((session) =>
+            signClient.disconnect({
+              topic: (session as any).topic,
+              reason: {
+                code: 0, // TODO: Use constants
+                message: 'Force new connection'
+              }
+            })
+          )
+        ))
     }
-
-    const signClient = (await this.getSignClient())!
-
-    const sessions = signClient.session.getAll() ?? []
-    sessions.length &&
-      (await Promise.allSettled(
-        sessions.map((session) =>
-          signClient.disconnect({
-            topic: (session as any).topic,
-            reason: {
-              code: 0, // TODO: Use constants
-              message: 'Force new connection'
-            }
-          })
-        )
-      ))
 
     this.clearState()
   }
@@ -988,9 +1027,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       },
       optionalNamespaces: {
         [TEZOS_PLACEHOLDER]: this.permissionScopeParamsToNamespaces(optionalPermissionScopeParams)
-      },
-      sessionProperties: {
-        [BEACON_SDK_VERSION]: SDK_VERSION
       },
       pairingTopic
     }
