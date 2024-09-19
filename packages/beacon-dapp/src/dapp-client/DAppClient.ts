@@ -932,7 +932,7 @@ export class DAppClient extends Client {
       if (this._transport.isResolved()) {
         const transport = await this.transport
 
-        if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
+        if (transport.connectionStatus !== TransportStatus.CONNECTED) {
           await transport.connect()
         }
       }
