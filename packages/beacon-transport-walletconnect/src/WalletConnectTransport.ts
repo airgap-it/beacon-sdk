@@ -35,7 +35,7 @@ export class WalletConnectTransport<
     storage: Storage,
     storageKey: K,
     private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    private isLeader: Function
+    private isLeader: () => boolean
   ) {
     super(
       name,

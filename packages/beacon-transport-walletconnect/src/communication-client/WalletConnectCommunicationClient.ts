@@ -115,7 +115,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   constructor(
     private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    private isLeader: Function
+    private isLeader: () => boolean
   ) {
     super()
   }
@@ -125,7 +125,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       network: NetworkType
       opts: SignClientTypes.Options
     },
-    isLeader: Function
+    isLeader: () => boolean
   ): WalletConnectCommunicationClient {
     if (!this.instance) {
       this.instance = new WalletConnectCommunicationClient(wcOptions, isLeader)

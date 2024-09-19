@@ -455,18 +455,6 @@ export class DAppClient extends Client {
     this.initUserID().catch((err) => logger.error(err.message))
   }
 
-  private async checkIfBCLeaderExists() {
-    const hasLeader = await this.multiTabChannel.hasLeader()
-
-    if (hasLeader) {
-      return this.multiTabChannel.isLeader()
-    }
-
-    await this.multiTabChannel.getLeadership()
-
-    return this.multiTabChannel.isLeader()
-  }
-
   private async onElectedLeaderhandler() {
     if (!this._transport.isResolved()) {
       return
@@ -510,7 +498,7 @@ export class DAppClient extends Client {
   }
 
   private async prepareRequest(message: any, isV3 = false) {
-    if (!this.multiTabChannel.isLeader()) {
+    if (!this.multiTabChannel.isLeader) {
       return
     }
 
@@ -594,7 +582,7 @@ export class DAppClient extends Client {
         network: this.network.type,
         opts: wcOptions
       },
-      this.checkIfBCLeaderExists.bind(this)
+      () => this.multiTabChannel.isLeader
     )
 
     this.initEvents()
@@ -889,7 +877,7 @@ export class DAppClient extends Client {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
-        if (this.multiTabChannel.isLeader()) {
+        if (this.multiTabChannel.isLeader) {
           await transport.disconnect()
           this.openRequestsOtherTabs.clear()
         } else {
@@ -1078,7 +1066,7 @@ export class DAppClient extends Client {
   private async checkMakeRequest() {
     const isResolved = this._transport.isResolved()
     const isWCInstance = isResolved && (await this.transport) instanceof WalletConnectTransport
-    const isLeader = this.multiTabChannel.isLeader()
+    const isLeader = this.multiTabChannel.isLeader
 
     return !isResolved || (isResolved && (!isWCInstance || (isWCInstance && isLeader)))
   }

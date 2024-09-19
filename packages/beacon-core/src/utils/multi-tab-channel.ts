@@ -1,85 +1,102 @@
-import { Logger } from '@airgap/beacon-core'
-import { createLeaderElection, BroadcastChannel, LeaderElector } from 'broadcast-channel'
-
 type Message = {
   type: string
-  id: string
-  data: any
+  sender: string
+  recipient?: string
+  data?: any
 }
 
-const logger = new Logger('MultiTabChannel')
-
 export class MultiTabChannel {
+  private id: string = String(Date.now())
+  private neighborhood: string[] = []
   private channel: BroadcastChannel
-  private elector: LeaderElector
   private eventListeners = [
     () => this.onBeforeUnloadHandler(),
     (message: any) => this.onMessageHandler(message)
   ]
   private onBCMessageHandler: Function
   private onElectedLeaderHandler: Function
-  // Auxiliary variable needed for handling beforeUnload.
-  // Closing a tab causes the elector to be killed immediately
-  private wasLeader: boolean = false
+  private leaderElectionTimeout: NodeJS.Timeout | undefined
+  private pendingACKs: Map<string, NodeJS.Timeout> = new Map()
+
+  isLeader: boolean = false
 
   constructor(name: string, onBCMessageHandler: Function, onElectedLeaderHandler: Function) {
     this.onBCMessageHandler = onBCMessageHandler
     this.onElectedLeaderHandler = onElectedLeaderHandler
     this.channel = new BroadcastChannel(name)
-    this.elector = createLeaderElection(this.channel)
-    this.init().then(() => logger.debug('MultiTabChannel', 'constructor', 'init', 'done'))
+    this.init()
   }
 
-  private async init() {
-    const hasLeader = await this.elector.hasLeader()
-
-    if (!hasLeader) {
-      await this.elector.awaitLeadership()
-      this.wasLeader = this.isLeader()
-    }
-
+  private init() {
+    this.postMessage({ type: 'REQUEST_LEADERSHIP', sender: this.id })
+    this.leaderElectionTimeout = setTimeout(() => (this.isLeader = true), 1000)
     this.channel.onmessage = this.eventListeners[1]
     window?.addEventListener('beforeunload', this.eventListeners[0])
   }
 
-  private async onBeforeUnloadHandler() {
-    if (this.wasLeader) {
-      await this.elector.die()
-      this.postMessage({ type: 'LEADER_DEAD' })
+  private chooseNextLeader() {
+    return Math.floor(Math.random() * this.neighborhood.length)
+  }
+
+  private onBeforeUnloadHandler() {
+    if (this.isLeader) {
+      this.postMessage({
+        type: 'LEADER_DEAD',
+        sender: this.id,
+        recipient: this.neighborhood[this.chooseNextLeader()],
+        data: this.neighborhood
+      })
+      this.neighborhood.splice(0)
+      this.isLeader = false
+    } else {
+      this.postMessage({ type: 'CHILD_UNLOAD', sender: this.id })
     }
 
     window?.removeEventListener('beforeunload', this.eventListeners[0])
     this.channel.removeEventListener('message', this.eventListeners[1])
   }
 
-  private async onMessageHandler(message: Message) {
-    if (message.type === 'LEADER_DEAD') {
-      await this.elector.awaitLeadership()
+  private onMessageHandler({ data }: { data: Message }) {
+    if (data.type === 'REQUEST_LEADERSHIP' && this.isLeader) {
+      this.postMessage({ type: 'LEADER_EXISTS', sender: this.id, recipient: data.sender })
+      this.neighborhood.push(data.sender!)
+      return
+    }
 
-      this.wasLeader = this.isLeader()
+    if (data.type === 'LEADER_EXISTS') {
+      data.recipient === this.id && clearTimeout(this.leaderElectionTimeout)
+      return
+    }
 
-      if (this.isLeader()) {
+    if (data.type === 'CHILD_UNLOAD' && this.isLeader) {
+      this.pendingACKs.set(
+        data.sender,
+        setTimeout(() => {
+          this.neighborhood = this.neighborhood.filter((id) => id !== data.id)
+          this.pendingACKs.delete(data.sender)
+        }, 1000)
+      )
+      return
+    }
+
+    if (data.type === 'CHILD_STILL_ALIVE' && this.isLeader) {
+      clearTimeout(this.pendingACKs.get(data.sender))
+      this.pendingACKs.delete(data.sender)
+    }
+
+    if (data.type === 'LEADER_DEAD') {
+      if (data.recipient === this.id) {
+        this.isLeader = true
+        this.neighborhood = data.data.filter((id: string) => this.id !== id)
         this.onElectedLeaderHandler()
       }
       return
     }
 
-    this.onBCMessageHandler(message)
+    this.onBCMessageHandler(data)
   }
 
-  isLeader(): boolean {
-    return this.elector.isLeader
-  }
-
-  async getLeadership() {
-    return this.elector.awaitLeadership()
-  }
-
-  async hasLeader(): Promise<boolean> {
-    return this.elector.hasLeader()
-  }
-
-  postMessage(message: any): void {
+  postMessage(message: Message): void {
     this.channel.postMessage(message)
   }
 }
