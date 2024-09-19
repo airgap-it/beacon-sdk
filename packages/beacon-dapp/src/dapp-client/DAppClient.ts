@@ -507,7 +507,9 @@ export class DAppClient extends Client {
     await transport.waitForResolution()
 
     this.openRequestsOtherTabs.add(data.id)
-    isV3 ? this.makeRequestV3(data.request, data.id) : this.makeRequest(data.request, false, data.id)
+    isV3
+      ? this.makeRequestV3(data.request, data.id)
+      : this.makeRequest(data.request, false, data.id)
   }
 
   private async createStateSnapshot() {
@@ -1066,7 +1068,7 @@ export class DAppClient extends Client {
     const isWCInstance = isResolved && (await this.transport) instanceof WalletConnectTransport
     const isLeader = this.multiTabChannel.isLeader
 
-    return !isResolved || (isResolved && (!isWCInstance || (isWCInstance && isLeader)))
+    return !isResolved || !isWCInstance || isLeader
   }
 
   /**
