@@ -3,7 +3,9 @@ import { BeaconMessageType } from '@airgap/beacon-types'
 type BCMessageType =
   | 'REQUEST_LEADERSHIP'
   | 'LEADER_EXISTS'
-  | 'LEADER_DEAD'
+  | 'LEADER_UNLOAD'
+  | 'LEADER_STILL_ALIVE'
+  | 'IS_LEADER_ALIVE'
   | 'CHILD_UNLOAD'
   | 'CHILD_STILL_ALIVE'
   | 'IS_CHILD_ALIVE'
@@ -54,12 +56,10 @@ export class MultiTabChannel {
   private onBeforeUnloadHandler() {
     if (this.isLeader) {
       this.postMessage({
-        type: 'LEADER_DEAD',
+        type: 'LEADER_UNLOAD',
         recipient: this.neighborhood[this.chooseNextLeader()],
         data: this.neighborhood
       })
-      this.neighborhood.splice(0)
-      this.isLeader = false
     } else {
       this.postMessage({ type: 'CHILD_UNLOAD' })
     }
@@ -93,9 +93,11 @@ export class MultiTabChannel {
       return
     }
 
-    if (data.type === 'CHILD_STILL_ALIVE' && this.isLeader) {
-      clearTimeout(this.pendingACKs.get(data.sender))
-      this.pendingACKs.delete(data.sender)
+    if (data.type === 'CHILD_STILL_ALIVE') {
+      if (this.isLeader) {
+        clearTimeout(this.pendingACKs.get(data.sender))
+        this.pendingACKs.delete(data.sender)
+      }
     }
 
     if (data.type === 'IS_CHILD_ALIVE') {
@@ -103,12 +105,30 @@ export class MultiTabChannel {
       return
     }
 
-    if (data.type === 'LEADER_DEAD') {
+    if (data.type === 'LEADER_UNLOAD') {
       if (data.recipient === this.id) {
-        this.isLeader = true
-        this.neighborhood = data.data.filter((id: string) => this.id !== id)
-        this.onElectedLeaderHandler()
+        this.pendingACKs.set(
+          data.sender,
+          setTimeout(() => {
+            this.isLeader = true
+            this.neighborhood = data.data.filter((id: string) => this.id !== id)
+            this.onElectedLeaderHandler()
+          }, 1000)
+        )
       }
+      this.postMessage({ type: 'IS_LEADER_ALIVE', recipient: data.sender })
+      return
+    }
+
+    if (data.type === 'LEADER_STILL_ALIVE') {
+      if (this.isLeader) {
+        clearTimeout(this.pendingACKs.get(data.sender))
+        this.pendingACKs.delete(data.sender)
+      }
+    }
+
+    if (data.type === 'IS_LEADER_ALIVE') {
+      data.recipient === this.id && this.postMessage({ type: 'CHILD_STILL_ALIVE' })
       return
     }
 
