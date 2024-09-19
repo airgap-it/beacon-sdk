@@ -72,7 +72,7 @@ export class MultiTabChannel {
       this.pendingACKs.set(
         data.sender,
         setTimeout(() => {
-          this.neighborhood = this.neighborhood.filter((id) => id !== data.id)
+          this.neighborhood = this.neighborhood.filter((id) => id !== data.sender)
           this.pendingACKs.delete(data.sender)
         }, 1000)
       )
