@@ -99,7 +99,7 @@ export class MultiTabChannel {
     }
 
     if (data.type === 'IS_CHILD_ALIVE') {
-      data.recipient === this.id && this.postMessage({ type: 'IS_CHILD_ALIVE' })
+      data.recipient === this.id && this.postMessage({ type: 'CHILD_STILL_ALIVE' })
       return
     }
 
