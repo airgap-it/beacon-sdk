@@ -318,7 +318,7 @@ export class DAppClient extends Client {
             message,
             connectionInfo
           },
-          id: message.id
+          recipient: message.id
         })
 
         if (typedMessage.type !== BeaconMessageType.Acknowledge) {
@@ -497,7 +497,7 @@ export class DAppClient extends Client {
     }
   }
 
-  private async prepareRequest(message: any, isV3 = false) {
+  private async prepareRequest({ data }: any, isV3 = false) {
     if (!this.multiTabChannel.isLeader) {
       return
     }
@@ -506,10 +506,8 @@ export class DAppClient extends Client {
     const transport = (await this._transport.promise) as DappWalletConnectTransport
     await transport.waitForResolution()
 
-    this.openRequestsOtherTabs.add(message.id)
-    isV3
-      ? this.makeRequestV3(message.data, message.id)
-      : this.makeRequest(message.data, false, message.id)
+    this.openRequestsOtherTabs.add(data.id)
+    isV3 ? this.makeRequestV3(data.request, data.id) : this.makeRequest(data.request, false, data.id)
   }
 
   private async createStateSnapshot() {
@@ -2519,8 +2517,7 @@ export class DAppClient extends Client {
 
     this.multiTabChannel.postMessage({
       type: request.type,
-      data: request,
-      id
+      data: { request, id }
     })
 
     if (
