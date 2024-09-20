@@ -518,8 +518,6 @@ export class DAppClient extends Client {
   }
 
   private async handlePairingRequest(recipient: string) {
-    const serializer = new Serializer()
-
     await this.initInternalTransports()
 
     this.walletConnectTransport
@@ -561,7 +559,7 @@ export class DAppClient extends Client {
     this.multiTabChannel.postMessage({
       type: 'RESPONSE_PAIRING',
       recipient,
-      data: await serializer.serialize(await this.walletConnectTransport?.getPairingRequestInfo())
+      data: await this.walletConnectTransport?.getPairingRequestInfo()
     })
   }
 
@@ -735,7 +733,7 @@ export class DAppClient extends Client {
 
     this.pairingRequest = new ExposedPromise()
     this.multiTabChannel.postMessage({ type: 'REQUEST_PAIRING' })
-    return await new Serializer().deserialize(await this.pairingRequest.promise)
+    return await this.pairingRequest.promise
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
