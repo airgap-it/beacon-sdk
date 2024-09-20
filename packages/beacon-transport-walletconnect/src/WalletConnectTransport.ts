@@ -62,7 +62,7 @@ export class WalletConnectTransport<
 
     this._isConnected = TransportStatus.CONNECTING
 
-    const isLeader = await this.isLeader()
+    const isLeader = this.isLeader()
 
     if (isLeader) {
       await this.client.init()
