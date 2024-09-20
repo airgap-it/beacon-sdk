@@ -14,6 +14,7 @@ type BCMessageType =
   | 'DISCONNECT'
   | 'REQUEST_PAIRING'
   | 'RESPONSE_PAIRING'
+  | 'HIDE_UI'
   | BeaconMessageType
 
 type BCMessage = {

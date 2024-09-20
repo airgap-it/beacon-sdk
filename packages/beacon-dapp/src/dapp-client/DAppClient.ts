@@ -500,6 +500,9 @@ export class DAppClient extends Client {
       case 'RESPONSE_PAIRING':
         this.handlePairingResponse(message.data)
         break
+      case 'HIDE_UI':
+        this.hideUI(message.data)
+        break
       default:
         logger.error('onBCMessageHandler', 'message type not recognized', message)
     }
@@ -535,15 +538,20 @@ export class DAppClient extends Client {
         const { message, connectionInfo } = await this.makeRequest<
           PermissionRequest,
           PermissionResponse
-        >(request).catch((err) => {
-          throw new Error(err.message)
-        })
+        >(request)
 
         await this.hideUI(['toast'])
 
         const accountInfo = await this.onNewAccount(message, connectionInfo)
         await this.accountManager.addAccount(accountInfo)
-        // todo output
+
+        this.walletConnectTransport?.connect()
+
+        this.multiTabChannel.postMessage({
+          type: 'HIDE_UI',
+          recipient,
+          data: ['alert', 'toast']
+        })
       })
       .catch(console.error)
 

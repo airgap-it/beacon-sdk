@@ -57,6 +57,7 @@ export class WalletConnectTransport<
 
   public async connect(): Promise<void> {
     if ([TransportStatus.CONNECTED, TransportStatus.CONNECTING].includes(this._isConnected)) {
+      this.isReady.isPending() && this.isReady.resolve(true)
       return
     }
 
