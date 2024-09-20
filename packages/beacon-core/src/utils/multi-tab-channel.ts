@@ -20,9 +20,11 @@ type BCMessage = {
   data?: any
 }
 
+const timeout = 1000 // ms
+
 export class MultiTabChannel {
   private id: string = String(Date.now())
-  private neighborhood: string[] = []
+  private neighborhood: Set<string> = new Set()
   private channel: BroadcastChannel
   private eventListeners = [
     () => this.onBeforeUnloadHandler(),
@@ -35,6 +37,19 @@ export class MultiTabChannel {
 
   isLeader: boolean = false
 
+  private messageHandlers: {
+    [key in BCMessageType]?: (data: BCMessage) => void
+  } = {
+    REQUEST_LEADERSHIP: this.handleRequestLeadership.bind(this),
+    LEADER_EXISTS: this.handleLeaderExists.bind(this),
+    CHILD_UNLOAD: this.handleChildUnload.bind(this),
+    CHILD_STILL_ALIVE: this.handleChildStillAlive.bind(this),
+    IS_CHILD_ALIVE: this.handleIsChildAlive.bind(this),
+    LEADER_UNLOAD: this.handleLeaderUnload.bind(this),
+    LEADER_STILL_ALIVE: this.handleLeaderStillAlive.bind(this),
+    IS_LEADER_ALIVE: this.handleIsLeaderAlive.bind(this)
+  }
+
   constructor(name: string, onBCMessageHandler: Function, onElectedLeaderHandler: Function) {
     this.onBCMessageHandler = onBCMessageHandler
     this.onElectedLeaderHandler = onElectedLeaderHandler
@@ -44,20 +59,22 @@ export class MultiTabChannel {
 
   private init() {
     this.postMessage({ type: 'REQUEST_LEADERSHIP' })
-    this.leaderElectionTimeout = setTimeout(() => (this.isLeader = true), 1000)
+    this.leaderElectionTimeout = setTimeout(() => (this.isLeader = true), timeout)
     this.channel.onmessage = this.eventListeners[1]
     window?.addEventListener('beforeunload', this.eventListeners[0])
   }
 
   private chooseNextLeader() {
-    return Math.floor(Math.random() * this.neighborhood.length)
+    return Math.floor(Math.random() * this.neighborhood.size)
   }
 
   private onBeforeUnloadHandler() {
+    // We can't immediately say that a child or the leader is dead
+    // beacause, on mobile a browser tab gets unloaded every time it no longer has focus
     if (this.isLeader) {
       this.postMessage({
         type: 'LEADER_UNLOAD',
-        recipient: this.neighborhood[this.chooseNextLeader()],
+        recipient: Array.from(this.neighborhood)[this.chooseNextLeader()],
         data: this.neighborhood
       })
     } else {
@@ -69,70 +86,86 @@ export class MultiTabChannel {
   }
 
   private onMessageHandler({ data }: { data: BCMessage }) {
-    if (data.type === 'REQUEST_LEADERSHIP' && this.isLeader) {
+    const handler = this.messageHandlers[data.type]
+    if (handler) {
+      handler(data)
+    } else {
+      this.onBCMessageHandler(data)
+    }
+  }
+
+  private handleRequestLeadership(data: BCMessage) {
+    if (this.isLeader) {
       this.postMessage({ type: 'LEADER_EXISTS', recipient: data.sender })
-      this.neighborhood.push(data.sender!)
-      return
+      this.neighborhood.add(data.sender)
     }
+  }
 
-    if (data.type === 'LEADER_EXISTS') {
-      data.recipient === this.id && clearTimeout(this.leaderElectionTimeout)
-      return
+  private handleLeaderExists(data: BCMessage) {
+    if (data.recipient === this.id) {
+      clearTimeout(this.leaderElectionTimeout)
     }
+  }
 
-    if (data.type === 'CHILD_UNLOAD' && this.isLeader) {
+  private handleChildUnload(data: BCMessage) {
+    if (this.isLeader) {
       this.pendingACKs.set(
         data.sender,
         setTimeout(() => {
-          this.neighborhood = this.neighborhood.filter((id) => id !== data.sender)
+          this.neighborhood.delete(data.sender)
           this.pendingACKs.delete(data.sender)
-        }, 1000)
+        }, timeout)
       )
-      // on mobile a browser tab gets unloaded every time it no longer has focus
+
       this.postMessage({ type: 'IS_CHILD_ALIVE', recipient: data.sender })
-      return
     }
+  }
 
-    if (data.type === 'CHILD_STILL_ALIVE') {
-      if (this.isLeader) {
-        clearTimeout(this.pendingACKs.get(data.sender))
-        this.pendingACKs.delete(data.sender)
-      }
+  private handleChildStillAlive(data: BCMessage) {
+    if (this.isLeader) {
+      this.clearPendingACK(data.sender)
     }
+  }
 
-    if (data.type === 'IS_CHILD_ALIVE') {
-      data.recipient === this.id && this.postMessage({ type: 'CHILD_STILL_ALIVE' })
-      return
+  private handleIsChildAlive(data: BCMessage) {
+    if (data.recipient === this.id) {
+      this.postMessage({ type: 'CHILD_STILL_ALIVE' })
     }
+  }
 
-    if (data.type === 'LEADER_UNLOAD') {
-      if (data.recipient === this.id) {
-        this.pendingACKs.set(
-          data.sender,
-          setTimeout(() => {
-            this.isLeader = true
-            this.neighborhood = data.data.filter((id: string) => this.id !== id)
-            this.onElectedLeaderHandler()
-          }, 1000)
-        )
-      }
-      this.postMessage({ type: 'IS_LEADER_ALIVE', recipient: data.sender })
-      return
+  private handleLeaderUnload(data: BCMessage) {
+    if (data.recipient === this.id) {
+      this.pendingACKs.set(
+        data.sender,
+        setTimeout(() => {
+          this.isLeader = true
+          this.neighborhood = data.data
+          this.neighborhood.delete(this.id)
+          this.onElectedLeaderHandler()
+        }, timeout)
+      )
     }
+    this.postMessage({ type: 'IS_LEADER_ALIVE', recipient: data.sender })
+  }
 
-    if (data.type === 'LEADER_STILL_ALIVE') {
-      if (this.isLeader) {
-        clearTimeout(this.pendingACKs.get(data.sender))
-        this.pendingACKs.delete(data.sender)
-      }
+  private handleLeaderStillAlive(data: BCMessage) {
+    if (this.isLeader) {
+      this.clearPendingACK(data.sender)
     }
+  }
 
-    if (data.type === 'IS_LEADER_ALIVE') {
-      data.recipient === this.id && this.postMessage({ type: 'CHILD_STILL_ALIVE' })
-      return
+  private handleIsLeaderAlive(data: BCMessage) {
+    if (data.recipient === this.id) {
+      this.postMessage({ type: 'LEADER_STILL_ALIVE' })
     }
+  }
 
-    this.onBCMessageHandler(data)
+  private clearPendingACK(sender: string) {
+    const timeout = this.pendingACKs.get(sender)
+    if (timeout) {
+      clearTimeout(timeout)
+      this.pendingACKs.delete(sender)
+    }
   }
 
   postMessage(message: Omit<BCMessage, 'sender'>): void {
