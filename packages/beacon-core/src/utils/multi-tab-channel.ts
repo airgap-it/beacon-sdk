@@ -15,6 +15,8 @@ type BCMessageType =
   | 'REQUEST_PAIRING'
   | 'RESPONSE_PAIRING'
   | 'HIDE_UI'
+  | 'NEW_PEER'
+  | 'GET_PERMISSIONS'
   | BeaconMessageType
 
 type BCMessage = {

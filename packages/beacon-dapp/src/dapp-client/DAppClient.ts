@@ -233,6 +233,7 @@ export class DAppClient extends Client {
   )
 
   private pairingRequest: ExposedPromise<string> | undefined
+  private pairingResponse: { message: BeaconMessage; connectionInfo: ConnectionContext } | undefined
 
   constructor(config: DAppClientOptions) {
     super({
@@ -500,12 +501,20 @@ export class DAppClient extends Client {
       case 'RESPONSE_PAIRING':
         this.handlePairingResponse(message.data)
         break
+      case 'NEW_PEER':
+        this.handleNewPeerBC(message.data)
+        break
       case 'HIDE_UI':
         this.hideUI(message.data)
         break
       default:
         logger.error('onBCMessageHandler', 'message type not recognized', message)
     }
+  }
+
+  private async handleNewPeerBC(data: any) {
+    this.pairingResponse = data.response
+    this.walletConnectTransport?.updatePeerListener(data.peer)
   }
 
   private async handlePairingRequest(recipient: string) {
@@ -519,9 +528,6 @@ export class DAppClient extends Client {
         this.analytics.track('event', 'DAppClient', 'WalletConnect Wallet connected', {
           peerName: peer.name
         })
-        this.events
-          .emit(BeaconEvent.PAIR_SUCCESS, peer)
-          .catch((emitError) => console.warn(emitError))
 
         this.setActivePeer(peer).catch(console.error)
         this.setTransport(this.walletConnectTransport).catch(console.error)
@@ -535,22 +541,19 @@ export class DAppClient extends Client {
           scopes: [PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN] // todo
         }
 
-        const { message, connectionInfo } = await this.makeRequest<
-          PermissionRequest,
-          PermissionResponse
-        >(request)
+        const response = await this.makeRequest<PermissionRequest, PermissionResponse>(request)
 
         await this.hideUI(['toast'])
-
-        const accountInfo = await this.onNewAccount(message, connectionInfo)
-        await this.accountManager.addAccount(accountInfo)
 
         this.walletConnectTransport?.connect()
 
         this.multiTabChannel.postMessage({
-          type: 'HIDE_UI',
+          type: 'NEW_PEER',
           recipient,
-          data: ['alert', 'toast']
+          data: {
+            peer,
+            response
+          }
         })
       })
       .catch(console.error)
@@ -2395,7 +2398,11 @@ export class DAppClient extends Client {
         ErrorResponse
       >()
 
-      this.addOpenRequest(request.id, exposed)
+      if (this.pairingResponse) {
+        exposed.resolve(this.pairingResponse)
+      } else {
+        this.addOpenRequest(request.id, exposed)
+      }
     }
 
     const payload = await new Serializer().serialize(request)
@@ -2407,28 +2414,32 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
-    try {
-      ;(await this.transport).send(payload, peer)
-      if (
-        request.type !== BeaconMessageType.PermissionRequest ||
-        (this._activeAccount.isResolved() && (await this._activeAccount.promise))
-      ) {
-        this.tryToAppSwitch()
-      }
-    } catch (sendError) {
-      this.events.emit(BeaconEvent.INTERNAL_ERROR, {
-        text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
-        buttons: [
-          {
-            text: 'Reset Connection',
-            actionCallback: async (): Promise<void> => {
-              await closeToast()
-              this.disconnect()
+    if (!this.pairingResponse) {
+      try {
+        ;(await this.transport).send(payload, peer)
+        if (
+          request.type !== BeaconMessageType.PermissionRequest ||
+          (this._activeAccount.isResolved() && (await this._activeAccount.promise))
+        ) {
+          this.tryToAppSwitch()
+        }
+      } catch (sendError) {
+        this.events.emit(BeaconEvent.INTERNAL_ERROR, {
+          text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
+          buttons: [
+            {
+              text: 'Reset Connection',
+              actionCallback: async (): Promise<void> => {
+                await closeToast()
+                this.disconnect()
+              }
             }
-          }
-        ]
-      })
-      throw sendError
+          ]
+        })
+        throw sendError
+      }
+    } else {
+      this.pairingResponse = undefined
     }
 
     if (!otherTabMessageId) {
