@@ -930,7 +930,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         )
       ))
     await this.closeSignClient()
-    await this.storage.resetState()
+    // await this.storage.resetState()
   }
 
   private async closeSessions() {
