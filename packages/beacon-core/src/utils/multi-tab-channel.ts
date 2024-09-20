@@ -1,4 +1,5 @@
 import { BeaconMessageType } from '@airgap/beacon-types'
+import { Logger } from './Logger'
 
 type BCMessageType =
   | 'REQUEST_LEADERSHIP'
@@ -21,6 +22,7 @@ type BCMessage = {
 }
 
 const timeout = 1000 // ms
+const logger = new Logger('MultiTabChannel')
 
 export class MultiTabChannel {
   private id: string = String(Date.now())
@@ -59,7 +61,10 @@ export class MultiTabChannel {
 
   private init() {
     this.postMessage({ type: 'REQUEST_LEADERSHIP' })
-    this.leaderElectionTimeout = setTimeout(() => (this.isLeader = true), timeout)
+    this.leaderElectionTimeout = setTimeout(() => {
+      this.isLeader = true
+      logger.log('The current tab is the leader.')
+    }, timeout)
     this.channel.onmessage = this.eventListeners[1]
     window?.addEventListener('beforeunload', this.eventListeners[0])
   }
