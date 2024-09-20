@@ -105,6 +105,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private activeNetwork: string | undefined
   readonly disconnectionEvents: Set<string> = new Set()
   private pingInterval: NodeJS.Timeout | undefined
+  private leaderPairingCode: string | undefined
 
   /**
    * this queue stores each active message id
@@ -163,15 +164,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
-  private clearEvents() {
-    this.signClient?.removeAllListeners('session_event')
-    this.signClient?.removeAllListeners('session_update')
-    this.signClient?.removeAllListeners('session_delete')
-    this.signClient?.removeAllListeners('session_expire')
-    this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
-    this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
-  }
-
   async unsubscribeFromEncryptedMessages(): Promise<void> {
     this.activeListeners.clear()
     this.channelOpeningListeners.clear()
@@ -179,24 +171,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   async unsubscribeFromEncryptedMessage(_senderPublicKey: string): Promise<void> {
     // implementation
-  }
-
-  async closeSignClient() {
-    if (!this.signClient) {
-      logger.error('No client active')
-      return
-    }
-
-    await this.signClient.core.relayer.transportClose()
-    this.signClient.core.events.removeAllListeners()
-    this.signClient.core.relayer.events.removeAllListeners()
-    this.signClient.core.heartbeat.stop()
-    this.signClient.core.relayer.provider.events.removeAllListeners()
-    this.signClient.core.relayer.subscriber.events.removeAllListeners()
-    this.signClient.core.relayer.provider.connection.events.removeAllListeners()
-    this.clearEvents()
-
-    this.signClient = undefined
   }
 
   private async ping() {
@@ -324,11 +298,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         publicKey = result[0]?.pubkey
       }
-    }
-
-    if (this.signClient && !this.isLeader() && this.isMobileOS()) {
-      await this.closeSignClient()
-      this.clearState()
     }
 
     if (!publicKey) {
@@ -679,13 +648,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.notifyListeners(_pairingTopic, errorResponse)
         }
       })
-      .then(async () => {
-        const isLeader = await this.isLeader()
-        if (!isLeader && !this.isMobileOS()) {
-          await this.closeSignClient()
-          this.clearState()
-        }
-      })
 
     logger.warn('return uri and topic')
 
@@ -700,6 +662,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private subscribeToSessionEvents(signClient: Client): void {
+    if (signClient.events.listenerCount('session_event') > 0) {
+      return
+    }
+
     signClient.on('session_event', (event) => {
       if (
         event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED &&
@@ -929,8 +895,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           })
         )
       ))
-    await this.closeSignClient()
-    // await this.storage.resetState()
   }
 
   private async closeSessions() {
