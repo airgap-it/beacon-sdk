@@ -89,18 +89,6 @@ export class WalletConnectTransport<
     return !!this.client.disconnectionEvents.size
   }
 
-  public async hasPairings() {
-    return (await this.client.storage.hasPairings())
-      ? true
-      : !!this.client.signClient?.pairing.getAll()?.length
-  }
-
-  public async hasSessions() {
-    return (await this.client.storage.hasSessions())
-      ? true
-      : !!this.client.signClient?.session.getAll()?.length
-  }
-
   public async getPeers(): Promise<T[]> {
     const client = WalletConnectCommunicationClient.getInstance(this.wcOptions)
     const session = client.currentSession()

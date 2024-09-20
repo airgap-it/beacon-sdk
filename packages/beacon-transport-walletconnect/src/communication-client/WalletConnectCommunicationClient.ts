@@ -4,7 +4,6 @@ import {
   Serializer,
   ClientEvents,
   Logger,
-  WCStorage,
   SDK_VERSION
 } from '@airgap/beacon-core'
 import Client from '@walletconnect/sign-client'
@@ -99,7 +98,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private static instance: WalletConnectCommunicationClient
   public signClient: Client | undefined
-  public storage: WCStorage = new WCStorage()
   private session: SessionTypes.Struct | undefined
   private activeAccountOrPbk: string | undefined
   private activeNetwork: string | undefined
@@ -113,18 +111,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   private messageIds: string[] = []
 
-  constructor(
-    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-  ) {
+  constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
     super()
   }
 
-  static getInstance(
-    wcOptions: {
-      network: NetworkType
-      opts: SignClientTypes.Options
-    }
-  ): WalletConnectCommunicationClient {
+  static getInstance(wcOptions: {
+    network: NetworkType
+    opts: SignClientTypes.Options
+  }): WalletConnectCommunicationClient {
     if (!this.instance) {
       this.instance = new WalletConnectCommunicationClient(wcOptions)
     }
@@ -171,14 +165,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async ping() {
-    const client = await this.getSignClient()
-
-    if (!client || !this.session) {
+    if (!this.signClient || !this.session) {
       logger.error('No session available.')
       return
     }
 
-    client
+    this.signClient
       .ping({ topic: this.session.topic })
       .then(() => {
         if (this.messageIds.length) {
@@ -231,11 +223,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async fetchAccounts(topic: string, chainId: string) {
-    const signClient = await this.getSignClient()
-    if (!signClient) {
+    if (!this.signClient) {
       return
     }
-    return signClient.request<
+    return this.signClient.request<
       [
         {
           algo: 'ed25519'
@@ -343,9 +334,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * @error MissingRequiredScope is thrown if permission to sign payload was not granted
    */
   async signPayload(signPayloadRequest: SignPayloadRequest) {
-    const signClient = await this.getSignClient()
-
-    if (!signClient) {
+    if (!this.signClient) {
       return
     }
 
@@ -359,8 +348,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     this.checkWalletReadiness(this.getTopicFromSession(session))
 
-    // TODO: Type
-    signClient
+    this.signClient
       .request<{ signature: string }>({
         topic: session.topic,
         chainId: `${TEZOS_PLACEHOLDER}:${network}`,
@@ -404,9 +392,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * @error MissingRequiredScope is thrown if permission to send operation was not granted
    */
   async sendOperations(operationRequest: OperationRequest) {
-    const signClient = await this.getSignClient()
-
-    if (!signClient) {
+    if (!this.signClient) {
       return
     }
 
@@ -420,7 +406,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.validateNetworkAndAccount(network, account)
     this.checkWalletReadiness(this.getTopicFromSession(session))
 
-    signClient
+    this.signClient
       .request<{
         // The `operationHash` field should be provided to specify the operation hash,
         // while the `transactionHash` and `hash` fields are supported for backwards compatibility.
@@ -502,20 +488,20 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     logger.warn('init')
     this.disconnectionEvents.size && this.disconnectionEvents.clear()
 
+    await this.getSignClient()
+
     if (forceNewConnection) {
       await this.closePairings()
     }
 
-    const signClient = await this.getSignClient()
-
-    if (!signClient) {
+    if (!this.signClient) {
       throw new Error('Failed to connect to the relayer.')
     }
 
-    const lastIndex = signClient.session.keys.length - 1
+    const lastIndex = this.signClient.session.keys.length - 1
 
     if (lastIndex > -1) {
-      this.session = signClient.session.get(signClient.session.keys[lastIndex])
+      this.session = this.signClient.session.get(this.signClient.session.keys[lastIndex])
       this.updateStorageWallet(this.session)
       this.setDefaultAccountAndNetwork()
 
@@ -551,7 +537,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       }
     }
 
-    const { uri, approval } = await signClient.connect(connectParams).catch((error) => {
+    const { uri, approval } = await this.signClient.connect(connectParams).catch((error) => {
       logger.error(`Init error: ${error.message}`)
       localStorage && localStorage.setItem(StorageKey.WC_INIT_ERROR, error.message)
       throw new Error(error.message)
@@ -566,7 +552,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     let hasResponse = false
 
-    signClient.core.pairing
+    this.signClient.core.pairing
       .ping({ topic })
       .then(async () => {
         if (!hasResponse) {
@@ -633,8 +619,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           const fun = this.eventHandlers.get(ClientEvents.WC_ACK_NOTIFICATION)
           fun && fun('error')
         } else {
-          const _pairingTopic = topic ?? signClient.core.pairing.getPairings()[0]?.topic
-          logger.debug('New pairing topic?', [])
+          const _pairingTopic = topic ?? this.signClient?.core.pairing.getPairings()[0]?.topic
 
           const errorResponse: ErrorResponseInput = {
             type: BeaconMessageType.Error,
@@ -652,7 +637,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   public async close() {
-    this.storage.backup()
     await this.closePairings()
     this.unsubscribeFromEncryptedMessages()
     this.messageIds = []
@@ -877,19 +861,19 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     }
 
     await this.closeSessions()
-    const signClient = (await this.getSignClient())!
 
-    const pairings = signClient.pairing.getAll() ?? []
+    const pairings = this.signClient.pairing.getAll() ?? []
     pairings.length &&
       (await Promise.allSettled(
-        pairings.map((pairing) =>
-          signClient.disconnect({
-            topic: pairing.topic,
-            reason: {
-              code: 0, // TODO: Use constants
-              message: 'Force new connection'
-            }
-          })
+        pairings.map(
+          (pairing) =>
+            this.signClient?.disconnect({
+              topic: pairing.topic,
+              reason: {
+                code: 0, // TODO: Use constants
+                message: 'Force new connection'
+              }
+            })
         )
       ))
   }
@@ -899,19 +883,18 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    const signClient = (await this.getSignClient())!
-
-    const sessions = signClient.session.getAll() ?? []
+    const sessions = this.signClient.session.getAll() ?? []
     sessions.length &&
       (await Promise.allSettled(
-        sessions.map((session) =>
-          signClient.disconnect({
-            topic: (session as any).topic,
-            reason: {
-              code: 0, // TODO: Use constants
-              message: 'Force new connection'
-            }
-          })
+        sessions.map(
+          (session) =>
+            this.signClient?.disconnect({
+              topic: (session as any).topic,
+              reason: {
+                code: 0, // TODO: Use constants
+                message: 'Force new connection'
+              }
+            })
         )
       ))
 
@@ -919,14 +902,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async openSession(): Promise<SessionTypes.Struct> {
-    const signClient = (await this.getSignClient())!
-    const pairingTopic = signClient.core.pairing.getPairings()[0]?.topic
-
-    logger.debug('Starting open session with', [pairingTopic])
-
-    if (!signClient) {
+    if (!this.signClient) {
       throw new Error('Transport error.')
     }
+
+    const pairingTopic = this.signClient.core.pairing.getPairings()[0]?.topic
+
+    logger.debug('Starting open session with', [pairingTopic])
 
     const permissionScopeParams: PermissionScopeParam = {
       networks: [this.wcOptions.network],
@@ -962,7 +944,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     try {
       logger.debug('connect', [pairingTopic])
-      const { approval } = await signClient.connect(connectParams)
+      const { approval } = await this.signClient.connect(connectParams)
       logger.debug('before await approal', [pairingTopic])
       const session = await approval()
       logger.debug('after await approal, have session', [pairingTopic])
@@ -1300,7 +1282,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     throw new Error(`Failed to connect to relayer: ${Array.from(errMessages).join(',')}`)
   }
 
-  private async getSignClient(): Promise<Client | undefined> {
+  private async getSignClient(): Promise<void> {
     if (this.signClient === undefined) {
       try {
         this.signClient = await this.tryConnectToRelayer()
@@ -1308,11 +1290,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       } catch (error: any) {
         logger.error(error.message)
         localStorage && localStorage.setItem(StorageKey.WC_INIT_ERROR, error.message)
-        return undefined
       }
     }
-
-    return this.signClient
   }
 
   private getSession() {
