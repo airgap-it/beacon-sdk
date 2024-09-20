@@ -518,6 +518,10 @@ export class DAppClient extends Client {
   }
 
   private async handlePairingRequest(recipient: string) {
+    if (!this.multiTabChannel.isLeader) {
+      return
+    }
+
     await this.initInternalTransports()
 
     this.walletConnectTransport
