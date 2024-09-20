@@ -12,6 +12,8 @@ type BCMessageType =
   | 'IS_CHILD_ALIVE'
   | 'RESPONSE'
   | 'DISCONNECT'
+  | 'REQUEST_PAIRING'
+  | 'RESPONSE_PAIRING'
   | BeaconMessageType
 
 type BCMessage = {
@@ -65,7 +67,7 @@ export class MultiTabChannel {
       this.isLeader = true
       logger.log('The current tab is the leader.')
     }, timeout)
-    
+
     window?.addEventListener('beforeunload', this.eventListeners[0])
     this.channel.onmessage = this.eventListeners[1]
   }

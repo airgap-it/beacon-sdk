@@ -105,7 +105,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private activeNetwork: string | undefined
   readonly disconnectionEvents: Set<string> = new Set()
   private pingInterval: NodeJS.Timeout | undefined
-  private leaderPairingCode: string | undefined
 
   /**
    * this queue stores each active message id
@@ -116,7 +115,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   constructor(
     private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    private isLeader: () => boolean
   ) {
     super()
   }
@@ -125,11 +123,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     wcOptions: {
       network: NetworkType
       opts: SignClientTypes.Options
-    },
-    isLeader: () => boolean
+    }
   ): WalletConnectCommunicationClient {
     if (!this.instance) {
-      this.instance = new WalletConnectCommunicationClient(wcOptions, isLeader)
+      this.instance = new WalletConnectCommunicationClient(wcOptions)
     }
     return WalletConnectCommunicationClient.instance
   }

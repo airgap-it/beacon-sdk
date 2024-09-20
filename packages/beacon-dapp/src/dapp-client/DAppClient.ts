@@ -232,6 +232,8 @@ export class DAppClient extends Client {
     this.onElectedLeaderhandler.bind(this)
   )
 
+  private pairingRequest: ExposedPromise<string> | undefined
+
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -492,9 +494,68 @@ export class DAppClient extends Client {
       case 'DISCONNECT':
         this._transport.isResolved() && this.disconnect()
         break
+      case 'REQUEST_PAIRING':
+        this.handlePairingRequest(message.sender)
+        break
+      case 'RESPONSE_PAIRING':
+        this.handlePairingResponse(message.data)
+        break
       default:
         logger.error('onBCMessageHandler', 'message type not recognized', message)
     }
+  }
+
+  private async handlePairingRequest(recipient: string) {
+    const serializer = new Serializer()
+
+    await this.initInternalTransports()
+
+    this.walletConnectTransport
+      ?.listenForNewPeer(async (peer) => {
+        logger.log('init', 'walletconnect transport peer connected', peer)
+        this.analytics.track('event', 'DAppClient', 'WalletConnect Wallet connected', {
+          peerName: peer.name
+        })
+        this.events
+          .emit(BeaconEvent.PAIR_SUCCESS, peer)
+          .catch((emitError) => console.warn(emitError))
+
+        this.setActivePeer(peer).catch(console.error)
+        this.setTransport(this.walletConnectTransport).catch(console.error)
+
+        await this.init(this.walletConnectTransport)
+
+        const request: PermissionRequestInput = {
+          appMetadata: await this.getOwnAppMetadata(),
+          type: BeaconMessageType.PermissionRequest,
+          network: this.network,
+          scopes: [PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN] // todo
+        }
+
+        const { message, connectionInfo } = await this.makeRequest<
+          PermissionRequest,
+          PermissionResponse
+        >(request).catch((err) => {
+          throw new Error(err.message)
+        })
+
+        await this.hideUI(['toast'])
+
+        const accountInfo = await this.onNewAccount(message, connectionInfo)
+        await this.accountManager.addAccount(accountInfo)
+        // todo output
+      })
+      .catch(console.error)
+
+    this.multiTabChannel.postMessage({
+      type: 'RESPONSE_PAIRING',
+      recipient,
+      data: await serializer.serialize(await this.walletConnectTransport?.getPairingRequestInfo())
+    })
+  }
+
+  private async handlePairingResponse(data: string) {
+    this.pairingRequest?.resolve(data)
   }
 
   private async prepareRequest({ data }: any, isV3 = false) {
@@ -656,6 +717,16 @@ export class DAppClient extends Client {
     await super.destroy()
   }
 
+  private async getPairingRequestInfo(transport: DappWalletConnectTransport) {
+    if (this.multiTabChannel.isLeader) {
+      return transport.getPairingRequestInfo()
+    }
+
+    this.pairingRequest = new ExposedPromise()
+    this.multiTabChannel.postMessage({ type: 'REQUEST_PAIRING' })
+    return await new Serializer().deserialize(await this.pairingRequest.promise)
+  }
+
   public async init(transport?: Transport<any>): Promise<TransportType> {
     if (this._initPromise) {
       return this._initPromise
@@ -780,7 +851,7 @@ export class DAppClient extends Client {
                 return p2pTransport.getPairingRequestInfo()
               },
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
-              walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
+              walletConnectPeerInfo: () => this.getPairingRequestInfo(walletConnectTransport),
               networkType: this.network.type,
               abortedHandler: async () => {
                 logger.log('init', 'ABORTED')
