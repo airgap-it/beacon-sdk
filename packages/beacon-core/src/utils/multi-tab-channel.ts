@@ -65,8 +65,9 @@ export class MultiTabChannel {
       this.isLeader = true
       logger.log('The current tab is the leader.')
     }, timeout)
-    this.channel.onmessage = this.eventListeners[1]
+    
     window?.addEventListener('beforeunload', this.eventListeners[0])
+    this.channel.onmessage = this.eventListeners[1]
   }
 
   private chooseNextLeader() {
@@ -147,6 +148,7 @@ export class MultiTabChannel {
           this.neighborhood = data.data
           this.neighborhood.delete(this.id)
           this.onElectedLeaderHandler()
+          logger.log('The current tab is the leader.')
         }, timeout)
       )
     }
