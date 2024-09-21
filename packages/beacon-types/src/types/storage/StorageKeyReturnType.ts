@@ -50,6 +50,7 @@ export interface StorageKeyReturnType {
   [StorageKey.USER_ID]: string | undefined
   [StorageKey.ENABLE_METRICS]: boolean | undefined
   [StorageKey.WC_INIT_ERROR]: string | undefined
+  [StorageKey.BC_NEIGHBORHOOD]: string[]
   [StorageKey.WC_2_CLIENT_SESSION]: string | undefined
   [StorageKey.WC_2_CORE_PAIRING]: string | undefined
   [StorageKey.WC_2_CORE_KEYCHAIN]: string | undefined

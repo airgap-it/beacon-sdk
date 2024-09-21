@@ -320,8 +320,7 @@ export class DAppClient extends Client {
           data: {
             message,
             connectionInfo
-          },
-          recipient: message.id
+          }
         })
 
         if (typedMessage.type !== BeaconMessageType.Acknowledge) {

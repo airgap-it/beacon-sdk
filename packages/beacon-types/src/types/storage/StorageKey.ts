@@ -23,6 +23,7 @@ export enum StorageKey {
   USER_ID = 'beacon:user-id',
   ENABLE_METRICS = 'beacon:enable_metrics',
   WC_INIT_ERROR = 'beacon:wc-init-error',
+  BC_NEIGHBORHOOD = 'beacon:bc-neighborhood',
   WC_2_CORE_PAIRING = 'wc@2:core:0.3:pairing',
   WC_2_CLIENT_SESSION = 'wc@2:client:0.3:session',
   WC_2_CORE_KEYCHAIN = 'wc@2:core:0.3:keychain',
