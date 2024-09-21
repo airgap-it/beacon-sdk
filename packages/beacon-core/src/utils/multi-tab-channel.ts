@@ -102,7 +102,7 @@ export class MultiTabChannel {
     }
 
     setInterval(() => {
-      this.leaderElection()
+      this.leaderElection(Array.from(this.neighborhood).filter((id) => id !== this.leaderID))
       this.postMessage({ type: 'HEARTBEAT' })
     }, timeout * 2)
   }
@@ -118,11 +118,10 @@ export class MultiTabChannel {
     this.pendingACKs.delete(this.leaderID)
   }
 
-  private leaderElection() {
+  private leaderElection(neighborhood = Array.from(this.neighborhood)) {
     this.pendingACKs.set(
       this.leaderID,
       setTimeout(() => {
-        const neighborhood = Array.from(this.neighborhood)
         this.leaderID = neighborhood[0]
         if (neighborhood[0] !== this.id) {
           return
