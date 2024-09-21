@@ -3,6 +3,8 @@ import { Logger } from './Logger'
 import { LocalStorage } from '../storage/LocalStorage'
 
 type BCMessageType =
+  | 'HEARTBEAT'
+  | 'HEARTBEAT_ACK'
   | 'RESPONSE'
   | 'DISCONNECT'
   | 'REQUEST_PAIRING'
@@ -40,7 +42,10 @@ export class MultiTabChannel {
 
   private messageHandlers: {
     [key in BCMessageType]?: (data: BCMessage) => void
-  } = {}
+  } = {
+    HEARTBEAT: this.heartbeatHandler.bind(this),
+    HEARTBEAT_ACK: this.heartbeatACKHandler.bind(this)
+  }
 
   constructor(name: string, onBCMessageHandler: Function, onElectedLeaderHandler: Function) {
     this.onBCMessageHandler = onBCMessageHandler
@@ -58,19 +63,7 @@ export class MultiTabChannel {
         const newNeighborhood = !event.newValue ? this.neighborhood : JSON.parse(event.newValue)
 
         if (newNeighborhood[0] !== this.leaderID) {
-          this.pendingACKs.set(
-            this.leaderID,
-            setTimeout(() => {
-              const neighborhood = Array.from(this.neighborhood)
-              this.leaderID = neighborhood[0]
-              if (neighborhood[0] !== this.id) {
-                return
-              }
-              this.isLeader = true
-              this.onElectedLeaderHandler()
-              logger.log('The current tab is the leader.')
-            }, timeout)
-          )
+          this.leaderElection()
         } else {
           clearTimeout(this.pendingACKs.get(this.leaderID))
         }
@@ -96,6 +89,49 @@ export class MultiTabChannel {
 
     window?.addEventListener('beforeunload', this.eventListeners[0])
     this.channel.onmessage = this.eventListeners[1]
+
+    this.initHeartbeat()
+  }
+
+  private initHeartbeat() {
+    if (
+      this.isLeader ||
+      !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    ) {
+      return
+    }
+
+    setInterval(() => {
+      this.leaderElection()
+      this.postMessage({ type: 'HEARTBEAT' })
+    }, timeout * 2)
+  }
+
+  private heartbeatHandler() {
+    if (!this.isLeader) {
+      return
+    }
+    this.postMessage({ type: 'HEARTBEAT_ACK' })
+  }
+
+  private heartbeatACKHandler() {
+    this.pendingACKs.delete(this.leaderID)
+  }
+
+  private leaderElection() {
+    this.pendingACKs.set(
+      this.leaderID,
+      setTimeout(() => {
+        const neighborhood = Array.from(this.neighborhood)
+        this.leaderID = neighborhood[0]
+        if (neighborhood[0] !== this.id) {
+          return
+        }
+        this.isLeader = true
+        this.onElectedLeaderHandler()
+        logger.log('The current tab is the leader.')
+      }, timeout)
+    )
   }
 
   private async onBeforeUnloadHandler() {
