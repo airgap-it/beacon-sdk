@@ -1,10 +1,9 @@
-import { BeaconMessageType, StorageKey } from '@airgap/beacon-types'
-import { Logger } from './Logger'
-import { LocalStorage } from '../storage/LocalStorage'
+import { Logger } from '@airgap/beacon-core'
+import { BeaconMessageType } from '@airgap/beacon-types'
+import { createLeaderElection, BroadcastChannel, LeaderElector } from 'broadcast-channel'
 
 type BCMessageType =
-  | 'HEARTBEAT'
-  | 'HEARTBEAT_ACK'
+  | 'LEADER_DEAD'
   | 'RESPONSE'
   | 'DISCONNECT'
   | 'REQUEST_PAIRING'
@@ -21,141 +20,92 @@ type BCMessage = {
   data?: any
 }
 
-const timeout = 1000 // ms
 const logger = new Logger('MultiTabChannel')
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+  navigator.userAgent
+)
 
 export class MultiTabChannel {
   private id: string = String(Date.now())
-  private leaderID: string = ''
-  private neighborhood: Set<string> = new Set()
   private channel: BroadcastChannel
+  private elector: LeaderElector
   private eventListeners = [
     () => this.onBeforeUnloadHandler(),
     (message: any) => this.onMessageHandler(message)
   ]
   private onBCMessageHandler: Function
   private onElectedLeaderHandler: Function
-  private pendingACKs: Map<string, NodeJS.Timeout> = new Map()
-  private storage: LocalStorage = new LocalStorage()
-
-  isLeader: boolean = false
-
-  private messageHandlers: {
-    [key in BCMessageType]?: (data: BCMessage) => void
-  } = {
-    HEARTBEAT: this.heartbeatHandler.bind(this),
-    HEARTBEAT_ACK: this.heartbeatACKHandler.bind(this)
-  }
+  // Auxiliary variable needed for handling beforeUnload.
+  // Closing a tab causes the elector to be killed immediately
+  private wasLeader: boolean = false
 
   constructor(name: string, onBCMessageHandler: Function, onElectedLeaderHandler: Function) {
     this.onBCMessageHandler = onBCMessageHandler
     this.onElectedLeaderHandler = onElectedLeaderHandler
     this.channel = new BroadcastChannel(name)
+    this.elector = createLeaderElection(this.channel)
     this.init()
+      .then(() => logger.debug('MultiTabChannel', 'constructor', 'init', 'done'))
+      .catch((err) => logger.warn(err.message))
   }
 
   private async init() {
-    this.storage.subscribeToStorageChanged(async (event) => {
-      if (
-        event.eventType === 'entryModified' &&
-        event.key === this.storage.getPrefixedKey(StorageKey.BC_NEIGHBORHOOD)
-      ) {
-        const newNeighborhood = !event.newValue ? this.neighborhood : JSON.parse(event.newValue)
-
-        if (newNeighborhood[0] !== this.leaderID) {
-          this.leaderElection()
-        } else {
-          clearTimeout(this.pendingACKs.get(this.leaderID))
-        }
-
-        this.neighborhood = newNeighborhood
-      }
-    })
-    await this.requestLeadership()
-  }
-
-  private async requestLeadership() {
-    const neighborhood = await this.storage.get(StorageKey.BC_NEIGHBORHOOD)
-
-    if (!neighborhood.length) {
-      this.isLeader = true
-      logger.log('The current tab is the leader.')
+    if (isMobile) {
+      throw new Error('BroadcastChannel is not fully supported on mobile.')
     }
 
-    neighborhood.push(this.id)
-    this.leaderID = neighborhood[0]
-    this.neighborhood = new Set(neighborhood)
-    this.storage.set(StorageKey.BC_NEIGHBORHOOD, neighborhood)
+    const hasLeader = await this.elector.hasLeader()
 
-    window?.addEventListener('beforeunload', this.eventListeners[0])
+    if (!hasLeader) {
+      await this.elector.awaitLeadership()
+      this.wasLeader = this.isLeader()
+      this.wasLeader && logger.log('The current tab is the leader.')
+    }
+
     this.channel.onmessage = this.eventListeners[1]
-
-    this.initHeartbeat()
-  }
-
-  private initHeartbeat() {
-    if (
-      this.isLeader ||
-      !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    ) {
-      return
-    }
-
-    setInterval(() => {
-      this.leaderElection(Array.from(this.neighborhood).filter((id) => id !== this.leaderID))
-      this.postMessage({ type: 'HEARTBEAT' })
-    }, timeout * 2)
-  }
-
-  private heartbeatHandler() {
-    if (!this.isLeader) {
-      return
-    }
-    this.postMessage({ type: 'HEARTBEAT_ACK' })
-  }
-
-  private heartbeatACKHandler() {
-    this.pendingACKs.delete(this.leaderID)
-  }
-
-  private leaderElection(neighborhood = Array.from(this.neighborhood)) {
-    this.pendingACKs.set(
-      this.leaderID,
-      setTimeout(() => {
-        this.leaderID = neighborhood[0]
-        if (neighborhood[0] !== this.id) {
-          return
-        }
-        this.isLeader = true
-        this.onElectedLeaderHandler()
-        logger.log('The current tab is the leader.')
-      }, timeout)
-    )
+    window?.addEventListener('beforeunload', this.eventListeners[0])
   }
 
   private async onBeforeUnloadHandler() {
-    const oldNeighborhood = this.neighborhood
-    const newNeighborhood = new Set(this.neighborhood)
-    newNeighborhood.delete(this.id)
+    if (this.wasLeader) {
+      await this.elector.die()
+      this.postMessage({ type: 'LEADER_DEAD' })
+    }
 
-    await this.storage.set(StorageKey.BC_NEIGHBORHOOD, Array.from(newNeighborhood))
-    this.neighborhood = newNeighborhood
-
-    // We can't immediately say that a child or the leader is dead
-    // beacause, on mobile a browser tab gets unloaded every time it no longer has focus
-    setTimeout(() => {
-      this.storage.set(StorageKey.BC_NEIGHBORHOOD, Array.from(oldNeighborhood))
-      this.neighborhood = oldNeighborhood
-    }, timeout / 2)
+    window?.removeEventListener('beforeunload', this.eventListeners[0])
+    this.channel.removeEventListener('message', this.eventListeners[1])
   }
 
-  private onMessageHandler({ data }: { data: BCMessage }) {
-    const handler = this.messageHandlers[data.type]
-    if (handler) {
-      handler(data)
-    } else {
-      this.onBCMessageHandler(data)
+  private async onMessageHandler(message: BCMessage) {
+    if (message.recipient && message.recipient !== this.id) {
+      return
     }
+
+    if (message.type === 'LEADER_DEAD') {
+      await this.elector.awaitLeadership()
+
+      this.wasLeader = this.isLeader()
+
+      if (this.isLeader()) {
+        this.onElectedLeaderHandler()
+        logger.log('The current tab is the leader.')
+      }
+      return
+    }
+
+    this.onBCMessageHandler(message)
+  }
+
+  isLeader(): boolean {
+    return this.elector.isLeader
+  }
+
+  async getLeadership() {
+    return this.elector.awaitLeadership()
+  }
+
+  async hasLeader(): Promise<boolean> {
+    return this.elector.hasLeader()
   }
 
   postMessage(message: Omit<BCMessage, 'sender'>): void {

@@ -517,7 +517,7 @@ export class DAppClient extends Client {
   }
 
   private async handlePairingRequest(recipient: string) {
-    if (!this.multiTabChannel.isLeader) {
+    if (!this.multiTabChannel.isLeader()) {
       return
     }
 
@@ -571,7 +571,7 @@ export class DAppClient extends Client {
   }
 
   private async prepareRequest({ data }: any, isV3 = false) {
-    if (!this.multiTabChannel.isLeader) {
+    if (!this.multiTabChannel.isLeader()) {
       return
     }
 
@@ -655,7 +655,7 @@ export class DAppClient extends Client {
         network: this.network.type,
         opts: wcOptions
       },
-      () => this.multiTabChannel.isLeader
+      () => this.multiTabChannel.isLeader()
     )
 
     this.initEvents()
@@ -730,7 +730,7 @@ export class DAppClient extends Client {
   }
 
   private async getPairingRequestInfo(transport: DappWalletConnectTransport) {
-    if (this.multiTabChannel.isLeader) {
+    if (this.multiTabChannel.isLeader()) {
       return transport.getPairingRequestInfo()
     }
 
@@ -960,7 +960,7 @@ export class DAppClient extends Client {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
-        if (this.multiTabChannel.isLeader) {
+        if (this.multiTabChannel.isLeader()) {
           await transport.disconnect()
           this.openRequestsOtherTabs.clear()
         } else {
@@ -1149,7 +1149,7 @@ export class DAppClient extends Client {
   private async checkMakeRequest() {
     const isResolved = this._transport.isResolved()
     const isWCInstance = isResolved && (await this.transport) instanceof WalletConnectTransport
-    const isLeader = this.multiTabChannel.isLeader
+    const isLeader = this.multiTabChannel.isLeader()
 
     return !isResolved || !isWCInstance || isLeader
   }
