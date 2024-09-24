@@ -35,7 +35,7 @@ export class WalletConnectTransport<
     storage: Storage,
     storageKey: K,
     private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    private isLeader: () => boolean
+    private isLeader: () => Promise<boolean>
   ) {
     super(
       name,
@@ -62,7 +62,7 @@ export class WalletConnectTransport<
 
     this._isConnected = TransportStatus.CONNECTING
 
-    const isLeader = this.isLeader()
+    const isLeader = await this.isLeader()
 
     if (isLeader) {
       await this.client.init()

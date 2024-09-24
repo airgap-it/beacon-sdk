@@ -730,7 +730,7 @@ export class DAppClient extends Client {
   }
 
   private async getPairingRequestInfo(transport: DappWalletConnectTransport) {
-    if (this.multiTabChannel.isLeader()) {
+    if (await this.multiTabChannel.isLeader()) {
       return transport.getPairingRequestInfo()
     }
 
@@ -960,7 +960,7 @@ export class DAppClient extends Client {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
-        if (this.multiTabChannel.isLeader()) {
+        if (await this.multiTabChannel.isLeader()) {
           await transport.disconnect()
           this.openRequestsOtherTabs.clear()
         } else {

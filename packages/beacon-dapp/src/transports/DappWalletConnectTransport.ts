@@ -25,7 +25,7 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
     keyPair: KeyPair,
     storage: Storage,
     wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    isLeader: () => boolean
+    isLeader: () => Promise<boolean>
   ) {
     super(
       name,

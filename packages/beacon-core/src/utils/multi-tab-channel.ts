@@ -1,5 +1,6 @@
 import { Logger } from '@airgap/beacon-core'
 import { BeaconMessageType } from '@airgap/beacon-types'
+import { ExposedPromise } from '@airgap/beacon-utils'
 import { createLeaderElection, BroadcastChannel, LeaderElector } from 'broadcast-channel'
 
 type BCMessageType =
@@ -35,6 +36,7 @@ export class MultiTabChannel {
   ]
   private onBCMessageHandler: Function
   private onElectedLeaderHandler: Function
+  private _isLeader: ExposedPromise<boolean> = new ExposedPromise()
   // Auxiliary variable needed for handling beforeUnload.
   // Closing a tab causes the elector to be killed immediately
   private wasLeader: boolean = false
@@ -58,8 +60,9 @@ export class MultiTabChannel {
 
     if (!hasLeader) {
       await this.elector.awaitLeadership()
-      this.wasLeader = this.isLeader()
+      this.wasLeader = this.elector.isLeader
       this.wasLeader && logger.log('The current tab is the leader.')
+      this._isLeader.resolve(this.wasLeader)
     }
 
     this.channel.onmessage = this.eventListeners[1]
@@ -84,9 +87,11 @@ export class MultiTabChannel {
     if (message.type === 'LEADER_DEAD') {
       await this.elector.awaitLeadership()
 
-      this.wasLeader = this.isLeader()
+      this.wasLeader = this.elector.isLeader
+      this._isLeader = new ExposedPromise()
+      this._isLeader.resolve(this.wasLeader)
 
-      if (this.isLeader()) {
+      if (this.wasLeader) {
         this.onElectedLeaderHandler()
         logger.log('The current tab is the leader.')
       }
@@ -96,8 +101,8 @@ export class MultiTabChannel {
     this.onBCMessageHandler(message)
   }
 
-  isLeader(): boolean {
-    return this.elector.isLeader
+  isLeader(): Promise<boolean> {
+    return this._isLeader.promise
   }
 
   async getLeadership() {
