@@ -232,9 +232,6 @@ export class DAppClient extends Client {
     this.onElectedLeaderhandler.bind(this)
   )
 
-  private pairingRequest: ExposedPromise<string> | undefined
-  private pairingResponse: { message: BeaconMessage; connectionInfo: ConnectionContext } | undefined
-
   constructor(config: DAppClientOptions) {
     super({
       storage: config && config.storage ? config.storage : new LocalStorage(),
@@ -494,80 +491,9 @@ export class DAppClient extends Client {
       case 'DISCONNECT':
         this._transport.isResolved() && this.disconnect()
         break
-      case 'REQUEST_PAIRING':
-        this.handlePairingRequest(message.sender)
-        break
-      case 'RESPONSE_PAIRING':
-        this.handlePairingResponse(message.data)
-        break
-      case 'NEW_PEER':
-        this.handleNewPeerBC(message.data)
-        break
-      case 'HIDE_UI':
-        this.hideUI(message.data)
-        break
       default:
         logger.error('onBCMessageHandler', 'message type not recognized', message)
     }
-  }
-
-  private async handleNewPeerBC(data: any) {
-    this.pairingResponse = data.response
-    this.walletConnectTransport?.updatePeerListener(data.peer)
-  }
-
-  private async handlePairingRequest(recipient: string) {
-    if (!this.multiTabChannel.isLeader()) {
-      return
-    }
-
-    await this.initInternalTransports()
-
-    this.walletConnectTransport
-      ?.listenForNewPeer(async (peer) => {
-        logger.log('init', 'walletconnect transport peer connected', peer)
-        this.analytics.track('event', 'DAppClient', 'WalletConnect Wallet connected', {
-          peerName: peer.name
-        })
-
-        this.setActivePeer(peer).catch(console.error)
-        this.setTransport(this.walletConnectTransport).catch(console.error)
-
-        await this.init(this.walletConnectTransport)
-
-        const request: PermissionRequestInput = {
-          appMetadata: await this.getOwnAppMetadata(),
-          type: BeaconMessageType.PermissionRequest,
-          network: this.network,
-          scopes: [PermissionScope.OPERATION_REQUEST, PermissionScope.SIGN] // todo
-        }
-
-        const response = await this.makeRequest<PermissionRequest, PermissionResponse>(request)
-
-        await this.hideUI(['toast'])
-
-        this.walletConnectTransport?.connect()
-
-        this.multiTabChannel.postMessage({
-          type: 'NEW_PEER',
-          recipient,
-          data: {
-            peer,
-            response
-          }
-        })
-      })
-      .catch(console.error)
-
-    this.multiTabChannel.postMessage({
-      type: 'RESPONSE_PAIRING',
-      recipient,
-      data: await this.walletConnectTransport?.getPairingRequestInfo()
-    })
-  }
-
-  private async handlePairingResponse(data: string) {
-    this.pairingRequest?.resolve(data)
   }
 
   private async prepareRequest({ data }: any, isV3 = false) {
@@ -668,10 +594,10 @@ export class DAppClient extends Client {
       return
     }
 
-    this.walletConnectTransport.setEventHandler(
-      ClientEvents.CLOSE_ALERT,
-      this.hideUI.bind(this, ['alert', 'toast'])
-    )
+    this.walletConnectTransport.setEventHandler(ClientEvents.CLOSE_ALERT, () => {
+      this.hideUI(['alert', 'toast'])
+      this.multiTabChannel.postMessage({ type: 'HIDE_UI', data: ['alert', 'toast'] })
+    })
     this.walletConnectTransport.setEventHandler(
       ClientEvents.RESET_STATE,
       this.channelClosedHandler.bind(this)
@@ -727,16 +653,6 @@ export class DAppClient extends Client {
   async destroy(): Promise<void> {
     await this.createStateSnapshot()
     await super.destroy()
-  }
-
-  private async getPairingRequestInfo(transport: DappWalletConnectTransport) {
-    if (await this.multiTabChannel.isLeader()) {
-      return transport.getPairingRequestInfo()
-    }
-
-    this.pairingRequest = new ExposedPromise()
-    this.multiTabChannel.postMessage({ type: 'REQUEST_PAIRING' })
-    return await this.pairingRequest.promise
   }
 
   public async init(transport?: Transport<any>): Promise<TransportType> {
@@ -863,7 +779,7 @@ export class DAppClient extends Client {
                 return p2pTransport.getPairingRequestInfo()
               },
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
-              walletConnectPeerInfo: () => this.getPairingRequestInfo(walletConnectTransport),
+              walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
               networkType: this.network.type,
               abortedHandler: async () => {
                 logger.log('init', 'ABORTED')
@@ -2399,11 +2315,7 @@ export class DAppClient extends Client {
         ErrorResponse
       >()
 
-      if (this.pairingResponse) {
-        exposed.resolve(this.pairingResponse)
-      } else {
-        this.addOpenRequest(request.id, exposed)
-      }
+      this.addOpenRequest(request.id, exposed)
     }
 
     const payload = await new Serializer().serialize(request)
@@ -2415,32 +2327,29 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
-    if (!this.pairingResponse) {
-      try {
-        ;(await this.transport).send(payload, peer)
-        if (
-          request.type !== BeaconMessageType.PermissionRequest ||
-          (this._activeAccount.isResolved() && (await this._activeAccount.promise))
-        ) {
-          this.tryToAppSwitch()
-        }
-      } catch (sendError) {
-        this.events.emit(BeaconEvent.INTERNAL_ERROR, {
-          text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
-          buttons: [
-            {
-              text: 'Reset Connection',
-              actionCallback: async (): Promise<void> => {
-                await closeToast()
-                this.disconnect()
-              }
-            }
-          ]
-        })
-        throw sendError
+
+    try {
+      ;(await this.transport).send(payload, peer)
+      if (
+        request.type !== BeaconMessageType.PermissionRequest ||
+        (this._activeAccount.isResolved() && (await this._activeAccount.promise))
+      ) {
+        this.tryToAppSwitch()
       }
-    } else {
-      this.pairingResponse = undefined
+    } catch (sendError) {
+      this.events.emit(BeaconEvent.INTERNAL_ERROR, {
+        text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
+        buttons: [
+          {
+            text: 'Reset Connection',
+            actionCallback: async (): Promise<void> => {
+              await closeToast()
+              this.disconnect()
+            }
+          }
+        ]
+      })
+      throw sendError
     }
 
     if (!otherTabMessageId) {

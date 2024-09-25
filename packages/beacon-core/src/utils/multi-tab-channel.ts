@@ -62,9 +62,9 @@ export class MultiTabChannel {
       await this.elector.awaitLeadership()
       this.wasLeader = this.elector.isLeader
       this.wasLeader && logger.log('The current tab is the leader.')
-      this._isLeader.resolve(this.wasLeader)
     }
 
+    this._isLeader.resolve(this.wasLeader)
     this.channel.onmessage = this.eventListeners[1]
     window?.addEventListener('beforeunload', this.eventListeners[0])
   }

@@ -111,16 +111,22 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   private messageIds: string[] = []
 
-  constructor(private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }) {
+  constructor(
+    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
+    private isLeader: () => Promise<boolean>
+  ) {
     super()
   }
 
-  static getInstance(wcOptions: {
-    network: NetworkType
-    opts: SignClientTypes.Options
-  }): WalletConnectCommunicationClient {
+  static getInstance(
+    wcOptions: {
+      network: NetworkType
+      opts: SignClientTypes.Options
+    },
+    isLeader: () => Promise<boolean>
+  ): WalletConnectCommunicationClient {
     if (!this.instance) {
-      this.instance = new WalletConnectCommunicationClient(wcOptions)
+      this.instance = new WalletConnectCommunicationClient(wcOptions, isLeader)
     }
     return WalletConnectCommunicationClient.instance
   }
@@ -628,6 +634,11 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           } as ErrorResponse
 
           this.notifyListeners(_pairingTopic, errorResponse)
+        }
+      })
+      .then(() => {
+        if (!this.isMobileOS() && !this.isLeader()) {
+          this.clearState()
         }
       })
 
