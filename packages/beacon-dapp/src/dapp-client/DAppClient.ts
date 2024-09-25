@@ -2357,7 +2357,8 @@ export class DAppClient extends Client {
         .emit(messageEvents[requestInput.type].sent, {
           walletInfo: {
             ...walletInfo,
-            name: walletInfo.name ?? 'Wallet'
+            name: walletInfo.name ?? 'Wallet',
+            transport: this._transport.isResolved() ? (await this.transport).type : undefined
           },
           extraInfo: {
             resetCallback: async () => {
