@@ -1067,7 +1067,7 @@ export class DAppClient extends Client {
     const isWCInstance = isResolved && (await this.transport) instanceof WalletConnectTransport
     const isLeader = this.multiTabChannel.isLeader()
 
-    return !isResolved || !isWCInstance || isLeader
+    return !isResolved || !isWCInstance || isLeader || isMobileOS(window)
   }
 
   /**
