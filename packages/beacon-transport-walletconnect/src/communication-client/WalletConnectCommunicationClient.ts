@@ -636,9 +636,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.notifyListeners(_pairingTopic, errorResponse)
         }
       })
-      .then(() => {
-        if (!this.isMobileOS() && !this.isLeader()) {
-          this.clearState()
+      .then(async () => {
+        if (!this.isMobileOS() && !(await this.isLeader())) {
+          this.signClient = undefined
         }
       })
 
@@ -756,7 +756,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           'session_update'
         )
       }
-    } catch {}
+    } catch { }
   }
 
   private async disconnect(
@@ -796,8 +796,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.session?.pairingTopic === topic
         ? this.session
         : signClient.session
-            .getAll()
-            .find((session: SessionTypes.Struct) => session.pairingTopic === topic)
+          .getAll()
+          .find((session: SessionTypes.Struct) => session.pairingTopic === topic)
 
     if (!session) {
       return undefined
