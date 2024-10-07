@@ -596,7 +596,6 @@ export class DAppClient extends Client {
 
     this.walletConnectTransport.setEventHandler(ClientEvents.CLOSE_ALERT, () => {
       this.hideUI(['alert', 'toast'])
-      this.multiTabChannel.postMessage({ type: 'HIDE_UI', data: ['alert', 'toast'] })
     })
     this.walletConnectTransport.setEventHandler(
       ClientEvents.RESET_STATE,
