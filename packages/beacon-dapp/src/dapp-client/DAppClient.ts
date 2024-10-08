@@ -173,7 +173,7 @@ export class DAppClient extends Client {
 
   protected postMessageTransport: DappPostMessageTransport | undefined
   protected p2pTransport: DappP2PTransport | undefined
-  protected walletConnectTransport: DappWalletConnectTransport | undefined
+  protected walletConnectTransport: DappWalletConnectTransport = {} as DappWalletConnectTransport
 
   protected wcProjectId?: string
   protected wcRelayUrl?: string
@@ -452,6 +452,40 @@ export class DAppClient extends Client {
     )
 
     this.initUserID().catch((err) => logger.error(err.message))
+
+    this.multiTabChannel.isLeader()
+      .then(async (isLeader) => {
+        if (!isLeader) {
+          return
+        }
+
+        const wcOptions = {
+          projectId: this.wcProjectId,
+          relayUrl: this.wcRelayUrl,
+          metadata: {
+            name: this.name,
+            description: this.description ?? '',
+            url: this.appUrl ?? '',
+            icons: this.iconUrl ? [this.iconUrl] : []
+          }
+        }
+
+        this.walletConnectTransport = new DappWalletConnectTransport(
+          this.name,
+          await this.keyPair,
+          this.storage,
+          {
+            network: this.network.type,
+            opts: wcOptions
+          },
+          () => this.multiTabChannel.isLeader()
+        )
+
+        this.initEvents()
+
+        await this.addListener(this.walletConnectTransport)
+
+      })
   }
 
   private async onElectedLeaderhandler() {
@@ -544,7 +578,7 @@ export class DAppClient extends Client {
   public async initInternalTransports(): Promise<void> {
     const keyPair = await this.keyPair
 
-    if (this.postMessageTransport || this.p2pTransport || this.walletConnectTransport) {
+    if (this.postMessageTransport || this.p2pTransport || (this.walletConnectTransport && this.walletConnectTransport.connectionStatus === TransportStatus.CONNECTED)) {
       return
     }
 
@@ -561,39 +595,9 @@ export class DAppClient extends Client {
     )
 
     await this.addListener(this.p2pTransport)
-
-    const wcOptions = {
-      projectId: this.wcProjectId,
-      relayUrl: this.wcRelayUrl,
-      metadata: {
-        name: this.name,
-        description: this.description ?? '',
-        url: this.appUrl ?? '',
-        icons: this.iconUrl ? [this.iconUrl] : []
-      }
-    }
-
-    this.walletConnectTransport = new DappWalletConnectTransport(
-      this.name,
-      keyPair,
-      this.storage,
-      {
-        network: this.network.type,
-        opts: wcOptions
-      },
-      () => this.multiTabChannel.isLeader()
-    )
-
-    this.initEvents()
-
-    await this.addListener(this.walletConnectTransport)
   }
 
   private initEvents() {
-    if (!this.walletConnectTransport) {
-      return
-    }
-
     this.walletConnectTransport.setEventHandler(ClientEvents.CLOSE_ALERT, () => {
       this.hideUI(['alert', 'toast'])
     })
@@ -690,7 +694,7 @@ export class DAppClient extends Client {
 
         await this.initInternalTransports()
 
-        if (!this.postMessageTransport || !this.p2pTransport || !this.walletConnectTransport) {
+        if (!this.postMessageTransport || !this.p2pTransport) {
           return
         }
 
@@ -778,7 +782,11 @@ export class DAppClient extends Client {
                 return p2pTransport.getPairingRequestInfo()
               },
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
-              walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
+              walletConnectPeerInfo: async () => {
+                const res = await walletConnectTransport.getPairingRequestInfo()
+                console.log('RES:', res)
+                return res
+              },
               networkType: this.network.type,
               abortedHandler: async () => {
                 logger.log('init', 'ABORTED')
@@ -792,7 +800,6 @@ export class DAppClient extends Client {
                   walletConnectTransport.disconnect()
                 ])
                 this.postMessageTransport =
-                  this.walletConnectTransport =
                   this.p2pTransport =
                   undefined
                 this._activeAccount.isResolved() && this.clearActiveAccount()
@@ -834,7 +841,7 @@ export class DAppClient extends Client {
       this.postMessageTransport?.disconnect(),
       this.walletConnectTransport?.disconnect()
     ])
-    this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
+    this.postMessageTransport = this.p2pTransport = undefined
     await this.setActivePeer(undefined)
     await this.setTransport(undefined)
     this._initPromise = undefined
@@ -874,7 +881,7 @@ export class DAppClient extends Client {
       if (!this.debounceSetActiveAccount && transport instanceof WalletConnectTransport) {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
-        this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
+        this.postMessageTransport = this.p2pTransport = undefined
         if (await this.multiTabChannel.isLeader()) {
           await transport.disconnect()
           this.openRequestsOtherTabs.clear()
@@ -2010,7 +2017,6 @@ export class DAppClient extends Client {
         this._initPromise = undefined
         this.postMessageTransport = undefined
         this.p2pTransport = undefined
-        this.walletConnectTransport = undefined
         await this.setTransport()
         await this.setActivePeer()
       }
@@ -2570,7 +2576,6 @@ export class DAppClient extends Client {
     }
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
-    this.walletConnectTransport = undefined
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 
