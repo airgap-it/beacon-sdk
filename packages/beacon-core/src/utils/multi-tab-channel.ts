@@ -8,6 +8,8 @@ type BCMessageType =
   | 'RESPONSE'
   | 'DISCONNECT'
   | BeaconMessageType
+  | 'INIT_REQ'
+  | 'INIT_RES'
 
 type BCMessage = {
   type: BCMessageType
