@@ -7,7 +7,6 @@ type BCMessageType =
   | 'LEADER_DEAD'
   | 'RESPONSE'
   | 'DISCONNECT'
-  | 'HIDE_UI'
   | BeaconMessageType
 
 type BCMessage = {
