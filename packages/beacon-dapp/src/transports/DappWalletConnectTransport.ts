@@ -2,7 +2,6 @@ import {
   StorageKey,
   Storage,
   ExtendedWalletConnectPairingResponse,
-  TransportStatus,
   NetworkType
 } from '@airgap/beacon-types'
 import { Logger } from '@airgap/beacon-core'
@@ -26,7 +25,7 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
     keyPair: KeyPair,
     storage: Storage,
     wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    isLeader: () => boolean
+    isLeader: () => Promise<boolean>
   ) {
     super(
       name,
@@ -38,13 +37,7 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
     )
     this.client.listenForChannelOpening(async (peer: ExtendedWalletConnectPairingResponse) => {
       await this.addPeer(peer)
-      this._isConnected = (await isLeader())
-        ? TransportStatus.CONNECTED
-        : TransportStatus.SECONDARY_TAB_CONNECTED
-      if (this.newPeerListener) {
-        this.newPeerListener(peer)
-        this.newPeerListener = undefined // TODO: Remove this once we use the id
-      }
+      this.updatePeerListener(peer)
     })
   }
 
@@ -58,5 +51,12 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
   public async stopListeningForNewPeers(): Promise<void> {
     logger.log('stopListeningForNewPeers')
     this.newPeerListener = undefined
+  }
+
+  updatePeerListener(peer: ExtendedWalletConnectPairingResponse) {
+    if (this.newPeerListener) {
+      this.newPeerListener(peer)
+      this.newPeerListener = undefined // TODO: Remove this once we use the id
+    }
   }
 }

@@ -29,7 +29,8 @@ import {
   WalletConnectPairingRequest,
   AnalyticsInterface,
   ProofOfEventChallengeResponseOutput,
-  SimulatedProofOfEventChallengeResponseOutput
+  SimulatedProofOfEventChallengeResponseOutput,
+  TransportType
 } from '@airgap/beacon-types'
 import {
   UnknownBeaconError,
@@ -262,6 +263,10 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     walletInfo: data.walletInfo,
     state: 'loading',
     actions,
+    timer:
+      isMobile(window) && data.walletInfo.transport === TransportType.WALLETCONNECT
+        ? SUCCESS_TIMER
+        : undefined,
     openWalletAction
   }).catch((toastError) => console.error(toastError))
 }

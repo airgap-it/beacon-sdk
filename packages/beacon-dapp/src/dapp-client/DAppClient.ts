@@ -317,8 +317,7 @@ export class DAppClient extends Client {
           data: {
             message,
             connectionInfo
-          },
-          recipient: message.id
+          }
         })
 
         if (typedMessage.type !== BeaconMessageType.Acknowledge) {
@@ -342,8 +341,8 @@ export class DAppClient extends Client {
           connectionInfo.origin === Origin.P2P
             ? this.p2pTransport
             : connectionInfo.origin === Origin.WALLETCONNECT
-            ? this.walletConnectTransport
-            : this.postMessageTransport ?? (await this.transport)
+              ? this.walletConnectTransport
+              : this.postMessageTransport ?? (await this.transport)
 
         if (relevantTransport) {
           const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
@@ -440,8 +439,8 @@ export class DAppClient extends Client {
           res.status === 426
             ? console.error('Metrics are no longer supported for this version, please upgrade.')
             : console.warn(
-                'Network error encountered. Metrics sharing have been automatically disabled.'
-              )
+              'Network error encountered. Metrics sharing have been automatically disabled.'
+            )
         }
         this.enableMetrics = res.ok
         this.storage.set(StorageKey.ENABLE_METRICS, res.ok)
@@ -498,7 +497,7 @@ export class DAppClient extends Client {
   }
 
   private async prepareRequest({ data }: any, isV3 = false) {
-    if (!this.multiTabChannel.isLeader) {
+    if (!(await this.multiTabChannel.isLeader())) {
       return
     }
 
@@ -582,7 +581,7 @@ export class DAppClient extends Client {
         network: this.network.type,
         opts: wcOptions
       },
-      () => this.multiTabChannel.isLeader
+      () => this.multiTabChannel.isLeader()
     )
 
     this.initEvents()
@@ -595,10 +594,9 @@ export class DAppClient extends Client {
       return
     }
 
-    this.walletConnectTransport.setEventHandler(
-      ClientEvents.CLOSE_ALERT,
-      this.hideUI.bind(this, ['alert', 'toast'])
-    )
+    this.walletConnectTransport.setEventHandler(ClientEvents.CLOSE_ALERT, () => {
+      this.hideUI(['alert', 'toast'])
+    })
     this.walletConnectTransport.setEventHandler(
       ClientEvents.RESET_STATE,
       this.channelClosedHandler.bind(this)
@@ -796,7 +794,7 @@ export class DAppClient extends Client {
                 this.postMessageTransport =
                   this.walletConnectTransport =
                   this.p2pTransport =
-                    undefined
+                  undefined
                 this._activeAccount.isResolved() && this.clearActiveAccount()
                 this._initPromise = undefined
               },
@@ -877,7 +875,7 @@ export class DAppClient extends Client {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
-        if (this.multiTabChannel.isLeader) {
+        if (await this.multiTabChannel.isLeader()) {
           await transport.disconnect()
           this.openRequestsOtherTabs.clear()
         } else {
@@ -1066,9 +1064,9 @@ export class DAppClient extends Client {
   private async checkMakeRequest() {
     const isResolved = this._transport.isResolved()
     const isWCInstance = isResolved && (await this.transport) instanceof WalletConnectTransport
-    const isLeader = this.multiTabChannel.isLeader
+    const isLeader = await this.multiTabChannel.isLeader()
 
-    return !isResolved || !isWCInstance || isLeader
+    return !isResolved || !isWCInstance || isLeader || isMobileOS(window)
   }
 
   /**
@@ -1361,9 +1359,9 @@ export class DAppClient extends Client {
     logger.time(true, logId)
     const res = (await this.checkMakeRequest())
       ? this.makeRequestV3<
-          BlockchainRequestV3<string>,
-          BeaconMessageWrapper<BlockchainResponseV3<string>>
-        >(request)
+        BlockchainRequestV3<string>,
+        BeaconMessageWrapper<BlockchainResponseV3<string>>
+      >(request)
       : this.makeRequestBC<any, any>(request)
 
     res.catch(async (requestError: ErrorResponse) => {
@@ -1575,13 +1573,13 @@ export class DAppClient extends Client {
 
     const res = (await this.checkMakeRequest())
       ? this.makeRequest<
-          SimulatedProofOfEventChallengeRequest,
-          SimulatedProofOfEventChallengeResponse
-        >(request)
+        SimulatedProofOfEventChallengeRequest,
+        SimulatedProofOfEventChallengeResponse
+      >(request)
       : this.makeRequestBC<
-          SimulatedProofOfEventChallengeRequest,
-          SimulatedProofOfEventChallengeResponse
-        >(request)
+        SimulatedProofOfEventChallengeRequest,
+        SimulatedProofOfEventChallengeResponse
+      >(request)
 
     res.catch(async (requestError: ErrorResponse) => {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
@@ -2045,50 +2043,50 @@ export class DAppClient extends Client {
     request: BeaconRequestInputMessage,
     response:
       | {
-          account: AccountInfo
-          output: PermissionResponseOutput
-          blockExplorer: BlockExplorer
-          connectionContext: ConnectionContext
-          walletInfo: WalletInfo
-        }
+        account: AccountInfo
+        output: PermissionResponseOutput
+        blockExplorer: BlockExplorer
+        connectionContext: ConnectionContext
+        walletInfo: WalletInfo
+      }
       | {
-          account: AccountInfo
-          output: ProofOfEventChallengeResponse
-          blockExplorer: BlockExplorer
-          connectionContext: ConnectionContext
-          walletInfo: WalletInfo
-        }
+        account: AccountInfo
+        output: ProofOfEventChallengeResponse
+        blockExplorer: BlockExplorer
+        connectionContext: ConnectionContext
+        walletInfo: WalletInfo
+      }
       | {
-          account: AccountInfo
-          output: SimulatedProofOfEventChallengeResponse
-          blockExplorer: BlockExplorer
-          connectionContext: ConnectionContext
-          walletInfo: WalletInfo
-        }
+        account: AccountInfo
+        output: SimulatedProofOfEventChallengeResponse
+        blockExplorer: BlockExplorer
+        connectionContext: ConnectionContext
+        walletInfo: WalletInfo
+      }
       | {
-          account: AccountInfo
-          output: OperationResponseOutput
-          blockExplorer: BlockExplorer
-          connectionContext: ConnectionContext
-          walletInfo: WalletInfo
-        }
+        account: AccountInfo
+        output: OperationResponseOutput
+        blockExplorer: BlockExplorer
+        connectionContext: ConnectionContext
+        walletInfo: WalletInfo
+      }
       | {
-          output: SignPayloadResponseOutput
-          connectionContext: ConnectionContext
-          walletInfo: WalletInfo
-        }
+        output: SignPayloadResponseOutput
+        connectionContext: ConnectionContext
+        walletInfo: WalletInfo
+      }
       // | {
       //     output: EncryptPayloadResponseOutput
       //     connectionContext: ConnectionContext
       //     walletInfo: WalletInfo
       // }
       | {
-          network: Network
-          output: BroadcastResponseOutput
-          blockExplorer: BlockExplorer
-          connectionContext: ConnectionContext
-          walletInfo: WalletInfo
-        }
+        network: Network
+        output: BroadcastResponseOutput
+        blockExplorer: BlockExplorer
+        connectionContext: ConnectionContext
+        walletInfo: WalletInfo
+      }
   ): Promise<void> {
     this.events
       .emit(messageEvents[request.type].success, response)
@@ -2328,8 +2326,9 @@ export class DAppClient extends Client {
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
+
     try {
-      ;(await this.transport).send(payload, peer)
+      ; (await this.transport).send(payload, peer)
       if (
         request.type !== BeaconMessageType.PermissionRequest ||
         (this._activeAccount.isResolved() && (await this._activeAccount.promise))
@@ -2357,7 +2356,8 @@ export class DAppClient extends Client {
         .emit(messageEvents[requestInput.type].sent, {
           walletInfo: {
             ...walletInfo,
-            name: walletInfo.name ?? 'Wallet'
+            name: walletInfo.name ?? 'Wallet',
+            transport: this._transport.isResolved() ? (await this.transport).type : undefined
           },
           extraInfo: {
             resetCallback: async () => {
@@ -2445,7 +2445,7 @@ export class DAppClient extends Client {
 
     logger.log('makeRequest', 'sending message', request)
     try {
-      ;(await this.transport).send(payload, peer)
+      ; (await this.transport).send(payload, peer)
       if (
         request.message.type !== BeaconMessageType.PermissionRequest ||
         (this._activeAccount.isResolved() && (await this._activeAccount.promise))
@@ -2492,9 +2492,9 @@ export class DAppClient extends Client {
     request: Optional<T, IgnoredRequestInputProperties>
   ): Promise<
     | {
-        message: U
-        connectionInfo: ConnectionContext
-      }
+      message: U
+      connectionInfo: ConnectionContext
+    }
     | undefined
   > {
     if (!this._transport.isResolved()) {

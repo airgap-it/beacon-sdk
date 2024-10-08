@@ -35,7 +35,7 @@ export class WalletConnectTransport<
     storage: Storage,
     storageKey: K,
     private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    private isLeader: () => boolean
+    private isLeader: () => Promise<boolean>
   ) {
     super(
       name,
@@ -62,7 +62,7 @@ export class WalletConnectTransport<
 
     this._isConnected = TransportStatus.CONNECTING
 
-    const isLeader = this.isLeader()
+    const isLeader = await this.isLeader()
 
     if (isLeader) {
       await this.client.init()
@@ -86,22 +86,6 @@ export class WalletConnectTransport<
 
   wasDisconnectedByWallet() {
     return !!this.client.disconnectionEvents.size
-  }
-
-  closeClient() {
-    this.client.closeSignClient()
-  }
-
-  public async hasPairings() {
-    return (await this.client.storage.hasPairings())
-      ? true
-      : !!this.client.signClient?.pairing.getAll()?.length
-  }
-
-  public async hasSessions() {
-    return (await this.client.storage.hasSessions())
-      ? true
-      : !!this.client.signClient?.session.getAll()?.length
   }
 
   public async getPeers(): Promise<T[]> {
