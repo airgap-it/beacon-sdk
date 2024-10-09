@@ -1,6 +1,7 @@
-import { Component, For } from 'solid-js'
-import styles from './styles.css'
+import React from 'react'
+
 import { QRCodeIcon } from '../icons'
+import { Button, Grid2 } from '@mui/material'
 
 interface InfoProps {
   title: string
@@ -10,53 +11,52 @@ interface InfoProps {
   border?: boolean
   iconBadge?: boolean
   bigIcon?: boolean
-  buttons?: { label: string; type: 'primary' | 'secondary'; onClick: () => void }[]
+  buttons?: {
+    label: string
+    type: 'primary' | 'secondary'
+    onClick: () => void
+  }[]
   downloadLink?: { url: string; label: string }
   onShowQRCodeClick?: (() => void) | (() => Promise<void>)
 }
 
-const Info: Component<InfoProps> = (props: InfoProps) => {
+const Info: React.FC<InfoProps> = (props: InfoProps) => {
   return (
-    <div class={`info-wrapper ${props.border ? 'info-border' : ''}`}>
-      {props.icon && (
-        <div
-          class={`info-icon ${props.iconBadge ? 'info-badge' : ''}`}
-          style={props.bigIcon ? { 'font-size': '3.4em' } : {}}
-        >
-          {props.icon}
-        </div>
-      )}
-      <h3 class="info-title">{props.title}</h3>
-      {props.description && <div class="info-description">{props.description}</div>}
-      {props.data && <pre class="info-data">{props.data}</pre>}
-      <div class="info-buttons">
-        <For each={props.buttons}>
-          {(button) => (
-            <button
-              class={button.type !== 'secondary' ? 'info-button' : 'info-button-secondary'}
-              onClick={button.onClick}
-            >
-              {button.label}
-            </button>
-          )}
-        </For>
-      </div>
-      {props.downloadLink && (
-        <a class="downloadLink" href={props.downloadLink.url}>
-          {props.downloadLink.label}
-        </a>
-      )}
+    <Grid2
+      container
+      justifyContent={'center'}
+      alignItems={'center'}
+      flexDirection={'column'}
+      width={'100%'}
+      sx={
+        props.border
+          ? {
+              borderStyle: 'solid',
+              borderWidth: 'thin',
+              borderColor: 'black'
+            }
+          : undefined
+      }
+    >
+      {props.icon && <Grid2 container>{props.icon}</Grid2>}
+      <h3>{props.title}</h3>
+      {props.description && <span>{props.description}</span>}
+      {props.data && <pre>{props.data}</pre>}
+      <Grid2 container>
+        {props.buttons?.map((button, index) => (
+          <Button key={index} onClick={button.onClick}>
+            {button.label}
+          </Button>
+        ))}
+      </Grid2>
+      {props.downloadLink && <a href={props.downloadLink.url}>{props.downloadLink.label}</a>}
       {props.onShowQRCodeClick && (
-        <button
-          id="qr-code-icon"
-          onClick={() => props.onShowQRCodeClick && props.onShowQRCodeClick()}
-        >
+        <Button id="qr-code-icon" onClick={props.onShowQRCodeClick}>
           <QRCodeIcon />
-        </button>
+        </Button>
       )}
-    </div>
+    </Grid2>
   )
 }
 
-export { styles }
 export default Info

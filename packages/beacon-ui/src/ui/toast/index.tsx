@@ -1,12 +1,9 @@
-import { createSignal } from 'solid-js'
-import { isServer, render } from 'solid-js/web'
+import { useState } from 'react'
+import { createRoot } from 'react-dom/client'
 import { WalletInfo } from '@airgap/beacon-types'
 import { generateGUID } from '@airgap/beacon-utils'
 
 import Toast from '../../components/toast'
-
-import * as toastStyles from '../../components/toast/styles.css'
-import * as loaderStyles from '../../components/loader/styles.css'
 
 // INTERFACES
 export interface ToastAction {
@@ -27,54 +24,42 @@ export interface ToastConfig {
   openWalletAction?(): Promise<void>
 }
 
-// GLOBAL VARIABLES
-type VoidFunction = () => void
-let dispose: null | VoidFunction = null
-const [isOpen, setIsOpen] = createSignal<boolean>(false)
-const [renderLast, setRenderLast] = createSignal<string>('')
+const useToastState = () => {
+  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [renderLast, setRenderLast] = useState<string>('')
+
+  return {
+    isOpen,
+    setIsOpen,
+    renderLast,
+    setRenderLast
+  }
+}
 
 const ANIMATION_TIME = 300
 let globalTimeout: NodeJS.Timeout
 
 const createToast = (config: ToastConfig) => {
+  const { isOpen, setIsOpen } = useToastState()
+
   const shadowRootEl = document.createElement('div')
   if (document.getElementById('beacon-toast-wrapper')) {
     ;(document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
   }
   shadowRootEl.setAttribute('id', 'beacon-toast-wrapper')
   shadowRootEl.style.height = '0px'
-  const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })
 
-  // Toast styles
-  const style = document.createElement('style')
-  style.textContent = toastStyles.default
-  shadowRoot.appendChild(style)
-
-  // Loader styles
-  const style2 = document.createElement('style')
-  style2.textContent = loaderStyles.default
-  shadowRoot.appendChild(style2)
-
-  // Inject font styles
-  const styleFonts = document.createElement('style')
-  styleFonts.textContent =
-    "* { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;}"
-  shadowRoot.appendChild(styleFonts)
-
-  dispose = render(
-    () => (
-      <Toast
-        label={config.body}
-        open={isOpen()}
-        onClickClose={() => {
-          closeToast()
-        }}
-        actions={config.actions}
-        walletInfo={config.walletInfo}
-        openWalletAction={config.openWalletAction}
-      />
-    ),
-    shadowRoot
+  createRoot(shadowRootEl).render(
+    <Toast
+      label={config.body}
+      open={isOpen}
+      onClickClose={() => {
+        closeToast()
+      }}
+      actions={config.actions}
+      walletInfo={config.walletInfo}
+      openWalletAction={config.openWalletAction}
+    />
   )
 
   // Create toast
@@ -97,13 +82,14 @@ const createToast = (config: ToastConfig) => {
  */
 const closeToast = (): Promise<void> =>
   new Promise((resolve) => {
-    if (isServer) {
+    const { setIsOpen } = useToastState()
+
+    if (typeof window === 'undefined') {
       console.log('DO NOT RUN ON SERVER')
       resolve()
     }
     setIsOpen(false)
     setTimeout(() => {
-      if (dispose) dispose()
       if (document.getElementById('beacon-toast-wrapper'))
         (document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
       resolve()
@@ -116,7 +102,8 @@ const closeToast = (): Promise<void> =>
  * @param toastConfig Configuration of the toast
  */
 const openToast = async (config: ToastConfig): Promise<void> => {
-  if (isServer) {
+  const { renderLast, setRenderLast } = useToastState()
+  if (typeof window === 'undefined') {
     console.log('DO NOT RUN ON SERVER')
     return
   }
@@ -125,7 +112,7 @@ const openToast = async (config: ToastConfig): Promise<void> => {
   setRenderLast(id)
 
   await closeToast()
-  if (id === renderLast()) createToast(config)
+  if (id === renderLast) createToast(config)
 }
 
 export { closeToast, openToast }
