@@ -937,7 +937,7 @@ export class DAppClient extends Client {
       this.postMessageTransport?.disconnect(),
       this.walletConnectTransport?.disconnect()
     ])
-    this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
+    this.postMessageTransport = this.p2pTransport = undefined
     await this.setActivePeer(undefined)
     await this.setTransport(undefined)
     this._initPromise = undefined
@@ -977,7 +977,7 @@ export class DAppClient extends Client {
       if (!this.debounceSetActiveAccount && transport instanceof WalletConnectTransport) {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
-        this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
+        this.postMessageTransport = this.p2pTransport = undefined
         if (await this.multiTabChannel.isLeader()) {
           await transport.disconnect()
           this.openRequestsOtherTabs.clear()
@@ -2113,7 +2113,6 @@ export class DAppClient extends Client {
         this._initPromise = undefined
         this.postMessageTransport = undefined
         this.p2pTransport = undefined
-        this.walletConnectTransport = undefined
         await this.setTransport()
         await this.setActivePeer()
       }
@@ -2677,7 +2676,6 @@ export class DAppClient extends Client {
     }
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
-    this.walletConnectTransport = undefined
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 
