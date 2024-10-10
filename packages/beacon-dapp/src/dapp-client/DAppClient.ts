@@ -180,6 +180,10 @@ export class DAppClient extends Client {
 
   private isGetActiveAccountHandled: boolean = false
 
+  private _wcPairingRequest: ExposedPromise | undefined
+
+  private _initPromiseResolver: Function | undefined
+
   private readonly openRequestsOtherTabs = new Set<string>()
   /**
    * A map of requests that are currently "open", meaning we have sent them to a wallet and are still awaiting a response.
@@ -452,6 +456,39 @@ export class DAppClient extends Client {
     )
 
     this.initUserID().catch((err) => logger.error(err.message))
+
+    this.multiTabChannel.isLeader()
+      .then(async (isLeader) => {
+        if (!isLeader) {
+          return
+        }
+
+        const wcOptions = {
+          projectId: this.wcProjectId,
+          relayUrl: this.wcRelayUrl,
+          metadata: {
+            name: this.name,
+            description: this.description ?? '',
+            url: this.appUrl ?? '',
+            icons: this.iconUrl ? [this.iconUrl] : []
+          }
+        }
+
+        this.walletConnectTransport = new DappWalletConnectTransport(
+          this.name,
+          await this.keyPair,
+          this.storage,
+          {
+            network: this.network.type,
+            opts: wcOptions
+          },
+          () => this.multiTabChannel.isLeader()
+        )
+
+        this.initEvents()
+
+        await this.addListener(this.walletConnectTransport)
+      })
   }
 
   private async onElectedLeaderhandler() {
@@ -491,9 +528,57 @@ export class DAppClient extends Client {
       case 'DISCONNECT':
         this._transport.isResolved() && this.disconnect()
         break
+      case 'INIT_REQ':
+        this.initReqHandler(message.sender)
+        break
+      case 'INIT_RES':
+        this.initResHandler(message.data)
+        break
+      case 'NEW_PEER':
+        this.newPeerHandler(message.data)
+        break
       default:
         logger.error('onBCMessageHandler', 'message type not recognized', message)
     }
+  }
+
+  private async newPeerHandler(peer: any) {
+    this.hideUI(['alert'])
+    this.setTransport(this.walletConnectTransport)
+    this.walletConnectTransport?.connect()
+    this.setActivePeer(peer)
+    this._initPromiseResolver && this._initPromiseResolver(TransportType.WALLETCONNECT)
+  }
+
+  private async initResHandler(request: any) {
+    if (!this._wcPairingRequest) {
+      return
+    }
+
+    this._wcPairingRequest.resolve(request)
+    this._wcPairingRequest = undefined
+  }
+
+  private async initReqHandler(sender: string) {
+    if (!await this.multiTabChannel.isLeader()) {
+      return
+    }
+
+    this.walletConnectTransport?.listenForNewPeer((peer) => {
+      this.hideUI(['toast'])
+      this.newPeerHandler(peer)
+      this.multiTabChannel.postMessage({
+        type: 'NEW_PEER',
+        data: peer,
+        recipient: sender
+      })
+    })
+
+    this.multiTabChannel.postMessage({
+      type: 'INIT_RES',
+      data: await this.walletConnectTransport?.getPairingRequestInfo(),
+      recipient: sender
+    })
   }
 
   private async prepareRequest({ data }: any, isV3 = false) {
@@ -544,7 +629,7 @@ export class DAppClient extends Client {
   public async initInternalTransports(): Promise<void> {
     const keyPair = await this.keyPair
 
-    if (this.postMessageTransport || this.p2pTransport || this.walletConnectTransport) {
+    if (this.postMessageTransport || this.p2pTransport || (this.walletConnectTransport && this.walletConnectTransport.connectionStatus === TransportStatus.CONNECTED)) {
       return
     }
 
@@ -571,6 +656,11 @@ export class DAppClient extends Client {
         url: this.appUrl ?? '',
         icons: this.iconUrl ? [this.iconUrl] : []
       }
+    }
+
+    // the leader tab has already initialized the transport
+    if (await this.multiTabChannel.isLeader()) {
+      return
     }
 
     this.walletConnectTransport = new DappWalletConnectTransport(
@@ -778,7 +868,19 @@ export class DAppClient extends Client {
                 return p2pTransport.getPairingRequestInfo()
               },
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
-              walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
+              walletConnectPeerInfo: async () => {
+                if (await this.multiTabChannel.isLeader()) {
+                  return await walletConnectTransport.getPairingRequestInfo()
+                }
+                // the current tab is not the leader
+                // send a request to the leader tab and wait for 
+                // _wcPairingRequest to resolve
+                this._wcPairingRequest = new ExposedPromise()
+                this.multiTabChannel.postMessage({
+                  type: 'INIT_REQ'
+                })
+                return await this._wcPairingRequest.promise
+              },
               networkType: this.network.type,
               abortedHandler: async () => {
                 logger.log('init', 'ABORTED')
@@ -805,6 +907,7 @@ export class DAppClient extends Client {
             .catch((emitError) => console.warn(emitError))
         }
       }
+      this._initPromiseResolver = resolve
     })
 
     return this._initPromise
@@ -2293,6 +2396,10 @@ export class DAppClient extends Client {
 
     if (!this.beaconId) {
       throw await this.sendInternalError('BeaconID not defined')
+    }
+
+    if ((await this.transport).type === TransportType.WALLETCONNECT && !(await this.multiTabChannel.isLeader())) {
+      return await this.makeRequestBC(requestInput)
     }
 
     const request: Optional<T, IgnoredRequestInputProperties> &
