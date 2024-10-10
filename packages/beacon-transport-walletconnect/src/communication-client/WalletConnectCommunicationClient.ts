@@ -112,8 +112,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   private messageIds: string[] = []
 
   constructor(
-    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
-    private isLeader: () => Promise<boolean>
+    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }
   ) {
     super()
   }
@@ -122,11 +121,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     wcOptions: {
       network: NetworkType
       opts: SignClientTypes.Options
-    },
-    isLeader: () => Promise<boolean>
+    }
   ): WalletConnectCommunicationClient {
     if (!this.instance) {
-      this.instance = new WalletConnectCommunicationClient(wcOptions, isLeader)
+      this.instance = new WalletConnectCommunicationClient(wcOptions)
     }
     return WalletConnectCommunicationClient.instance
   }
@@ -459,7 +457,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       })
   }
 
-  private isMobileSesion(session: SessionTypes.Struct): boolean {
+  private isMobileSession(session: SessionTypes.Struct): boolean {
     const redirect = session.peer.metadata.redirect
     return (
       !!redirect &&
@@ -479,7 +477,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return
     }
 
-    if (this.isMobileSesion(session)) {
+    if (this.isMobileSession(session)) {
       selectedWallet.type = 'mobile'
     } else {
       selectedWallet.type = 'web'
@@ -634,11 +632,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           } as ErrorResponse
 
           this.notifyListeners(_pairingTopic, errorResponse)
-        }
-      })
-      .then(async () => {
-        if (!this.isMobileOS() && !(await this.isLeader())) {
-          this.signClient = undefined
         }
       })
 
