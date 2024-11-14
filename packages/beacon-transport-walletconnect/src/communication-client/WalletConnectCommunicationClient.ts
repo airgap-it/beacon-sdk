@@ -283,7 +283,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async checkWalletReadiness(_topic: string) {
-    if (this.pingInterval) {
+    if (this.isMobileOS() || this.pingInterval) {
       return
     }
 
