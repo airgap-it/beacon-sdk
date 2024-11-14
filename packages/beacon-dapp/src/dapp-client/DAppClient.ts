@@ -940,6 +940,7 @@ export class DAppClient extends Client {
         await this.setTransport(this.p2pTransport)
       } else if (origin === Origin.WALLETCONNECT) {
         await this.setTransport(this.walletConnectTransport)
+        this.walletConnectTransport?.forceUpdate('INIT')
       }
       if (this._transport.isResolved()) {
         const transport = await this.transport
@@ -1080,7 +1081,7 @@ export class DAppClient extends Client {
     const isWCInstance = isResolved && (await this.transport) instanceof WalletConnectTransport
     const isLeader = this.multiTabChannel.isLeader()
 
-    return !isResolved || (isResolved && (!isWCInstance || (isWCInstance && isLeader)))
+    return !isResolved || !isWCInstance || isLeader || isMobileOS(window)
   }
 
   /**

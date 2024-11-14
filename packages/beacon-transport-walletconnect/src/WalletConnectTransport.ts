@@ -104,6 +104,15 @@ export class WalletConnectTransport<
       : !!this.client.signClient?.session.getAll()?.length
   }
 
+  /**
+   * Forcefully updates any DApps running on the same session
+   * Typical use case: localStorage changes to reflect to indexDB
+   * @param type the message type
+   */
+  public forceUpdate(type: string) {
+    this.client.storage.notify(type)
+  }
+
   public async getPeers(): Promise<T[]> {
     const client = WalletConnectCommunicationClient.getInstance(this.wcOptions, this.isLeader)
     const session = client.currentSession()
