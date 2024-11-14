@@ -747,6 +747,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async close() {
     this.storage.backup()
+    this.abortErrorBuilder()
     await this.closePairings()
     this.unsubscribeFromEncryptedMessages()
     this.messageIds = []
