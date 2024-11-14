@@ -889,7 +889,7 @@ export class DAppClient extends Client {
         this.debounceSetActiveAccount = true
         this._initPromise = undefined
         this.postMessageTransport = this.p2pTransport = this.walletConnectTransport = undefined
-        if (this.multiTabChannel.isLeader()) {
+        if (this.multiTabChannel.isLeader() || isMobileOS(window)) {
           await transport.disconnect()
           this.openRequestsOtherTabs.clear()
         } else {
