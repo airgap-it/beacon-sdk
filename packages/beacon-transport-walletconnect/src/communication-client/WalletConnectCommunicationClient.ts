@@ -385,10 +385,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       }
     }
 
-    if (this.signClient && !this.isLeader() && this.isMobileOS()) {
-      await this.closeSignClient()
-    }
-
     if (!publicKey) {
       throw new Error('Public Key in `tezos_getAccounts` is empty!')
     }
@@ -987,6 +983,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     await this.closeSignClient()
     await this.storage.resetState()
+    this.storage.notify('RESET')
+
   }
 
   private async closeSessions() {
