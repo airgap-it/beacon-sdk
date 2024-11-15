@@ -32,18 +32,45 @@ export class IndexedDBStorage extends Storage {
       this.isSupported = this.isIndexedDBSupported()
       if (!this.isSupported) {
         reject('IndexedDB is not supported.')
+        return
       }
 
-      const request = indexedDB.open(this.dbName)
-      request.onupgradeneeded = (event) => {
-        const request = event.target as IDBOpenDBRequest
-        const db = request.result
+      const openRequest = indexedDB.open(this.dbName)
+
+      openRequest.onupgradeneeded = () => {
+        const db = openRequest.result
         if (!db.objectStoreNames.contains(this.storeName)) {
           db.createObjectStore(this.storeName)
         }
       }
-      request.onsuccess = (event: any) => resolve(event.target.result)
-      request.onerror = (event: any) => reject(event.target.error)
+
+      openRequest.onsuccess = (event: any) => {
+        const db = event.target.result as IDBDatabase
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          // Close the current connection
+          db.close()
+          // Re-open the database with an incremented version number
+          const newVersion = db.version + 1
+          const upgradeRequest = indexedDB.open(this.dbName, newVersion)
+
+          upgradeRequest.onupgradeneeded = () => {
+            const upgradedDB = upgradeRequest.result
+            upgradedDB.createObjectStore(this.storeName)
+          }
+
+          upgradeRequest.onsuccess = (event: any) => {
+            this.db = event.target.result as IDBDatabase
+            resolve(this.db)
+          }
+
+          upgradeRequest.onerror = (event: any) => reject(event.target.error)
+        } else {
+          this.db = db
+          resolve(db)
+        }
+      }
+
+      openRequest.onerror = (event: any) => reject(event.target.error)
     })
   }
 
