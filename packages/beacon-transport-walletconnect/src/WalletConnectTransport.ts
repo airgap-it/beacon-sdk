@@ -116,7 +116,7 @@ export class WalletConnectTransport<
         extensionId: session.peer.metadata.name,
         id: session.peer.publicKey,
         type: 'walletconnect-pairing-response',
-        name: session.peer.metadata.name ?? 'peer',
+        name: session.peer.metadata.name,
         publicKey: session.peer.publicKey,
         version: 'first'
       } as T
