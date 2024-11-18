@@ -118,6 +118,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     private isLeader: Function
   ) {
     super()
+    this.storage.onMessageHandler = this.onStorageMessageHandler.bind(this)
+    this.storage.onErrorHandler = this.onStorageErrorHandler.bind(this)
   }
 
   static getInstance(
@@ -163,6 +165,25 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.channelOpeningListeners.set('channelOpening', callbackFunction)
   }
 
+  /**
+   * WC Sign client doesn't sync between intances, meaning that a dApp signClient instance state may
+   * differ from a wallet state
+   */
+  private async refreshState() {
+    await this.closeSignClient()
+
+    const client = (await this.getSignClient())!
+    const lastIndex = client.session.keys.length - 1
+
+    if (lastIndex > -1) {
+      this.session = client.session.get(client.session.keys[lastIndex])
+      this.updateStorageWallet(this.session)
+      this.setDefaultAccountAndNetwork()
+    } else {
+      this.clearState()
+    }
+  }
+
   private clearEvents() {
     this.signClient?.removeAllListeners('session_event')
     this.signClient?.removeAllListeners('session_update')
@@ -170,6 +191,30 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.removeAllListeners('session_expire')
     this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
     this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
+  }
+
+  private onStorageMessageHandler(type: string) {
+    if (!this.isMobileOS()) {
+      return
+    }
+
+    logger.debug('onStorageMessageHandler', type)
+
+    if (type === 'RESET') {
+      this.clearEvents()
+      // no need to invoke `closeSignClinet` as the other tab already closed the connection
+      this.signClient = undefined
+      this.clearState()
+      this.messageIds = []
+
+      return
+    }
+
+    this.refreshState()
+  }
+
+  private onStorageErrorHandler(data: any) {
+    logger.error('onStorageError', data)
   }
 
   async unsubscribeFromEncryptedMessages(): Promise<void> {
@@ -224,7 +269,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private async checkWalletReadiness(_topic: string) {
-    if (this.pingInterval) {
+    if (this.isMobileOS() || this.pingInterval) {
       return
     }
 
@@ -324,11 +369,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         publicKey = result[0]?.pubkey
       }
-    }
-
-    if (this.signClient && !this.isLeader() && this.isMobileOS()) {
-      await this.closeSignClient()
-      this.clearState()
     }
 
     if (!publicKey) {
@@ -798,7 +838,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           'session_update'
         )
       }
-    } catch {}
+    } catch { }
   }
 
   private async disconnect(
@@ -838,8 +878,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.session?.pairingTopic === topic
         ? this.session
         : signClient.session
-            .getAll()
-            .find((session: SessionTypes.Struct) => session.pairingTopic === topic)
+          .getAll()
+          .find((session: SessionTypes.Struct) => session.pairingTopic === topic)
 
     if (!session) {
       return undefined
@@ -931,6 +971,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       ))
     await this.closeSignClient()
     await this.storage.resetState()
+    this.storage.notify('RESET')
+
   }
 
   private async closeSessions() {

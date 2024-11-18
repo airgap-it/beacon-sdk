@@ -9,6 +9,7 @@ import { Logger } from '@airgap/beacon-core'
 import { WalletConnectTransport } from '@airgap/beacon-transport-walletconnect'
 import { KeyPair } from '@stablelib/ed25519'
 import { SignClientTypes } from '@walletconnect/types'
+import { isMobileOS } from '@airgap/beacon-ui'
 
 const logger = new Logger('DappWalletConnectTransport')
 
@@ -38,7 +39,7 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
     )
     this.client.listenForChannelOpening(async (peer: ExtendedWalletConnectPairingResponse) => {
       await this.addPeer(peer)
-      this._isConnected = (await isLeader())
+      this._isConnected = isMobileOS(window) || (await isLeader())
         ? TransportStatus.CONNECTED
         : TransportStatus.SECONDARY_TAB_CONNECTED
       if (this.newPeerListener) {
