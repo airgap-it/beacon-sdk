@@ -39,9 +39,13 @@ export class DappWalletConnectTransport extends WalletConnectTransport<
     )
     this.client.listenForChannelOpening(async (peer: ExtendedWalletConnectPairingResponse) => {
       await this.addPeer(peer)
+
       this._isConnected = isMobileOS(window) || (await isLeader())
         ? TransportStatus.CONNECTED
         : TransportStatus.SECONDARY_TAB_CONNECTED
+
+      this.isReady.isPending() && this.isReady.resolve(true)
+
       if (this.newPeerListener) {
         this.newPeerListener(peer)
         this.newPeerListener = undefined // TODO: Remove this once we use the id

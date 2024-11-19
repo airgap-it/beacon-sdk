@@ -970,8 +970,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         )
       ))
     await this.closeSignClient()
-    await this.storage.resetState()
-    this.storage.notify('RESET')
+    this.isMobileOS() && await this.storage.resetState()
+    this.isMobileOS() && this.storage.notify('RESET')
 
   }
 
