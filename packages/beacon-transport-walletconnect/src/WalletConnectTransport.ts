@@ -13,6 +13,7 @@ import {
 } from '@airgap/beacon-types'
 import { Transport, PeerManager } from '@airgap/beacon-core'
 import { SignClientTypes } from '@walletconnect/types'
+import { ExposedPromise } from '@airgap/beacon-utils'
 
 /**
  * @internalapi
@@ -25,6 +26,8 @@ export class WalletConnectTransport<
   K extends StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP
 > extends Transport<T, K, WalletConnectCommunicationClient> {
   public readonly type: TransportType = TransportType.WALLETCONNECT
+
+  private isReady = new ExposedPromise<boolean>()
 
   constructor(
     name: string,
@@ -43,6 +46,13 @@ export class WalletConnectTransport<
 
   public static async isAvailable(): Promise<boolean> {
     return Promise.resolve(true)
+  }
+
+  /**
+   * Returns a promise that blocks the execution flow when awaited if the transport hasn't resolved yet; otherwise, it returns true.
+   */
+  waitForResolution(): Promise<boolean> {
+    return this.isReady.promise
   }
 
   public async connect(): Promise<void> {
@@ -70,6 +80,8 @@ export class WalletConnectTransport<
     if (!isLeader) {
       this._isConnected = TransportStatus.SECONDARY_TAB_CONNECTED
     }
+
+    this.isReady.resolve(true)
   }
 
   wasDisconnectedByWallet() {
@@ -92,6 +104,15 @@ export class WalletConnectTransport<
       : !!this.client.signClient?.session.getAll()?.length
   }
 
+  /**
+   * Forcefully updates any DApps running on the same session
+   * Typical use case: localStorage changes to reflect to indexDB
+   * @param type the message type
+   */
+  public forceUpdate(type: string) {
+    this.client.storage.notify(type)
+  }
+
   public async getPeers(): Promise<T[]> {
     const client = WalletConnectCommunicationClient.getInstance(this.wcOptions, this.isLeader)
     const session = client.currentSession()
@@ -104,7 +125,7 @@ export class WalletConnectTransport<
         extensionId: session.peer.metadata.name,
         id: session.peer.publicKey,
         type: 'walletconnect-pairing-response',
-        name: 'peer',
+        name: session.peer.metadata.name,
         publicKey: session.peer.publicKey,
         version: 'first'
       } as T
@@ -114,7 +135,9 @@ export class WalletConnectTransport<
   public async disconnect(): Promise<void> {
     await this.client.close()
 
-    return super.disconnect()
+    await super.disconnect()
+
+    this.isReady = new ExposedPromise()
   }
 
   public async startOpenChannelListener(): Promise<void> {
