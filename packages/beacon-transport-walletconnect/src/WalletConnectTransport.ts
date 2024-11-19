@@ -27,7 +27,7 @@ export class WalletConnectTransport<
 > extends Transport<T, K, WalletConnectCommunicationClient> {
   public readonly type: TransportType = TransportType.WALLETCONNECT
 
-  private isReady = new ExposedPromise<boolean>()
+  protected isReady = new ExposedPromise<boolean>()
 
   constructor(
     name: string,
