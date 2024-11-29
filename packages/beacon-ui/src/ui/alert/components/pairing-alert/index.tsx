@@ -10,7 +10,7 @@ import { StorageKey } from '@airgap/beacon-types'
 import QR from 'src/components/qr'
 import useWallets from '../../hooks/useWallets'
 import { AlertConfig } from '../../common'
-import { Grid2 } from '@mui/material'
+import Grid2 from '@mui/material/Grid2'
 
 const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => {
   const {
