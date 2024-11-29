@@ -1,5 +1,5 @@
-import { Component, For } from 'solid-js'
-import styles from './styles.css'
+import { Button, Grid2 } from '@mui/material'
+import React from 'react'
 
 interface WalletProps {
   name: string
@@ -12,37 +12,31 @@ interface WalletProps {
   disabled?: boolean
 }
 
-const Wallet: Component<WalletProps> = (props: WalletProps) => {
+const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
   return (
-    <div class={props.disabled ? 'wallet-disabled' : ''}>
-      {!props.small && (
-        <div
-          class={`wallet-main ${props.mobile ? 'wallet-main-mobile' : ''}`}
-          onClick={props.onClick}
-        >
-          <div class={`wallet-main-left ${props.mobile ? 'wallet-main-left-mobile' : ''}`}>
-            <h3>{props.name}</h3>
-            {props.description && <p>{props.description}</p>}
-            {props.tags && props.tags.length > 0 && (
-              <div class="wallet-main-tags">
-                <For each={props.tags}>{(tag) => <span class="wallet-main-tag">{tag}</span>}</For>
-              </div>
+    <Grid2 size={props.small ? undefined : 6} alignSelf={'baseline'} padding={'5px'}>
+      <Button
+        variant="outlined"
+        onClick={props.onClick}
+        style={props.small ? undefined : { minHeight: '80px', maxHeight: '80px' }}
+      >
+        {!props.small && (
+          <Grid2 container>
+            <h3 style={{ margin: 0 }}>{props.name}</h3>
+            {props.description && (
+              <p style={{ fontSize: '10px', margin: 0 }}>{props.description}</p>
             )}
-          </div>
-          <div class="wallet-main-right">
-            <img src={props.image} />
-          </div>
-        </div>
-      )}
-      {props.small && (
-        <div class="wallet-small" onClick={props.onClick}>
-          <img src={props.image} />
-          <h3>{props.name}</h3>
-        </div>
-      )}
-    </div>
+          </Grid2>
+        )}
+        <img
+          src={props.image}
+          alt={`${props.name} logo`}
+          width={props.small ? 25 : 50}
+          height={props.small ? 25 : 50}
+        />
+      </Button>
+    </Grid2>
   )
 }
 
-export { styles }
 export default Wallet

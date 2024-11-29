@@ -1,8 +1,9 @@
-import { Component, For } from 'solid-js'
+import React from 'react'
 import { MergedWallet } from '../../utils/wallets'
 import Wallet from '../wallet'
-import styles from './styles.css'
+
 import { StorageKey } from '@airgap/beacon-types'
+import { Grid2 } from '@mui/material'
 
 interface TopWalletsProps {
   wallets: MergedWallet[]
@@ -13,69 +14,62 @@ interface TopWalletsProps {
   isMobile: boolean
 }
 
-const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
+const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
   const enableBugReport = localStorage ? localStorage.getItem(StorageKey.ENABLE_METRICS) : 'false'
 
   return (
-    <div class="top-wallets-wrapper">
-      <div class="top-wallets-info">
-        <h3>Connect Wallet</h3>
-        {enableBugReport === 'true' && (
-          <span>
-            Do you wish to report a bug?{' '}
-            <span class="top-wallets-learn-more" onClick={() => props.onClickLearnMore()}>
-              Click here
-            </span>
-          </span>
-        )}
-        {enableBugReport !== 'true' && (
-          <span>
-            If you don't have a wallet, you can select a provider and create one now.{' '}
-            <span class="top-wallets-learn-more" onClick={() => props.onClickLearnMore()}>
-              Learn more
-            </span>
-          </span>
-        )}
-      </div>
-      <div class="top-wallets-wallets-main">
-        <For each={props.wallets}>
-          {(wallet) => (
-            <Wallet
-              disabled={props.disabled}
-              mobile={props.isMobile}
-              name={wallet.name}
-              description={wallet.descriptions.join(' & ')}
-              image={wallet.image}
-              onClick={() => props.onClickWallet(wallet.id)}
-              tags={wallet.tags}
-            />
-          )}
-        </For>
-        {props.otherWallets && (
-          <div
-            class="top-wallets-other-wallets"
-            onClick={() => {
-              if (props.otherWallets) props.otherWallets.onClick()
-            }}
+    <Grid2 container justifyContent={'center'} alignItems={'center'} flexDirection={'column'}>
+      <h3>Connect Wallet</h3>
+      {enableBugReport === 'true' ? (
+        <span>
+          Do you wish to report a bug?{' '}
+          <span
+            style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}
+            onClick={props.onClickLearnMore}
           >
-            <div class="top-wallets-other-wallets-left">
+            Click here
+          </span>
+        </span>
+      ) : (
+        <span>
+          If you don't have a wallet, you can select a provider and create one now.{' '}
+          <span onClick={props.onClickLearnMore}>Learn more</span>
+        </span>
+      )}
+      <Grid2
+        container
+        justifyContent={'center'}
+        alignItems={'center'}
+        rowSpacing={1}
+        gap={0}
+        columnSpacing={1}
+      >
+        {props.wallets.map((wallet) => (
+          <Wallet
+            key={wallet.id}
+            disabled={props.disabled}
+            name={wallet.name}
+            description={wallet.descriptions.join(' & ')}
+            image={wallet.image}
+            onClick={() => props.onClickWallet(wallet.id)}
+          />
+        ))}
+        {props.otherWallets && (
+          <Grid2 container onClick={props.otherWallets.onClick}>
+            <Grid2 container>
               <h3>Other Wallets</h3>
               <p>See other wallets you can use to connect</p>
-            </div>
-            <div class="top-wallets-other-wallets-right">
-              <img src={props.otherWallets.images[0]} />
-              <img
-                class="top-wallets-other-wallets-center-wallet"
-                src={props.otherWallets.images[1]}
-              />
-              <img src={props.otherWallets.images[2]} />
-            </div>
-          </div>
+            </Grid2>
+            <Grid2 container>
+              <img src={props.otherWallets.images[0]} alt="Other Wallet 1" />
+              <img src={props.otherWallets.images[1]} alt="Other Wallet 2" />
+              <img src={props.otherWallets.images[2]} alt="Other Wallet 3" />
+            </Grid2>
+          </Grid2>
         )}
-      </div>
-    </div>
+      </Grid2>
+    </Grid2>
   )
 }
 
-export { styles }
 export default TopWallets

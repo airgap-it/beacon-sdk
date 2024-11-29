@@ -1,95 +1,65 @@
-import { Component, onCleanup, onMount } from 'solid-js'
-import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
-import Loader from '../loader'
+import { AlertProps } from '../../ui/alert/common'
+import { Modal, Box, Grid2, Button } from '@mui/material'
+import { LeftIcon, LogoIcon, CloseIcon } from '../icons'
+// import Loader from '../loader'
+import useIsMobile from 'src/ui/alert/hooks/useIsMobile'
 
-export interface AlertProps {
-  content: any
-  open: boolean
-  showMore?: boolean
-  extraContent?: any
-  loading?: boolean
-  onCloseClick: () => void
-  onClickShowMore?: () => void
-  onBackClick?: () => void
-}
+const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
+  const isMobile = useIsMobile()
 
-const Alert: Component<AlertProps> = (props: AlertProps) => {
-  let prevBodyOverflow: any = null
-  onMount(() => {
-    prevBodyOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-  })
-
-  onCleanup(() => {
-    document.body.style.overflow = prevBodyOverflow
-  })
-
-  const isMobile = window.innerWidth <= 800
+  const backButton = props.onBackClick ? (
+    <Button variant="outlined" onClick={props.onBackClick}>
+      <LeftIcon />
+    </Button>
+  ) : (
+    <Grid2 width={'3rem'} height={'1rem'} />
+  )
 
   return (
-    <div
-      class={props.open ? 'alert-wrapper-show' : 'alert-wrapper-hide'}
-      onClick={() => {
-        props.onCloseClick()
-      }}
-    >
-      <div
-        class={props.open ? 'alert-modal-show' : 'alert-modal-hide'}
-        onClick={(e: any) => {
-          e.stopPropagation()
+    <Modal open={true} onClose={props.onCloseClick}>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'grey',
+          border: '2px solid #000',
+          boxShadow: 24,
+          borderRadius: '30px',
+          p: 4
         }}
       >
-        <div class="alert-header">
-          {props.onBackClick && (
-            <div class="alert-button-icon" onClick={props.onBackClick}>
-              <LeftIcon />
-            </div>
-          )}
-          {!props.onBackClick && <div class="alert-button-icon-empty"></div>}
-          <div class="alert-logo">
-            <LogoIcon />
-          </div>
-          <div class="alert-button-icon" onClick={props.onCloseClick}>
-            <CloseIcon />
-          </div>
-        </div>
-        <div
-          class="alert-modal-loading-wrapper"
-          style={
-            props.loading
-              ? {
-                  opacity: 1,
-                  transition: 'all ease 0.3s',
-                  height: '14px',
-                  overflow: 'unset',
-                  width: 'unset'
-                }
-              : { opacity: 0, transition: 'all ease 0.3s', height: 0, overflow: 'hidden', width: 0 }
-          }
+        <Grid2
+          container
+          spacing={10}
+          alignItems={'center'}
+          justifyContent={'center'}
+          flexWrap={'nowrap'}
         >
-          <Loader />
-        </div>
-        <div class="alert-body" style={{ 'margin-bottom': props.extraContent ? '' : '1.8em' }}>
-          {props.content}
-          {!isMobile && (
-            <div class={props.showMore ? 'alert-body-extra-show' : 'alert-body-extra-hide'}>
-              {props.extraContent && <div class="alert-divider"></div>}
-              {props.extraContent}
-            </div>
-          )}
-        </div>
+          {backButton}
+          <LogoIcon />
+          <Button variant="outlined" onClick={props.onCloseClick}>
+            <CloseIcon />
+          </Button>
+        </Grid2>
+        <Grid2 textAlign={'center'} container>
+          {props.children}
+          {!isMobile && <Grid2 container>{props.showMore && props.extraContent}</Grid2>}
+        </Grid2>
         {!isMobile && props.extraContent && (
-          <div
-            class="alert-footer"
-            onClick={() => {
-              if (props.onClickShowMore) props.onClickShowMore()
-            }}
+          <Grid2
+            style={{ cursor: 'pointer', justifyContent: 'center' }}
+            onClick={() => props.onClickShowMore && props.onClickShowMore()}
+            marginTop={'15px'}
+            container
           >
             {props.showMore ? 'Show less' : 'Show more'}
-          </div>
+          </Grid2>
         )}
-      </div>
-    </div>
+      </Box>
+    </Modal>
   )
 }
 

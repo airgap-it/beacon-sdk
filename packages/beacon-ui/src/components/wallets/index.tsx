@@ -1,7 +1,7 @@
-import { Component, For } from 'solid-js'
+import React from 'react'
 import { MergedWallet } from '../../utils/wallets'
 import Wallet from '../wallet'
-import styles from './styles.css'
+import { Button, Grid2 } from '@mui/material'
 
 interface WalletProps {
   wallets: MergedWallet[]
@@ -12,33 +12,33 @@ interface WalletProps {
   disabled?: boolean
 }
 
-const Wallets: Component<WalletProps> = (props: WalletProps) => {
+const Wallets: React.FC<WalletProps> = (props: WalletProps) => {
   return (
-    <div class="wallets-list-main-wrapper">
-      <div class="wallets-list-wrapper">
-        <For each={props.wallets}>
-          {(wallet) => (
-            <Wallet
-              disabled={props.disabled}
-              name={wallet.name}
-              description={wallet.descriptions.join(' & ')}
-              image={wallet.image}
-              small={props.small}
-              onClick={() => {
-                if (props.onClickWallet) {
-                  props.onClickWallet(wallet.id)
-                }
-              }}
-            />
-          )}
-        </For>
-      </div>
-      <button class="wallets-button" onClick={() => props.onClickOther()}>
+    <Grid2
+      container
+      rowSpacing={1}
+      columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+      justifyContent={'center'}
+      padding={'10px'}
+    >
+      {props.wallets.map((wallet) => (
+        <Wallet
+          key={wallet.id}
+          disabled={props.disabled}
+          name={wallet.name}
+          description={wallet.descriptions.join(' & ')}
+          image={wallet.image}
+          small={props.small}
+          onClick={() => {
+            props.onClickWallet(wallet.id)
+          }}
+        />
+      ))}
+      <Button onClick={props.onClickOther} variant='contained' size='large'>
         {props.isMobile ? 'Pair wallet on another device' : 'Show QR code'}
-      </button>
-    </div>
+      </Button>
+    </Grid2>
   )
 }
 
-export { styles }
 export default Wallets
