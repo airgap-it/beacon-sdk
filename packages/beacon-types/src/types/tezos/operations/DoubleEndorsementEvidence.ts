@@ -22,4 +22,5 @@ export interface TezosDoubleEndorsementEvidenceOperation extends TezosBaseOperat
   kind: TezosOperationType.DOUBLE_ENDORSEMENT_EVIDENCE
   op1: InlinedEndorsement
   op2: InlinedEndorsement
+  slot?: number
 }

@@ -14,5 +14,5 @@ export interface TezosOriginationOperation extends TezosBaseOperation {
   storage_limit: string
   balance: string
   delegate?: string
-  script: ScriptedContracts
+  script?: ScriptedContracts
 }
