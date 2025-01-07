@@ -22,7 +22,7 @@ const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
       >
         {!props.small && (
           <Grid2 container>
-            <h3 style={{ margin: 0 }}>{props.name}</h3>
+            <h3 style={{ margin: 0, color: 'black' }}>{props.name}</h3>
             {props.description && (
               <p style={{ fontSize: '10px', margin: 0 }}>{props.description}</p>
             )}
