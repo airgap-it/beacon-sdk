@@ -19,9 +19,9 @@ const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
 
   return (
     <Grid2 container justifyContent={'center'} alignItems={'center'} flexDirection={'column'}>
-      <h3>Connect Wallet</h3>
+      <span>Connect Wallet</span>
       {enableBugReport === 'true' ? (
-        <span>
+        <span style={{ fontSize: '12px' }}>
           Do you wish to report a bug?{' '}
           <span
             style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}
