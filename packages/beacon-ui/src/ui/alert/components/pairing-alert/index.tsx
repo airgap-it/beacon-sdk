@@ -44,7 +44,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
     p2pPayload,
     postPayload,
     wallets,
-    props.closeButtonCallback ?? (() => {})
+    props.closeButtonCallback ?? (() => { })
   )
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
@@ -57,7 +57,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
     const description: any = (
       <>
         <h3 style={{ color: '#FF4136', margin: '0.6px' }}>A network error occurred.</h3>
-        <h4>
+        <h4 style={{ color: 'black' }}>
           This issue does not concern your wallet or dApp. If the problem persists, please report it
           to the Beacon team{' '}
           <span
@@ -95,8 +95,8 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
             isMobile={isMobile}
             walletName={wallet?.name || 'AirGap'}
             code={qrCode ?? ''}
-            onClickLearnMore={() => {}}
-            onClickQrCode={() => {}}
+            onClickLearnMore={() => { }}
+            onClickQrCode={() => { }}
           />
         ) : (
           generateWCError(`Connect with ${wallet?.name} Mobile`)
@@ -108,7 +108,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
   return (
     <Alert
       loading={isLoading}
-      onCloseClick={props.closeButtonCallback ?? (() => {})}
+      onCloseClick={props.closeButtonCallback ?? (() => { })}
       open={true}
       showMore={showMoreContent}
       extraContent={
@@ -125,9 +125,9 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
       onClickShowMore={handleShowMoreContent}
       onBackClick={
         state === 'install' ||
-        state === 'qr' ||
-        (state === 'wallets' && isMobile) ||
-        state === 'help'
+          state === 'qr' ||
+          (state === 'wallets' && isMobile) ||
+          state === 'help'
           ? () => handleUpdateState('top-wallets')
           : undefined
       }
@@ -165,19 +165,19 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                 buttons={
                   wallet.firefoxId
                     ? [
-                        {
-                          label: 'Use Extension',
-                          type: 'primary',
-                          onClick: () => handleClickConnectExtension()
-                        }
-                      ]
+                      {
+                        label: 'Use Extension',
+                        type: 'primary',
+                        onClick: () => handleClickConnectExtension()
+                      }
+                    ]
                     : [
-                        {
-                          label: 'Install extension',
-                          type: 'primary',
-                          onClick: () => handleClickInstallExtension()
-                        }
-                      ]
+                      {
+                        label: 'Install extension',
+                        type: 'primary',
+                        onClick: () => handleClickInstallExtension()
+                      }
+                    ]
                 }
               />
             )}
@@ -235,9 +235,9 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                   downloadLink={
                     wallet?.name.toLowerCase().includes('kukai') && isIOS(window)
                       ? {
-                          label: 'Get Kukai Mobile >',
-                          url: 'https://ios.kukai.app'
-                        }
+                        label: 'Get Kukai Mobile >',
+                        url: 'https://ios.kukai.app'
+                      }
                       : undefined
                   }
                   onShowQRCodeClick={async () => {
@@ -284,7 +284,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
             {!displayQRExtra ? (
               <PairOther
                 walletList={walletList}
-                onClickLearnMore={() => {}}
+                onClickLearnMore={() => { }}
                 p2pPayload={p2pPayload}
                 wcPayload={wcPayload}
               ></PairOther>
@@ -298,19 +298,19 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
           style={
             state === 'wallets'
               ? {
-                  opacity: 1,
-                  height: 'unset',
-                  overflow: 'unset',
-                  transform: 'scale(1)',
-                  transition: 'all ease 0.3s'
-                }
+                opacity: 1,
+                height: 'unset',
+                overflow: 'unset',
+                transform: 'scale(1)',
+                transition: 'all ease 0.3s'
+              }
               : {
-                  opacity: 0,
-                  height: 0,
-                  overflow: 'hidden',
-                  transform: 'scale(1.1)',
-                  transition: 'all ease 0.3s'
-                }
+                opacity: 0,
+                height: 0,
+                overflow: 'hidden',
+                transform: 'scale(1.1)',
+                transition: 'all ease 0.3s'
+              }
           }
         >
           <Wallets
@@ -325,29 +325,29 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
           style={
             state === 'help'
               ? {
-                  opacity: 1,
-                  height: 'unset',
-                  overflow: 'unset',
-                  transform: 'scale(1)',
-                  transition: 'all ease 0.3s',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.9em'
-                }
+                opacity: 1,
+                height: 'unset',
+                overflow: 'unset',
+                transform: 'scale(1)',
+                transition: 'all ease 0.3s',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.9em'
+              }
               : {
-                  opacity: 0,
-                  height: 0,
-                  overflow: 'hidden',
-                  transform: 'scale(1.1)',
-                  transition: 'all ease 0.3s',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.9em'
-                }
+                opacity: 0,
+                height: 0,
+                overflow: 'hidden',
+                transform: 'scale(1.1)',
+                transition: 'all ease 0.3s',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.9em'
+              }
           }
         >
           {areMetricsEnabled && (
-            <BugReportForm onSubmit={props.closeButtonCallback ?? (() => {})} />
+            <BugReportForm onSubmit={props.closeButtonCallback ?? (() => { })} />
           )}
           {!areMetricsEnabled && (
             <>
@@ -403,19 +403,19 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
           style={
             state !== 'install' && state !== 'qr' && state !== 'wallets' && state !== 'help'
               ? {
-                  opacity: 1,
-                  height: 'unset',
-                  overflow: 'unset',
-                  transform: 'scale(1)',
-                  transition: 'all ease 0.3s'
-                }
+                opacity: 1,
+                height: 'unset',
+                overflow: 'unset',
+                transform: 'scale(1)',
+                transition: 'all ease 0.3s'
+              }
               : {
-                  opacity: 0,
-                  height: 0,
-                  overflow: 'hidden',
-                  transform: 'scale(1.1)',
-                  transition: 'all ease 0.3s'
-                }
+                opacity: 0,
+                height: 0,
+                overflow: 'hidden',
+                transform: 'scale(1.1)',
+                transition: 'all ease 0.3s'
+              }
           }
         >
           <TopWallets
@@ -426,9 +426,9 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
             otherWallets={
               isMobile
                 ? {
-                    images: [walletList[3].image, walletList[4].image, walletList[5].image],
-                    onClick: () => handleUpdateState('wallets')
-                  }
+                  images: [walletList[3].image, walletList[4].image, walletList[5].image],
+                  onClick: () => handleUpdateState('wallets')
+                }
                 : undefined
             }
           />
