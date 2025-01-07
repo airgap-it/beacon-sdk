@@ -2,6 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { IndexedDBStorage, Logger, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
 import { currentBrowser, currentOS } from '../../utils/platform'
+import {
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  TextField,
+  Typography,
+} from '@mui/material';
+import StatusIcon from './components/status-icon';
 
 
 const logger = new Logger('BugReport')
@@ -150,90 +159,119 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="form-style">
-      <div className="input-group">
-        <label htmlFor="title" className="label-style">
-          Title
-        </label>
-        <input
-          type="text"
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.currentTarget.value)}
-          onBlur={() => setTitleTouched(true)}
-          className={`input-style ${titleTouched && titleErrorMsg.length ? 'invalid' : ''}`}
-        />
-        {titleTouched && titleErrorMsg.length > 0 && (
-          <label className="error-label">{titleErrorMsg}</label>
-        )}
-      </div>
-      <div className="input-group">
-        <label htmlFor="description" className="label-style">
-          Description
-        </label>
-        <textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.currentTarget.value)}
-          onBlur={() => setDescriptionTouched(true)}
-          className={`textarea-style ${
-            descriptionTouched && descriptionErrorMsg.length ? 'invalid' : ''
-          }`}
-        />
-        {descriptionTouched && descriptionErrorMsg.length > 0 && (
-          <label className="error-label">{descriptionErrorMsg}</label>
-        )}
-      </div>
-      <div className="input-group">
-        <label htmlFor="steps" className="label-style">
-          Steps to Reproduce
-        </label>
-        <textarea
-          id="steps"
-          value={steps}
-          onChange={(e) => setSteps(e.currentTarget.value)}
-          onBlur={() => setStepsTouched(true)}
-          className={`textarea-style ${stepsTouched && stepsErrorMsg.length ? 'invalid' : ''}`}
-        />
-        {stepsTouched && stepsErrorMsg.length > 0 && (
-          <label className="error-label">{stepsErrorMsg}</label>
-        )}
-      </div>
-      <div className="permissions-group">
-        <label htmlFor="user-permissions">
-          You agree to share anonymous data with the developers.
-        </label>
-        <input
-          id="user-permissions"
-          type="checkbox"
-          onChange={() => setDidUserAllow((prev) => !prev)}
-        />
-      </div>
-      <button
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2, // spacing between fields
+        width: '100%',
+        maxWidth: 600,
+        margin: '0 auto',
+      }}
+    >
+      {/* Title Field */}
+      <TextField
+        id="title"
+        label="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        onBlur={() => setTitleTouched(true)}
+        error={titleTouched && Boolean(titleErrorMsg)}
+        helperText={titleTouched && titleErrorMsg ? titleErrorMsg : ''}
+        fullWidth
+      />
+
+      {/* Description Field */}
+      <TextField
+        id="description"
+        label="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        onBlur={() => setDescriptionTouched(true)}
+        error={descriptionTouched && Boolean(descriptionErrorMsg)}
+        helperText={descriptionTouched && descriptionErrorMsg ? descriptionErrorMsg : ''}
+        multiline
+        rows={4}
+        fullWidth
+      />
+
+      {/* Steps Field */}
+      <TextField
+        id="steps"
+        label="Steps to Reproduce"
+        value={steps}
+        onChange={(e) => setSteps(e.target.value)}
+        onBlur={() => setStepsTouched(true)}
+        error={stepsTouched && Boolean(stepsErrorMsg)}
+        helperText={stepsTouched && stepsErrorMsg ? stepsErrorMsg : ''}
+        multiline
+        rows={4}
+        fullWidth
+      />
+
+      {/* Permissions Checkbox */}
+      <FormControlLabel
+        control={
+          <Checkbox
+            id="user-permissions"
+            checked={didUserAllow}
+            onChange={() => setDidUserAllow((prev) => !prev)}
+          />
+        }
+        label="You agree to share anonymous data with the developers."
+      />
+
+      {/* Submit Button */}
+      <Button
         type="submit"
+        variant="contained"
         disabled={!isFormValid}
-        className={`button-style ${isFormValid ? 'valid' : 'invalid'} ${
-          isLoading ? 'button-loading' : ''
-        }`}
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 1,
+          position: 'relative',
+        }}
       >
+        {/* If not loading and no status, show "Submit" */}
         {!isLoading && !status ? 'Submit' : <>&nbsp;</>}
-        {!isLoading && status && (
-          <span className={status === 'success' ? 'icon success-icon' : 'icon error-icon'}>
-            {status === 'success' ? '✓' : '✕'}
-          </span>
-        )}
+
+        {/* If there's a status and not loading, show a success/error icon */}
+        <StatusIcon isLoading={isLoading} status={status} />
+
+        {/* Thank You! message absolutely positioned below the Button */}
         {showThankYou && (
-          <div className="thank-you-message">
+          <Box>
             {'Thank You!'.split('').map((letter, index) => (
-              <span key={index} style={{ animationDelay: `${index * 0.1}s` }}>
+              <Typography
+                key={index}
+                component="span"
+                sx={{
+                  display: 'inline-block',
+                  // Prevent uppercase transformation from parent styles:
+                  textTransform: 'none',
+                  // Ensure the space is preserved if styling is trimming it:
+                  whiteSpace: 'pre',
+                  opacity: 0,
+                  animation: `fadeInUp 0.3s ease forwards ${index * 0.1}s`,
+                  '@keyframes fadeInUp': {
+                    to: {
+                      opacity: 1,
+                      transform: 'translateY(-3px)',
+                    },
+                  },
+                }}
+              >
                 {letter}
-              </span>
+              </Typography>
             ))}
-          </div>
+          </Box>
         )}
-      </button>
-    </form>
-  )
+      </Button>
+    </Box>
+  );
 }
 
 export default BugReportForm
