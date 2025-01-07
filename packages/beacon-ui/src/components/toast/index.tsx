@@ -20,7 +20,7 @@ function parseWallet(
       return (
         <React.Fragment key={index}>
           <img src={walletInfo.icon} alt={`${walletInfo.name} icon`} />
-          <h3>{walletInfo.name}</h3>
+          <h3 style={{color: 'black'}}>{walletInfo.name}</h3>
         </React.Fragment>
       );
     } else {

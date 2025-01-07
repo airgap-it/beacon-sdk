@@ -31,15 +31,15 @@ const Info: React.FC<InfoProps> = (props: InfoProps) => {
       sx={
         props.border
           ? {
-              borderStyle: 'solid',
-              borderWidth: 'thin',
-              borderColor: 'black'
-            }
+            borderStyle: 'solid',
+            borderWidth: 'thin',
+            borderColor: 'black'
+          }
           : undefined
       }
     >
       {props.icon && <Grid2 container>{props.icon}</Grid2>}
-      <h3>{props.title}</h3>
+      <h3 style={{ color: 'black' }}>{props.title}</h3>
       {props.description && <span>{props.description}</span>}
       {props.data && <pre>{props.data}</pre>}
       <Grid2 container>

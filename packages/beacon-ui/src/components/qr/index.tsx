@@ -58,7 +58,7 @@ const QR: React.FC<QRProps> = (props: QRProps) => {
       }}
     >
       <Grid2 container justifyContent={'center'} alignItems={'center'} flexDirection={'column'}>
-        {!props.isMobile && <h3>Or scan to connect</h3>}
+        {!props.isMobile && <h3 style={{color: 'black'}}>Or scan to connect</h3>}
         {!props.isMobile && (
           <span>{`Open ${props.walletName} Wallet on your mobile phone and scan.`}</span>
         )}

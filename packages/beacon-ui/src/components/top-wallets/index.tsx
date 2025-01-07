@@ -57,7 +57,7 @@ const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
         {props.otherWallets && (
           <Grid2 container onClick={props.otherWallets.onClick}>
             <Grid2 container>
-              <h3>Other Wallets</h3>
+              <h3 style={{color: 'black'}}>Other Wallets</h3>
               <p>See other wallets you can use to connect</p>
             </Grid2>
             <Grid2 container>
