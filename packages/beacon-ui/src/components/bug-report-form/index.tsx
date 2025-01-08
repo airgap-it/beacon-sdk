@@ -87,12 +87,12 @@ const BugReportForm = (props: any) => {
 
   const getUserId = (): string => {
     if (!localStorage) {
-      return 'UNKOWN'
+      return 'UNKNOWN'
     }
 
     const key = Object.keys(localStorage).find((key) => key.includes('user-id'))
 
-    return key && key.length ? localStorage.getItem(key) ?? 'UNKOWN' : 'UNKOWN'
+    return key && key.length ? localStorage.getItem(key) ?? 'UNKNOWN' : 'UNKNOWN'
   }
 
   createEffect(() => {
@@ -134,7 +134,7 @@ const BugReportForm = (props: any) => {
       body: JSON.stringify(request)
     }
 
-    fetch('https://beacon-backend.prod.gke.papers.tech/bug-report/save', options)
+    fetch('http://localhost:9001/bug-report/save', options)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
