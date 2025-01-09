@@ -45,19 +45,21 @@ const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
         columnSpacing={1}
       >
         {props.wallets.map((wallet) => (
-          <Wallet
-            key={wallet.id}
-            disabled={props.disabled}
-            name={wallet.name}
-            description={wallet.descriptions.join(' & ')}
-            image={wallet.image}
-            onClick={() => props.onClickWallet(wallet.id)}
-          />
+          <Grid2 size={6}>
+            <Wallet
+              key={wallet.id}
+              disabled={props.disabled}
+              name={wallet.name}
+              description={wallet.descriptions.join(' & ')}
+              image={wallet.image}
+              onClick={() => props.onClickWallet(wallet.id)}
+            />
+          </Grid2>
         ))}
         {props.otherWallets && (
           <Grid2 container onClick={props.otherWallets.onClick}>
             <Grid2 container>
-              <h3 style={{color: 'black'}}>Other Wallets</h3>
+              <h3 style={{ color: 'black' }}>Other Wallets</h3>
               <p>See other wallets you can use to connect</p>
             </Grid2>
             <Grid2 container>

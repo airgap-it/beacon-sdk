@@ -40,7 +40,7 @@ const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
         >
           {backButton}
           <LogoIcon />
-          <Button variant="outlined" onClick={props.onCloseClick}>
+          <Button variant="text" onClick={props.onCloseClick}>
             <CloseIcon />
           </Button>
         </Grid2>
