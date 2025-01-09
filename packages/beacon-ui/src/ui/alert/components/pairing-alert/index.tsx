@@ -11,6 +11,7 @@ import QR from 'src/components/qr'
 import useWallets from '../../hooks/useWallets'
 import { AlertConfig } from '../../common'
 import Grid2 from '@mui/material/Grid2'
+import { Typography } from '@mui/material'
 
 const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => {
   const {
@@ -56,18 +57,34 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
     const errorMessage = localStorage ? localStorage.getItem(StorageKey.WC_INIT_ERROR) : undefined
     const description: any = (
       <>
-        <h3 style={{ color: '#FF4136', margin: '0.6px' }}>A network error occurred.</h3>
-        <h4 style={{ color: 'black' }}>
+        {/* Headline */}
+        <Typography variant="h6" color="error" sx={{ margin: '0.6px' }}>
+          A network error occurred.
+        </Typography>
+
+        {/* Subtext */}
+        <Typography color="text.primary">
           This issue does not concern your wallet or dApp. If the problem persists, please report it
           to the Beacon team{' '}
-          <span
-            style={{ textDecoration: 'underline', color: '#007bff', cursor: 'pointer' }}
+          <Typography
+            component="span"
+            sx={{
+              textDecoration: 'underline',
+              color: 'primary.main',
+              cursor: 'pointer'
+            }}
             onClick={() => handleUpdateState('help')}
           >
             here
-          </span>
-        </h4>
-        {errorMessage && <span>{errorMessage}</span>}
+          </Typography>
+        </Typography>
+
+        {/* Optional error message */}
+        {errorMessage && (
+          <Typography variant="body1" color="text.primary">
+            {errorMessage}
+          </Typography>
+        )}
       </>
     )
     return <Info title={title} description={description} border />
@@ -296,7 +313,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
         )}
         <Grid2
           container
-          style={
+          sx={
             state === 'wallets'
               ? {
                   opacity: 1,
@@ -323,7 +340,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
         </Grid2>
         <Grid2
           container
-          style={
+          sx={
             state === 'help'
               ? {
                   opacity: 1,
@@ -401,7 +418,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
         </Grid2>
         <Grid2
           container
-          style={
+          sx={
             state !== 'install' && state !== 'qr' && state !== 'wallets' && state !== 'help'
               ? {
                   opacity: 1,
