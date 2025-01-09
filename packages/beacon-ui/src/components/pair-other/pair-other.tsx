@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { Box, Typography, Button } from '@mui/material'
 import QR from '../qr'
-
 import { PairOtherProps } from 'src/ui/alert/common'
 
 const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
@@ -10,6 +10,7 @@ const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
   const [qrData, setQrData] = useState<string>('')
 
   useEffect(() => {
+    // Reset state whenever props change
     setUiState('selection')
     setQrData('')
     setHasBeacon(!!props.p2pPayload)
@@ -17,33 +18,49 @@ const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
   }, [props.p2pPayload, props.wcPayload])
 
   const buttonClickHandler = (state: 'p2p' | 'walletconnect') => {
-    state === 'p2p' ? setQrData(props.p2pPayload) : setQrData(props.wcPayload)
+    setQrData(state === 'p2p' ? props.p2pPayload : props.wcPayload)
     setUiState(state)
   }
 
   return (
     <>
       {uiState === 'selection' && (
-        <div>
-          <span className="pair-other-info">Select QR Type</span>
-          <br />
+        <Box sx={{ padding: '5px' }}>
+          <Typography variant="body1" gutterBottom>
+            Select QR Type
+          </Typography>
           {hasBeacon && (
-            <button className="wallets-button" onClick={() => buttonClickHandler('p2p')}>
-              Beacon
-            </button>
+            <Box sx={{ padding: '5px' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => buttonClickHandler('p2p')}
+                sx={{ width: '100%' }}
+              >
+                Beacon
+              </Button>
+            </Box>
           )}
           {hasWalletConnect && (
-            <button className="wallets-button" onClick={() => buttonClickHandler('walletconnect')}>
-              WalletConnect
-            </button>
+            <Box sx={{ padding: '5px' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ width: '100%' }}
+                onClick={() => buttonClickHandler('walletconnect')}
+              >
+                WalletConnect
+              </Button>
+            </Box>
           )}
-        </div>
+        </Box>
       )}
+
       {uiState !== 'selection' && qrData && (
         <QR
           isWalletConnect={uiState === 'walletconnect'}
-          isMobile={true}
-          walletName={'AirGap'}
+          isMobile
+          walletName="AirGap"
           code={qrData}
           onClickLearnMore={props.onClickLearnMore}
         />
