@@ -30,9 +30,9 @@ const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
             Select QR Type
           </Typography>
           {hasBeacon && (
-            <Box sx={{ padding: '5px' }}>
+            <Box sx={{ padding: '10px' }}>
               <Button
-                variant="contained"
+                variant="outlined"
                 color="primary"
                 onClick={() => buttonClickHandler('p2p')}
                 sx={{ width: '100%' }}
@@ -42,9 +42,9 @@ const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
             </Box>
           )}
           {hasWalletConnect && (
-            <Box sx={{ padding: '5px' }}>
+            <Box sx={{ padding: '10px' }}>
               <Button
-                variant="contained"
+                variant="outlined"
                 color="primary"
                 sx={{ width: '100%' }}
                 onClick={() => buttonClickHandler('walletconnect')}
