@@ -47,8 +47,8 @@ const Wallet: React.FC<WalletProps> = (props) => {
               image={image}
               alt={name}
               sx={{
-                width: 60,
-                height: 60,
+                width: 50,
+                height: 50,
                 objectFit: 'contain',
                 alignSelf: 'center',
                 marginRight: 2,
