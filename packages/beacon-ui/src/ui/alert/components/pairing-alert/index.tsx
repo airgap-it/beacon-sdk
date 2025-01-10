@@ -160,7 +160,6 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                 buttons={[
                   {
                     label: 'Use Browser',
-                    type: 'primary',
                     onClick: () => handleNewTab(props, wallet)
                   }
                 ]}
@@ -184,14 +183,12 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                     ? [
                         {
                           label: 'Use Extension',
-                          type: 'primary',
                           onClick: () => handleClickConnectExtension()
                         }
                       ]
                     : [
                         {
                           label: 'Install extension',
-                          type: 'primary',
                           onClick: () => handleClickInstallExtension()
                         }
                       ]
@@ -206,12 +203,10 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                 buttons={[
                   {
                     label: 'Open desktop app',
-                    type: 'primary',
                     onClick: () => handleClickOpenDesktopApp()
                   },
                   {
                     label: 'Download desktop app',
-                    type: 'secondary',
                     onClick: () => handleClickDownloadDesktopApp()
                   }
                 ]}
@@ -235,7 +230,6 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                   buttons={[
                     {
                       label: 'Use App',
-                      type: 'primary',
                       onClick: async () => {
                         if (!wallet) {
                           return
@@ -370,7 +364,6 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
           {!areMetricsEnabled && (
             <>
               <Info
-                iconBadge
                 icon={
                   <svg
                     fill="currentColor"
@@ -390,7 +383,6 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                 description="Wallets let you send, receive, store and interact with digital assets. Your wallet can be used as an easy way to login, instead of having to remember a password."
               />
               <Info
-                iconBadge
                 icon={
                   <svg
                     fill="none"

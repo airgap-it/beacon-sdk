@@ -1,61 +1,96 @@
 import React from 'react'
-
 import { QRCodeIcon } from '../icons'
-import { Button, Grid2 } from '@mui/material'
+import { Card, CardContent, CardActions, Button, Typography, Box } from '@mui/material'
 
 interface InfoProps {
+  icon?: React.ReactNode
   title: string
   description?: string
   data?: string
-  icon?: any
   border?: boolean
-  iconBadge?: boolean
-  bigIcon?: boolean
-  buttons?: {
-    label: string
-    type: 'primary' | 'secondary'
-    onClick: () => void
-  }[]
+  buttons?: Array<{ label: string; onClick: () => void }>
   downloadLink?: { url: string; label: string }
-  onShowQRCodeClick?: (() => void) | (() => Promise<void>)
+  onShowQRCodeClick?: () => void
 }
 
 const Info: React.FC<InfoProps> = (props: InfoProps) => {
+  const { icon, title, description, data, border, buttons, downloadLink, onShowQRCodeClick } = props
+
+  console.log('border:', border)
+
   return (
-    <Grid2
-      container
-      justifyContent={'center'}
-      alignItems={'center'}
-      flexDirection={'column'}
-      width={'100%'}
-      sx={
-        props.border
-          ? {
-            borderStyle: 'solid',
-            borderWidth: 'thin',
-            borderColor: 'black'
-          }
-          : undefined
-      }
+    <Card
+      sx={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }}
     >
-      {props.icon && <Grid2 container>{props.icon}</Grid2>}
-      <h3 style={{ color: 'black' }}>{props.title}</h3>
-      {props.description && <span>{props.description}</span>}
-      {props.data && <pre>{props.data}</pre>}
-      <Grid2 container>
-        {props.buttons?.map((button, index) => (
-          <Button key={index} onClick={button.onClick}>
+      <CardContent sx={{ width: '100%', textAlign: 'center' }}>
+        {icon && (
+          <Box display="flex" justifyContent="center" mb={1}>
+            {icon}
+          </Box>
+        )}
+
+        <Typography variant="h5" component="div" color="black" gutterBottom>
+          {title}
+        </Typography>
+
+        {description && (
+          <Typography variant="body1" mb={1}>
+            {description}
+          </Typography>
+        )}
+
+        {data && (
+          <Box
+            component="pre"
+            sx={{
+              textAlign: 'left',
+              backgroundColor: '#f5f5f5',
+              padding: 1,
+              borderRadius: 1,
+              overflowX: 'auto'
+            }}
+          >
+            {data}
+          </Box>
+        )}
+      </CardContent>
+
+      <CardActions sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+        {buttons?.map((button, index) => (
+          <Button key={index} onClick={button.onClick} sx={{ m: 0.5 }}>
             {button.label}
           </Button>
         ))}
-      </Grid2>
-      {props.downloadLink && <a href={props.downloadLink.url}>{props.downloadLink.label}</a>}
-      {props.onShowQRCodeClick && (
-        <Button id="qr-code-icon" onClick={props.onShowQRCodeClick}>
-          <QRCodeIcon />
-        </Button>
-      )}
-    </Grid2>
+
+        {downloadLink && (
+          <Button
+            component="a"
+            href={downloadLink.url}
+            sx={{ m: 0.5 }}
+            target="_blank"
+            rel="noopener"
+          >
+            {downloadLink.label}
+          </Button>
+        )}
+
+        {onShowQRCodeClick && (
+          <Button
+            id="qr-code-icon"
+            onClick={onShowQRCodeClick}
+            startIcon={<QRCodeIcon />}
+            sx={{ m: 0.5 }}
+          >
+            Show QR Code
+          </Button>
+        )}
+      </CardActions>
+    </Card>
   )
 }
 
