@@ -440,7 +440,7 @@ const PairingAlert: React.FC<any> = (props) => {
             wallets={isMobile ? walletList.slice(0, 3) : walletList.slice(0, 4)}
             isMobile={isMobile}
             onClickWallet={(id) => handleClickWallet(id, props)}
-            onClickLearnMore={() => {}}
+            onClickLearnMore={() => handleUpdateState('help')}
             otherWallets={
               isMobile
                 ? {
