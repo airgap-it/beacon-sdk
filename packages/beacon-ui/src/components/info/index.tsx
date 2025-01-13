@@ -1,97 +1,68 @@
-import React from 'react'
-import { QRCodeIcon } from '../icons'
-import { Card, CardContent, CardActions, Button, Typography, Box } from '@mui/material'
+import React from "react";
+import "./styles.css";
+import { QRCodeIcon } from "../icons";
 
 interface InfoProps {
-  icon?: React.ReactNode
-  title: string
-  description?: string
-  data?: string
-  border?: boolean
-  buttons?: Array<{ label: string; onClick: () => void }>
-  downloadLink?: { url: string; label: string }
-  onShowQRCodeClick?: () => void
+  title: string;
+  description?: string;
+  data?: string;
+  icon?: any;
+  border?: boolean;
+  iconBadge?: boolean;
+  bigIcon?: boolean;
+  buttons?: {
+    label: string;
+    type: "primary" | "secondary";
+    onClick: () => void;
+  }[];
+  downloadLink?: { url: string; label: string };
+  onShowQRCodeClick?: (() => void) | (() => Promise<void>);
 }
 
 const Info: React.FC<InfoProps> = (props: InfoProps) => {
-  const { icon, title, description, data, border, buttons, downloadLink, onShowQRCodeClick } = props
-
-  console.log('border:', border)
-
   return (
-    <Card
-      sx={{
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
-      }}
-    >
-      <CardContent sx={{ width: '100%', textAlign: 'center' }}>
-        {icon && (
-          <Box display="flex" justifyContent="center" mb={1}>
-            {icon}
-          </Box>
-        )}
-
-        <Typography variant="h5" component="div" color="black" gutterBottom>
-          {title}
-        </Typography>
-
-        {description && (
-          <Typography variant="body1" mb={1}>
-            {description}
-          </Typography>
-        )}
-
-        {data && (
-          <Box
-            component="pre"
-            sx={{
-              textAlign: 'left',
-              backgroundColor: '#f5f5f5',
-              padding: 1,
-              borderRadius: 1,
-              overflowX: 'auto'
-            }}
+    <div className={`info-wrapper ${props.border ? "info-border" : ""}`}>
+      {props.icon && (
+        <div
+          className={`info-icon ${props.iconBadge ? "info-badge" : ""}`}
+          style={props.bigIcon ? { fontSize: "3.4em" } : {}}
+        >
+          {props.icon}
+        </div>
+      )}
+      <h3 className="info-title">{props.title}</h3>
+      {props.description && (
+        <div className="info-description">{props.description}</div>
+      )}
+      {props.data && <pre className="info-data">{props.data}</pre>}
+      <div className="info-buttons">
+        {props.buttons?.map((button, index) => (
+          <button
+            key={index}
+            className={
+              button.type !== "secondary"
+                ? "info-button"
+                : "info-button-secondary"
+            }
+            onClick={button.onClick}
           >
-            {data}
-          </Box>
-        )}
-      </CardContent>
-
-      <CardActions sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
-        {buttons?.map((button, index) => (
-          <Button key={index} onClick={button.onClick} sx={{ m: 0.5 }}>
             {button.label}
-          </Button>
+          </button>
         ))}
+      </div>
+      {props.downloadLink && (
+        <a className="downloadLink" href={props.downloadLink.url}>
+          {props.downloadLink.label}
+        </a>
+      )}
+      {props.onShowQRCodeClick && (
+        <button id="qr-code-icon" onClick={props.onShowQRCodeClick}>
+          <QRCodeIcon />
+        </button>
+      )}
+    </div>
+  );
+};
 
-        {downloadLink && (
-          <Button
-            component="a"
-            href={downloadLink.url}
-            sx={{ m: 0.5 }}
-            target="_blank"
-            rel="noopener"
-          >
-            {downloadLink.label}
-          </Button>
-        )}
 
-        {onShowQRCodeClick && (
-          <Button
-            id="qr-code-icon"
-            onClick={onShowQRCodeClick}
-            startIcon={<QRCodeIcon />}
-            sx={{ m: 0.5 }}
-          >
-            Show QR Code
-          </Button>
-        )}
-      </CardActions>
-    </Card>
-  )
-}
-
-export default Info
+export default Info;

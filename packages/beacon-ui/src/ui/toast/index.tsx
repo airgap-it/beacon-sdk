@@ -5,6 +5,9 @@ import { generateGUID } from '@airgap/beacon-utils'
 
 import Toast from '../../components/toast'
 
+import * as toastStyles from '../../components/toast/styles.css'
+import * as loaderStyles from '../../components/loader/styles.css'
+
 // INTERFACES
 export interface ToastAction {
   text: string
@@ -48,6 +51,23 @@ const createToast = (config: ToastConfig) => {
   }
   shadowRootEl.setAttribute('id', 'beacon-toast-wrapper')
   shadowRootEl.style.height = '0px'
+  const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })
+
+  // Toast styles
+  const style = document.createElement('style')
+  style.textContent = toastStyles.default
+  shadowRoot.appendChild(style)
+
+  // Loader styles
+  const style2 = document.createElement('style')
+  style2.textContent = loaderStyles.default
+  shadowRoot.appendChild(style2)
+
+  // Inject font styles
+  const styleFonts = document.createElement('style')
+  styleFonts.textContent =
+    "* { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;}"
+  shadowRoot.appendChild(styleFonts)
 
   createRoot(shadowRootEl).render(
     <Toast

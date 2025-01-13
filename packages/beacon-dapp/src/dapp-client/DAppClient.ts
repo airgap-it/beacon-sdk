@@ -822,18 +822,14 @@ export class DAppClient extends Client {
 
           await p2pTransport.connect()
 
-          const serializer = new Serializer()
-          const p2pPeerInfo = await serializer.serialize(await p2pTransport.getPairingRequestInfo())
-          const walletConnectPeerInfo = (await walletConnectTransport.getPairingRequestInfo()).uri
-          const postmessagePeerInfo = await serializer.serialize(
-            await postMessageTransport.getPairingRequestInfo()
-          )
-
           this.events
             .emit(BeaconEvent.PAIR_INIT, {
-              p2pPeerInfo,
-              postmessagePeerInfo,
-              walletConnectPeerInfo,
+              p2pPeerInfo: () => {
+                p2pTransport.connect().then().catch(console.error)
+                return p2pTransport.getPairingRequestInfo()
+              },
+              postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
+              walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
               networkType: this.network.type,
               abortedHandler: abortHandler.bind(this),
               disclaimerText: this.disclaimerText,
