@@ -5,7 +5,7 @@ import { AlertProps } from '../../ui/alert/common'
 import './styles.css'
 import useIsMobile from '../../ui/alert/hooks/useIsMobile'
 
-const Alert: React.FC<AlertProps> = (props: AlertProps) => {
+const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
   // useEffect(() => {
   //   const prevBodyOverflow = document.body.style.overflow
   //   document.body.style.overflow = 'hidden'
@@ -66,7 +66,7 @@ const Alert: React.FC<AlertProps> = (props: AlertProps) => {
           <Loader />
         </div>
         <div className="alert-body" style={{ marginBottom: props.extraContent ? '' : '1.8em' }}>
-          {props.content}
+          {props.children}
           {!isMobile && (
             <div className={props.showMore ? 'alert-body-extra-show' : 'alert-body-extra-hide'}>
               {props.extraContent && <div className="alert-divider"></div>}
