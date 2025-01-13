@@ -1,5 +1,4 @@
 import postcss from 'rollup-plugin-postcss'
-import css from 'rollup-plugin-import-css'
 import typescript from 'rollup-plugin-typescript2'
 import babel from '@rollup/plugin-babel'
 import terser from '@rollup/plugin-terser'
@@ -20,12 +19,11 @@ export default [
     plugins: [
       resolve({ extensions }),
       commonjs(),
-      // postcss({
-      //   extract: true,
-      //   minimize: true,
-      //   sourceMap: true,
-      // }),
-      css(),
+      postcss({
+        inject: true,
+        minimize: true,
+        sourceMap: true
+      }),
       typescript({
         tsconfig: 'tsconfig.json'
       }),
@@ -34,7 +32,7 @@ export default [
         babelHelpers: 'bundled',
         include: ['src/**/*'],
         presets: [['@babel/preset-react', { runtime: 'automatic' }]]
-      }),
+      })
       // terser()
     ]
   },
@@ -55,12 +53,11 @@ export default [
     plugins: [
       resolve({ extensions }),
       commonjs(),
-      // postcss({
-      //   extract: true,
-      //   minimize: true,
-      //   sourceMap: true,
-      // }),
-      css(),
+      postcss({
+        inject: true,
+        minimize: true,
+        sourceMap: true
+      }),
       typescript({
         tsconfig: 'tsconfig.json'
       }),
@@ -69,7 +66,7 @@ export default [
         babelHelpers: 'bundled',
         include: ['src/**/*'],
         presets: [['@babel/preset-react', { runtime: 'automatic' }]]
-      }),
+      })
       // terser()
     ]
   }
