@@ -1,72 +1,88 @@
-import React, { useState, useEffect } from 'react'
-import { Box, Typography, Button } from '@mui/material'
-import QR from '../qr'
-import { PairOtherProps } from 'src/ui/alert/common'
+import React, { useState, useEffect } from "react";
+import QR from "../qr";
+import { MergedWallet } from "../../utils/wallets";
+import {
+  P2PPairingRequest,
+  WalletConnectPairingRequest,
+} from "@airgap/beacon-types";
+import "./styles.css";
+import { Serializer } from "@airgap/beacon-core";
+
+export interface PairOtherProps {
+  walletList: MergedWallet[];
+  p2pPayload: Promise<P2PPairingRequest> | undefined;
+  wcPayload: Promise<WalletConnectPairingRequest> | undefined;
+  onClickLearnMore: () => void;
+}
 
 const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
-  const [uiState, setUiState] = useState<'selection' | 'p2p' | 'walletconnect'>('selection')
-  const [hasBeacon, setHasBeacon] = useState<boolean>(false)
-  const [hasWalletConnect, setHasWalletConnect] = useState<boolean>(false)
-  const [qrData, setQrData] = useState<string>('')
+  const [uiState, setUiState] = useState<"selection" | "p2p" | "walletconnect">(
+    "selection"
+  );
+  const [hasBeacon, setHasBeacon] = useState<boolean>(false);
+  const [hasWalletConnect, setHasWalletConnect] = useState<boolean>(false);
+  const [qrData, setQrData] = useState<string>("");
 
   useEffect(() => {
-    // Reset state whenever props change
-    setUiState('selection')
-    setQrData('')
-    setHasBeacon(!!props.p2pPayload)
-    setHasWalletConnect(!!props.wcPayload)
-  }, [props.p2pPayload, props.wcPayload])
+    setUiState("selection");
+    setQrData("");
+    setHasBeacon(!!props.p2pPayload);
+    setHasWalletConnect(!!props.wcPayload);
+  }, [props.p2pPayload, props.wcPayload]);
 
-  const buttonClickHandler = (state: 'p2p' | 'walletconnect') => {
-    setQrData(state === 'p2p' ? props.p2pPayload : props.wcPayload)
-    setUiState(state)
-  }
+  const buttonClickHandler = (state: "p2p" | "walletconnect") => {
+    if (state === "p2p" && props.p2pPayload) {
+      props.p2pPayload.then(async (payload) => {
+        const serializer = new Serializer();
+        const codeQR = await serializer.serialize(payload);
+        setQrData(codeQR);
+      });
+    } else if (state === "walletconnect" && props.wcPayload) {
+      props.wcPayload
+        .then((payload) => {
+          setQrData(payload.uri);
+        })
+        .catch((error) => console.error(error.message));
+    }
+    setUiState(state);
+  };
 
   return (
-    <Box>
-      {uiState === 'selection' && (
-        <Box sx={{ padding: '5px' }}>
-          <Typography variant="body1" gutterBottom>
-            Select QR Type
-          </Typography>
+    <>
+      {uiState === "selection" && (
+        <div>
+          <span className="pair-other-info">Select QR Type</span>
+          <br />
           {hasBeacon && (
-            <Box sx={{ padding: '10px' }}>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => buttonClickHandler('p2p')}
-                sx={{ width: '100%' }}
-              >
-                Beacon
-              </Button>
-            </Box>
+            <button
+              className="wallets-button"
+              onClick={() => buttonClickHandler("p2p")}
+            >
+              Beacon
+            </button>
           )}
           {hasWalletConnect && (
-            <Box sx={{ padding: '10px' }}>
-              <Button
-                variant="outlined"
-                color="primary"
-                sx={{ width: '100%' }}
-                onClick={() => buttonClickHandler('walletconnect')}
-              >
-                WalletConnect
-              </Button>
-            </Box>
+            <button
+              className="wallets-button"
+              onClick={() => buttonClickHandler("walletconnect")}
+            >
+              WalletConnect
+            </button>
           )}
-        </Box>
+        </div>
       )}
-
-      {uiState !== 'selection' && qrData && (
+      {uiState !== "selection" && qrData && (
         <QR
-          isWalletConnect={uiState === 'walletconnect'}
-          isMobile
-          walletName="AirGap"
+          isWalletConnect={uiState === "walletconnect"}
+          isMobile={true}
+          walletName={"AirGap"}
           code={qrData}
           onClickLearnMore={props.onClickLearnMore}
         />
       )}
-    </Box>
-  )
-}
+    </>
+  );
+};
 
-export default PairOther
+
+export default PairOther;
