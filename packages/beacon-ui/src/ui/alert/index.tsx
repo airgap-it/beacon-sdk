@@ -32,7 +32,7 @@ const AlertRoot = (props: AlertConfig) => {
   useEffect(() => {
     show$.subscribe((value) => setIsAlertVisible(value))
   }, [])
-  return <>{isAlertVisible && <PairingAlert {...props} closeButtonCallback={closeAlert} />}</>
+  return <>{isAlertVisible && <PairingAlert {...props} onClose={closeAlert} />}</>
 }
 
 export { openAlert, closeAlert, closeAlerts }
