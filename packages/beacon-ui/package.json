@@ -49,7 +49,6 @@
     "@types/node": "^20.6.0",
     "@types/qrcode-svg": "^1.1.2",
     "rollup": "^3.29.1",
-    "rollup-plugin-import-css": "^3.3.3",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-svg": "^2.0.0",
     "rollup-plugin-typescript2": "^0.35.0",
