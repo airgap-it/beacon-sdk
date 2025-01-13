@@ -11,9 +11,7 @@ import {
 import {
   BeaconErrorType,
   ExtendedPostMessagePairingResponse,
-  PostMessagePairingRequest,
   ExtendedP2PPairingResponse,
-  P2PPairingRequest,
   AccountInfo,
   ErrorResponse,
   PermissionResponseOutput,
@@ -26,7 +24,6 @@ import {
   AcknowledgeResponse,
   WalletInfo,
   ExtendedWalletConnectPairingResponse,
-  WalletConnectPairingRequest,
   AnalyticsInterface,
   ProofOfEventChallengeResponseOutput,
   SimulatedProofOfEventChallengeResponseOutput
@@ -201,9 +198,9 @@ export interface BeaconEventType {
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
   [BeaconEvent.PAIR_INIT]: {
-    p2pPeerInfo: () => Promise<P2PPairingRequest>
-    postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
-    walletConnectPeerInfo: () => Promise<WalletConnectPairingRequest>
+    p2pPeerInfo: string
+    postmessagePeerInfo: string
+    walletConnectPeerInfo: string
     networkType: NetworkType
     abortedHandler?(): void
     disclaimerText?: string
@@ -211,9 +208,9 @@ export interface BeaconEventType {
     featuredWallets?: string[]
   }
   [BeaconEvent.PAIR_SUCCESS]:
-  | ExtendedPostMessagePairingResponse
-  | ExtendedP2PPairingResponse
-  | ExtendedWalletConnectPairingResponse
+    | ExtendedPostMessagePairingResponse
+    | ExtendedP2PPairingResponse
+    | ExtendedWalletConnectPairingResponse
   [BeaconEvent.CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[] }
   [BeaconEvent.UNKNOWN]: undefined
@@ -532,22 +529,22 @@ const showProofOfEventChallengeSuccessAlert = async (
     state: 'finished',
     actions: output.isAccepted
       ? [
-        {
-          text: `Payload hash: ${output.payloadHash}`,
-          actionText: 'Copy to clipboard',
-          actionCallback: async (): Promise<void> => {
-            navigator.clipboard.writeText(output.payloadHash).then(
-              () => {
-                logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
-              },
-              (err) => {
-                logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
-              }
-            )
-            await closeToast()
+          {
+            text: `Payload hash: ${output.payloadHash}`,
+            actionText: 'Copy to clipboard',
+            actionCallback: async (): Promise<void> => {
+              navigator.clipboard.writeText(output.payloadHash).then(
+                () => {
+                  logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+                },
+                (err) => {
+                  logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+                }
+              )
+              await closeToast()
+            }
           }
-        }
-      ]
+        ]
       : []
   })
 }
@@ -566,22 +563,22 @@ const showSimulatedProofOfEventChallengeSuccessAlert = async (
     state: 'finished',
     actions: !output.errorMessage
       ? [
-        {
-          text: 'Operation list',
-          actionText: 'Copy to clipboard',
-          actionCallback: async (): Promise<void> => {
-            navigator.clipboard.writeText(output.operationsList).then(
-              () => {
-                logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
-              },
-              (err) => {
-                logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
-              }
-            )
-            await closeToast()
+          {
+            text: 'Operation list',
+            actionText: 'Copy to clipboard',
+            actionCallback: async (): Promise<void> => {
+              navigator.clipboard.writeText(output.operationsList).then(
+                () => {
+                  logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+                },
+                (err) => {
+                  logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+                }
+              )
+              await closeToast()
+            }
           }
-        }
-      ]
+        ]
       : [{ text: 'Error message', actionText: output.errorMessage }]
   })
 }
