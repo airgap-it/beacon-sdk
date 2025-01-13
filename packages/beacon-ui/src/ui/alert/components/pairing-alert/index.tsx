@@ -9,11 +9,9 @@ import { isIOS } from 'src/utils/platform'
 import { StorageKey } from '@airgap/beacon-types'
 import QR from 'src/components/qr'
 import useWallets from '../../hooks/useWallets'
-import { AlertConfig } from '../../common'
-import Grid2 from '@mui/material/Grid2'
-import { Typography } from '@mui/material'
 
-const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => {
+// todo remove any
+const PairingAlert: React.FC<any> = (props) => {
   const {
     walletConnectSyncCode: wcPayload,
     p2pSyncCode: p2pPayload,
@@ -57,34 +55,18 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
     const errorMessage = localStorage ? localStorage.getItem(StorageKey.WC_INIT_ERROR) : undefined
     const description: any = (
       <>
-        {/* Headline */}
-        <Typography variant="h6" color="error" sx={{ margin: '0.6px' }}>
-          A network error occurred.
-        </Typography>
-
-        {/* Subtext */}
-        <Typography color="text.primary">
+        <h3 style={{ color: '#FF4136', margin: '0.6px' }}>A network error occurred.</h3>
+        <h4>
           This issue does not concern your wallet or dApp. If the problem persists, please report it
           to the Beacon team{' '}
-          <Typography
-            component="span"
-            sx={{
-              textDecoration: 'underline',
-              color: 'primary.main',
-              cursor: 'pointer'
-            }}
+          <span
+            style={{ textDecoration: 'underline', color: '#007bff', cursor: 'pointer' }}
             onClick={() => handleUpdateState('help')}
           >
             here
-          </Typography>
-        </Typography>
-
-        {/* Optional error message */}
-        {errorMessage && (
-          <Typography variant="body1" color="text.primary">
-            {errorMessage}
-          </Typography>
-        )}
+          </span>
+        </h4>
+        {errorMessage && <span>{errorMessage}</span>}
       </>
     )
     return <Info title={title} description={description} border />
@@ -124,8 +106,9 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
 
   return (
     <Alert
+      {...props}
       loading={isLoading}
-      onCloseClick={props.closeButtonCallback ?? (() => {})}
+      onCloseClick={props.onClose}
       open={true}
       showMore={showMoreContent}
       extraContent={
@@ -149,9 +132,33 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
           : undefined
       }
     >
-      <Grid2 container sx={{ flexFlow: 'column' }}>
+      <div>
         {state === 'install' && (
-          <Grid2 container justifyContent={'center'} spacing={2}>
+          <div
+            style={
+              state === 'install' || state === 'qr'
+                ? {
+                    opacity: 1,
+                    height: 'unset',
+                    overflow: 'unset',
+                    transform: 'scale(1)',
+                    transition: 'all ease 0.3s',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.9em'
+                  }
+                : {
+                    opacity: 0,
+                    height: 0,
+                    overflow: 'hidden',
+                    transform: 'scale(1.1)',
+                    transition: 'all ease 0.3s',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.9em'
+                  }
+            }
+          >
             {isOnline && wallet?.types.includes('web') && (
               <Info
                 border
@@ -160,6 +167,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                 buttons={[
                   {
                     label: 'Use Browser',
+                    type: 'primary',
                     onClick: () => handleNewTab(props, wallet)
                   }
                 ]}
@@ -183,12 +191,14 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                     ? [
                         {
                           label: 'Use Extension',
+                          type: 'primary',
                           onClick: () => handleClickConnectExtension()
                         }
                       ]
                     : [
                         {
                           label: 'Install extension',
+                          type: 'primary',
                           onClick: () => handleClickInstallExtension()
                         }
                       ]
@@ -203,10 +213,12 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                 buttons={[
                   {
                     label: 'Open desktop app',
+                    type: 'primary',
                     onClick: () => handleClickOpenDesktopApp()
                   },
                   {
                     label: 'Download desktop app',
+                    type: 'secondary',
                     onClick: () => handleClickDownloadDesktopApp()
                   }
                 ]}
@@ -230,6 +242,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                   buttons={[
                     {
                       label: 'Use App',
+                      type: 'primary',
                       onClick: async () => {
                         if (!wallet) {
                           return
@@ -259,7 +272,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                       : p2pPayload
 
                     if (!syncCode.length || !wallet) {
-                      props.closeButtonCallback && props.closeButtonCallback()
+                      props.onClose()
                       return
                     }
 
@@ -276,12 +289,11 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
               ) : (
                 generateWCError(`Connect with ${wallet?.name} Mobile`)
               ))}
-          </Grid2>
+          </div>
         )}
         {state === 'qr' && (
-          <Grid2
-            container
-            sx={{
+          <div
+            style={{
               opacity: 1,
               height: 'unset',
               overflow: 'unset',
@@ -289,7 +301,6 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
               transition: 'all ease 0.3s',
               display: 'flex',
               flexDirection: 'column',
-              flexFlow: 'column !important',
               gap: '0.9em'
             }}
           >
@@ -303,11 +314,10 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
             ) : (
               <QRCode isMobile={true} />
             )}
-          </Grid2>
+          </div>
         )}
-        <Grid2
-          container
-          sx={
+        <div
+          style={
             state === 'wallets'
               ? {
                   opacity: 1,
@@ -331,10 +341,9 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
             onClickWallet={(id) => handleClickWallet(id, props)}
             onClickOther={handleClickOther}
           />
-        </Grid2>
-        <Grid2
-          container
-          sx={
+        </div>
+        <div
+          style={
             state === 'help'
               ? {
                   opacity: 1,
@@ -358,12 +367,11 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                 }
           }
         >
-          {areMetricsEnabled && (
-            <BugReportForm onSubmit={props.closeButtonCallback ?? (() => {})} />
-          )}
+          {areMetricsEnabled && <BugReportForm onSubmit={props.onClose} />}
           {!areMetricsEnabled && (
             <>
               <Info
+                iconBadge
                 icon={
                   <svg
                     fill="currentColor"
@@ -383,6 +391,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                 description="Wallets let you send, receive, store and interact with digital assets. Your wallet can be used as an easy way to login, instead of having to remember a password."
               />
               <Info
+                iconBadge
                 icon={
                   <svg
                     fill="none"
@@ -407,10 +416,9 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
               />
             </>
           )}
-        </Grid2>
-        <Grid2
-          container
-          sx={
+        </div>
+        <div
+          style={
             state !== 'install' && state !== 'qr' && state !== 'wallets' && state !== 'help'
               ? {
                   opacity: 1,
@@ -432,7 +440,7 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
             wallets={isMobile ? walletList.slice(0, 3) : walletList.slice(0, 4)}
             isMobile={isMobile}
             onClickWallet={(id) => handleClickWallet(id, props)}
-            onClickLearnMore={() => handleUpdateState('help')}
+            onClickLearnMore={() => {}}
             otherWallets={
               isMobile
                 ? {
@@ -442,8 +450,8 @@ const PairingAlert: React.FC<React.PropsWithChildren<AlertConfig>> = (props) => 
                 : undefined
             }
           />
-        </Grid2>
-      </Grid2>
+        </div>
+      </div>
     </Alert>
   )
 }

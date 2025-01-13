@@ -1,8 +1,7 @@
-import { AlertConfig } from '../../common'
 import PairingAlert from '../pairing-alert'
 
-const AlertContent = (props: AlertConfig) => {
-  return <PairingAlert {...props} />
+const AlertContent = () => {
+  return <PairingAlert />
 }
 
 export default AlertContent

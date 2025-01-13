@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
 import { isTwBrowser, isAndroid, isMobileOS, isIOS } from 'src/utils/platform'
 import { MergedWallet, OSLink } from 'src/utils/wallets'
-import getDefaultLogo from '../getDefaultLogo'
+import getDefaultLogo from '../getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
 import { AlertConfig } from '../common'
 import useIsMobile from './useIsMobile'
@@ -66,7 +66,10 @@ const useConnect = (
       return
     }
 
-    if (selectedWallet && selectedWallet.supportedInteractionStandards?.includes('wallet_connect')) {
+    if (
+      selectedWallet &&
+      selectedWallet.supportedInteractionStandards?.includes('wallet_connect')
+    ) {
       const isValid = !!parseUri(wcPayload).symKey
       setIsWCWorking(isValid)
 
@@ -94,8 +97,8 @@ const useConnect = (
           isIOS(window) && selectedWallet.deepLink
             ? selectedWallet.deepLink
             : isAndroid(window)
-              ? selectedWallet.links[OSLink.IOS]
-              : 'tezos://',
+            ? selectedWallet.links[OSLink.IOS]
+            : 'tezos://',
           p2pPayload
         )
 
@@ -305,8 +308,8 @@ const useConnect = (
     window.open(wallet?.links[OSLink.DESKTOP] || '', '_blank', 'noopener')
   }
 
-  const handleUpdateState =
-    (newState: 'top-wallets' | 'wallets' | 'install' | 'help' | 'qr') => setState(newState)
+  const handleUpdateState = (newState: 'top-wallets' | 'wallets' | 'install' | 'help' | 'qr') =>
+    setState(newState)
 
   const handleUpdateQRCode = (uri: string) => setQRCode(uri)
 
