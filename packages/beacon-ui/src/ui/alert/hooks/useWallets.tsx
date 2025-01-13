@@ -78,7 +78,7 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
         }
       }),
       ...webList.map((wallet) => {
-        const link = wallet.links[networkType ?? NetworkType.MAINNET]
+        const link = networkType ?? NetworkType.MAINNET
         return {
           id: wallet.key,
           key: wallet.key,
