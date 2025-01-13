@@ -1,10 +1,9 @@
 import { Logger, windowRef } from '@airgap/beacon-core'
 import { StorageKey, ExtensionMessage, ExtensionMessageTarget } from '@airgap/beacon-types'
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { getTzip10Link } from 'src/utils/get-tzip10-link'
 import { isTwBrowser, isAndroid, isMobileOS, isIOS } from 'src/utils/platform'
 import { MergedWallet, OSLink } from 'src/utils/wallets'
-import { Serializer } from '@airgap/beacon-core'
 import getDefaultLogo from '../getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
 import { AlertConfig } from '../common'
@@ -30,63 +29,77 @@ const useConnect = (
   const [isWCWorking, setIsWCWorking] = useState(true)
   const isMobile = isMobileOS(window) || useIsMobile()
 
-  const handleClickWallet = async (id: string, config: AlertConfig) => {
+  const setInstallState = (wallet?: MergedWallet) => {
+    if (
+      !wallet ||
+      (wallet.types.length <= 1 &&
+        !wallet.types.includes('ios') &&
+        !wallet.types.includes('desktop')) ||
+      (isMobileOS(window) && wallet.types.length === 1 && wallet.types.includes('desktop'))
+    ) {
+      return
+    }
+
+    setState('install')
+  }
+
+  const handleClickWallet = (id: string, config: AlertConfig) => {
     setIsLoading(true)
     setShowMoreContent(false)
-    const wallet = wallets.get(id)
-    setWallet(wallet)
+    const selectedWallet = wallets.get(id)
+    setWallet(selectedWallet)
 
     localStorage.setItem(
       StorageKey.LAST_SELECTED_WALLET,
       JSON.stringify({
-        key: wallet?.key,
+        key: selectedWallet?.key,
         type: 'mobile',
-        icon: wallet?.image
+        icon: selectedWallet?.image
       })
     )
 
     if (
-      (wallet?.types.includes('web') && wallet?.types.length === 1) ||
-      (isAndroid(window) && wallet?.name.toLowerCase().includes('kukai'))
+      (selectedWallet?.types.includes('web') && selectedWallet?.types.length === 1) ||
+      (isAndroid(window) && selectedWallet?.name.toLowerCase().includes('kukai'))
     ) {
-      handleNewTab(config, wallet)
+      handleNewTab(config, selectedWallet)
       return
     }
 
-    if (wallet && wallet.supportedInteractionStandards?.includes('wallet_connect')) {
+    if (
+      selectedWallet &&
+      selectedWallet.supportedInteractionStandards?.includes('wallet_connect')
+    ) {
       const isValid = !!parseUri(wcPayload).symKey
       setIsWCWorking(isValid)
 
-      if (!isValid && wallet?.name.toLowerCase().includes('kukai')) {
+      if (!isValid && selectedWallet?.name.toLowerCase().includes('kukai')) {
         setQRCode('error')
-        // setInstallState(wallet)
+        setInstallState(selectedWallet)
         setIsLoading(false)
         return
       }
 
       if (isValid) {
-        if (isMobile && wallet.types.includes('ios') && wallet.types.length === 1) {
+        if (isMobile && selectedWallet.types.includes('ios') && selectedWallet.types.length === 1) {
           handleDeepLinking(wcPayload)
         } else {
           setQRCode(wcPayload)
-          // setInstallState(wallet)
+          setInstallState(selectedWallet)
         }
       }
       setIsLoading(false)
-    } else if (wallet?.types.includes('ios') && isMobile) {
+    } else if (selectedWallet?.types.includes('ios') && isMobile) {
       setQRCode('')
 
       if (config.pairingPayload) {
-        const serializer = new Serializer()
-        const code = await serializer.serialize(await p2pPayload)
-
         const link = getTzip10Link(
-          isIOS(window) && wallet.deepLink
-            ? wallet.deepLink
+          isIOS(window) && selectedWallet.deepLink
+            ? selectedWallet.deepLink
             : isAndroid(window)
-            ? wallet.links[OSLink.IOS]
+            ? selectedWallet.links[OSLink.IOS]
             : 'tezos://',
-          code
+          p2pPayload
         )
 
         updateSelectedWalletWithURL(link)
@@ -105,12 +118,12 @@ const useConnect = (
       setIsLoading(false)
     } else {
       setIsLoading(false)
-      // setInstallState(wallet)
-      // await setDefaultPayload()
+      setInstallState(selectedWallet)
+      config.pairingPayload && setQRCode(p2pPayload)
     }
   }
 
-  const updateSelectedWalletWithURL = useCallback((url: string) => {
+  const updateSelectedWalletWithURL = (url: string) => {
     let wallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET) ?? '{}')
 
     if (!wallet.key) {
@@ -123,9 +136,9 @@ const useConnect = (
     }
 
     localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(wallet))
-  }, [])
+  }
 
-  const handleNewTab = useCallback(async (config: AlertConfig, wallet?: MergedWallet) => {
+  const handleNewTab = async (config: AlertConfig, wallet?: MergedWallet) => {
     if (!wallet) {
       return
     }
@@ -158,9 +171,7 @@ const useConnect = (
 
       link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(wcPayload)}`
     } else {
-      const serializer = new Serializer()
-      const code = await serializer.serialize(p2pPayload)
-      link = getTzip10Link(wallet.links[OSLink.WEB], code)
+      link = getTzip10Link(wallet.links[OSLink.WEB], p2pPayload)
     }
 
     if (newTab) {
@@ -178,9 +189,9 @@ const useConnect = (
         icon: wallet?.image
       })
     )
-  }, [])
+  }
 
-  const handleDeepLinking = useCallback(async (uri: string) => {
+  const handleDeepLinking = (uri: string) => {
     localStorage.setItem(
       StorageKey.LAST_SELECTED_WALLET,
       JSON.stringify({
@@ -190,10 +201,10 @@ const useConnect = (
       })
     )
 
-    if (!wallet?.links[OSLink.IOS].length) {
+    if (!wallet?.links[OSLink.IOS]?.length) {
       const syncCode = wallet?.supportedInteractionStandards?.includes('wallet_connect')
-        ? wcPayload ?? ''
-        : await new Serializer().serialize(p2pPayload)
+        ? wcPayload
+        : p2pPayload
 
       if (!syncCode.length) {
         onCloseHandler()
@@ -222,9 +233,9 @@ const useConnect = (
       a.setAttribute('rel', 'noopener')
       a.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }))
     }
-  }, [])
+  }
 
-  const handleClickOther = useCallback(() => {
+  const handleClickOther = () => {
     localStorage.setItem(
       StorageKey.LAST_SELECTED_WALLET,
       JSON.stringify({
@@ -235,16 +246,13 @@ const useConnect = (
       })
     )
     setState('qr')
-  }, [])
+  }
 
-  const handleClickConnectExtension = useCallback(async () => {
+  const handleClickConnectExtension = () => {
     setShowMoreContent(false)
-    const serializer = new Serializer()
-    const postmessageCode = await serializer.serialize(postPayload)
-
     const message: ExtensionMessage<string> = {
       target: ExtensionMessageTarget.EXTENSION,
-      payload: postmessageCode,
+      payload: postPayload,
       targetId: wallet?.id
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -253,7 +261,7 @@ const useConnect = (
     if (wallet?.firefoxId) {
       const message: ExtensionMessage<string> = {
         target: ExtensionMessageTarget.EXTENSION,
-        payload: postmessageCode,
+        payload: postPayload,
         targetId: wallet?.firefoxId
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -269,20 +277,18 @@ const useConnect = (
         icon: wallet?.image
       })
     )
-  }, [])
+  }
 
-  const handleClickInstallExtension = useCallback(() => {
+  const handleClickInstallExtension = () => {
     setShowMoreContent(false)
     window.open(wallet?.links[OSLink.EXTENSION] || '', '_blank', 'noopener')
-  }, [])
+  }
 
-  const handleClickOpenDesktopApp = useCallback(async () => {
+  const handleClickOpenDesktopApp = () => {
     setShowMoreContent(false)
 
     if (p2pPayload) {
-      const serializer = new Serializer()
-      const code = await serializer.serialize(p2pPayload)
-      const link = getTzip10Link(wallet?.deepLink || '', code)
+      const link = getTzip10Link(wallet?.deepLink || '', p2pPayload)
       window.open(link, '_blank', 'noopener')
     }
 
@@ -295,19 +301,19 @@ const useConnect = (
         icon: wallet?.image
       })
     )
-  }, [])
+  }
 
-  const handleClickDownloadDesktopApp = useCallback(() => {
+  const handleClickDownloadDesktopApp = () => {
     setShowMoreContent(false)
     window.open(wallet?.links[OSLink.DESKTOP] || '', '_blank', 'noopener')
-  }, [])
+  }
 
-  const handleUpdateState = useCallback(
-    (newState: 'top-wallets' | 'wallets' | 'install' | 'help' | 'qr') => setState(newState),
-    []
-  )
+  const handleUpdateState = (newState: 'top-wallets' | 'wallets' | 'install' | 'help' | 'qr') =>
+    setState(newState)
 
-  const handleUpdateQRCode = useCallback((uri: string) => setQRCode(uri), [])
+  const handleUpdateQRCode = (uri: string) => setQRCode(uri)
+
+  const handleShowMoreContent = () => setShowMoreContent((prev) => !prev)
 
   return [
     wallet,
@@ -327,7 +333,8 @@ const useConnect = (
     handleClickOpenDesktopApp,
     handleClickDownloadDesktopApp,
     handleUpdateState,
-    handleUpdateQRCode
+    handleUpdateQRCode,
+    handleShowMoreContent
   ] as const
 }
 
