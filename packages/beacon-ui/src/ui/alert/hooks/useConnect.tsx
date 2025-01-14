@@ -6,7 +6,7 @@ import { isTwBrowser, isAndroid, isMobileOS, isIOS } from 'src/utils/platform'
 import { MergedWallet, OSLink } from 'src/utils/wallets'
 import getDefaultLogo from '../getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
-import { AlertConfig } from '../common'
+import { AlertConfig } from '../../common'
 import useIsMobile from './useIsMobile'
 
 const logger = new Logger('useConnect')

@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
 import { Subject } from '../../utils/subject'
-import { AlertConfig } from './common'
+import { AlertConfig } from '../common'
 import PairingAlert from './components/pairing-alert'
 
 let initDone: boolean = false
@@ -30,7 +30,8 @@ const closeAlerts = () => {
 const AlertRoot = (props: AlertConfig) => {
   const [isOpen, setIsOpen] = useState(true)
   useEffect(() => {
-    show$.subscribe((value) => setIsOpen(value))
+    const sub = show$.subscribe((value) => setIsOpen(value))
+    return () => sub.unsubscribe()
   }, [])
   return <PairingAlert {...props} onClose={closeAlert} open={isOpen} />
 }

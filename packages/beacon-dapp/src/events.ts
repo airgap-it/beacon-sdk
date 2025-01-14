@@ -249,7 +249,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     text: 'Wallet not receiving request?',
     actionText: 'Reset Connection',
     actionCallback: async (): Promise<void> => {
-      await closeToast()
+      closeToast()
       // eslint-disable-next-line @typescript-eslint/unbound-method
       const resetCallback = data.extraInfo.resetCallback
       if (resetCallback) {
@@ -274,7 +274,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     timer: isMobileOS(window) ? SUCCESS_TIMER : 0,
     actions,
     openWalletAction
-  }).catch((toastError) => console.error(toastError))
+  })
 }
 
 const showAcknowledgedToast = async (data: {
@@ -286,7 +286,7 @@ const showAcknowledgedToast = async (data: {
     body: 'Awaiting confirmation in\u00A0 {{wallet}}',
     state: 'acknowledge',
     walletInfo: data.walletInfo
-  }).catch((toastError) => console.error(toastError))
+  })
 }
 
 const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => {
@@ -297,28 +297,24 @@ const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => 
     body: text,
     state: 'prepare',
     walletInfo: data.walletInfo
-  }).catch((toastError) => console.error(toastError))
+  })
 }
 
 const hideUI = async (elements?: ('alert' | 'toast')[]): Promise<void> => {
-  // if (elements) {
-  //   if (elements.includes('alert')) {
-  //     await closeAlerts()
-  //   }
-  //   if (elements.includes('toast')) {
-  //     await closeToast()
-  //   }
-  // } else {
-  //   await closeToast()
-  // }
-  console.log('todo', elements)
+  if (elements?.includes('alert')) {
+    closeAlerts()
+  }
+
+  if (elements?.includes('toast') || !elements) {
+    closeToast()
+  }
 }
 
 /**
  * Show a "No Permission" alert
  */
 const showNoPermissionAlert = async (): Promise<void> => {
-  await openAlert({
+  openAlert({
     title: 'No Permission',
     body: 'Please allow the wallet to handle this type of request.'
   })
@@ -328,7 +324,7 @@ const showNoPermissionAlert = async (): Promise<void> => {
  * Show an "Invalid state" alert
  */
 const showInvalidActiveAccountState = async (): Promise<void> => {
-  await openAlert({
+  openAlert({
     title: 'Invalid state',
     body: `An active account has been received, but no active subscription was found for BeaconEvent.ACTIVE_ACCOUNT_SET.
     For more information, visit: https://docs.walletbeacon.io/guides/migration-guide`
@@ -407,8 +403,8 @@ const showErrorToast = async (
       text: '',
       actionText: 'Show Details',
       actionCallback: async (): Promise<void> => {
-        await closeToast()
-        await openAlert({
+        closeToast()
+        openAlert({
           title: error.title,
           // eslint-disable-next-line @typescript-eslint/unbound-method
           body: error.fullDescription.description,
@@ -419,7 +415,7 @@ const showErrorToast = async (
     })
   }
 
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 has returned an error`,
     timer:
       response.errorResponse.errorType === BeaconErrorType.ABORTED_ERROR
@@ -458,7 +454,7 @@ const showBugReportForm = async () => {
  * Show a "channel closed" alert for 1.5 seconds
  */
 const showChannelClosedAlert = async (): Promise<void> => {
-  // await openAlert({
+  // openAlert({
   //   title: 'Channel closed',
   //   body: `Your peer has closed the connection.`,
   //   buttons: [{ text: 'Done', style: 'outline' }],
@@ -478,7 +474,7 @@ const showInternalErrorAlert = async (
     body: data.text,
     buttons
   }
-  await openAlert(alertConfig)
+  openAlert(alertConfig)
 }
 
 /**
@@ -503,7 +499,7 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
     analytics: data.analytics,
     featuredWallets: data.featuredWallets
   }
-  await openAlert(alertConfig)
+  openAlert(alertConfig)
 }
 
 /**
@@ -516,7 +512,7 @@ const showPermissionSuccessAlert = async (
 ): Promise<void> => {
   const { output } = data
 
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 has granted permission`,
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
@@ -544,7 +540,7 @@ const showProofOfEventChallengeSuccessAlert = async (
 ): Promise<void> => {
   const { output } = data
 
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 has ${output.isAccepted ? 'accepted' : 'refused'} the challenge`,
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
@@ -563,7 +559,7 @@ const showProofOfEventChallengeSuccessAlert = async (
                   logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
                 }
               )
-              await closeToast()
+              closeToast()
             }
           }
         ]
@@ -576,7 +572,7 @@ const showSimulatedProofOfEventChallengeSuccessAlert = async (
 ): Promise<void> => {
   const { output } = data
 
-  await openToast({
+  openToast({
     body: !output.errorMessage
       ? `{{wallet}}\u00A0 has returned the list of operation`
       : `{{wallet}}\u00A0 has returned an error`,
@@ -597,7 +593,7 @@ const showSimulatedProofOfEventChallengeSuccessAlert = async (
                   logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
                 }
               )
-              await closeToast()
+              closeToast()
             }
           }
         ]
@@ -615,7 +611,7 @@ const showOperationSuccessAlert = async (
 ): Promise<void> => {
   const { account, output, blockExplorer } = data
 
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 successfully submitted operation`,
     timer: SUCCESS_TIMER,
     state: 'finished',
@@ -632,7 +628,7 @@ const showOperationSuccessAlert = async (
             account.network
           )
           window.open(link, '_blank', 'noopener')
-          await closeToast()
+          closeToast()
         }
       }
     ]
@@ -648,7 +644,7 @@ const showSignSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.SIGN_REQUEST_SUCCESS]
 ): Promise<void> => {
   const output = data.output
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 successfully signed payload`,
     timer: SUCCESS_TIMER,
     state: 'finished',
@@ -666,7 +662,7 @@ const showSignSuccessAlert = async (
               logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
             }
           )
-          await closeToast()
+          closeToast()
         }
       }
     ]
@@ -683,7 +679,7 @@ const showSignSuccessAlert = async (
 //   data: BeaconEventType[BeaconEvent.ENCRYPT_REQUEST_SUCCESS]
 // ): Promise<void> => {
 //   const output = data.output
-//   await openToast({
+//   openToast({
 //     body: `{{wallet}}\u00A0 successfully ${
 //       data.output.cryptoOperation === EncryptionOperation.ENCRYPT ? 'encrypted' : 'decrypted'
 //     } payload`,
@@ -703,7 +699,7 @@ const showSignSuccessAlert = async (
 //               logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
 //             }
 //           )
-//           await closeToast()
+//           closeToast()
 //         }
 //       }
 //     ]
@@ -720,7 +716,7 @@ const showBroadcastSuccessAlert = async (
 ): Promise<void> => {
   const { network, output, blockExplorer } = data
 
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 successfully injected operation`,
     timer: SUCCESS_TIMER,
     state: 'finished',
@@ -737,7 +733,7 @@ const showBroadcastSuccessAlert = async (
             network
           )
           window.open(link, '_blank', 'noopener')
-          await closeToast()
+          closeToast()
         }
       }
     ]

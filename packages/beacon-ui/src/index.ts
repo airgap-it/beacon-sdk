@@ -1,5 +1,5 @@
 export { openAlert, closeAlert, closeAlerts } from './ui/alert'
-export type { AlertButton, AlertConfig } from './ui/alert/common'
+export type { AlertButton, AlertConfig, ToastAction } from './ui/common'
 
 export {
   Pairing,
@@ -14,7 +14,6 @@ export {
 } from './components/pairing'
 
 export { closeToast, openToast } from './ui/toast'
-export type { ToastAction } from './ui/toast'
 
 export { getColorMode, setColorMode } from './utils/colorMode'
 
