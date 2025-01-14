@@ -1,138 +1,65 @@
-import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { WalletInfo } from '@airgap/beacon-types'
-import { generateGUID } from '@airgap/beacon-utils'
+import { useEffect, useState } from 'react'
+import { Subject } from '../../utils/subject'
+import Toast from 'src/components/toast'
+import { ToastConfig } from '../common'
 
-import Toast from '../../components/toast'
+let initDone: boolean = false
+const render$ = new Subject<ToastConfig | undefined>()
 
-import * as toastStyles from '../../components/toast/styles.css'
-import * as loaderStyles from '../../components/loader/styles.css'
-
-// INTERFACES
-export interface ToastAction {
-  text: string
-  isBold?: boolean
-  actionText?: string
-  actionLogo?: 'external'
-  actionCallback?(): Promise<void>
+const createToast = () => {
+  const el = document.createElement('beacon-toast')
+  document.body.prepend(el)
+  setTimeout(() => createRoot(el).render(<ToastRoot />), 50)
+  initDone = true
 }
 
-export interface ToastConfig {
-  body: string
-  timer?: number
-  forceNew?: boolean
-  state: 'prepare' | 'loading' | 'acknowledge' | 'finished'
-  actions?: ToastAction[]
-  walletInfo?: WalletInfo
-  openWalletAction?(): Promise<void>
+const openToast = (config: ToastConfig) => {
+  !initDone && createToast()
+  render$.next(config)
 }
 
-const useToastState = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false)
-  const [renderLast, setRenderLast] = useState<string>('')
-
-  return {
-    isOpen,
-    setIsOpen,
-    renderLast,
-    setRenderLast
-  }
+const closeToast = () => {
+  render$.next(undefined)
 }
 
-const ANIMATION_TIME = 300
-let globalTimeout: NodeJS.Timeout
+const ToastRoot = () => {
+  const [config, setConfig] = useState<ToastConfig | undefined>(undefined)
+  useEffect(() => {
+    const sub = render$.subscribe((config) => {
+      setConfig(config)
+    })
+    return () => sub.unsubscribe()
+  }, [])
 
-const createToast = (config: ToastConfig) => {
-  const { isOpen, setIsOpen } = useToastState()
-
-  const shadowRootEl = document.createElement('div')
-  if (document.getElementById('beacon-toast-wrapper')) {
-    ;(document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
-  }
-  shadowRootEl.setAttribute('id', 'beacon-toast-wrapper')
-  shadowRootEl.style.height = '0px'
-  const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })
-
-  // Toast styles
-  const style = document.createElement('style')
-  style.textContent = toastStyles.default
-  shadowRoot.appendChild(style)
-
-  // Loader styles
-  const style2 = document.createElement('style')
-  style2.textContent = loaderStyles.default
-  shadowRoot.appendChild(style2)
-
-  // Inject font styles
-  const styleFonts = document.createElement('style')
-  styleFonts.textContent =
-    "* { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;}"
-  shadowRoot.appendChild(styleFonts)
-
-  createRoot(shadowRootEl).render(
-    <Toast
-      label={config.body}
-      open={isOpen}
-      onClickClose={() => {
-        closeToast()
-      }}
-      actions={config.actions}
-      walletInfo={config.walletInfo}
-      openWalletAction={config.openWalletAction}
-    />
-  )
-
-  // Create toast
-  document.body.prepend(shadowRootEl)
-
-  // Open toast
-  setTimeout(() => {
-    setIsOpen(true)
-  }, 50)
-
-  // Add close timer if in config
-  clearTimeout(globalTimeout)
-  if (config.timer) {
-    globalTimeout = setTimeout(() => closeToast(), config.timer)
-  }
-}
-
-/**
- * Close a toast
- */
-const closeToast = (): Promise<void> =>
-  new Promise((resolve) => {
-    const { setIsOpen } = useToastState()
-
-    if (typeof window === 'undefined') {
-      console.log('DO NOT RUN ON SERVER')
-      resolve()
+  useEffect(() => {
+    if (!config || !config.timer) {
+      return
     }
-    setIsOpen(false)
-    setTimeout(() => {
-      if (document.getElementById('beacon-toast-wrapper'))
-        (document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
-      resolve()
-    }, ANIMATION_TIME)
-  })
 
-/**
- * Create a new toast
- *
- * @param toastConfig Configuration of the toast
- */
-const openToast = async (config: ToastConfig): Promise<void> => {
-  const { renderLast, setRenderLast } = useToastState()
-  if (typeof window === 'undefined') {
-    console.log('DO NOT RUN ON SERVER')
-    return
-  }
+    const id = setTimeout(() => {
+      setConfig(undefined) // Hide the toast
+    }, config.timer)
 
-  const id = await generateGUID()
-  setRenderLast(id)
+    return () => clearTimeout(id)
+  }, [config?.timer])
 
-  await closeToast()
-  if (id === renderLast) createToast(config)
+  return (
+    <>
+      {config && (
+        <Toast
+          label={config.body}
+          open={!!config}
+          onClickClose={() => {
+            closeToast()
+          }}
+          actions={config.actions}
+          walletInfo={config.walletInfo}
+          openWalletAction={config.openWalletAction}
+        />
+      )}
+    </>
+  )
 }
 
 export { closeToast, openToast }

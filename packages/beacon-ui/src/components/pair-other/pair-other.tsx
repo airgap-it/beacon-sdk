@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import QR from '../qr'
 
-import { PairOtherProps } from '../../ui/alert/common'
+import { PairOtherProps } from '../../ui/common'
+
+import './styles.css'
 
 const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
   const [uiState, setUiState] = useState<'selection' | 'p2p' | 'walletconnect'>('selection')
