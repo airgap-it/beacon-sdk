@@ -1,7 +1,7 @@
 import React from 'react'
 import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
 import Loader from '../loader'
-import { AlertProps } from '../../ui/alert/common'
+import { AlertProps } from '../../ui/common'
 import './styles.css'
 import useIsMobile from '../../ui/alert/hooks/useIsMobile'
 
