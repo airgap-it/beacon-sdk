@@ -28,11 +28,11 @@ const closeAlerts = () => {
 }
 
 const AlertRoot = (props: AlertConfig) => {
-  const [isAlertVisible, setIsAlertVisible] = useState(true)
+  const [isOpen, setIsOpen] = useState(true)
   useEffect(() => {
-    show$.subscribe((value) => setIsAlertVisible(value))
+    show$.subscribe((value) => setIsOpen(value))
   }, [])
-  return <>{isAlertVisible && <PairingAlert {...props} onClose={closeAlert} />}</>
+  return <PairingAlert {...props} onClose={closeAlert} open={isOpen} />
 }
 
 export { openAlert, closeAlert, closeAlerts }
