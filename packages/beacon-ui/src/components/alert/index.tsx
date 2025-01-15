@@ -6,15 +6,6 @@ import './styles.css'
 import useIsMobile from '../../ui/alert/hooks/useIsMobile'
 
 const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
-  // useEffect(() => {
-  //   const prevBodyOverflow = document.body.style.overflow
-  //   document.body.style.overflow = 'hidden'
-
-  //   return () => {
-  //     document.body.style.overflow = prevBodyOverflow
-  //   }
-  // }, [])
-
   const isMobile = useIsMobile()
 
   return (
