@@ -1,5 +1,6 @@
 .toast-wrapper-show {
   user-select: none;
+  cursor: move;
   max-width: 460px;
   overflow: hidden;
   background-color: white;
@@ -32,7 +33,6 @@
 }
 
 .toast-header {
-  cursor: move;
   padding: 0px 0.6em 0px 1.2em;
   display: flex;
   align-items: center;
