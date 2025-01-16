@@ -11,13 +11,16 @@ const show$ = new Subject<boolean>()
 const createToast = (config: ToastConfig) => {
   const el = document.createElement('beacon-toast')
   document.body.prepend(el)
-  setTimeout(() => createRoot(el).render(<ToastRoot {...config}/>), 50)
+  setTimeout(() => createRoot(el).render(<ToastRoot {...config} />), 50)
   initDone = true
 }
 
 const openToast = (config: ToastConfig) => {
-  !initDone && createToast(config)
-  config$.next(config)
+  if (initDone) {
+    config$.next(config)
+  } else {
+    createToast(config)
+  }
 
   if (config.state !== 'finished') {
     show$.next(true)
