@@ -1,11 +1,12 @@
 import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
-import { Subject } from '../../utils/subject'
+import { Subject, Subscription } from '../../utils/subject'
 import Toast from 'src/components/toast'
 import { ToastConfig } from '../common'
 
 let initDone: boolean = false
-const render$ = new Subject<ToastConfig | undefined>()
+const config$ = new Subject<ToastConfig | undefined>()
+const show$ = new Subject<boolean>()
 
 const createToast = () => {
   const el = document.createElement('beacon-toast')
@@ -16,46 +17,77 @@ const createToast = () => {
 
 const openToast = (config: ToastConfig) => {
   !initDone && createToast()
-  render$.next(config)
+  config$.next(config)
+
+  if (config.state !== 'finished') {
+    show$.next(true)
+  } else {
+    config.timer && setTimeout(() => show$.next(false), config.timer)
+  }
 }
 
 const closeToast = () => {
-  render$.next(undefined)
+  config$.next(undefined)
+  show$.next(false)
 }
 
 const ToastRoot = () => {
   const [config, setConfig] = useState<ToastConfig | undefined>(undefined)
+  const [isOpen, setIsOpen] = useState(true)
+  const [mount, setMount] = useState(false)
+
   useEffect(() => {
-    const sub = render$.subscribe((config) => {
-      setConfig(config)
-    })
-    return () => sub.unsubscribe()
+    const subs: Subscription[] = []
+    subs.push(
+      config$.subscribe((config) => {
+        setConfig(config)
+      })
+    )
+    subs.push(
+      show$.subscribe((value) => {
+        setIsOpen(value)
+      })
+    )
+    return () => subs.forEach((sub) => sub.unsubscribe())
   }, [])
 
   useEffect(() => {
-    if (!config || !config.timer) {
+    if (isOpen) {
+      setMount(true)
       return
     }
 
-    const id = setTimeout(() => {
-      setConfig(undefined) // Hide the toast
-    }, config.timer)
+    // unmount the component immediately
+    // if the close icon is clicked
+    // or whenever closeToast is called.
+    if (!config) {
+      setMount(false)
+      return
+    }
 
-    return () => clearTimeout(id)
-  }, [config?.timer])
+    // we need to wait a little before unmounting the component
+    // because otherwise the "fade-out" animation
+    // won't have enough time to play
+    if (config && config.timer) {
+      setTimeout(() => setMount(false), 300)
+    }
+
+    // no else that acts like a "default"
+    // because some toasts do not close automatically
+  }, [isOpen])
 
   return (
     <>
-      {config && (
+      {mount && (
         <Toast
-          label={config.body}
-          open={!!config}
+          label={config?.body ?? ''}
+          open={isOpen}
           onClickClose={() => {
             closeToast()
           }}
-          actions={config.actions}
-          walletInfo={config.walletInfo}
-          openWalletAction={config.openWalletAction}
+          actions={config?.actions}
+          walletInfo={config?.walletInfo}
+          openWalletAction={config?.openWalletAction}
         />
       )}
     </>
