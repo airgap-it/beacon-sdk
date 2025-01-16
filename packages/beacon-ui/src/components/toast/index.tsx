@@ -50,6 +50,8 @@ const Toast: React.FC<ToastProps> = (props: ToastProps) => {
     setPosition([mx, my])
   })
 
+  const isMobile = isMobileOS(window)
+
   useEffect(() => {
     if (isRequestSentToast) {
       setShowMoreInfo(false)
@@ -65,7 +67,8 @@ const Toast: React.FC<ToastProps> = (props: ToastProps) => {
         position: 'absolute',
         transform: `translate3d(${x}px, ${y}px, 0)`,
         // Required
-        touchAction: 'none'
+        touchAction: 'none',
+        minWidth: !isMobile ? 460 : undefined
       }}
       className={props.open ? 'toast-wrapper-show' : 'toast-wrapper-hide'}
       {...bindDrag()}
