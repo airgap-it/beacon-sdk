@@ -8,15 +8,15 @@ let initDone: boolean = false
 const config$ = new Subject<ToastConfig | undefined>()
 const show$ = new Subject<boolean>()
 
-const createToast = () => {
+const createToast = (config: ToastConfig) => {
   const el = document.createElement('beacon-toast')
   document.body.prepend(el)
-  setTimeout(() => createRoot(el).render(<ToastRoot />), 50)
+  setTimeout(() => createRoot(el).render(<ToastRoot {...config}/>), 50)
   initDone = true
 }
 
 const openToast = (config: ToastConfig) => {
-  !initDone && createToast()
+  !initDone && createToast(config)
   config$.next(config)
 
   if (config.state !== 'finished') {
@@ -31,8 +31,8 @@ const closeToast = () => {
   show$.next(false)
 }
 
-const ToastRoot = () => {
-  const [config, setConfig] = useState<ToastConfig | undefined>(undefined)
+const ToastRoot = (props: ToastConfig) => {
+  const [config, setConfig] = useState<ToastConfig | undefined>(props)
   const [isOpen, setIsOpen] = useState(true)
   const [mount, setMount] = useState(false)
 
@@ -78,16 +78,16 @@ const ToastRoot = () => {
 
   return (
     <>
-      {mount && (
+      {mount && config && (
         <Toast
-          label={config?.body ?? ''}
+          label={config.body}
           open={isOpen}
           onClickClose={() => {
             closeToast()
           }}
-          actions={config?.actions}
-          walletInfo={config?.walletInfo}
-          openWalletAction={config?.openWalletAction}
+          actions={config.actions}
+          walletInfo={config.walletInfo}
+          openWalletAction={config.openWalletAction}
         />
       )}
     </>
