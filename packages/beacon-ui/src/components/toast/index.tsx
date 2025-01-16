@@ -109,7 +109,7 @@ const Toast: React.FC<ToastProps> = (props: ToastProps) => {
       onMouseDown={onMouseDownHandler}
     >
       <div className="toast-header">
-        <Loader />
+        {!isDragging && <Loader />}
         {hasWalletObject && props.walletInfo && <>{parseWallet(props.label, props.walletInfo)}</>}
         {!hasWalletObject && <p className="toast-label">{props.label}</p>}
         {!isMobileOS(window) && props.openWalletAction && (
