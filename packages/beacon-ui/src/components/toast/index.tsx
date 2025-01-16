@@ -23,7 +23,7 @@ function parseWallet(
     if (part.match(regex)) {
       return (
         <React.Fragment key={index}>
-          <img src={walletInfo.icon} alt={`${walletInfo.name} icon`} />
+          <img draggable={false} src={walletInfo.icon} alt={`${walletInfo.name} icon`} />
           <h3>{walletInfo.name}</h3>
         </React.Fragment>
       )
