@@ -30,7 +30,7 @@ const closeAlerts = () => {
 const AlertRoot = (props: AlertConfig) => {
   const [isOpen, setIsOpen] = useState(true)
   const [mount, setMount] = useState(false)
-  
+
   useEffect(() => {
     const sub = show$.subscribe((value) => setIsOpen(value))
     return () => sub.unsubscribe()
@@ -42,7 +42,7 @@ const AlertRoot = (props: AlertConfig) => {
     } else {
       // we need to wait a little before unmounting the component
       // because otherwise the "fade-out" animation
-      // wouldn't have enough time to play
+      // won't have enough time to play
       setTimeout(() => setMount(false), 300)
     }
   }, [isOpen])
