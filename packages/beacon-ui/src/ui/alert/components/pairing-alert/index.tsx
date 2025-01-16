@@ -9,7 +9,6 @@ import { isIOS } from 'src/utils/platform'
 import { StorageKey } from '@airgap/beacon-types'
 import QR from 'src/components/qr'
 import useWallets from '../../hooks/useWallets'
-import { useEffect, useState } from 'react'
 
 // todo remove any
 const PairingAlert: React.FC<any> = (props) => {
@@ -51,18 +50,6 @@ const PairingAlert: React.FC<any> = (props) => {
   const areMetricsEnabled = localStorage
     ? localStorage.getItem(StorageKey.ENABLE_METRICS) === 'true'
     : false
-  const [show, setShow] = useState(true)
-
-  useEffect(() => {
-    if (props.open) {
-      setShow(true)
-    } else {
-      // we need to wait a little before unmounting the component
-      // because otherwise the "fade-out" animation
-      // wouldn't have enough time to play
-      setTimeout(() => setShow(false), 300)
-    }
-  }, [props.open])
 
   const generateWCError = (title: string) => {
     const errorMessage = localStorage ? localStorage.getItem(StorageKey.WC_INIT_ERROR) : undefined
@@ -118,198 +105,247 @@ const PairingAlert: React.FC<any> = (props) => {
   }
 
   return (
-    <>
-      {show && (
-        <Alert
-          {...props}
-          loading={isLoading}
-          onCloseClick={props.onClose}
-          open={props.open}
-          showMore={showMoreContent}
-          extraContent={
-            state !== 'top-wallets' || isMobile ? undefined : (
-              <Wallets
-                small
-                wallets={walletList.slice(-(walletList.length - 4))}
-                isMobile={isMobile}
-                onClickWallet={(id) => handleClickWallet(id, props)}
-                onClickOther={handleClickOther}
+    <Alert
+      {...props}
+      loading={isLoading}
+      onCloseClick={props.onClose}
+      open={props.open}
+      showMore={showMoreContent}
+      extraContent={
+        state !== 'top-wallets' || isMobile ? undefined : (
+          <Wallets
+            small
+            wallets={walletList.slice(-(walletList.length - 4))}
+            isMobile={isMobile}
+            onClickWallet={(id) => handleClickWallet(id, props)}
+            onClickOther={handleClickOther}
+          />
+        )
+      }
+      onClickShowMore={handleShowMoreContent}
+      onBackClick={
+        state === 'install' ||
+        state === 'qr' ||
+        (state === 'wallets' && isMobile) ||
+        state === 'help'
+          ? () => handleUpdateState('top-wallets')
+          : undefined
+      }
+    >
+      <div>
+        {state === 'install' && (
+          <div
+            style={
+              state === 'install' || state === 'qr'
+                ? {
+                    opacity: 1,
+                    height: 'unset',
+                    overflow: 'unset',
+                    transform: 'scale(1)',
+                    transition: 'all ease 0.3s',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.9em'
+                  }
+                : {
+                    opacity: 0,
+                    height: 0,
+                    overflow: 'hidden',
+                    transform: 'scale(1.1)',
+                    transition: 'all ease 0.3s',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.9em'
+                  }
+            }
+          >
+            {isOnline && wallet?.types.includes('web') && (
+              <Info
+                border
+                title={`Connect with ${wallet?.name} Web`}
+                description={`(It will open the wallet in a new tab)`}
+                buttons={[
+                  {
+                    label: 'Use Browser',
+                    type: 'primary',
+                    onClick: () => handleNewTab(props, wallet)
+                  }
+                ]}
               />
-            )
-          }
-          onClickShowMore={handleShowMoreContent}
-          onBackClick={
-            state === 'install' ||
-            state === 'qr' ||
-            (state === 'wallets' && isMobile) ||
-            state === 'help'
-              ? () => handleUpdateState('top-wallets')
-              : undefined
-          }
-        >
-          <div>
-            {state === 'install' && (
-              <div
-                style={
-                  state === 'install' || state === 'qr'
-                    ? {
-                        opacity: 1,
-                        height: 'unset',
-                        overflow: 'unset',
-                        transform: 'scale(1)',
-                        transition: 'all ease 0.3s',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.9em'
-                      }
-                    : {
-                        opacity: 0,
-                        height: 0,
-                        overflow: 'hidden',
-                        transform: 'scale(1.1)',
-                        transition: 'all ease 0.3s',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.9em'
-                      }
+            )}
+            {!isMobile && wallet?.types.includes('extension') && (
+              <Info
+                border
+                title={
+                  wallet.firefoxId
+                    ? `Connect with ${wallet?.name} Browser Extension`
+                    : `Install ${wallet?.name} Wallet`
                 }
-              >
-                {isOnline && wallet?.types.includes('web') && (
-                  <Info
-                    border
-                    title={`Connect with ${wallet?.name} Web`}
-                    description={`(It will open the wallet in a new tab)`}
-                    buttons={[
-                      {
-                        label: 'Use Browser',
-                        type: 'primary',
-                        onClick: () => handleNewTab(props, wallet)
-                      }
-                    ]}
-                  />
-                )}
-                {!isMobile && wallet?.types.includes('extension') && (
-                  <Info
-                    border
-                    title={
-                      wallet.firefoxId
-                        ? `Connect with ${wallet?.name} Browser Extension`
-                        : `Install ${wallet?.name} Wallet`
-                    }
-                    description={
-                      wallet.firefoxId
-                        ? `Please connect below to use your ${wallet?.name} Wallet browser extension.`
-                        : `To connect your ${wallet?.name} Wallet, install the browser extension.`
-                    }
-                    buttons={
-                      wallet.firefoxId
-                        ? [
-                            {
-                              label: 'Use Extension',
-                              type: 'primary',
-                              onClick: () => handleClickConnectExtension()
-                            }
-                          ]
-                        : [
-                            {
-                              label: 'Install extension',
-                              type: 'primary',
-                              onClick: () => handleClickInstallExtension()
-                            }
-                          ]
-                    }
-                  />
-                )}
-                {!isMobile && wallet?.types.includes('desktop') && (
-                  <Info
-                    border
-                    title={`Connect with ${wallet?.name} Desktop App`}
-                    description={`If you don't have the desktop app installed, click below to download it.`}
-                    buttons={[
-                      {
-                        label: 'Open desktop app',
-                        type: 'primary',
-                        onClick: () => handleClickOpenDesktopApp()
-                      },
-                      {
-                        label: 'Download desktop app',
-                        type: 'secondary',
-                        onClick: () => handleClickDownloadDesktopApp()
-                      }
-                    ]}
-                  />
-                )}
-                {!isMobile &&
-                  (qrCode?.length ?? 0) &&
-                  wallet?.types.includes('ios') &&
-                  (wallet?.types.length as number) > 1 && <QRCode isMobile={false} />}
-                {!isMobile &&
-                  (qrCode?.length ?? 0) &&
-                  wallet?.types.includes('ios') &&
-                  (wallet?.types.length as number) <= 1 && <QRCode isMobile={true} />}
-                {isMobile &&
-                  wallet?.types.includes('ios') &&
-                  (!wallet?.supportedInteractionStandards?.includes('wallet_connect') ||
-                  isWCWorking ? (
-                    <Info
-                      border
-                      title={`Connect with ${wallet?.name} Mobile`}
-                      description={''}
-                      buttons={[
+                description={
+                  wallet.firefoxId
+                    ? `Please connect below to use your ${wallet?.name} Wallet browser extension.`
+                    : `To connect your ${wallet?.name} Wallet, install the browser extension.`
+                }
+                buttons={
+                  wallet.firefoxId
+                    ? [
                         {
-                          label: 'Use App',
+                          label: 'Use Extension',
                           type: 'primary',
-                          onClick: async () => {
-                            if (!wallet) {
-                              return
-                            }
-
-                            handleDeepLinking(
-                              wallet.supportedInteractionStandards?.includes('wallet_connect')
-                                ? wcPayload
-                                : p2pPayload
-                            )
-                          }
+                          onClick: () => handleClickConnectExtension()
                         }
-                      ]}
-                      downloadLink={
-                        wallet?.name.toLowerCase().includes('kukai') && isIOS(window)
-                          ? {
-                              label: 'Get Kukai Mobile >',
-                              url: 'https://ios.kukai.app'
-                            }
-                          : undefined
-                      }
-                      onShowQRCodeClick={async () => {
-                        const syncCode = wallet?.supportedInteractionStandards?.includes(
-                          'wallet_connect'
-                        )
-                          ? wcPayload
-                          : p2pPayload
-
-                        if (!syncCode.length || !wallet) {
-                          props.onClose()
+                      ]
+                    : [
+                        {
+                          label: 'Install extension',
+                          type: 'primary',
+                          onClick: () => handleClickInstallExtension()
+                        }
+                      ]
+                }
+              />
+            )}
+            {!isMobile && wallet?.types.includes('desktop') && (
+              <Info
+                border
+                title={`Connect with ${wallet?.name} Desktop App`}
+                description={`If you don't have the desktop app installed, click below to download it.`}
+                buttons={[
+                  {
+                    label: 'Open desktop app',
+                    type: 'primary',
+                    onClick: () => handleClickOpenDesktopApp()
+                  },
+                  {
+                    label: 'Download desktop app',
+                    type: 'secondary',
+                    onClick: () => handleClickDownloadDesktopApp()
+                  }
+                ]}
+              />
+            )}
+            {!isMobile &&
+              (qrCode?.length ?? 0) &&
+              wallet?.types.includes('ios') &&
+              (wallet?.types.length as number) > 1 && <QRCode isMobile={false} />}
+            {!isMobile &&
+              (qrCode?.length ?? 0) &&
+              wallet?.types.includes('ios') &&
+              (wallet?.types.length as number) <= 1 && <QRCode isMobile={true} />}
+            {isMobile &&
+              wallet?.types.includes('ios') &&
+              (!wallet?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking ? (
+                <Info
+                  border
+                  title={`Connect with ${wallet?.name} Mobile`}
+                  description={''}
+                  buttons={[
+                    {
+                      label: 'Use App',
+                      type: 'primary',
+                      onClick: async () => {
+                        if (!wallet) {
                           return
                         }
 
-                        if (isMobile && wallet.types.includes('ios') && wallet.types.length === 1) {
-                          handleDeepLinking(syncCode)
-                        } else {
-                          handleUpdateQRCode(syncCode)
+                        handleDeepLinking(
+                          wallet.supportedInteractionStandards?.includes('wallet_connect')
+                            ? wcPayload
+                            : p2pPayload
+                        )
+                      }
+                    }
+                  ]}
+                  downloadLink={
+                    wallet?.name.toLowerCase().includes('kukai') && isIOS(window)
+                      ? {
+                          label: 'Get Kukai Mobile >',
+                          url: 'https://ios.kukai.app'
                         }
+                      : undefined
+                  }
+                  onShowQRCodeClick={async () => {
+                    const syncCode = wallet?.supportedInteractionStandards?.includes(
+                      'wallet_connect'
+                    )
+                      ? wcPayload
+                      : p2pPayload
 
-                        handleUpdateState('qr')
-                        // todo setDisplayQrExtra(true)
-                      }}
-                    />
-                  ) : (
-                    generateWCError(`Connect with ${wallet?.name} Mobile`)
-                  ))}
-              </div>
+                    if (!syncCode.length || !wallet) {
+                      props.onClose()
+                      return
+                    }
+
+                    if (isMobile && wallet.types.includes('ios') && wallet.types.length === 1) {
+                      handleDeepLinking(syncCode)
+                    } else {
+                      handleUpdateQRCode(syncCode)
+                    }
+
+                    handleUpdateState('qr')
+                    // todo setDisplayQrExtra(true)
+                  }}
+                />
+              ) : (
+                generateWCError(`Connect with ${wallet?.name} Mobile`)
+              ))}
+          </div>
+        )}
+        {state === 'qr' && (
+          <div
+            style={{
+              opacity: 1,
+              height: 'unset',
+              overflow: 'unset',
+              transform: 'scale(1)',
+              transition: 'all ease 0.3s',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.9em'
+            }}
+          >
+            {!displayQRExtra ? (
+              <PairOther
+                walletList={walletList}
+                onClickLearnMore={() => {}}
+                p2pPayload={p2pPayload}
+                wcPayload={wcPayload}
+              ></PairOther>
+            ) : (
+              <QRCode isMobile={true} />
             )}
-            {state === 'qr' && (
-              <div
-                style={{
+          </div>
+        )}
+        <div
+          style={
+            state === 'wallets'
+              ? {
+                  opacity: 1,
+                  height: 'unset',
+                  overflow: 'unset',
+                  transform: 'scale(1)',
+                  transition: 'all ease 0.3s'
+                }
+              : {
+                  opacity: 0,
+                  height: 0,
+                  overflow: 'hidden',
+                  transform: 'scale(1.1)',
+                  transition: 'all ease 0.3s'
+                }
+          }
+        >
+          <Wallets
+            wallets={walletList.slice(-(walletList.length - (isMobile ? 3 : 4)))}
+            isMobile={isMobile}
+            onClickWallet={(id) => handleClickWallet(id, props)}
+            onClickOther={handleClickOther}
+          />
+        </div>
+        <div
+          style={
+            state === 'help'
+              ? {
                   opacity: 1,
                   height: 'unset',
                   overflow: 'unset',
@@ -318,159 +354,105 @@ const PairingAlert: React.FC<any> = (props) => {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.9em'
-                }}
-              >
-                {!displayQRExtra ? (
-                  <PairOther
-                    walletList={walletList}
-                    onClickLearnMore={() => {}}
-                    p2pPayload={p2pPayload}
-                    wcPayload={wcPayload}
-                  ></PairOther>
-                ) : (
-                  <QRCode isMobile={true} />
-                )}
-              </div>
-            )}
-            <div
-              style={
-                state === 'wallets'
-                  ? {
-                      opacity: 1,
-                      height: 'unset',
-                      overflow: 'unset',
-                      transform: 'scale(1)',
-                      transition: 'all ease 0.3s'
-                    }
-                  : {
-                      opacity: 0,
-                      height: 0,
-                      overflow: 'hidden',
-                      transform: 'scale(1.1)',
-                      transition: 'all ease 0.3s'
-                    }
-              }
-            >
-              <Wallets
-                wallets={walletList.slice(-(walletList.length - (isMobile ? 3 : 4)))}
-                isMobile={isMobile}
-                onClickWallet={(id) => handleClickWallet(id, props)}
-                onClickOther={handleClickOther}
-              />
-            </div>
-            <div
-              style={
-                state === 'help'
-                  ? {
-                      opacity: 1,
-                      height: 'unset',
-                      overflow: 'unset',
-                      transform: 'scale(1)',
-                      transition: 'all ease 0.3s',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.9em'
-                    }
-                  : {
-                      opacity: 0,
-                      height: 0,
-                      overflow: 'hidden',
-                      transform: 'scale(1.1)',
-                      transition: 'all ease 0.3s',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.9em'
-                    }
-              }
-            >
-              {areMetricsEnabled && <BugReportForm onSubmit={props.onClose} />}
-              {!areMetricsEnabled && (
-                <>
-                  <Info
-                    iconBadge
-                    icon={
-                      <svg
-                        fill="currentColor"
-                        stroke-width="0"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        height="1em"
-                        width="1em"
-                        style={{ overflow: 'visible' }}
-                        color="white"
-                      >
-                        <path d="M16 12h2v4h-2z"></path>
-                        <path d="M20 7V5c0-1.103-.897-2-2-2H5C3.346 3 2 4.346 2 6v12c0 2.201 1.794 3 3 3h15c1.103 0 2-.897 2-2V9c0-1.103-.897-2-2-2zM5 5h13v2H5a1.001 1.001 0 0 1 0-2zm15 14H5.012C4.55 18.988 4 18.805 4 18V8.815c.314.113.647.185 1 .185h15v10z"></path>
-                      </svg>
-                    }
-                    title="What is a wallet?"
-                    description="Wallets let you send, receive, store and interact with digital assets. Your wallet can be used as an easy way to login, instead of having to remember a password."
-                  />
-                  <Info
-                    iconBadge
-                    icon={
-                      <svg
-                        fill="none"
-                        stroke-width="2"
-                        xmlns="http://www.w3.org/2000/svg"
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        viewBox="0 0 24 24"
-                        height="1em"
-                        width="1em"
-                        style={{ overflow: 'visible' }}
-                        color="white"
-                      >
-                        <path stroke="none" d="M0 0h24v24H0z"></path>
-                        <rect width="16" height="16" x="4" y="4" rx="2"></rect>
-                        <path d="M9 12h6M12 9v6"></path>
-                      </svg>
-                    }
-                    title="Not sure where to start?"
-                    description="If you are new to the Web3, we recommend that you start by creating a Kukai wallet. Kukai is a fast way of creating your first wallet using your preferred social account."
-                  />
-                </>
-              )}
-            </div>
-            <div
-              style={
-                state !== 'install' && state !== 'qr' && state !== 'wallets' && state !== 'help'
-                  ? {
-                      opacity: 1,
-                      height: 'unset',
-                      overflow: 'unset',
-                      transform: 'scale(1)',
-                      transition: 'all ease 0.3s'
-                    }
-                  : {
-                      opacity: 0,
-                      height: 0,
-                      overflow: 'hidden',
-                      transform: 'scale(1.1)',
-                      transition: 'all ease 0.3s'
-                    }
-              }
-            >
-              <TopWallets
-                wallets={isMobile ? walletList.slice(0, 3) : walletList.slice(0, 4)}
-                isMobile={isMobile}
-                onClickWallet={(id) => handleClickWallet(id, props)}
-                onClickLearnMore={() => handleUpdateState('help')}
-                otherWallets={
-                  isMobile
-                    ? {
-                        images: [walletList[3].image, walletList[4].image, walletList[5].image],
-                        onClick: () => handleUpdateState('wallets')
-                      }
-                    : undefined
                 }
+              : {
+                  opacity: 0,
+                  height: 0,
+                  overflow: 'hidden',
+                  transform: 'scale(1.1)',
+                  transition: 'all ease 0.3s',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.9em'
+                }
+          }
+        >
+          {areMetricsEnabled && <BugReportForm onSubmit={props.onClose} />}
+          {!areMetricsEnabled && (
+            <>
+              <Info
+                iconBadge
+                icon={
+                  <svg
+                    fill="currentColor"
+                    stroke-width="0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    style={{ overflow: 'visible' }}
+                    color="white"
+                  >
+                    <path d="M16 12h2v4h-2z"></path>
+                    <path d="M20 7V5c0-1.103-.897-2-2-2H5C3.346 3 2 4.346 2 6v12c0 2.201 1.794 3 3 3h15c1.103 0 2-.897 2-2V9c0-1.103-.897-2-2-2zM5 5h13v2H5a1.001 1.001 0 0 1 0-2zm15 14H5.012C4.55 18.988 4 18.805 4 18V8.815c.314.113.647.185 1 .185h15v10z"></path>
+                  </svg>
+                }
+                title="What is a wallet?"
+                description="Wallets let you send, receive, store and interact with digital assets. Your wallet can be used as an easy way to login, instead of having to remember a password."
               />
-            </div>
-          </div>
-        </Alert>
-      )}
-    </>
+              <Info
+                iconBadge
+                icon={
+                  <svg
+                    fill="none"
+                    stroke-width="2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    style={{ overflow: 'visible' }}
+                    color="white"
+                  >
+                    <path stroke="none" d="M0 0h24v24H0z"></path>
+                    <rect width="16" height="16" x="4" y="4" rx="2"></rect>
+                    <path d="M9 12h6M12 9v6"></path>
+                  </svg>
+                }
+                title="Not sure where to start?"
+                description="If you are new to the Web3, we recommend that you start by creating a Kukai wallet. Kukai is a fast way of creating your first wallet using your preferred social account."
+              />
+            </>
+          )}
+        </div>
+        <div
+          style={
+            state !== 'install' && state !== 'qr' && state !== 'wallets' && state !== 'help'
+              ? {
+                  opacity: 1,
+                  height: 'unset',
+                  overflow: 'unset',
+                  transform: 'scale(1)',
+                  transition: 'all ease 0.3s'
+                }
+              : {
+                  opacity: 0,
+                  height: 0,
+                  overflow: 'hidden',
+                  transform: 'scale(1.1)',
+                  transition: 'all ease 0.3s'
+                }
+          }
+        >
+          <TopWallets
+            wallets={isMobile ? walletList.slice(0, 3) : walletList.slice(0, 4)}
+            isMobile={isMobile}
+            onClickWallet={(id) => handleClickWallet(id, props)}
+            onClickLearnMore={() => handleUpdateState('help')}
+            otherWallets={
+              isMobile
+                ? {
+                    images: [walletList[3].image, walletList[4].image, walletList[5].image],
+                    onClick: () => handleUpdateState('wallets')
+                  }
+                : undefined
+            }
+          />
+        </div>
+      </div>
+    </Alert>
   )
 }
 

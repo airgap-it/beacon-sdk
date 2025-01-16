@@ -29,11 +29,25 @@ const closeAlerts = () => {
 
 const AlertRoot = (props: AlertConfig) => {
   const [isOpen, setIsOpen] = useState(true)
+  const [mount, setMount] = useState(false)
+  
   useEffect(() => {
     const sub = show$.subscribe((value) => setIsOpen(value))
     return () => sub.unsubscribe()
   }, [])
-  return <PairingAlert {...props} onClose={closeAlert} open={isOpen} />
+
+  useEffect(() => {
+    if (isOpen) {
+      setMount(true)
+    } else {
+      // we need to wait a little before unmounting the component
+      // because otherwise the "fade-out" animation
+      // wouldn't have enough time to play
+      setTimeout(() => setMount(false), 300)
+    }
+  }, [isOpen])
+
+  return <>{mount && <PairingAlert {...props} onClose={closeAlert} open={isOpen} />}</>
 }
 
 export { openAlert, closeAlert, closeAlerts }
