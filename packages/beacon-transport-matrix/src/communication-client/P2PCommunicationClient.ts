@@ -8,7 +8,8 @@ import {
   encryptCryptoboxPayload,
   decryptCryptoboxPayload,
   secretbox_NONCEBYTES,
-  secretbox_MACBYTES
+  secretbox_MACBYTES,
+  getKeypairFromSeed
 } from '@airgap/beacon-utils'
 import { MatrixClient } from '../matrix-client/MatrixClient'
 import {
@@ -387,8 +388,15 @@ export class P2PCommunicationClient extends CommunicationClient {
         password: `ed:${toHex(rawSignature)}:${await this.getPublicKey()}`,
         deviceId: toHex(this.keyPair!.publicKey)
       })
-    } catch (error) {
-      logger.error('start', 'Could not log in, retrying')
+    } catch (error: any) {
+      logger.error('start', 'Could not log in, retrying', error)
+
+      if (error.errcode === 'M_USER_DEACTIVATED') {
+        await this.generateNewKeyPair()
+        await this.reset()
+        throw new Error('The account is deactivated.')
+      }
+
       await this.reset() // If we can't log in, let's reset
       if (!this.selectedRegion) {
         throw new Error('No region selected.')
@@ -426,6 +434,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     await this.storage.delete(StorageKey.MATRIX_PEER_ROOM_IDS).catch((error) => logger.log(error))
     await this.storage.delete(StorageKey.MATRIX_PRESERVED_STATE).catch((error) => logger.log(error))
     await this.storage.delete(StorageKey.MATRIX_SELECTED_NODE).catch((error) => logger.log(error))
+
     // Instead of resetting everything, maybe we should make sure a new instance is created?
     this.relayServer = undefined
     this.client = new ExposedPromise()
@@ -777,6 +786,16 @@ export class P2PCommunicationClient extends CommunicationClient {
     return event.content.message.sender.startsWith(
       `@${await getHexHash(Buffer.from(senderPublicKey, 'hex'))}`
     )
+  }
+
+  private async generateNewKeyPair() {
+    const newSeed = await generateGUID()
+
+    console.warn(`The current user ID has been deactivated. Generating new ID: ${newSeed}`)
+
+    this.storage.set(StorageKey.BEACON_SDK_SECRET_SEED, newSeed)
+
+    this.keyPair = await getKeypairFromSeed(newSeed)
   }
 
   private async getRelevantRoom(recipient: string): Promise<string> {

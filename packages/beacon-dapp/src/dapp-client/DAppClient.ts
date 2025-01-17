@@ -101,7 +101,8 @@ import {
   signMessage,
   CONTRACT_PREFIX,
   prefixPublicKey,
-  isValidAddress
+  isValidAddress,
+  getKeypairFromSeed
 } from '@airgap/beacon-utils'
 import { messageEvents } from '../beacon-message-events'
 import { BlockExplorer } from '../utils/block-explorer'
@@ -264,7 +265,9 @@ export class DAppClient extends Client {
     this.storage.subscribeToStorageChanged(async (event) => {
       if (event.eventType === 'storageCleared') {
         this.setActiveAccount(undefined)
-      } else if (event.eventType === 'entryModified') {
+        return
+      }
+      if (event.eventType === 'entryModified') {
         if (event.key === this.storage.getPrefixedKey(StorageKey.ACTIVE_ACCOUNT)) {
           const accountIdentifier = event.newValue
           if (!accountIdentifier || accountIdentifier === 'undefined') {
@@ -273,8 +276,17 @@ export class DAppClient extends Client {
             const account = await this.getAccount(accountIdentifier)
             this.setActiveAccount(account)
           }
-        } else if (event.key === this.storage.getPrefixedKey(StorageKey.ENABLE_METRICS)) {
+          return
+        }
+        if (event.key === this.storage.getPrefixedKey(StorageKey.ENABLE_METRICS)) {
           this.enableMetrics = !!(await this.storage.get(StorageKey.ENABLE_METRICS))
+          return
+        }
+        if (event.key === this.storage.getPrefixedKey(StorageKey.BEACON_SDK_SECRET_SEED)) {
+          this._keyPair = new ExposedPromise()
+          this._beaconId = new ExposedPromise()
+          await this.initSDK()
+          return
         }
       }
     })
@@ -292,8 +304,9 @@ export class DAppClient extends Client {
         }
       })
       .catch(async (storageError) => {
-        await this.setActiveAccount(undefined)
+        // await this.setActiveAccount(undefined)
         logger.error(storageError)
+        await this.resetInvalidState(false)
         return undefined
       })
 
@@ -555,7 +568,11 @@ export class DAppClient extends Client {
   }
 
   public async initInternalTransports(): Promise<void> {
-    const keyPair = await this.keyPair
+    const seed = await this.storage.get(StorageKey.BEACON_SDK_SECRET_SEED)
+    if (!seed) {
+      throw new Error('Secret seed not found')
+    }
+    const keyPair = await getKeypairFromSeed(seed)
 
     if (this.postMessageTransport || this.p2pTransport || this.walletConnectTransport) {
       return
@@ -785,33 +802,42 @@ export class DAppClient extends Client {
               console.error(error)
             })
 
+          const abortHandler = async () => {
+            logger.log('init', 'ABORTED')
+            this.sendMetrics(
+              'performance-metrics/save',
+              await this.buildPayload('connect', 'abort')
+            )
+            await Promise.all([
+              postMessageTransport.disconnect(),
+              // p2pTransport.disconnect(), do not abort connection manually
+              walletConnectTransport.disconnect()
+            ])
+            this.postMessageTransport = this.walletConnectTransport = this.p2pTransport = undefined
+            this._activeAccount.isResolved() && this.clearActiveAccount()
+            this._initPromise = undefined
+          }
+
           this.events
             .emit(BeaconEvent.PAIR_INIT, {
               p2pPeerInfo: () => {
-                p2pTransport.connect().then().catch(console.error)
+                p2pTransport
+                  .connect()
+                  .then()
+                  .catch((err) => {
+                    console.warn('yesss...')
+                    console.error(err)
+                    if (err.message === 'The account is deactivated.') {
+                      this.hideUI(['alert'])
+                      abortHandler()
+                    }
+                  })
                 return p2pTransport.getPairingRequestInfo()
               },
               postmessagePeerInfo: () => postMessageTransport.getPairingRequestInfo(),
               walletConnectPeerInfo: () => walletConnectTransport.getPairingRequestInfo(),
               networkType: this.network.type,
-              abortedHandler: async () => {
-                logger.log('init', 'ABORTED')
-                this.sendMetrics(
-                  'performance-metrics/save',
-                  await this.buildPayload('connect', 'abort')
-                )
-                await Promise.all([
-                  postMessageTransport.disconnect(),
-                  // p2pTransport.disconnect(), do not abort connection manually
-                  walletConnectTransport.disconnect()
-                ])
-                this.postMessageTransport =
-                  this.walletConnectTransport =
-                  this.p2pTransport =
-                    undefined
-                this._activeAccount.isResolved() && this.clearActiveAccount()
-                this._initPromise = undefined
-              },
+              abortedHandler: abortHandler.bind(this),
               disclaimerText: this.disclaimerText,
               analytics: this.analytics,
               featuredWallets: this.featuredWallets
