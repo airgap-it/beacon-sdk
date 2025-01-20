@@ -304,7 +304,6 @@ export class DAppClient extends Client {
         }
       })
       .catch(async (storageError) => {
-        // await this.setActiveAccount(undefined)
         logger.error(storageError)
         await this.resetInvalidState(false)
         return undefined
