@@ -80,6 +80,11 @@ const PairOther: Component<PairOtherProps> = (props: PairOtherProps) => {
           onClickLearnMore={props.onClickLearnMore}
         />
       )}
+      {uiState() !== 'selection' && !qrData() && (
+        <span style={{ color: '#FF4136' }} class="pair-other-info">
+          Not connected.
+        </span>
+      )}
     </>
   )
 }

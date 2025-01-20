@@ -1,12 +1,12 @@
 import {
   Optional,
   TezosAttestationOperation,
-  TezosAttestationWithSlotOperation,
+  TezosAttestationWithDalOperation,
   TezosDoubleAttestationEvidenceOperation,
   TezosDoublePreAttestationEvidenceOperation,
   TezosDoublePreEndorsementEvidenceOperation,
   TezosDrainDelegateOperation,
-  TezosEndorsementWithSlotOperation,
+  TezosEndorsementWithDalOperation,
   TezosFailingNoopOperation,
   TezosIncreasePaidStorageOperation,
   TezosPreAttestationOperation,
@@ -199,8 +199,8 @@ export type PartialTezosOperation =
   | PartialTezosSetDepositsLimitOperation
   | TezosDoublePreAttestationEvidenceOperation
   | TezosDoublePreEndorsementEvidenceOperation
-  | TezosAttestationWithSlotOperation
-  | TezosEndorsementWithSlotOperation
+  | TezosAttestationWithDalOperation
+  | TezosEndorsementWithDalOperation
   | TezosDoubleAttestationEvidenceOperation
   | TezosFailingNoopOperation
   | PartialTezosRegisterGlobalConstantOperation

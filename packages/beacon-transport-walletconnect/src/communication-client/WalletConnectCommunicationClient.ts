@@ -625,11 +625,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       }
     }
 
-    const { uri, approval } = await signClient.connect(connectParams).catch((error) => {
-      logger.error(`Init error: ${error.message}`)
-      localStorage && localStorage.setItem(StorageKey.WC_INIT_ERROR, error.message)
-      throw new Error(error.message)
-    })
+    const { uri, approval }: { uri: string; approval: () => Promise<SessionTypes.Struct> } =
+      await Promise.race([
+        signClient.connect(connectParams),
+        new Promise<any>((_, reject) =>
+          setTimeout(() => reject(new Error('The connection timed out.')), 60000)
+        )
+      ]).catch((error) => {
+        logger.error(`Init error: ${error.message}`)
+        localStorage && localStorage.setItem(StorageKey.WC_INIT_ERROR, error.message)
+        throw new Error(error.message)
+      })
 
     // Extract topic from uri. Format is wc:topic@2...
     const topic = getStringBetween(uri, ':', '@')
@@ -740,6 +746,16 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   private subscribeToSessionEvents(signClient: Client): void {
+    // JWT validation error
+    signClient.core.relayer.provider.on('error', (event: Error) => {
+      logger.error('subscribeToSessionEvents', event)
+
+      if (event.message?.includes('JWT validation error')) {
+        const fun = this.eventHandlers.get(ClientEvents.RESET_STATE)
+        fun && fun(TransportType.WALLETCONNECT)
+      }
+    })
+
     signClient.on('session_event', (event) => {
       if (
         event.params.event.name === PermissionScopeEvents.REQUEST_ACKNOWLEDGED &&
@@ -838,7 +854,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           'session_update'
         )
       }
-    } catch { }
+    } catch {}
   }
 
   private async disconnect(
@@ -878,8 +894,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.session?.pairingTopic === topic
         ? this.session
         : signClient.session
-          .getAll()
-          .find((session: SessionTypes.Struct) => session.pairingTopic === topic)
+            .getAll()
+            .find((session: SessionTypes.Struct) => session.pairingTopic === topic)
 
     if (!session) {
       return undefined
@@ -970,9 +986,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         )
       ))
     await this.closeSignClient()
-    this.isMobileOS() && await this.storage.resetState()
+    this.isMobileOS() && (await this.storage.resetState())
     this.isMobileOS() && this.storage.notify('RESET')
-
   }
 
   private async closeSessions() {
@@ -1043,7 +1058,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
     try {
       logger.debug('connect', [pairingTopic])
-      const { approval } = await signClient.connect(connectParams)
+      const { approval }: { approval: () => Promise<SessionTypes.Struct> } = await Promise.race([
+        signClient.connect(connectParams),
+        new Promise<any>((_, reject) =>
+          setTimeout(() => reject(new Error('The connection timed out.')), 60000)
+        )
+      ])
       logger.debug('before await approal', [pairingTopic])
       const session = await approval()
       logger.debug('after await approal, have session', [pairingTopic])
