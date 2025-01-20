@@ -87,12 +87,12 @@ const BugReportForm = (props: any) => {
 
   const getUserId = (): string => {
     if (!localStorage) {
-      return 'UNKOWN'
+      return 'UNKNOWN'
     }
 
     const key = Object.keys(localStorage).find((key) => key.includes('user-id'))
 
-    return key && key.length ? localStorage.getItem(key) ?? 'UNKOWN' : 'UNKOWN'
+    return key && key.length ? localStorage.getItem(key) ?? 'UNKNOWN' : 'UNKNOWN'
   }
 
   createEffect(() => {

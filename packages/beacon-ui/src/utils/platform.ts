@@ -73,7 +73,7 @@ export const currentOS = () => {
       return value
     }
   }
-  return 'UNKOWN'
+  return 'UNKNOWN'
 }
 
 export const currentBrowser = () => {
@@ -93,5 +93,5 @@ export const currentBrowser = () => {
       return value
     }
   }
-  return 'UNKOWN'
+  return 'UNKNOWN'
 }

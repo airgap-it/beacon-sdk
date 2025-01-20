@@ -155,11 +155,11 @@ import { PermissionEntity } from './types/PermissionEntity'
 import { WalletInfo } from './types/WalletInfo'
 import { ChangeAccountRequest } from './types/beacon/messages/ChangeAccountRequest'
 import { TezosAttestationOperation } from './types/tezos/operations/Attestation'
-import { TezosAttestationWithSlotOperation } from './types/tezos/operations/AttestationWithSlot'
+import { TezosAttestationWithDalOperation } from './types/tezos/operations/AttestationWithDal'
 import { TezosDoubleAttestationEvidenceOperation } from './types/tezos/operations/DoubleAttestationEvidence'
 import { TezosDoublePreEndorsementEvidenceOperation } from './types/tezos/operations/DoublePreEndorsementEvidence'
 import { TezosDrainDelegateOperation } from './types/tezos/operations/DrainDelegate'
-import { TezosEndorsementWithSlotOperation } from './types/tezos/operations/EndorsementWithSlot'
+import { TezosEndorsementWithDalOperation } from './types/tezos/operations/EndorsementWithDal'
 import { TezosFailingNoopOperation } from './types/tezos/operations/FailingNoop'
 import { TezosIncreasePaidStorageOperation } from './types/tezos/operations/IncreasePaidStorage'
 import { TezosPreAttestationOperation } from './types/tezos/operations/PreAttestation'
@@ -237,8 +237,8 @@ export {
   TezosSetDepositsLimitOperation,
   TezosDoublePreAttestationEvidenceOperation,
   TezosDoublePreEndorsementEvidenceOperation,
-  TezosAttestationWithSlotOperation,
-  TezosEndorsementWithSlotOperation,
+  TezosAttestationWithDalOperation,
+  TezosEndorsementWithDalOperation,
   TezosDoubleAttestationEvidenceOperation,
   TezosFailingNoopOperation,
   TezosRegisterGlobalConstantOperation,
