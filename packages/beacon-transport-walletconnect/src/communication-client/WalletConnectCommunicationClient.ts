@@ -750,7 +750,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     signClient.core.relayer.provider.on('error', (event: Error) => {
       logger.error('subscribeToSessionEvents', event)
 
-      if (event.message.includes('JWT validation error')) {
+      if (event.message?.includes('JWT validation error')) {
         const fun = this.eventHandlers.get(ClientEvents.RESET_STATE)
         fun && fun(TransportType.WALLETCONNECT)
       }
