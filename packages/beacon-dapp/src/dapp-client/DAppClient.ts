@@ -306,6 +306,7 @@ export class DAppClient extends Client {
       .catch(async (storageError) => {
         logger.error(storageError)
         await this.resetInvalidState(false)
+        this.events.emit(BeaconEvent.INVALID_ACCOUNT_DEACTIVATED)
         return undefined
       })
 
