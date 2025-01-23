@@ -235,24 +235,34 @@ export class WalletClient extends Client {
   /**
    * The method will attempt to initiate a connection using the active transport.
    */
-  public async _connect(): Promise<void> {
+  public async _connect(attempts: number = 3): Promise<void> {
     const transport: WalletP2PTransport = (await this.transport) as WalletP2PTransport
-    if (transport.connectionStatus === TransportStatus.NOT_CONNECTED) {
-      await transport.connect()
-      transport
-        .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
-          if (typeof message === 'string') {
-            const deserializedMessage = (await new Serializer().deserialize(
-              message
-            )) as BeaconRequestMessage
-            this.handleResponse(deserializedMessage, connectionInfo)
-          }
-        })
-        .catch((error) => logger.log('_connect', error))
-      this._isConnected.resolve(true)
-    } else {
-      // NO-OP
+    if (attempts == 0 || transport.connectionStatus !== TransportStatus.NOT_CONNECTED) {
+      return
     }
+
+    try {
+      await transport.connect()
+    } catch (err: any) {
+      logger.warn('_connect', err.message)
+      if (err.message === 'The account is deactivated.') {
+        await transport.disconnect()
+        await this._connect(--attempts)
+        return
+      }
+    }
+
+    transport
+      .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
+        if (typeof message === 'string') {
+          const deserializedMessage = (await new Serializer().deserialize(
+            message
+          )) as BeaconRequestMessage
+          this.handleResponse(deserializedMessage, connectionInfo)
+        }
+      })
+      .catch((error) => logger.log('_connect', error))
+    this._isConnected.resolve(true)
   }
 
   /**

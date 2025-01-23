@@ -95,6 +95,7 @@ export enum BeaconEvent {
   SHOW_PREPARE = 'SHOW_PREPARE',
   HIDE_UI = 'HIDE_UI',
   INVALID_ACTIVE_ACCOUNT_STATE = 'INVALID_ACTIVE_ACCOUNT_STATE',
+  INVALID_ACCOUNT_DEACTIVATED = 'INVALID_ACCOUNT_DEACTIVATED',
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
@@ -195,7 +196,8 @@ export interface BeaconEventType {
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
-  [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: undefined
+  [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: undefined 
+  [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: undefined
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
   [BeaconEvent.PAIR_INIT]: {
@@ -314,13 +316,23 @@ const showNoPermissionAlert = async (): Promise<void> => {
 }
 
 /**
- * Show a
+ * Show an "Invalid state" alert
  */
 const showInvalidActiveAccountState = async (): Promise<void> => {
   await openAlert({
     title: 'Invalid state',
     body: `An active account has been received, but no active subscription was found for BeaconEvent.ACTIVE_ACCOUNT_SET.
     For more information, visit: https://docs.walletbeacon.io/guides/migration-guide`
+  })
+}
+
+/**
+ * Show an "account deactivated" error alert
+ */
+const showInvalidAccountDeactivated = async (): Promise<void> => {
+  await openAlert({
+    title: 'Error',
+    body: `Your session has expired. Please pair with your wallet again.`
   })
 }
 
@@ -756,6 +768,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: emptyHandler(),
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(),
   [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: showInvalidActiveAccountState,
+  [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: showInvalidAccountDeactivated,
   [BeaconEvent.SHOW_PREPARE]: showPrepare,
   [BeaconEvent.HIDE_UI]: hideUI,
   [BeaconEvent.PAIR_INIT]: showPairAlert,
@@ -815,6 +828,9 @@ export class BeaconEventHandler {
       [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
       [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [
         defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE
+      ],
+      [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: [
+        defaultEventCallbacks.INVALID_ACCOUNT_DEACTIVATED
       ],
       [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
       [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
