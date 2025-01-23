@@ -9,7 +9,7 @@ import { ClientEvents } from './ClientEvents'
  *
  */
 export abstract class CommunicationClient {
-  constructor(protected readonly keyPair?: KeyPair) {}
+  constructor(protected keyPair?: KeyPair) {}
 
   public eventHandlers: Map<ClientEvents, Function> = new Map()
 
