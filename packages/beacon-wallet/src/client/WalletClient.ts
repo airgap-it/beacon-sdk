@@ -235,9 +235,9 @@ export class WalletClient extends Client {
   /**
    * The method will attempt to initiate a connection using the active transport.
    */
-  public async _connect(): Promise<void> {
+  public async _connect(attempts: number = 3): Promise<void> {
     const transport: WalletP2PTransport = (await this.transport) as WalletP2PTransport
-    if (transport.connectionStatus !== TransportStatus.NOT_CONNECTED) {
+    if (attempts == 0 || transport.connectionStatus !== TransportStatus.NOT_CONNECTED) {
       return
     }
 
@@ -247,7 +247,7 @@ export class WalletClient extends Client {
       logger.warn('_connect', err.message)
       if (err.message === 'The account is deactivated.') {
         await transport.disconnect()
-        await this._connect()
+        await this._connect(--attempts)
         return
       }
     }

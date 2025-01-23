@@ -825,8 +825,7 @@ export class DAppClient extends Client {
                   .connect()
                   .then()
                   .catch((err) => {
-                    console.warn('yesss...')
-                    console.error(err)
+                    logger.error(err)
                     if (err.message === 'The account is deactivated.') {
                       this.hideUI(['alert'])
                       abortHandler()
