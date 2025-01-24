@@ -1,5 +1,5 @@
+import { BlockExplorer } from './utils/block-explorer'
 import {
-  BlockExplorer,
   openAlert,
   AlertButton,
   AlertConfig,
@@ -7,7 +7,7 @@ import {
   closeToast,
   openToast,
   ToastAction
-} from '@airgap/beacon-dapp'
+} from '@airgap/beacon-ui'
 import {
   BeaconErrorType,
   ExtendedPostMessagePairingResponse,
