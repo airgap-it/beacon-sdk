@@ -50,8 +50,8 @@ const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
           onClickLearnMore={props.onClickLearnMore}
         />
       )}
-      {uiState() !== 'selection' && !qrData() && (
-        <span style={{ color: '#FF4136' }} class="pair-other-info">
+      {uiState !== 'selection' && !qrData && (
+        <span style={{ color: '#FF4136' }} className="pair-other-info">
           Not connected.
         </span>
       )}
