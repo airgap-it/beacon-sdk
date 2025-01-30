@@ -1,12 +1,13 @@
 import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
-import { Subject } from '../../utils/subject'
+import { Subject, Subscription } from '../../utils/subject'
 import { AlertConfig, ConfigurableAlertProps } from '../common'
 import PairingAlert from './components/pairing-alert'
 import InfoAlert from './components/info-alert'
 
 let initDone: boolean = false
 const show$ = new Subject<boolean>()
+const config$ = new Subject<AlertConfig>()
 
 const createAlert = (config: AlertConfig) => {
   const el = document.createElement('beacon-modal')
@@ -16,7 +17,11 @@ const createAlert = (config: AlertConfig) => {
 }
 
 const openAlert = (config: AlertConfig) => {
-  !initDone && createAlert(config)
+  if (initDone) {
+    config$.next(config)
+  } else {
+    createAlert(config)
+  }
   show$.next(true)
 }
 
@@ -24,6 +29,9 @@ const closeAlert = () => {
   show$.next(false)
 }
 
+/**
+ * @deprecated use `closeAlert` instead
+ */
 const closeAlerts = () => {
   closeAlert()
 }
@@ -31,10 +39,13 @@ const closeAlerts = () => {
 const AlertRoot = (props: AlertConfig) => {
   const [isOpen, setIsOpen] = useState(true)
   const [mount, setMount] = useState(false)
+  const [config, setConfig] = useState<AlertConfig>(props)
 
   useEffect(() => {
-    const sub = show$.subscribe((value) => setIsOpen(value))
-    return () => sub.unsubscribe()
+    const subs: Subscription[] = []
+    subs.push(show$.subscribe((value) => setIsOpen(value)))
+    subs.push(config$.subscribe((value) => setConfig(value)))
+    return () => subs.forEach((sub) => sub.unsubscribe())
   }, [])
 
   useEffect(() => {
@@ -50,17 +61,17 @@ const AlertRoot = (props: AlertConfig) => {
 
   const onCloseHandler = () => {
     closeAlert()
-    props.closeButtonCallback && props.closeButtonCallback()
+    config.closeButtonCallback && config.closeButtonCallback()
   }
 
   const filteredProps: ConfigurableAlertProps = {
-    ...props,
+    ...config,
     onClose: onCloseHandler,
     open: isOpen
   }
 
   const Alert = () => {
-    return props.pairingPayload ? (
+    return config.pairingPayload ? (
       <PairingAlert {...filteredProps} />
     ) : (
       <InfoAlert {...filteredProps} />
