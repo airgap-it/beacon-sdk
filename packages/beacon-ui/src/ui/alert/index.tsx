@@ -4,6 +4,7 @@ import { Subject, Subscription } from '../../utils/subject'
 import { AlertConfig, ConfigurableAlertProps } from '../common'
 import PairingAlert from './components/pairing-alert'
 import InfoAlert from './components/info-alert'
+import { getColorMode } from 'src/utils/colorMode'
 
 let initDone: boolean = false
 const show$ = new Subject<boolean>()
@@ -78,7 +79,7 @@ const AlertRoot = (props: AlertConfig) => {
     )
   }
 
-  return <>{mount && <Alert />}</>
+  return <div className={`theme__${getColorMode()}`}>{mount && <Alert />} </div>
 }
 
 export { openAlert, closeAlert, closeAlerts }
