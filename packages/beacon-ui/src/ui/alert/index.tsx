@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Subject } from '../../utils/subject'
 import { AlertConfig } from '../common'
 import PairingAlert from './components/pairing-alert'
+import InfoAlert from './components/info-alert'
 
 let initDone: boolean = false
 const show$ = new Subject<boolean>()
@@ -47,7 +48,13 @@ const AlertRoot = (props: AlertConfig) => {
     }
   }, [isOpen])
 
-  return <>{mount && <PairingAlert {...props} onClose={closeAlert} open={isOpen} />}</>
+  const Alert = props.pairingPayload ? (
+    <PairingAlert {...props} onClose={closeAlert} open={isOpen} />
+  ) : (
+    <InfoAlert {...props} />
+  )
+
+  return <>{mount && Alert}</>
 }
 
 export { openAlert, closeAlert, closeAlerts }
