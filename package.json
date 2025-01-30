@@ -24,7 +24,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk"
   },
   "engines": {
-    "npm": ">=7.0.0",
+    "npm": ">=8.0.0",
     "node": ">=18.0.0"
   },
   "scripts": {

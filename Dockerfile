@@ -1,21 +1,21 @@
 FROM node:18
 
-RUN apt-get update && apt-get install -yq git python build-essential
+# Install dependencies with Python 3
+RUN apt-get update && apt-get install -yq git python3 build-essential python-is-python3
 
-# create app directory
-RUN mkdir /app
+# Create app directory
 WORKDIR /app
 
 # Bundle app source
-COPY . /app
+COPY . .
 
-# set to production
-RUN export NODE_ENV=production
+# Install ALL dependencies including devDependencies
+RUN npm ci --include=dev
 
-# install dependencies
-RUN npm install
+# Set production environment after installing dependencies
+ENV NODE_ENV=production
 
-RUN chmod +x ./npm-ci-publish-beta-only.sh
-RUN chmod +x ./npm-ci-publish.sh
+# Make scripts executable
+RUN chmod +x ./npm-ci-publish-beta-only.sh ./npm-ci-publish.sh
 
 CMD ["npm", "run", "test"]
