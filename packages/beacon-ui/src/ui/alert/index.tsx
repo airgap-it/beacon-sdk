@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
 import { Subject } from '../../utils/subject'
-import { AlertConfig } from '../common'
+import { AlertConfig, ConfigurableAlertProps } from '../common'
 import PairingAlert from './components/pairing-alert'
 import InfoAlert from './components/info-alert'
 
@@ -48,13 +48,26 @@ const AlertRoot = (props: AlertConfig) => {
     }
   }, [isOpen])
 
-  const Alert = props.pairingPayload ? (
-    <PairingAlert {...props} onClose={closeAlert} open={isOpen} />
-  ) : (
-    <InfoAlert {...props} />
-  )
+  const onCloseHandler = () => {
+    closeAlert()
+    props.closeButtonCallback && props.closeButtonCallback()
+  }
 
-  return <>{mount && Alert}</>
+  const filteredProps: ConfigurableAlertProps = {
+    ...props,
+    onClose: onCloseHandler,
+    open: isOpen
+  }
+
+  const Alert = () => {
+    return props.pairingPayload ? (
+      <PairingAlert {...filteredProps} />
+    ) : (
+      <InfoAlert {...filteredProps} />
+    )
+  }
+
+  return <>{mount && <Alert />}</>
 }
 
 export { openAlert, closeAlert, closeAlerts }

@@ -15,16 +15,16 @@ export interface AlertConfig {
   data?: string
   timer?: number
   buttons?: AlertButton[]
-  pairingPayload?: {
-    p2pSyncCode: string
-    postmessageSyncCode: string
-    walletConnectSyncCode: string
-    networkType: NetworkType
-  }
+  pairingPayload?: PairingPayload
   closeButtonCallback?: () => void
   disclaimerText?: string
   analytics?: AnalyticsInterface
   featuredWallets?: string[]
+}
+
+export interface ConfigurableAlertProps extends Omit<AlertConfig, 'closeButtonCallback'> {
+  open: boolean
+  onClose: () => void
 }
 
 export interface AlertProps {
@@ -37,11 +37,35 @@ export interface AlertProps {
   onBackClick?: () => void
 }
 
+export interface PairingPayload {
+  p2pSyncCode: string
+  postmessageSyncCode: string
+  walletConnectSyncCode: string
+  networkType: NetworkType
+}
+
 export interface PairOtherProps {
   walletList: MergedWallet[]
   p2pPayload: string
   wcPayload: string
   onClickLearnMore: () => void
+}
+
+export interface InfoProps {
+  title: string
+  description?: string
+  data?: string
+  icon?: any
+  border?: boolean
+  iconBadge?: boolean
+  bigIcon?: boolean
+  buttons?: {
+    label: string
+    type: 'primary' | 'secondary'
+    onClick: () => void
+  }[]
+  downloadLink?: { url: string; label: string }
+  onShowQRCodeClick?: (() => void) | (() => Promise<void>)
 }
 
 // TOAST

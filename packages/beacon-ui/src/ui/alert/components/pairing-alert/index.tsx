@@ -1,4 +1,4 @@
-import Alert from 'src/components/alert'
+import Alert from '../../../../components/alert'
 import useConnect from '../../hooks/useConnect'
 import BugReportForm from 'src/components/bug-report-form'
 import Info from 'src/components/info'
@@ -9,9 +9,9 @@ import { isIOS } from 'src/utils/platform'
 import { StorageKey } from '@airgap/beacon-types'
 import QR from 'src/components/qr'
 import useWallets from '../../hooks/useWallets'
+import { ConfigurableAlertProps } from '../../../common'
 
-// todo remove any
-const PairingAlert: React.FC<any> = (props) => {
+const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const {
     walletConnectSyncCode: wcPayload,
     p2pSyncCode: p2pPayload,
@@ -38,13 +38,7 @@ const PairingAlert: React.FC<any> = (props) => {
     handleUpdateState,
     handleUpdateQRCode,
     handleShowMoreContent
-  ] = useConnect(
-    wcPayload,
-    p2pPayload,
-    postPayload,
-    wallets,
-    props.closeButtonCallback ?? (() => {})
-  )
+  ] = useConnect(wcPayload, p2pPayload, postPayload, wallets, props.onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
   const areMetricsEnabled = localStorage
