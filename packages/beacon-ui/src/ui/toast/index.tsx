@@ -72,7 +72,7 @@ const ToastRoot = (props: ToastConfig) => {
     // because otherwise the "fade-out" animation
     // won't have enough time to play
     if (config && config.timer) {
-      setTimeout(() => setMount(false), 300)
+      setTimeout(() => setMount(false), config.timer)
     }
 
     // no else that acts like a "default"

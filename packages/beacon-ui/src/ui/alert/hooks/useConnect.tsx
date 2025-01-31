@@ -7,11 +7,11 @@ import { MergedWallet, OSLink } from 'src/utils/wallets'
 import getDefaultLogo from '../getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
 import { AlertConfig } from '../../common'
-import useIsMobile from './useIsMobile'
 
 const logger = new Logger('useConnect')
 
 const useConnect = (
+  isMobile: boolean,
   wcPayload: string,
   p2pPayload: string,
   postPayload: string,
@@ -27,7 +27,6 @@ const useConnect = (
   const [displayQRExtra, setDisplayQRExtra] = useState(false)
   const [showMoreContent, setShowMoreContent] = useState(false)
   const [isWCWorking, setIsWCWorking] = useState(true)
-  const isMobile = isMobileOS(window) || useIsMobile()
 
   const setInstallState = (wallet?: MergedWallet) => {
     if (
@@ -317,7 +316,6 @@ const useConnect = (
 
   return [
     wallet,
-    isMobile,
     isLoading,
     qrCode,
     state,
