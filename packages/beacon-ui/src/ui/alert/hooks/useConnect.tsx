@@ -81,7 +81,7 @@ const useConnect = (
 
       if (isValid) {
         if (isMobile && selectedWallet.types.includes('ios') && selectedWallet.types.length === 1) {
-          handleDeepLinking(wcPayload)
+          handleDeepLinking(selectedWallet, wcPayload)
         } else {
           setQRCode(wcPayload)
           setInstallState(selectedWallet)
@@ -190,8 +190,8 @@ const useConnect = (
       })
     )
   }
-
-  const handleDeepLinking = (uri: string) => {
+  
+  const handleDeepLinking = (wallet: MergedWallet, uri: string) => {
     localStorage.setItem(
       StorageKey.LAST_SELECTED_WALLET,
       JSON.stringify({

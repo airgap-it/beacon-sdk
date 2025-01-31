@@ -1,11 +1,11 @@
-import Alert from '../../../../components/alert'
+import Alert from 'src/components/alert'
 import useConnect from '../../hooks/useConnect'
 import BugReportForm from 'src/components/bug-report-form'
 import Info from 'src/components/info'
 import PairOther from 'src/components/pair-other/pair-other'
 import TopWallets from 'src/components/top-wallets'
 import Wallets from 'src/components/wallets'
-import { isIOS } from 'src/utils/platform'
+import { isIOS, isMobileOS } from 'src/utils/platform'
 import { StorageKey } from '@airgap/beacon-types'
 import QR from 'src/components/qr'
 import useWallets from '../../hooks/useWallets'
@@ -201,7 +201,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                 }
               />
             )}
-            {!isMobile && wallet?.types.includes('desktop') && (
+            {!isMobileOS(window) && wallet?.types.includes('desktop') && (
               <Info
                 border
                 title={`Connect with ${wallet?.name} Desktop App`}
@@ -220,15 +220,15 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                 ]}
               />
             )}
-            {!isMobile &&
+            {!isMobileOS(window) &&
               (qrCode?.length ?? 0) &&
               wallet?.types.includes('ios') &&
               (wallet?.types.length as number) > 1 && <QRCode isMobile={false} />}
-            {!isMobile &&
+            {!isMobileOS(window) &&
               (qrCode?.length ?? 0) &&
               wallet?.types.includes('ios') &&
               (wallet?.types.length as number) <= 1 && <QRCode isMobile={true} />}
-            {isMobile &&
+            {isMobileOS(window) &&
               wallet?.types.includes('ios') &&
               (!wallet?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking ? (
                 <Info
@@ -243,8 +243,8 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                         if (!wallet) {
                           return
                         }
-
                         handleDeepLinking(
+                          wallet,
                           wallet.supportedInteractionStandards?.includes('wallet_connect')
                             ? wcPayload
                             : p2pPayload
@@ -273,7 +273,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                     }
 
                     if (isMobile && wallet.types.includes('ios') && wallet.types.length === 1) {
-                      handleDeepLinking(syncCode)
+                      handleDeepLinking(wallet, syncCode)
                     } else {
                       handleUpdateQRCode(syncCode)
                     }
