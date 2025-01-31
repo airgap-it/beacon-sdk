@@ -10,6 +10,7 @@ import { StorageKey } from '@airgap/beacon-types'
 import QR from 'src/components/qr'
 import useWallets from '../../hooks/useWallets'
 import { ConfigurableAlertProps } from '../../../common'
+import useIsMobile from '../../hooks/useIsMobile'
 
 const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const {
@@ -17,10 +18,10 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     p2pSyncCode: p2pPayload,
     postmessageSyncCode: postPayload
   } = props.pairingPayload!
+  const isMobile = useIsMobile()
   const wallets = useWallets(props.pairingPayload?.networkType, props.featuredWallets)
   const [
     wallet,
-    isMobile,
     isLoading,
     qrCode,
     state,
@@ -38,7 +39,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     handleUpdateState,
     handleUpdateQRCode,
     handleShowMoreContent
-  ] = useConnect(wcPayload, p2pPayload, postPayload, wallets, props.onClose)
+  ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
   const areMetricsEnabled = localStorage
