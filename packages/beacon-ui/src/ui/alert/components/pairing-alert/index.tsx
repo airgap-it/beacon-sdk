@@ -38,7 +38,8 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     handleClickDownloadDesktopApp,
     handleUpdateState,
     handleUpdateQRCode,
-    handleShowMoreContent
+    handleShowMoreContent,
+    handleDisplayQRExtra
   ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
@@ -278,7 +279,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                     }
 
                     handleUpdateState('qr')
-                    // todo setDisplayQrExtra(true)
+                    handleDisplayQRExtra(true)
                   }}
                 />
               ) : (

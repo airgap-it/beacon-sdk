@@ -88,7 +88,7 @@ const useConnect = (
         }
       }
       setIsLoading(false)
-    } else if (selectedWallet?.types.includes('ios') && isMobile) {
+    } else if (isMobileOS(window) && selectedWallet?.types.includes('ios') && isMobile) {
       setQRCode('')
 
       if (config.pairingPayload) {
@@ -103,8 +103,9 @@ const useConnect = (
 
         updateSelectedWalletWithURL(link)
 
-        if (isAndroid(window)) window.open(link, '_blank', 'noopener')
-        else if (isIOS(window)) {
+        if (isAndroid(window)) {
+          window.open(link, '_blank', 'noopener')
+        } else {
           const a = document.createElement('a')
           a.setAttribute('href', link)
           a.setAttribute('rel', 'noopener')
@@ -112,9 +113,9 @@ const useConnect = (
             new MouseEvent('click', { view: window, bubbles: true, cancelable: true })
           )
         }
-      }
 
-      setIsLoading(false)
+        setIsLoading(false)
+      }
     } else {
       setIsLoading(false)
       setInstallState(selectedWallet)
@@ -314,6 +315,8 @@ const useConnect = (
 
   const handleShowMoreContent = () => setShowMoreContent((prev) => !prev)
 
+  const handleDisplayQRExtra = (show: boolean) => setDisplayQRExtra(show)
+
   return [
     wallet,
     isLoading,
@@ -332,7 +335,8 @@ const useConnect = (
     handleClickDownloadDesktopApp,
     handleUpdateState,
     handleUpdateQRCode,
-    handleShowMoreContent
+    handleShowMoreContent,
+    handleDisplayQRExtra
   ] as const
 }
 

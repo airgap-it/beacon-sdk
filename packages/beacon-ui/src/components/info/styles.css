@@ -114,6 +114,11 @@ button#qr-code-icon {
   top: 0.3rem;
   right: 0.3rem;
 }
+
+button#qr-code-icon svg {
+  width: 25px;
+}
+
 @media only screen and (max-width: 300px) {
   button#qr-code-icon {
     min-width: 1.5rem;
