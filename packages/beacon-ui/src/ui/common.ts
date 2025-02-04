@@ -51,6 +51,15 @@ export interface PairOtherProps {
   onClickLearnMore: () => void
 }
 
+export interface QRProps {
+  isWalletConnect: boolean
+  isMobile: boolean
+  walletName: string
+  code: string
+  onClickLearnMore?: () => void
+  onClickQrCode?: () => void
+}
+
 export interface InfoProps {
   title: string
   description?: string
