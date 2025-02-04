@@ -1,9 +1,6 @@
-import React from "react";
 import "./styles.css";
 
-interface LoaderProps {}
-
-const Loader: React.FC<LoaderProps> = () => {
+const Loader = () => {
   return <div className="loader"></div>;
 };
 
