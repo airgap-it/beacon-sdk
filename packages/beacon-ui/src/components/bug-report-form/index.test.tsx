@@ -11,7 +11,9 @@ jest.mock('@airgap/beacon-core', () => {
     Logger: jest.fn().mockImplementation(() => ({
       error: jest.fn(),
     })),
-    SDK_VERSION: '1.0.0'
+    // we cannot refer to the actual `SDK_VERSION` because
+    // `jest.mock()` is not allowed to reference any out-of-scope variables.
+    SDK_VERSION: '4.5.0'
   }
 })
 
