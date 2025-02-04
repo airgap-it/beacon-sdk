@@ -77,6 +77,15 @@ export interface InfoProps {
   onShowQRCodeClick?: (() => void) | (() => Promise<void>)
 }
 
+export interface TopWalletsProps {
+  wallets: MergedWallet[];
+  onClickWallet: (id: string) => void;
+  onClickLearnMore: () => void;
+  otherWallets?: { images: string[]; onClick: () => void };
+  disabled?: boolean;
+  isMobile: boolean;
+}
+
 // TOAST
 
 export interface ToastAction {
