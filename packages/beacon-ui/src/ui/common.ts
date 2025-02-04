@@ -86,6 +86,17 @@ export interface TopWalletsProps {
   isMobile: boolean;
 }
 
+export interface WalletProps {
+  name: string;
+  image: string;
+  description?: string;
+  small?: boolean;
+  mobile?: boolean;
+  onClick: () => void;
+  tags?: string[];
+  disabled?: boolean;
+}
+
 // TOAST
 
 export interface ToastAction {
