@@ -77,6 +77,8 @@ export interface InfoProps {
   onShowQRCodeClick?: (() => void) | (() => Promise<void>)
 }
 
+// WALLETS
+
 export interface TopWalletsProps {
   wallets: MergedWallet[];
   onClickWallet: (id: string) => void;
@@ -94,6 +96,15 @@ export interface WalletProps {
   mobile?: boolean;
   onClick: () => void;
   tags?: string[];
+  disabled?: boolean;
+}
+
+export interface WalletsProps {
+  wallets: MergedWallet[];
+  onClickWallet: (id: string) => void;
+  onClickOther: () => void;
+  isMobile: boolean;
+  small?: boolean;
   disabled?: boolean;
 }
 
