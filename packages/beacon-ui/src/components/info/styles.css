@@ -113,6 +113,7 @@ button#qr-code-icon {
   position: absolute;
   top: 0.3rem;
   right: 0.3rem;
+  padding: 1.5px;
 }
 
 button#qr-code-icon svg {
