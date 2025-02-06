@@ -306,7 +306,8 @@ export class DAppClient extends Client {
       .catch(async (storageError) => {
         logger.error(storageError)
         await this.resetInvalidState(false)
-        this.events.emit(BeaconEvent.INVALID_ACCOUNT_DEACTIVATED)
+        this.events.emit(BeaconEvent.GENERIC_ERROR, storageError.message)
+
         return undefined
       })
 
@@ -824,12 +825,11 @@ export class DAppClient extends Client {
                 p2pTransport
                   .connect()
                   .then()
-                  .catch((err) => {
+                  .catch(async (err) => {
                     logger.error(err)
-                    if (err.message === 'The account is deactivated.') {
-                      this.hideUI(['alert'])
-                      abortHandler()
-                    }
+                    await this.hideUI(['alert']) // hide pairing alert
+                    setTimeout(() => this.events.emit(BeaconEvent.GENERIC_ERROR, err.message), 1000)
+                    abortHandler()
                   })
                 return p2pTransport.getPairingRequestInfo()
               },
@@ -866,7 +866,17 @@ export class DAppClient extends Client {
   private async resetInvalidState(emit: boolean = true) {
     this.accountManager.removeAllAccounts()
     this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(undefined)
-    this.storage.set(StorageKey.ACTIVE_ACCOUNT, undefined)
+
+    Object.values(StorageKey)
+      .filter(
+        (key) =>
+          !key.includes('wc@2') &&
+          !key.includes('secret') &&
+          !key.includes('sdk_version') &&
+          !key.includes('user-id')
+      )
+      .forEach((key) => this.storage.delete(key))
+
     emit && this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
     !emit && this.hideUI(['alert'])
     await Promise.all([

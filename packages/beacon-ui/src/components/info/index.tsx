@@ -27,7 +27,7 @@ const Info: Component<InfoProps> = (props: InfoProps) => {
         </div>
       )}
       <h3 class="info-title">{props.title}</h3>
-      {props.description && <div class="info-description">{props.description}</div>}
+      {props.description && <div class="info-description" innerHTML={props.description} />}
       {props.data && <pre class="info-data">{props.data}</pre>}
       <div class="info-buttons">
         <For each={props.buttons}>

@@ -96,6 +96,7 @@ export enum BeaconEvent {
   HIDE_UI = 'HIDE_UI',
   INVALID_ACTIVE_ACCOUNT_STATE = 'INVALID_ACTIVE_ACCOUNT_STATE',
   INVALID_ACCOUNT_DEACTIVATED = 'INVALID_ACCOUNT_DEACTIVATED',
+  GENERIC_ERROR = 'GENERIC_ERROR',
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
@@ -196,8 +197,9 @@ export interface BeaconEventType {
   [BeaconEvent.NO_PERMISSIONS]: undefined
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
-  [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: undefined 
+  [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: undefined
   [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: undefined
+  [BeaconEvent.GENERIC_ERROR]: string
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
   [BeaconEvent.PAIR_INIT]: {
@@ -211,9 +213,9 @@ export interface BeaconEventType {
     featuredWallets?: string[]
   }
   [BeaconEvent.PAIR_SUCCESS]:
-  | ExtendedPostMessagePairingResponse
-  | ExtendedP2PPairingResponse
-  | ExtendedWalletConnectPairingResponse
+    | ExtendedPostMessagePairingResponse
+    | ExtendedP2PPairingResponse
+    | ExtendedWalletConnectPairingResponse
   [BeaconEvent.CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[] }
   [BeaconEvent.UNKNOWN]: undefined
@@ -331,8 +333,20 @@ const showInvalidActiveAccountState = async (): Promise<void> => {
  */
 const showInvalidAccountDeactivated = async (): Promise<void> => {
   await openAlert({
-    title: 'Error',
+    title: 'Info',
     body: `Your session has expired. Please pair with your wallet again.`
+  })
+}
+
+/**
+ * Show an "Invalid state" alert
+ */
+const showGenericErrorAlert = async (errorMessage: string): Promise<void> => {
+  await openAlert({
+    title: 'Error',
+    body: `${errorMessage}.<br />Please try again.<br />If this problem persists please reach out <a href="mailto:support@walletbeacon.io?subject=${encodeURIComponent(
+      'Beacon error'
+    )}&body=${encodeURIComponent(errorMessage)}">support@walletbeacon.io</a>`
   })
 }
 
@@ -531,22 +545,22 @@ const showProofOfEventChallengeSuccessAlert = async (
     state: 'finished',
     actions: output.isAccepted
       ? [
-        {
-          text: `Payload hash: ${output.payloadHash}`,
-          actionText: 'Copy to clipboard',
-          actionCallback: async (): Promise<void> => {
-            navigator.clipboard.writeText(output.payloadHash).then(
-              () => {
-                logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
-              },
-              (err) => {
-                logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
-              }
-            )
-            await closeToast()
+          {
+            text: `Payload hash: ${output.payloadHash}`,
+            actionText: 'Copy to clipboard',
+            actionCallback: async (): Promise<void> => {
+              navigator.clipboard.writeText(output.payloadHash).then(
+                () => {
+                  logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+                },
+                (err) => {
+                  logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+                }
+              )
+              await closeToast()
+            }
           }
-        }
-      ]
+        ]
       : []
   })
 }
@@ -565,22 +579,22 @@ const showSimulatedProofOfEventChallengeSuccessAlert = async (
     state: 'finished',
     actions: !output.errorMessage
       ? [
-        {
-          text: 'Operation list',
-          actionText: 'Copy to clipboard',
-          actionCallback: async (): Promise<void> => {
-            navigator.clipboard.writeText(output.operationsList).then(
-              () => {
-                logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
-              },
-              (err) => {
-                logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
-              }
-            )
-            await closeToast()
+          {
+            text: 'Operation list',
+            actionText: 'Copy to clipboard',
+            actionCallback: async (): Promise<void> => {
+              navigator.clipboard.writeText(output.operationsList).then(
+                () => {
+                  logger.log('showSignSuccessAlert', 'Copying to clipboard was successful!')
+                },
+                (err) => {
+                  logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
+                }
+              )
+              await closeToast()
+            }
           }
-        }
-      ]
+        ]
       : [{ text: 'Error message', actionText: output.errorMessage }]
   })
 }
@@ -769,6 +783,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(),
   [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: showInvalidActiveAccountState,
   [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: showInvalidAccountDeactivated,
+  [BeaconEvent.GENERIC_ERROR]: showGenericErrorAlert,
   [BeaconEvent.SHOW_PREPARE]: showPrepare,
   [BeaconEvent.HIDE_UI]: hideUI,
   [BeaconEvent.PAIR_INIT]: showPairAlert,
@@ -787,59 +802,58 @@ export class BeaconEventHandler {
   private readonly callbackMap: {
     [key in BeaconEvent]: BeaconEventHandlerFunction<any>[] // TODO: Fix type
   } = {
-      [BeaconEvent.PERMISSION_REQUEST_SENT]: [defaultEventCallbacks.PERMISSION_REQUEST_SENT],
-      [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: [defaultEventCallbacks.PERMISSION_REQUEST_SUCCESS],
-      [BeaconEvent.PERMISSION_REQUEST_ERROR]: [defaultEventCallbacks.PERMISSION_REQUEST_ERROR],
-      [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: [
-        defaultEventCallbacks.PERMISSION_REQUEST_SENT
-      ],
-      [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: [
-        defaultEventCallbacks.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS
-      ],
-      [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: [
-        defaultEventCallbacks.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
-      ],
-      [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: [
-        defaultEventCallbacks.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT
-      ],
-      [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: [
-        defaultEventCallbacks.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS
-      ],
-      [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: [
-        defaultEventCallbacks.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
-      ],
-      [BeaconEvent.OPERATION_REQUEST_SENT]: [defaultEventCallbacks.OPERATION_REQUEST_SENT],
-      [BeaconEvent.OPERATION_REQUEST_SUCCESS]: [defaultEventCallbacks.OPERATION_REQUEST_SUCCESS],
-      [BeaconEvent.OPERATION_REQUEST_ERROR]: [defaultEventCallbacks.OPERATION_REQUEST_ERROR],
-      [BeaconEvent.SIGN_REQUEST_SENT]: [defaultEventCallbacks.SIGN_REQUEST_SENT],
-      [BeaconEvent.SIGN_REQUEST_SUCCESS]: [defaultEventCallbacks.SIGN_REQUEST_SUCCESS],
-      [BeaconEvent.SIGN_REQUEST_ERROR]: [defaultEventCallbacks.SIGN_REQUEST_ERROR],
-      // TODO: ENCRYPTION
-      // [BeaconEvent.ENCRYPT_REQUEST_SENT]: [defaultEventCallbacks.ENCRYPT_REQUEST_SENT],
-      // [BeaconEvent.ENCRYPT_REQUEST_SUCCESS]: [defaultEventCallbacks.ENCRYPT_REQUEST_SUCCESS],
-      // [BeaconEvent.ENCRYPT_REQUEST_ERROR]: [defaultEventCallbacks.ENCRYPT_REQUEST_ERROR],
-      [BeaconEvent.BROADCAST_REQUEST_SENT]: [defaultEventCallbacks.BROADCAST_REQUEST_SENT],
-      [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: [defaultEventCallbacks.BROADCAST_REQUEST_SUCCESS],
-      [BeaconEvent.BROADCAST_REQUEST_ERROR]: [defaultEventCallbacks.BROADCAST_REQUEST_ERROR],
-      [BeaconEvent.ACKNOWLEDGE_RECEIVED]: [defaultEventCallbacks.ACKNOWLEDGE_RECEIVED],
-      [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: [defaultEventCallbacks.LOCAL_RATE_LIMIT_REACHED],
-      [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
-      [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
-      [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
-      [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [
-        defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE
-      ],
-      [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: [
-        defaultEventCallbacks.INVALID_ACCOUNT_DEACTIVATED
-      ],
-      [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
-      [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
-      [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
-      [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
-      [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],
-      [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
-      [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
-    }
+    [BeaconEvent.PERMISSION_REQUEST_SENT]: [defaultEventCallbacks.PERMISSION_REQUEST_SENT],
+    [BeaconEvent.PERMISSION_REQUEST_SUCCESS]: [defaultEventCallbacks.PERMISSION_REQUEST_SUCCESS],
+    [BeaconEvent.PERMISSION_REQUEST_ERROR]: [defaultEventCallbacks.PERMISSION_REQUEST_ERROR],
+    [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: [
+      defaultEventCallbacks.PERMISSION_REQUEST_SENT
+    ],
+    [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: [
+      defaultEventCallbacks.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS
+    ],
+    [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: [
+      defaultEventCallbacks.PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
+    ],
+    [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: [
+      defaultEventCallbacks.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT
+    ],
+    [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: [
+      defaultEventCallbacks.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS
+    ],
+    [BeaconEvent.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR]: [
+      defaultEventCallbacks.SIMULATED_PROOF_OF_EVENT_CHALLENGE_REQUEST_ERROR
+    ],
+    [BeaconEvent.OPERATION_REQUEST_SENT]: [defaultEventCallbacks.OPERATION_REQUEST_SENT],
+    [BeaconEvent.OPERATION_REQUEST_SUCCESS]: [defaultEventCallbacks.OPERATION_REQUEST_SUCCESS],
+    [BeaconEvent.OPERATION_REQUEST_ERROR]: [defaultEventCallbacks.OPERATION_REQUEST_ERROR],
+    [BeaconEvent.SIGN_REQUEST_SENT]: [defaultEventCallbacks.SIGN_REQUEST_SENT],
+    [BeaconEvent.SIGN_REQUEST_SUCCESS]: [defaultEventCallbacks.SIGN_REQUEST_SUCCESS],
+    [BeaconEvent.SIGN_REQUEST_ERROR]: [defaultEventCallbacks.SIGN_REQUEST_ERROR],
+    // TODO: ENCRYPTION
+    // [BeaconEvent.ENCRYPT_REQUEST_SENT]: [defaultEventCallbacks.ENCRYPT_REQUEST_SENT],
+    // [BeaconEvent.ENCRYPT_REQUEST_SUCCESS]: [defaultEventCallbacks.ENCRYPT_REQUEST_SUCCESS],
+    // [BeaconEvent.ENCRYPT_REQUEST_ERROR]: [defaultEventCallbacks.ENCRYPT_REQUEST_ERROR],
+    [BeaconEvent.BROADCAST_REQUEST_SENT]: [defaultEventCallbacks.BROADCAST_REQUEST_SENT],
+    [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: [defaultEventCallbacks.BROADCAST_REQUEST_SUCCESS],
+    [BeaconEvent.BROADCAST_REQUEST_ERROR]: [defaultEventCallbacks.BROADCAST_REQUEST_ERROR],
+    [BeaconEvent.ACKNOWLEDGE_RECEIVED]: [defaultEventCallbacks.ACKNOWLEDGE_RECEIVED],
+    [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: [defaultEventCallbacks.LOCAL_RATE_LIMIT_REACHED],
+    [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
+    [BeaconEvent.ACTIVE_ACCOUNT_SET]: [defaultEventCallbacks.ACTIVE_ACCOUNT_SET],
+    [BeaconEvent.ACTIVE_TRANSPORT_SET]: [defaultEventCallbacks.ACTIVE_TRANSPORT_SET],
+    [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [
+      defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE
+    ],
+    [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: [defaultEventCallbacks.INVALID_ACCOUNT_DEACTIVATED],
+    [BeaconEvent.GENERIC_ERROR]: [defaultEventCallbacks.GENERIC_ERROR],
+    [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
+    [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
+    [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
+    [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
+    [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],
+    [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
+    [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
+  }
   constructor(
     eventsToOverride: {
       [key in BeaconEvent]?: {
