@@ -69,7 +69,11 @@ const DNS_ALIASES: Map<string, string[]> = new Map([
   ['beacon-node-1.hope-2.papers.tech', ['beacon-node-1.hope-2.walletbeacon.io']],
   ['beacon-node-1.hope-3.papers.tech', ['beacon-node-1.hope-3.walletbeacon.io']],
   ['beacon-node-1.hope-4.papers.tech', ['beacon-node-1.hope-4.walletbeacon.io']],
-  ['beacon-node-1.hope-5.papers.tech', ['beacon-node-1.hope-5.walletbeacon.io']]
+  ['beacon-node-1.hope-5.papers.tech', ['beacon-node-1.hope-5.walletbeacon.io']],
+  ['beacon-node-1.beacon-server-1.papers.tech', ['beacon-node-1.beacon-server-1.walletbeacon.io']],
+  ['beacon-node-1.beacon-server-2.papers.tech', ['beacon-node-1.beacon-server-2.walletbeacon.io']],
+  ['beacon-node-1.beacon-server-3.papers.tech', ['beacon-node-1.beacon-server-3.walletbeacon.io']],
+  ['beacon-node-1.beacon-server-4.papers.tech', ['beacon-node-1.beacon-server-4.walletbeacon.io']]
 ])
 
 interface BeaconInfoResponse {
@@ -323,23 +327,10 @@ export class P2PCommunicationClient extends CommunicationClient {
       } catch (err: any) {
         logger.error('getBeaconInfo', err.toJSON())
       }
-
-      // if all requests fail throw an Error
-      throw new Error('Network error: all servers are unavailable.')
     }
 
-    return {} as BeaconInfoResponse
-    // return axios
-    //   .get<BeaconInfoResponse>(`https://oweiahjfiopaseuhpcioshauiopcvashuicfhasepifawehniopfwehf9phq1239084u`)
-    //   .then((res) => ({
-    //     region: res.region,
-    //     known_servers: res.known_servers,
-    //     timestamp: Math.floor(res.timestamp)
-    //   }))
-    //   .catch((err) => {
-    //     console.warn('Axios error: ', err.toJSON())
-    //     throw new Error('test')
-    //   })
+    // if all requests fail throw an Error
+    throw new Error('Network error: all servers are unavailable.')
   }
 
   public async tryJoinRooms(roomId: string, retry: number = 1): Promise<void> {
