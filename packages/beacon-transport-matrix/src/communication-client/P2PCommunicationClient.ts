@@ -330,7 +330,7 @@ export class P2PCommunicationClient extends CommunicationClient {
     }
 
     // if all requests fail throw an Error
-    throw new Error('Network error: all servers are unavailable.')
+    throw new Error(`Network error: cannot connect to ${server}.`)
   }
 
   public async tryJoinRooms(roomId: string, retry: number = 1): Promise<void> {
