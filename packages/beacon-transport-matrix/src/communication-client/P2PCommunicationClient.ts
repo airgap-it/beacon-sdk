@@ -61,6 +61,17 @@ const REGIONS_AND_SERVERS: NodeDistributions = {
   [Regions.AUSTRALIA]: ['beacon-node-1.beacon-server-4.papers.tech']
 }
 
+const DNS: Map<string, string[]> = new Map([
+  ['beacon-node-1.diamond.papers.tech', ['beacon-node-1.diamond.walletbeacon.io']],
+  ['beacon-node-1.sky.papers.tech', ['beacon-node-1.sky.walletbeacon.io']],
+  ['beacon-node-2.sky.papers.tech', ['beacon-node-2.sky.walletbeacon.io']],
+  ['beacon-node-1.hope.papers.tech', ['beacon-node-1.hope.walletbeacon.io']],
+  ['beacon-node-1.hope-2.papers.tech', ['beacon-node-1.hope-2.walletbeacon.io']],
+  ['beacon-node-1.hope-3.papers.tech', ['beacon-node-1.hope-3.walletbeacon.io']],
+  ['beacon-node-1.hope-4.papers.tech', ['beacon-node-1.hope-4.walletbeacon.io']],
+  ['beacon-node-1.hope-5.papers.tech', ['beacon-node-1.hope-5.walletbeacon.io']]
+])
+
 interface BeaconInfoResponse {
   region: string
   known_servers: string[]
@@ -297,13 +308,38 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async getBeaconInfo(server: string): Promise<BeaconInfoResponse> {
-    return axios
-      .get<BeaconInfoResponse>(`https://${server}/_synapse/client/beacon/info`)
-      .then((res) => ({
-        region: res.data.region,
-        known_servers: res.data.known_servers,
-        timestamp: Math.floor(res.data.timestamp)
-      }))
+    const send = (server: string) =>
+      axios.get<BeaconInfoResponse>(`https://${server}/_synapse/client/beacon/info`)
+    const addresses = [server, ...(DNS.get(server) ?? [])]
+
+    for (const address of addresses) {
+      try {
+        const res = (await send(address)).data
+        return {
+          region: res.region,
+          known_servers: res.known_servers,
+          timestamp: Math.floor(res.timestamp)
+        }
+      } catch (err: any) {
+        logger.error('getBeaconInfo', err.toJSON())
+      }
+
+      // if all requests fail throw an Error
+      throw new Error('Network error: all servers are unavailable.')
+    }
+
+    return {} as BeaconInfoResponse
+    // return axios
+    //   .get<BeaconInfoResponse>(`https://oweiahjfiopaseuhpcioshauiopcvashuicfhasepifawehniopfwehf9phq1239084u`)
+    //   .then((res) => ({
+    //     region: res.region,
+    //     known_servers: res.known_servers,
+    //     timestamp: Math.floor(res.timestamp)
+    //   }))
+    //   .catch((err) => {
+    //     console.warn('Axios error: ', err.toJSON())
+    //     throw new Error('test')
+    //   })
   }
 
   public async tryJoinRooms(roomId: string, retry: number = 1): Promise<void> {
