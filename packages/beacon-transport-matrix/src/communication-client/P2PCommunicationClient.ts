@@ -61,7 +61,7 @@ const REGIONS_AND_SERVERS: NodeDistributions = {
   [Regions.AUSTRALIA]: ['beacon-node-1.beacon-server-4.papers.tech']
 }
 
-const DNS: Map<string, string[]> = new Map([
+const DNS_ALIASES: Map<string, string[]> = new Map([
   ['beacon-node-1.diamond.papers.tech', ['beacon-node-1.diamond.walletbeacon.io']],
   ['beacon-node-1.sky.papers.tech', ['beacon-node-1.sky.walletbeacon.io']],
   ['beacon-node-2.sky.papers.tech', ['beacon-node-2.sky.walletbeacon.io']],
@@ -310,7 +310,7 @@ export class P2PCommunicationClient extends CommunicationClient {
   public async getBeaconInfo(server: string): Promise<BeaconInfoResponse> {
     const send = (server: string) =>
       axios.get<BeaconInfoResponse>(`https://${server}/_synapse/client/beacon/info`)
-    const addresses = [server, ...(DNS.get(server) ?? [])]
+    const addresses = [server, ...(DNS_ALIASES.get(server) ?? [])]
 
     for (const address of addresses) {
       try {
