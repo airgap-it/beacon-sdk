@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
-import { arrangeTopWallets, mergeWallets, parseWallets } from 'src/utils/wallets'
+import { arrangeTopWallets, mergeWallets, parseWallets } from '../../../utils/wallets'
 import { Extension, NetworkType } from '@airgap/beacon-types'
 import { desktopList, extensionList, iOSList, webList } from '../wallet-lists'
 import { windowRef } from '@airgap/beacon-core'
