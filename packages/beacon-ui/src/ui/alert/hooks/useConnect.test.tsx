@@ -14,6 +14,7 @@ jest.mock('@walletconnect/utils', () => ({
   parseUri: jest.fn()
 }))
 
+// Force the platform helpers to return desktop defaults.
 jest.mock('../../../utils/platform', () => ({
   isTwBrowser: jest.fn(() => false),
   isAndroid: jest.fn(() => false),
@@ -21,6 +22,7 @@ jest.mock('../../../utils/platform', () => ({
   isIOS: jest.fn(() => false)
 }))
 
+// --- Test Suite --- //
 describe('useConnect hook', () => {
   let wallets: Map<string, any>
   let onCloseHandler: jest.Mock
@@ -82,6 +84,7 @@ describe('useConnect hook', () => {
       types: ['web'],
       supportedInteractionStandards: [],
       links: {
+        // Using the expected keys (for example, OSLink.WEB is 0)
         [OSLink.WEB]: 'https://example.com',
         [OSLink.IOS]: 'https://example-ios.com',
         [OSLink.EXTENSION]: 'https://extension.com',
@@ -234,13 +237,109 @@ describe('useConnect hook', () => {
       result.current[12]()
     })
 
+    expect(windowOpenSpy).toHaveBeenCalledWith('https://extension.com', '_blank', 'noopener')
+  })
+
+  // --- Additional tests for Desktop App interactions --- //
+
+  it('should handle clickOpenDesktopApp by opening the deep link with p2p payload and updating localStorage', () => {
+    const desktopWallet = {
+      key: 'wallet-desktop',
+      name: 'Desktop Wallet',
+      id: 'wallet-desktop-id',
+      types: ['desktop'],
+      deepLink: 'https://desktopapp.com/deeplink',
+      links: {
+        [OSLink.DESKTOP]: 'https://desktopapp.com/download'
+      },
+      image: 'https://desktopapp.com/icon.png'
+    }
+    wallets.set('wallet-desktop', desktopWallet)
+
+    const p2pPayload = 'p2p-payload'
+    const { result } = renderHook(() =>
+      useConnect(false, 'wc-payload', p2pPayload, 'post-payload', wallets, onCloseHandler)
+    )
+
+    // Set the wallet state via handleClickWallet.
+    act(() => {
+      result.current[7]('wallet-desktop', {
+        title: 'test',
+        pairingPayload: {
+          networkType: NetworkType.GHOSTNET,
+          p2pSyncCode: 'test',
+          postmessageSyncCode: 'test',
+          walletConnectSyncCode: 'test'
+        }
+      })
+    })
+
+    const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null)
+
+    // Call handleClickOpenDesktopApp (returned at index 13).
+    act(() => {
+      result.current[13]()
+    })
+
+    // Expect that the link opened is the one returned by getTzip10Link.
     expect(windowOpenSpy).toHaveBeenCalledWith(
-      extensionWallet.links[OSLink.EXTENSION],
+      'https://example.com/tzip10', // getTzip10Link is mocked to return this value.
+      '_blank',
+      'noopener'
+    )
+
+    // Verify that localStorage was updated with type "desktop".
+    const storedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)!)
+    expect(storedWallet).toEqual({
+      key: desktopWallet.key,
+      name: desktopWallet.name,
+      type: 'desktop',
+      icon: desktopWallet.image
+    })
+  })
+
+  it('should handle clickDownloadDesktopApp by opening the download link', () => {
+    const desktopWallet = {
+      key: 'wallet-desktop',
+      name: 'Desktop Wallet',
+      id: 'wallet-desktop-id',
+      types: ['desktop'],
+      links: {
+        [OSLink.DESKTOP]: 'https://desktopapp.com/download'
+      },
+      image: 'https://desktopapp.com/icon.png'
+    }
+    wallets.set('wallet-desktop', desktopWallet)
+
+    const { result } = renderHook(() =>
+      useConnect(false, 'wc-payload', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+    )
+
+    // Set the wallet state via handleClickWallet.
+    act(() => {
+      result.current[7]('wallet-desktop', {
+        title: 'test',
+        pairingPayload: {
+          networkType: NetworkType.GHOSTNET,
+          p2pSyncCode: 'test',
+          postmessageSyncCode: 'test',
+          walletConnectSyncCode: 'test'
+        }
+      })
+    })
+
+    const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null)
+
+    // Call handleClickDownloadDesktopApp (returned at index 14).
+    act(() => {
+      result.current[14]()
+    })
+
+    // Verify that window.open was called with the download URL.
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'https://desktopapp.com/download',
       '_blank',
       'noopener'
     )
   })
-
-  // Additional tests for handleClickOpenDesktopApp and handleClickDownloadDesktopApp
-  // can be written in a similar fashion.
 })
