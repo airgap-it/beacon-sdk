@@ -22,7 +22,7 @@ jest.mock('../../../utils/wallets', () => ({
     }))
   ),
   mergeWallets: jest.fn((wallets: any) => wallets),
-  arrangeTopWallets: jest.fn((wallets: any, featuredWallets: any) => wallets)
+  arrangeTopWallets: jest.fn((wallets: any, _featuredWallets: any) => wallets)
 }))
 
 // =====================================================================
