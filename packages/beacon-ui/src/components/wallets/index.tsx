@@ -1,18 +1,9 @@
-import React from "react";
-import { MergedWallet } from "../../utils/wallets";
-import Wallet from "../wallet";
-import "./styles.css";
+import React from 'react'
+import Wallet from '../wallet'
+import './styles.css'
+import { WalletsProps } from 'src/ui/common'
 
-interface WalletProps {
-  wallets: MergedWallet[];
-  onClickWallet: (id: string) => void;
-  onClickOther: () => void;
-  isMobile: boolean;
-  small?: boolean;
-  disabled?: boolean;
-}
-
-const Wallets: React.FC<WalletProps> = (props: WalletProps) => {
+const Wallets: React.FC<WalletsProps> = (props: WalletsProps) => {
   return (
     <div className="wallets-list-main-wrapper">
       <div className="wallets-list-wrapper">
@@ -21,7 +12,7 @@ const Wallets: React.FC<WalletProps> = (props: WalletProps) => {
             key={wallet.id}
             disabled={props.disabled}
             name={wallet.name}
-            description={wallet.descriptions.join(" & ")}
+            description={wallet.descriptions.join(' & ')}
             image={wallet.image}
             small={props.small}
             onClick={() => props.onClickWallet(wallet.id)}
@@ -29,11 +20,10 @@ const Wallets: React.FC<WalletProps> = (props: WalletProps) => {
         ))}
       </div>
       <button className="wallets-button" onClick={props.onClickOther}>
-        {props.isMobile ? "Pair wallet on another device" : "Show QR code"}
+        {props.isMobile ? 'Pair wallet on another device' : 'Show QR code'}
       </button>
     </div>
-  );
-};
+  )
+}
 
-
-export default Wallets;
+export default Wallets

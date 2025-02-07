@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { isMobileOS } from 'src/utils/platform'
+import { isMobileOS } from '../../../utils/platform'
 
 const useIsMobile = (breakpoint = 768) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= breakpoint)

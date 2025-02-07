@@ -51,6 +51,15 @@ export interface PairOtherProps {
   onClickLearnMore: () => void
 }
 
+export interface QRProps {
+  isWalletConnect: boolean
+  isMobile: boolean
+  walletName: string
+  code: string
+  onClickLearnMore?: () => void
+  onClickQrCode?: () => void
+}
+
 export interface InfoProps {
   title: string
   description?: string
@@ -66,6 +75,37 @@ export interface InfoProps {
   }[]
   downloadLink?: { url: string; label: string }
   onShowQRCodeClick?: (() => void) | (() => Promise<void>)
+}
+
+// WALLETS
+
+export interface TopWalletsProps {
+  wallets: MergedWallet[];
+  onClickWallet: (id: string) => void;
+  onClickLearnMore: () => void;
+  otherWallets?: { images: string[]; onClick: () => void };
+  disabled?: boolean;
+  isMobile: boolean;
+}
+
+export interface WalletProps {
+  name: string;
+  image: string;
+  description?: string;
+  small?: boolean;
+  mobile?: boolean;
+  onClick: () => void;
+  tags?: string[];
+  disabled?: boolean;
+}
+
+export interface WalletsProps {
+  wallets: MergedWallet[];
+  onClickWallet: (id: string) => void;
+  onClickOther: () => void;
+  isMobile: boolean;
+  small?: boolean;
+  disabled?: boolean;
 }
 
 // TOAST

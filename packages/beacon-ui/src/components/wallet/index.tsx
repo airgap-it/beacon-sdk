@@ -1,30 +1,16 @@
-import React from "react";
-import "./styles.css";
-
-interface WalletProps {
-  name: string;
-  image: string;
-  description?: string;
-  small?: boolean;
-  mobile?: boolean;
-  onClick: () => void;
-  tags?: string[];
-  disabled?: boolean;
-}
+import React from 'react'
+import './styles.css'
+import { WalletProps } from 'src/ui/common'
 
 const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
   return (
-    <div className={props.disabled ? "wallet-disabled" : ""}>
+    <div className={props.disabled ? 'wallet-disabled' : ''}>
       {!props.small && (
         <div
-          className={`wallet-main ${props.mobile ? "wallet-main-mobile" : ""}`}
+          className={`wallet-main ${props.mobile ? 'wallet-main-mobile' : ''}`}
           onClick={props.onClick}
         >
-          <div
-            className={`wallet-main-left ${
-              props.mobile ? "wallet-main-left-mobile" : ""
-            }`}
-          >
+          <div className={`wallet-main-left ${props.mobile ? 'wallet-main-left-mobile' : ''}`}>
             <h3>{props.name}</h3>
             {props.description && <p>{props.description}</p>}
             {props.tags && props.tags.length > 0 && (
@@ -49,8 +35,7 @@ const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-
-export default Wallet;
+export default Wallet
