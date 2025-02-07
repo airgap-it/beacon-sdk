@@ -32,8 +32,8 @@ export default [
         babelHelpers: 'bundled',
         include: ['src/**/*'],
         presets: [['@babel/preset-react', { runtime: 'automatic' }]]
-      })
-      // terser()
+      }),
+      terser()
     ]
   },
   {
@@ -66,8 +66,8 @@ export default [
         babelHelpers: 'bundled',
         include: ['src/**/*'],
         presets: [['@babel/preset-react', { runtime: 'automatic' }]]
-      })
-      // terser()
+      }),
+      terser()
     ]
   }
 ]
