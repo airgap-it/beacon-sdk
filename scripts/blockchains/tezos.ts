@@ -206,15 +206,6 @@ export const tezosIosList: App[] = [
     universalLink: 'https://app.altme.io/app/download'
   },
   {
-    key: 'feralfile_app',
-    name: 'Feral File - The place to experience digital art today',
-    shortName: 'Feral File',
-    color: 'rgb(236, 255, 12)',
-    logo: 'ios-feralfile.png',
-    universalLink: 'https://app.feralfile.com/apps/tezos',
-    deepLink: 'autonomy-tezos://'
-  },
-  {
     key: 'temple_ios',
     name: 'Temple Wallet',
     shortName: 'Temple',
