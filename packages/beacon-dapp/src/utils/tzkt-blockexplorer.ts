@@ -20,7 +20,9 @@ export class TzktBlockExplorer extends BlockExplorer {
       [NetworkType.MUMBAINET]: 'https://mumbainet.tzkt.io',
       [NetworkType.NAIROBINET]: 'https://nairobinet.tzkt.io',
       [NetworkType.OXFORDNET]: 'https://oxfordnet.tzkt.io',
-      [NetworkType.CUSTOM]: 'https://oxfordnet.tzkt.io'
+      [NetworkType.PARISNET]: 'https://parisnet.tzkt.io',
+      [NetworkType.CUSTOM]: 'https://parisnet.tzkt.io',
+      [NetworkType.QUEBECNET]: 'https://quebecnet.tzkt.io'
     }
   ) {
     super(rpcUrls)

@@ -37,4 +37,14 @@ export interface ClientOptions {
    * Only provide the hostname, no https:// prefix. Eg. { [Regions.EU1]: ['matrix.example.com'] }
    */
   matrixNodes?: NodeDistributions
+
+  /**
+   * Automatically switch between apps on Mobile Devices (Enabled by Default)
+   */
+  enableAppSwitching?: boolean
+
+  /**
+   * Enable metrics tracking (Disabled by Default)
+   */
+  enableMetrics?: boolean
 }

@@ -12,7 +12,9 @@ export {
   recipientString,
   signMessage,
   isValidAddress,
-  prefixPublicKey
+  prefixPublicKey,
+  encodePoeChallengePayload,
+  isPublicKeySC
 } from './utils/crypto'
 export { generateGUID } from './utils/generate-uuid'
 

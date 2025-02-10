@@ -25,7 +25,7 @@
   },
   "engines": {
     "npm": ">=7.0.0",
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
@@ -72,9 +72,9 @@
     "@airgap/beacon-ui": "file:packages/beacon-ui",
     "@airgap/beacon-utils": "file:packages/beacon-utils",
     "@airgap/beacon-wallet": "file:packages/beacon-wallet",
-    "@walletconnect/sign-client": "^2.10.6",
-    "@walletconnect/types": "^2.10.6",
-    "@walletconnect/utils": "^2.10.6",
+    "@walletconnect/sign-client": "2.14.0",
+    "@walletconnect/types": "2.14.0",
+    "@walletconnect/utils": "2.14.0",
     "@web3modal/standalone": "2.0.0",
     "stream-browserify": "^3.0.0"
   },

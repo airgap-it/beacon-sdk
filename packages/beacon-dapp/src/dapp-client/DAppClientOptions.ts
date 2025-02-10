@@ -132,4 +132,14 @@ export interface DAppClientOptions {
    * The wallets that will be featured in the UI.
    */
   featuredWallets?: string[]
+
+  /**
+   * Automatically switch between apps on Mobile Devices (Enabled by Default)
+   */
+  enableAppSwitching?: boolean
+
+  /**
+   * Enable metrics tracking (Disabled by Default)
+   */
+  enableMetrics?: boolean
 }

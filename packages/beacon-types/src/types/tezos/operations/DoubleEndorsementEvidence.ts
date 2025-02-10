@@ -6,9 +6,12 @@ export interface InlinedEndorsement {
   signature?: string
 }
 
-export interface InlinedEndorsementContents {
+export interface InlinedEndorsementContents extends TezosBaseOperation {
   kind: TezosOperationType.ENDORSEMENT
   level: string
+  slot?: number
+  round?: number
+  block_payload_hash?: string
 }
 
 /**
@@ -19,4 +22,5 @@ export interface TezosDoubleEndorsementEvidenceOperation extends TezosBaseOperat
   kind: TezosOperationType.DOUBLE_ENDORSEMENT_EVIDENCE
   op1: InlinedEndorsement
   op2: InlinedEndorsement
+  slot?: number
 }

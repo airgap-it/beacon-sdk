@@ -18,6 +18,8 @@ export enum NetworkType {
   MUMBAINET = 'mumbainet',
   NAIROBINET = 'nairobinet',
   OXFORDNET = 'oxfordnet',
+  PARISNET = 'parisnet',
+  QUEBECNET = 'quebecnet',
   CUSTOM = 'custom'
 }
 
@@ -74,7 +76,9 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.LIMANET]: 'https://metamask.tezos.com/',
       [NetworkType.MUMBAINET]: 'https://metamask.tezos.com/',
       [NetworkType.NAIROBINET]: 'https://metamask.tezos.com/',
-      [NetworkType.OXFORDNET]: 'https://metamask.tezos.com/'
+      [NetworkType.OXFORDNET]: 'https://metamask.tezos.com/',
+      [NetworkType.PARISNET]: 'https://metamask.tezos.com/',
+      [NetworkType.QUEBECNET]: 'https://metamask.tezos.com/'
     }
   },
   {
@@ -83,6 +87,7 @@ export const tezosWebList: WebApp[] = [
     shortName: 'Kukai',
     color: '',
     logo: 'web-kukai.png',
+    supportedInteractionStandards: ['wallet_connect'],
     links: {
       [NetworkType.MAINNET]: 'https://wallet.kukai.app',
       [NetworkType.GHOSTNET]: 'https://ghostnet.kukai.app',
@@ -99,7 +104,9 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.LIMANET]: 'https://limanet.kukai.app',
       [NetworkType.MUMBAINET]: 'https://mumbainet.kukai.app',
       [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app',
-      [NetworkType.OXFORDNET]: 'https://oxfordnet.kukai.app'
+      [NetworkType.OXFORDNET]: 'https://oxfordnet.kukai.app',
+      [NetworkType.PARISNET]: 'https://parisnet.kukai.app',
+      [NetworkType.QUEBECNET]: 'https://quebecnet.kukai.app'
     }
   },
 
@@ -125,7 +132,9 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.LIMANET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.MUMBAINET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.NAIROBINET]: 'https://ghostnet.tzsafe.marigold.dev',
-      [NetworkType.OXFORDNET]: 'https://ghostnet.tzsafe.marigold.dev'
+      [NetworkType.OXFORDNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.PARISNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.QUEBECNET]: 'https://ghostnet.tzsafe.marigold.dev'
     }
   }
 ]
@@ -242,6 +251,26 @@ export const tezosIosList: App[] = [
     supportedInteractionStandards: ['beacon'],
     deepLink: 'exodus://wc',
     universalLink: 'https://www.exodus.com/'
+  },
+  {
+    key: 'kukai_ios',
+    name: 'Kukai Wallet',
+    shortName: 'Kukai',
+    color: '',
+    logo: 'web-kukai.png',
+    supportedInteractionStandards: ['wallet_connect'],
+    universalLink: 'https://wallet.kukai.app',
+    deepLink: 'kukai://'
+  },
+  {
+    key: 'fireblocks_ios',
+    name: 'Fireblocks Wallet',
+    shortName: 'Fireblocks',
+    color: '',
+    logo: 'ios-fireblocks.svg',
+    supportedInteractionStandards: ['wallet_connect'],
+    universalLink: '',
+    deepLink: undefined
   }
   // {
   //   name: 'Galleon',

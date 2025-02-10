@@ -1,4 +1,28 @@
-import { Optional } from '@airgap/beacon-types'
+import {
+  Optional,
+  TezosAttestationOperation,
+  TezosAttestationWithDalOperation,
+  TezosDoubleAttestationEvidenceOperation,
+  TezosDoublePreAttestationEvidenceOperation,
+  TezosDoublePreEndorsementEvidenceOperation,
+  TezosDrainDelegateOperation,
+  TezosEndorsementWithDalOperation,
+  TezosFailingNoopOperation,
+  TezosIncreasePaidStorageOperation,
+  TezosPreAttestationOperation,
+  TezosRegisterGlobalConstantOperation,
+  TezosSetDepositsLimitOperation,
+  TezosSmartRollupAddMessagesOperation,
+  TezosSmartRollupCementOperation,
+  TezosSmartRollupExecuteOutboxMessageOperation,
+  TezosSmartRollupOriginateOperation,
+  TezosSmartRollupPublishOperation,
+  TezosSmartRollupRecoverBondOperation,
+  TezosSmartRollupRefuteOperation,
+  TezosTransferTicketOperation,
+  TezosUpdateConsensusKeyOperation,
+  TezosVdfRevelationOperation
+} from '@airgap/beacon-types'
 import { TezosActivateAccountOperation } from './operations/ActivateAccount'
 import { TezosBallotOperation } from './operations/Ballot'
 import { TezosDelegationOperation } from './operations/Delegation'
@@ -9,6 +33,8 @@ import { TezosProposalOperation } from './operations/Proposal'
 import { TezosRevealOperation } from './operations/Reveal'
 import { TezosSeedNonceRevelationOperation } from './operations/SeedNonceRevelation'
 import { TezosTransactionOperation } from './operations/Transaction'
+import { TezosPreEndorsementOperation } from './operations/PreEndorsement'
+import { TezosDalPublishCommitmentOperation } from './operations/DalPublishCommitment'
 
 /**
  * @publicapi
@@ -42,6 +68,115 @@ export type PartialTezosTransactionOperation = Optional<
   TezosTransactionOperation,
   omittedProperties
 >
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosSetDepositsLimitOperation = Optional<
+  TezosSetDepositsLimitOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosRegisterGlobalConstantOperation = Optional<
+  TezosRegisterGlobalConstantOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosTransferTicketOperation = Optional<
+  TezosTransferTicketOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosIncreasePaidStorageOperation = Optional<
+  TezosIncreasePaidStorageOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosUpdateConsensusKeyOperation = Optional<
+  TezosUpdateConsensusKeyOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosSmartRollupOriginateOperation = Optional<
+  TezosSmartRollupOriginateOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosSmartRollupAddMessagesOperation = Optional<
+  TezosSmartRollupAddMessagesOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosSmartRollupExecuteOutboxMessageOperation = Optional<
+  TezosSmartRollupExecuteOutboxMessageOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosSmartRollupPublishOperation = Optional<
+  TezosSmartRollupPublishOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosSmartRollupCementOperation = Optional<
+  TezosSmartRollupCementOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosSmartRollupRecoverBondOperation = Optional<
+  TezosSmartRollupRecoverBondOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosSmartRollupRefuteOperation = Optional<
+  TezosSmartRollupRefuteOperation,
+  omittedProperties
+>
+/**
+ * @internalapi
+ * @category Tezos
+ */
+export type PartialTezosSmartRollupTimeoutOperation = Optional<
+  TezosSmartRollupRefuteOperation,
+  omittedProperties
+>
+
+export type PartialTezosDalPublishCommitmentOperation = Optional<
+  TezosDalPublishCommitmentOperation,
+  omittedProperties
+>
 
 /**
  * @publicapi
@@ -58,3 +193,28 @@ export type PartialTezosOperation =
   | PartialTezosRevealOperation
   | TezosSeedNonceRevelationOperation
   | PartialTezosTransactionOperation
+  | TezosAttestationOperation
+  | TezosPreAttestationOperation
+  | TezosPreEndorsementOperation
+  | PartialTezosSetDepositsLimitOperation
+  | TezosDoublePreAttestationEvidenceOperation
+  | TezosDoublePreEndorsementEvidenceOperation
+  | TezosAttestationWithDalOperation
+  | TezosEndorsementWithDalOperation
+  | TezosDoubleAttestationEvidenceOperation
+  | TezosFailingNoopOperation
+  | PartialTezosRegisterGlobalConstantOperation
+  | PartialTezosTransferTicketOperation
+  | PartialTezosIncreasePaidStorageOperation
+  | PartialTezosUpdateConsensusKeyOperation
+  | TezosDrainDelegateOperation
+  | TezosVdfRevelationOperation
+  | PartialTezosSmartRollupOriginateOperation
+  | PartialTezosSmartRollupAddMessagesOperation
+  | PartialTezosSmartRollupExecuteOutboxMessageOperation
+  | PartialTezosSmartRollupPublishOperation
+  | PartialTezosSmartRollupCementOperation
+  | PartialTezosSmartRollupRecoverBondOperation
+  | PartialTezosSmartRollupRefuteOperation
+  | PartialTezosSmartRollupTimeoutOperation
+  | PartialTezosDalPublishCommitmentOperation

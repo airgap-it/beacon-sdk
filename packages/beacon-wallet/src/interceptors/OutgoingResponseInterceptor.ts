@@ -22,7 +22,8 @@ import {
   BlockchainResponseV3,
   PermissionResponseV3,
   BeaconBaseMessage,
-  ProofOfEventChallengeResponse
+  ProofOfEventChallengeResponse,
+  SimulatedProofOfEventChallengeResponse
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
 import { getAddressFromPublicKey, CONTRACT_PREFIX, isValidAddress } from '@airgap/beacon-utils'
@@ -272,6 +273,16 @@ export class OutgoingResponseInterceptor {
       case BeaconMessageType.ProofOfEventChallengeResponse:
         {
           const response: ProofOfEventChallengeResponse = {
+            senderId,
+            version: '2',
+            ...message
+          }
+          interceptorCallback(response)
+        }
+        break
+      case BeaconMessageType.SimulatedProofOfEventChallengeResponse:
+        {
+          const response: SimulatedProofOfEventChallengeResponse = {
             senderId,
             version: '2',
             ...message

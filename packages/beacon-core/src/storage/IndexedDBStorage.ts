@@ -4,160 +4,170 @@ import { Logger } from '@airgap/beacon-core'
 const logger = new Logger('IndexedDBStorage')
 
 export class IndexedDBStorage extends Storage {
-  private readonly dbName: string = 'WALLET_CONNECT_V2_INDEXED_DB'
-  private readonly storeName: string = 'keyvaluestorage'
   private db: IDBDatabase | null = null
+  private isSupported: boolean = true
 
-  static async doesDatabaseAndTableExist(): Promise<boolean> {
-    const targetDatabaseName = 'WALLET_CONNECT_V2_INDEXED_DB'
-    const targetTableName = 'keyvaluestorage'
+  constructor(
+    private readonly dbName: string = 'WALLET_CONNECT_V2_INDEXED_DB',
+    private readonly storeName: string = 'keyvaluestorage'
+  ) {
+    super()
+    this.initDB()
+      .then((db) => (this.db = db))
+      .catch((err) => logger.error(err.message))
+  }
 
-    const databases = await indexedDB.databases()
-
-    if (!databases.some((database) => database.name === targetDatabaseName)) {
-      return false // The specified database doesn't exist
+  private isIndexedDBSupported() {
+    if (typeof window !== 'undefined' && 'indexedDB' in window) {
+      logger.log('isIndexedDBSupported', 'IndexedDB is supported in this browser.')
+      return true
+    } else {
+      logger.error('isIndexedDBSupported', 'IndexedDB is not supported in this browser.')
+      return false
     }
+  }
 
-    // Open the database to check if the table exists
-    return new Promise<boolean>((resolve, reject) => {
-      const request = indexedDB.open(targetDatabaseName)
+  private async initDB(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+      this.isSupported = this.isIndexedDBSupported()
+      if (!this.isSupported) {
+        reject('IndexedDB is not supported.')
+        return
+      }
 
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result
+      const openRequest = indexedDB.open(this.dbName)
 
-        if (db.objectStoreNames.contains(targetTableName)) {
-          // The table exists in the database
-          resolve(true)
+      openRequest.onupgradeneeded = () => {
+        const db = openRequest.result
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          db.createObjectStore(this.storeName)
+        }
+      }
+
+      openRequest.onsuccess = (event: any) => {
+        const db = event.target.result as IDBDatabase
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          // Close the current connection
+          db.close()
+          // Re-open the database with an incremented version number
+          const newVersion = db.version + 1
+          const upgradeRequest = indexedDB.open(this.dbName, newVersion)
+
+          upgradeRequest.onupgradeneeded = () => {
+            const upgradedDB = upgradeRequest.result
+            upgradedDB.createObjectStore(this.storeName)
+          }
+
+          upgradeRequest.onsuccess = (event: any) => {
+            this.db = event.target.result as IDBDatabase
+            resolve(this.db)
+          }
+
+          upgradeRequest.onerror = (event: any) => reject(event.target.error)
         } else {
-          // The table doesn't exist in the database
-          resolve(false)
+          this.db = db
+          resolve(db)
         }
-
-        db.close()
       }
 
-      request.onerror = (event) => {
-        console.error('Error opening database:', (event.target as IDBRequest).error)
-        reject(false) // Assume the table doesn't exist if there's an error opening the database
-      }
+      openRequest.onerror = (event: any) => reject(event.target.error)
     })
   }
 
-  openDatabase(): Promise<string> {
+  private async transaction<T>(
+    mode: IDBTransactionMode,
+    operation: (store: IDBObjectStore) => Promise<T>
+  ): Promise<T> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 1)
-
-      request.onupgradeneeded = (event) => {
-        this.db = (event.target as IDBOpenDBRequest).result
-
-        // Create object store if it doesn't exist
-        if (this.db && !this.db.objectStoreNames.contains(this.storeName)) {
-          this.db.createObjectStore(this.storeName, { keyPath: 'id', autoIncrement: true })
-        }
+      if (!this.isSupported) {
+        reject('IndexedDB is not supported.')
       }
 
-      request.onsuccess = (event) => {
-        this.db = (event.target as IDBOpenDBRequest).result
-        resolve('Database opened successfully')
+      if (!this.db?.objectStoreNames.contains(this.storeName)) {
+        reject(`${this.storeName} not found. error: ${new Error().stack}`)
       }
 
-      request.onerror = (event) => {
-        reject(`Error opening database: ${(event.target as IDBOpenDBRequest).error}`)
-      }
+      const transaction = this.db?.transaction(this.storeName, mode)
+      const objectStore = transaction?.objectStore(this.storeName)
+      objectStore && operation(objectStore).then(resolve).catch(reject)
     })
   }
 
-  get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName)
-
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result
-
-        const transaction = db.transaction(this.storeName, 'readonly')
-        const objectStore = transaction.objectStore(this.storeName)
-
-        const getRequest = objectStore.get(key)
-
-        getRequest.onsuccess = () => {
-          const result = getRequest.result
-          resolve(result)
-        }
-
-        getRequest.onerror = (getEvent) => {
-          logger.error(`Error getting record with key ${key}:`, getEvent.target)
-          reject(getEvent.target)
-        }
-      }
-
-      request.onerror = (event) => {
-        logger.error('Error opening database:', event.target)
-        reject(event.target)
-      }
-    })
+  public get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {
+    return this.transaction(
+      'readonly',
+      (store) =>
+        new Promise((resolve, reject) => {
+          const getRequest = store.get(key)
+          getRequest.onsuccess = () => resolve(getRequest.result)
+          getRequest.onerror = () => reject(getRequest.error)
+        })
+    )
   }
 
-  set<K extends StorageKey>(key: K, value: StorageKeyReturnType[K]): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName)
-
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result
-
-        const transaction = db.transaction(this.storeName, 'readwrite')
-        const objectStore = transaction.objectStore(this.storeName)
-
-        const putRequest = objectStore.put(value, key)
-
-        putRequest.onsuccess = () => {
-          logger.log(`Record with key ${key} updated/inserted successfully`)
-          resolve()
-        }
-
-        putRequest.onerror = (putEvent) => {
-          logger.error(`Error updating/inserting record with key ${key}:`, putEvent.target)
-          reject(putEvent.target)
-        }
-      }
-
-      request.onerror = (event) => {
-        logger.error('Error opening database:', event.target)
-        reject(event.target)
-      }
-    })
+  public set<K extends StorageKey>(key: K, value: StorageKeyReturnType[K]): Promise<void> {
+    return this.transaction(
+      'readwrite',
+      (store) =>
+        new Promise((resolve, reject) => {
+          const putRequest = store.put(value, key)
+          putRequest.onsuccess = () => resolve()
+          putRequest.onerror = () => reject(putRequest.error)
+        })
+    )
   }
 
-  delete<K extends StorageKey>(key: K): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName)
+  public delete<K extends StorageKey>(key: K): Promise<void> {
+    return this.transaction(
+      'readwrite',
+      (store) =>
+        new Promise((resolve, reject) => {
+          const deleteRequest = store.delete(key)
+          deleteRequest.onsuccess = () => resolve()
+          deleteRequest.onerror = () => reject(deleteRequest.error)
+        })
+    )
+  }
 
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result
+  public getAll(): Promise<string[]> {
+    return this.transaction(
+      'readonly',
+      (store) =>
+        new Promise((resolve, reject) => {
+          const getAllRequest = store.getAll()
+          getAllRequest.onsuccess = () => resolve(getAllRequest.result)
+          getAllRequest.onerror = () => reject(getAllRequest.error)
+        })
+    )
+  }
 
-        const transaction = db.transaction(this.storeName, 'readwrite')
-        const objectStore = transaction.objectStore(this.storeName)
+  public getAllKeys(): Promise<IDBValidKey[]> {
+    return this.transaction(
+      'readonly',
+      (store) =>
+        new Promise((resolve, reject) => {
+          const getAllKeysRequest = store.getAllKeys()
+          getAllKeysRequest.onsuccess = () => resolve(getAllKeysRequest.result)
+          getAllKeysRequest.onerror = () => reject(getAllKeysRequest.error)
+        })
+    )
+  }
 
-        const deleteRequest = objectStore.delete(key)
+  public clearStore(): Promise<void> {
+    return this.transaction(
+      'readwrite',
+      (store) =>
+        new Promise((resolve, reject) => {
+          const clearRequest = store.clear()
+          clearRequest.onsuccess = () => resolve()
+          clearRequest.onerror = () => reject(clearRequest.error)
+        })
+    )
+  }
 
-        deleteRequest.onsuccess = () => {
-          logger.log(`Record with key ${key} deleted successfully`)
-          resolve()
-        }
-
-        deleteRequest.onerror = (deleteEvent: Event) => {
-          logger.error(
-            `Error deleting record with key ${key}:`,
-            (deleteEvent.target as IDBRequest).error
-          )
-          reject((deleteEvent.target as IDBRequest).error)
-        }
-      }
-
-      request.onerror = (event: Event) => {
-        logger.error('Error opening database:', (event.target as IDBRequest).error)
-        reject((event.target as IDBRequest).error)
-      }
-    })
+  getPrefixedKey<K extends StorageKey>(key: K): string {
+    logger.debug('getPrefixedKey', key)
+    throw new Error('Method not implemented.')
   }
 
   subscribeToStorageChanged(
@@ -172,36 +182,67 @@ export class IndexedDBStorage extends Storage {
     throw new Error('Method not implemented.')
   }
 
-  getPrefixedKey<K extends StorageKey>(key: K): string {
-    logger.debug('getPrefixedKey', key)
-    throw new Error('Method not implemented.')
-  }
+  /**
+   * it copies over all key value pairs from a source store into a target one
+   * @param targetDBName the name of the target DB
+   * @param targetStoreName the name of the target store
+   * @param skipKeys all the keys to ignore
+   */
+  public async fillStore(
+    targetDBName: string,
+    targetStoreName: string,
+    skipKeys: string[] = []
+  ): Promise<void> {
+    if (!this.isSupported) {
+      logger.error('fillStore', 'IndexedDB not supported.')
+      return
+    }
 
-  clearTable(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName)
+    const targetDBRequest = indexedDB.open(targetDBName)
 
-      request.onsuccess = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result
-        const transaction = db.transaction(this.storeName, 'readwrite')
-        const objectStore = transaction.objectStore(this.storeName)
+    targetDBRequest.onerror = (event: any) => {
+      throw new Error(`Failed to open target database: ${event.target.error}`)
+    }
 
-        const clearRequest = objectStore.clear()
+    const targetDB = await new Promise<IDBDatabase>((resolve, reject) => {
+      targetDBRequest.onsuccess = (event) => resolve((event.target as IDBOpenDBRequest).result)
+      targetDBRequest.onerror = (event: any) => reject(event.target.error)
+    })
 
-        clearRequest.onsuccess = () => {
-          logger.log(`All entries in ${this.storeName} cleared successfully`)
-          resolve()
-        }
+    // Copy all items from the source store to the target store, skipping specified keys
+    await this.transaction('readonly', async (sourceStore) => {
+      const getAllRequest = sourceStore.getAll()
+      const getAllKeysRequest = sourceStore.getAllKeys()
 
-        clearRequest.onerror = (clearEvent) => {
-          logger.error(`Error clearing entries in ${this.storeName}:`, clearEvent.target)
-          reject(clearEvent.target)
+      getAllRequest.onsuccess = async () => {
+        getAllKeysRequest.onsuccess = async () => {
+          const items = getAllRequest.result
+          const keys = getAllKeysRequest.result
+
+          if (!targetDB.objectStoreNames.contains(targetStoreName)) {
+            logger.error(`${this.storeName} not found. ${new Error().stack}`)
+            return
+          }
+
+          const targetTransaction = targetDB.transaction(targetStoreName, 'readwrite')
+          const targetStore = targetTransaction.objectStore(targetStoreName)
+
+          keys
+            .filter((key) => !skipKeys.includes(key.toString()))
+            .forEach((key, index) => {
+              targetStore.put(items[index], key)
+            })
+
+          targetTransaction.onerror = (event: any) => {
+            logger.error('Transaction error: ', event.target.error)
+          }
         }
       }
-
-      request.onerror = (event) => {
-        logger.error('Error opening database:', event.target)
-        reject(event.target)
+      getAllKeysRequest.onerror = () => {
+        logger.error('Failed to getAllKeys from source:', getAllKeysRequest.error)
+      }
+      getAllRequest.onerror = () => {
+        logger.error('Failed to getAll from source:', getAllRequest.error)
       }
     })
   }

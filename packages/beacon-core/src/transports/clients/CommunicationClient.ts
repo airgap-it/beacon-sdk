@@ -9,9 +9,15 @@ import { ClientEvents } from './ClientEvents'
  *
  */
 export abstract class CommunicationClient {
-  constructor(protected readonly keyPair?: KeyPair) {}
+  constructor(protected keyPair?: KeyPair) {}
 
   public eventHandlers: Map<ClientEvents, Function> = new Map()
+
+  // todo move OS
+  protected isMobileOS = (): boolean =>
+    /(Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet|Windows Phone|SymbianOS|Kindle)/i.test(
+      navigator.userAgent
+    )
 
   /**
    * Get the public key

@@ -12,6 +12,9 @@ import { sign } from '@stablelib/ed25519'
 export const secretbox_NONCEBYTES = 24 // crypto_secretbox_NONCEBYTES
 export const secretbox_MACBYTES = 16 // crypto_secretbox_MACBYTES
 
+const POE_CHALLENGE_BYTES_LENGTH = 20
+const POE_CHALLENGE_PREFIX = 110
+
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 
 /**
@@ -166,6 +169,11 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
     p2pk: {
       length: 55,
       prefix: Buffer.from(new Uint8Array([6, 161, 164]))
+    },
+    // tz4...
+    BLpk: {
+      length: 55,
+      prefix: Buffer.from(new Uint8Array([6, 161, 166]))
     }
   }
 
@@ -201,7 +209,7 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
  *
  * @param publicKey
  */
-export async function prefixPublicKey(publicKey: string): Promise<string> {
+export function prefixPublicKey(publicKey: string): string {
   if (publicKey.length !== 64) {
     return publicKey
   }
@@ -276,6 +284,36 @@ export const isValidAddress = (address: string): boolean => {
   }
 
   return true
+}
+
+export function encodePoeChallengePayload(payload: string) {
+  const poeBlake2b = new BLAKE2b(POE_CHALLENGE_BYTES_LENGTH)
+
+  return bs58check.encode(
+    Buffer.concat([
+      new Uint8Array([POE_CHALLENGE_PREFIX]),
+      Buffer.from(poeBlake2b.update(Buffer.from(payload)).digest())
+    ])
+  )
+}
+
+/**
+ * Shallow Check (SC): Perform a superficial check to determine if the string contains a public key.
+ * Do not use this function to validate the key itself.
+ * @param publicKey the public key to analyze
+ * @returns true if it contains a known prefix, false otherwise
+ */
+export function isPublicKeySC(publicKey: string): boolean {
+  if (!publicKey) {
+    return false
+  }
+
+  return (
+    publicKey.startsWith('edpk') ||
+    publicKey.startsWith('sppk') ||
+    publicKey.startsWith('p2pk') ||
+    publicKey.startsWith('BLpk')
+  )
 }
 
 /* eslint-enable prefer-arrow/prefer-arrow-functions */

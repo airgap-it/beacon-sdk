@@ -9,10 +9,11 @@ import {
   StorageKey,
   WalletConnectPairingRequest,
   NetworkType,
-  AccountInfo
+  TransportType
 } from '@airgap/beacon-types'
 import { Transport, PeerManager } from '@airgap/beacon-core'
 import { SignClientTypes } from '@walletconnect/types'
+import { ExposedPromise } from '@airgap/beacon-utils'
 
 /**
  * @internalapi
@@ -24,18 +25,21 @@ export class WalletConnectTransport<
   T extends WalletConnectPairingRequest | ExtendedWalletConnectPairingResponse,
   K extends StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP
 > extends Transport<T, K, WalletConnectCommunicationClient> {
-  // public readonly type: TransportType = TransportType.WALLETCONNECT
+  public readonly type: TransportType = TransportType.WALLETCONNECT
+
+  protected isReady = new ExposedPromise<boolean>()
 
   constructor(
     name: string,
     _keyPair: KeyPair,
     storage: Storage,
     storageKey: K,
-    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options }
+    private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
+    private isLeader: Function
   ) {
     super(
       name,
-      WalletConnectCommunicationClient.getInstance(wcOptions),
+      WalletConnectCommunicationClient.getInstance(wcOptions, isLeader),
       new PeerManager<K>(storage, storageKey)
     )
   }
@@ -44,14 +48,25 @@ export class WalletConnectTransport<
     return Promise.resolve(true)
   }
 
+  /**
+   * Returns a promise that blocks the execution flow when awaited if the transport hasn't resolved yet; otherwise, it returns true.
+   */
+  waitForResolution(): Promise<boolean> {
+    return this.isReady.promise
+  }
+
   public async connect(): Promise<void> {
-    if (this._isConnected !== TransportStatus.NOT_CONNECTED) {
+    if ([TransportStatus.CONNECTED, TransportStatus.CONNECTING].includes(this._isConnected)) {
       return
     }
 
     this._isConnected = TransportStatus.CONNECTING
 
-    await this.client.init()
+    const isLeader = await this.isLeader()
+
+    if (isLeader) {
+      await this.client.init()
+    }
 
     const knownPeers = await this.getPeers()
 
@@ -60,8 +75,21 @@ export class WalletConnectTransport<
     }
 
     await this.startOpenChannelListener()
+    await super.connect()
 
-    return super.connect()
+    if (!isLeader) {
+      this._isConnected = TransportStatus.SECONDARY_TAB_CONNECTED
+    }
+
+    this.isReady.resolve(true)
+  }
+
+  wasDisconnectedByWallet() {
+    return !!this.client.disconnectionEvents.size
+  }
+
+  closeClient() {
+    this.client.closeSignClient()
   }
 
   public async hasPairings() {
@@ -76,16 +104,17 @@ export class WalletConnectTransport<
       : !!this.client.signClient?.session.getAll()?.length
   }
 
-  public async closeActiveSession(account: AccountInfo) {
-    if (!(await this.hasPairings()) || !(await this.hasPairings())) {
-      await this.disconnect()
-    } else {
-      await this.client.closeActiveSession(account.address)
-    }
+  /**
+   * Forcefully updates any DApps running on the same session
+   * Typical use case: localStorage changes to reflect to indexDB
+   * @param type the message type
+   */
+  public forceUpdate(type: string) {
+    this.client.storage.notify(type)
   }
 
   public async getPeers(): Promise<T[]> {
-    const client = WalletConnectCommunicationClient.getInstance(this.wcOptions)
+    const client = WalletConnectCommunicationClient.getInstance(this.wcOptions, this.isLeader)
     const session = client.currentSession()
     if (!session) {
       return []
@@ -96,7 +125,7 @@ export class WalletConnectTransport<
         extensionId: session.peer.metadata.name,
         id: session.peer.publicKey,
         type: 'walletconnect-pairing-response',
-        name: 'peer',
+        name: session.peer.metadata.name,
         publicKey: session.peer.publicKey,
         version: 'first'
       } as T
@@ -106,11 +135,17 @@ export class WalletConnectTransport<
   public async disconnect(): Promise<void> {
     await this.client.close()
 
-    return super.disconnect()
+    await super.disconnect()
+
+    this.isReady = new ExposedPromise()
   }
 
   public async startOpenChannelListener(): Promise<void> {
     //
+  }
+
+  async doClientCleanup() {
+    await this.client.unsubscribeFromEncryptedMessages()
   }
 
   public getPairingRequestInfo(): Promise<any> {
