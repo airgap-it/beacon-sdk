@@ -50,7 +50,8 @@ jest.mock('../../../../components/bug-report-form', () => (props: any) => (
 ))
 jest.mock('../../../../components/info', () => (props: any) => (
   <div data-testid="info">
-    {props.title}
+    <div>{props.title}</div>
+    <div>{props.description}</div>
     {props.buttons &&
       props.buttons.map((button: any, index: number) => (
         <button key={index} data-testid="info-button" onClick={button.onClick}>
@@ -108,6 +109,7 @@ const walletObj = {
   firefoxId: 'firefox1',
   supportedInteractionStandards: ['wallet_connect']
 }
+// Default wallets map (with one wallet) used in most tests.
 const walletsMap = new Map<string, typeof walletObj>([['wallet1', walletObj]])
 
 const defaultProps: ConfigurableAlertProps = {
@@ -195,6 +197,7 @@ describe('PairingAlert Component', () => {
 
     test('renders QR component with isMobile true when wallet.types length equals 1', () => {
       const iosWallet = { ...walletObj, types: ['ios'] }
+      // For non-mobile mode, we can supply a small map.
       const walletsMapSingle = new Map([['wallet1', iosWallet]])
       ;(useWallets as jest.Mock).mockReturnValue(walletsMapSingle)
       const connectReturn = [...defaultUseConnect]
@@ -292,7 +295,6 @@ describe('PairingAlert Component', () => {
       connectReturn[3] = 'wallets'
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       render(<PairingAlert {...defaultProps} />)
-      // In this branch, there will be a Wallets component rendered as a child.
       expect(screen.getAllByTestId('wallets').length).toBeGreaterThan(0)
     })
   })
@@ -314,9 +316,12 @@ describe('PairingAlert Component', () => {
       connectReturn[3] = 'help'
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       render(<PairingAlert {...defaultProps} />)
-      const infoTitles = screen.getAllByTestId('info').map((el) => el.textContent)
-      expect(infoTitles).toEqual(
-        expect.arrayContaining(['What is a wallet?', 'Not sure where to start?'])
+      const infoTexts = screen.getAllByTestId('info').map((el) => el.textContent)
+      expect(infoTexts).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('What is a wallet?'),
+          expect.stringContaining('Not sure where to start?')
+        ])
       )
     })
 
@@ -342,7 +347,6 @@ describe('PairingAlert Component', () => {
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       ;(useIsMobile as jest.Mock).mockReturnValue(false)
       render(<PairingAlert {...defaultProps} />)
-      // Instead of querying for "wallets" directly, we now query for the extra content wrapper.
       const extraContent = screen.getByTestId('alert-extra-content')
       expect(extraContent).toBeInTheDocument()
       expect(extraContent).toHaveTextContent('Wallets')
@@ -358,7 +362,6 @@ describe('PairingAlert Component', () => {
       render(<PairingAlert {...defaultProps} />)
       const topWallets = screen.getByTestId('top-wallets')
       expect(topWallets).toBeInTheDocument()
-      // Check that its parent div is visible.
       expect(topWallets.parentElement).toHaveStyle('opacity: 1')
     })
   })
@@ -400,7 +403,7 @@ describe('PairingAlert Component', () => {
       ;(platformUtils.isMobileOS as jest.Mock).mockReturnValue(true)
       const connectReturn = [...defaultUseConnect]
       connectReturn[3] = 'install'
-      connectReturn[6] = false // isWCWorking false to force error branch
+      connectReturn[6] = false // force error branch
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       render(<PairingAlert {...defaultProps} />)
       const infoElements = screen.getAllByTestId('info')
@@ -425,7 +428,6 @@ describe('PairingAlert Component', () => {
       connectReturn[9] = deepLinkingMock
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       render(<PairingAlert {...defaultProps} />)
-      // Simulate clicking the QR button rendered inside the Info component.
       const qrBtn = screen.getByTestId('qr-button')
       fireEvent.click(qrBtn)
       expect(updateQRCodeMock).toHaveBeenCalledWith('wcCode')
@@ -463,6 +465,76 @@ describe('PairingAlert Component', () => {
       const useAppBtn = screen.getByText('Use App')
       fireEvent.click(useAppBtn)
       expect(deepLinkMock).toHaveBeenCalled()
+    })
+
+    test('clicking on error "here" span calls handleUpdateState with "help"', () => {
+      ;(platformUtils.isMobileOS as jest.Mock).mockReturnValue(true)
+      const updateStateMock = jest.fn()
+      const connectReturn = [...defaultUseConnect]
+      connectReturn[3] = 'install'
+      connectReturn[6] = false // force error branch
+      connectReturn[15] = updateStateMock
+      ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
+      localStorage.setItem(StorageKey.WC_INIT_ERROR, 'Network error details')
+      render(<PairingAlert {...defaultProps} />)
+      const hereElement = screen.getByText('here')
+      fireEvent.click(hereElement)
+      expect(updateStateMock).toHaveBeenCalledWith('help')
+    })
+
+    test('onShowQRCodeClick with empty syncCode calls props.onClose', () => {
+      ;(platformUtils.isMobileOS as jest.Mock).mockReturnValue(true)
+      const onCloseMock = jest.fn()
+      const connectReturn = [...defaultUseConnect]
+      connectReturn[3] = 'install'
+      connectReturn[6] = true
+      ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
+      // Set walletConnectSyncCode to empty so that syncCode becomes empty
+      const newPairingPayload = { ...pairingPayload, walletConnectSyncCode: '' }
+      render(
+        <PairingAlert
+          {...{ ...defaultProps, onClose: onCloseMock, pairingPayload: newPairingPayload }}
+        />
+      )
+      const qrButton = screen.getByTestId('qr-button')
+      fireEvent.click(qrButton)
+      expect(onCloseMock).toHaveBeenCalled()
+    })
+
+    test('onShowQRCodeClick calls handleDeepLinking when isMobile is true and wallet types length equals 1', () => {
+      // Supply a larger wallet map (at least 6 entries) so that TopWallets "otherWallets" does not error
+      ;(useIsMobile as jest.Mock).mockReturnValue(true)
+      const iosWallet = { ...walletObj, types: ['ios'] }
+      const walletsMapIos = new Map<string, typeof walletObj>([
+        ['wallet1', iosWallet],
+        ['wallet2', iosWallet],
+        ['wallet3', iosWallet],
+        ['wallet4', iosWallet],
+        ['wallet5', iosWallet],
+        ['wallet6', iosWallet]
+      ])
+      ;(useWallets as jest.Mock).mockReturnValue(walletsMapIos)
+      const deepLinkingMock = jest.fn()
+      const updateQRCodeMock = jest.fn()
+      const updateStateMock = jest.fn()
+      const displayQRExtraMock = jest.fn()
+      const connectReturn = [...defaultUseConnect]
+      connectReturn[0] = iosWallet
+      connectReturn[3] = 'install'
+      connectReturn[6] = true
+      connectReturn[9] = deepLinkingMock
+      connectReturn[16] = updateQRCodeMock
+      connectReturn[15] = updateStateMock
+      connectReturn[18] = displayQRExtraMock
+      ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
+      ;(platformUtils.isMobileOS as jest.Mock).mockReturnValue(true)
+      render(<PairingAlert {...defaultProps} />)
+      const qrButton = screen.getByTestId('qr-button')
+      fireEvent.click(qrButton)
+      expect(deepLinkingMock).toHaveBeenCalledWith(iosWallet, 'wcCode')
+      expect(updateQRCodeMock).not.toHaveBeenCalled()
+      expect(updateStateMock).toHaveBeenCalledWith('qr')
+      expect(displayQRExtraMock).toHaveBeenCalledWith(true)
     })
   })
 })
