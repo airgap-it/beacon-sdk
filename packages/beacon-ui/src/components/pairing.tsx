@@ -1,18 +1,6 @@
 import { desktopList, extensionList, iOSList, webList } from '../ui/alert/wallet-lists'
 import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
 
-// export interface PairingProps {}
-
-// const Pairing: Component<PairingProps> = (props: PairingProps) => {
-//   return (
-//     <div>
-//       <h1>Pairing Component</h1>
-//     </div>
-//   )
-// }
-
-// export default Pairing
-
 /**
  * Initialize with tezos wallets for backwards compatibility
  */

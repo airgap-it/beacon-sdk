@@ -7,11 +7,9 @@
   border-radius: 10px;
   padding: 30px;
 }
-
 .info-border {
   border: 1px solid #aaaaaa42;
 }
-
 .info-icon {
   width: 40px;
   height: 40px;
@@ -30,15 +28,12 @@
   -moz-box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
   box-shadow: 0px 0px 12px -4px rgb(0 0 0 / 30%);
 }
-
 .theme__dark .info-title {
   color: white;
 }
-
 .theme__dark .info-description {
   color: #aeaeae;
 }
-
 .info-title {
   text-align: center;
   color: #334155;
@@ -67,7 +62,6 @@
   overflow: scroll;
   max-height: 300px;
 }
-
 .info-buttons {
   display: flex;
   align-items: center;
@@ -90,7 +84,6 @@
 .info-button:hover {
   background-color: #166afc;
 }
-
 .info-button-secondary {
   border-radius: 6px;
   background-color: transparent;
@@ -106,14 +99,12 @@
 .info-button-secondary:hover {
   background-color: #e8f0ff;
 }
-
 .downloadLink {
   text-decoration: none;
   color: gray;
   font-size: smaller;
   padding: 0.5rem;
 }
-
 button#qr-code-icon {
   background-color: transparent;
   border: none;
@@ -122,6 +113,11 @@ button#qr-code-icon {
   position: absolute;
   top: 0.3rem;
   right: 0.3rem;
+  padding: 1.5px;
+}
+
+button#qr-code-icon svg {
+  width: 25px;
 }
 
 @media only screen and (max-width: 300px) {
@@ -149,7 +145,6 @@ button#qr-code-icon {
     padding: 1.2em;
     position: relative;
   }
-
   .info-icon {
     width: 40px;
     height: 40px;

@@ -1,11 +1,8 @@
-import { Component } from 'solid-js'
-import styles from './styles.css'
+import "./styles.css";
 
-interface LoaderProps {}
+const Loader = () => {
+  return <div className="loader"></div>;
+};
 
-const Loader: Component<LoaderProps> = (_: LoaderProps) => {
-  return <div class="loader"></div>
-}
 
-export { styles }
-export default Loader
+export default Loader;
