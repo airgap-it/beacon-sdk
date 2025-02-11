@@ -40,21 +40,21 @@ const BugReportForm = (props: any) => {
   const db = new IndexedDBStorage('beacon', 'bug_report')
 
   const isTitleValid = () => {
-    const check = title().replace(/ /gi, '').length > 10
+    const check = title().replace(/ /gi, '').length > 2
     const invalidText = check ? '' : 'The title must be at least 10 characters long.'
     setTitleErrorMsg(invalidText)
     return check
   }
 
   const isDescriptionValid = () => {
-    const check = description().replace(/ /gi, '').length >= 30
+    const check = description().replace(/ /gi, '').length > 2
     const invalidText = check ? '' : 'The description must be at least 30 characters long.'
     setDescriptionErrorMsg(invalidText)
     return check
   }
 
   const areStepsValid = () => {
-    const check = steps().replace(/ /gi, '').length >= 30
+    const check = steps().replace(/ /gi, '').length > 2
     const invalidText = check
       ? ''
       : 'Write at least 30 characters to describe the steps to reproduce.'
