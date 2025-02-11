@@ -40,7 +40,7 @@ import {
   // EncryptionOperation
 } from '@airgap/beacon-core'
 import { shortenString } from './utils/shorten-string'
-import { isMobile, isMobileOS } from '@airgap/beacon-ui'
+import { isMobile, isMobileOS, openBugReport } from '@airgap/beacon-ui'
 
 const logger = new Logger('BeaconEvents')
 
@@ -99,6 +99,8 @@ export enum BeaconEvent {
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
+
+  OPEN_BUG_REPORT = 'OPEN_BUG_REPORT',
 
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   UNKNOWN = 'UNKNOWN'
@@ -216,6 +218,7 @@ export interface BeaconEventType {
     | ExtendedWalletConnectPairingResponse
   [BeaconEvent.CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[] }
+  [BeaconEvent.OPEN_BUG_REPORT]: undefined
   [BeaconEvent.UNKNOWN]: undefined
 }
 
@@ -331,10 +334,15 @@ const showInvalidActiveAccountState = async (): Promise<void> => {
  */
 const showGenericErrorAlert = async (errorMessage: string): Promise<void> => {
   await openAlert({
-    title: 'Error',
-    body: `${errorMessage}.<br />Please try again.<br />If this problem persists please reach out <a href="mailto:support@walletbeacon.io?subject=${encodeURIComponent(
-      'Beacon error'
-    )}&body=${encodeURIComponent(errorMessage)}">support@walletbeacon.io</a>`
+    title: `${errorMessage}`,
+    body: 'Please try again. If this problem persists please send us a bug report here',
+    buttons: [
+      {
+        label: 'Send Report',
+        type: 'primary',
+        onClick: () => openBugReport()
+      }
+    ] as any
   })
 }
 
@@ -434,6 +442,10 @@ const showRateLimitReached = async (): Promise<void> => {
  */
 const showExtensionConnectedAlert = async (): Promise<void> => {
   await closeAlerts()
+}
+
+const showBugReportForm = () => {
+  openBugReport()
 }
 
 /**
@@ -775,6 +787,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.HIDE_UI]: hideUI,
   [BeaconEvent.PAIR_INIT]: showPairAlert,
   [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
+  [BeaconEvent.OPEN_BUG_REPORT]: showBugReportForm,
   [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
   [BeaconEvent.UNKNOWN]: emptyHandler()
@@ -836,6 +849,7 @@ export class BeaconEventHandler {
     [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
     [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
+    [BeaconEvent.OPEN_BUG_REPORT]: [defaultEventCallbacks.OPEN_BUG_REPORT],
     [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],
     [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]

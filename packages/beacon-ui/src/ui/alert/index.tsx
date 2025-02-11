@@ -122,7 +122,7 @@ const closeAlert = (_: string): Promise<void> => {
  */
 const closeAlerts = async (): Promise<void> => {
   if (currentInfo() === 'help') {
-    console.log('setting status as pairing expired.')
+    logger.log('closeAlerts', 'setting status as pairing expired.')
     setPairingExpired(true)
     return
   }
@@ -144,6 +144,11 @@ const closeAlerts = async (): Promise<void> => {
   })
 }
 
+const openBugReport = () => {
+  setPreviousInfo(currentInfo())
+  setCurrentInfo('help')
+}
+
 /**
  * Show an alert
  *
@@ -155,9 +160,6 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   const p2pPayload = config.pairingPayload?.p2pSyncCode()
   const wcPayload = config.pairingPayload?.walletConnectSyncCode()
   const isOnline = navigator.onLine
-  const areMetricsEnabled = localStorage
-    ? localStorage.getItem(StorageKey.ENABLE_METRICS) === 'true'
-    : false
 
   setAnalytics(config.analytics)
 
@@ -1069,61 +1071,11 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           }
                     }
                   >
-                    {areMetricsEnabled && (
-                      <BugReportForm
-                        onSubmit={() => {
-                          handleCloseAlert()
-                        }}
-                      />
-                    )}
-                    {!areMetricsEnabled && (
-                      <>
-                        <Info
-                          iconBadge
-                          icon={
-                            <svg
-                              fill="currentColor"
-                              stroke-width="0"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              height="1em"
-                              width="1em"
-                              style="overflow: visible;"
-                              color="white"
-                            >
-                              <path d="M16 12h2v4h-2z"></path>
-                              <path d="M20 7V5c0-1.103-.897-2-2-2H5C3.346 3 2 4.346 2 6v12c0 2.201 1.794 3 3 3h15c1.103 0 2-.897 2-2V9c0-1.103-.897-2-2-2zM5 5h13v2H5a1.001 1.001 0 0 1 0-2zm15 14H5.012C4.55 18.988 4 18.805 4 18V8.815c.314.113.647.185 1 .185h15v10z"></path>
-                            </svg>
-                          }
-                          title="What is a wallet?"
-                          description="Wallets let you send, receive, store and interact with digital assets. Your wallet can be used as an easy way to login, instead of having to remember a password."
-                        />
-                        <Info
-                          iconBadge
-                          icon={
-                            <svg
-                              fill="none"
-                              stroke-width="2"
-                              xmlns="http://www.w3.org/2000/svg"
-                              stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              viewBox="0 0 24 24"
-                              height="1em"
-                              width="1em"
-                              style="overflow: visible;"
-                              color="white"
-                            >
-                              <path stroke="none" d="M0 0h24v24H0z"></path>
-                              <rect width="16" height="16" x="4" y="4" rx="2"></rect>
-                              <path d="M9 12h6M12 9v6"></path>
-                            </svg>
-                          }
-                          title="Not sure where to start?"
-                          description="If you are new to the Web3, we recommend that you start by creating a Kukai wallet. Kukai is a fast way of creating your first wallet using your preferred social account."
-                        />
-                      </>
-                    )}
+                    <BugReportForm
+                      onSubmit={() => {
+                        handleCloseAlert()
+                      }}
+                    />
                   </div>
                   <div
                     style={
@@ -1204,49 +1156,61 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
             <Alert
               open={isOpen()}
               content={
-                <Info
-                  bigIcon
-                  icon={
-                    <svg
-                      fill="currentColor"
-                      stroke-width="0"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 512 512"
-                      height="1em"
-                      width="1em"
-                      style="overflow: visible;"
-                      color="#494949"
-                    >
-                      <path
-                        d="M85.57 446.25h340.86a32 32 0 0 0 28.17-47.17L284.18 82.58c-12.09-22.44-44.27-22.44-56.36 0L57.4 399.08a32 32 0 0 0 28.17 47.17Z"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="32px"
-                      ></path>
-                      <path
-                        d="m250.26 195.39 5.74 122 5.73-121.95a5.74 5.74 0 0 0-5.79-6h0a5.74 5.74 0 0 0-5.68 5.95Z"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="32px"
-                      ></path>
-                      <path d="M256 397.25a20 20 0 1 1 20-20 20 20 0 0 1-20 20Z"></path>
-                    </svg>
-                  }
-                  title={config.title || 'No title'}
-                  description={config.body || 'No description'}
-                  data={config.data}
-                  buttons={[
-                    {
-                      label: 'Close',
-                      type: 'primary',
-                      onClick: () => handleCloseAlert()
-                    }
-                  ]}
-                />
+                <>
+                  {currentInfo() === 'help' ? (
+                    <BugReportForm
+                      onSubmit={() => {
+                        handleCloseAlert()
+                      }}
+                    />
+                  ) : (
+                    <Info
+                      bigIcon
+                      icon={
+                        <svg
+                          fill="currentColor"
+                          stroke-width="0"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 512 512"
+                          height="1em"
+                          width="1em"
+                          style="overflow: visible;"
+                          color="#494949"
+                        >
+                          <path
+                            d="M85.57 446.25h340.86a32 32 0 0 0 28.17-47.17L284.18 82.58c-12.09-22.44-44.27-22.44-56.36 0L57.4 399.08a32 32 0 0 0 28.17 47.17Z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="32px"
+                          ></path>
+                          <path
+                            d="m250.26 195.39 5.74 122 5.73-121.95a5.74 5.74 0 0 0-5.79-6h0a5.74 5.74 0 0 0-5.68 5.95Z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="32px"
+                          ></path>
+                          <path d="M256 397.25a20 20 0 1 1 20-20 20 20 0 0 1-20 20Z"></path>
+                        </svg>
+                      }
+                      title={config.title || 'No title'}
+                      description={config.body || 'No description'}
+                      data={config.data}
+                      buttons={
+                        (config.buttons as any) ?? [
+                          {
+                            label: 'Close',
+                            type: 'primary',
+                            onClick: () => handleCloseAlert()
+                          }
+                        ]
+                      }
+                    />
+                  )}
+                </>
               }
               onCloseClick={() => handleCloseAlert()}
             />
@@ -1263,4 +1227,4 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
   return ''
 }
 
-export { closeAlert, closeAlerts, openAlert }
+export { closeAlert, closeAlerts, openAlert, openBugReport }
