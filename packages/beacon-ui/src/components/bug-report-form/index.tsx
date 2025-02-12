@@ -25,42 +25,16 @@ interface BugReportRequest {
 const BugReportForm = (props: any) => {
   const [title, setTitle] = createSignal('')
   const [titleTouched, setTitleTouched] = createSignal(false)
-  const [titleErrorMsg, setTitleErrorMsg] = createSignal('')
   const [description, setDescription] = createSignal('')
   const [descriptionTouched, setDescriptionTouched] = createSignal(false)
-  const [descriptionErrorMsg, setDescriptionErrorMsg] = createSignal('')
   const [steps, setSteps] = createSignal('')
   const [stepsTouched, setStepsTouched] = createSignal(false)
-  const [stepsErrorMsg, setStepsErrorMsg] = createSignal('')
   const [isFormValid, setFormValid] = createSignal(false)
   const [isLoading, setIsLoading] = createSignal(false)
   const [didUserAllow, setDidUserAllow] = createSignal(false)
   const [status, setStatus] = createSignal<'success' | 'error' | null>(null)
   const [showThankYou, setShowThankYou] = createSignal(false)
   const db = new IndexedDBStorage('beacon', 'bug_report')
-
-  const isTitleValid = () => {
-    const check = title().replace(/ /gi, '').length > 2
-    const invalidText = check ? '' : 'The title must be at least 10 characters long.'
-    setTitleErrorMsg(invalidText)
-    return check
-  }
-
-  const isDescriptionValid = () => {
-    const check = description().replace(/ /gi, '').length > 2
-    const invalidText = check ? '' : 'The description must be at least 30 characters long.'
-    setDescriptionErrorMsg(invalidText)
-    return check
-  }
-
-  const areStepsValid = () => {
-    const check = steps().replace(/ /gi, '').length > 2
-    const invalidText = check
-      ? ''
-      : 'Write at least 30 characters to describe the steps to reproduce.'
-    setStepsErrorMsg(invalidText)
-    return check
-  }
 
   const indexDBToMetadata = async () => {
     const wcResult: StorageObject = {}
@@ -96,12 +70,44 @@ const BugReportForm = (props: any) => {
   }
 
   createEffect(() => {
-    const titleValid = isTitleValid(),
-      descriptionValid = isDescriptionValid(),
-      stepsValid = areStepsValid(),
-      userAllow = didUserAllow()
-    setFormValid(titleValid && descriptionValid && stepsValid && userAllow)
+    setFormValid(didUserAllow())
   })
+
+  /**
+   * Recursively removes all properties whose key contains "seed"
+   * from an object/array. Also, if a string is valid JSON,
+   * it will attempt to clean its parsed value.
+   */
+  const clean = (value: any): any => {
+    if (Array.isArray(value)) {
+      // Process each element in the array.
+      return value.map(clean)
+    } else if (value !== null && typeof value === 'object') {
+      // Process an object by filtering its keys.
+      const result: Record<string, any> = {}
+      for (const key in value) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) {
+          // Remove any property with "seed" in its name (case insensitive)
+          if (key.toLowerCase().includes('seed')) continue
+          result[key] = clean(value[key])
+        }
+      }
+      return result
+    } else if (typeof value === 'string') {
+      // Try to parse the string as JSON.
+      try {
+        const parsed = JSON.parse(value)
+        // If it parsed successfully, clean the parsed value
+        // and re-stringify it so that we preserve the original type.
+        return JSON.stringify(clean(parsed))
+      } catch (err) {
+        // If parsing fails, just return the original string.
+        return value
+      }
+    }
+    // For primitives (number, boolean, etc.), just return the value.
+    return value
+  }
 
   const handleSubmit = async (event: Event) => {
     event.preventDefault()
@@ -122,8 +128,8 @@ const BugReportForm = (props: any) => {
       steps: steps(),
       os: currentOS(),
       browser: currentBrowser(),
-      localStorage: JSON.stringify(beaconState),
-      wcStorage: JSON.stringify(wcState)
+      localStorage: JSON.stringify(clean(beaconState)),
+      wcStorage: JSON.stringify(clean(wcState))
     }
 
     const options = {
@@ -172,11 +178,8 @@ const BugReportForm = (props: any) => {
             !titleTouched() && setTitleTouched(true)
             setTitle(e.currentTarget.value)
           }}
-          class={`input-style ${titleTouched() && titleErrorMsg().length ? 'invalid' : ''}`}
+          class={`input-style`}
         />
-        {titleTouched() && titleErrorMsg().length && (
-          <label class="error-label">{titleErrorMsg()}</label>
-        )}
       </div>
       <div class="input-group">
         <label for="description" class="label-style">
@@ -189,13 +192,8 @@ const BugReportForm = (props: any) => {
             !descriptionTouched() && setDescriptionTouched(true)
             setDescription(e.currentTarget.value)
           }}
-          class={`textarea-style ${
-            descriptionTouched() && descriptionErrorMsg().length ? 'invalid' : ''
-          }`}
+          class={`textarea-style `}
         />
-        {descriptionTouched() && descriptionErrorMsg().length && (
-          <label class="error-label">{descriptionErrorMsg()}</label>
-        )}
       </div>
       <div class="input-group">
         <label for="steps" class="label-style">
@@ -208,11 +206,8 @@ const BugReportForm = (props: any) => {
             !stepsTouched() && setStepsTouched(true)
             setSteps(e.currentTarget.value)
           }}
-          class={`textarea-style ${stepsTouched() && stepsErrorMsg().length ? 'invalid' : ''}`}
+          class={`textarea-style`}
         />
-        {stepsTouched() && stepsErrorMsg().length && (
-          <label class="error-label">{stepsErrorMsg()}</label>
-        )}
       </div>
       <div class="permissions-group">
         <label for="user-premissions">You agree to share anonymous data with the developers.</label>
