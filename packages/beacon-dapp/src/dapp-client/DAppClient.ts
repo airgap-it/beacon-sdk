@@ -223,7 +223,7 @@ export class DAppClient extends Client {
 
   private readonly storageValidator: StorageValidator
 
-  private readonly bugReportStorage = new IndexedDBStorage('beacon', 'bug_report')
+  private readonly beaconIDB = new IndexedDBStorage('beacon', ['bug_report', 'metrics'])
 
   private debounceSetActiveAccount: boolean = false
 
@@ -548,7 +548,7 @@ export class DAppClient extends Client {
 
     try {
       for (const key of keys) {
-        await this.bugReportStorage.set(key, await this.storage.get(key))
+        await this.beaconIDB.set(key, this.storage.getPrefixedKey(key))
       }
     } catch (err: any) {
       logger.error('createStateSnapshot', err.message)
@@ -1092,15 +1092,29 @@ export class DAppClient extends Client {
     }
   }
 
+  private async updateMetricsStorage(payload: string) {
+    const size = (await this.beaconIDB.getAll('metrics')).length
+
+    if (size >= 1000) {
+      await this.beaconIDB.clearStore('metrics')
+    }
+
+    this.beaconIDB.set(String(Date.now()), payload, 'metrics')
+  }
+
   private sendMetrics(
     uri: string,
     options?: RequestInit,
     thenHandler?: (res: Response) => void,
     catchHandler?: (err: Error) => void
   ) {
+    if (!this.enableMetrics && uri === 'performance-metrics/save') {
+      options && this.updateMetricsStorage(options.body as string)
+    }
     if (!this.enableMetrics) {
       return
     }
+
     fetch(`https://beacon-backend.prod.gke.papers.tech/${uri}`, options)
       .then((res) => thenHandler && thenHandler(res))
       .catch((err: Error) => {

@@ -34,7 +34,7 @@ const BugReportForm = (props: any) => {
   const [didUserAllow, setDidUserAllow] = createSignal(false)
   const [status, setStatus] = createSignal<'success' | 'error' | null>(null)
   const [showThankYou, setShowThankYou] = createSignal(false)
-  const db = new IndexedDBStorage('beacon', 'bug_report')
+  const db = new IndexedDBStorage('beacon', ['bug_report', 'metrics'])
 
   const indexDBToMetadata = async () => {
     const wcResult: StorageObject = {}
