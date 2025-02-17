@@ -261,6 +261,19 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
       }
     }
   })
+  actions.push({
+    text: 'Do you wish to report a bug?',
+    actionText: 'Open',
+    actionCallback: async (): Promise<void> => {
+      await closeToast()
+      await openAlert({
+        title: '',
+        body: '',
+        buttons: []
+      })
+      openBugReport()
+    }
+  })
 
   openToast({
     body: `Request sent to\u00A0 {{wallet}}`,
