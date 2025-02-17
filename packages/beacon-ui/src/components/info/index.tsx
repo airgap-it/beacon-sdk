@@ -10,9 +10,15 @@ interface InfoProps {
   border?: boolean
   iconBadge?: boolean
   bigIcon?: boolean
-  buttons?: { label: string; type: 'primary' | 'secondary'; onClick: () => void }[]
+  buttons?: InfoButton[]
   downloadLink?: { url: string; label: string }
   onShowQRCodeClick?: (() => void) | (() => Promise<void>)
+}
+
+export interface InfoButton {
+  label: string
+  type: 'primary' | 'secondary'
+  onClick: () => void
 }
 
 const Info: Component<InfoProps> = (props: InfoProps) => {
@@ -33,10 +39,11 @@ const Info: Component<InfoProps> = (props: InfoProps) => {
         <For each={props.buttons}>
           {(button) => (
             <button
+              style={(button as any).style ?? undefined}
               class={button.type !== 'secondary' ? 'info-button' : 'info-button-secondary'}
               onClick={button.onClick}
             >
-              {button.label}
+              {button.label ?? (button as any).text ?? 'Close'}
             </button>
           )}
         </For>

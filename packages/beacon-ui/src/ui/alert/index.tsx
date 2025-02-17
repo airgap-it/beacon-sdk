@@ -770,6 +770,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
       )
       const isConnected =
         !currentWallet()?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking()
+
       return (
         <>
           {isConnected ? (
@@ -791,6 +792,21 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
     }
 
     const colorMode = getColorMode()
+
+    const buttons = (
+      config.buttons ?? [
+        {
+          label: 'Close',
+          type: 'primary'
+        }
+      ]
+    ).map((btn: any) => {
+      if (btn.onClick) {
+        return { ...btn }
+      }
+
+      return { ...btn, onClick: () => closeAlert('') }
+    })
 
     dispose = render(
       () => (
@@ -1199,15 +1215,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                       title={config.title || 'No title'}
                       description={config.body || 'No description'}
                       data={config.data}
-                      buttons={
-                        (config.buttons as any) ?? [
-                          {
-                            label: 'Close',
-                            type: 'primary',
-                            onClick: () => handleCloseAlert()
-                          }
-                        ]
-                      }
+                      buttons={buttons as any}
                     />
                   )}
                 </>
