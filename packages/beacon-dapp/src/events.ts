@@ -445,7 +445,7 @@ const showRateLimitReached = async (): Promise<void> => {
   openAlert({
     title: 'Error',
     body: 'Rate limit reached. Please slow down',
-    buttons: [{ text: 'Done', style: 'outline' }],
+    buttons: [{ label: 'Done', type: 'primary', onClick: () => closeAlerts() }],
     timer: 3000
   }).catch((toastError) => console.error(toastError))
 }
@@ -478,7 +478,7 @@ const showInternalErrorAlert = async (
 ): Promise<void> => {
   const buttons: AlertButton[] = [...(data.buttons ?? [])]
 
-  buttons.push({ text: 'Done', style: 'outline' })
+  buttons.push({ label: 'Done', type: 'primary', onClick: () => closeAlerts() })
 
   const alertConfig: AlertConfig = {
     title: 'Internal Error',

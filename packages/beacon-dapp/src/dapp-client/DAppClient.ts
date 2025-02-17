@@ -2059,7 +2059,7 @@ export class DAppClient extends Client {
           }
         }
 
-        buttons.push({ text: 'Remove account', actionCallback })
+        buttons.push({ label: 'Remove account', type: 'primary', onClick: actionCallback })
       }
 
       const peer = await this.getPeer()
@@ -2403,11 +2403,12 @@ export class DAppClient extends Client {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
         buttons: [
           {
-            text: 'Reset Connection',
-            actionCallback: async (): Promise<void> => {
+            label: 'Reset Connection',
+            onClick: async (): Promise<void> => {
               await closeToast()
               this.disconnect()
-            }
+            },
+            type: 'secondary'
           }
         ]
       })
@@ -2519,11 +2520,12 @@ export class DAppClient extends Client {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
         buttons: [
           {
-            text: 'Reset Connection',
-            actionCallback: async (): Promise<void> => {
+            label: 'Reset Connection',
+            onClick: async (): Promise<void> => {
               await closeToast()
               this.disconnect()
-            }
+            },
+            type: 'secondary'
           }
         ]
       })

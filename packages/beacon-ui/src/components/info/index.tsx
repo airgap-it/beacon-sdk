@@ -1,6 +1,7 @@
 import { Component, For } from 'solid-js'
 import styles from './styles.css'
 import { QRCodeIcon } from '../icons'
+import { AlertButton } from 'src/ui/alert'
 
 interface InfoProps {
   title: string
@@ -10,15 +11,9 @@ interface InfoProps {
   border?: boolean
   iconBadge?: boolean
   bigIcon?: boolean
-  buttons?: InfoButton[]
+  buttons?: AlertButton[]
   downloadLink?: { url: string; label: string }
   onShowQRCodeClick?: (() => void) | (() => Promise<void>)
-}
-
-export interface InfoButton {
-  label: string
-  type: 'primary' | 'secondary'
-  onClick: () => void
 }
 
 const Info: Component<InfoProps> = (props: InfoProps) => {

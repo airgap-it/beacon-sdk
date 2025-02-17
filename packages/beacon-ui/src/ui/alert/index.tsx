@@ -48,11 +48,10 @@ import BugReportForm from '../../components/bug-report-form'
 
 const logger = new Logger('Alert')
 
-// Interfaces
 export interface AlertButton {
-  text: string
-  style?: 'solid' | 'outline'
-  actionCallback?(): Promise<void>
+  label: string
+  type: 'primary' | 'secondary'
+  onClick: () => void
 }
 
 export interface AlertConfig {
@@ -793,20 +792,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
 
     const colorMode = getColorMode()
 
-    const buttons = (
-      config.buttons ?? [
-        {
-          label: 'Close',
-          type: 'primary'
-        }
-      ]
-    ).map((btn: any) => {
-      if (btn.onClick) {
-        return { ...btn }
+    const buttons: AlertButton[] = config.buttons ?? [
+      {
+        label: 'Close',
+        type: 'primary',
+        onClick: () => closeAlert('')
       }
-
-      return { ...btn, onClick: () => closeAlert('') }
-    })
+    ]
 
     dispose = render(
       () => (
