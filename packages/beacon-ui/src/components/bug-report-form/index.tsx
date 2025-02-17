@@ -109,6 +109,36 @@ const BugReportForm = (props: any) => {
     return value
   }
 
+  const sendRequest = (
+    url: string,
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+    body: any
+  ) => {
+    const options = {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }
+
+    return fetch(url, method === 'GET' ? undefined : options)
+  }
+
+  const sendMetrics = async () => {
+    const metrics = await db.getAll('metrics')
+    const payload = metrics.map((metric) => JSON.parse(metric))
+
+    sendRequest('http://localhost:9001/performance-metrics/saveAll', 'POST', payload)
+      .then(() => {
+        db.clearStore('metrics')
+      })
+      .catch((error) => {
+        console.error('Error while sending metrics:', error.message)
+        setStatus('error')
+      })
+  }
+
   const handleSubmit = async (event: Event) => {
     event.preventDefault()
     setStatus(null)
@@ -132,25 +162,14 @@ const BugReportForm = (props: any) => {
       wcStorage: JSON.stringify(clean(wcState))
     }
 
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(request)
-    }
-
-    fetch('https://beacon-backend.prod.gke.papers.tech/bug-report/save', options)
+    sendRequest('https://beacon-backend.prod.gke.papers.tech/bug-report/save', 'POST', request)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
         }
         setStatus('success')
         setTimeout(() => setShowThankYou(true), 600)
-        return response.json()
-      })
-      .then((data) => {
-        console.log(data)
+        sendMetrics()
       })
       .catch((error) => {
         console.error('Error while sending report:', error.message)
