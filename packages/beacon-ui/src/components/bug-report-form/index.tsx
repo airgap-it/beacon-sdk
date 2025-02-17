@@ -127,6 +127,11 @@ const BugReportForm = (props: any) => {
 
   const sendMetrics = async () => {
     const metrics = await db.getAll('metrics')
+
+    if (!metrics || metrics.length === 0) {
+      return
+    }
+
     const payload = metrics.map((metric) => JSON.parse(metric))
 
     sendRequest('http://localhost:9001/performance-metrics/saveAll', 'POST', payload)
