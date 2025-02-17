@@ -134,7 +134,7 @@ const BugReportForm = (props: any) => {
 
     const payload = metrics.map((metric) => JSON.parse(metric))
 
-    sendRequest('http://localhost:9001/performance-metrics/saveAll', 'POST', payload)
+    sendRequest('https://beacon-backend.prod.gke.papers.tech/performance-metrics/saveAll', 'POST', payload)
       .then(() => {
         db.clearStore('metrics')
       })
