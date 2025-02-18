@@ -343,7 +343,7 @@ const showInvalidActiveAccountState = async (): Promise<void> => {
 const showGenericErrorAlert = async (errorMessage: string): Promise<void> => {
   await openAlert({
     title: `${errorMessage}`,
-    body: 'Please try again. If this problem persists please send us a bug report here',
+    body: 'Please try again. If this problem persists please send us a bug report.',
     buttons: [
       {
         label: 'Send Report',
