@@ -38,13 +38,19 @@ const BugReportForm = (props: any) => {
     setDescription(prefillDescriptionField())
   })
 
-  const prefillDescriptionField = () => {
+  const getStorageKeys = () => {
     if (!localStorage) {
-      return ''
+      return []
     }
 
     const wcKey = Object.keys(localStorage).find((key) => key.includes('wc-init-error'))
     const beaconKey = Object.keys(localStorage).find((key) => key.includes('beacon-last-error'))
+
+    return [wcKey, beaconKey] as const
+  }
+
+  const prefillDescriptionField = () => {
+    const [wcKey, beaconKey] = getStorageKeys()
 
     if (!wcKey && !beaconKey) {
       return ''
@@ -206,6 +212,9 @@ const BugReportForm = (props: any) => {
         setStatus('success')
         setTimeout(() => setShowThankYou(true), 600)
         sendMetrics()
+        const [wcKey, beaconKey] = getStorageKeys()
+        wcKey && localStorage.removeItem(wcKey)
+        beaconKey && localStorage.removeItem(beaconKey)
       })
       .catch((error) => {
         console.error('Error while sending report:', error.message)
