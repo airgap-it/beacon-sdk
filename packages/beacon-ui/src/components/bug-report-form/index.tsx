@@ -1,4 +1,4 @@
-import { IndexedDBStorage, Logger, SDK_VERSION } from '@airgap/beacon-core'
+import { IndexedDBStorage, Logger, BACKEND_URL, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
 import { For, createEffect, createSignal } from 'solid-js'
 import styles from './styles.css'
@@ -167,11 +167,7 @@ const BugReportForm = (props: any) => {
 
     const payload = metrics.map((metric) => JSON.parse(metric))
 
-    sendRequest(
-      'https://beacon-backend.prod.gke.papers.tech/performance-metrics/saveAll',
-      'POST',
-      payload
-    )
+    sendRequest(`${BACKEND_URL}/performance-metrics/saveAll`, 'POST', payload)
       .then(() => {
         db.clearStore('metrics')
       })
@@ -204,7 +200,7 @@ const BugReportForm = (props: any) => {
       wcStorage: JSON.stringify(clean(wcState))
     }
 
-    sendRequest('https://beacon-backend.prod.gke.papers.tech/bug-report/save', 'POST', request)
+    sendRequest(`${BACKEND_URL}/bug-report/save`, 'POST', request)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')

@@ -91,7 +91,8 @@ import {
   StorageValidator,
   SDK_VERSION,
   IndexedDBStorage,
-  MultiTabChannel
+  MultiTabChannel,
+  BACKEND_URL
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -1115,7 +1116,7 @@ export class DAppClient extends Client {
       return
     }
 
-    fetch(`https://beacon-backend.prod.gke.papers.tech/${uri}`, options)
+    fetch(`${BACKEND_URL}/${uri}`, options)
       .then((res) => thenHandler && thenHandler(res))
       .catch((err: Error) => {
         console.warn('Network error encountered. Metrics sharing have been automatically disabled.')
