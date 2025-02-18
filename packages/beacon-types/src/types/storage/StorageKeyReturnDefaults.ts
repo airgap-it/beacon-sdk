@@ -19,6 +19,7 @@ export const defaultValues: StorageKeyReturnDefaults = {
   [StorageKey.ACTIVE_ACCOUNT]: undefined,
   [StorageKey.PUSH_TOKENS]: [],
   [StorageKey.BEACON_SDK_SECRET_SEED]: undefined,
+  [StorageKey.BEACON_LAST_ERROR]: undefined,
   [StorageKey.APP_METADATA_LIST]: [],
   [StorageKey.PERMISSION_LIST]: [],
   [StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES]: [],
