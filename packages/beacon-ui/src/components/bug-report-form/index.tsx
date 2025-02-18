@@ -168,7 +168,7 @@ const BugReportForm = (props: any) => {
     const payload = metrics.map((metric) => JSON.parse(metric))
 
     sendRequest(
-      'https://beacon-backend.prod.gke.papers.tech/performance-metrics/saveAll',
+      'https://beacon-backend.dev.gke.papers.tech/performance-metrics/saveAll',
       'POST',
       payload
     )
@@ -204,7 +204,7 @@ const BugReportForm = (props: any) => {
       wcStorage: JSON.stringify(clean(wcState))
     }
 
-    sendRequest('https://beacon-backend.prod.gke.papers.tech/bug-report/save', 'POST', request)
+    sendRequest('https://beacon-backend.dev.gke.papers.tech/bug-report/save', 'POST', request)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
