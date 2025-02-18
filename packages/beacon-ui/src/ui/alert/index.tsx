@@ -1080,11 +1080,13 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
                           }
                     }
                   >
-                    <BugReportForm
-                      onSubmit={() => {
-                        handleCloseAlert()
-                      }}
-                    />
+                    {currentInfo() === 'help' && (
+                      <BugReportForm
+                        onSubmit={() => {
+                          handleCloseAlert()
+                        }}
+                      />
+                    )}
                   </div>
                   <div
                     style={

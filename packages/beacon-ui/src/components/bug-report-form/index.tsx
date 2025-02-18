@@ -27,14 +27,41 @@ const BugReportForm = (props: any) => {
   const [titleTouched, setTitleTouched] = createSignal(false)
   const [description, setDescription] = createSignal('')
   const [descriptionTouched, setDescriptionTouched] = createSignal(false)
-  const [steps, setSteps] = createSignal('')
-  const [stepsTouched, setStepsTouched] = createSignal(false)
   const [isFormValid, setFormValid] = createSignal(false)
   const [isLoading, setIsLoading] = createSignal(false)
   const [didUserAllow, setDidUserAllow] = createSignal(false)
   const [status, setStatus] = createSignal<'success' | 'error' | null>(null)
   const [showThankYou, setShowThankYou] = createSignal(false)
   const db = new IndexedDBStorage('beacon', ['bug_report', 'metrics'])
+
+  createEffect(() => {
+    setDescription(prefillDescriptionField())
+  })
+
+  const prefillDescriptionField = () => {
+    if (!localStorage) {
+      return ''
+    }
+
+    const wcKey = Object.keys(localStorage).find((key) => key.includes('wc-init-error'))
+    const beaconKey = Object.keys(localStorage).find((key) => key.includes('beacon-last-error'))
+
+    if (!wcKey || !beaconKey) {
+      return ''
+    }
+
+    let output = ''
+
+    if (wcKey) {
+      output += `WalletConnect error: ${localStorage.getItem(wcKey)} \n\n`
+    }
+
+    if (beaconKey) {
+      output += `Beacon error: ${localStorage.getItem(beaconKey)} \n\n`
+    }
+
+    return output
+  }
 
   const indexDBToMetadata = async () => {
     const wcResult: StorageObject = {}
@@ -134,7 +161,11 @@ const BugReportForm = (props: any) => {
 
     const payload = metrics.map((metric) => JSON.parse(metric))
 
-    sendRequest('https://beacon-backend.prod.gke.papers.tech/performance-metrics/saveAll', 'POST', payload)
+    sendRequest(
+      'https://beacon-backend.prod.gke.papers.tech/performance-metrics/saveAll',
+      'POST',
+      payload
+    )
       .then(() => {
         db.clearStore('metrics')
       })
@@ -160,7 +191,7 @@ const BugReportForm = (props: any) => {
       title: title(),
       sdkVersion: SDK_VERSION,
       description: description(),
-      steps: steps(),
+      steps: '<#EMPTY#>',
       os: currentOS(),
       browser: currentBrowser(),
       localStorage: JSON.stringify(clean(beaconState)),
@@ -217,20 +248,6 @@ const BugReportForm = (props: any) => {
             setDescription(e.currentTarget.value)
           }}
           class={`textarea-style `}
-        />
-      </div>
-      <div class="input-group">
-        <label for="steps" class="label-style">
-          Steps to Reproduce
-        </label>
-        <textarea
-          id="steps"
-          value={steps()}
-          onBlur={(e) => {
-            !stepsTouched() && setStepsTouched(true)
-            setSteps(e.currentTarget.value)
-          }}
-          class={`textarea-style`}
         />
       </div>
       <div class="permissions-group">
