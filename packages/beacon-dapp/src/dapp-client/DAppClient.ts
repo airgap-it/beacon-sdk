@@ -1093,10 +1093,11 @@ export class DAppClient extends Client {
   }
 
   private async updateMetricsStorage(payload: string) {
-    const size = (await this.beaconIDB.getAll('metrics')).length
+    const queue = await this.beaconIDB.getAllKeys('metrics')
 
-    if (size >= 1000) {
-      await this.beaconIDB.clearStore('metrics')
+    if (queue.length >= 1000) {
+      const key = queue.shift()!
+      this.beaconIDB.delete(key.toString(), 'metrics')
     }
 
     this.beaconIDB.set(String(Date.now()), payload, 'metrics')
