@@ -143,7 +143,14 @@ const closeAlerts = async (): Promise<void> => {
   })
 }
 
-const openBugReport = () => {
+const openBugReport = async () => {
+  if (!isOpen()) {
+    await openAlert({
+      title: '',
+      body: '',
+      buttons: []
+    })
+  }
   setPreviousInfo(currentInfo())
   setCurrentInfo('help')
 }

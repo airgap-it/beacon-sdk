@@ -266,12 +266,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     actionText: 'Open',
     actionCallback: async (): Promise<void> => {
       await closeToast()
-      await openAlert({
-        title: '',
-        body: '',
-        buttons: []
-      })
-      openBugReport()
+      await openBugReport()
     }
   })
 
@@ -457,8 +452,8 @@ const showExtensionConnectedAlert = async (): Promise<void> => {
   await closeAlerts()
 }
 
-const showBugReportForm = () => {
-  openBugReport()
+const showBugReportForm = async () => {
+  await openBugReport()
 }
 
 /**
