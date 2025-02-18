@@ -807,6 +807,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           {config.pairingPayload && (
             <Alert
               loading={isLoading()}
+              closeOnBackdropClick={currentInfo() !== 'help'}
               open={isOpen()}
               showMore={showMoreContent()}
               content={
@@ -1163,6 +1164,7 @@ const openAlert = async (config: AlertConfig): Promise<string> => {
           {!config.pairingPayload && (
             <Alert
               open={isOpen()}
+              closeOnBackdropClick={currentInfo() !== 'help'}
               content={
                 <>
                   {currentInfo() === 'help' ? (
