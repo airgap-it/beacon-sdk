@@ -47,38 +47,18 @@ const RESPONSE_WAIT_TIME_MS: number = 1000
 const REGIONS_AND_SERVERS: NodeDistributions = {
   [Regions.EUROPE_WEST]: [
     'beacon-node-1.diamond.papers.tech',
-    'beacon-node-1.diamond.walletbeacon.io',
     'beacon-node-1.sky.papers.tech',
-    'beacon-node-1.sky.walletbeacon.io',
     'beacon-node-2.sky.papers.tech',
-    'beacon-node-2.sky.walletbeacon.io',
     'beacon-node-1.hope.papers.tech',
-    'beacon-node-1.hope.walletbeacon.io',
     'beacon-node-1.hope-2.papers.tech',
-    'beacon-node-1.hope-2.walletbeacon.io',
     'beacon-node-1.hope-3.papers.tech',
-    'beacon-node-1.hope-3.walletbeacon.io',
     'beacon-node-1.hope-4.papers.tech',
-    'beacon-node-1.hope-4.walletbeacon.io',
-    'beacon-node-1.hope-5.papers.tech',
-    'beacon-node-1.hope-5.walletbeacon.io'
+    'beacon-node-1.hope-5.papers.tech'
   ],
-  [Regions.NORTH_AMERICA_EAST]: [
-    'beacon-node-1.beacon-server-1.papers.tech',
-    'beacon-node-1.beacon-server-1.walletbeacon.io'
-  ],
-  [Regions.NORTH_AMERICA_WEST]: [
-    'beacon-node-1.beacon-server-2.papers.tech',
-    'beacon-node-1.beacon-server-2.walletbeacon.io'
-  ],
-  [Regions.ASIA_EAST]: [
-    'beacon-node-1.beacon-server-3.papers.tech',
-    'beacon-node-1.beacon-server-3.walletbeacon.io'
-  ],
-  [Regions.AUSTRALIA]: [
-    'beacon-node-1.beacon-server-4.papers.tech',
-    'beacon-node-1.beacon-server-4.walletbeacon.io'
-  ]
+  [Regions.NORTH_AMERICA_EAST]: ['beacon-node-1.beacon-server-1.papers.tech'],
+  [Regions.NORTH_AMERICA_WEST]: ['beacon-node-1.beacon-server-2.papers.tech'],
+  [Regions.ASIA_EAST]: ['beacon-node-1.beacon-server-3.papers.tech'],
+  [Regions.AUSTRALIA]: ['beacon-node-1.beacon-server-4.papers.tech']
 }
 
 interface BeaconInfoResponse {

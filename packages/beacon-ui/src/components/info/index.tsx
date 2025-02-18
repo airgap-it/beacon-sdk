@@ -1,6 +1,7 @@
 import { Component, For } from 'solid-js'
 import styles from './styles.css'
 import { QRCodeIcon } from '../icons'
+import { AlertButton } from 'src/ui/alert'
 
 interface InfoProps {
   title: string
@@ -10,7 +11,7 @@ interface InfoProps {
   border?: boolean
   iconBadge?: boolean
   bigIcon?: boolean
-  buttons?: { label: string; type: 'primary' | 'secondary'; onClick: () => void }[]
+  buttons?: AlertButton[]
   downloadLink?: { url: string; label: string }
   onShowQRCodeClick?: (() => void) | (() => Promise<void>)
 }
@@ -27,16 +28,17 @@ const Info: Component<InfoProps> = (props: InfoProps) => {
         </div>
       )}
       <h3 class="info-title">{props.title}</h3>
-      {props.description && <div class="info-description" innerHTML={props.description} />}
+      {props.description && <div class="info-description">{props.description}</div>}
       {props.data && <pre class="info-data">{props.data}</pre>}
       <div class="info-buttons">
         <For each={props.buttons}>
           {(button) => (
             <button
+              style={(button as any).style ?? undefined}
               class={button.type !== 'secondary' ? 'info-button' : 'info-button-secondary'}
               onClick={button.onClick}
             >
-              {button.label}
+              {button.label ?? (button as any).text ?? 'Close'}
             </button>
           )}
         </For>
