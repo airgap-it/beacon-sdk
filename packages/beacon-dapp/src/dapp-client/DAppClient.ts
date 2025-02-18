@@ -1341,6 +1341,14 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+
+      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
+        this.storage.set(
+          StorageKey.BEACON_LAST_ERROR,
+          `permissionRequest: ${JSON.stringify(requestError.errorData)}`
+        )
+      }
+
       logger.time(false, logId)
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
@@ -1432,6 +1440,14 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+
+      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
+        this.storage.set(
+          StorageKey.BEACON_LAST_ERROR,
+          `request: ${JSON.stringify(requestError.errorData)}`
+        )
+      }
+
       logger.time(false, logId)
       throw new Error(requestError.errorData)
       // throw await this.handleRequestError(request, requestError)
@@ -1498,6 +1514,13 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+
+      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
+        this.storage.set(
+          StorageKey.BEACON_LAST_ERROR,
+          `requestPermissions: ${JSON.stringify(requestError.errorData)}`
+        )
+      }
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
@@ -1649,6 +1672,13 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+
+      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
+        this.storage.set(
+          StorageKey.BEACON_LAST_ERROR,
+          `requestSimulatedProofOfEventChallenge: ${JSON.stringify(requestError.errorData)}`
+        )
+      }
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
@@ -1743,6 +1773,13 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+
+      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
+        this.storage.set(
+          StorageKey.BEACON_LAST_ERROR,
+          `requestSignPayload: ${JSON.stringify(requestError.errorData)}`
+        )
+      }
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
@@ -1859,6 +1896,13 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+
+      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
+        this.storage.set(
+          StorageKey.BEACON_LAST_ERROR,
+          `requestOperation: ${JSON.stringify(requestError.errorData)}`
+        )
+      }
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
@@ -1919,6 +1963,13 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+
+      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
+        this.storage.set(
+          StorageKey.BEACON_LAST_ERROR,
+          `requestBroadcast: ${JSON.stringify(requestError.errorData)}`
+        )
+      }
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })

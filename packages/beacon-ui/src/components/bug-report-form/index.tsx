@@ -46,7 +46,7 @@ const BugReportForm = (props: any) => {
     const wcKey = Object.keys(localStorage).find((key) => key.includes('wc-init-error'))
     const beaconKey = Object.keys(localStorage).find((key) => key.includes('beacon-last-error'))
 
-    if (!wcKey || !beaconKey) {
+    if (!wcKey && !beaconKey) {
       return ''
     }
 
