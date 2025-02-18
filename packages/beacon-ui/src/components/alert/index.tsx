@@ -11,6 +11,7 @@ export interface AlertProps {
   onCloseClick: () => void
   onClickShowMore?: () => void
   onBackClick?: () => void
+  closeOnBackdropClick: boolean
 }
 
 const Alert: Component<AlertProps> = (props: AlertProps) => {
@@ -30,6 +31,10 @@ const Alert: Component<AlertProps> = (props: AlertProps) => {
     <div
       class={props.open ? 'alert-wrapper-show' : 'alert-wrapper-hide'}
       onClick={() => {
+        if (!props.closeOnBackdropClick) {
+          return
+        }
+        
         props.onCloseClick()
       }}
     >

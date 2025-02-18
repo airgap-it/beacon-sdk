@@ -2,7 +2,6 @@ import { Component, For } from 'solid-js'
 import { MergedWallet } from '../../utils/wallets'
 import Wallet from '../wallet'
 import styles from './styles.css'
-import { StorageKey } from '@airgap/beacon-types'
 
 interface TopWalletsProps {
   wallets: MergedWallet[]
@@ -14,28 +13,16 @@ interface TopWalletsProps {
 }
 
 const TopWallets: Component<TopWalletsProps> = (props: TopWalletsProps) => {
-  const enableBugReport = localStorage ? localStorage.getItem(StorageKey.ENABLE_METRICS) : 'false'
-
   return (
     <div class="top-wallets-wrapper">
       <div class="top-wallets-info">
         <h3>Connect Wallet</h3>
-        {enableBugReport === 'true' && (
-          <span>
-            Do you wish to report a bug?{' '}
-            <span class="top-wallets-learn-more" onClick={() => props.onClickLearnMore()}>
-              Click here
-            </span>
+        <span>
+          Do you wish to report a bug?{' '}
+          <span class="top-wallets-learn-more" onClick={() => props.onClickLearnMore()}>
+            Click here
           </span>
-        )}
-        {enableBugReport !== 'true' && (
-          <span>
-            If you don't have a wallet, you can select a provider and create one now.{' '}
-            <span class="top-wallets-learn-more" onClick={() => props.onClickLearnMore()}>
-              Learn more
-            </span>
-          </span>
-        )}
+        </span>
       </div>
       <div class="top-wallets-wallets-main">
         <For each={props.wallets}>

@@ -245,11 +245,9 @@ export class WalletClient extends Client {
       await transport.connect()
     } catch (err: any) {
       logger.warn('_connect', err.message)
-      if (err.message === 'The account is deactivated.') {
-        await transport.disconnect()
-        await this._connect(--attempts)
-        return
-      }
+      await transport.disconnect()
+      await this._connect(--attempts)
+      return
     }
 
     transport

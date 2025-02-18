@@ -36,6 +36,7 @@ export interface StorageKeyReturnType {
   [StorageKey.ACTIVE_ACCOUNT]: AccountIdentifier | undefined
   [StorageKey.PUSH_TOKENS]: PushToken[]
   [StorageKey.BEACON_SDK_SECRET_SEED]: string | undefined
+  [StorageKey.BEACON_LAST_ERROR]: string | undefined
   [StorageKey.APP_METADATA_LIST]: AppMetadata[]
   [StorageKey.PERMISSION_LIST]: PermissionInfo[]
   [StorageKey.ONGOING_PROOF_OF_EVENT_CHALLENGES]: ({
