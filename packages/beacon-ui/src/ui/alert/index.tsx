@@ -37,7 +37,7 @@ const openBugReport = () => {
       walletConnectSyncCode: '',
       p2pSyncCode: '',
       postmessageSyncCode: '',
-      networkType: NetworkType.GHOSTNET
+      networkType: NetworkType.MAINNET
     }
   })
 }
