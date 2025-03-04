@@ -91,8 +91,7 @@ import {
   StorageValidator,
   SDK_VERSION,
   IndexedDBStorage,
-  MultiTabChannel,
-  BACKEND_URL
+  MultiTabChannel
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -224,7 +223,7 @@ export class DAppClient extends Client {
 
   private readonly storageValidator: StorageValidator
 
-  private readonly beaconIDB = new IndexedDBStorage('beacon', ['bug_report', 'metrics'])
+  private readonly bugReportStorage = new IndexedDBStorage('beacon', 'bug_report')
 
   private debounceSetActiveAccount: boolean = false
 
@@ -307,8 +306,7 @@ export class DAppClient extends Client {
       .catch(async (storageError) => {
         logger.error(storageError)
         await this.resetInvalidState(false)
-        this.events.emit(BeaconEvent.GENERIC_ERROR, storageError.message)
-
+        this.events.emit(BeaconEvent.INVALID_ACCOUNT_DEACTIVATED)
         return undefined
       })
 
@@ -549,7 +547,7 @@ export class DAppClient extends Client {
 
     try {
       for (const key of keys) {
-        await this.beaconIDB.set(key, this.storage.getPrefixedKey(key))
+        await this.bugReportStorage.set(key, await this.storage.get(key))
       }
     } catch (err: any) {
       logger.error('createStateSnapshot', err.message)
@@ -865,17 +863,7 @@ export class DAppClient extends Client {
   private async resetInvalidState(emit: boolean = true) {
     this.accountManager.removeAllAccounts()
     this._activeAccount = ExposedPromise.resolve<AccountInfo | undefined>(undefined)
-
-    Object.values(StorageKey)
-      .filter(
-        (key) =>
-          !key.includes('wc@2') &&
-          !key.includes('secret') &&
-          !key.includes('sdk_version') &&
-          !key.includes('user-id')
-      )
-      .forEach((key) => this.storage.delete(key))
-
+    this.storage.set(StorageKey.ACTIVE_ACCOUNT, undefined)
     emit && this.events.emit(BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE)
     !emit && this.hideUI(['alert'])
     await Promise.all([
@@ -1091,31 +1079,16 @@ export class DAppClient extends Client {
     }
   }
 
-  private async updateMetricsStorage(payload: string) {
-    const queue = await this.beaconIDB.getAllKeys('metrics')
-
-    if (queue.length >= 1000) {
-      const key = queue.shift()!
-      this.beaconIDB.delete(key.toString(), 'metrics')
-    }
-
-    this.beaconIDB.set(String(Date.now()), payload, 'metrics')
-  }
-
   private sendMetrics(
     uri: string,
     options?: RequestInit,
     thenHandler?: (res: Response) => void,
     catchHandler?: (err: Error) => void
   ) {
-    if (!this.enableMetrics && uri === 'performance-metrics/save') {
-      options && this.updateMetricsStorage(options.body as string)
-    }
     if (!this.enableMetrics) {
       return
     }
-
-    fetch(`${BACKEND_URL}/${uri}`, options)
+    fetch(`https://beacon-backend.prod.gke.papers.tech/${uri}`, options)
       .then((res) => thenHandler && thenHandler(res))
       .catch((err: Error) => {
         console.warn('Network error encountered. Metrics sharing have been automatically disabled.')
@@ -1341,14 +1314,6 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-
-      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
-        this.storage.set(
-          StorageKey.BEACON_LAST_ERROR,
-          `permissionRequest: ${JSON.stringify(requestError.errorData)}`
-        )
-      }
-
       logger.time(false, logId)
       throw new Error('TODO')
       // throw await this.handleRequestError(request, requestError)
@@ -1440,14 +1405,6 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-
-      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
-        this.storage.set(
-          StorageKey.BEACON_LAST_ERROR,
-          `request: ${JSON.stringify(requestError.errorData)}`
-        )
-      }
-
       logger.time(false, logId)
       throw new Error(requestError.errorData)
       // throw await this.handleRequestError(request, requestError)
@@ -1514,13 +1471,6 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-
-      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
-        this.storage.set(
-          StorageKey.BEACON_LAST_ERROR,
-          `requestPermissions: ${JSON.stringify(requestError.errorData)}`
-        )
-      }
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
@@ -1672,13 +1622,6 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-
-      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
-        this.storage.set(
-          StorageKey.BEACON_LAST_ERROR,
-          `requestSimulatedProofOfEventChallenge: ${JSON.stringify(requestError.errorData)}`
-        )
-      }
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
@@ -1773,13 +1716,6 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-
-      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
-        this.storage.set(
-          StorageKey.BEACON_LAST_ERROR,
-          `requestSignPayload: ${JSON.stringify(requestError.errorData)}`
-        )
-      }
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
@@ -1896,13 +1832,6 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-
-      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
-        this.storage.set(
-          StorageKey.BEACON_LAST_ERROR,
-          `requestOperation: ${JSON.stringify(requestError.errorData)}`
-        )
-      }
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
@@ -1963,13 +1892,6 @@ export class DAppClient extends Client {
       requestError.errorType === BeaconErrorType.ABORTED_ERROR
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-
-      if (requestError.errorType !== BeaconErrorType.ABORTED_ERROR) {
-        this.storage.set(
-          StorageKey.BEACON_LAST_ERROR,
-          `requestBroadcast: ${JSON.stringify(requestError.errorData)}`
-        )
-      }
       logger.time(false, logId)
       throw await this.handleRequestError(request, requestError)
     })
@@ -2110,7 +2032,7 @@ export class DAppClient extends Client {
           }
         }
 
-        buttons.push({ label: 'Remove account', type: 'primary', onClick: actionCallback })
+        buttons.push({ text: 'Remove account', actionCallback })
       }
 
       const peer = await this.getPeer()
@@ -2454,12 +2376,11 @@ export class DAppClient extends Client {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
         buttons: [
           {
-            label: 'Reset Connection',
-            onClick: async (): Promise<void> => {
+            text: 'Reset Connection',
+            actionCallback: async (): Promise<void> => {
               await closeToast()
               this.disconnect()
-            },
-            type: 'secondary'
+            }
           }
         ]
       })
@@ -2571,12 +2492,11 @@ export class DAppClient extends Client {
         text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
         buttons: [
           {
-            label: 'Reset Connection',
-            onClick: async (): Promise<void> => {
+            text: 'Reset Connection',
+            actionCallback: async (): Promise<void> => {
               await closeToast()
               this.disconnect()
-            },
-            type: 'secondary'
+            }
           }
         ]
       })

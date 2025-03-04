@@ -121,21 +121,29 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
       steps,
       os: currentOS(),
       browser: currentBrowser(),
-      localStorage: JSON.stringify(clean(beaconState)),
-      wcStorage: JSON.stringify(clean(wcState))
+      localStorage: JSON.stringify(beaconState),
+      wcStorage: JSON.stringify(wcState)
     }
 
-    sendRequest(`${BACKEND_URL}/bug-report/save`, 'POST', request)
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(request)
+    }
+
+    fetch('https://beacon-backend.prod.gke.papers.tech/bug-report/save', options)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
         }
         setStatus('success')
         setTimeout(() => setShowThankYou(true), 600)
-        sendMetrics()
-        const [wcKey, beaconKey] = getStorageKeys()
-        wcKey && localStorage.removeItem(wcKey)
-        beaconKey && localStorage.removeItem(beaconKey)
+        return response.json()
+      })
+      .then((data) => {
+        console.log(data)
       })
       .catch((error) => {
         console.error('Error while sending report:', error.message)

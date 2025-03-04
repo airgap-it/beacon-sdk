@@ -190,7 +190,7 @@ const useConnect = (
       })
     )
   }
-  
+
   const handleDeepLinking = (wallet: MergedWallet, uri: string) => {
     localStorage.setItem(
       StorageKey.LAST_SELECTED_WALLET,

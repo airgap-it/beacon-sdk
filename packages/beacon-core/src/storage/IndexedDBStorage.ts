@@ -7,14 +7,9 @@ export class IndexedDBStorage extends Storage {
   private db: IDBDatabase | null = null
   private isSupported: boolean = true
 
-  /**
-   * @param dbName Name of the database.
-   * @param storeNames An array of object store names to create in the database.
-   *                   The first store in the array will be used as the default if none is specified.
-   */
   constructor(
     private readonly dbName: string = 'WALLET_CONNECT_V2_INDEXED_DB',
-    private readonly storeNames: string[] = ['keyvaluestorage']
+    private readonly storeName: string = 'keyvaluestorage'
   ) {
     super()
     this.initDB()
@@ -44,32 +39,23 @@ export class IndexedDBStorage extends Storage {
 
       openRequest.onupgradeneeded = () => {
         const db = openRequest.result
-        // Create all required object stores
-        this.storeNames.forEach((storeName) => {
-          if (!db.objectStoreNames.contains(storeName)) {
-            db.createObjectStore(storeName)
-          }
-        })
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          db.createObjectStore(this.storeName)
+        }
       }
 
       openRequest.onsuccess = (event: any) => {
         const db = event.target.result as IDBDatabase
-        // Check if all stores exist – if not, perform an upgrade.
-        const missingStores = this.storeNames.filter(
-          (storeName) => !db.objectStoreNames.contains(storeName)
-        )
-        if (missingStores.length > 0) {
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          // Close the current connection
           db.close()
+          // Re-open the database with an incremented version number
           const newVersion = db.version + 1
           const upgradeRequest = indexedDB.open(this.dbName, newVersion)
 
           upgradeRequest.onupgradeneeded = () => {
             const upgradedDB = upgradeRequest.result
-            missingStores.forEach((storeName) => {
-              if (!upgradedDB.objectStoreNames.contains(storeName)) {
-                upgradedDB.createObjectStore(storeName)
-              }
-            })
+            upgradedDB.createObjectStore(this.storeName)
           }
 
           upgradeRequest.onsuccess = (event: any) => {
@@ -88,44 +74,28 @@ export class IndexedDBStorage extends Storage {
     })
   }
 
-  /**
-   * Performs a transaction on the given object store.
-   * @param mode Transaction mode.
-   * @param storeName The name of the object store.
-   * @param operation The operation to perform with the object store.
-   */
   private async transaction<T>(
     mode: IDBTransactionMode,
-    storeName: string,
     operation: (store: IDBObjectStore) => Promise<T>
   ): Promise<T> {
     return new Promise((resolve, reject) => {
       if (!this.isSupported) {
         reject('IndexedDB is not supported.')
-        return
       }
 
-      if (!this.db?.objectStoreNames.contains(storeName)) {
-        reject(`${storeName} not found. error: ${new Error().stack}`)
-        return
+      if (!this.db?.objectStoreNames.contains(this.storeName)) {
+        reject(`${this.storeName} not found. error: ${new Error().stack}`)
       }
 
-      const transaction = this.db.transaction(storeName, mode)
-      const objectStore = transaction.objectStore(storeName)
-      operation(objectStore).then(resolve).catch(reject)
+      const transaction = this.db?.transaction(this.storeName, mode)
+      const objectStore = transaction?.objectStore(this.storeName)
+      objectStore && operation(objectStore).then(resolve).catch(reject)
     })
   }
 
-  /**
-   * Retrieves a value by key from the specified object store.
-   * If no store is specified, the default (first in the list) is used.
-   */
-  public get<K extends StorageKey>(key: K, storeName?: string): Promise<StorageKeyReturnType[K]>
-  public get(key: string, storeName?: string): Promise<string | undefined>
-  public get(key: StorageKey | string, storeName: string = this.storeNames[0]): Promise<any> {
+  public get<K extends StorageKey>(key: K): Promise<StorageKeyReturnType[K]> {
     return this.transaction(
       'readonly',
-      storeName,
       (store) =>
         new Promise((resolve, reject) => {
           const getRequest = store.get(key)
@@ -135,23 +105,9 @@ export class IndexedDBStorage extends Storage {
     )
   }
 
-  /**
-   * Stores a key/value pair in the specified object store.
-   */
-  public set<K extends StorageKey>(
-    key: K,
-    value: StorageKeyReturnType[K],
-    storeName?: string
-  ): Promise<void>
-  public set(key: string, value: string, storeName?: string): Promise<void>
-  public set(
-    key: StorageKey | string,
-    value: any,
-    storeName: string = this.storeNames[0]
-  ): Promise<void> {
+  public set<K extends StorageKey>(key: K, value: StorageKeyReturnType[K]): Promise<void> {
     return this.transaction(
       'readwrite',
-      storeName,
       (store) =>
         new Promise((resolve, reject) => {
           const putRequest = store.put(value, key)
@@ -161,15 +117,9 @@ export class IndexedDBStorage extends Storage {
     )
   }
 
-  /**
-   * Deletes an entry by key from the specified object store.
-   */
-  public delete<K extends StorageKey>(key: K, storeName?: string): Promise<void>
-  public delete(key: string, storeName?: string): Promise<void>
-  public delete(key: StorageKey | string, storeName: string = this.storeNames[0]): Promise<void> {
+  public delete<K extends StorageKey>(key: K): Promise<void> {
     return this.transaction(
       'readwrite',
-      storeName,
       (store) =>
         new Promise((resolve, reject) => {
           const deleteRequest = store.delete(key)
@@ -179,13 +129,9 @@ export class IndexedDBStorage extends Storage {
     )
   }
 
-  /**
-   * Retrieves all values from the specified object store.
-   */
-  public getAll(storeName?: string): Promise<string[]> {
+  public getAll(): Promise<string[]> {
     return this.transaction(
       'readonly',
-      storeName || this.storeNames[0],
       (store) =>
         new Promise((resolve, reject) => {
           const getAllRequest = store.getAll()
@@ -195,13 +141,9 @@ export class IndexedDBStorage extends Storage {
     )
   }
 
-  /**
-   * Retrieves all keys from the specified object store.
-   */
-  public getAllKeys(storeName?: string): Promise<IDBValidKey[]> {
+  public getAllKeys(): Promise<IDBValidKey[]> {
     return this.transaction(
       'readonly',
-      storeName || this.storeNames[0],
       (store) =>
         new Promise((resolve, reject) => {
           const getAllKeysRequest = store.getAllKeys()
@@ -211,13 +153,9 @@ export class IndexedDBStorage extends Storage {
     )
   }
 
-  /**
-   * Clears all entries from the specified object store.
-   */
-  public clearStore(storeName?: string): Promise<void> {
+  public clearStore(): Promise<void> {
     return this.transaction(
       'readwrite',
-      storeName || this.storeNames[0],
       (store) =>
         new Promise((resolve, reject) => {
           const clearRequest = store.clear()
@@ -240,22 +178,20 @@ export class IndexedDBStorage extends Storage {
       newValue: string | null
     }) => {}
   ): Promise<void> {
-    logger.debug('subscribeToStorageEvent', callback)
+    logger.debug('subscriveToStorageEvent', callback)
     throw new Error('Method not implemented.')
   }
 
   /**
-   * Copies all key/value pairs from the source store into a target store.
-   * @param targetDBName Name of the target database.
-   * @param targetStoreName Name of the target object store.
-   * @param skipKeys Keys to skip.
-   * @param sourceStoreName (Optional) Source store name – defaults to the default store.
+   * it copies over all key value pairs from a source store into a target one
+   * @param targetDBName the name of the target DB
+   * @param targetStoreName the name of the target store
+   * @param skipKeys all the keys to ignore
    */
   public async fillStore(
     targetDBName: string,
     targetStoreName: string,
-    skipKeys: string[] = [],
-    sourceStoreName: string = this.storeNames[0]
+    skipKeys: string[] = []
   ): Promise<void> {
     if (!this.isSupported) {
       logger.error('fillStore', 'IndexedDB not supported.')
@@ -273,8 +209,8 @@ export class IndexedDBStorage extends Storage {
       targetDBRequest.onerror = (event: any) => reject(event.target.error)
     })
 
-    // Copy items from the source store to the target store, skipping any specified keys.
-    await this.transaction('readonly', sourceStoreName, async (sourceStore) => {
+    // Copy all items from the source store to the target store, skipping specified keys
+    await this.transaction('readonly', async (sourceStore) => {
       const getAllRequest = sourceStore.getAll()
       const getAllKeysRequest = sourceStore.getAllKeys()
 
@@ -284,7 +220,7 @@ export class IndexedDBStorage extends Storage {
           const keys = getAllKeysRequest.result
 
           if (!targetDB.objectStoreNames.contains(targetStoreName)) {
-            logger.error(`${targetStoreName} not found. ${new Error().stack}`)
+            logger.error(`${this.storeName} not found. ${new Error().stack}`)
             return
           }
 
