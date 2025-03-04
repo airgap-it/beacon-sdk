@@ -54,7 +54,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
           to the Beacon team{' '}
           <span
             style={{ textDecoration: 'underline', color: '#007bff', cursor: 'pointer' }}
-            onClick={() => handleUpdateState('help')}
+            onClick={() => handleUpdateState('bug-report')}
           >
             here
           </span>
@@ -120,7 +120,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
         state === 'install' ||
         state === 'qr' ||
         (state === 'wallets' && isMobile) ||
-        state === 'help'
+        state === 'bug-report'
           ? () => handleUpdateState('top-wallets')
           : undefined
       }
@@ -337,7 +337,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
         </div>
         <div
           style={
-            state === 'help'
+            state === 'bug-report'
               ? {
                   opacity: 1,
                   height: 'unset',
@@ -364,7 +364,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
         </div>
         <div
           style={
-            state !== 'install' && state !== 'qr' && state !== 'wallets' && state !== 'help'
+            state !== 'install' && state !== 'qr' && state !== 'wallets' && state !== 'bug-report'
               ? {
                   opacity: 1,
                   height: 'unset',
@@ -385,7 +385,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
             wallets={isMobile ? walletList.slice(0, 3) : walletList.slice(0, 4)}
             isMobile={isMobile}
             onClickWallet={(id) => handleClickWallet(id, props)}
-            onClickLearnMore={() => handleUpdateState('help')}
+            onClickLearnMore={() => handleUpdateState('bug-report')}
             otherWallets={
               isMobile
                 ? {

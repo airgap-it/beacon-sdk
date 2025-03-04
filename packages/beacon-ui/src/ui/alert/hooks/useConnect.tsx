@@ -21,7 +21,7 @@ const useConnect = (
   const [wallet, setWallet] = useState<MergedWallet>()
   const [isLoading, setIsLoading] = useState(false)
   const [qrCode, setQRCode] = useState<string>()
-  const [state, setState] = useState<'top-wallets' | 'wallets' | 'install' | 'help' | 'qr'>(
+  const [state, setState] = useState<'top-wallets' | 'wallets' | 'install' | 'bug-report' | 'qr'>(
     'top-wallets'
   )
   const [displayQRExtra, setDisplayQRExtra] = useState(false)
@@ -308,7 +308,7 @@ const useConnect = (
     window.open(wallet?.links[OSLink.DESKTOP] || '', '_blank', 'noopener')
   }
 
-  const handleUpdateState = (newState: 'top-wallets' | 'wallets' | 'install' | 'help' | 'qr') =>
+  const handleUpdateState = (newState: 'top-wallets' | 'wallets' | 'install' | 'bug-report' | 'qr') =>
     setState(newState)
 
   const handleUpdateQRCode = (uri: string) => setQRCode(uri)
