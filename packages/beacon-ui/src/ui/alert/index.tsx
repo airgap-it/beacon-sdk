@@ -5,6 +5,7 @@ import { AlertConfig, ConfigurableAlertProps } from '../common'
 import PairingAlert from './components/pairing-alert'
 import InfoAlert from './components/info-alert'
 import { getColorMode } from 'src/utils/colorMode'
+import { NetworkType } from '@airgap/beacon-types'
 
 let initDone: boolean = false
 const show$ = new Subject<boolean>()
@@ -24,6 +25,21 @@ const openAlert = (config: AlertConfig) => {
     createAlert(config)
   }
   show$.next(true)
+}
+
+const openBugReport = () => {
+  openAlert({
+    title: '',
+    body: '',
+    buttons: [],
+    openBugReport: true,
+    pairingPayload: {
+      walletConnectSyncCode: '',
+      p2pSyncCode: '',
+      postmessageSyncCode: '',
+      networkType: NetworkType.GHOSTNET
+    }
+  })
 }
 
 const closeAlert = () => {
@@ -72,7 +88,7 @@ const AlertRoot = (props: AlertConfig) => {
   }
 
   const Alert = () => {
-    return config.pairingPayload ? (
+    return config.pairingPayload || config.openBugReport ? (
       <PairingAlert {...filteredProps} />
     ) : (
       <InfoAlert {...filteredProps} />
@@ -82,4 +98,4 @@ const AlertRoot = (props: AlertConfig) => {
   return <div className={`theme__${getColorMode()}`}>{mount && <Alert />} </div>
 }
 
-export { openAlert, closeAlert, closeAlerts }
+export { openAlert, openBugReport, closeAlert, closeAlerts }

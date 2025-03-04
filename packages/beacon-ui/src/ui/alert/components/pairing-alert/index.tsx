@@ -11,6 +11,7 @@ import QR from '../../../../components/qr'
 import useWallets from '../../hooks/useWallets'
 import { ConfigurableAlertProps } from '../../../common'
 import useIsMobile from '../../hooks/useIsMobile'
+import { useEffect } from 'react'
 
 const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const {
@@ -43,6 +44,13 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
+
+  useEffect(() => {
+    if (state === 'bug-report') {
+      return
+    }
+    handleUpdateState('bug-report')
+  }, [props.openBugReport])
 
   const generateWCError = (title: string) => {
     const errorMessage = localStorage ? localStorage.getItem(StorageKey.WC_INIT_ERROR) : undefined

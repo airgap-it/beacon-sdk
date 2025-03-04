@@ -1,4 +1,4 @@
-export { openAlert, closeAlert, closeAlerts } from './ui/alert'
+export { openAlert, openBugReport, closeAlert, closeAlerts } from './ui/alert'
 export type { AlertButton, AlertConfig, ToastAction } from './ui/common'
 
 export {

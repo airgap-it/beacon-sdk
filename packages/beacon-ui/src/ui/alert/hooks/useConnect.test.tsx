@@ -657,9 +657,9 @@ describe('useConnect hook', () => {
 
     // handleUpdateState is at index 15.
     act(() => {
-      result.current[15]('help')
+      result.current[15]('bug-report')
     })
-    expect(result.current[3]).toBe('help')
+    expect(result.current[3]).toBe('bug-report')
 
     // handleUpdateQRCode is at index 16.
     act(() => {
