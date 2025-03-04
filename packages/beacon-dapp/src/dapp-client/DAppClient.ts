@@ -91,7 +91,8 @@ import {
   StorageValidator,
   SDK_VERSION,
   IndexedDBStorage,
-  MultiTabChannel
+  MultiTabChannel,
+  BACKEND_URL
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -223,7 +224,7 @@ export class DAppClient extends Client {
 
   private readonly storageValidator: StorageValidator
 
-  private readonly bugReportStorage = new IndexedDBStorage('beacon', 'bug_report')
+  private readonly beaconIDB = new IndexedDBStorage('beacon', ['bug_report', 'metrics'])
 
   private debounceSetActiveAccount: boolean = false
 
@@ -547,7 +548,7 @@ export class DAppClient extends Client {
 
     try {
       for (const key of keys) {
-        await this.bugReportStorage.set(key, await this.storage.get(key))
+        await this.beaconIDB.set(key, this.storage.getPrefixedKey(key))
       }
     } catch (err: any) {
       logger.error('createStateSnapshot', err.message)
@@ -1079,16 +1080,31 @@ export class DAppClient extends Client {
     }
   }
 
+  private async updateMetricsStorage(payload: string) {
+    const queue = await this.beaconIDB.getAllKeys('metrics')
+
+    if (queue.length >= 1000) {
+      const key = queue.shift()!
+      this.beaconIDB.delete(key.toString(), 'metrics')
+    }
+
+    this.beaconIDB.set(String(Date.now()), payload, 'metrics')
+  }
+
   private sendMetrics(
     uri: string,
     options?: RequestInit,
     thenHandler?: (res: Response) => void,
     catchHandler?: (err: Error) => void
   ) {
+    if (!this.enableMetrics && uri === 'performance-metrics/save') {
+      options && this.updateMetricsStorage(options.body as string)
+    }
     if (!this.enableMetrics) {
       return
     }
-    fetch(`https://beacon-backend.prod.gke.papers.tech/${uri}`, options)
+
+    fetch(`${BACKEND_URL}/${uri}`, options)
       .then((res) => thenHandler && thenHandler(res))
       .catch((err: Error) => {
         console.warn('Network error encountered. Metrics sharing have been automatically disabled.')

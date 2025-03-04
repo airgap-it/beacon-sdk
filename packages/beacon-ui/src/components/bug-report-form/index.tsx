@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { IndexedDBStorage, Logger, SDK_VERSION } from '@airgap/beacon-core'
+import { BACKEND_URL, IndexedDBStorage, Logger, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
 import { currentBrowser, currentOS } from '../../utils/platform'
 import './styles.css'
@@ -37,7 +37,7 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
   const [didUserAllow, setDidUserAllow] = useState(false)
   const [status, setStatus] = useState<'success' | 'error' | null>(null)
   const [showThankYou, setShowThankYou] = useState(false)
-  const db = new IndexedDBStorage('beacon', 'bug_report')
+  const db = new IndexedDBStorage('beacon', ['bug_report', 'metrics'])
 
   const isTitleValid = () => {
     const check = title.trim().length > 10
@@ -102,6 +102,52 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
     setFormValid(titleValid && descriptionValid && stepsValid && userAllow)
   }, [title, description, steps, didUserAllow])
 
+  const sendRequest = (
+    url: string,
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+    body: any
+  ) => {
+    const options = {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }
+
+    return fetch(url, method === 'GET' ? undefined : options)
+  }
+
+  const sendMetrics = async () => {
+    const metrics = await db.getAll('metrics')
+
+    if (!metrics || metrics.length === 0) {
+      return
+    }
+
+    const payload = metrics.map((metric) => JSON.parse(metric))
+
+    sendRequest(`${BACKEND_URL}/performance-metrics/saveAll`, 'POST', payload)
+      .then(() => {
+        db.clearStore('metrics')
+      })
+      .catch((error) => {
+        console.error('Error while sending metrics:', error.message)
+        setStatus('error')
+      })
+  }
+
+  const getStorageKeys = () => {
+    if (!localStorage) {
+      return []
+    }
+
+    const wcKey = Object.keys(localStorage).find((key) => key.includes('wc-init-error'))
+    const beaconKey = Object.keys(localStorage).find((key) => key.includes('beacon-last-error'))
+
+    return [wcKey, beaconKey] as const
+  }
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setStatus(null)
@@ -125,25 +171,17 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
       wcStorage: JSON.stringify(wcState)
     }
 
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(request)
-    }
-
-    fetch('https://beacon-backend.prod.gke.papers.tech/bug-report/save', options)
+    sendRequest(`${BACKEND_URL}/bug-report/save`, 'POST', request)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok')
         }
         setStatus('success')
         setTimeout(() => setShowThankYou(true), 600)
-        return response.json()
-      })
-      .then((data) => {
-        console.log(data)
+        sendMetrics()
+        const [wcKey, beaconKey] = getStorageKeys()
+        wcKey && localStorage.removeItem(wcKey)
+        beaconKey && localStorage.removeItem(beaconKey)
       })
       .catch((error) => {
         console.error('Error while sending report:', error.message)
