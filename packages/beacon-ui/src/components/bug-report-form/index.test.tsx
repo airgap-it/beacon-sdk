@@ -6,20 +6,21 @@ jest.mock('@airgap/beacon-core', () => {
   return {
     IndexedDBStorage: jest.fn().mockImplementation(() => ({
       getAllKeys: jest.fn().mockResolvedValue([]),
-      getAll: jest.fn().mockResolvedValue([]),
+      getAll: jest.fn().mockResolvedValue([])
     })),
     Logger: jest.fn().mockImplementation(() => ({
-      error: jest.fn(),
+      error: jest.fn()
     })),
     // we cannot refer to the actual `SDK_VERSION` because
     // `jest.mock()` is not allowed to reference any out-of-scope variables.
-    SDK_VERSION: '4.5.0'
+    SDK_VERSION: '4.5.0',
+    BACKEND_URL: 'https://beacon-backend.prod.gke.papers.tech'
   }
 })
 
 jest.mock('../../utils/platform', () => ({
   currentBrowser: jest.fn(() => 'TestBrowser'),
-  currentOS: jest.fn(() => 'TestOS'),
+  currentOS: jest.fn(() => 'TestOS')
 }))
 
 // Optionally, suppress expected console messages during tests
@@ -44,14 +45,12 @@ const fillValidForm = () => {
   })
   fireEvent.change(descriptionTextarea, {
     target: {
-      value:
-        'This is a valid description that is definitely more than thirty characters long.'
+      value: 'This is a valid description that is definitely more than thirty characters long.'
     }
   })
   fireEvent.change(stepsTextarea, {
     target: {
-      value:
-        'These steps are valid because they have enough detail to exceed thirty characters.'
+      value: 'These steps are valid because they have enough detail to exceed thirty characters.'
     }
   })
   fireEvent.click(checkbox)
