@@ -12,7 +12,7 @@ const show$ = new Subject<boolean>()
 const config$ = new Subject<AlertConfig>()
 
 const createAlert = (config: AlertConfig) => {
-  const el = document.createElement('beacon-modal')
+  const el = document.createElement('beacon-alert')
   document.body.prepend(el)
   setTimeout(() => createRoot(el).render(<AlertRoot {...config} />), 50)
   initDone = true
