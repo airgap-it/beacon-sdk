@@ -33,7 +33,7 @@ export default [
         include: ['src/**/*'],
         presets: [['@babel/preset-react', { runtime: 'automatic' }]]
       }),
-      terser()
+      // terser()
     ]
   },
   {
@@ -67,7 +67,7 @@ export default [
         include: ['src/**/*'],
         presets: [['@babel/preset-react', { runtime: 'automatic' }]]
       }),
-      terser()
+      // terser()
     ]
   }
 ]
