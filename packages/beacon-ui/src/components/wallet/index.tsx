@@ -4,7 +4,10 @@ import { WalletProps } from 'src/ui/common'
 
 const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
   return (
-    <div className={props.disabled ? 'wallet-disabled' : ''}>
+    <div
+      style={{ pointerEvents: props.disabled ? 'none' : 'auto' }}
+      className={props.disabled ? 'wallet-disabled' : ''}
+    >
       {!props.small && (
         <div
           className={`wallet-main ${props.mobile ? 'wallet-main-mobile' : ''}`}

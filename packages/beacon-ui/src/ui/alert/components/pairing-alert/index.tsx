@@ -11,14 +11,12 @@ import QR from '../../../../components/qr'
 import useWallets from '../../hooks/useWallets'
 import { ConfigurableAlertProps } from '../../../common'
 import useIsMobile from '../../hooks/useIsMobile'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
-  const {
-    walletConnectSyncCode: wcPayload,
-    p2pSyncCode: p2pPayload,
-    postmessageSyncCode: postPayload
-  } = props.pairingPayload!
+  const [wcPayload, setWCPayload] = useState('')
+  const [p2pPayload, setP2pPayload] = useState('')
+  const [postPayload, setPostPayload] = useState('')
   const isMobile = useIsMobile()
   const wallets = useWallets(props.pairingPayload?.networkType, props.featuredWallets)
   const [
@@ -40,10 +38,26 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     handleUpdateState,
     handleUpdateQRCode,
     handleShowMoreContent,
-    handleDisplayQRExtra
+    handleDisplayQRExtra,
+    handleIsLoading
   ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
+
+  useEffect(() => {
+    const init = async () => {
+      const [wcPayload, p2pPayload, postPayload] = await Promise.all([
+        props.pairingPayload!.walletConnectSyncCode(),
+        props.pairingPayload!.p2pSyncCode(),
+        props.pairingPayload!.postmessageSyncCode()
+      ])
+      setWCPayload(wcPayload)
+      setP2pPayload(p2pPayload)
+      setPostPayload(postPayload)
+      handleIsLoading(false)
+    }
+    init()
+  }, [])
 
   useEffect(() => {
     if (!props.openBugReport || state === 'bug-report') {
@@ -107,6 +121,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
         state !== 'top-wallets' || isMobile ? undefined : (
           <Wallets
             small
+            disabled={isLoading}
             wallets={walletList.slice(-(walletList.length - 4))}
             isMobile={isMobile}
             onClickWallet={(id) => handleClickWallet(id, props)}
@@ -385,6 +400,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
             isMobile={isMobile}
             onClickWallet={(id) => handleClickWallet(id, props)}
             onClickLearnMore={() => handleUpdateState('bug-report')}
+            disabled={isLoading}
             otherWallets={
               isMobile
                 ? {

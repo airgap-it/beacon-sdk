@@ -19,7 +19,7 @@ const useConnect = (
   onCloseHandler: Function
 ) => {
   const [wallet, setWallet] = useState<MergedWallet>()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [qrCode, setQRCode] = useState<string>()
   const [state, setState] = useState<'top-wallets' | 'wallets' | 'install' | 'bug-report' | 'qr'>(
     'top-wallets'
@@ -314,6 +314,8 @@ const useConnect = (
 
   const handleDisplayQRExtra = (show: boolean) => setDisplayQRExtra(show)
 
+  const handleIsLoading = (isLoading: boolean) => setIsLoading(isLoading)
+
   return [
     wallet,
     isLoading,
@@ -333,7 +335,8 @@ const useConnect = (
     handleUpdateState,
     handleUpdateQRCode,
     handleShowMoreContent,
-    handleDisplayQRExtra
+    handleDisplayQRExtra,
+    handleIsLoading
   ] as const
 }
 

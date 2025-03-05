@@ -28,15 +28,16 @@ const openAlert = (config: AlertConfig) => {
 }
 
 const openBugReport = () => {
+  const stub = () => Promise.resolve('')
   openAlert({
     title: '',
     body: '',
     buttons: [],
     openBugReport: true,
     pairingPayload: {
-      walletConnectSyncCode: '',
-      p2pSyncCode: '',
-      postmessageSyncCode: '',
+      walletConnectSyncCode: stub,
+      p2pSyncCode: stub,
+      postmessageSyncCode: stub,
       networkType: NetworkType.MAINNET
     }
   })

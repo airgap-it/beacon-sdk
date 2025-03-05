@@ -819,14 +819,22 @@ export class DAppClient extends Client {
             this._initPromise = undefined
           }
 
-          await p2pTransport.connect()
-
           const serializer = new Serializer()
-          const p2pPeerInfo = await serializer.serialize(await p2pTransport.getPairingRequestInfo())
-          const walletConnectPeerInfo = (await walletConnectTransport.getPairingRequestInfo()).uri
-          const postmessagePeerInfo = await serializer.serialize(
-            await postMessageTransport.getPairingRequestInfo()
-          )
+          const p2pPeerInfo = async () => {
+            try {
+              await p2pTransport.connect()
+            } catch (err: any) {
+              logger.error(err)
+              await this.hideUI(['alert']) // hide pairing alert
+              setTimeout(() => this.events.emit(BeaconEvent.GENERIC_ERROR, err.message), 1000)
+              abortHandler()
+            }
+            return await serializer.serialize(await p2pTransport.getPairingRequestInfo())
+          }
+          const walletConnectPeerInfo = async () =>
+            (await walletConnectTransport.getPairingRequestInfo()).uri
+          const postmessagePeerInfo = async () =>
+            await serializer.serialize(await postMessageTransport.getPairingRequestInfo())
 
           this.events
             .emit(BeaconEvent.PAIR_INIT, {
@@ -2393,8 +2401,8 @@ export class DAppClient extends Client {
         buttons: [
           {
             text: 'Reset Connection',
-            actionCallback: async (): Promise<void> => {
-              await closeToast()
+            actionCallback: async () => {
+              closeToast()
               this.disconnect()
             }
           }
@@ -2509,8 +2517,8 @@ export class DAppClient extends Client {
         buttons: [
           {
             text: 'Reset Connection',
-            actionCallback: async (): Promise<void> => {
-              await closeToast()
+            actionCallback: async () => {
+              closeToast()
               this.disconnect()
             }
           }
