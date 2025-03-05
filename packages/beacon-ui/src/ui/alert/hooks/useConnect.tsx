@@ -138,11 +138,7 @@ const useConnect = (
     localStorage.setItem(StorageKey.LAST_SELECTED_WALLET, JSON.stringify(wallet))
   }
 
-  const handleNewTab = async (config: AlertConfig, wallet?: MergedWallet) => {
-    if (!wallet) {
-      return
-    }
-
+  const handleNewTab = async (config: AlertConfig, wallet: MergedWallet) => {
     if (!config.pairingPayload) {
       return
     }
@@ -308,8 +304,9 @@ const useConnect = (
     window.open(wallet?.links[OSLink.DESKTOP] || '', '_blank', 'noopener')
   }
 
-  const handleUpdateState = (newState: 'top-wallets' | 'wallets' | 'install' | 'bug-report' | 'qr') =>
-    setState(newState)
+  const handleUpdateState = (
+    newState: 'top-wallets' | 'wallets' | 'install' | 'bug-report' | 'qr'
+  ) => setState(newState)
 
   const handleUpdateQRCode = (uri: string) => setQRCode(uri)
 

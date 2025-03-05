@@ -46,7 +46,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const walletList = Array.from(wallets.values())
 
   useEffect(() => {
-    if (state === 'bug-report') {
+    if (!props.openBugReport || state === 'bug-report') {
       return
     }
     handleUpdateState('bug-report')
@@ -74,15 +74,6 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   }
 
   const QRCode = ({ isMobile }: any) => {
-    localStorage.setItem(
-      StorageKey.LAST_SELECTED_WALLET,
-      JSON.stringify({
-        key: wallet?.key,
-        name: wallet?.name,
-        type: 'mobile',
-        icon: wallet?.image
-      })
-    )
     const isConnected =
       !wallet?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking
     return (
