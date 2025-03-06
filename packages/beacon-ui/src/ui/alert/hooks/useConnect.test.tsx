@@ -4,6 +4,7 @@ import { StorageKey, ExtensionMessageTarget, NetworkType } from '@airgap/beacon-
 import { windowRef } from '@airgap/beacon-core'
 import getDefaultLogo from '../getDefautlLogo'
 import { OSLink } from '../../../utils/wallets'
+import { AlertState } from '../../../ui/common'
 
 // --- Mocks --- //
 jest.mock('../../../utils/get-tzip10-link', () => ({
@@ -657,9 +658,9 @@ describe('useConnect hook', () => {
 
     // handleUpdateState is at index 15.
     act(() => {
-      result.current[15]('bug-report')
+      result.current[15](AlertState.BUG_REPORT)
     })
-    expect(result.current[3]).toBe('bug-report')
+    expect(result.current[3]).toBe(AlertState.BUG_REPORT)
 
     // handleUpdateQRCode is at index 16.
     act(() => {
