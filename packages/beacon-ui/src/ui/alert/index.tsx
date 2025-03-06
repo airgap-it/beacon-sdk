@@ -19,16 +19,12 @@ const createAlert = (config: AlertConfig) => {
 }
 
 const openAlert = (config: AlertConfig) => {
-  if (initDone) {
-    config$.next(config)
-  } else {
-    createAlert(config)
-  }
+  initDone ? config$.next(config) : createAlert(config)
   show$.next(true)
 }
 
 const openBugReport = () => {
-  const stub = () => Promise.resolve('')
+  const stub = Promise.resolve('')
   openAlert({
     title: '',
     body: '',
@@ -67,14 +63,10 @@ const AlertRoot = (props: AlertConfig) => {
   }, [])
 
   useEffect(() => {
-    if (isOpen) {
-      setMount(true)
-    } else {
-      // we need to wait a little before unmounting the component
-      // because otherwise the "fade-out" animation
-      // won't have enough time to play
-      setTimeout(() => setMount(false), 300)
-    }
+    // we need to wait a little before unmounting the component
+    // because otherwise the "fade-out" animation
+    // won't have enough time to play
+    isOpen ? setMount(true) : setTimeout(() => setMount(false), 300)
   }, [isOpen])
 
   const onCloseHandler = () => {

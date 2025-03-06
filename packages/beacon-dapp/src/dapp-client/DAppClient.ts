@@ -820,7 +820,7 @@ export class DAppClient extends Client {
           }
 
           const serializer = new Serializer()
-          const p2pPeerInfo = async () => {
+          const p2pPeerInfo = new Promise<string>(async (resolve) => {
             try {
               await p2pTransport.connect()
             } catch (err: any) {
@@ -828,13 +828,19 @@ export class DAppClient extends Client {
               await this.hideUI(['alert']) // hide pairing alert
               setTimeout(() => this.events.emit(BeaconEvent.GENERIC_ERROR, err.message), 1000)
               abortHandler()
+              resolve('')
+              return
             }
-            return await serializer.serialize(await p2pTransport.getPairingRequestInfo())
-          }
-          const walletConnectPeerInfo = async () =>
-            (await walletConnectTransport.getPairingRequestInfo()).uri
-          const postmessagePeerInfo = async () =>
-            await serializer.serialize(await postMessageTransport.getPairingRequestInfo())
+            resolve(await serializer.serialize(await p2pTransport.getPairingRequestInfo()))
+          })
+
+          const walletConnectPeerInfo = new Promise<string>(async (resolve) => {
+            resolve((await walletConnectTransport.getPairingRequestInfo()).uri)
+          })
+
+          const postmessagePeerInfo = new Promise<string>(async (resolve) => {
+            resolve(await serializer.serialize(await postMessageTransport.getPairingRequestInfo()))
+          })
 
           this.events
             .emit(BeaconEvent.PAIR_INIT, {

@@ -202,9 +202,9 @@ export interface BeaconEventType {
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
   [BeaconEvent.PAIR_INIT]: {
-    p2pPeerInfo: () => Promise<string>
-    postmessagePeerInfo: () => Promise<string>
-    walletConnectPeerInfo: () => Promise<string>
+    p2pPeerInfo: Promise<string>
+    postmessagePeerInfo: Promise<string>
+    walletConnectPeerInfo: Promise<string>
     networkType: NetworkType
     abortedHandler?(): void
     disclaimerText?: string

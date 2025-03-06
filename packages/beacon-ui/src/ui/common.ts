@@ -47,9 +47,9 @@ export interface AlertProps {
 }
 
 export interface PairingPayload {
-  p2pSyncCode: () => Promise<string>
-  postmessageSyncCode: () => Promise<string>
-  walletConnectSyncCode: () => Promise<string>
+  p2pSyncCode: Promise<string>
+  postmessageSyncCode: Promise<string>
+  walletConnectSyncCode: Promise<string>
   networkType: NetworkType
 }
 

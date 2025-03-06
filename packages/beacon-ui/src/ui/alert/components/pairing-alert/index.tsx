@@ -48,9 +48,9 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   useEffect(() => {
     const init = async () => {
       const [wcPayload, p2pPayload, postPayload] = await Promise.all([
-        props.pairingPayload!.walletConnectSyncCode(),
-        props.pairingPayload!.p2pSyncCode(),
-        props.pairingPayload!.postmessageSyncCode()
+        props.pairingPayload!.walletConnectSyncCode,
+        props.pairingPayload!.p2pSyncCode,
+        props.pairingPayload!.postmessageSyncCode
       ])
       setWCPayload(wcPayload)
       setP2pPayload(p2pPayload)

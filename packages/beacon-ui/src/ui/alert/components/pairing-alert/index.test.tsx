@@ -94,9 +94,9 @@ jest.mock('../../../../utils/platform', () => ({
 
 // --- Test Data ---
 const pairingPayload = {
-  walletConnectSyncCode: () => Promise.resolve('wcCode'),
-  p2pSyncCode: () => Promise.resolve('p2pCode'),
-  postmessageSyncCode: () => Promise.resolve('postCode'),
+  walletConnectSyncCode: Promise.resolve('wcCode'),
+  p2pSyncCode: Promise.resolve('p2pCode'),
+  postmessageSyncCode: Promise.resolve('postCode'),
   networkType: NetworkType.GHOSTNET
 }
 
@@ -492,7 +492,7 @@ describe('PairingAlert Component', () => {
       // Set walletConnectSyncCode to empty so that syncCode becomes empty
       const newPairingPayload = {
         ...pairingPayload,
-        walletConnectSyncCode: () => Promise.resolve('')
+        walletConnectSyncCode: Promise.resolve('')
       }
       await renderPairingAlert({
         ...defaultProps,

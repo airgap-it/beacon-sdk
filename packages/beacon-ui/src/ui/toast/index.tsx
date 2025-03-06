@@ -7,6 +7,7 @@ import { ToastConfig } from '../common'
 let initDone: boolean = false
 const config$ = new Subject<ToastConfig | undefined>()
 const show$ = new Subject<boolean>()
+let lastTimer: NodeJS.Timeout | undefined
 
 const createToast = (config: ToastConfig) => {
   const el = document.createElement('beacon-toast')
@@ -16,17 +17,10 @@ const createToast = (config: ToastConfig) => {
 }
 
 const openToast = (config: ToastConfig) => {
-  if (initDone) {
-    config$.next(config)
-  } else {
-    createToast(config)
-  }
-
-  if (config.state !== 'finished') {
-    show$.next(true)
-  } else {
-    config.timer && setTimeout(() => show$.next(false), config.timer)
-  }
+  initDone ? config$.next(config) : createToast(config)
+  lastTimer && clearTimeout(lastTimer)
+  lastTimer = config.timer ? setTimeout(() => show$.next(false), config.timer) : undefined
+  config.state !== 'finished' && show$.next(true)
 }
 
 const closeToast = () => {
