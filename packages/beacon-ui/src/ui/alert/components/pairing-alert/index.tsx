@@ -6,12 +6,12 @@ import PairOther from '../../../../components/pair-other'
 import TopWallets from '../../../../components/top-wallets'
 import Wallets from '../../../../components/wallets'
 import { isIOS, isMobileOS } from '../../../../utils/platform'
-import QR from '../../../../components/qr'
 import useWallets from '../../hooks/useWallets'
 import { ConfigurableAlertProps } from '../../../common'
 import useIsMobile from '../../hooks/useIsMobile'
 import { useEffect, useState } from 'react'
 import WCInitError from './components/wc-init-error'
+import QRCode from './components/qr-code'
 
 const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const [wcPayload, setWCPayload] = useState('')
@@ -64,6 +64,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     if (!props.openBugReport || state === 'bug-report') {
       return
     }
+    
     handleUpdateState('bug-report')
   }, [props.openBugReport])
 
@@ -75,31 +76,15 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     setIsPairingExpired(true)
   }, [state, props.open])
 
-  const QRCode = ({ isMobile }: any) => {
-    const isConnected =
-      !wallet?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking
-    return (
-      <>
-        {isConnected ? (
-          <QR
-            isWalletConnect={
-              wallet?.supportedInteractionStandards?.includes('wallet_connect') || false
-            }
-            isMobile={isMobile}
-            walletName={wallet?.name || 'AirGap'}
-            code={qrCode ?? ''}
-            onClickLearnMore={() => {}}
-            onClickQrCode={() => {}}
-          />
-        ) : (
-          <WCInitError
-            title={`Connect with ${wallet?.name} Mobile`}
-            handleUpdateState={handleUpdateState}
-          />
-        )}
-      </>
-    )
-  }
+  const QR: React.FC<{ isMobile: boolean }> = ({ isMobile }) => (
+    <QRCode
+      wallet={wallet}
+      isWCWorking={isWCWorking}
+      isMobile={isMobile}
+      qrCode={qrCode}
+      handleUpdateState={handleUpdateState}
+    />
+  )
 
   return (
     <Alert
@@ -234,11 +219,11 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
             {!isMobileOS(window) &&
               (qrCode?.length ?? 0) &&
               wallet?.types.includes('ios') &&
-              (wallet?.types.length as number) > 1 && <QRCode isMobile={false} />}
+              (wallet?.types.length as number) > 1 && <QR isMobile={false} />}
             {!isMobileOS(window) &&
               (qrCode?.length ?? 0) &&
               wallet?.types.includes('ios') &&
-              (wallet?.types.length as number) <= 1 && <QRCode isMobile={true} />}
+              (wallet?.types.length as number) <= 1 && <QR isMobile={true} />}
             {isMobileOS(window) &&
               wallet?.types.includes('ios') &&
               (!wallet?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking ? (
@@ -250,7 +235,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                     {
                       label: 'Use App',
                       type: 'primary',
-                      onClick: async () => {
+                      onClick: () => {
                         if (!wallet) {
                           return
                         }
@@ -271,7 +256,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                         }
                       : undefined
                   }
-                  onShowQRCodeClick={async () => {
+                  onShowQRCodeClick={() => {
                     const syncCode = wallet?.supportedInteractionStandards?.includes(
                       'wallet_connect'
                     )
@@ -322,7 +307,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                 wcPayload={wcPayload}
               ></PairOther>
             ) : (
-              <QRCode isMobile={true} />
+              <QR isMobile={true} />
             )}
           </div>
         )}

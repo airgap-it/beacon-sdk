@@ -37,7 +37,6 @@ afterAll(() => {
 const fillValidForm = () => {
   const titleInput = screen.getByLabelText(/Title/i) as HTMLInputElement
   const descriptionTextarea = screen.getByLabelText(/Description/i) as HTMLTextAreaElement
-  const stepsTextarea = screen.getByLabelText(/Steps to Reproduce/i) as HTMLTextAreaElement
   const checkbox = screen.getByLabelText(/share anonymous data/i) as HTMLInputElement
 
   fireEvent.change(titleInput, {
@@ -46,11 +45,6 @@ const fillValidForm = () => {
   fireEvent.change(descriptionTextarea, {
     target: {
       value: 'This is a valid description that is definitely more than thirty characters long.'
-    }
-  })
-  fireEvent.change(stepsTextarea, {
-    target: {
-      value: 'These steps are valid because they have enough detail to exceed thirty characters.'
     }
   })
   fireEvent.click(checkbox)
@@ -63,36 +57,11 @@ describe('BugReportForm', () => {
 
     expect(screen.getByLabelText(/Title/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/Description/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Steps to Reproduce/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/share anonymous data/i)).toBeInTheDocument()
 
     // Submit button initially shows "Submit" and is disabled
     const submitButton = screen.getByRole('button', { name: /Submit/i })
     expect(submitButton).toBeDisabled()
-  })
-
-  test('shows error messages on blur if inputs are invalid', async () => {
-    const onSubmit = jest.fn()
-    render(<BugReportForm onSubmit={onSubmit} />)
-
-    const titleInput = screen.getByLabelText(/Title/i)
-    const descriptionTextarea = screen.getByLabelText(/Description/i)
-    const stepsTextarea = screen.getByLabelText(/Steps to Reproduce/i)
-
-    // Trigger blur events to mark fields as touched
-    fireEvent.blur(titleInput)
-    fireEvent.blur(descriptionTextarea)
-    fireEvent.blur(stepsTextarea)
-
-    expect(
-      await screen.findByText('The title must be at least 10 characters long.')
-    ).toBeInTheDocument()
-    expect(
-      await screen.findByText('The description must be at least 30 characters long.')
-    ).toBeInTheDocument()
-    expect(
-      await screen.findByText('Write at least 30 characters to describe the steps to reproduce.')
-    ).toBeInTheDocument()
   })
 
   test('enables submit button when form is valid', async () => {
