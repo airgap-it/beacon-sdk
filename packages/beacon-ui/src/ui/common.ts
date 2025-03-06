@@ -3,6 +3,14 @@ import { MergedWallet } from '../utils/wallets'
 
 // ALERT
 
+export enum AlertState {
+  TOP_WALLETS = 'top-wallets',
+  WALLETS = 'wallets',
+  INSTALL = 'install',
+  BUG_REPORT = 'bug-report',
+  QR = 'qr'
+}
+
 export interface AlertButton {
   text: string
   style?: 'solid' | 'outline'
@@ -61,6 +69,19 @@ export interface QRProps {
   onClickQrCode?: () => void
 }
 
+export interface QRCodeProps {
+  wallet?: MergedWallet
+  isWCWorking: boolean
+  isMobile: boolean
+  qrCode?: string
+  handleUpdateState: (state: AlertState) => void
+}
+
+export interface WCInitErrorProps {
+  title: string
+  handleUpdateState: (state: AlertState) => void
+}
+
 export interface InfoProps {
   title: string
   description?: string
@@ -81,32 +102,32 @@ export interface InfoProps {
 // WALLETS
 
 export interface TopWalletsProps {
-  wallets: MergedWallet[];
-  onClickWallet: (id: string) => void;
-  onClickLearnMore: () => void;
-  otherWallets?: { images: string[]; onClick: () => void };
-  disabled?: boolean;
-  isMobile: boolean;
+  wallets: MergedWallet[]
+  onClickWallet: (id: string) => void
+  onClickLearnMore: () => void
+  otherWallets?: { images: string[]; onClick: () => void }
+  disabled?: boolean
+  isMobile: boolean
 }
 
 export interface WalletProps {
-  name: string;
-  image: string;
-  description?: string;
-  small?: boolean;
-  mobile?: boolean;
-  onClick: () => void;
-  tags?: string[];
-  disabled?: boolean;
+  name: string
+  image: string
+  description?: string
+  small?: boolean
+  mobile?: boolean
+  onClick: () => void
+  tags?: string[]
+  disabled?: boolean
 }
 
 export interface WalletsProps {
-  wallets: MergedWallet[];
-  onClickWallet: (id: string) => void;
-  onClickOther: () => void;
-  isMobile: boolean;
-  small?: boolean;
-  disabled?: boolean;
+  wallets: MergedWallet[]
+  onClickWallet: (id: string) => void
+  onClickOther: () => void
+  isMobile: boolean
+  small?: boolean
+  disabled?: boolean
 }
 
 // TOAST

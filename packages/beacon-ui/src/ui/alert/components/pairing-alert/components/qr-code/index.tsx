@@ -1,7 +1,14 @@
+import { QRCodeProps } from '../../../../../common'
 import QR from '../../../../../../components/qr'
 import WCInitError from '../wc-init-error'
 
-const QRCode: React.FC<any> = ({ wallet, isWCWorking, isMobile, qrCode, handleUpdateState }) => {
+const QRCode: React.FC<QRCodeProps> = ({
+  wallet,
+  isWCWorking,
+  isMobile,
+  qrCode,
+  handleUpdateState
+}) => {
   const isConnected =
     !wallet?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking
   return (

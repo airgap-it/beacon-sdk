@@ -6,7 +6,7 @@ import { isTwBrowser, isAndroid, isMobileOS, isIOS } from '../../../utils/platfo
 import { MergedWallet, OSLink } from '../../../utils/wallets'
 import getDefaultLogo from '../getDefautlLogo'
 import { parseUri } from '@walletconnect/utils'
-import { AlertConfig } from '../../common'
+import { AlertConfig, AlertState } from '../../common'
 
 const logger = new Logger('useConnect')
 
@@ -21,9 +21,7 @@ const useConnect = (
   const [wallet, setWallet] = useState<MergedWallet>()
   const [isLoading, setIsLoading] = useState(true)
   const [qrCode, setQRCode] = useState<string>()
-  const [state, setState] = useState<'top-wallets' | 'wallets' | 'install' | 'bug-report' | 'qr'>(
-    'top-wallets'
-  )
+  const [state, setState] = useState<AlertState>(AlertState.TOP_WALLETS)
   const [displayQRExtra, setDisplayQRExtra] = useState(false)
   const [showMoreContent, setShowMoreContent] = useState(false)
   const [isWCWorking, setIsWCWorking] = useState(true)
@@ -39,7 +37,7 @@ const useConnect = (
       return
     }
 
-    setState('install')
+    setState(AlertState.INSTALL)
   }
 
   const handleClickWallet = (id: string, config: AlertConfig) => {
@@ -208,7 +206,7 @@ const useConnect = (
       }
 
       setQRCode(syncCode)
-      setState('qr')
+      setState(AlertState.QR)
       setDisplayQRExtra(true)
 
       return
@@ -241,7 +239,7 @@ const useConnect = (
         icon: getDefaultLogo()
       })
     )
-    setState('qr')
+    setState(AlertState.QR)
   }
 
   const handleClickConnectExtension = () => {
@@ -304,9 +302,7 @@ const useConnect = (
     window.open(wallet?.links[OSLink.DESKTOP] || '', '_blank', 'noopener')
   }
 
-  const handleUpdateState = (
-    newState: 'top-wallets' | 'wallets' | 'install' | 'bug-report' | 'qr'
-  ) => setState(newState)
+  const handleUpdateState = (newState: AlertState) => setState(newState)
 
   const handleUpdateQRCode = (uri: string) => setQRCode(uri)
 

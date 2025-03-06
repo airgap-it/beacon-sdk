@@ -7,7 +7,7 @@ import TopWallets from '../../../../components/top-wallets'
 import Wallets from '../../../../components/wallets'
 import { isIOS, isMobileOS } from '../../../../utils/platform'
 import useWallets from '../../hooks/useWallets'
-import { ConfigurableAlertProps } from '../../../common'
+import { AlertState, ConfigurableAlertProps } from '../../../common'
 import useIsMobile from '../../hooks/useIsMobile'
 import { useEffect, useState } from 'react'
 import WCInitError from './components/wc-init-error'
@@ -61,15 +61,15 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   }, [])
 
   useEffect(() => {
-    if (!props.openBugReport || state === 'bug-report') {
+    if (!props.openBugReport || state === AlertState.BUG_REPORT) {
       return
     }
-    
-    handleUpdateState('bug-report')
+
+    handleUpdateState(AlertState.BUG_REPORT)
   }, [props.openBugReport])
 
   useEffect(() => {
-    if (props.open || state !== 'bug-report') {
+    if (props.open || state !== AlertState.BUG_REPORT) {
       return
     }
 
@@ -94,7 +94,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       open={props.open}
       showMore={showMoreContent}
       extraContent={
-        state !== 'top-wallets' || isMobile ? undefined : (
+        state !== AlertState.TOP_WALLETS || isMobile ? undefined : (
           <Wallets
             small
             disabled={isLoading}
@@ -107,28 +107,28 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       }
       onClickShowMore={handleShowMoreContent}
       onBackClick={
-        state === 'install'
-          ? () => handleUpdateState('top-wallets')
-          : state === 'qr'
-          ? () => handleUpdateState('top-wallets')
-          : state === 'wallets' && isMobile
-          ? () => handleUpdateState('top-wallets')
+        state === AlertState.INSTALL
+          ? () => handleUpdateState(AlertState.TOP_WALLETS)
+          : state === AlertState.QR
+          ? () => handleUpdateState(AlertState.TOP_WALLETS)
+          : state === AlertState.WALLETS && isMobile
+          ? () => handleUpdateState(AlertState.TOP_WALLETS)
           : state === 'bug-report'
           ? () => {
               if (isPairingExpired) {
                 props.onClose()
                 return undefined
               }
-              return handleUpdateState('top-wallets')
+              return handleUpdateState(AlertState.TOP_WALLETS)
             }
           : undefined
       }
     >
       <div>
-        {state === 'install' && (
+        {state === AlertState.INSTALL && (
           <div
             style={
-              state === 'install' || state === 'qr'
+              state === AlertState.INSTALL || state === AlertState.QR
                 ? {
                     opacity: 1,
                     height: 'unset',
@@ -274,7 +274,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                       handleUpdateQRCode(syncCode)
                     }
 
-                    handleUpdateState('qr')
+                    handleUpdateState(AlertState.QR)
                     handleDisplayQRExtra(true)
                   }}
                 />
@@ -286,7 +286,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               ))}
           </div>
         )}
-        {state === 'qr' && (
+        {state === AlertState.QR && (
           <div
             style={{
               opacity: 1,
@@ -305,7 +305,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                 onClickLearnMore={() => {}}
                 p2pPayload={p2pPayload}
                 wcPayload={wcPayload}
-              ></PairOther>
+              />
             ) : (
               <QR isMobile={true} />
             )}
@@ -313,7 +313,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
         )}
         <div
           style={
-            state === 'wallets'
+            state === AlertState.WALLETS
               ? {
                   opacity: 1,
                   height: 'unset',
@@ -339,7 +339,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
         </div>
         <div
           style={
-            state === 'bug-report'
+            state === AlertState.BUG_REPORT
               ? {
                   opacity: 1,
                   height: 'unset',
@@ -366,7 +366,8 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
         </div>
         <div
           style={
-            state !== 'install' && state !== 'qr' && state !== 'wallets' && state !== 'bug-report'
+            state !== AlertState.INSTALL &&
+            ![AlertState.QR, AlertState.WALLETS, AlertState.BUG_REPORT].includes(state)
               ? {
                   opacity: 1,
                   height: 'unset',
@@ -387,13 +388,13 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
             wallets={isMobile ? walletList.slice(0, 3) : walletList.slice(0, 4)}
             isMobile={isMobile}
             onClickWallet={(id) => handleClickWallet(id, props)}
-            onClickLearnMore={() => handleUpdateState('bug-report')}
+            onClickLearnMore={() => handleUpdateState(AlertState.BUG_REPORT)}
             disabled={isLoading}
             otherWallets={
               isMobile
                 ? {
                     images: [walletList[3].image, walletList[4].image, walletList[5].image],
-                    onClick: () => handleUpdateState('wallets')
+                    onClick: () => handleUpdateState(AlertState.WALLETS)
                   }
                 : undefined
             }

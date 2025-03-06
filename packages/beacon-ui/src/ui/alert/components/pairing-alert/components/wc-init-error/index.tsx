@@ -1,7 +1,8 @@
 import { StorageKey } from '@airgap/beacon-types'
 import Info from '../../../../../../components/info'
+import { AlertState, WCInitErrorProps } from '../../../../../common'
 
-const WCInitError: React.FC<any> = (props) => {
+const WCInitError: React.FC<WCInitErrorProps> = ({ title, handleUpdateState }) => {
   const errorMessage = localStorage ? localStorage.getItem(StorageKey.WC_INIT_ERROR) : undefined
   const description: any = (
     <>
@@ -11,7 +12,7 @@ const WCInitError: React.FC<any> = (props) => {
         to the Beacon team{' '}
         <span
           style={{ textDecoration: 'underline', color: '#007bff', cursor: 'pointer' }}
-          onClick={() => props.handleUpdateState('bug-report')}
+          onClick={() => handleUpdateState(AlertState.BUG_REPORT)}
         >
           here
         </span>
@@ -19,7 +20,7 @@ const WCInitError: React.FC<any> = (props) => {
       {errorMessage && <span>{errorMessage}</span>}
     </>
   )
-  return <Info title={props.title} description={description} border />
+  return <Info title={title} description={description} border />
 }
 
 export default WCInitError
