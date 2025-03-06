@@ -107,11 +107,8 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       }
       onClickShowMore={handleShowMoreContent}
       onBackClick={
-        state === AlertState.INSTALL
-          ? () => handleUpdateState(AlertState.TOP_WALLETS)
-          : state === AlertState.QR
-          ? () => handleUpdateState(AlertState.TOP_WALLETS)
-          : state === AlertState.WALLETS && isMobile
+        [AlertState.INSTALL, AlertState.QR].includes(state) ||
+        (state === AlertState.WALLETS && isMobile)
           ? () => handleUpdateState(AlertState.TOP_WALLETS)
           : state === 'bug-report'
           ? () => {
