@@ -24,43 +24,13 @@ interface BugReportRequest {
 
 const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
   const [title, setTitle] = useState('')
-  const [titleTouched, setTitleTouched] = useState(false)
-  const [titleErrorMsg, setTitleErrorMsg] = useState('')
   const [description, setDescription] = useState('')
-  const [descriptionTouched, setDescriptionTouched] = useState(false)
-  const [descriptionErrorMsg, setDescriptionErrorMsg] = useState('')
-  const [steps, setSteps] = useState('')
-  const [stepsTouched, setStepsTouched] = useState(false)
-  const [stepsErrorMsg, setStepsErrorMsg] = useState('')
   const [isFormValid, setFormValid] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [didUserAllow, setDidUserAllow] = useState(false)
   const [status, setStatus] = useState<'success' | 'error' | null>(null)
   const [showThankYou, setShowThankYou] = useState(false)
   const db = new IndexedDBStorage('beacon', ['bug_report', 'metrics'])
-
-  const isTitleValid = () => {
-    const check = title.trim().length > 10
-    const invalidText = check ? '' : 'The title must be at least 10 characters long.'
-    setTitleErrorMsg(invalidText)
-    return check
-  }
-
-  const isDescriptionValid = () => {
-    const check = description.trim().length >= 30
-    const invalidText = check ? '' : 'The description must be at least 30 characters long.'
-    setDescriptionErrorMsg(invalidText)
-    return check
-  }
-
-  const areStepsValid = () => {
-    const check = steps.trim().length >= 30
-    const invalidText = check
-      ? ''
-      : 'Write at least 30 characters to describe the steps to reproduce.'
-    setStepsErrorMsg(invalidText)
-    return check
-  }
 
   const indexDBToMetadata = async () => {
     const wcResult: StorageObject = {}
@@ -95,12 +65,8 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
   }
 
   useEffect(() => {
-    const titleValid = isTitleValid(),
-      descriptionValid = isDescriptionValid(),
-      stepsValid = areStepsValid(),
-      userAllow = didUserAllow
-    setFormValid(titleValid && descriptionValid && stepsValid && userAllow)
-  }, [title, description, steps, didUserAllow])
+    setFormValid(didUserAllow)
+  }, [didUserAllow])
 
   const sendRequest = (
     url: string,
@@ -164,7 +130,7 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
       title,
       sdkVersion: SDK_VERSION,
       description,
-      steps,
+      steps: '<#EMPTY#>',
       os: currentOS(),
       browser: currentBrowser(),
       localStorage: JSON.stringify(beaconState),
@@ -206,12 +172,8 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
           id="title"
           value={title}
           onChange={(e) => setTitle(e.currentTarget.value)}
-          onBlur={() => setTitleTouched(true)}
-          className={`input-style ${titleTouched && titleErrorMsg.length ? 'invalid' : ''}`}
+          className={`input-style`}
         />
-        {titleTouched && titleErrorMsg.length > 0 && (
-          <label className="error-label">{titleErrorMsg}</label>
-        )}
       </div>
       <div className="input-group">
         <label htmlFor="description" className="label-style">
@@ -221,29 +183,8 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
           id="description"
           value={description}
           onChange={(e) => setDescription(e.currentTarget.value)}
-          onBlur={() => setDescriptionTouched(true)}
-          className={`textarea-style ${
-            descriptionTouched && descriptionErrorMsg.length ? 'invalid' : ''
-          }`}
+          className={`textarea-style`}
         />
-        {descriptionTouched && descriptionErrorMsg.length > 0 && (
-          <label className="error-label">{descriptionErrorMsg}</label>
-        )}
-      </div>
-      <div className="input-group">
-        <label htmlFor="steps" className="label-style">
-          Steps to Reproduce
-        </label>
-        <textarea
-          id="steps"
-          value={steps}
-          onChange={(e) => setSteps(e.currentTarget.value)}
-          onBlur={() => setStepsTouched(true)}
-          className={`textarea-style ${stepsTouched && stepsErrorMsg.length ? 'invalid' : ''}`}
-        />
-        {stepsTouched && stepsErrorMsg.length > 0 && (
-          <label className="error-label">{stepsErrorMsg}</label>
-        )}
       </div>
       <div className="permissions-group">
         <label htmlFor="user-permissions">

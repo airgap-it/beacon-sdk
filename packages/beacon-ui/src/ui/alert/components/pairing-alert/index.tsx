@@ -6,12 +6,12 @@ import PairOther from '../../../../components/pair-other'
 import TopWallets from '../../../../components/top-wallets'
 import Wallets from '../../../../components/wallets'
 import { isIOS, isMobileOS } from '../../../../utils/platform'
-import { StorageKey } from '@airgap/beacon-types'
 import QR from '../../../../components/qr'
 import useWallets from '../../hooks/useWallets'
 import { ConfigurableAlertProps } from '../../../common'
 import useIsMobile from '../../hooks/useIsMobile'
 import { useEffect, useState } from 'react'
+import WCInitError from './components/wc-init-error'
 
 const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const [wcPayload, setWCPayload] = useState('')
@@ -43,6 +43,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
+  const [isPairingExpired, setIsPairingExpired] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -66,26 +67,13 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     handleUpdateState('bug-report')
   }, [props.openBugReport])
 
-  const generateWCError = (title: string) => {
-    const errorMessage = localStorage ? localStorage.getItem(StorageKey.WC_INIT_ERROR) : undefined
-    const description: any = (
-      <>
-        <h3 style={{ color: '#FF4136', margin: '0.6px' }}>A network error occurred.</h3>
-        <h4>
-          This issue does not concern your wallet or dApp. If the problem persists, please report it
-          to the Beacon team{' '}
-          <span
-            style={{ textDecoration: 'underline', color: '#007bff', cursor: 'pointer' }}
-            onClick={() => handleUpdateState('bug-report')}
-          >
-            here
-          </span>
-        </h4>
-        {errorMessage && <span>{errorMessage}</span>}
-      </>
-    )
-    return <Info title={title} description={description} border />
-  }
+  useEffect(() => {
+    if (props.open || state !== 'bug-report') {
+      return
+    }
+
+    setIsPairingExpired(true)
+  }, [state, props.open])
 
   const QRCode = ({ isMobile }: any) => {
     const isConnected =
@@ -104,7 +92,10 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
             onClickQrCode={() => {}}
           />
         ) : (
-          generateWCError(`Connect with ${wallet?.name} Mobile`)
+          <WCInitError
+            title={`Connect with ${wallet?.name} Mobile`}
+            handleUpdateState={handleUpdateState}
+          />
         )}
       </>
     )
@@ -131,11 +122,20 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       }
       onClickShowMore={handleShowMoreContent}
       onBackClick={
-        state === 'install' ||
-        state === 'qr' ||
-        (state === 'wallets' && isMobile) ||
-        state === 'bug-report'
+        state === 'install'
           ? () => handleUpdateState('top-wallets')
+          : state === 'qr'
+          ? () => handleUpdateState('top-wallets')
+          : state === 'wallets' && isMobile
+          ? () => handleUpdateState('top-wallets')
+          : state === 'bug-report'
+          ? () => {
+              if (isPairingExpired) {
+                props.onClose()
+                return undefined
+              }
+              return handleUpdateState('top-wallets')
+            }
           : undefined
       }
     >
@@ -294,7 +294,10 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                   }}
                 />
               ) : (
-                generateWCError(`Connect with ${wallet?.name} Mobile`)
+                <WCInitError
+                  title={`Connect with ${wallet?.name} Mobile`}
+                  handleUpdateState={handleUpdateState}
+                />
               ))}
           </div>
         )}
