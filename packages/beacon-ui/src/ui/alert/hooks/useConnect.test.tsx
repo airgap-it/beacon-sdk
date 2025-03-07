@@ -111,9 +111,9 @@ describe('useConnect hook', () => {
         title: 'test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
-          p2pSyncCode: () => Promise.resolve('test'),
-          postmessageSyncCode: () => Promise.resolve('test'),
-          walletConnectSyncCode: () => Promise.resolve('test')
+          p2pSyncCode: Promise.resolve('test'),
+          postmessageSyncCode: Promise.resolve('test'),
+          walletConnectSyncCode: Promise.resolve('test')
         }
       })
     })
@@ -158,9 +158,9 @@ describe('useConnect hook', () => {
         title: 'test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
-          p2pSyncCode: () => Promise.resolve('test'),
-          postmessageSyncCode: () => Promise.resolve('test'),
-          walletConnectSyncCode: () => Promise.resolve('test')
+          p2pSyncCode: Promise.resolve('test'),
+          postmessageSyncCode: Promise.resolve('test'),
+          walletConnectSyncCode: Promise.resolve('test')
         }
       })
     })
@@ -225,9 +225,9 @@ describe('useConnect hook', () => {
         title: 'test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
-          p2pSyncCode: () => Promise.resolve('test'),
-          postmessageSyncCode: () => Promise.resolve('test'),
-          walletConnectSyncCode: () => Promise.resolve('test')
+          p2pSyncCode: Promise.resolve('test'),
+          postmessageSyncCode: Promise.resolve('test'),
+          walletConnectSyncCode: Promise.resolve('test')
         }
       })
     })
@@ -267,9 +267,9 @@ describe('useConnect hook', () => {
         title: 'test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
-          p2pSyncCode: () => Promise.resolve('test'),
-          postmessageSyncCode: () => Promise.resolve('test'),
-          walletConnectSyncCode: () => Promise.resolve('test')
+          p2pSyncCode: Promise.resolve('test'),
+          postmessageSyncCode: Promise.resolve('test'),
+          walletConnectSyncCode: Promise.resolve('test')
         }
       })
     })
@@ -317,9 +317,9 @@ describe('useConnect hook', () => {
         title: 'test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
-          p2pSyncCode: () => Promise.resolve('test'),
-          postmessageSyncCode: () => Promise.resolve('test'),
-          walletConnectSyncCode: () => Promise.resolve('test')
+          p2pSyncCode: Promise.resolve('test'),
+          postmessageSyncCode: Promise.resolve('test'),
+          walletConnectSyncCode: Promise.resolve('test')
         }
       })
     })
@@ -366,9 +366,9 @@ describe('useConnect hook', () => {
         title: 'wc test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
-          p2pSyncCode: () => Promise.resolve('dummy'),
-          postmessageSyncCode: () => Promise.resolve('dummy'),
-          walletConnectSyncCode: () => Promise.resolve('dummy')
+          p2pSyncCode: Promise.resolve('test'),
+          postmessageSyncCode: Promise.resolve('test'),
+          walletConnectSyncCode: Promise.resolve('test')
         }
       })
     })
@@ -412,9 +412,9 @@ describe('useConnect hook', () => {
         title: 'wc invalid test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
-          p2pSyncCode: () => Promise.resolve('dummy'),
-          postmessageSyncCode: () => Promise.resolve('dummy'),
-          walletConnectSyncCode: () => Promise.resolve('dummy')
+          p2pSyncCode: Promise.resolve('test'),
+          postmessageSyncCode: Promise.resolve('test'),
+          walletConnectSyncCode: Promise.resolve('test')
         }
       })
     })
@@ -447,9 +447,9 @@ describe('useConnect hook', () => {
 
     const pairingPayload = {
       networkType: NetworkType.GHOSTNET,
-      p2pSyncCode: () => Promise.resolve('dummy'),
-      postmessageSyncCode: () => Promise.resolve('dummy'),
-      walletConnectSyncCode: () => Promise.resolve('dummy')
+      p2pSyncCode: Promise.resolve('test'),
+      postmessageSyncCode: Promise.resolve('test'),
+      walletConnectSyncCode: Promise.resolve('test')
     }
 
     // --- Return a real anchor element instead of a plain object ---
@@ -505,9 +505,9 @@ describe('useConnect hook', () => {
         title: 'final test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
-          p2pSyncCode: () => Promise.resolve('dummy'),
-          postmessageSyncCode: () => Promise.resolve('dummy'),
-          walletConnectSyncCode: () => Promise.resolve('dummy')
+          p2pSyncCode: Promise.resolve('test'),
+          postmessageSyncCode: Promise.resolve('test'),
+          walletConnectSyncCode: Promise.resolve('test')
         }
       })
     })
@@ -557,9 +557,9 @@ describe('useConnect hook', () => {
           title: 'new tab test',
           pairingPayload: {
             networkType: NetworkType.GHOSTNET,
-            p2pSyncCode: () => Promise.resolve('dummy'),
-            postmessageSyncCode: () => Promise.resolve('dummy'),
-            walletConnectSyncCode: () => Promise.resolve('dummy')
+            p2pSyncCode: Promise.resolve('test'),
+            postmessageSyncCode: Promise.resolve('test'),
+            walletConnectSyncCode: Promise.resolve('test')
           }
         },
         newTabWallet
