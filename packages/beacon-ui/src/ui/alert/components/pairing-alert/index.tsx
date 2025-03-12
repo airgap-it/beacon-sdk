@@ -89,6 +89,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   return (
     <Alert
       {...props}
+      closeOnBackdropClick={state !== AlertState.BUG_REPORT}
       loading={isLoading}
       onCloseClick={props.onClose}
       open={props.open}

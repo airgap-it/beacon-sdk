@@ -17,6 +17,10 @@
   margin-bottom: 8px;
 }
 
+.theme__light .label-style {
+  color: black;
+}
+
 .input-style,
 .textarea-style {
   width: 100%;
@@ -26,6 +30,12 @@
   border-radius: 5px;
   background-color: white;
   color: black;
+}
+
+.theme__dark .input-style,
+.theme__dark .textarea-style {
+  background-color: #25334b;
+  color: white;
 }
 
 .input-style.invalid,

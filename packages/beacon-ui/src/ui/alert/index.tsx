@@ -77,7 +77,8 @@ const AlertRoot = (props: AlertConfig) => {
   const filteredProps: ConfigurableAlertProps = {
     ...config,
     onClose: onCloseHandler,
-    open: isOpen
+    open: isOpen,
+    closeOnBackdropClick: true
   }
 
   const Alert = () => {

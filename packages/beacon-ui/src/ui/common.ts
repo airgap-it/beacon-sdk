@@ -34,6 +34,7 @@ export interface AlertConfig {
 export interface ConfigurableAlertProps extends Omit<AlertConfig, 'closeButtonCallback'> {
   open: boolean
   onClose: () => void
+  closeOnBackdropClick: boolean
 }
 
 export interface AlertProps {
@@ -44,6 +45,7 @@ export interface AlertProps {
   onCloseClick: () => void
   onClickShowMore?: () => void
   onBackClick?: () => void
+  closeOnBackdropClick: boolean
 }
 
 export interface PairingPayload {

@@ -11,7 +11,13 @@ const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
   return (
     <div
       className={props.open ? 'alert-wrapper-show' : 'alert-wrapper-hide'}
-      onClick={props.onCloseClick}
+      onClick={() => {
+        if (!props.closeOnBackdropClick) {
+          return
+        }
+
+        props.onCloseClick()
+      }}
     >
       <div
         className={props.open ? 'alert-modal-show' : 'alert-modal-hide'}

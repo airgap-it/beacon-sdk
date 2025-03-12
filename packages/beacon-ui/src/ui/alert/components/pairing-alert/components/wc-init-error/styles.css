@@ -1,0 +1,7 @@
+.body-style {
+  color: black;
+}
+
+.theme__dark .body-style {
+  color: white;
+}

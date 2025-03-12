@@ -2,9 +2,16 @@ import { ConfigurableAlertProps } from '../../../common'
 import Info from '../../../../components/info'
 import Alert from '../../../../components/alert'
 
-const InfoAlert = ({ title, body, data, open, onClose }: ConfigurableAlertProps) => {
+const InfoAlert = ({
+  title,
+  body,
+  data,
+  open,
+  onClose,
+  closeOnBackdropClick
+}: ConfigurableAlertProps) => {
   return (
-    <Alert open={open} onCloseClick={onClose}>
+    <Alert open={open} closeOnBackdropClick={closeOnBackdropClick} onCloseClick={onClose}>
       <Info
         bigIcon
         icon={
