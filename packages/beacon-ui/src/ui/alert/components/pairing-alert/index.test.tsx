@@ -117,7 +117,8 @@ const defaultProps: ConfigurableAlertProps = {
   title: 'Test',
   onClose: jest.fn(),
   pairingPayload,
-  featuredWallets: []
+  featuredWallets: [],
+  closeOnBackdropClick: true
 }
 
 // A default useConnect return value array.

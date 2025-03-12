@@ -15,7 +15,8 @@ describe('InfoAlert Component', () => {
     body: 'Test description',
     data: 'Test data',
     open: true,
-    onClose: onCloseMock
+    onClose: onCloseMock,
+    closeOnBackdropClick: true
   }
 
   afterEach(() => {
