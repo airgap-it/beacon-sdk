@@ -15,64 +15,66 @@ jest.mock('../qr', () => {
 describe('PairOther Component', () => {
   const defaultProps: PairOtherProps = {
     walletList: [],
-    p2pPayload: 'p2p-code',
-    wcPayload: 'wc-code',
+    p2pPayload: Promise.resolve('p2p-code'),
+    wcPayload: Promise.resolve('wc-code'),
     onClickLearnMore: jest.fn()
   }
 
-  test('renders selection view with both buttons when payloads are provided', () => {
+  test('renders selection view with both buttons when payloads are provided', async () => {
     render(<PairOther {...defaultProps} />)
 
-    // The initial selection view should display a prompt message.
-    expect(screen.getByText(/Select QR Type/i)).toBeInTheDocument()
+    // Wait for the prompt message to appear.
+    expect(await screen.findByText(/Select QR Type/i)).toBeInTheDocument()
 
-    // Since both payloads are provided, both buttons should be rendered.
-    expect(screen.getByRole('button', { name: /Beacon/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /WalletConnect/i })).toBeInTheDocument()
+    // Wait for both buttons to be rendered.
+    const beaconButton = await screen.findByRole('button', { name: /Beacon/i })
+    const walletConnectButton = await screen.findByRole('button', { name: /WalletConnect/i })
+    expect(beaconButton).toBeInTheDocument()
+    expect(walletConnectButton).toBeInTheDocument()
   })
 
-  test('clicking the Beacon button shows the QR component with p2p payload', () => {
+  test('clicking the Beacon button shows the QR component with p2p payload', async () => {
     render(<PairOther {...defaultProps} />)
 
-    // Simulate clicking the Beacon button.
-    const beaconButton = screen.getByRole('button', { name: /Beacon/i })
+    // Wait for the Beacon button to appear.
+    const beaconButton = await screen.findByRole('button', { name: /Beacon/i })
     fireEvent.click(beaconButton)
 
-    // After clicking, the QR component should be rendered with the p2p payload.
-    const qrComponent = screen.getByTestId('qr-component')
+    // After clicking, wait for the QR component to render.
+    const qrComponent = await screen.findByTestId('qr-component')
     expect(qrComponent).toBeInTheDocument()
     expect(qrComponent).toHaveTextContent('p2p-code')
     expect(qrComponent).toHaveTextContent('p2p')
   })
 
-  test('clicking the WalletConnect button shows the QR component with walletconnect payload', () => {
+  test('clicking the WalletConnect button shows the QR component with walletconnect payload', async () => {
     render(<PairOther {...defaultProps} />)
 
-    // Simulate clicking the WalletConnect button.
-    const wcButton = screen.getByRole('button', { name: /WalletConnect/i })
+    // Wait for the WalletConnect button to appear.
+    const wcButton = await screen.findByRole('button', { name: /WalletConnect/i })
     fireEvent.click(wcButton)
 
-    // After clicking, the QR component should be rendered with the walletconnect payload.
-    const qrComponent = screen.getByTestId('qr-component')
+    // After clicking, wait for the QR component to render.
+    const qrComponent = await screen.findByTestId('qr-component')
     expect(qrComponent).toBeInTheDocument()
     expect(qrComponent).toHaveTextContent('wc-code')
     expect(qrComponent).toHaveTextContent('walletconnect')
   })
 
-  test('renders selection view without action buttons when no payload is provided', () => {
+  test('renders selection view without action buttons when no payload is provided', async () => {
     const props: PairOtherProps = {
       walletList: [],
-      p2pPayload: '',
-      wcPayload: '',
+      p2pPayload: Promise.resolve(''),
+      wcPayload: Promise.resolve(''),
       onClickLearnMore: jest.fn()
     }
 
     render(<PairOther {...props} />)
 
-    // The selection view should still render the prompt.
-    expect(screen.getByText(/Select QR Type/i)).toBeInTheDocument()
+    // Wait for the prompt to appear.
+    expect(await screen.findByText(/Select QR Type/i)).toBeInTheDocument()
 
-    // Neither button should be rendered if the payloads are empty.
+    // The buttons should not be rendered if the payloads are empty.
     expect(screen.queryByRole('button', { name: /Beacon/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /WalletConnect/i })).not.toBeInTheDocument()
   })

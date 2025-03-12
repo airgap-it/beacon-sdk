@@ -27,31 +27,34 @@ jest.spyOn(platform, 'isIOS').mockReturnValue(false)
 describe('useConnect hook', () => {
   let wallets: Map<string, any>
   let onCloseHandler: jest.Mock
-  let originalWindowOpen: typeof window.open
 
   beforeEach(() => {
-    // Clear localStorage between tests.
     localStorage.clear()
     wallets = new Map()
     onCloseHandler = jest.fn()
-    originalWindowOpen = window.open
     mockParseUri.mockReset()
   })
 
   afterEach(() => {
     jest.clearAllMocks()
-    jest.restoreAllMocks() // restore all mocked/spied functions
-    window.open = originalWindowOpen
+    jest.restoreAllMocks()
   })
 
   it('should initialize with default values', () => {
     const { result } = renderHook(() =>
-      useConnect(false, 'wc-payload', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
     const [wallet, isLoading, qrCode, state, displayQRExtra, showMoreContent, isWCWorking] =
       result.current
     expect(wallet).toBeUndefined()
-    expect(isLoading).toBe(true)
+    expect(isLoading).toBe(false) // initial value is false in the hook
     expect(qrCode).toBeUndefined()
     expect(state).toBe('top-wallets')
     expect(displayQRExtra).toBe(false)
@@ -61,13 +64,19 @@ describe('useConnect hook', () => {
 
   it('should handle clickOther and update state to "qr"', () => {
     const { result } = renderHook(() =>
-      useConnect(false, 'wc-payload', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
-    // handleClickOther is returned at index 10.
+    // handleClickOther is at index 10.
     act(() => {
-      result.current[10]() // handleClickOther
+      result.current[10]()
     })
-    // Verify that localStorage is updated with the default wallet.
     const storedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)!)
     expect(storedWallet).toEqual({
       key: 'wallet',
@@ -75,11 +84,10 @@ describe('useConnect hook', () => {
       type: 'mobile',
       icon: getDefaultLogo()
     })
-    // Also, the internal state should change to 'qr' (returned at index 3).
     expect(result.current[3]).toBe('qr')
   })
 
-  it('should handle clickWallet for a web wallet and open a new tab', () => {
+  it('should handle clickWallet for a web wallet and open a new tab', async () => {
     const testWallet = {
       key: 'wallet1',
       name: 'Test Wallet',
@@ -96,18 +104,25 @@ describe('useConnect hook', () => {
     }
     wallets.set('wallet1', testWallet)
 
-    // Mock window.open so that it returns a fake "new tab" object.
+    // Mock window.open to return a fake new-tab object.
     const newTabMock = { opener: {}, location: { href: '' } }
     const windowOpenMock = jest.fn().mockReturnValue(newTabMock)
     window.open = windowOpenMock
 
     const { result } = renderHook(() =>
-      useConnect(false, 'wc-payload', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
 
-    // handleClickWallet is returned at index 7.
-    act(() => {
-      result.current[7]('wallet1', {
+    // Wrap the async click handler in async act.
+    await act(async () => {
+      await result.current[7]('wallet1', {
         title: 'test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
@@ -118,12 +133,9 @@ describe('useConnect hook', () => {
       })
     })
 
-    // First, handleClickWallet calls handleNewTab which opens a new tab with an empty URL.
     expect(windowOpenMock).toHaveBeenCalledWith('', '_blank')
-    // Then the new tab's location is set using the URL returned by getTzip10Link.
     expect(newTabMock.location.href).toBe('https://example.com/tzip10')
 
-    // Verify that localStorage is updated with the wallet info (type "web").
     const storedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)!)
     expect(storedWallet).toEqual({
       key: testWallet.key,
@@ -133,7 +145,7 @@ describe('useConnect hook', () => {
     })
   })
 
-  it('should handle clickConnectExtension and post messages', () => {
+  it('should handle clickConnectExtension and post messages', async () => {
     const extensionWallet = {
       key: 'wallet-ext',
       name: 'Extension Wallet',
@@ -149,12 +161,19 @@ describe('useConnect hook', () => {
     wallets.set('wallet-ext', extensionWallet)
     const postPayload = 'post-payload'
 
-    // Use handleClickWallet to set the internal wallet state.
     const { result } = renderHook(() =>
-      useConnect(false, 'wc-payload', 'p2p-payload', postPayload, wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve(postPayload),
+        wallets,
+        onCloseHandler
+      )
     )
-    act(() => {
-      result.current[7]('wallet-ext', {
+
+    await act(async () => {
+      await result.current[7]('wallet-ext', {
         title: 'test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
@@ -165,15 +184,12 @@ describe('useConnect hook', () => {
       })
     })
 
-    // Spy on windowRef.postMessage.
     const postMessageSpy = jest.spyOn(windowRef, 'postMessage').mockImplementation(() => {})
 
-    // handleClickConnectExtension is returned at index 11.
-    act(() => {
-      result.current[11]()
+    await act(async () => {
+      await result.current[11]()
     })
 
-    // Verify that two messages were posted (using wallet.id and wallet.firefoxId).
     expect(postMessageSpy).toHaveBeenCalledWith(
       {
         target: ExtensionMessageTarget.EXTENSION,
@@ -191,7 +207,6 @@ describe('useConnect hook', () => {
       windowRef.location.origin
     )
 
-    // Also, check that localStorage was updated with type "extension".
     const storedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)!)
     expect(storedWallet).toEqual({
       key: extensionWallet.key,
@@ -201,7 +216,7 @@ describe('useConnect hook', () => {
     })
   })
 
-  it('should handle clickInstallExtension by opening the extension URL', () => {
+  it('should handle clickInstallExtension by opening the extension URL', async () => {
     const extensionWallet = {
       key: 'wallet-ext',
       name: 'Extension Wallet',
@@ -216,12 +231,18 @@ describe('useConnect hook', () => {
     wallets.set('wallet-ext', extensionWallet)
 
     const { result } = renderHook(() =>
-      useConnect(false, 'wc-payload', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
 
-    // Set the wallet state by calling handleClickWallet.
-    act(() => {
-      result.current[7]('wallet-ext', {
+    await act(async () => {
+      await result.current[7]('wallet-ext', {
         title: 'test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
@@ -234,7 +255,7 @@ describe('useConnect hook', () => {
 
     const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null)
 
-    // handleClickInstallExtension is returned at index 12.
+    // handleClickInstallExtension is synchronous.
     act(() => {
       result.current[12]()
     })
@@ -242,7 +263,7 @@ describe('useConnect hook', () => {
     expect(windowOpenSpy).toHaveBeenCalledWith('https://extension.com', '_blank', 'noopener')
   })
 
-  it('should handle clickOpenDesktopApp by opening the deep link with p2p payload and updating localStorage', () => {
+  it('should handle clickOpenDesktopApp by opening the deep link with p2p payload and updating localStorage', async () => {
     const desktopWallet = {
       key: 'wallet-desktop',
       name: 'Desktop Wallet',
@@ -258,12 +279,18 @@ describe('useConnect hook', () => {
 
     const p2pPayload = 'p2p-payload'
     const { result } = renderHook(() =>
-      useConnect(false, 'wc-payload', p2pPayload, 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('wc-payload'),
+        Promise.resolve(p2pPayload),
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
 
-    // Set the wallet state via handleClickWallet.
-    act(() => {
-      result.current[7]('wallet-desktop', {
+    await act(async () => {
+      await result.current[7]('wallet-desktop', {
         title: 'test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
@@ -276,15 +303,12 @@ describe('useConnect hook', () => {
 
     const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null)
 
-    // Call handleClickOpenDesktopApp (returned at index 13).
-    act(() => {
-      result.current[13]()
+    await act(async () => {
+      await result.current[13]()
     })
 
-    // Expect that the link opened is the one returned by getTzip10Link.
     expect(windowOpenSpy).toHaveBeenCalledWith('https://example.com/tzip10', '_blank', 'noopener')
 
-    // Verify that localStorage was updated with type "desktop".
     const storedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)!)
     expect(storedWallet).toEqual({
       key: desktopWallet.key,
@@ -294,7 +318,7 @@ describe('useConnect hook', () => {
     })
   })
 
-  it('should handle clickDownloadDesktopApp by opening the download link', () => {
+  it('should handle clickDownloadDesktopApp by opening the download link', async () => {
     const desktopWallet = {
       key: 'wallet-desktop',
       name: 'Desktop Wallet',
@@ -308,12 +332,18 @@ describe('useConnect hook', () => {
     wallets.set('wallet-desktop', desktopWallet)
 
     const { result } = renderHook(() =>
-      useConnect(false, 'wc-payload', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
 
-    // Set the wallet state via handleClickWallet.
-    act(() => {
-      result.current[7]('wallet-desktop', {
+    await act(async () => {
+      await result.current[7]('wallet-desktop', {
         title: 'test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
@@ -326,7 +356,6 @@ describe('useConnect hook', () => {
 
     const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null)
 
-    // Call handleClickDownloadDesktopApp (returned at index 14).
     act(() => {
       result.current[14]()
     })
@@ -340,7 +369,7 @@ describe('useConnect hook', () => {
 
   // --- Additional tests for remaining branches --- //
 
-  it('should handle wallet_connect branch with valid wcPayload (non-mobile)', () => {
+  it('should handle wallet_connect branch with valid wcPayload (non-mobile)', async () => {
     const wcWallet = {
       key: 'wallet-wc-valid',
       name: 'Valid Wallet',
@@ -354,15 +383,21 @@ describe('useConnect hook', () => {
       image: 'https://wcwallet.com/icon.png'
     }
     wallets.set('wallet-wc-valid', wcWallet)
-    // Simulate valid payload by returning an object with a symKey.
     mockParseUri.mockReturnValue({ symKey: 'abc' })
 
     const { result } = renderHook(() =>
-      useConnect(false, 'wc-payload', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
 
-    act(() => {
-      result.current[7]('wallet-wc-valid', {
+    await act(async () => {
+      await result.current[7]('wallet-wc-valid', {
         title: 'wc test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
@@ -373,14 +408,12 @@ describe('useConnect hook', () => {
       })
     })
 
-    // Since isMobile is false, the branch should set the QR code to wcPayload and then
-    // call setInstallState which for a wallet with >1 type should change state to 'install'.
     expect(result.current[2]).toBe('wc-payload')
     expect(result.current[3]).toBe('install')
     expect(result.current[1]).toBe(false)
   })
 
-  it('should handle wallet_connect branch with invalid wcPayload for a "kukai" wallet', () => {
+  it('should handle wallet_connect branch with invalid wcPayload for a "kukai" wallet', async () => {
     const wcWalletInvalid = {
       key: 'wallet-wc-invalid',
       name: 'Kukai Wallet',
@@ -393,22 +426,21 @@ describe('useConnect hook', () => {
       image: 'https://kukaiexample.com/icon.png'
     }
     wallets.set('wallet-wc-invalid', wcWalletInvalid)
-    // Simulate invalid payload by returning an empty object (no symKey).
     mockParseUri.mockReturnValue({})
 
     const { result } = renderHook(() =>
       useConnect(
         false,
-        'invalid-wc-payload',
-        'p2p-payload',
-        'post-payload',
+        Promise.resolve('invalid-wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
         wallets,
         onCloseHandler
       )
     )
 
-    act(() => {
-      result.current[7]('wallet-wc-invalid', {
+    await act(async () => {
+      await result.current[7]('wallet-wc-invalid', {
         title: 'wc invalid test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
@@ -419,15 +451,12 @@ describe('useConnect hook', () => {
       })
     })
 
-    // The branch for a "kukai" wallet with invalid wc payload should set QR to "error"
-    // and then call setInstallState (which should change state to 'install' because wallet.types length > 1)
     expect(result.current[2]).toBe('error')
     expect(result.current[3]).toBe('install')
     expect(result.current[1]).toBe(false)
   })
 
-  it('should handle mobileOS branch in handleClickWallet', () => {
-    // Override isMobileOS to return true.
+  it('should handle mobileOS branch in handleClickWallet', async () => {
     jest.spyOn(platform, 'isMobileOS').mockReturnValue(true)
     const mobileWallet = {
       key: 'wallet-mobile',
@@ -440,9 +469,15 @@ describe('useConnect hook', () => {
       image: 'https://mobilewallet.com/icon.png'
     }
     wallets.set('wallet-mobile', mobileWallet)
-    // isMobile is true.
     const { result } = renderHook(() =>
-      useConnect(true, 'wc-payload', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        true,
+        Promise.resolve('wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
 
     const pairingPayload = {
@@ -452,7 +487,6 @@ describe('useConnect hook', () => {
       walletConnectSyncCode: Promise.resolve('test')
     }
 
-    // --- Return a real anchor element instead of a plain object ---
     const fakeAnchor = document.createElement('a')
     const originalCreateElement = document.createElement.bind(document)
     const createElementSpy = jest
@@ -464,16 +498,14 @@ describe('useConnect hook', () => {
         return originalCreateElement(tag)
       })
 
-    act(() => {
-      result.current[7]('wallet-mobile', {
+    await act(async () => {
+      await result.current[7]('wallet-mobile', {
         title: 'mobile test',
         pairingPayload
       })
     })
 
-    // In this branch, qrCode should be set to empty string.
     expect(result.current[2]).toBe('')
-    // updateSelectedWalletWithURL should have updated localStorage with url equal to "https://example.com/tzip10"
     const storedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)!)
     expect(storedWallet.url).toBe('https://example.com/tzip10')
     expect(result.current[1]).toBe(false)
@@ -481,8 +513,7 @@ describe('useConnect hook', () => {
     createElementSpy.mockRestore()
   })
 
-  it('should handle final else branch in handleClickWallet', () => {
-    // Create a wallet that does not match any special conditions.
+  it('should handle final else branch in handleClickWallet', async () => {
     const otherWallet = {
       key: 'wallet-final',
       name: 'Final Wallet',
@@ -497,11 +528,18 @@ describe('useConnect hook', () => {
     wallets.set('wallet-final', otherWallet)
 
     const { result } = renderHook(() =>
-      useConnect(false, 'wc-payload', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
 
-    act(() => {
-      result.current[7]('wallet-final', {
+    await act(async () => {
+      await result.current[7]('wallet-final', {
         title: 'final test',
         pairingPayload: {
           networkType: NetworkType.GHOSTNET,
@@ -512,15 +550,12 @@ describe('useConnect hook', () => {
       })
     })
 
-    // For a wallet that doesn’t match any branch, it should simply set QR code to p2pPayload.
     expect(result.current[2]).toBe('p2p-payload')
-    // setInstallState will not update the state because the wallet has only one type and not ios/desktop.
     expect(result.current[3]).toBe('top-wallets')
     expect(result.current[1]).toBe(false)
   })
 
-  it('should handle handleNewTab with invalid wcPayload (wallet_connect branch)', () => {
-    // Note: The wallet name is now "Other Wallet" so it does NOT contain "kukai" in its lower-case form.
+  it('should handle handleNewTab with invalid wcPayload (wallet_connect branch)', async () => {
     const newTabWallet = {
       key: 'wallet-newtab-invalid',
       name: 'Other Wallet',
@@ -532,7 +567,6 @@ describe('useConnect hook', () => {
       descriptions: ['test']
     }
     wallets.set('wallet-newtab-invalid', newTabWallet)
-    // Simulate invalid wc payload.
     mockParseUri.mockReturnValue({})
 
     const newTabMock = { opener: {}, location: { href: '' } }
@@ -542,17 +576,16 @@ describe('useConnect hook', () => {
     const { result } = renderHook(() =>
       useConnect(
         false,
-        'invalid-wc-payload',
-        'p2p-payload',
-        'post-payload',
+        Promise.resolve('invalid-wc-payload'),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
         wallets,
         onCloseHandler
       )
     )
 
-    act(() => {
-      // Directly call handleNewTab (returned at index 8).
-      result.current[8](
+    await act(async () => {
+      await result.current[8](
         {
           title: 'new tab test',
           pairingPayload: {
@@ -566,15 +599,12 @@ describe('useConnect hook', () => {
       )
     })
 
-    // Since the payload is invalid, the branch should return early.
     expect(newTabMock.location.href).toBe('')
-    // LocalStorage should not be updated.
     expect(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)).toBeNull()
-    // isWCWorking should be set to false.
     expect(result.current[6]).toBe(false)
   })
 
-  it('should call onCloseHandler in handleDeepLinking when syncCode is empty', () => {
+  it('should call onCloseHandler in handleDeepLinking when syncCode is empty', async () => {
     const deepLinkWallet = {
       key: 'wallet-deeplink-close',
       name: 'DeepLink Wallet',
@@ -585,21 +615,28 @@ describe('useConnect hook', () => {
       image: 'https://deeplinkwallet.com/icon.png',
       descriptions: ['test']
     }
-    // Use empty wcPayload so that syncCode is empty.
     wallets.set('wallet-deeplink-close', deepLinkWallet)
 
     const { result } = renderHook(() =>
-      useConnect(false, '', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve(''),
+        Promise.resolve('p2p-payload'),
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
 
-    act(() => {
-      result.current[9](deepLinkWallet, '')
+    await act(async () => {
+      await result.current[9](deepLinkWallet)
     })
 
     expect(onCloseHandler).toHaveBeenCalled()
   })
 
-  it('should handle handleDeepLinking when wallet.links[OSLink.IOS] is present', () => {
+  // Updated test: pass testUri as p2pPayload so that the expected deep link is generated.
+  it('should handle handleDeepLinking when wallet.links[OSLink.IOS] is present', async () => {
     const deepLinkWallet = {
       key: 'wallet-deeplink',
       name: 'DeepLink Wallet',
@@ -617,7 +654,6 @@ describe('useConnect hook', () => {
     const fakeAnchor = document.createElement('a')
     const setAttributeSpy = jest.spyOn(fakeAnchor, 'setAttribute')
     const dispatchEventSpy = jest.spyOn(fakeAnchor, 'dispatchEvent')
-    // Save the original createElement to avoid recursion.
     const originalCreateElement = document.createElement.bind(document)
     const createElementSpy = jest
       .spyOn(document, 'createElement')
@@ -629,14 +665,20 @@ describe('useConnect hook', () => {
       })
 
     const { result } = renderHook(() =>
-      useConnect(false, 'wc-payload', 'p2p-payload', 'post-payload', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('wc-payload'),
+        Promise.resolve(testUri), // Use testUri as the p2pPayload value
+        Promise.resolve('post-payload'),
+        wallets,
+        onCloseHandler
+      )
     )
 
-    act(() => {
-      result.current[9](deepLinkWallet, testUri)
+    await act(async () => {
+      await result.current[9](deepLinkWallet)
     })
 
-    // updateSelectedWalletWithURL should have updated localStorage with url ending in "wc?uri="
     const storedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)!)
     expect(storedWallet.url).toBe('https://ioswallet.com/wc?uri=')
 
@@ -653,29 +695,32 @@ describe('useConnect hook', () => {
 
   it('should update state, QR code, showMoreContent, and displayQRExtra via update functions', () => {
     const { result } = renderHook(() =>
-      useConnect(false, 'initial-wc', 'initial-p2p', 'initial-post', wallets, onCloseHandler)
+      useConnect(
+        false,
+        Promise.resolve('initial-wc'),
+        Promise.resolve('initial-p2p'),
+        Promise.resolve('initial-post'),
+        wallets,
+        onCloseHandler
+      )
     )
 
-    // handleUpdateState is at index 15.
     act(() => {
       result.current[15](AlertState.BUG_REPORT)
     })
     expect(result.current[3]).toBe(AlertState.BUG_REPORT)
 
-    // handleUpdateQRCode is at index 16.
     act(() => {
       result.current[16]('new-qr-code')
     })
     expect(result.current[2]).toBe('new-qr-code')
 
-    // handleShowMoreContent is at index 17. (toggles boolean)
     const initialShowMore = result.current[5]
     act(() => {
       result.current[17]()
     })
     expect(result.current[5]).toBe(!initialShowMore)
 
-    // handleDisplayQRExtra is at index 18.
     act(() => {
       result.current[18](true)
     })

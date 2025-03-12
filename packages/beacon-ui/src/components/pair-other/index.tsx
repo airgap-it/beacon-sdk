@@ -12,14 +12,20 @@ const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
   const [qrData, setQrData] = useState<string>('')
 
   useEffect(() => {
+    const init = async () => {
+      const p2p = await props.p2pPayload
+      const wc = await props.wcPayload
+
+      setHasBeacon(p2p && p2p.length > 0 ? true : false)
+      setHasWalletConnect(wc && wc.length > 0 ? true : false)
+    }
+    init()
     setUiState('selection')
     setQrData('')
-    setHasBeacon(!!props.p2pPayload)
-    setHasWalletConnect(!!props.wcPayload)
-  }, [props.p2pPayload, props.wcPayload])
+  }, [])
 
-  const buttonClickHandler = (state: 'p2p' | 'walletconnect') => {
-    state === 'p2p' ? setQrData(props.p2pPayload) : setQrData(props.wcPayload)
+  const buttonClickHandler = async (state: 'p2p' | 'walletconnect') => {
+    state === 'p2p' ? setQrData(await props.p2pPayload) : setQrData(await props.wcPayload)
     setUiState(state)
   }
 
