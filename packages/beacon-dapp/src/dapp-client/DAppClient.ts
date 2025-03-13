@@ -470,6 +470,11 @@ export class DAppClient extends Client {
   }
 
   private async checkIfBCLeaderExists() {
+    // broadcast channel does not work on mobile
+    if (isMobileOS(window)) {
+      return true
+    }
+
     const hasLeader = await this.multiTabChannel.hasLeader()
 
     if (hasLeader) {
