@@ -36,7 +36,8 @@ describe('Alert Component', () => {
     extraContent: 'Extra information',
     showMore: false,
     onClickShowMore: jest.fn(),
-    children: <div data-testid="alert-child">Alert Content</div>
+    children: <div data-testid="alert-child">Alert Content</div>,
+    closeOnBackdropClick: true
   }
 
   afterEach(() => {

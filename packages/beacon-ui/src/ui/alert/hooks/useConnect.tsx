@@ -12,14 +12,14 @@ const logger = new Logger('useConnect')
 
 const useConnect = (
   isMobile: boolean,
-  wcPayload: string,
-  p2pPayload: string,
-  postPayload: string,
+  wcPayload: Promise<string>,
+  p2pPayload: Promise<string>,
+  postPayload: Promise<string>,
   wallets: Map<string, MergedWallet>,
   onCloseHandler: Function
 ) => {
   const [wallet, setWallet] = useState<MergedWallet>()
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [qrCode, setQRCode] = useState<string>()
   const [state, setState] = useState<AlertState>(AlertState.TOP_WALLETS)
   const [displayQRExtra, setDisplayQRExtra] = useState(false)
@@ -40,7 +40,7 @@ const useConnect = (
     setState(AlertState.INSTALL)
   }
 
-  const handleClickWallet = (id: string, config: AlertConfig) => {
+  const handleClickWallet = async (id: string, config: AlertConfig) => {
     setIsLoading(true)
     setShowMoreContent(false)
     const selectedWallet = wallets.get(id)
@@ -67,7 +67,7 @@ const useConnect = (
       selectedWallet &&
       selectedWallet.supportedInteractionStandards?.includes('wallet_connect')
     ) {
-      const isValid = !!parseUri(wcPayload).symKey
+      const isValid = !!parseUri(await wcPayload).symKey
       setIsWCWorking(isValid)
 
       if (!isValid && selectedWallet?.name.toLowerCase().includes('kukai')) {
@@ -79,9 +79,9 @@ const useConnect = (
 
       if (isValid) {
         if (isMobile && selectedWallet.types.includes('ios') && selectedWallet.types.length === 1) {
-          handleDeepLinking(selectedWallet, wcPayload)
+          handleDeepLinking(selectedWallet)
         } else {
-          setQRCode(wcPayload)
+          setQRCode(await wcPayload)
           setInstallState(selectedWallet)
         }
       }
@@ -96,7 +96,7 @@ const useConnect = (
             : isAndroid(window)
             ? selectedWallet.links[OSLink.IOS]
             : 'tezos://',
-          p2pPayload
+          await p2pPayload
         )
 
         updateSelectedWalletWithURL(link)
@@ -117,7 +117,7 @@ const useConnect = (
     } else {
       setIsLoading(false)
       setInstallState(selectedWallet)
-      config.pairingPayload && setQRCode(p2pPayload)
+      config.pairingPayload && setQRCode(await p2pPayload)
     }
   }
 
@@ -156,16 +156,16 @@ const useConnect = (
       wallet.supportedInteractionStandards?.includes('wallet_connect') &&
       !wallet.name.toLowerCase().includes('kukai')
     ) {
-      const isValid = !!parseUri(wcPayload).symKey
+      const isValid = !!parseUri(await wcPayload).symKey
       setIsWCWorking(isValid)
 
       if (!isValid) {
         return
       }
 
-      link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(wcPayload)}`
+      link = `${wallet.links[OSLink.WEB]}/wc?uri=${encodeURIComponent(await wcPayload)}`
     } else {
-      link = getTzip10Link(wallet.links[OSLink.WEB], p2pPayload)
+      link = getTzip10Link(wallet.links[OSLink.WEB], await p2pPayload)
     }
 
     if (newTab) {
@@ -185,7 +185,7 @@ const useConnect = (
     )
   }
 
-  const handleDeepLinking = (wallet: MergedWallet, uri: string) => {
+  const handleDeepLinking = async (wallet: MergedWallet) => {
     localStorage.setItem(
       StorageKey.LAST_SELECTED_WALLET,
       JSON.stringify({
@@ -195,11 +195,11 @@ const useConnect = (
       })
     )
 
-    if (!wallet?.links[OSLink.IOS]?.length) {
-      const syncCode = wallet?.supportedInteractionStandards?.includes('wallet_connect')
-        ? wcPayload
-        : p2pPayload
+    const syncCode = await (wallet?.supportedInteractionStandards?.includes('wallet_connect')
+      ? wcPayload
+      : p2pPayload)
 
+    if (!wallet?.links[OSLink.IOS]?.length) {
       if (!syncCode.length) {
         onCloseHandler()
         return
@@ -212,12 +212,12 @@ const useConnect = (
       return
     }
 
-    const link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(uri)}`
+    const link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(syncCode)}`
     updateSelectedWalletWithURL(`${wallet.links[OSLink.IOS]}wc?uri=`)
     logger.log('DO DEEPLINK WITH ' + link)
 
     if (isTwBrowser(window) && isAndroid(window)) {
-      window.location.href = `${uri}`
+      window.location.href = `${syncCode}`
     }
     if (isAndroid(window)) {
       window.open(link, '_blank', 'noopener')
@@ -242,11 +242,11 @@ const useConnect = (
     setState(AlertState.QR)
   }
 
-  const handleClickConnectExtension = () => {
+  const handleClickConnectExtension = async () => {
     setShowMoreContent(false)
     const message: ExtensionMessage<string> = {
       target: ExtensionMessageTarget.EXTENSION,
-      payload: postPayload,
+      payload: await postPayload,
       targetId: wallet?.id
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -255,7 +255,7 @@ const useConnect = (
     if (wallet?.firefoxId) {
       const message: ExtensionMessage<string> = {
         target: ExtensionMessageTarget.EXTENSION,
-        payload: postPayload,
+        payload: await postPayload,
         targetId: wallet?.firefoxId
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -278,11 +278,11 @@ const useConnect = (
     window.open(wallet?.links[OSLink.EXTENSION] || '', '_blank', 'noopener')
   }
 
-  const handleClickOpenDesktopApp = () => {
+  const handleClickOpenDesktopApp = async () => {
     setShowMoreContent(false)
 
     if (p2pPayload) {
-      const link = getTzip10Link(wallet?.deepLink || '', p2pPayload)
+      const link = getTzip10Link(wallet?.deepLink || '', await p2pPayload)
       window.open(link, '_blank', 'noopener')
     }
 

@@ -57,8 +57,8 @@ export interface PairingPayload {
 
 export interface PairOtherProps {
   walletList: MergedWallet[]
-  p2pPayload: string
-  wcPayload: string
+  p2pPayload: Promise<string>
+  wcPayload: Promise<string>
   onClickLearnMore: () => void
 }
 

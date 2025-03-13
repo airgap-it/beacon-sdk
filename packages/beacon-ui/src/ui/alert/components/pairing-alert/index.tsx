@@ -14,9 +14,9 @@ import WCInitError from './components/wc-init-error'
 import QRCode from './components/qr-code'
 
 const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
-  const [wcPayload, setWCPayload] = useState('')
-  const [p2pPayload, setP2pPayload] = useState('')
-  const [postPayload, setPostPayload] = useState('')
+  const wcPayload = props.pairingPayload!.walletConnectSyncCode
+  const p2pPayload = props.pairingPayload!.p2pSyncCode
+  const postPayload = props.pairingPayload!.postmessageSyncCode
   const isMobile = useIsMobile()
   const wallets = useWallets(props.pairingPayload?.networkType, props.featuredWallets)
   const [
@@ -38,27 +38,11 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     handleUpdateState,
     handleUpdateQRCode,
     handleShowMoreContent,
-    handleDisplayQRExtra,
-    handleIsLoading
+    handleDisplayQRExtra
   ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
   const [isPairingExpired, setIsPairingExpired] = useState(false)
-
-  useEffect(() => {
-    const init = async () => {
-      const [wcPayload, p2pPayload, postPayload] = await Promise.all([
-        props.pairingPayload!.walletConnectSyncCode,
-        props.pairingPayload!.p2pSyncCode,
-        props.pairingPayload!.postmessageSyncCode
-      ])
-      setWCPayload(wcPayload)
-      setP2pPayload(p2pPayload)
-      setPostPayload(postPayload)
-      handleIsLoading(false)
-    }
-    init()
-  }, [])
 
   useEffect(() => {
     if (!props.openBugReport || state === AlertState.BUG_REPORT) {
@@ -237,12 +221,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                         if (!wallet) {
                           return
                         }
-                        handleDeepLinking(
-                          wallet,
-                          wallet.supportedInteractionStandards?.includes('wallet_connect')
-                            ? wcPayload
-                            : p2pPayload
-                        )
+                        handleDeepLinking(wallet)
                       }
                     }
                   ]}
@@ -254,20 +233,20 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                         }
                       : undefined
                   }
-                  onShowQRCodeClick={() => {
-                    const syncCode = wallet?.supportedInteractionStandards?.includes(
+                  onShowQRCodeClick={async () => {
+                    const syncCode = await (wallet?.supportedInteractionStandards?.includes(
                       'wallet_connect'
                     )
                       ? wcPayload
-                      : p2pPayload
-
+                      : p2pPayload)
+                      
                     if (!syncCode.length || !wallet) {
                       props.onClose()
                       return
                     }
 
                     if (isMobile && wallet.types.includes('ios') && wallet.types.length === 1) {
-                      handleDeepLinking(wallet, syncCode)
+                      handleDeepLinking(wallet)
                     } else {
                       handleUpdateQRCode(syncCode)
                     }
