@@ -89,7 +89,7 @@ const Toast: React.FC<ToastProps> = (props: ToastProps) => {
         animation: props.open && animationEnded ? 'none' : undefined
       }}
       className={props.open ? 'toast-wrapper-show' : 'toast-wrapper-hide'}
-      {...bindDrag()}
+      {...(isMobile ? undefined : bindDrag())}
     >
       <div className="toast-header">
         <Loader />
