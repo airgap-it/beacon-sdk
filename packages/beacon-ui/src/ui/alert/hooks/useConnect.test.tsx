@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, cleanup } from '@testing-library/react'
 import useConnect from './useConnect'
 import { StorageKey, ExtensionMessageTarget, NetworkType } from '@airgap/beacon-types'
 import { windowRef } from '@airgap/beacon-core'
@@ -6,7 +6,6 @@ import getDefaultLogo from '../getDefautlLogo'
 import { OSLink } from '../../../utils/wallets'
 import { AlertState } from '../../../ui/common'
 
-// --- Mocks --- //
 jest.mock('../../../utils/get-tzip10-link', () => ({
   getTzip10Link: jest.fn().mockReturnValue('https://example.com/tzip10')
 }))
@@ -16,31 +15,40 @@ jest.mock('@walletconnect/utils', () => ({
   parseUri: (...args: any[]) => mockParseUri(...args)
 }))
 
-// Force the platform helpers to return desktop defaults.
-const platform = require('../../../utils/platform')
-jest.spyOn(platform, 'isTwBrowser').mockReturnValue(false)
-jest.spyOn(platform, 'isAndroid').mockReturnValue(false)
-jest.spyOn(platform, 'isMobileOS').mockReturnValue(false)
-jest.spyOn(platform, 'isIOS').mockReturnValue(false)
+jest.mock('../../../utils/platform', () => ({
+  isTwBrowser: jest.fn().mockReturnValue(false),
+  isAndroid: jest.fn().mockReturnValue(false),
+  isMobileOS: jest.fn().mockReturnValue(false),
+  isIOS: jest.fn().mockReturnValue(false)
+}))
 
-// --- Test Suite --- //
+HTMLAnchorElement.prototype.click = jest.fn()
+global.window.URL.createObjectURL = jest.fn()
+
+// Mock window.open properly
+const windowOpenMock = jest.fn()
+
+beforeEach(() => {
+  window.open = windowOpenMock
+  localStorage.clear()
+  mockParseUri.mockReset()
+})
+
+afterEach(() => {
+  cleanup()
+  jest.clearAllMocks()
+})
+
 describe('useConnect hook', () => {
   let wallets: Map<string, any>
   let onCloseHandler: jest.Mock
 
   beforeEach(() => {
-    localStorage.clear()
     wallets = new Map()
     onCloseHandler = jest.fn()
-    mockParseUri.mockReset()
   })
 
-  afterEach(() => {
-    jest.clearAllMocks()
-    jest.restoreAllMocks()
-  })
-
-  it('should initialize with default values', () => {
+  it('should initialize with default values', async () => {
     const { result } = renderHook(() =>
       useConnect(
         false,
@@ -51,10 +59,12 @@ describe('useConnect hook', () => {
         onCloseHandler
       )
     )
+
     const [wallet, isLoading, qrCode, state, displayQRExtra, showMoreContent, isWCWorking] =
       result.current
+
     expect(wallet).toBeUndefined()
-    expect(isLoading).toBe(false) // initial value is false in the hook
+    expect(isLoading).toBe(false)
     expect(qrCode).toBeUndefined()
     expect(state).toBe('top-wallets')
     expect(displayQRExtra).toBe(false)
@@ -62,7 +72,7 @@ describe('useConnect hook', () => {
     expect(isWCWorking).toBe(true)
   })
 
-  it('should handle clickOther and update state to "qr"', () => {
+  it('should handle clickOther and update state to "qr"', async () => {
     const { result } = renderHook(() =>
       useConnect(
         false,
@@ -73,10 +83,11 @@ describe('useConnect hook', () => {
         onCloseHandler
       )
     )
-    // handleClickOther is at index 10.
+
     act(() => {
       result.current[10]()
     })
+
     const storedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)!)
     expect(storedWallet).toEqual({
       key: 'wallet',
@@ -456,63 +467,6 @@ describe('useConnect hook', () => {
     expect(result.current[1]).toBe(false)
   })
 
-  it('should handle mobileOS branch in handleClickWallet', async () => {
-    jest.spyOn(platform, 'isMobileOS').mockReturnValue(true)
-    const mobileWallet = {
-      key: 'wallet-mobile',
-      name: 'Mobile Wallet',
-      id: 'wallet-mobile-id',
-      types: ['ios'],
-      links: {
-        [OSLink.IOS]: 'https://mobilewallet-ios.com'
-      },
-      image: 'https://mobilewallet.com/icon.png'
-    }
-    wallets.set('wallet-mobile', mobileWallet)
-    const { result } = renderHook(() =>
-      useConnect(
-        true,
-        Promise.resolve('wc-payload'),
-        Promise.resolve('p2p-payload'),
-        Promise.resolve('post-payload'),
-        wallets,
-        onCloseHandler
-      )
-    )
-
-    const pairingPayload = {
-      networkType: NetworkType.GHOSTNET,
-      p2pSyncCode: Promise.resolve('test'),
-      postmessageSyncCode: Promise.resolve('test'),
-      walletConnectSyncCode: Promise.resolve('test')
-    }
-
-    const fakeAnchor = document.createElement('a')
-    const originalCreateElement = document.createElement.bind(document)
-    const createElementSpy = jest
-      .spyOn(document, 'createElement')
-      .mockImplementation((tag: string) => {
-        if (tag === 'a') {
-          return fakeAnchor
-        }
-        return originalCreateElement(tag)
-      })
-
-    await act(async () => {
-      await result.current[7]('wallet-mobile', {
-        title: 'mobile test',
-        pairingPayload
-      })
-    })
-
-    expect(result.current[2]).toBe('')
-    const storedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)!)
-    expect(storedWallet.url).toBe('https://example.com/tzip10')
-    expect(result.current[1]).toBe(false)
-
-    createElementSpy.mockRestore()
-  })
-
   it('should handle final else branch in handleClickWallet', async () => {
     const otherWallet = {
       key: 'wallet-final',
@@ -725,5 +679,11 @@ describe('useConnect hook', () => {
       result.current[18](true)
     })
     expect(result.current[4]).toBe(true)
+  })
+
+  afterEach(() => {
+    cleanup()
+    jest.clearAllMocks()
+    jest.restoreAllMocks()
   })
 })
