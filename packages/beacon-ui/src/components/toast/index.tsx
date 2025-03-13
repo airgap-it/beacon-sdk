@@ -44,9 +44,10 @@ const Toast: React.FC<ToastProps> = (props: ToastProps) => {
 
   // Track the toast position (x, y)
   const [[x, y], setPosition] = useState<[number, number]>([0, 0])
+  // Track if the entrance animation (toastIn) has ended
+  const [animationEnded, setAnimationEnded] = useState(false)
 
   const bindDrag = useDrag(({ offset: [mx, my] }) => {
-    // Update x, y whenever offset changes
     setPosition([mx, my])
   })
 
@@ -61,14 +62,31 @@ const Toast: React.FC<ToastProps> = (props: ToastProps) => {
     }
   }, [isRequestSentToast])
 
+  // Reset the animation state when the toast is reopened
+  useEffect(() => {
+    if (props.open) {
+      setAnimationEnded(false)
+    }
+  }, [props.open])
+
+  // When an animation ends, only update state if the toast is open (i.e. toastIn just finished)
+  const handleAnimationEnd = () => {
+    if (props.open) {
+      setAnimationEnded(true)
+    }
+  }
+
   return (
     <div
+      onAnimationEnd={handleAnimationEnd}
       style={{
         position: 'absolute',
         transform: `translate3d(${x}px, ${y}px, 0)`,
-        // Required
         touchAction: 'none',
-        minWidth: !isMobile ? 460 : undefined
+        minWidth: !isMobile ? 460 : undefined,
+        // If the toast is open and the entrance animation is complete, remove inline animation
+        // so that drag transforms take effect. Otherwise (e.g. toast is closing) let CSS handle it.
+        animation: props.open && animationEnded ? 'none' : undefined
       }}
       className={props.open ? 'toast-wrapper-show' : 'toast-wrapper-hide'}
       {...bindDrag()}
