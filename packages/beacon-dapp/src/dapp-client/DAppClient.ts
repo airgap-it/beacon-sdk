@@ -642,6 +642,16 @@ export class DAppClient extends Client {
       ClientEvents.WC_ACK_NOTIFICATION,
       this.wcToastHandler.bind(this)
     )
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.ON_RELAYER_ERROR,
+      this.onRelayerError.bind(this)
+    )
+  }
+
+  private async onRelayerError() {
+    await this.resetInvalidState(false)
+
+    this.events.emit(BeaconEvent.RELAYER_ERROR)
   }
 
   private async wcToastHandler(status: string) {

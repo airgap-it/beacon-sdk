@@ -99,6 +99,7 @@ export enum BeaconEvent {
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
   GENERIC_ERROR = 'GENERIC_ERROR',
   OPEN_BUG_REPORT = 'OPEN_BUG_REPORT',
+  RELAYER_ERROR = 'RELAYER_ERROR',
 
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   UNKNOWN = 'UNKNOWN'
@@ -218,6 +219,7 @@ export interface BeaconEventType {
   [BeaconEvent.CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[] }
   [BeaconEvent.OPEN_BUG_REPORT]: undefined
+  [BeaconEvent.RELAYER_ERROR]: undefined
   [BeaconEvent.UNKNOWN]: undefined
 }
 
@@ -460,6 +462,15 @@ const showExtensionConnectedAlert = () => {
 
 const showBugReportForm = async () => {
   await openBugReport()
+}
+
+const showRelayerErrorAlert = async (): Promise<void> => {
+  openAlert({
+    title: 'Error',
+    body: `Failed to connect to the relayer. Please check that your system time is synchronized with the current time and reload the page.`,
+    buttons: [{ text: 'Done', style: 'outline' }],
+    timer: 1500
+  })
 }
 
 /**
@@ -803,6 +814,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.PAIR_INIT]: showPairAlert,
   [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
   [BeaconEvent.OPEN_BUG_REPORT]: showBugReportForm,
+  [BeaconEvent.RELAYER_ERROR]: showRelayerErrorAlert,
   [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
   [BeaconEvent.UNKNOWN]: emptyHandler()
@@ -868,6 +880,7 @@ export class BeaconEventHandler {
     [BeaconEvent.OPEN_BUG_REPORT]: [showBugReportForm],
     [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],
     [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
+    [BeaconEvent.RELAYER_ERROR]: [defaultEventCallbacks.RELAYER_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
   }
   constructor(
