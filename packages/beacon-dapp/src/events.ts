@@ -1,10 +1,10 @@
 import {
   BlockExplorer,
+  closeAlert,
   openAlert,
   openBugReport,
   AlertButton,
   AlertConfig,
-  closeAlerts,
   closeToast,
   openToast,
   ToastAction
@@ -302,9 +302,9 @@ const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => 
   })
 }
 
-const hideUI = async (elements?: ('alert' | 'toast')[]): Promise<void> => {
+const hideUI = (elements?: ('alert' | 'toast')[]) => {
   if (elements?.includes('alert')) {
-    closeAlerts()
+    closeAlert()
   }
 
   if (elements?.includes('toast') || !elements) {
@@ -454,8 +454,8 @@ const showRateLimitReached = async (): Promise<void> => {
 /**
  * Show a "connection successful" alert for 1.5 seconds
  */
-const showExtensionConnectedAlert = async (): Promise<void> => {
-  await closeAlerts()
+const showExtensionConnectedAlert = () => {
+  closeAlert()
 }
 
 const showBugReportForm = async () => {
