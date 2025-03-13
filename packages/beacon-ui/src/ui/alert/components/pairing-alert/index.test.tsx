@@ -1,4 +1,4 @@
-import { act, render, screen, fireEvent, RenderResult, waitFor } from '@testing-library/react'
+import { act, render, screen, fireEvent, RenderResult } from '@testing-library/react'
 import { NetworkType, StorageKey } from '@airgap/beacon-types'
 import PairingAlert from './index'
 import { ConfigurableAlertProps } from '../../../common'
