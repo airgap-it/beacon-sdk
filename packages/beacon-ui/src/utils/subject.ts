@@ -20,6 +20,6 @@ export class Subject<T> {
   }
 
   next(value: T): void {
-    this.subscribers.forEach((callback) => setTimeout(() => callback(value), 50))
+    this.subscribers.forEach((callback) => callback(value))
   }
 }

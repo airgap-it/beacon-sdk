@@ -18,9 +18,14 @@ const createToast = (config: ToastConfig) => {
 
 const openToast = (config: ToastConfig) => {
   initDone ? config$.next(config) : createToast(config)
-  lastTimer && clearTimeout(lastTimer)
+
+  if (lastTimer) {
+    clearTimeout(lastTimer)
+    lastTimer = undefined
+  }
+
   lastTimer = config.timer ? setTimeout(() => show$.next(false), config.timer) : undefined
-  config.state !== 'finished' && show$.next(true)
+  show$.next(true)
 }
 
 const closeToast = () => {
@@ -49,11 +54,6 @@ const ToastRoot = (props: ToastConfig) => {
   }, [])
 
   useEffect(() => {
-    if (isOpen) {
-      setMount(true)
-      return
-    }
-
     // unmount the component immediately
     // if the close icon is clicked
     // or whenever closeToast is called.
@@ -62,11 +62,9 @@ const ToastRoot = (props: ToastConfig) => {
       return
     }
 
-    // we need to wait a little before unmounting the component
-    // because otherwise the "fade-out" animation
-    // won't have enough time to play
-    if (config && config.timer) {
-      setTimeout(() => setMount(false), config.timer)
+    if (isOpen) {
+      setMount(true)
+      return
     }
 
     // no else that acts like a "default"
