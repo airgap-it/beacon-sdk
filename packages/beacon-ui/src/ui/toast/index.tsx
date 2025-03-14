@@ -17,8 +17,7 @@ const createToast = (config: ToastConfig) => {
 }
 
 const openToast = (config: ToastConfig) => {
-  console.error('open toast called', config)
-  initDone ? config$.next(config) : createToast(config)
+  initDone ? setTimeout(() => config$.next(config), 200) : createToast(config)
 
   if (lastTimer) {
     clearTimeout(lastTimer)
@@ -27,8 +26,7 @@ const openToast = (config: ToastConfig) => {
 
   lastTimer = config.timer ? setTimeout(() => show$.next(false), config.timer) : undefined
 
-  show$.next(false)
-  setTimeout(() => show$.next(true), 50)
+  show$.next(true)
 }
 
 const closeToast = () => {
@@ -57,7 +55,6 @@ const ToastRoot = (props: ToastConfig) => {
   }, [])
 
   useEffect(() => {
-    console.error('useEffect called', config)
     // unmount the component immediately
     // if the close icon is clicked
     // or whenever closeToast is called.
