@@ -9,6 +9,10 @@ const config$ = new Subject<ToastConfig | undefined>()
 const show$ = new Subject<boolean>()
 let lastTimer: NodeJS.Timeout | undefined
 
+// Track when openToast was last called.
+let lastCallTimestamp = 0
+const DELAY = 500
+
 const createToast = (config: ToastConfig) => {
   const el = document.createElement('beacon-toast')
   document.body.prepend(el)
@@ -17,9 +21,21 @@ const createToast = (config: ToastConfig) => {
 }
 
 const openToast = (config: ToastConfig) => {
-  // we need to give time to React to process re-render cycles
-  initDone ? setTimeout(() => config$.next(config), 500) : createToast(config)
+  const now = Date.now()
+  // Determine delay:
+  // If more than 500ms have passed since the last call, use 0 delay (immediate).
+  // Otherwise, delay by 500ms.
+  const timeoutDelay = now - lastCallTimestamp > DELAY ? 0 : DELAY
+  lastCallTimestamp = now
 
+  // If the toast hasn't been initialized, create it immediately.
+  if (!initDone) {
+    createToast(config)
+  } else {
+    setTimeout(() => config$.next(config), timeoutDelay)
+  }
+
+  // Clear any existing timer for auto-hiding the toast.
   if (lastTimer) {
     clearTimeout(lastTimer)
     lastTimer = undefined
@@ -56,9 +72,7 @@ const ToastRoot = (props: ToastConfig) => {
   }, [])
 
   useEffect(() => {
-    // unmount the component immediately
-    // if the close icon is clicked
-    // or whenever closeToast is called.
+    // Unmount immediately if the toast is closed.
     if (!config) {
       setMount(false)
       return
@@ -68,9 +82,6 @@ const ToastRoot = (props: ToastConfig) => {
       setMount(true)
       return
     }
-
-    // no else that acts like a "default"
-    // because some toasts do not close automatically
   }, [isOpen])
 
   return (
@@ -79,9 +90,7 @@ const ToastRoot = (props: ToastConfig) => {
         <Toast
           label={config.body}
           open={isOpen}
-          onClickClose={() => {
-            closeToast()
-          }}
+          onClickClose={closeToast}
           actions={config.actions}
           walletInfo={config.walletInfo}
           openWalletAction={config.openWalletAction}

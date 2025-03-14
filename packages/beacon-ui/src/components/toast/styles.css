@@ -36,6 +36,7 @@
 
 .toast-inner-show {
   user-select: none;
+  cursor: move;
   background-color: white;
   border-radius: 6px;
   z-index: 1000000;
@@ -46,6 +47,7 @@
 
 .toast-inner-hide {
   user-select: none;
+  cursor: move;
   background-color: white;
   border-radius: 6px;
   z-index: 1000000;
