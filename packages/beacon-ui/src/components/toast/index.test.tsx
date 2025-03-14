@@ -34,10 +34,10 @@ describe('Toast Component', () => {
     const { rerender, container } = render(
       <Toast label="Test Toast" open={true} onClickClose={jest.fn()} />
     )
-    expect(container.firstChild?.firstChild).toHaveClass('toast-inner-show')
+    expect(container.firstChild).toHaveClass('toast-wrapper-show')
 
     rerender(<Toast label="Test Toast" open={false} onClickClose={jest.fn()} />)
-    expect(container.firstChild?.firstChild).toHaveClass('toast-inner-hide')
+    expect(container.firstChild).toHaveClass('toast-wrapper-hide')
   })
 
   test('calls onClickClose when the close icon is clicked', () => {

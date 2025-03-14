@@ -34,28 +34,6 @@
   animation: toastOut 0.3s ease forwards;
 }
 
-.toast-inner-show {
-  user-select: none;
-  cursor: move;
-  background-color: white;
-  border-radius: 6px;
-  z-index: 1000000;
-  box-shadow: 0px 4px 11px -4px rgba(0, 0, 0, 0.45);
-  /* Play the entrance animation */
-  animation: toastIn 0.3s ease forwards;
-}
-
-.toast-inner-hide {
-  user-select: none;
-  cursor: move;
-  background-color: white;
-  border-radius: 6px;
-  z-index: 1000000;
-  box-shadow: 0px 4px 11px -4px rgba(0, 0, 0, 0.45);
-  /* Play the exit animation */
-  animation: toastOut 0.3s ease forwards;
-}
-
 /* Keyframes for the toast animations */
 @keyframes toastIn {
   from {
