@@ -41,7 +41,7 @@ const openToast = (config: ToastConfig) => {
     lastTimer = undefined
   }
 
-  lastTimer = config.timer ? setTimeout(() => show$.next(false), config.timer) : undefined
+  lastTimer = config.timer ? setTimeout(() => closeToast(), config.timer) : undefined
 
   show$.next(true)
 }
@@ -82,7 +82,7 @@ const ToastRoot = (props: ToastConfig) => {
       setMount(true)
       return
     }
-  }, [isOpen])
+  }, [isOpen, config])
 
   return (
     <>
