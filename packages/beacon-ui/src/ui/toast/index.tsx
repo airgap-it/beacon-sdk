@@ -17,7 +17,8 @@ const createToast = (config: ToastConfig) => {
 }
 
 const openToast = (config: ToastConfig) => {
-  initDone ? setTimeout(() => config$.next(config), 200) : createToast(config)
+  // we need to give time to React to process re-render cycles
+  initDone ? setTimeout(() => config$.next(config), 500) : createToast(config)
 
   if (lastTimer) {
     clearTimeout(lastTimer)
