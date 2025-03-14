@@ -470,6 +470,11 @@ export class DAppClient extends Client {
   }
 
   private async checkIfBCLeaderExists() {
+    // broadcast channel does not work on mobile
+    if (isMobileOS(window)) {
+      return true
+    }
+
     const hasLeader = await this.multiTabChannel.hasLeader()
 
     if (hasLeader) {
@@ -637,6 +642,16 @@ export class DAppClient extends Client {
       ClientEvents.WC_ACK_NOTIFICATION,
       this.wcToastHandler.bind(this)
     )
+    this.walletConnectTransport.setEventHandler(
+      ClientEvents.ON_RELAYER_ERROR,
+      this.onRelayerError.bind(this)
+    )
+  }
+
+  private async onRelayerError() {
+    await this.resetInvalidState(false)
+
+    this.events.emit(BeaconEvent.RELAYER_ERROR)
   }
 
   private async wcToastHandler(status: string) {
