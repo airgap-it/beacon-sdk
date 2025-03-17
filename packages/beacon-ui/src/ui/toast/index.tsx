@@ -9,9 +9,11 @@ const config$ = new Subject<ToastConfig | undefined>()
 const show$ = new Subject<boolean>()
 let lastTimer: NodeJS.Timeout | undefined
 
-// Track when openToast was last called.
+// Track when openToast was last called and how many consecutive calls were made.
 let lastCallTimestamp = 0
-const DELAY = 500
+let requestCount = 0
+const BASE_DELAY = 500
+const DELAY_INCREMENT = 100
 
 const createToast = (config: ToastConfig) => {
   const el = document.createElement('beacon-toast')
@@ -22,11 +24,18 @@ const createToast = (config: ToastConfig) => {
 
 const openToast = (config: ToastConfig) => {
   const now = Date.now()
-  // Determine delay:
-  // If more than 500ms have passed since the last call, use 0 delay (immediate).
-  // Otherwise, delay by 500ms.
-  const timeoutDelay = now - lastCallTimestamp > DELAY ? 0 : DELAY
+
+  // Reset the counter if more than BASE_DELAY ms have passed since the last call.
+  if (now - lastCallTimestamp > BASE_DELAY) {
+    requestCount = 1
+  } else {
+    requestCount++
+  }
   lastCallTimestamp = now
+
+  // Calculate delay: first request is immediate, second is BASE_DELAY,
+  // subsequent requests add DELAY_INCREMENT ms for each additional call.
+  const timeoutDelay = requestCount === 1 ? 0 : BASE_DELAY + (requestCount - 2) * DELAY_INCREMENT
 
   // If the toast hasn't been initialized, create it immediately.
   if (!initDone) {
@@ -77,7 +86,6 @@ const ToastRoot = (props: ToastConfig) => {
       setMount(false)
       return
     }
-
     if (isOpen) {
       setMount(true)
       return
