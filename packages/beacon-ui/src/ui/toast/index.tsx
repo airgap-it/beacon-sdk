@@ -13,6 +13,7 @@ let lastTimer: NodeJS.Timeout | undefined
 let lastCallTimestamp = 0
 let requestCount = 0
 const BASE_DELAY = 500
+const COOLDOWN = 2000
 const DELAY_INCREMENT = 100
 
 const createToast = (config: ToastConfig) => {
@@ -25,8 +26,8 @@ const createToast = (config: ToastConfig) => {
 const openToast = (config: ToastConfig) => {
   const now = Date.now()
 
-  // Reset the counter if more than BASE_DELAY ms have passed since the last call.
-  if (now - lastCallTimestamp > BASE_DELAY) {
+  // Reset the counter if more than COOLDOWN ms have passed since the last call.
+  if (now - lastCallTimestamp > COOLDOWN) {
     requestCount = 1
   } else {
     requestCount++
