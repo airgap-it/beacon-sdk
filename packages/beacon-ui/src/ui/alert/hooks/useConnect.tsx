@@ -115,9 +115,9 @@ const useConnect = (
         setIsLoading(false)
       }
     } else {
-      setIsLoading(false)
       setInstallState(selectedWallet)
       config.pairingPayload && setQRCode(await p2pPayload)
+      setIsLoading(false)
     }
   }
 
