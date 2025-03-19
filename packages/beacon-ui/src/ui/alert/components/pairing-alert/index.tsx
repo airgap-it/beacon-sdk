@@ -199,11 +199,11 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               />
             )}
             {!isMobileOS(window) &&
-              (qrCode?.length ?? 0) &&
+              (qrCode?.length ?? 0) > 0 &&
               wallet?.types.includes('ios') &&
               (wallet?.types.length as number) > 1 && <QR isMobile={false} />}
             {!isMobileOS(window) &&
-              (qrCode?.length ?? 0) &&
+              (qrCode?.length ?? 0) > 0 &&
               wallet?.types.includes('ios') &&
               (wallet?.types.length as number) <= 1 && <QR isMobile={true} />}
             {isMobileOS(window) &&
@@ -239,7 +239,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                     )
                       ? wcPayload
                       : p2pPayload)
-                      
+
                     if (!syncCode.length || !wallet) {
                       props.onClose()
                       return
