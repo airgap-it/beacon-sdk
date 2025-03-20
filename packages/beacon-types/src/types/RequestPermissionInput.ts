@@ -9,4 +9,5 @@ export interface RequestPermissionInput {
    */
   network?: Network
   scopes?: PermissionScope[]
+  displayQRCode?: boolean
 }

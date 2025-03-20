@@ -211,6 +211,7 @@ export interface BeaconEventType {
     disclaimerText?: string
     analytics: AnalyticsInterface
     featuredWallets?: string[]
+    displayQRCode?: boolean
   }
   [BeaconEvent.PAIR_SUCCESS]:
     | ExtendedPostMessagePairingResponse
@@ -520,7 +521,8 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
     closeButtonCallback: data.abortedHandler,
     disclaimerText: data.disclaimerText,
     analytics: data.analytics,
-    featuredWallets: data.featuredWallets
+    featuredWallets: data.featuredWallets,
+    displayQRCode: data.displayQRCode
   }
   openAlert(alertConfig)
 }

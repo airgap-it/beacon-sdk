@@ -38,7 +38,8 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     handleUpdateState,
     handleUpdateQRCode,
     handleShowMoreContent,
-    handleDisplayQRExtra
+    handleDisplayQRExtra,
+    handleIsLoading
   ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
@@ -51,6 +52,15 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
 
     handleUpdateState(AlertState.BUG_REPORT)
   }, [props.openBugReport])
+
+  useEffect(() => {
+    if (!props.displayQRCode || state === AlertState.QR_ONLY) {
+      return
+    }
+
+    handleUpdateState(AlertState.QR_ONLY)
+    handleIsLoading(true)
+  }, [props.displayQRCode])
 
   useEffect(() => {
     if (props.open || state !== AlertState.BUG_REPORT) {
@@ -66,7 +76,9 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       isWCWorking={isWCWorking}
       isMobile={isMobile}
       qrCode={qrCode}
+      defaultPairing={p2pPayload}
       handleUpdateState={handleUpdateState}
+      handleIsLoading={handleIsLoading}
     />
   )
 
@@ -343,8 +355,40 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
         </div>
         <div
           style={
-            state !== AlertState.INSTALL &&
-            ![AlertState.QR, AlertState.WALLETS, AlertState.BUG_REPORT].includes(state)
+            state === AlertState.QR_ONLY
+              ? {
+                  opacity: 1,
+                  height: 'unset',
+                  overflow: 'unset',
+                  transform: 'scale(1)',
+                  transition: 'all ease 0.3s',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.9em'
+                }
+              : {
+                  opacity: 0,
+                  height: 0,
+                  overflow: 'hidden',
+                  transform: 'scale(1.1)',
+                  transition: 'all ease 0.3s',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.9em'
+                }
+          }
+        >
+          <QR isMobile={true} />
+        </div>
+        <div
+          style={
+            ![
+              AlertState.QR,
+              AlertState.WALLETS,
+              AlertState.BUG_REPORT,
+              AlertState.INSTALL,
+              AlertState.QR_ONLY
+            ].includes(state)
               ? {
                   opacity: 1,
                   height: 'unset',

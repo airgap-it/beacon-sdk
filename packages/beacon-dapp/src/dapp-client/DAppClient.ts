@@ -701,7 +701,7 @@ export class DAppClient extends Client {
     await super.destroy()
   }
 
-  public async init(transport?: Transport<any>): Promise<TransportType> {
+  public async init(transport?: Transport<any>, displayQRCode?: boolean): Promise<TransportType> {
     if (this._initPromise) {
       return this._initPromise
     }
@@ -866,7 +866,8 @@ export class DAppClient extends Client {
               abortedHandler: abortHandler.bind(this),
               disclaimerText: this.disclaimerText,
               analytics: this.analytics,
-              featuredWallets: this.featuredWallets
+              featuredWallets: this.featuredWallets,
+              displayQRCode
             })
             .catch((emitError) => console.warn(emitError))
         }
@@ -1509,7 +1510,12 @@ export class DAppClient extends Client {
 
     const res =
       (await this.checkMakeRequest()) || !(await this.getActiveAccount())
-        ? this.makeRequest<PermissionRequest, PermissionResponse>(request)
+        ? this.makeRequest<PermissionRequest, PermissionResponse>(
+            request,
+            undefined,
+            undefined,
+            input?.displayQRCode
+          )
         : this.makeRequestBC<PermissionRequest, PermissionResponse>(request)
 
     res.catch(async (requestError: ErrorResponse) => {
@@ -2327,7 +2333,8 @@ export class DAppClient extends Client {
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
     skipResponse?: undefined | false,
-    otherTabMessageId?: string
+    otherTabMessageId?: string,
+    displayQRCode?: boolean
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -2335,12 +2342,14 @@ export class DAppClient extends Client {
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
     skipResponse: true,
-    otherTabMessageId?: string
+    otherTabMessageId?: string,
+    displayQRCode?: boolean
   ): Promise<undefined>
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
     skipResponse?: boolean,
-    otherTabMessageId?: string
+    otherTabMessageId?: string,
+    displayQRCode?: boolean
   ) {
     const messageId = otherTabMessageId ?? (await generateGUID())
 
@@ -2355,7 +2364,7 @@ export class DAppClient extends Client {
 
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
-    await this.init()
+    await this.init(undefined, displayQRCode)
     this.isInitPending = false
     logger.log('makeRequest', 'after init')
 
