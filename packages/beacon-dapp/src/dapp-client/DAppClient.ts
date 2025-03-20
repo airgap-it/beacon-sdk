@@ -1514,7 +1514,6 @@ export class DAppClient extends Client {
             request,
             undefined,
             undefined,
-            input?.displayQRCode
           )
         : this.makeRequestBC<PermissionRequest, PermissionResponse>(request)
 
@@ -2333,8 +2332,7 @@ export class DAppClient extends Client {
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
     skipResponse?: undefined | false,
-    otherTabMessageId?: string,
-    displayQRCode?: boolean
+    otherTabMessageId?: string
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -2342,14 +2340,12 @@ export class DAppClient extends Client {
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
     skipResponse: true,
-    otherTabMessageId?: string,
-    displayQRCode?: boolean
+    otherTabMessageId?: string
   ): Promise<undefined>
   private async makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
     skipResponse?: boolean,
-    otherTabMessageId?: string,
-    displayQRCode?: boolean
+    otherTabMessageId?: string
   ) {
     const messageId = otherTabMessageId ?? (await generateGUID())
 
@@ -2364,7 +2360,7 @@ export class DAppClient extends Client {
 
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
-    await this.init(undefined, displayQRCode)
+    await this.init()
     this.isInitPending = false
     logger.log('makeRequest', 'after init')
 
@@ -2474,7 +2470,8 @@ export class DAppClient extends Client {
     U extends BeaconMessageWrapper<BlockchainMessage<string>>
   >(
     requestInput: T,
-    otherTabMessageId?: string
+    otherTabMessageId?: string,
+    displayQRCode?: boolean
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -2491,7 +2488,7 @@ export class DAppClient extends Client {
     const messageId = otherTabMessageId ?? (await generateGUID())
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
-    await this.init()
+    await this.init(undefined, displayQRCode)
     this.isInitPending = false
     logger.log('makeRequest', 'after init')
 
