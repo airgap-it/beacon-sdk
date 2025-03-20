@@ -2471,7 +2471,6 @@ export class DAppClient extends Client {
   >(
     requestInput: T,
     otherTabMessageId?: string,
-    displayQRCode?: boolean
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext
@@ -2488,7 +2487,7 @@ export class DAppClient extends Client {
     const messageId = otherTabMessageId ?? (await generateGUID())
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
-    await this.init(undefined, displayQRCode)
+    await this.init(undefined, (requestInput as any).displayQRCode)
     this.isInitPending = false
     logger.log('makeRequest', 'after init')
 
