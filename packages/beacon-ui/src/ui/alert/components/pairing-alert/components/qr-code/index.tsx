@@ -25,28 +25,28 @@ const QRCode: React.FC<QRCodeProps> = ({
     pair()
   }, [codeQr])
 
+  if (!codeQr || codeQr.length === 0) {
+    return <></>
+  }
+
   return (
     <>
-      {codeQr ? (
-        isConnected ? (
-          <QR
-            isWalletConnect={
-              wallet?.supportedInteractionStandards?.includes('wallet_connect') || false
-            }
-            isMobile={isMobile}
-            walletName={wallet?.name || 'AirGap'}
-            code={codeQr}
-            onClickLearnMore={() => {}}
-            onClickQrCode={() => {}}
-          />
-        ) : (
-          <WCInitError
-            title={`Connect with ${wallet?.name} Mobile`}
-            handleUpdateState={handleUpdateState}
-          />
-        )
+      {isConnected ? (
+        <QR
+          isWalletConnect={
+            wallet?.supportedInteractionStandards?.includes('wallet_connect') || false
+          }
+          isMobile={isMobile}
+          walletName={wallet?.name || 'AirGap'}
+          code={codeQr}
+          onClickLearnMore={() => {}}
+          onClickQrCode={() => {}}
+        />
       ) : (
-        <></>
+        <WCInitError
+          title={`Connect with ${wallet?.name} Mobile`}
+          handleUpdateState={handleUpdateState}
+        />
       )}
     </>
   )

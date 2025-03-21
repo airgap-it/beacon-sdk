@@ -33,6 +33,8 @@ jest.mock('../../../../components/alert', () => (props: any) => {
     extraContent,
     onBackClick,
     closeOnBackdropClick, // remove it
+    openBugReport,
+    displayQRCode,
     ...rest
   } = props
   return (
@@ -205,7 +207,7 @@ describe('PairingAlert Component', () => {
       connectReturn[2] = 'QR_CODE_123'
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       await renderPairingAlert(defaultProps)
-      expect(screen.getByTestId('qr')).toHaveTextContent('QR: QR_CODE_123 - isMobile: false')
+      expect(screen.getByTestId('qr')).toHaveTextContent('QR: p2pCode - isMobile: false')
     })
 
     test('renders QR component with isMobile true when wallet.types length equals 1', async () => {
@@ -218,7 +220,7 @@ describe('PairingAlert Component', () => {
       connectReturn[2] = 'QR_CODE_SINGLE'
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       await renderPairingAlert(defaultProps)
-      expect(screen.getByTestId('qr')).toHaveTextContent('QR: QR_CODE_SINGLE - isMobile: true')
+      expect(screen.getByTestId('qr')).toHaveTextContent('QR: p2pCode - isMobile: true')
     })
 
     test('clicking "Use Browser" button calls handleNewTab', async () => {
@@ -312,13 +314,13 @@ describe('PairingAlert Component', () => {
   })
 
   // --- Help State Tests ---
-  describe('Help State', () => {
+  describe('Bug report State', () => {
     test('renders BugReportForm when metrics are enabled', async () => {
       localStorage.setItem(StorageKey.ENABLE_METRICS, 'true')
       const connectReturn = [...defaultUseConnect]
-      connectReturn[3] = 'help'
+      connectReturn[3] = 'bug-report'
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
-      await renderPairingAlert(defaultProps)
+      await renderPairingAlert({ ...defaultProps, openBugReport: true })
       expect(screen.getByTestId('bug-report-form')).toBeInTheDocument()
     })
 
@@ -334,7 +336,7 @@ describe('PairingAlert Component', () => {
       connectReturn[15] = updateStateMock
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       localStorage.setItem(StorageKey.WC_INIT_ERROR, 'Network error details')
-      await renderPairingAlert(defaultProps)
+      await renderPairingAlert({ ...defaultProps, openBugReport: true })
       const hereElement = screen.getByText('here')
       fireEvent.click(hereElement)
       expect(updateStateMock).toHaveBeenCalledWith('bug-report')
@@ -343,9 +345,9 @@ describe('PairingAlert Component', () => {
     test('clicking on BugReportForm calls onClose', async () => {
       localStorage.setItem(StorageKey.ENABLE_METRICS, 'true')
       const onCloseMock = jest.fn()
-      const newProps = { ...defaultProps, onClose: onCloseMock }
+      const newProps = { ...defaultProps, openBugReport: true, onClose: onCloseMock }
       const connectReturn = [...defaultUseConnect]
-      connectReturn[3] = 'help'
+      connectReturn[3] = 'bug-report'
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       await renderPairingAlert(newProps)
       const bugReport = screen.getByTestId('bug-report-form')
