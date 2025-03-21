@@ -207,7 +207,7 @@ describe('PairingAlert Component', () => {
       connectReturn[2] = 'QR_CODE_123'
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       await renderPairingAlert(defaultProps)
-      expect(screen.getByTestId('qr')).toHaveTextContent('QR: p2pCode - isMobile: false')
+      expect(screen.getByTestId('qr')).toHaveTextContent('QR: QR_CODE_123 - isMobile: false')
     })
 
     test('renders QR component with isMobile true when wallet.types length equals 1', async () => {
@@ -220,7 +220,7 @@ describe('PairingAlert Component', () => {
       connectReturn[2] = 'QR_CODE_SINGLE'
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       await renderPairingAlert(defaultProps)
-      expect(screen.getByTestId('qr')).toHaveTextContent('QR: p2pCode - isMobile: true')
+      expect(screen.getByTestId('qr')).toHaveTextContent('QR: QR_CODE_SINGLE - isMobile: true')
     })
 
     test('clicking "Use Browser" button calls handleNewTab', async () => {

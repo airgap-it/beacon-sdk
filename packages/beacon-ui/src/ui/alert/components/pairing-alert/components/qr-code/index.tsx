@@ -18,6 +18,10 @@ const QRCode: React.FC<QRCodeProps> = ({
 
   useEffect(() => {
     const pair = async () => {
+      if (codeQr) {
+        return
+      }
+
       setCodeQr(await defaultPairing)
       handleIsLoading(false)
     }
