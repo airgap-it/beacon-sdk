@@ -536,6 +536,9 @@ const showPermissionSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.PERMISSION_REQUEST_SUCCESS]
 ): Promise<void> => {
   const { output } = data
+
+  console.log('output', output)
+
   const actions: any[] = [
     {
       text: 'Address',
