@@ -537,8 +537,6 @@ const showPermissionSuccessAlert = async (
 ): Promise<void> => {
   const { output } = data
 
-  console.log('output', output)
-
   const actions: any[] = [
     {
       text: 'Address',
@@ -547,7 +545,7 @@ const showPermissionSuccessAlert = async (
     }
   ]
 
-  if ((output.network as any) !== 'substrate') {
+  if ((output.network.type as any) !== 'substrate') {
     actions.push({
       text: 'Network',
       actionText: `${output.network.type}`
