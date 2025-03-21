@@ -62,21 +62,6 @@ const QR: React.FC<QRProps> = (props: QRProps) => {
             {`Scan QR code with a ${
               props.isWalletConnect ? 'WalletConnect' : 'Beacon'
             }-compatible wallet.`}
-            {props.onClickLearnMore && (
-              <span className="qr-more-info" onClick={props.onClickLearnMore}>
-                Learn more
-              </span>
-            )}
-          </span>
-        )}
-
-        {!props.isMobile && props.onClickLearnMore && (
-          <span
-            style={{ marginTop: 'auto' }}
-            className="qr-more-info"
-            onClick={props.onClickLearnMore}
-          >
-            Learn more
           </span>
         )}
       </div>

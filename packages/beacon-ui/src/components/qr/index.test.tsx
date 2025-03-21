@@ -81,14 +81,6 @@ describe('QR Component', () => {
       screen.getByText(/Scan QR code with a WalletConnect-compatible wallet\./i)
     ).toBeInTheDocument()
 
-    // "Learn more" should be rendered.
-    const learnMoreEl = screen.getByText(/Learn more/i)
-    expect(learnMoreEl).toBeInTheDocument()
-
-    // Click on "Learn more" and verify that the callback is called.
-    fireEvent.click(learnMoreEl)
-    expect(onClickLearnMore).toHaveBeenCalledTimes(1)
-
     // Wait for the QR SVG to be set.
     await waitFor(() => {
       const svgWrapper = document.querySelector('.qr-svg-wrapper')
