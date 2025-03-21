@@ -1404,8 +1404,8 @@ export class DAppClient extends Client {
       account: accountInfo,
       output: {
         address: partialAccountInfos[0].address,
-        network: { type: NetworkType.MAINNET },
-        scopes: [PermissionScope.OPERATION_REQUEST]
+        network: { type: 'substrate' },
+        scopes: []
       } as any,
       blockExplorer: this.blockExplorer,
       connectionContext: connectionInfo,
@@ -1510,11 +1510,7 @@ export class DAppClient extends Client {
 
     const res =
       (await this.checkMakeRequest()) || !(await this.getActiveAccount())
-        ? this.makeRequest<PermissionRequest, PermissionResponse>(
-            request,
-            undefined,
-            undefined,
-          )
+        ? this.makeRequest<PermissionRequest, PermissionResponse>(request, undefined, undefined)
         : this.makeRequestBC<PermissionRequest, PermissionResponse>(request)
 
     res.catch(async (requestError: ErrorResponse) => {
@@ -2470,7 +2466,7 @@ export class DAppClient extends Client {
     U extends BeaconMessageWrapper<BlockchainMessage<string>>
   >(
     requestInput: T,
-    otherTabMessageId?: string,
+    otherTabMessageId?: string
   ): Promise<{
     message: U
     connectionInfo: ConnectionContext

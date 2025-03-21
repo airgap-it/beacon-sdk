@@ -536,27 +536,31 @@ const showPermissionSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.PERMISSION_REQUEST_SUCCESS]
 ): Promise<void> => {
   const { output } = data
+  const actions: any[] = [
+    {
+      text: 'Address',
+      actionText: shortenString(output.address),
+      isBold: true
+    }
+  ]
+
+  if ((output.network as any) !== 'substrate') {
+    actions.push({
+      text: 'Network',
+      actionText: `${output.network.type}`
+    })
+    actions.push({
+      text: 'Permissions',
+      actionText: output.scopes.join(', ')
+    })
+  }
 
   openToast({
     body: `{{wallet}}\u00A0 has granted permission`,
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
     state: 'finished',
-    actions: [
-      {
-        text: 'Address',
-        actionText: shortenString(output.address),
-        isBold: true
-      },
-      {
-        text: 'Network',
-        actionText: `${output.network.type}`
-      },
-      {
-        text: 'Permissions',
-        actionText: output.scopes.join(', ')
-      }
-    ]
+    actions
   })
 }
 
