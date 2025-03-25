@@ -1361,7 +1361,7 @@ export class DAppClient extends Client {
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
-      throw requestError
+      throw await this.handleRequestError(request as any, requestError)
     })
     logger.time(false, logId)
 
