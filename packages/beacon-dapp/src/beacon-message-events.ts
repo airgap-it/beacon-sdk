@@ -6,7 +6,7 @@ export const messageEvents: {
 } = {
   [BeaconMessageType.BlockchainRequest]: {
     sent: BeaconEvent.OPERATION_REQUEST_SENT,
-    success: BeaconEvent.OPERATION_REQUEST_SUCCESS,
+    success: BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS,
     error: BeaconEvent.OPERATION_REQUEST_ERROR
   },
   [BeaconMessageType.BlockchainResponse]: {
