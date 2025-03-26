@@ -320,10 +320,40 @@ export class DAppClient extends Client {
           ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
           : (message as BeaconMessage)
 
-      const appMetadata =
-        (message.version === '3'
-          ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData.appMetadata
-          : (typedMessage as PermissionResponse).appMetadata) ?? (await this.getOwnAppMetadata())
+      let appMetadata: AppMetadata | undefined =
+        message.version === '3'
+          ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData?.appMetadata
+          : (typedMessage as PermissionResponse).appMetadata
+
+      appMetadata = undefined
+
+      if (!appMetadata && message.version === '3') {
+        const storedMetadata = await Promise.all([
+          this.storage.get(StorageKey.TRANSPORT_P2P_PEERS_DAPP),
+          this.storage.get(StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP),
+          this.storage.get(StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP)
+        ])
+
+        for (const peers of storedMetadata) {
+          const peer: any = peers.find((peer: any) => peer.senderId === message.senderId)
+          if (!peer) {
+            continue
+          }
+
+          const wallet = await this.getWalletInfo()
+
+          appMetadata = {
+            name: peer.name,
+            senderId: peer.senderId,
+            icon: wallet.icon
+          }
+
+          break
+        }
+
+        console.error('SENDERID:', message.senderId)
+        console.error('METADATA:', appMetadata)
+      }
 
       if (this.openRequestsOtherTabs.has(message.id)) {
         this.multiTabChannel.postMessage({
