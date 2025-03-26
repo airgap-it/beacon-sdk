@@ -325,8 +325,6 @@ export class DAppClient extends Client {
           ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData?.appMetadata
           : (typedMessage as PermissionResponse).appMetadata
 
-      appMetadata = undefined
-
       if (!appMetadata && message.version === '3') {
         const storedMetadata = await Promise.all([
           this.storage.get(StorageKey.TRANSPORT_P2P_PEERS_DAPP),
