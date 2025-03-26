@@ -1493,6 +1493,10 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
+    await this.notifySuccess(request as any, {
+      walletInfo: await this.getWalletInfo()
+    } as any)
+
     return response.message
   }
 
