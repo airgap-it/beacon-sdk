@@ -52,6 +52,8 @@
     <br /><br />
     <button id="requestPermission">Request Permission</button>
     <br /><br />
+    <button id="requestPermissionSubstrate">Request Permission Substrate</button>
+    <br /><br />
     <button id="requestPermissionAndSign">Request Permission And Sign Request</button>
     <br /><br />
     <button id="disconnect" disabled style="opacity: 0.5">Disconnect</button>
@@ -363,6 +365,38 @@
           })
       }
 
+      const requestPermissionSubstrate = async (callback) => {
+        client.addBlockchain({
+          identifier: 'substrate',
+          getWalletLists: async () => []
+        })
+        client
+          .permissionRequest({
+            blockchainIdentifier: 'substrate',
+            type: 'permission_request',
+            blockchainData: {
+              appMetadata: await client.getOwnAppMetadata(),
+              scopes: ['sign_payload_raw'],
+              networks: [
+                {
+                  genesisHash: ''
+                }
+              ]
+            },
+            displayQRCode: true
+          })
+          .then((permissions) => {
+            console.log('permissions', permissions)
+            if (callback) {
+              callback(permissions)
+            }
+            updateActiveAccount()
+          })
+          .catch((error) => {
+            console.log('error during permission request', error)
+          })
+      }
+
       // Initiate a permission request with sign request
       const requestPermissionAndSign = (callback) => {
         console.log('requestPermissionAndSign')
@@ -447,6 +481,10 @@
       // Add event listener to the button
       document.getElementById('requestPermission').addEventListener('click', () => {
         requestPermission()
+      })
+
+      document.getElementById('requestPermissionSubstrate').addEventListener('click', () => {
+        requestPermissionSubstrate()
       })
 
       // Add event listener to the button
