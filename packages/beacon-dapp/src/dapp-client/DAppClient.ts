@@ -320,10 +320,35 @@ export class DAppClient extends Client {
           ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
           : (message as BeaconMessage)
 
-      const appMetadata =
+      let appMetadata: AppMetadata | undefined =
         message.version === '3'
-          ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData.appMetadata
+          ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData?.appMetadata
           : (typedMessage as PermissionResponse).appMetadata
+
+      if (!appMetadata && message.version === '3') {
+        const storedMetadata = await Promise.all([
+          this.storage.get(StorageKey.TRANSPORT_P2P_PEERS_DAPP),
+          this.storage.get(StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP),
+          this.storage.get(StorageKey.TRANSPORT_POSTMESSAGE_PEERS_DAPP)
+        ])
+
+        for (const peers of storedMetadata) {
+          const peer: any = peers.find((peer: any) => peer.senderId === message.senderId)
+          if (!peer) {
+            continue
+          }
+
+          const wallet = await this.getWalletInfo()
+
+          appMetadata = {
+            name: peer.name,
+            senderId: peer.senderId,
+            icon: wallet.icon
+          }
+
+          break
+        }
+      }
 
       if (this.openRequestsOtherTabs.has(message.id)) {
         this.multiTabChannel.postMessage({
@@ -701,7 +726,7 @@ export class DAppClient extends Client {
     await super.destroy()
   }
 
-  public async init(transport?: Transport<any>): Promise<TransportType> {
+  public async init(transport?: Transport<any>, displayQRCode?: boolean): Promise<TransportType> {
     if (this._initPromise) {
       return this._initPromise
     }
@@ -866,7 +891,8 @@ export class DAppClient extends Client {
               abortedHandler: abortHandler.bind(this),
               disclaimerText: this.disclaimerText,
               analytics: this.analytics,
-              featuredWallets: this.featuredWallets
+              featuredWallets: this.featuredWallets,
+              displayQRCode
             })
             .catch((emitError) => console.warn(emitError))
         }
@@ -1360,8 +1386,7 @@ export class DAppClient extends Client {
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
-      throw new Error('TODO')
-      // throw await this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request as any, requestError)
     })
     logger.time(false, logId)
 
@@ -1403,8 +1428,8 @@ export class DAppClient extends Client {
       account: accountInfo,
       output: {
         address: partialAccountInfos[0].address,
-        network: { type: NetworkType.MAINNET },
-        scopes: [PermissionScope.OPERATION_REQUEST]
+        network: { type: 'substrate' },
+        scopes: []
       } as any,
       blockExplorer: this.blockExplorer,
       connectionContext: connectionInfo,
@@ -1451,8 +1476,7 @@ export class DAppClient extends Client {
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
-      throw new Error(requestError.errorData)
-      // throw await this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request as any, requestError)
     })
 
     const { message: response, connectionInfo } = (await res)!
@@ -1468,6 +1492,10 @@ export class DAppClient extends Client {
       connectionContext: connectionInfo,
       walletInfo: await this.getWalletInfo()
     })
+
+    await this.notifySuccess(request as any, {
+      walletInfo: await this.getWalletInfo()
+    } as any)
 
     return response.message
   }
@@ -1509,7 +1537,7 @@ export class DAppClient extends Client {
 
     const res =
       (await this.checkMakeRequest()) || !(await this.getActiveAccount())
-        ? this.makeRequest<PermissionRequest, PermissionResponse>(request)
+        ? this.makeRequest<PermissionRequest, PermissionResponse>(request, undefined, undefined)
         : this.makeRequestBC<PermissionRequest, PermissionResponse>(request)
 
     res.catch(async (requestError: ErrorResponse) => {
@@ -2482,7 +2510,7 @@ export class DAppClient extends Client {
     const messageId = otherTabMessageId ?? (await generateGUID())
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
-    await this.init()
+    await this.init(undefined, (requestInput as any).displayQRCode)
     this.isInitPending = false
     logger.log('makeRequest', 'after init')
 

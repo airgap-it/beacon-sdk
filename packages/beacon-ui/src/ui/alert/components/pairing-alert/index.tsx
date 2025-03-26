@@ -38,7 +38,8 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     handleUpdateState,
     handleUpdateQRCode,
     handleShowMoreContent,
-    handleDisplayQRExtra
+    handleDisplayQRExtra,
+    handleIsLoading
   ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
   const isOnline = navigator.onLine
   const walletList = Array.from(wallets.values())
@@ -51,6 +52,15 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
 
     handleUpdateState(AlertState.BUG_REPORT)
   }, [props.openBugReport])
+
+  useEffect(() => {
+    if (!props.displayQRCode || state === AlertState.QR_ONLY) {
+      return
+    }
+
+    handleUpdateState(AlertState.QR_ONLY)
+    handleIsLoading(true)
+  }, [props.displayQRCode])
 
   useEffect(() => {
     if (props.open || state !== AlertState.BUG_REPORT) {
@@ -66,7 +76,9 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       isWCWorking={isWCWorking}
       isMobile={isMobile}
       qrCode={qrCode}
+      defaultPairing={p2pPayload}
       handleUpdateState={handleUpdateState}
+      handleIsLoading={handleIsLoading}
     />
   )
 
@@ -109,29 +121,16 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       <div>
         {state === AlertState.INSTALL && (
           <div
-            style={
-              state === AlertState.INSTALL || state === AlertState.QR
-                ? {
-                    opacity: 1,
-                    height: 'unset',
-                    overflow: 'unset',
-                    transform: 'scale(1)',
-                    transition: 'all ease 0.3s',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.9em'
-                  }
-                : {
-                    opacity: 0,
-                    height: 0,
-                    overflow: 'hidden',
-                    transform: 'scale(1.1)',
-                    transition: 'all ease 0.3s',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.9em'
-                  }
-            }
+            style={{
+              opacity: 1,
+              height: 'unset',
+              overflow: 'unset',
+              transform: 'scale(1)',
+              transition: 'all ease 0.3s',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.9em'
+            }}
           >
             {isOnline && wallet?.types.includes('web') && (
               <Info
@@ -288,95 +287,89 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
             )}
           </div>
         )}
-        <div
-          style={
-            state === AlertState.WALLETS
-              ? {
-                  opacity: 1,
-                  height: 'unset',
-                  overflow: 'unset',
-                  transform: 'scale(1)',
-                  transition: 'all ease 0.3s'
-                }
-              : {
-                  opacity: 0,
-                  height: 0,
-                  overflow: 'hidden',
-                  transform: 'scale(1.1)',
-                  transition: 'all ease 0.3s'
-                }
-          }
-        >
-          <Wallets
-            wallets={walletList.slice(-(walletList.length - (isMobile ? 3 : 4)))}
-            isMobile={isMobile}
-            onClickWallet={(id) => handleClickWallet(id, props)}
-            onClickOther={handleClickOther}
-          />
-        </div>
-        <div
-          style={
-            state === AlertState.BUG_REPORT
-              ? {
-                  opacity: 1,
-                  height: 'unset',
-                  overflow: 'unset',
-                  transform: 'scale(1)',
-                  transition: 'all ease 0.3s',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.9em'
-                }
-              : {
-                  opacity: 0,
-                  height: 0,
-                  overflow: 'hidden',
-                  transform: 'scale(1.1)',
-                  transition: 'all ease 0.3s',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.9em'
-                }
-          }
-        >
-          <BugReportForm onSubmit={props.onClose} />
-        </div>
-        <div
-          style={
-            state !== AlertState.INSTALL &&
-            ![AlertState.QR, AlertState.WALLETS, AlertState.BUG_REPORT].includes(state)
-              ? {
-                  opacity: 1,
-                  height: 'unset',
-                  overflow: 'unset',
-                  transform: 'scale(1)',
-                  transition: 'all ease 0.3s'
-                }
-              : {
-                  opacity: 0,
-                  height: 0,
-                  overflow: 'hidden',
-                  transform: 'scale(1.1)',
-                  transition: 'all ease 0.3s'
-                }
-          }
-        >
-          <TopWallets
-            wallets={isMobile ? walletList.slice(0, 3) : walletList.slice(0, 4)}
-            isMobile={isMobile}
-            onClickWallet={(id) => handleClickWallet(id, props)}
-            onClickLearnMore={() => handleUpdateState(AlertState.BUG_REPORT)}
-            disabled={isLoading}
-            otherWallets={
-              isMobile
-                ? {
-                    images: [walletList[3].image, walletList[4].image, walletList[5].image],
-                    onClick: () => handleUpdateState(AlertState.WALLETS)
-                  }
-                : undefined
-            }
-          />
-        </div>
+        {state === AlertState.WALLETS && (
+          <div
+            style={{
+              opacity: 1,
+              height: 'unset',
+              overflow: 'unset',
+              transform: 'scale(1)',
+              transition: 'all ease 0.3s'
+            }}
+          >
+            <Wallets
+              wallets={walletList.slice(-(walletList.length - (isMobile ? 3 : 4)))}
+              isMobile={isMobile}
+              onClickWallet={(id) => handleClickWallet(id, props)}
+              onClickOther={handleClickOther}
+            />
+          </div>
+        )}
+        {state === AlertState.BUG_REPORT && (
+          <div
+            style={{
+              opacity: 1,
+              height: 'unset',
+              overflow: 'unset',
+              transform: 'scale(1)',
+              transition: 'all ease 0.3s',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.9em'
+            }}
+          >
+            <BugReportForm onSubmit={props.onClose} />
+          </div>
+        )}
+        {!isMobileOS(window) && state === AlertState.QR_ONLY && (
+          <div
+            style={{
+              opacity: 1,
+              height: 'unset',
+              overflow: 'unset',
+              transform: 'scale(1)',
+              transition: 'all ease 0.3s',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.9em'
+            }}
+          >
+            <QR isMobile={true} />
+          </div>
+        )}
+        {![
+          AlertState.QR,
+          AlertState.WALLETS,
+          AlertState.BUG_REPORT,
+          AlertState.INSTALL,
+          AlertState.QR_ONLY
+        ].includes(state) && (
+          <div
+            style={{
+              opacity: 1,
+              height: 'unset',
+              overflow: 'unset',
+              transform: 'scale(1)',
+              transition: 'all ease 0.3s'
+            }}
+          >
+            <TopWallets
+              wallets={isMobile ? walletList.slice(0, 3) : walletList.slice(0, 4)}
+              isMobile={isMobile}
+              onClickWallet={(id) => handleClickWallet(id, props)}
+              onClickLearnMore={() => handleUpdateState(AlertState.BUG_REPORT)}
+              disabled={isLoading}
+              otherWallets={
+                isMobile
+                  ? {
+                      images: [walletList[3].image, walletList[4].image, walletList[5].image],
+                      onClick: () => handleUpdateState(AlertState.WALLETS)
+                    }
+                  : undefined
+              }
+            />
+          </div>
+        )}
       </div>
     </Alert>
   )

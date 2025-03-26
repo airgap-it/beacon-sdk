@@ -1,16 +1,38 @@
 import { QRCodeProps } from '../../../../../common'
 import QR from '../../../../../../components/qr'
 import WCInitError from '../wc-init-error'
+import { useEffect, useState } from 'react'
 
 const QRCode: React.FC<QRCodeProps> = ({
   wallet,
   isWCWorking,
   isMobile,
   qrCode,
-  handleUpdateState
+  defaultPairing,
+  handleUpdateState,
+  handleIsLoading
 }) => {
   const isConnected =
     !wallet?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking
+  const [codeQr, setCodeQr] = useState(qrCode)
+
+  useEffect(() => {
+    const pair = async () => {
+      if (codeQr) {
+        return
+      }
+
+      setCodeQr(await defaultPairing)
+      handleIsLoading(false)
+    }
+
+    pair()
+  }, [codeQr])
+
+  if (!codeQr || codeQr.length === 0) {
+    return <></>
+  }
+
   return (
     <>
       {isConnected ? (
@@ -20,7 +42,7 @@ const QRCode: React.FC<QRCodeProps> = ({
           }
           isMobile={isMobile}
           walletName={wallet?.name || 'AirGap'}
-          code={qrCode ?? ''}
+          code={codeQr}
           onClickLearnMore={() => {}}
           onClickQrCode={() => {}}
         />

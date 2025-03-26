@@ -73,6 +73,7 @@ export enum BeaconEvent {
   SIGN_REQUEST_SENT = 'SIGN_REQUEST_SENT',
   SIGN_REQUEST_SUCCESS = 'SIGN_REQUEST_SUCCESS',
   SIGN_REQUEST_ERROR = 'SIGN_REQUEST_ERROR',
+  BLOCKCHAIN_REQUEST_SUCCESS = 'BLOCKCHAIN_REQUEST_SUCCESS',
   // TODO: ENCRYPTION
   // ENCRYPT_REQUEST_SENT = 'ENCRYPT_REQUEST_SENT',
   // ENCRYPT_REQUEST_SUCCESS = 'ENCRYPT_REQUEST_SUCCESS',
@@ -179,6 +180,7 @@ export interface BeaconEventType {
   //   walletInfo: WalletInfo
   // }
   // [BeaconEvent.ENCRYPT_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
+  [BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]: RequestSentInfo
   [BeaconEvent.BROADCAST_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
     network: Network
@@ -211,6 +213,7 @@ export interface BeaconEventType {
     disclaimerText?: string
     analytics: AnalyticsInterface
     featuredWallets?: string[]
+    displayQRCode?: boolean
   }
   [BeaconEvent.PAIR_SUCCESS]:
     | ExtendedPostMessagePairingResponse
@@ -520,7 +523,8 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
     closeButtonCallback: data.abortedHandler,
     disclaimerText: data.disclaimerText,
     analytics: data.analytics,
-    featuredWallets: data.featuredWallets
+    featuredWallets: data.featuredWallets,
+    displayQRCode: data.displayQRCode
   }
   openAlert(alertConfig)
 }
@@ -535,26 +539,31 @@ const showPermissionSuccessAlert = async (
 ): Promise<void> => {
   const { output } = data
 
+  const actions: any[] = [
+    {
+      text: 'Address',
+      actionText: shortenString(output.address),
+      isBold: true
+    }
+  ]
+
+  if ((output.network.type as any) !== 'substrate') {
+    actions.push({
+      text: 'Network',
+      actionText: `${output.network.type}`
+    })
+    actions.push({
+      text: 'Permissions',
+      actionText: output.scopes.join(', ')
+    })
+  }
+
   openToast({
     body: `{{wallet}}\u00A0 has granted permission`,
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
     state: 'finished',
-    actions: [
-      {
-        text: 'Address',
-        actionText: shortenString(output.address),
-        isBold: true
-      },
-      {
-        text: 'Network',
-        actionText: `${output.network.type}`
-      },
-      {
-        text: 'Permissions',
-        actionText: output.scopes.join(', ')
-      }
-    ]
+    actions
   })
 }
 
@@ -729,6 +738,17 @@ const showSignSuccessAlert = async (
 //   })
 // }
 
+const showBlockchainRequestSuccessToast = async (
+  data: BeaconEventType[BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]
+): Promise<void> => {
+  openToast({
+    body: `{{wallet}}\u00A0 request successfully executed`,
+    timer: SUCCESS_TIMER,
+    state: 'finished',
+    walletInfo: data.walletInfo
+  })
+}
+
 /**
  * Show a "Broadcasted" alert
  *
@@ -817,6 +837,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.RELAYER_ERROR]: showRelayerErrorAlert,
   [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
+  [BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]: showBlockchainRequestSuccessToast,
   [BeaconEvent.UNKNOWN]: emptyHandler()
 }
 
@@ -863,6 +884,7 @@ export class BeaconEventHandler {
     [BeaconEvent.BROADCAST_REQUEST_SENT]: [defaultEventCallbacks.BROADCAST_REQUEST_SENT],
     [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: [defaultEventCallbacks.BROADCAST_REQUEST_SUCCESS],
     [BeaconEvent.BROADCAST_REQUEST_ERROR]: [defaultEventCallbacks.BROADCAST_REQUEST_ERROR],
+    [BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]: [defaultEventCallbacks.BLOCKCHAIN_REQUEST_SUCCESS],
     [BeaconEvent.ACKNOWLEDGE_RECEIVED]: [defaultEventCallbacks.ACKNOWLEDGE_RECEIVED],
     [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: [defaultEventCallbacks.LOCAL_RATE_LIMIT_REACHED],
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],

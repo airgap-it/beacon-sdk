@@ -8,7 +8,8 @@ export enum AlertState {
   WALLETS = 'wallets',
   INSTALL = 'install',
   BUG_REPORT = 'bug-report',
-  QR = 'qr'
+  QR = 'qr',
+  QR_ONLY = 'qr_only'
 }
 
 export interface AlertButton {
@@ -29,6 +30,7 @@ export interface AlertConfig {
   analytics?: AnalyticsInterface
   featuredWallets?: string[]
   openBugReport?: boolean
+  displayQRCode?: boolean
 }
 
 export interface ConfigurableAlertProps extends Omit<AlertConfig, 'closeButtonCallback'> {
@@ -76,7 +78,9 @@ export interface QRCodeProps {
   isWCWorking: boolean
   isMobile: boolean
   qrCode?: string
+  defaultPairing: Promise<string>
   handleUpdateState: (state: AlertState) => void
+  handleIsLoading: (isLoading: boolean) => void
 }
 
 export interface WCInitErrorProps {
