@@ -1393,7 +1393,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.wcOptions.opts.relayUrl,
       undefined,
       'wss://relay.walletconnect.com',
-      'wss://relay.walletconnect.org'
+      'wss://relay.walletconnect.org',
+      'wss://us-east-1.relay.walletconnect.com',
+      'wss://eu-central-1.relay.walletconnect.com',
+      'wss://ap-southeast-1.relay.walletconnect.com'
     ])
     const errMessages = new Set()
 
