@@ -742,7 +742,7 @@ const showBlockchainRequestSuccessToast = async (
   data: BeaconEventType[BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]
 ): Promise<void> => {
   openToast({
-    body: `{{wallet}}\u00A0 successfully injected operation`,
+    body: `{{wallet}}\u00A0 request successfully executed`,
     timer: SUCCESS_TIMER,
     state: 'finished',
     walletInfo: data.walletInfo
