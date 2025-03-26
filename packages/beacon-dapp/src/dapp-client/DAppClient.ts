@@ -348,9 +348,6 @@ export class DAppClient extends Client {
 
           break
         }
-
-        console.error('SENDERID:', message.senderId)
-        console.error('METADATA:', appMetadata)
       }
 
       if (this.openRequestsOtherTabs.has(message.id)) {
