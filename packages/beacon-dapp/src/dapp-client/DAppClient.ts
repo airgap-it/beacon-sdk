@@ -1479,8 +1479,7 @@ export class DAppClient extends Client {
         ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
         : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
       logger.time(false, logId)
-      throw new Error(requestError.errorData)
-      // throw await this.handleRequestError(request, requestError)
+      throw await this.handleRequestError(request as any, requestError)
     })
 
     const { message: response, connectionInfo } = (await res)!
