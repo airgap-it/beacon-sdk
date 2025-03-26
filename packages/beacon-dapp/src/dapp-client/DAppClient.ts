@@ -321,9 +321,9 @@ export class DAppClient extends Client {
           : (message as BeaconMessage)
 
       const appMetadata =
-        message.version === '3'
+        (message.version === '3'
           ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData.appMetadata
-          : (typedMessage as PermissionResponse).appMetadata
+          : (typedMessage as PermissionResponse).appMetadata) ?? (await this.getOwnAppMetadata())
 
       if (this.openRequestsOtherTabs.has(message.id)) {
         this.multiTabChannel.postMessage({
