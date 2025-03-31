@@ -1,9 +1,10 @@
 import {
   BlockExplorer,
+  closeAlert,
   openAlert,
+  openBugReport,
   AlertButton,
   AlertConfig,
-  closeAlerts,
   closeToast,
   openToast,
   ToastAction
@@ -11,9 +12,7 @@ import {
 import {
   BeaconErrorType,
   ExtendedPostMessagePairingResponse,
-  PostMessagePairingRequest,
   ExtendedP2PPairingResponse,
-  P2PPairingRequest,
   AccountInfo,
   ErrorResponse,
   PermissionResponseOutput,
@@ -26,7 +25,6 @@ import {
   AcknowledgeResponse,
   WalletInfo,
   ExtendedWalletConnectPairingResponse,
-  WalletConnectPairingRequest,
   AnalyticsInterface,
   ProofOfEventChallengeResponseOutput,
   SimulatedProofOfEventChallengeResponseOutput
@@ -40,7 +38,7 @@ import {
   // EncryptionOperation
 } from '@airgap/beacon-core'
 import { shortenString } from './utils/shorten-string'
-import { isMobile, isMobileOS, openBugReport } from '@airgap/beacon-ui'
+import { isMobile, isMobileOS } from '@airgap/beacon-ui'
 
 const logger = new Logger('BeaconEvents')
 
@@ -75,6 +73,7 @@ export enum BeaconEvent {
   SIGN_REQUEST_SENT = 'SIGN_REQUEST_SENT',
   SIGN_REQUEST_SUCCESS = 'SIGN_REQUEST_SUCCESS',
   SIGN_REQUEST_ERROR = 'SIGN_REQUEST_ERROR',
+  BLOCKCHAIN_REQUEST_SUCCESS = 'BLOCKCHAIN_REQUEST_SUCCESS',
   // TODO: ENCRYPTION
   // ENCRYPT_REQUEST_SENT = 'ENCRYPT_REQUEST_SENT',
   // ENCRYPT_REQUEST_SUCCESS = 'ENCRYPT_REQUEST_SUCCESS',
@@ -95,12 +94,13 @@ export enum BeaconEvent {
   SHOW_PREPARE = 'SHOW_PREPARE',
   HIDE_UI = 'HIDE_UI',
   INVALID_ACTIVE_ACCOUNT_STATE = 'INVALID_ACTIVE_ACCOUNT_STATE',
-  GENERIC_ERROR = 'GENERIC_ERROR',
+  INVALID_ACCOUNT_DEACTIVATED = 'INVALID_ACCOUNT_DEACTIVATED',
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
-
+  GENERIC_ERROR = 'GENERIC_ERROR',
   OPEN_BUG_REPORT = 'OPEN_BUG_REPORT',
+  RELAYER_ERROR = 'RELAYER_ERROR',
 
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   UNKNOWN = 'UNKNOWN'
@@ -180,6 +180,7 @@ export interface BeaconEventType {
   //   walletInfo: WalletInfo
   // }
   // [BeaconEvent.ENCRYPT_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
+  [BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]: RequestSentInfo
   [BeaconEvent.BROADCAST_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: {
     network: Network
@@ -200,17 +201,19 @@ export interface BeaconEventType {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
   [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: undefined
   [BeaconEvent.GENERIC_ERROR]: string
+  [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: undefined
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
   [BeaconEvent.PAIR_INIT]: {
-    p2pPeerInfo: () => Promise<P2PPairingRequest>
-    postmessagePeerInfo: () => Promise<PostMessagePairingRequest>
-    walletConnectPeerInfo: () => Promise<WalletConnectPairingRequest>
+    p2pPeerInfo: Promise<string>
+    postmessagePeerInfo: Promise<string>
+    walletConnectPeerInfo: Promise<string>
     networkType: NetworkType
     abortedHandler?(): void
     disclaimerText?: string
     analytics: AnalyticsInterface
     featuredWallets?: string[]
+    displayQRCode?: boolean
   }
   [BeaconEvent.PAIR_SUCCESS]:
     | ExtendedPostMessagePairingResponse
@@ -219,6 +222,7 @@ export interface BeaconEventType {
   [BeaconEvent.CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[] }
   [BeaconEvent.OPEN_BUG_REPORT]: undefined
+  [BeaconEvent.RELAYER_ERROR]: undefined
   [BeaconEvent.UNKNOWN]: undefined
 }
 
@@ -252,7 +256,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     text: 'Wallet not receiving request?',
     actionText: 'Reset Connection',
     actionCallback: async (): Promise<void> => {
-      await closeToast()
+      closeToast()
       // eslint-disable-next-line @typescript-eslint/unbound-method
       const resetCallback = data.extraInfo.resetCallback
       if (resetCallback) {
@@ -265,8 +269,8 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     text: 'Do you wish to report a bug?',
     actionText: 'Open',
     actionCallback: async (): Promise<void> => {
-      await closeToast()
-      await openBugReport()
+      closeToast()
+      openBugReport()
     }
   })
 
@@ -277,7 +281,7 @@ const showSentToast = async (data: RequestSentInfo): Promise<void> => {
     timer: isMobileOS(window) ? SUCCESS_TIMER : 0,
     actions,
     openWalletAction
-  }).catch((toastError) => console.error(toastError))
+  })
 }
 
 const showAcknowledgedToast = async (data: {
@@ -289,7 +293,7 @@ const showAcknowledgedToast = async (data: {
     body: 'Awaiting confirmation in\u00A0 {{wallet}}',
     state: 'acknowledge',
     walletInfo: data.walletInfo
-  }).catch((toastError) => console.error(toastError))
+  })
 }
 
 const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => {
@@ -300,19 +304,16 @@ const showPrepare = async (data: { walletInfo?: WalletInfo }): Promise<void> => 
     body: text,
     state: 'prepare',
     walletInfo: data.walletInfo
-  }).catch((toastError) => console.error(toastError))
+  })
 }
 
-const hideUI = async (elements?: ('alert' | 'toast')[]): Promise<void> => {
-  if (elements) {
-    if (elements.includes('alert')) {
-      await closeAlerts()
-    }
-    if (elements.includes('toast')) {
-      await closeToast()
-    }
-  } else {
-    await closeToast()
+const hideUI = (elements?: ('alert' | 'toast')[]) => {
+  if (elements?.includes('alert')) {
+    closeAlert()
+  }
+
+  if (elements?.includes('toast') || !elements) {
+    closeToast()
   }
 }
 
@@ -320,7 +321,7 @@ const hideUI = async (elements?: ('alert' | 'toast')[]): Promise<void> => {
  * Show a "No Permission" alert
  */
 const showNoPermissionAlert = async (): Promise<void> => {
-  await openAlert({
+  openAlert({
     title: 'No Permission',
     body: 'Please allow the wallet to handle this type of request.'
   })
@@ -330,7 +331,7 @@ const showNoPermissionAlert = async (): Promise<void> => {
  * Show an "Invalid state" alert
  */
 const showInvalidActiveAccountState = async (): Promise<void> => {
-  await openAlert({
+  openAlert({
     title: 'Invalid state',
     body: `An active account has been received, but no active subscription was found for BeaconEvent.ACTIVE_ACCOUNT_SET.
     For more information, visit: https://docs.walletbeacon.io/guides/migration-guide`
@@ -338,10 +339,20 @@ const showInvalidActiveAccountState = async (): Promise<void> => {
 }
 
 /**
+ * Show an "account deactivated" error alert
+ */
+const showInvalidAccountDeactivated = async (): Promise<void> => {
+  await openAlert({
+    title: 'Error',
+    body: `Your session has expired. Please pair with your wallet again.`
+  })
+}
+
+/**
  * Show an "Invalid state" alert
  */
 const showGenericErrorAlert = async (errorMessage: string): Promise<void> => {
-  await openAlert({
+  openAlert({
     title: `${errorMessage}`,
     body: 'Please try again. If this problem persists please send us a bug report.',
     buttons: [
@@ -409,8 +420,8 @@ const showErrorToast = async (
       text: '',
       actionText: 'Show Details',
       actionCallback: async (): Promise<void> => {
-        await closeToast()
-        await openAlert({
+        closeToast()
+        openAlert({
           title: error.title,
           // eslint-disable-next-line @typescript-eslint/unbound-method
           body: error.fullDescription.description,
@@ -421,7 +432,7 @@ const showErrorToast = async (
     })
   }
 
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 has returned an error`,
     timer:
       response.errorResponse.errorType === BeaconErrorType.ABORTED_ERROR
@@ -440,27 +451,36 @@ const showRateLimitReached = async (): Promise<void> => {
   openAlert({
     title: 'Error',
     body: 'Rate limit reached. Please slow down',
-    buttons: [{ label: 'Done', type: 'primary', onClick: () => closeAlerts() }],
+    buttons: [{ text: 'Done', style: 'outline' }],
     timer: 3000
-  }).catch((toastError) => console.error(toastError))
+  })
 }
 
 /**
  * Show a "connection successful" alert for 1.5 seconds
  */
-const showExtensionConnectedAlert = async (): Promise<void> => {
-  await closeAlerts()
+const showExtensionConnectedAlert = () => {
+  closeAlert()
 }
 
 const showBugReportForm = async () => {
   await openBugReport()
 }
 
+const showRelayerErrorAlert = async (): Promise<void> => {
+  openAlert({
+    title: 'Error',
+    body: `Failed to connect to the relayer. Please check that your system time is synchronized with the current time and reload the page.`,
+    buttons: [{ text: 'Done', style: 'outline' }],
+    timer: 1500
+  })
+}
+
 /**
  * Show a "channel closed" alert for 1.5 seconds
  */
 const showChannelClosedAlert = async (): Promise<void> => {
-  // await openAlert({
+  // openAlert({
   //   title: 'Channel closed',
   //   body: `Your peer has closed the connection.`,
   //   buttons: [{ text: 'Done', style: 'outline' }],
@@ -473,14 +493,14 @@ const showInternalErrorAlert = async (
 ): Promise<void> => {
   const buttons: AlertButton[] = [...(data.buttons ?? [])]
 
-  buttons.push({ label: 'Done', type: 'primary', onClick: () => closeAlerts() })
+  buttons.push({ text: 'Done', style: 'outline' })
 
   const alertConfig: AlertConfig = {
     title: 'Internal Error',
     body: data.text,
     buttons
   }
-  await openAlert(alertConfig)
+  openAlert(alertConfig)
 }
 
 /**
@@ -503,9 +523,10 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
     closeButtonCallback: data.abortedHandler,
     disclaimerText: data.disclaimerText,
     analytics: data.analytics,
-    featuredWallets: data.featuredWallets
+    featuredWallets: data.featuredWallets,
+    displayQRCode: data.displayQRCode
   }
-  await openAlert(alertConfig)
+  openAlert(alertConfig)
 }
 
 /**
@@ -518,26 +539,31 @@ const showPermissionSuccessAlert = async (
 ): Promise<void> => {
   const { output } = data
 
-  await openToast({
+  const actions: any[] = [
+    {
+      text: 'Address',
+      actionText: shortenString(output.address),
+      isBold: true
+    }
+  ]
+
+  if ((output.network.type as any) !== 'substrate') {
+    actions.push({
+      text: 'Network',
+      actionText: `${output.network.type}`
+    })
+    actions.push({
+      text: 'Permissions',
+      actionText: output.scopes.join(', ')
+    })
+  }
+
+  openToast({
     body: `{{wallet}}\u00A0 has granted permission`,
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
     state: 'finished',
-    actions: [
-      {
-        text: 'Address',
-        actionText: shortenString(output.address),
-        isBold: true
-      },
-      {
-        text: 'Network',
-        actionText: `${output.network.type}`
-      },
-      {
-        text: 'Permissions',
-        actionText: output.scopes.join(', ')
-      }
-    ]
+    actions
   })
 }
 
@@ -546,7 +572,7 @@ const showProofOfEventChallengeSuccessAlert = async (
 ): Promise<void> => {
   const { output } = data
 
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 has ${output.isAccepted ? 'accepted' : 'refused'} the challenge`,
     timer: SUCCESS_TIMER,
     walletInfo: data.walletInfo,
@@ -565,7 +591,7 @@ const showProofOfEventChallengeSuccessAlert = async (
                   logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
                 }
               )
-              await closeToast()
+              closeToast()
             }
           }
         ]
@@ -578,7 +604,7 @@ const showSimulatedProofOfEventChallengeSuccessAlert = async (
 ): Promise<void> => {
   const { output } = data
 
-  await openToast({
+  openToast({
     body: !output.errorMessage
       ? `{{wallet}}\u00A0 has returned the list of operation`
       : `{{wallet}}\u00A0 has returned an error`,
@@ -599,7 +625,7 @@ const showSimulatedProofOfEventChallengeSuccessAlert = async (
                   logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
                 }
               )
-              await closeToast()
+              closeToast()
             }
           }
         ]
@@ -617,7 +643,7 @@ const showOperationSuccessAlert = async (
 ): Promise<void> => {
   const { account, output, blockExplorer } = data
 
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 successfully submitted operation`,
     timer: SUCCESS_TIMER,
     state: 'finished',
@@ -634,7 +660,7 @@ const showOperationSuccessAlert = async (
             account.network
           )
           window.open(link, '_blank', 'noopener')
-          await closeToast()
+          closeToast()
         }
       }
     ]
@@ -650,7 +676,7 @@ const showSignSuccessAlert = async (
   data: BeaconEventType[BeaconEvent.SIGN_REQUEST_SUCCESS]
 ): Promise<void> => {
   const output = data.output
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 successfully signed payload`,
     timer: SUCCESS_TIMER,
     state: 'finished',
@@ -668,7 +694,7 @@ const showSignSuccessAlert = async (
               logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
             }
           )
-          await closeToast()
+          closeToast()
         }
       }
     ]
@@ -685,7 +711,7 @@ const showSignSuccessAlert = async (
 //   data: BeaconEventType[BeaconEvent.ENCRYPT_REQUEST_SUCCESS]
 // ): Promise<void> => {
 //   const output = data.output
-//   await openToast({
+//   openToast({
 //     body: `{{wallet}}\u00A0 successfully ${
 //       data.output.cryptoOperation === EncryptionOperation.ENCRYPT ? 'encrypted' : 'decrypted'
 //     } payload`,
@@ -705,12 +731,23 @@ const showSignSuccessAlert = async (
 //               logger.error('showSignSuccessAlert', 'Could not copy text to clipboard: ', err)
 //             }
 //           )
-//           await closeToast()
+//           closeToast()
 //         }
 //       }
 //     ]
 //   })
 // }
+
+const showBlockchainRequestSuccessToast = async (
+  data: BeaconEventType[BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]
+): Promise<void> => {
+  openToast({
+    body: `{{wallet}}\u00A0 request successfully executed`,
+    timer: SUCCESS_TIMER,
+    state: 'finished',
+    walletInfo: data.walletInfo
+  })
+}
 
 /**
  * Show a "Broadcasted" alert
@@ -722,7 +759,7 @@ const showBroadcastSuccessAlert = async (
 ): Promise<void> => {
   const { network, output, blockExplorer } = data
 
-  await openToast({
+  openToast({
     body: `{{wallet}}\u00A0 successfully injected operation`,
     timer: SUCCESS_TIMER,
     state: 'finished',
@@ -739,7 +776,7 @@ const showBroadcastSuccessAlert = async (
             network
           )
           window.open(link, '_blank', 'noopener')
-          await closeToast()
+          closeToast()
         }
       }
     ]
@@ -791,13 +828,16 @@ export const defaultEventCallbacks: {
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: emptyHandler(),
   [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: showInvalidActiveAccountState,
   [BeaconEvent.GENERIC_ERROR]: showGenericErrorAlert,
+  [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: showInvalidAccountDeactivated,
   [BeaconEvent.SHOW_PREPARE]: showPrepare,
   [BeaconEvent.HIDE_UI]: hideUI,
   [BeaconEvent.PAIR_INIT]: showPairAlert,
   [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
   [BeaconEvent.OPEN_BUG_REPORT]: showBugReportForm,
+  [BeaconEvent.RELAYER_ERROR]: showRelayerErrorAlert,
   [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
   [BeaconEvent.INTERNAL_ERROR]: showInternalErrorAlert,
+  [BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]: showBlockchainRequestSuccessToast,
   [BeaconEvent.UNKNOWN]: emptyHandler()
 }
 
@@ -844,6 +884,7 @@ export class BeaconEventHandler {
     [BeaconEvent.BROADCAST_REQUEST_SENT]: [defaultEventCallbacks.BROADCAST_REQUEST_SENT],
     [BeaconEvent.BROADCAST_REQUEST_SUCCESS]: [defaultEventCallbacks.BROADCAST_REQUEST_SUCCESS],
     [BeaconEvent.BROADCAST_REQUEST_ERROR]: [defaultEventCallbacks.BROADCAST_REQUEST_ERROR],
+    [BeaconEvent.BLOCKCHAIN_REQUEST_SUCCESS]: [defaultEventCallbacks.BLOCKCHAIN_REQUEST_SUCCESS],
     [BeaconEvent.ACKNOWLEDGE_RECEIVED]: [defaultEventCallbacks.ACKNOWLEDGE_RECEIVED],
     [BeaconEvent.LOCAL_RATE_LIMIT_REACHED]: [defaultEventCallbacks.LOCAL_RATE_LIMIT_REACHED],
     [BeaconEvent.NO_PERMISSIONS]: [defaultEventCallbacks.NO_PERMISSIONS],
@@ -852,14 +893,16 @@ export class BeaconEventHandler {
     [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: [
       defaultEventCallbacks.INVALID_ACTIVE_ACCOUNT_STATE
     ],
-    [BeaconEvent.GENERIC_ERROR]: [defaultEventCallbacks.GENERIC_ERROR],
+    [BeaconEvent.GENERIC_ERROR]: [showGenericErrorAlert],
+    [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: [defaultEventCallbacks.INVALID_ACCOUNT_DEACTIVATED],
     [BeaconEvent.SHOW_PREPARE]: [defaultEventCallbacks.SHOW_PREPARE],
     [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
     [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
-    [BeaconEvent.OPEN_BUG_REPORT]: [defaultEventCallbacks.OPEN_BUG_REPORT],
+    [BeaconEvent.OPEN_BUG_REPORT]: [showBugReportForm],
     [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],
     [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],
+    [BeaconEvent.RELAYER_ERROR]: [defaultEventCallbacks.RELAYER_ERROR],
     [BeaconEvent.UNKNOWN]: [defaultEventCallbacks.UNKNOWN]
   }
   constructor(

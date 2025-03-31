@@ -1,8 +1,8 @@
-import { IndexedDBStorage, Logger, BACKEND_URL, SDK_VERSION } from '@airgap/beacon-core'
+import React, { useState, useEffect } from 'react'
+import { BACKEND_URL, IndexedDBStorage, Logger, SDK_VERSION } from '@airgap/beacon-core'
 import { StorageKey } from '@airgap/beacon-types'
-import { For, createEffect, createSignal } from 'solid-js'
-import styles from './styles.css'
 import { currentBrowser, currentOS } from '../../utils/platform'
+import './styles.css'
 
 const logger = new Logger('BugReport')
 
@@ -22,52 +22,15 @@ interface BugReportRequest {
   wcStorage: string
 }
 
-const BugReportForm = (props: any) => {
-  const [title, setTitle] = createSignal('')
-  const [titleTouched, setTitleTouched] = createSignal(false)
-  const [description, setDescription] = createSignal('')
-  const [descriptionTouched, setDescriptionTouched] = createSignal(false)
-  const [isFormValid, setFormValid] = createSignal(false)
-  const [isLoading, setIsLoading] = createSignal(false)
-  const [didUserAllow, setDidUserAllow] = createSignal(false)
-  const [status, setStatus] = createSignal<'success' | 'error' | null>(null)
-  const [showThankYou, setShowThankYou] = createSignal(false)
+const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [isFormValid, setFormValid] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [didUserAllow, setDidUserAllow] = useState(false)
+  const [status, setStatus] = useState<'success' | 'error' | null>(null)
+  const [showThankYou, setShowThankYou] = useState(false)
   const db = new IndexedDBStorage('beacon', ['bug_report', 'metrics'])
-
-  createEffect(() => {
-    setDescription(prefillDescriptionField())
-  })
-
-  const getStorageKeys = () => {
-    if (!localStorage) {
-      return []
-    }
-
-    const wcKey = Object.keys(localStorage).find((key) => key.includes('wc-init-error'))
-    const beaconKey = Object.keys(localStorage).find((key) => key.includes('beacon-last-error'))
-
-    return [wcKey, beaconKey] as const
-  }
-
-  const prefillDescriptionField = () => {
-    const [wcKey, beaconKey] = getStorageKeys()
-
-    if (!wcKey && !beaconKey) {
-      return ''
-    }
-
-    let output = ''
-
-    if (wcKey) {
-      output += `WalletConnect error: ${localStorage.getItem(wcKey)} \n\n`
-    }
-
-    if (beaconKey) {
-      output += `Beacon error: ${localStorage.getItem(beaconKey)} \n\n`
-    }
-
-    return output
-  }
 
   const indexDBToMetadata = async () => {
     const wcResult: StorageObject = {}
@@ -98,49 +61,12 @@ const BugReportForm = (props: any) => {
     }
 
     const key = Object.keys(localStorage).find((key) => key.includes('user-id'))
-
     return key && key.length ? localStorage.getItem(key) ?? 'UNKNOWN' : 'UNKNOWN'
   }
 
-  createEffect(() => {
-    setFormValid(didUserAllow())
-  })
-
-  /**
-   * Recursively removes all properties whose key contains "seed"
-   * from an object/array. Also, if a string is valid JSON,
-   * it will attempt to clean its parsed value.
-   */
-  const clean = (value: any): any => {
-    if (Array.isArray(value)) {
-      // Process each element in the array.
-      return value.map(clean)
-    } else if (value !== null && typeof value === 'object') {
-      // Process an object by filtering its keys.
-      const result: Record<string, any> = {}
-      for (const key in value) {
-        if (Object.prototype.hasOwnProperty.call(value, key)) {
-          // Remove any property with "seed" in its name (case insensitive)
-          if (key.toLowerCase().includes('seed')) continue
-          result[key] = clean(value[key])
-        }
-      }
-      return result
-    } else if (typeof value === 'string') {
-      // Try to parse the string as JSON.
-      try {
-        const parsed = JSON.parse(value)
-        // If it parsed successfully, clean the parsed value
-        // and re-stringify it so that we preserve the original type.
-        return JSON.stringify(clean(parsed))
-      } catch (err) {
-        // If parsing fails, just return the original string.
-        return value
-      }
-    }
-    // For primitives (number, boolean, etc.), just return the value.
-    return value
-  }
+  useEffect(() => {
+    setFormValid(didUserAllow)
+  }, [didUserAllow])
 
   const sendRequest = (
     url: string,
@@ -177,7 +103,18 @@ const BugReportForm = (props: any) => {
       })
   }
 
-  const handleSubmit = async (event: Event) => {
+  const getStorageKeys = () => {
+    if (!localStorage) {
+      return []
+    }
+
+    const wcKey = Object.keys(localStorage).find((key) => key.includes('wc-init-error'))
+    const beaconKey = Object.keys(localStorage).find((key) => key.includes('beacon-last-error'))
+
+    return [wcKey, beaconKey] as const
+  }
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setStatus(null)
     setShowThankYou(false)
@@ -190,14 +127,14 @@ const BugReportForm = (props: any) => {
         beaconState[StorageKey.USER_ID] && beaconState[StorageKey.USER_ID].length
           ? beaconState[StorageKey.USER_ID]
           : getUserId(),
-      title: title(),
+      title,
       sdkVersion: SDK_VERSION,
-      description: description(),
+      description,
       steps: '<#EMPTY#>',
       os: currentOS(),
       browser: currentBrowser(),
-      localStorage: JSON.stringify(clean(beaconState)),
-      wcStorage: JSON.stringify(clean(wcState))
+      localStorage: JSON.stringify(beaconState),
+      wcStorage: JSON.stringify(wcState)
     }
 
     sendRequest(`${BACKEND_URL}/bug-report/save`, 'POST', request)
@@ -225,64 +162,60 @@ const BugReportForm = (props: any) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} class="form-style">
-      <div class="input-group">
-        <label for="title" class="label-style">
+    <form onSubmit={handleSubmit} className="form-style">
+      <div className="input-group">
+        <label htmlFor="title" className="label-style">
           Title
         </label>
         <input
           type="text"
           id="title"
-          value={title()}
-          onBlur={(e) => {
-            !titleTouched() && setTitleTouched(true)
-            setTitle(e.currentTarget.value)
-          }}
-          class={`input-style`}
+          value={title}
+          onChange={(e) => setTitle(e.currentTarget.value)}
+          className={`input-style`}
         />
       </div>
-      <div class="input-group">
-        <label for="description" class="label-style">
+      <div className="input-group">
+        <label htmlFor="description" className="label-style">
           Description
         </label>
         <textarea
           id="description"
-          value={description()}
-          onBlur={(e) => {
-            !descriptionTouched() && setDescriptionTouched(true)
-            setDescription(e.currentTarget.value)
-          }}
-          class={`textarea-style `}
+          value={description}
+          onChange={(e) => setDescription(e.currentTarget.value)}
+          className={`textarea-style`}
         />
       </div>
-      <div class="permissions-group">
-        <label for="user-premissions">You agree to share anonymous data with the developers.</label>
+      <div className="permissions-group">
+        <label htmlFor="user-permissions">
+          You agree to share anonymous data with the developers.
+        </label>
         <input
-          id="user-premissions"
+          id="user-permissions"
           type="checkbox"
           onChange={() => setDidUserAllow((prev) => !prev)}
         />
       </div>
       <button
         type="submit"
-        disabled={!isFormValid()}
-        class={`button-style ${isFormValid() ? 'valid' : 'invalid'} ${
-          isLoading() ? 'button-loading' : ''
+        disabled={!isFormValid}
+        className={`button-style ${isFormValid ? 'valid' : 'invalid'} ${
+          isLoading ? 'button-loading' : ''
         }`}
       >
-        {!isLoading() && !status() ? 'Submit' : <>&nbsp;</>}
-        {!isLoading() && status() && (
-          <span class={status() === 'success' ? 'icon success-icon' : 'icon error-icon'}>
-            {status() === 'success' ? '✓' : '✕'}
+        {!isLoading && !status ? 'Submit' : <>&nbsp;</>}
+        {!isLoading && status && (
+          <span className={status === 'success' ? 'icon success-icon' : 'icon error-icon'}>
+            {status === 'success' ? '✓' : '✕'}
           </span>
         )}
-        {showThankYou() && (
-          <div class="thank-you-message">
-            <For each={'Thank You!'.split('')}>
-              {(letter, index) => (
-                <span style={{ 'animation-delay': `${index() * 0.1}s` }}>{letter}</span>
-              )}
-            </For>
+        {showThankYou && (
+          <div className="thank-you-message">
+            {'Thank You!'.split('').map((letter, index) => (
+              <span key={index} style={{ animationDelay: `${index * 0.1}s` }}>
+                {letter}
+              </span>
+            ))}
           </div>
         )}
       </button>
@@ -290,5 +223,4 @@ const BugReportForm = (props: any) => {
   )
 }
 
-export { styles }
 export default BugReportForm

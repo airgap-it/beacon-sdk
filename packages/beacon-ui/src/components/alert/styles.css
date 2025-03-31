@@ -6,12 +6,12 @@
   height: 100%;
   width: 100vw;
   overflow: hidden;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   background-color: rgba(0, 0, 0, 0.6);
-  opacity: 1;
-  transition: all ease 0.3s;
   z-index: 99999;
+  /* Trigger fadeIn animation */
+  animation: fadeIn 0.3s ease forwards;
 }
 
 .alert-wrapper-hide {
@@ -22,13 +22,25 @@
   height: 100%;
   width: 100vw;
   overflow: hidden;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   background-color: rgba(0, 0, 0, 0.6);
-  opacity: 0;
-  transition: all ease 0.3s;
   z-index: 99999;
+  /* Trigger fadeOut animation */
+  animation: fadeOut 0.3s ease forwards;
 }
+
+/* Keyframes for fadeIn and fadeOut */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
 
 .theme__dark .alert-modal-show {
   background-color: #27334c;
@@ -52,8 +64,6 @@
 .alert-modal-show {
   background-color: white;
   border-radius: 32px;
-  transition: all ease 0.3s;
-  transform: translateY(0px);
   opacity: 1;
   width: 480px;
 }
@@ -61,8 +71,6 @@
 .alert-modal-hide {
   background-color: white;
   border-radius: 32px;
-  transition: all ease 0.3s;
-  transform: translateY(24px);
   opacity: 1;
   width: 480px;
 }

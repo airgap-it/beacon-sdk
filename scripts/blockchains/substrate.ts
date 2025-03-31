@@ -33,6 +33,15 @@ export const substrateIosList: App[] = [
     logo: 'ios-fearless.png',
     universalLink: 'https://fearlesswallet.io',
     deepLink: 'fearless://'
+  },
+  {
+    key: 'acurast-lite',
+    name: 'Acurast Lite',
+    shortName: 'Acurast',
+    color: '',
+    universalLink: 'https://hub.acurast.com/',
+    logo: 'ios-acurast-lite.png',
+    deepLink: undefined
   }
 ]
 
