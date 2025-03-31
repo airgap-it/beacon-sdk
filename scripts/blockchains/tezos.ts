@@ -20,6 +20,7 @@ export enum NetworkType {
   OXFORDNET = 'oxfordnet',
   PARISNET = 'parisnet',
   QUEBECNET = 'quebecnet',
+  RIONET = 'rionet',
   CUSTOM = 'custom'
 }
 
@@ -78,7 +79,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.NAIROBINET]: 'https://metamask.tezos.com/',
       [NetworkType.OXFORDNET]: 'https://metamask.tezos.com/',
       [NetworkType.PARISNET]: 'https://metamask.tezos.com/',
-      [NetworkType.QUEBECNET]: 'https://metamask.tezos.com/'
+      [NetworkType.QUEBECNET]: 'https://metamask.tezos.com/',
+      [NetworkType.RIONET]: 'https://metamask.tezos.com/'
     }
   },
   {
@@ -106,7 +108,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.NAIROBINET]: 'https://nairobinet.kukai.app',
       [NetworkType.OXFORDNET]: 'https://oxfordnet.kukai.app',
       [NetworkType.PARISNET]: 'https://parisnet.kukai.app',
-      [NetworkType.QUEBECNET]: 'https://quebecnet.kukai.app'
+      [NetworkType.QUEBECNET]: 'https://quebecnet.kukai.app',
+      [NetworkType.RIONET]: 'https://rionet.kukai.app'
     }
   },
 
@@ -134,7 +137,8 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.NAIROBINET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.OXFORDNET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.PARISNET]: 'https://ghostnet.tzsafe.marigold.dev',
-      [NetworkType.QUEBECNET]: 'https://ghostnet.tzsafe.marigold.dev'
+      [NetworkType.QUEBECNET]: 'https://ghostnet.tzsafe.marigold.dev',
+      [NetworkType.RIONET]: 'https://ghostnet.tzsafe.marigold.dev'
     }
   }
 ]

@@ -9,4 +9,5 @@ export interface TezosUpdateConsensusKeyOperation extends TezosBaseOperation {
   gas_limit: string
   storage_limit: string
   pk: string
+  proof?: string
 }
