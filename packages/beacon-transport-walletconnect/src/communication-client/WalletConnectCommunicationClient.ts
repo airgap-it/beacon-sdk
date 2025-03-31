@@ -747,14 +747,21 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   private subscribeToSessionEvents(signClient: Client): void {
     // JWT validation error
-    signClient.core.relayer.provider.on('error', (event: Error) => {
+    const baseHandler = (signClient.core.relayer as any).onProviderErrorHandler
+    const handler = async (event: Error) => {
       logger.error('subscribeToSessionEvents', event)
 
       if (event.message?.includes('JWT validation error')) {
-        const fun = this.eventHandlers.get(ClientEvents.RESET_STATE)
+        const fun = this.eventHandlers.get(ClientEvents.ON_RELAYER_ERROR)
         fun && fun(TransportType.WALLETCONNECT)
       }
-    })
+
+      await this.close()
+      this.clearState()
+      ;(signClient.core.relayer as any).onProviderErrorHandler = baseHandler
+    }
+
+    ;(signClient.core.relayer as any).onProviderErrorHandler = handler
 
     signClient.on('session_event', (event) => {
       if (
@@ -1386,7 +1393,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.wcOptions.opts.relayUrl,
       undefined,
       'wss://relay.walletconnect.com',
-      'wss://relay.walletconnect.org'
+      'wss://relay.walletconnect.org',
+      'wss://us-east-1.relay.walletconnect.com',
+      'wss://eu-central-1.relay.walletconnect.com',
+      'wss://ap-southeast-1.relay.walletconnect.com'
     ])
     const errMessages = new Set()
 

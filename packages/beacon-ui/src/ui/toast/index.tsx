@@ -1,131 +1,112 @@
-import { createSignal } from 'solid-js'
-import { isServer, render } from 'solid-js/web'
-import { WalletInfo } from '@airgap/beacon-types'
-import { generateGUID } from '@airgap/beacon-utils'
+import { createRoot } from 'react-dom/client'
+import { useEffect, useState } from 'react'
+import { Subject, Subscription } from '../../utils/subject'
+import Toast from 'src/components/toast'
+import { ToastConfig } from '../common'
 
-import Toast from '../../components/toast'
+let initDone: boolean = false
+const config$ = new Subject<ToastConfig | undefined>()
+const show$ = new Subject<boolean>()
+let lastTimer: NodeJS.Timeout | undefined
 
-import * as toastStyles from '../../components/toast/styles.css'
-import * as loaderStyles from '../../components/loader/styles.css'
-
-// INTERFACES
-export interface ToastAction {
-  text: string
-  isBold?: boolean
-  actionText?: string
-  actionLogo?: 'external'
-  actionCallback?(): Promise<void>
-}
-
-export interface ToastConfig {
-  body: string
-  timer?: number
-  forceNew?: boolean
-  state: 'prepare' | 'loading' | 'acknowledge' | 'finished'
-  actions?: ToastAction[]
-  walletInfo?: WalletInfo
-  openWalletAction?(): Promise<void>
-}
-
-// GLOBAL VARIABLES
-type VoidFunction = () => void
-let dispose: null | VoidFunction = null
-const [isOpen, setIsOpen] = createSignal<boolean>(false)
-const [renderLast, setRenderLast] = createSignal<string>('')
-
-const ANIMATION_TIME = 300
-let globalTimeout: NodeJS.Timeout
+// Track when openToast was last called and how many consecutive calls were made.
+let lastCallTimestamp = 0
+let requestCount = 0
+const BASE_DELAY = 500
+const COOLDOWN = 2000
+const DELAY_INCREMENT = 100
 
 const createToast = (config: ToastConfig) => {
-  const shadowRootEl = document.createElement('div')
-  if (document.getElementById('beacon-toast-wrapper')) {
-    ;(document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
-  }
-  shadowRootEl.setAttribute('id', 'beacon-toast-wrapper')
-  shadowRootEl.style.height = '0px'
-  const shadowRoot = shadowRootEl.attachShadow({ mode: 'open' })
-
-  // Toast styles
-  const style = document.createElement('style')
-  style.textContent = toastStyles.default
-  shadowRoot.appendChild(style)
-
-  // Loader styles
-  const style2 = document.createElement('style')
-  style2.textContent = loaderStyles.default
-  shadowRoot.appendChild(style2)
-
-  // Inject font styles
-  const styleFonts = document.createElement('style')
-  styleFonts.textContent =
-    "* { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;}"
-  shadowRoot.appendChild(styleFonts)
-
-  dispose = render(
-    () => (
-      <Toast
-        label={config.body}
-        open={isOpen()}
-        onClickClose={() => {
-          closeToast()
-        }}
-        actions={config.actions}
-        walletInfo={config.walletInfo}
-        openWalletAction={config.openWalletAction}
-      />
-    ),
-    shadowRoot
-  )
-
-  // Create toast
-  document.body.prepend(shadowRootEl)
-
-  // Open toast
-  setTimeout(() => {
-    setIsOpen(true)
-  }, 50)
-
-  // Add close timer if in config
-  clearTimeout(globalTimeout)
-  if (config.timer) {
-    globalTimeout = setTimeout(() => closeToast(), config.timer)
-  }
+  const el = document.createElement('beacon-toast')
+  document.body.prepend(el)
+  setTimeout(() => createRoot(el).render(<ToastRoot {...config} />), 50)
+  initDone = true
 }
 
-/**
- * Close a toast
- */
-const closeToast = (): Promise<void> =>
-  new Promise((resolve) => {
-    if (isServer) {
-      console.log('DO NOT RUN ON SERVER')
-      resolve()
-    }
-    setIsOpen(false)
-    setTimeout(() => {
-      if (dispose) dispose()
-      if (document.getElementById('beacon-toast-wrapper'))
-        (document.getElementById('beacon-toast-wrapper') as HTMLElement).remove()
-      resolve()
-    }, ANIMATION_TIME)
-  })
+const openToast = (config: ToastConfig) => {
+  const now = Date.now()
 
-/**
- * Create a new toast
- *
- * @param toastConfig Configuration of the toast
- */
-const openToast = async (config: ToastConfig): Promise<void> => {
-  if (isServer) {
-    console.log('DO NOT RUN ON SERVER')
-    return
+  // Reset the counter if more than COOLDOWN ms have passed since the last call.
+  if (now - lastCallTimestamp > COOLDOWN) {
+    requestCount = 1
+  } else {
+    requestCount++
+  }
+  lastCallTimestamp = now
+
+  // Calculate delay: first request is immediate, second is BASE_DELAY,
+  // subsequent requests add DELAY_INCREMENT ms for each additional call.
+  const timeoutDelay = requestCount === 1 ? 0 : BASE_DELAY + (requestCount - 2) * DELAY_INCREMENT
+
+  // If the toast hasn't been initialized, create it immediately.
+  if (!initDone) {
+    createToast(config)
+  } else {
+    setTimeout(() => config$.next(config), timeoutDelay)
   }
 
-  const id = await generateGUID()
-  setRenderLast(id)
+  // Clear any existing timer for auto-hiding the toast.
+  if (lastTimer) {
+    clearTimeout(lastTimer)
+    lastTimer = undefined
+  }
 
-  await closeToast()
-  if (id === renderLast()) createToast(config)
+  lastTimer = config.timer ? setTimeout(() => closeToast(), config.timer) : undefined
+
+  show$.next(true)
+}
+
+const closeToast = () => {
+  config$.next(undefined)
+  show$.next(false)
+}
+
+const ToastRoot = (props: ToastConfig) => {
+  const [config, setConfig] = useState<ToastConfig | undefined>(props)
+  const [isOpen, setIsOpen] = useState(true)
+  const [mount, setMount] = useState(false)
+
+  useEffect(() => {
+    const subs: Subscription[] = []
+    subs.push(
+      config$.subscribe((config) => {
+        setConfig(config)
+      })
+    )
+    subs.push(
+      show$.subscribe((value) => {
+        setIsOpen(value)
+      })
+    )
+    return () => subs.forEach((sub) => sub.unsubscribe())
+  }, [])
+
+  useEffect(() => {
+    // Unmount immediately if the toast is closed.
+    if (!config) {
+      setMount(false)
+      return
+    }
+    if (isOpen) {
+      setMount(true)
+      return
+    }
+  }, [isOpen, config])
+
+  return (
+    <>
+      {mount && config && (
+        <Toast
+          label={config.body}
+          open={isOpen}
+          onClickClose={closeToast}
+          actions={config.actions}
+          walletInfo={config.walletInfo}
+          openWalletAction={config.openWalletAction}
+        />
+      )}
+    </>
+  )
 }
 
 export { closeToast, openToast }
