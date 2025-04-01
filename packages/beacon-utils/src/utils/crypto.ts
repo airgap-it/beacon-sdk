@@ -1,4 +1,4 @@
-import * as bs58check from 'bs58check'
+import bs58check from 'bs58check'
 import { box, generateKeyPair, openBox, openSecretBox, secretBox } from '@stablelib/nacl'
 import { randomBytes } from '@stablelib/random'
 import { encode } from '@stablelib/utf8'
@@ -156,25 +156,13 @@ export async function openCryptobox(
 export async function getAddressFromPublicKey(publicKey: string): Promise<string> {
   const prefixes = {
     // tz1...
-    edpk: {
-      length: 54,
-      prefix: Buffer.from(new Uint8Array([6, 161, 159]))
-    },
+    edpk: { length: 54, prefix: Buffer.from(new Uint8Array([6, 161, 159])) },
     // tz2...
-    sppk: {
-      length: 55,
-      prefix: Buffer.from(new Uint8Array([6, 161, 161]))
-    },
+    sppk: { length: 55, prefix: Buffer.from(new Uint8Array([6, 161, 161])) },
     // tz3...
-    p2pk: {
-      length: 55,
-      prefix: Buffer.from(new Uint8Array([6, 161, 164]))
-    },
+    p2pk: { length: 55, prefix: Buffer.from(new Uint8Array([6, 161, 164])) },
     // tz4...
-    BLpk: {
-      length: 55,
-      prefix: Buffer.from(new Uint8Array([6, 161, 166]))
-    }
+    BLpk: { length: 55, prefix: Buffer.from(new Uint8Array([6, 161, 166])) }
   }
 
   let prefix: Buffer | undefined
@@ -189,7 +177,7 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
       if (publicKey.startsWith(key) && publicKey.length === value.length) {
         prefix = value.prefix
         const decoded = bs58check.decode(publicKey)
-        plainPublicKey = decoded.slice(key.length, decoded.length).toString('hex')
+        plainPublicKey = Buffer.from(decoded.slice(key.length, decoded.length)).toString('hex')
         break
       }
     }
