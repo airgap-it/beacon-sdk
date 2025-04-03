@@ -1,0 +1,14 @@
+/* components */
+@import '../components/alert/styles.css';
+@import '../components/bug-report-form/styles.css';
+@import '../components/info/styles.css';
+@import '../components/loader/styles.css';
+@import '../components/pair-other/styles.css';
+@import '../components/qr/styles.css';
+@import '../components/toast/styles.css';
+@import '../components/top-wallets/styles.css';
+@import '../components/wallet/styles.css';
+@import '../components/wallets/styles.css';
+
+/* UI */
+@import './alert/components/pairing-alert/components/wc-init-error/styles.css';

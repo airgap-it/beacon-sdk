@@ -7,14 +7,32 @@ import InfoAlert from './components/info-alert'
 import { getColorMode } from 'src/utils/colorMode'
 import { NetworkType } from '@airgap/beacon-types'
 
+// Import the bundled CSS as a raw string
+import cssText from '../index.css'
+
 let initDone: boolean = false
 const show$ = new Subject<boolean>()
 const config$ = new Subject<AlertConfig>()
 
 const createAlert = (config: AlertConfig) => {
+  // Create the host element
   const el = document.createElement('beacon-alert')
   document.body.prepend(el)
-  setTimeout(() => createRoot(el).render(<AlertRoot {...config} />), 50)
+
+  // Attach an open Shadow DOM to the host element
+  const shadowRoot = el.attachShadow({ mode: 'open' })
+
+  // Inject the bundled CSS into the shadow root
+  const styleEl = document.createElement('style')
+  styleEl.textContent = cssText
+  shadowRoot.appendChild(styleEl)
+
+  // Create a container for React to render into
+  const container = document.createElement('div')
+  shadowRoot.appendChild(container)
+
+  // Render your React component into the Shadow DOM
+  setTimeout(() => createRoot(container).render(<AlertRoot {...config} />), 50)
   initDone = true
 }
 
