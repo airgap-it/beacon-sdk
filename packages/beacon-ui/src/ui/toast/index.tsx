@@ -35,7 +35,7 @@ const createToast = (config: ToastConfig) => {
   const container = document.createElement('div')
   shadowRoot.appendChild(container)
 
-  // Render your ToastRoot component into the container within the Shadow DOM
+  // Render the Toast into the container within the Shadow DOM
   setTimeout(() => createRoot(container).render(<ToastRoot {...config} />), 50)
   initDone = true
 }

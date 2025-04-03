@@ -31,7 +31,7 @@ const createAlert = (config: AlertConfig) => {
   const container = document.createElement('div')
   shadowRoot.appendChild(container)
 
-  // Render your React component into the Shadow DOM
+  // Render the Alert into the Shadow DOM
   setTimeout(() => createRoot(container).render(<AlertRoot {...config} />), 50)
   initDone = true
 }
