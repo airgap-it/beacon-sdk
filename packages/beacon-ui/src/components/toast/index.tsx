@@ -3,8 +3,6 @@ import { CloseIcon } from '../icons'
 import Loader from '../loader'
 import { isMobileOS } from '../../utils/platform'
 import { ToastProps } from '../../ui/common'
-
-import './styles.css'
 import useDrag from './hooks/useDrag'
 
 function parseWallet(
