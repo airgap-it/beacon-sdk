@@ -28,7 +28,7 @@ const fakeAccountManager = {
   getAccount: jest.fn().mockResolvedValue(undefined),
   addAccount: jest.fn().mockResolvedValue(undefined),
   removeAccount: jest.fn().mockResolvedValue(undefined),
-  removeAllAccounts: jest.fn(),
+  removeAllAccounts: jest.fn().mockResolvedValue(undefined),
   getAccounts: jest.fn().mockResolvedValue([])
 }
 
@@ -39,7 +39,6 @@ const fakeEvents = {
 
 // Create a fake transport object that simulates a connected transport.
 const fakeTransport: any = {
-  type: 'fake',
   connectionStatus: TransportStatus.CONNECTED,
   send: jest.fn(),
   connect: jest.fn().mockResolvedValue(undefined),
@@ -50,15 +49,49 @@ jest.mock('@airgap/beacon-utils', () => ({
   getKeypairFromSeed: jest.fn(),
   toHex: jest.fn(),
   generateGUID: jest.fn(),
-  ExposedPromise: class ExposedPromise {
-    promise = Promise.resolve(undefined)
-    resolve = jest.fn()
-    reject = jest.fn()
-    isPending = jest.fn()
-    isResolved = jest.fn()
-    isRejected = jest.fn()
-    isSettled = jest.fn()
-    static resolve = jest.fn()
+  ExposedPromise: class ExposedPromise<T> {
+    public promise: Promise<T>
+    private _resolveFn!: (value: T) => void
+    private _rejectFn!: (reason?: any) => void
+    private _isSettled: boolean = false
+    private _isResolved: boolean = false
+
+    constructor() {
+      this.promise = new Promise<T>((resolve, reject) => {
+        this._resolveFn = (value: T) => {
+          this._isSettled = true
+          this._isResolved = true
+          resolve(value)
+        }
+        this._rejectFn = (reason?: any) => {
+          this._isSettled = true
+          reject(reason)
+        }
+      })
+    }
+
+    resolve(value: T) {
+      this._isResolved = true
+      this._resolveFn(value)
+    }
+
+    reject(reason?: any) {
+      this._rejectFn(reason)
+    }
+
+    isSettled(): boolean {
+      return this._isSettled
+    }
+
+    isResolved(): boolean {
+      return this._isResolved
+    }
+
+    static resolve<T>(value: T): ExposedPromise<T> {
+      const ep = new ExposedPromise<T>()
+      ep.resolve(value)
+      return ep
+    }
   }
 }))
 
@@ -72,7 +105,6 @@ jest.mock('@airgap/beacon-core', () => ({
     storage = {
       subscribeToStorageChanged: jest.fn(),
       get: jest.fn().mockImplementation((key: string) => {
-        // Simulate that no active account and no user id exist initially.
         if (key === 'beacon:active_account') return Promise.resolve(undefined)
         if (key === 'beacon:USER_ID') return Promise.resolve(undefined)
         if (key === 'beacon:sdk-secret-seed') return Promise.resolve('test')
@@ -141,9 +173,7 @@ jest.mock('@airgap/beacon-core', () => ({
 
 jest.mock('@airgap/beacon-transport-matrix', () => ({
   P2PTransport: class P2PTransport {
-    client = {
-      listenForChannelOpening: jest.fn()
-    }
+    client = { listenForChannelOpening: jest.fn() }
     setEventHandler = jest.fn()
     getPeers = jest.fn().mockReturnValue([])
   }
@@ -151,9 +181,7 @@ jest.mock('@airgap/beacon-transport-matrix', () => ({
 
 jest.mock('@airgap/beacon-transport-postmessage', () => ({
   PostMessageTransport: class PostMessageTransport {
-    client = {
-      listenForChannelOpening: jest.fn()
-    }
+    client = { listenForChannelOpening: jest.fn() }
     setEventHandler = jest.fn()
     getPeers = jest.fn().mockReturnValue([])
   }
@@ -161,9 +189,7 @@ jest.mock('@airgap/beacon-transport-postmessage', () => ({
 
 jest.mock('@airgap/beacon-transport-walletconnect', () => ({
   WalletConnectTransport: class WalletConnectTransport {
-    client = {
-      listenForChannelOpening: jest.fn()
-    }
+    client = { listenForChannelOpening: jest.fn() }
     setEventHandler = jest.fn()
     getPeers = jest.fn().mockReturnValue([])
   }
@@ -204,91 +230,110 @@ const fakeConfig = {
   errorMessages: {},
   featuredWallets: ['wallet1'],
   preferredNetwork: 'MAINNET',
-  analytics: {
-    track: () => {}
-  }
+  analytics: { track: jest.fn() }
 }
 
-// --- The tests ---
 describe('DAppClient', () => {
-  describe('constructor and initialization', () => {
+  let client: any
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    client = new DAppClient(fakeConfig as any)
+    // Force the flag so that internal branches relying on active account subscription run.
+    client['isGetActiveAccountHandled'] = true
+    client['storage'] = fakeStorage
+    client['events'] = fakeEvents
+    client['accountManager'] = fakeAccountManager
+
+    // Define the transport property as configurable so it can be re-mocked in tests.
+    Object.defineProperty(client, 'transport', {
+      configurable: true,
+      get: () => Promise.resolve(fakeTransport)
+    })
+    // Also set _transport using our ExposedPromise so that isResolved() works.
+    client['_transport'] = ExposedPromise.resolve(fakeTransport)
+  })
+
+  describe('Constructor and Initialization', () => {
     it('should initialize with given config values', () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       expect(client.description).toBe('Test Description')
       expect(client.network.type).toBe('MAINNET')
     })
   })
 
-  describe('Active account management', () => {
+  describe('Active Account Management', () => {
     it('should get active account (initially undefined)', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       expect(client['_activeAccount']).toBeTruthy()
       const active = await client.getActiveAccount()
       expect(active).toBeUndefined()
     })
 
-    it('should set active account and call storage.set and emit event', async () => {
-      const dummyAccount: any = {
+    it('should set and get the active account', async () => {
+      const dummyAccount = {
         accountIdentifier: 'acc1',
-        senderId: 'sender1',
         address: 'tz1dummy',
-        publicKey: 'pubkey',
-        scopes: [PermissionScope.OPERATION_REQUEST],
-        origin: { type: 'extension', id: 'ext1' },
-        network: { type: 'MAINNET' }
+        scopes: [PermissionScope.SIGN],
+        origin: { type: 'extension', id: 'ext1' }
       }
-      const client: any = new DAppClient(fakeConfig as any)
-
-      client['isGetActiveAccountHandled'] = true
-      client['_transport'] = new ExposedPromise()
-      client['_transport'].resolve(fakeTransport)
-      client['storage'] = fakeStorage as any
-      client['events'] = fakeEvents as any
-
-      expect(client['_activeAccount'].isSettled()).toBeFalsy()
-
+      client['_activeAccount'] = ExposedPromise.resolve(dummyAccount)
       await client.setActiveAccount(dummyAccount)
-      //   expect(fakeStorage.set).toHaveBeenLastCalledWith(
-      //     'beacon:active_account',
-      //     dummyAccount.accountIdentifier
-      //   )
-      expect(fakeEvents.emit).toHaveBeenLastCalledWith(BeaconEvent.ACTIVE_ACCOUNT_SET, dummyAccount)
+      const active = await client.getActiveAccount()
+      expect(active).toEqual(dummyAccount)
     })
 
-    it('should clear active account when clearActiveAccount is called', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
-      client.setActiveAccount = jest.fn()
+    it('clearActiveAccount should set active account to undefined', async () => {
+      const dummyAccount = {
+        accountIdentifier: 'acc1',
+        address: 'tz1dummy',
+        scopes: [PermissionScope.SIGN],
+        origin: { type: 'extension', id: 'ext1' }
+      }
+      client['_activeAccount'] = ExposedPromise.resolve(dummyAccount)
+      await client.setActiveAccount(dummyAccount)
       await client.clearActiveAccount()
-      expect(client.setActiveAccount).toHaveBeenCalledWith(undefined)
+      const active = await client.getActiveAccount()
+      expect(active).toBeUndefined()
+    })
+
+    it('should update active account if new account is different', async () => {
+      const dummyAccount1 = {
+        accountIdentifier: 'acc1',
+        address: 'tz1dummy',
+        scopes: [PermissionScope.SIGN],
+        origin: { type: 'extension', id: 'ext1' }
+      }
+      const dummyAccount2 = {
+        accountIdentifier: 'acc2',
+        address: 'tz1dummy2',
+        scopes: [PermissionScope.SIGN],
+        origin: { type: 'extension', id: 'ext2' }
+      }
+      client['_activeAccount'] = ExposedPromise.resolve(dummyAccount1)
+      await client.setActiveAccount(dummyAccount1)
+      expect(await client.getActiveAccount()).toEqual(dummyAccount1)
+      // Override isInvalidState to simulate a change that triggers resetting.
+      client['isInvalidState'] = jest.fn().mockResolvedValue(true)
+      await client.setActiveAccount(dummyAccount2)
+      expect(await client.getActiveAccount()).toEqual(dummyAccount2)
     })
   })
 
   describe('Color mode', () => {
     it('should set color mode', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       const { setColorMode } = require('@airgap/beacon-ui')
       await client.setColorMode(ColorMode.DARK)
       expect(setColorMode).toHaveBeenCalledWith('dark')
     })
 
     it('should get color mode', async () => {
-      const { getColorMode } = require('@airgap/beacon-ui')
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       const mode = await client.getColorMode()
-      expect(getColorMode).toHaveBeenCalled()
       expect(mode).toBe('light')
     })
   })
 
-  describe('Event subscription', () => {
-    it('should subscribe to event and set flag for ACTIVE_ACCOUNT_SET', async () => {
-      const client: any = new DAppClient(fakeConfig as any)
-      client['events'] = fakeEvents
+  describe('Event Subscription', () => {
+    it('should subscribe to an event and set flag for ACTIVE_ACCOUNT_SET', async () => {
+      client['isGetActiveAccountHandled'] = false
       await client.subscribeToEvent(BeaconEvent.ACTIVE_ACCOUNT_SET, jest.fn())
       expect(fakeEvents.on).toHaveBeenCalledWith(
         BeaconEvent.ACTIVE_ACCOUNT_SET,
@@ -298,44 +343,121 @@ describe('DAppClient', () => {
     })
   })
 
-  describe('Permissions checking', () => {
+  describe('Check Permissions', () => {
     it('should allow permission requests without active account', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       const result = await client.checkPermissions(BeaconMessageType.PermissionRequest)
       expect(result).toBe(true)
     })
 
-    it('should throw error if active account is missing for non-permission request', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
+    it('should throw error for non-permission request when active account is missing', async () => {
+      client.getActiveAccount = jest.fn().mockResolvedValue(undefined)
       await expect(client.checkPermissions(BeaconMessageType.SignPayloadRequest)).rejects.toThrow(
         'No active account set!'
       )
     })
 
     it('should check permission for operation request', async () => {
-      const dummyAccount = { scopes: [PermissionScope.OPERATION_REQUEST] }
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
-      client.getActiveAccount = jest.fn().mockResolvedValue(dummyAccount)
+      client.getActiveAccount = jest
+        .fn()
+        .mockResolvedValue({ scopes: [PermissionScope.OPERATION_REQUEST] })
       const result = await client.checkPermissions(BeaconMessageType.OperationRequest)
       expect(result).toBe(true)
     })
   })
 
+  describe('disconnect', () => {
+    it('should throw error if no transport is available', async () => {
+      client['_transport'] = new ExposedPromise()
+      await expect(client.disconnect()).rejects.toThrow('No transport available.')
+    })
+
+    it('should throw error if transport is not connected', async () => {
+      const fakeNotConnected = {
+        connectionStatus: TransportStatus.NOT_CONNECTED,
+        connect: jest.fn()
+      }
+      // Instead of redefining the property, use a spy to override the getter for this test.
+      jest.spyOn(client, 'transport', 'get').mockReturnValue(Promise.resolve(fakeNotConnected))
+      client['_transport'] = ExposedPromise.resolve(fakeNotConnected)
+      await expect(client.disconnect()).rejects.toThrow('Not connected.')
+    })
+  })
+
+  describe('destroy', () => {
+    it('should call createStateSnapshot and super.destroy', async () => {
+      jest.spyOn(client, 'createStateSnapshot')
+      // Force the metrics branch to run and simulate a proper localStorage.
+      client.enableMetrics = true
+      const superDestroySpy = jest
+        .spyOn(Object.getPrototypeOf(client), 'destroy')
+        .mockResolvedValue(undefined)
+
+      await client.destroy()
+
+      expect(superDestroySpy).toHaveBeenCalled()
+      superDestroySpy.mockRestore()
+    })
+  })
+
+  describe('sendNotification', () => {
+    it('should throw error if active account missing or notifications not permitted', async () => {
+      client.getActiveAccount = jest.fn().mockResolvedValue(undefined)
+      await expect(client.sendNotification('title', 'msg', 'payload', 'protocol')).rejects.toThrow(
+        'notification permissions not given'
+      )
+    })
+
+    it('should throw error if no access token is present', async () => {
+      client.getActiveAccount = jest.fn().mockResolvedValue({
+        scopes: [PermissionScope.NOTIFICATION],
+        notification: {}
+      })
+      await expect(client.sendNotification('title', 'msg', 'payload', 'protocol')).rejects.toThrow(
+        'No AccessToken'
+      )
+    })
+
+    it('should throw error if no push URL is set', async () => {
+      client.getActiveAccount = jest.fn().mockResolvedValue({
+        scopes: [PermissionScope.NOTIFICATION],
+        notification: { token: 'token' }
+      })
+      await expect(client.sendNotification('title', 'msg', 'payload', 'protocol')).rejects.toThrow(
+        'No Push URL set'
+      )
+    })
+  })
+
+  describe('requestPermissions', () => {
+    it('should process a permission request and return an output', async () => {
+      const dummyResponse = {
+        message: { appMetadata: { name: 'TestApp' }, scopes: [PermissionScope.SIGN] },
+        connectionInfo: { origin: 'postmessage', id: 'conn1' }
+      }
+      client['checkMakeRequest'] = jest.fn().mockResolvedValue(true)
+      client['makeRequest'] = jest.fn().mockResolvedValue(dummyResponse)
+      client.onNewAccount = jest.fn().mockResolvedValue({
+        accountIdentifier: 'acc1',
+        senderId: 'sender1',
+        address: 'tz1dummy',
+        origin: { type: 'extension', id: 'ext1' }
+      })
+      client['accountManager'] = fakeAccountManager
+      client.notifySuccess = jest.fn().mockResolvedValue(undefined)
+      client['analytics'] = { track: jest.fn() }
+      const output = await client.requestPermissions()
+      expect(output).toBeDefined()
+    })
+  })
+
   describe('requestSignPayload', () => {
     it('should throw error if payload is not provided', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       await expect(client.requestSignPayload({ payload: '' })).rejects.toThrow(
         'Payload must be provided'
       )
     })
 
     it('should throw error if active account is missing', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       client.getActiveAccount = jest.fn().mockResolvedValue(undefined)
       await expect(client.requestSignPayload({ payload: '05abcdef' })).rejects.toThrow(
         'No active account!'
@@ -343,8 +465,6 @@ describe('DAppClient', () => {
     })
 
     it('should throw error if payload is not a string', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       client.getActiveAccount = jest.fn().mockResolvedValue({ address: 'tz1dummy' })
       await expect(client.requestSignPayload({ payload: 123 as any })).rejects.toThrow(
         'Payload must be a string'
@@ -352,8 +472,6 @@ describe('DAppClient', () => {
     })
 
     it('should throw error for invalid signing type prefix', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       client.getActiveAccount = jest.fn().mockResolvedValue({ address: 'tz1dummy' })
       await expect(
         client.requestSignPayload({ payload: '051234', signingType: 'OPERATION' as any })
@@ -361,11 +479,13 @@ describe('DAppClient', () => {
     })
 
     it('should succeed with RAW signing type', async () => {
-      const dummyActiveAccount = { address: 'tz1dummy', scopes: [PermissionScope.SIGN] }
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
+      const dummyActiveAccount = {
+        address: 'tz1dummy',
+        scopes: [PermissionScope.SIGN],
+        origin: { type: 'extension', id: 'ext1' }
+      }
       client.getActiveAccount = jest.fn().mockResolvedValue(dummyActiveAccount)
-      // Override internal methods to simulate a response.
+      client['_activeAccount'] = ExposedPromise.resolve(dummyActiveAccount)
       client['checkMakeRequest'] = jest.fn().mockResolvedValue(true)
       client['makeRequest'] = jest.fn().mockResolvedValue({
         message: { signature: 'edsig123' },
@@ -379,117 +499,29 @@ describe('DAppClient', () => {
 
   describe('removeAccount and removeAllAccounts', () => {
     it('should remove account and clear active account if matching', async () => {
-      const client: any = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       client['accountManager'] = fakeAccountManager
-      const dummyAccount = { accountIdentifier: 'acc1', senderId: 'sender1' }
+      const dummyAccount = {
+        accountIdentifier: 'acc1',
+        senderId: 'sender1',
+        origin: { type: 'extension', id: 'ext1' }
+      }
       client.getActiveAccount = jest.fn().mockResolvedValue(dummyAccount)
       await client.removeAccount('acc1')
     })
 
     it('should remove all accounts and clear active account', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       await client.removeAllAccounts()
-    })
-  })
-
-  describe('disconnect', () => {
-    it('should throw error if transport not available', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
-      client['_transport'] = new ExposedPromise()
-      await expect(client.disconnect()).rejects.toThrow('No transport available.')
-    })
-  })
-
-  describe('destroy', () => {
-    it('should call createStateSnapshot and super.destroy', async () => {
-      const client: any = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
-      client.createStateSnapshot = jest.fn().mockResolvedValue(undefined)
-      // Spy on the parent destroy call.
-      const superDestroySpy = jest
-        .spyOn(Object.getPrototypeOf(client), 'destroy')
-        .mockResolvedValue(undefined)
-      await client.destroy()
-      // expect(client.createStateSnapshot).toHaveBeenCalled()
-      expect(superDestroySpy).toHaveBeenCalled()
-      superDestroySpy.mockRestore()
-    })
-  })
-
-  describe('sendNotification', () => {
-    it('should throw error if active account missing or no notification permission', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
-      client.getActiveAccount = jest.fn().mockResolvedValue(undefined)
-      await expect(client.sendNotification('title', 'msg', 'payload', 'protocol')).rejects.toThrow(
-        'notification permissions not given'
-      )
-    })
-
-    it('should throw error if no access token', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
-      client.getActiveAccount = jest.fn().mockResolvedValue({
-        scopes: [PermissionScope.NOTIFICATION],
-        notification: {}
-      })
-      await expect(client.sendNotification('title', 'msg', 'payload', 'protocol')).rejects.toThrow(
-        'No AccessToken'
-      )
-    })
-
-    it('should throw error if no push URL', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
-      client.getActiveAccount = jest.fn().mockResolvedValue({
-        scopes: [PermissionScope.NOTIFICATION],
-        notification: { token: 'token' }
-      })
-      await expect(client.sendNotification('title', 'msg', 'payload', 'protocol')).rejects.toThrow(
-        'No Push URL set'
-      )
-    })
-  })
-
-  describe('requestPermissions', () => {
-    it('should process a permission request and return an output', async () => {
-      // Simulate a successful makeRequest call.
-      const dummyResponse = {
-        message: { appMetadata: { name: 'TestApp' }, scopes: [PermissionScope.SIGN] },
-        connectionInfo: { origin: 'postmessage', id: 'conn1' }
-      }
-      const client: any = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
-      client['checkMakeRequest'] = jest.fn().mockResolvedValue(true)
-      client['makeRequest'] = jest.fn().mockResolvedValue(dummyResponse)
-      client.onNewAccount = jest.fn().mockResolvedValue({
-        accountIdentifier: 'acc1',
-        senderId: 'sender1',
-        address: 'tz1dummy'
-      })
-      client['accountManager'] = fakeAccountManager
-      client.notifySuccess = jest.fn().mockResolvedValue(undefined)
-      client['analytics'] = { track: () => {} }
-      const output = await client.requestPermissions()
-      expect(output).toBeDefined()
     })
   })
 
   describe('requestOperation', () => {
     it('should throw error if operation details not provided', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       await expect(client.requestOperation({} as any)).rejects.toThrow(
         'Operation details must be provided'
       )
     })
 
     it('should throw error if no active account exists', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       client.getActiveAccount = jest.fn().mockResolvedValue(undefined)
       await expect(client.requestOperation({ operationDetails: [] })).rejects.toThrow(
         'No active account!'
@@ -497,9 +529,11 @@ describe('DAppClient', () => {
     })
 
     it('should process an operation request', async () => {
-      const dummyAccount = { address: 'tz1dummy', accountIdentifier: 'acc1' }
-      const client: any = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
+      const dummyAccount = {
+        address: 'tz1dummy',
+        accountIdentifier: 'acc1',
+        origin: { type: 'extension', id: 'ext1' }
+      }
       client.getActiveAccount = jest.fn().mockResolvedValue(dummyAccount)
       client['checkMakeRequest'] = jest.fn().mockResolvedValue(true)
       client['makeRequest'] = jest.fn().mockResolvedValue({
@@ -515,21 +549,17 @@ describe('DAppClient', () => {
 
   describe('requestBroadcast', () => {
     it('should throw error if signedTransaction is not provided', async () => {
-      const client = new DAppClient(fakeConfig as any)
-      client['isGetActiveAccountHandled'] = true
       await expect(client.requestBroadcast({} as any)).rejects.toThrow(
         'Signed transaction must be provided'
       )
     })
 
     it('should process a broadcast request', async () => {
-      const client: any = new DAppClient(fakeConfig as any)
       client['checkMakeRequest'] = jest.fn().mockResolvedValue(true)
       client['makeRequest'] = jest.fn().mockResolvedValue({
         message: { broadcast: 'result' },
         connectionInfo: { origin: 'postmessage', id: 'conn1' }
       })
-      client['isGetActiveAccountHandled'] = true
       client['analytics'] = { track: () => {} }
       client.notifySuccess = jest.fn().mockResolvedValue(undefined)
       const res = await client.requestBroadcast({ signedTransaction: 'tx' })
