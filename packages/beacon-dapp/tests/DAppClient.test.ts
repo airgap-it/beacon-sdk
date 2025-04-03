@@ -446,6 +446,7 @@ describe('DAppClient', () => {
       client.notifySuccess = jest.fn().mockResolvedValue(undefined)
       client['analytics'] = { track: jest.fn() }
       const output = await client.requestPermissions()
+      expect(client.notifySuccess).toHaveBeenCalled()
       expect(output).toBeDefined()
     })
   })
@@ -543,6 +544,7 @@ describe('DAppClient', () => {
       client['analytics'] = { track: () => {} }
       client.notifySuccess = jest.fn().mockResolvedValue(undefined)
       const res = await client.requestOperation({ operationDetails: ['op'] })
+      expect(client.notifySuccess).toHaveBeenCalled()
       expect(res.operation).toBe('result')
     })
   })
@@ -563,6 +565,7 @@ describe('DAppClient', () => {
       client['analytics'] = { track: () => {} }
       client.notifySuccess = jest.fn().mockResolvedValue(undefined)
       const res = await client.requestBroadcast({ signedTransaction: 'tx' })
+      expect(client.notifySuccess).toHaveBeenCalled()
       expect(res.broadcast).toBe('result')
     })
   })
