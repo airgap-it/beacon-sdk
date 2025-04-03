@@ -59,7 +59,7 @@ export default [
       commonjs(),
       // Add the string plugin to import CSS files as raw text
       string({
-        include: './ui/index.css'
+        include: './ui/**/aggregated.css'
       }),
       postcss({
         plugins: [postcssImport()],

@@ -8,7 +8,7 @@ import { getColorMode } from 'src/utils/colorMode'
 import { NetworkType } from '@airgap/beacon-types'
 
 // Import the bundled CSS as a raw string
-import cssText from '../index.css'
+import cssText from './aggregated.css'
 
 let initDone: boolean = false
 const show$ = new Subject<boolean>()

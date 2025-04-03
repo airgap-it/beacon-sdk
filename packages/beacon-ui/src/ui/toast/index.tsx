@@ -4,6 +4,9 @@ import { Subject, Subscription } from '../../utils/subject'
 import Toast from 'src/components/toast'
 import { ToastConfig } from '../common'
 
+// Import the bundled CSS as a raw string
+import cssText from './aggregated.css'
+
 let initDone: boolean = false
 const config$ = new Subject<ToastConfig | undefined>()
 const show$ = new Subject<boolean>()
@@ -17,9 +20,23 @@ const COOLDOWN = 2000
 const DELAY_INCREMENT = 100
 
 const createToast = (config: ToastConfig) => {
+  // Create the host element
   const el = document.createElement('beacon-toast')
   document.body.prepend(el)
-  setTimeout(() => createRoot(el).render(<ToastRoot {...config} />), 50)
+
+  // Attach an open Shadow DOM to the host element
+  const shadowRoot = el.attachShadow({ mode: 'open' })
+
+  const styleEl = document.createElement('style')
+  styleEl.textContent = cssText
+  shadowRoot.appendChild(styleEl)
+
+  // Create a container element for React to render into
+  const container = document.createElement('div')
+  shadowRoot.appendChild(container)
+
+  // Render your ToastRoot component into the container within the Shadow DOM
+  setTimeout(() => createRoot(container).render(<ToastRoot {...config} />), 50)
   initDone = true
 }
 
