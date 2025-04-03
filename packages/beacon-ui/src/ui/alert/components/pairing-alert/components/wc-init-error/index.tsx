@@ -2,8 +2,6 @@ import { StorageKey } from '@airgap/beacon-types'
 import Info from '../../../../../../components/info'
 import { AlertState, WCInitErrorProps } from '../../../../../common'
 
-import './styles.css'
-
 const WCInitError: React.FC<WCInitErrorProps> = ({ title, handleUpdateState }) => {
   const errorMessage = localStorage ? localStorage.getItem(StorageKey.WC_INIT_ERROR) : undefined
   const description: any = (

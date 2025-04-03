@@ -3,8 +3,6 @@ import QR from '../qr'
 
 import { PairOtherProps } from '../../ui/common'
 
-import './styles.css'
-
 const PairOther: React.FC<PairOtherProps> = (props: PairOtherProps) => {
   const [uiState, setUiState] = useState<'selection' | 'p2p' | 'walletconnect'>('selection')
   const [hasBeacon, setHasBeacon] = useState<boolean>(false)

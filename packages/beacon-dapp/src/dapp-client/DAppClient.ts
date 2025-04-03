@@ -1,5 +1,5 @@
 import axios from 'axios'
-import * as bs58check from 'bs58check'
+import bs58check from 'bs58check'
 import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../events'
 import {
   ConnectionContext,
@@ -235,10 +235,7 @@ export class DAppClient extends Client {
   )
 
   constructor(config: DAppClientOptions) {
-    super({
-      storage: config && config.storage ? config.storage : new LocalStorage(),
-      ...config
-    })
+    super({ storage: config && config.storage ? config.storage : new LocalStorage(), ...config })
     this.description = config.description
     this.wcProjectId = config.walletConnectOptions?.projectId || '24469fd0a06df227b6e5f7dc7de0ff4f'
     this.wcRelayUrl = config.walletConnectOptions?.relayUrl
@@ -340,11 +337,7 @@ export class DAppClient extends Client {
 
           const wallet = await this.getWalletInfo()
 
-          appMetadata = {
-            name: peer.name,
-            senderId: peer.senderId,
-            icon: wallet.icon
-          }
+          appMetadata = { name: peer.name, senderId: peer.senderId, icon: wallet.icon }
 
           break
         }
@@ -353,10 +346,7 @@ export class DAppClient extends Client {
       if (this.openRequestsOtherTabs.has(message.id)) {
         this.multiTabChannel.postMessage({
           type: 'RESPONSE',
-          data: {
-            message,
-            connectionInfo
-          },
+          data: { message, connectionInfo },
           id: message.id
         })
 
@@ -381,8 +371,8 @@ export class DAppClient extends Client {
           connectionInfo.origin === Origin.P2P
             ? this.p2pTransport
             : connectionInfo.origin === Origin.WALLETCONNECT
-            ? this.walletConnectTransport
-            : this.postMessageTransport ?? (await this.transport)
+              ? this.walletConnectTransport
+              : (this.postMessageTransport ?? (await this.transport))
 
         if (relevantTransport) {
           const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
@@ -638,10 +628,7 @@ export class DAppClient extends Client {
       this.name,
       keyPair,
       this.storage,
-      {
-        network: this.network.type,
-        opts: wcOptions
-      },
+      { network: this.network.type, opts: wcOptions },
       this.checkIfBCLeaderExists.bind(this)
     )
 
@@ -971,9 +958,7 @@ export class DAppClient extends Client {
           await transport.disconnect()
           this.openRequestsOtherTabs.clear()
         } else {
-          this.multiTabChannel.postMessage({
-            type: 'DISCONNECT'
-          })
+          this.multiTabChannel.postMessage({ type: 'DISCONNECT' })
         }
         Array.from(this.openRequests.entries())
           .filter(([id, _promise]) => id !== 'session_update')
@@ -1113,14 +1098,12 @@ export class DAppClient extends Client {
   ): Promise<RequestInit> {
     const wallet = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
     const transport = this._activeAccount.isResolved()
-      ? (await this.getActiveAccount())?.origin.type ?? 'UNKNOWN'
+      ? ((await this.getActiveAccount())?.origin.type ?? 'UNKNOWN')
       : 'UNKNOWN'
 
     return {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: this.userId,
         os: currentOS(),
@@ -1366,10 +1349,7 @@ export class DAppClient extends Client {
     const request: PermissionRequestV3<string> = {
       ...input,
       type: BeaconMessageType.PermissionRequest,
-      blockchainData: {
-        ...input.blockchainData,
-        appMetadata: await this.getOwnAppMetadata()
-      }
+      blockchainData: { ...input.blockchainData, appMetadata: await this.getOwnAppMetadata() }
     }
 
     logger.log('REQUESTION PERMIMISSION V3', 'xxx', request)
@@ -1401,10 +1381,7 @@ export class DAppClient extends Client {
     const accountInfo: any = {
       accountIdentifier: partialAccountInfos[0].accountId,
       senderId: response.senderId,
-      origin: {
-        type: connectionInfo.origin,
-        id: connectionInfo.id
-      },
+      origin: { type: connectionInfo.origin, id: connectionInfo.id },
       address: partialAccountInfos[0].address, // Store all addresses
       publicKey: partialAccountInfos[0].publicKey,
       scopes: response.message.blockchainData.scopes as any,
@@ -1493,9 +1470,7 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
-    await this.notifySuccess(request as any, {
-      walletInfo: await this.getWalletInfo()
-    } as any)
+    await this.notifySuccess(request as any, { walletInfo: await this.getWalletInfo() } as any)
 
     return response.message
   }
@@ -2022,10 +1997,7 @@ export class DAppClient extends Client {
 
     // remove keyPair, to prevent dApps from accidentaly leaking the privateKey
     if (event) {
-      event.client = {
-        ...event.client,
-        keyPair: undefined
-      }
+      event.client = { ...event.client, keyPair: undefined }
     }
 
     await this.events.emit(BeaconEvent.ACTIVE_TRANSPORT_SET, event)
@@ -2356,10 +2328,7 @@ export class DAppClient extends Client {
     requestInput: Optional<T, IgnoredRequestInputProperties>,
     skipResponse?: undefined | false,
     otherTabMessageId?: string
-  ): Promise<{
-    message: U
-    connectionInfo: ConnectionContext
-  }>
+  ): Promise<{ message: U; connectionInfo: ConnectionContext }>
   private makeRequest<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     requestInput: Optional<T, IgnoredRequestInputProperties>,
     skipResponse: true,
@@ -2463,10 +2432,7 @@ export class DAppClient extends Client {
     if (!otherTabMessageId) {
       this.events
         .emit(messageEvents[requestInput.type].sent, {
-          walletInfo: {
-            ...walletInfo,
-            name: walletInfo.name ?? 'Wallet'
-          },
+          walletInfo: { ...walletInfo, name: walletInfo.name ?? 'Wallet' },
           extraInfo: {
             resetCallback: async () => {
               this.disconnect()
@@ -2494,10 +2460,7 @@ export class DAppClient extends Client {
   >(
     requestInput: T,
     otherTabMessageId?: string
-  ): Promise<{
-    message: U
-    connectionInfo: ConnectionContext
-  }> {
+  ): Promise<{ message: U; connectionInfo: ConnectionContext }> {
     if (this._initPromise && this.isInitPending) {
       await Promise.all([
         this.postMessageTransport?.disconnect(),
@@ -2580,10 +2543,7 @@ export class DAppClient extends Client {
 
     this.events
       .emit(messageEvents[index].sent, {
-        walletInfo: {
-          ...walletInfo,
-          name: walletInfo.name ?? 'Wallet'
-        },
+        walletInfo: { ...walletInfo, name: walletInfo.name ?? 'Wallet' },
         extraInfo: {
           resetCallback: async () => {
             this.disconnect()
@@ -2598,13 +2558,7 @@ export class DAppClient extends Client {
 
   private async makeRequestBC<T extends BeaconRequestInputMessage, U extends BeaconMessage>(
     request: Optional<T, IgnoredRequestInputProperties>
-  ): Promise<
-    | {
-        message: U
-        connectionInfo: ConnectionContext
-      }
-    | undefined
-  > {
+  ): Promise<{ message: U; connectionInfo: ConnectionContext } | undefined> {
     if (!this._transport.isResolved()) {
       return
     }
@@ -2625,11 +2579,7 @@ export class DAppClient extends Client {
 
     const id = await generateGUID()
 
-    this.multiTabChannel.postMessage({
-      type: request.type,
-      data: request,
-      id
-    })
+    this.multiTabChannel.postMessage({ type: request.type, data: request, id })
 
     if (
       request.type !== BeaconMessageType.PermissionRequest ||
@@ -2641,17 +2591,12 @@ export class DAppClient extends Client {
     this.events
       .emit(messageEvents[BeaconMessageType.PermissionRequest].sent, {
         walletInfo: await this.getWalletInfo(),
-        extraInfo: {
-          resetCallback: () => this.disconnect()
-        }
+        extraInfo: { resetCallback: () => this.disconnect() }
       })
       .catch((emitError) => console.warn(emitError))
 
     const exposed = new ExposedPromise<
-      {
-        message: U
-        connectionInfo: ConnectionContext
-      },
+      { message: U; connectionInfo: ConnectionContext },
       ErrorResponse
     >()
 
@@ -2735,9 +2680,7 @@ export class DAppClient extends Client {
     const bytes = toHex(constructedString)
     const payloadBytes = '05' + '01' + bytes.length.toString(16).padStart(8, '0') + bytes
 
-    const signature = await signMessage(payloadBytes, {
-      secretKey: Buffer.from(keypair.secretKey)
-    })
+    const signature = await signMessage(payloadBytes, { secretKey: Buffer.from(keypair.secretKey) })
 
     const notificationResponse = await axios.post(`${url}/send`, {
       recipient,
@@ -2747,11 +2690,7 @@ export class DAppClient extends Client {
       payload,
       accessToken,
       protocolIdentifier,
-      sender: {
-        name: this.name,
-        publicKey,
-        signature
-      }
+      sender: { name: this.name, publicKey, signature }
     })
 
     return notificationResponse.data
@@ -2794,10 +2733,7 @@ export class DAppClient extends Client {
     const accountInfo: AccountInfo = {
       accountIdentifier: await getAccountIdentifier(address, message.network),
       senderId: message.senderId,
-      origin: {
-        type: connectionInfo.origin,
-        id: connectionInfo.id
-      },
+      origin: { type: connectionInfo.origin, id: connectionInfo.id },
       walletKey,
       address,
       publicKey,

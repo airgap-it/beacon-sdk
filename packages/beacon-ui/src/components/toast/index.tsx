@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { useDrag } from '@use-gesture/react'
 import { CloseIcon } from '../icons'
 import Loader from '../loader'
 import { isMobileOS } from '../../utils/platform'
 import { ToastProps } from '../../ui/common'
-
-import './styles.css'
+import useDrag from './hooks/useDrag'
 
 function parseWallet(
   inputString: string,
-  walletInfo: {
-    deeplink?: string
-    icon?: string
-    name: string
-    type?: string
-  }
+  walletInfo: { deeplink?: string; icon?: string; name: string; type?: string }
 ) {
   const regex = /({{\s*wallet\s*}})/g
   const parts = inputString.split(regex)

@@ -1,5 +1,5 @@
 import { hash } from '@stablelib/blake2b'
-import * as bs58check from 'bs58check'
+import bs58check from 'bs58check'
 
 const isHex = (str: string): boolean => /^[A-F0-9]+$/i.test(str)
 

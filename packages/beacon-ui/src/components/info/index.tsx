@@ -1,5 +1,4 @@
 import React from 'react'
-import './styles.css'
 import { QRCodeIcon } from '../icons'
 import { InfoProps } from '../../ui/common'
 

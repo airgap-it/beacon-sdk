@@ -1,5 +1,4 @@
 import React from 'react'
-import './styles.css'
 import { WalletProps } from 'src/ui/common'
 
 const Wallet: React.FC<WalletProps> = (props: WalletProps) => {
