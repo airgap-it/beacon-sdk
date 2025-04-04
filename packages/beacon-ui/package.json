@@ -28,7 +28,7 @@
   },
   "scripts": {
     "tsc": "rollup -c",
-    "test": "jest --passWithNoTests"
+    "test": "jest"
   },
   "bugs": {
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
@@ -66,6 +66,7 @@
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-svg": "^2.0.0",
     "rollup-plugin-typescript2": "^0.36.0",
+    "smob": "^1.5.0",
     "typescript": "^5.8.2",
     "vite": "^6.2.4"
   }
