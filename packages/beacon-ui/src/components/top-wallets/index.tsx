@@ -1,6 +1,5 @@
 import React from 'react'
 import Wallet from '../wallet'
-import './styles.css'
 import { StorageKey } from '@airgap/beacon-types'
 import { TopWalletsProps } from 'src/ui/common'
 
