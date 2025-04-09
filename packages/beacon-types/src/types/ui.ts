@@ -34,6 +34,7 @@ export interface WebApp extends AppBase {
     [NetworkType.OXFORDNET]?: string
     [NetworkType.PARISNET]?: string
     [NetworkType.QUEBECNET]?: string
+    [NetworkType.RIONET]?: string
     [NetworkType.CUSTOM]?: string
   }
 }
