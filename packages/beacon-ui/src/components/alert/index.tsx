@@ -2,7 +2,6 @@ import React from 'react'
 import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
 import Loader from '../loader'
 import { AlertProps } from '../../ui/common'
-import './styles.css'
 import useIsMobile from '../../ui/alert/hooks/useIsMobile'
 
 const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
