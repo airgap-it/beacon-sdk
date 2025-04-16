@@ -55,10 +55,7 @@ const useConnect = (
       })
     )
 
-    if (
-      (selectedWallet?.types.includes('web') && selectedWallet?.types.length === 1) ||
-      (isAndroid(window) && selectedWallet?.name.toLowerCase().includes('kukai'))
-    ) {
+    if (selectedWallet?.types.includes('web') && selectedWallet?.types.length === 1) {
       handleNewTab(config, selectedWallet)
       return
     }
@@ -70,7 +67,7 @@ const useConnect = (
       const isValid = !!parseUri(await wcPayload).symKey
       setIsWCWorking(isValid)
 
-      if (!isValid && selectedWallet?.name.toLowerCase().includes('kukai')) {
+      if (!isValid) {
         setQRCode('error')
         setInstallState(selectedWallet)
         setIsLoading(false)
@@ -152,10 +149,7 @@ const useConnect = (
 
     let link = ''
 
-    if (
-      wallet.supportedInteractionStandards?.includes('wallet_connect') &&
-      !wallet.name.toLowerCase().includes('kukai')
-    ) {
+    if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
       const isValid = !!parseUri(await wcPayload).symKey
       setIsWCWorking(isValid)
 

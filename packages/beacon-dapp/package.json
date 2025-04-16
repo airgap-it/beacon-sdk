@@ -40,6 +40,6 @@
     "@airgap/beacon-transport-postmessage": "4.5.1",
     "@airgap/beacon-transport-walletconnect": "4.5.1",
     "@airgap/beacon-ui": "4.5.1",
-    "broadcast-channel": "^7.0.0"
+    "broadcast-channel": "^7.1.0"
   }
 }
