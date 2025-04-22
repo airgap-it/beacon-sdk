@@ -1,19 +1,17 @@
 import { assertNever } from '../utils/assert-never'
-import {
-  AbortedBeaconError,
-  UnknownBeaconError,
-  NetworkNotSupportedBeaconError,
-  NoAddressBeaconError,
-  NoPrivateKeyBeaconError,
-  NotGrantedBeaconError,
-  ParametersInvalidBeaconError,
-  TooManyOperationsBeaconError,
-  TransactionInvalidBeaconError,
-  SignatureTypeNotSupportedBeaconError,
-  BroadcastBeaconError
-  // EncryptionTypeNotSupportedBeaconError
-} from '..'
 import { BeaconErrorType } from '@airgap/beacon-types'
+import { BroadcastBeaconError } from './BroadcastBeaconError'
+import { NetworkNotSupportedBeaconError } from './NetworkNotSupportedBeaconError'
+import { NoAddressBeaconError } from './NoAddressBeaconError'
+import { NoPrivateKeyBeaconError } from './NoPrivateKeyBeaconError'
+import { NotGrantedBeaconError } from './NotGrantedBeaconError'
+import { ParametersInvalidBeaconError } from './ParametersInvalidBeaconError'
+import { TooManyOperationsBeaconError } from './TooManyOperationsBeaconError'
+import { TransactionInvalidBeaconError } from './TransactionInvalidBeaconError'
+import { SignatureTypeNotSupportedBeaconError } from './SignatureTypeNotSupportedBeaconError'
+import { AbortedBeaconError } from './AbortedBeaconError'
+import { UnknownBeaconError } from './UnknownBeaconError'
+
 
 /**
  * @category Error

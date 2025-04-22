@@ -1,6 +1,7 @@
-import { Origin } from '..'
 import { PermissionEntity } from './PermissionEntity'
 import { Notification } from './Notification'
+import { Origin } from './Origin'
+
 
 export type AccountIdentifier = string
 

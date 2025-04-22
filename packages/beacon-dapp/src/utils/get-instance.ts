@@ -1,4 +1,5 @@
-import { DAppClient, DAppClientOptions } from '..'
+import { DAppClient } from '../dapp-client/DAppClient'
+import { DAppClientOptions } from '../dapp-client/DAppClientOptions'
 
 let _instance: DAppClient | undefined
 

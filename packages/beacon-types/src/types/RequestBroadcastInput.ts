@@ -1,4 +1,4 @@
-import { Network } from '..'
+import { Network } from "./beacon/Network"
 
 /**
  * @category DApp
