@@ -137,13 +137,11 @@ describe('useWallets hook', () => {
 
     // Wait for the async effect (fetching available extensions) to complete.
     await waitFor(() => {
-      const walletMap = result.current
-      return walletMap instanceof Map && walletMap.size === 5
+      expect(result.current.size).toBe(5)
     })
 
     const walletMap = result.current
     expect(walletMap).toBeInstanceOf(Map)
-    expect(walletMap.size).toBe(5)
     expect(walletMap.has('desktopWallet')).toBe(true)
     expect(walletMap.has('extWallet')).toBe(true)
     expect(walletMap.has('iosWallet')).toBe(true)

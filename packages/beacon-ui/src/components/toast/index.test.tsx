@@ -4,8 +4,9 @@ import Toast from './index'
 
 // --- Mock external dependencies ---
 // Mock useDrag to return a function that, when called, returns an empty object.
-jest.mock('@use-gesture/react', () => ({
-  useDrag: () => {
+jest.mock('./hooks/useDrag', () => ({
+  __esModule: true,
+  default: () => {
     return () => ({})
   }
 }))
