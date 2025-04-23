@@ -31,9 +31,9 @@ import {
 } from '@airgap/beacon-types'
 import {
   UnknownBeaconError,
-  BeaconError,
   Transport,
-  Logger
+  Logger,
+  getError
   // EncryptPayloadResponseOutput,
   // EncryptionOperation
 } from '@airgap/beacon-core'
@@ -379,7 +379,7 @@ const showErrorToast = async (
   buttons?: AlertButton[]
 ): Promise<void> => {
   const error = response.errorResponse.errorType
-    ? BeaconError.getError(response.errorResponse.errorType, response.errorResponse.errorData)
+    ? getError(response.errorResponse.errorType, response.errorResponse.errorData)
     : new UnknownBeaconError()
 
   const actions: ToastAction[] = [

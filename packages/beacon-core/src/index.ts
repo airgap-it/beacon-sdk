@@ -44,6 +44,7 @@ import { WCStorage } from './storage/WCStorage'
 import { IndexedDBStorage } from './storage/IndexedDBStorage'
 import { StorageValidator } from './storage/StorageValidator'
 import { MultiTabChannel } from './utils/multi-tab-channel'
+import getError from './errors/get-error'
 // import { EncryptionType } from './types/EncryptionType'
 // import { EncryptionOperation } from './types/EncryptionOperation'
 
@@ -52,6 +53,7 @@ export { BeaconClient, BeaconClientOptions, Client, ClientOptions, ClientEvents 
 
 // Errors
 export {
+  getError,
   BeaconError,
   AbortedBeaconError,
   BroadcastBeaconError,

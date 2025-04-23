@@ -80,7 +80,6 @@ import {
 import {
   Client,
   Transport,
-  BeaconError,
   AppMetadataManager,
   Serializer,
   LocalStorage,
@@ -92,7 +91,8 @@ import {
   SDK_VERSION,
   IndexedDBStorage,
   MultiTabChannel,
-  BACKEND_URL
+  BACKEND_URL,
+  getError
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -2137,7 +2137,7 @@ export class DAppClient extends Client {
         )
         .catch((emitError) => logger.error('handleRequestError', emitError))
 
-      throw BeaconError.getError(beaconError.errorType, beaconError.errorData)
+      throw getError(beaconError.errorType, beaconError.errorData)
     }
 
     throw beaconError

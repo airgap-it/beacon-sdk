@@ -1,4 +1,5 @@
-import { Network, PermissionScope } from '..'
+import { Network } from './beacon/Network'
+import { PermissionScope } from './beacon/PermissionScope'
 
 /**
  * @category DApp
