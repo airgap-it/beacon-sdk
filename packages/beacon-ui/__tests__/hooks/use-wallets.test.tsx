@@ -1,12 +1,12 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
-import useWallets from './useWallets'
+import useWallets from '../../src/ui/alert/hooks/useWallets'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { NetworkType } from '@airgap/beacon-types'
 
 // =====================================================================
 // Mock the wallet utilities with a simple transformation so that the final
 // wallet objects match the MergedWallet interface.
-jest.mock('../../../utils/wallets', () => ({
+jest.mock('../../src/utils/wallets', () => ({
   parseWallets: jest.fn((wallets) =>
     wallets.map((wallet: any) => ({
       id: wallet.id,
@@ -75,7 +75,7 @@ const dummyWebList = [
 ]
 
 // Mock the module that exports the wallet lists.
-jest.mock('../wallet-lists', () => ({
+jest.mock('../../src/ui/alert/wallet-lists', () => ({
   desktopList: dummyDesktopList,
   extensionList: dummyExtensionList,
   iOSList: dummyIOSList,
@@ -231,11 +231,11 @@ describe('useWallets hook', () => {
     renderHook(() => useWallets(undefined, featuredWallets))
     // Wait for the effect to run.
     await waitFor(() => {
-      const { arrangeTopWallets } = require('../../../utils/wallets')
+      const { arrangeTopWallets } = require('../../src/utils/wallets')
       return arrangeTopWallets.mock.calls.length > 0
     })
 
-    const { arrangeTopWallets } = require('../../../utils/wallets')
+    const { arrangeTopWallets } = require('../../src/utils/wallets')
     expect(arrangeTopWallets).toHaveBeenCalledWith(expect.any(Array), featuredWallets)
   })
 })

@@ -1,9 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import PairOther from './index'
-import { PairOtherProps } from '../../ui/common'
+import PairOther from '../../src/components/pair-other'
+import { PairOtherProps } from '../../src/ui/common'
 
 // Mock the QR component so that we can inspect its rendered output.
-jest.mock('../qr', () => {
+jest.mock('../../src/components/qr', () => {
   // The mock receives props and renders a dummy element with the passed code and isWalletConnect info.
   return (props: any) => (
     <div data-testid="qr-component">

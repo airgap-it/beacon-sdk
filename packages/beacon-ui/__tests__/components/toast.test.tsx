@@ -1,10 +1,10 @@
 // src/components/toast/index.test.tsx
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
-import Toast from './index'
+import Toast from '../../src/components/toast/index'
 
 // --- Mock external dependencies ---
 // Mock useDrag to return a function that, when called, returns an empty object.
-jest.mock('./hooks/useDrag', () => ({
+jest.mock('../../src/components/toast/hooks/useDrag', () => ({
   __esModule: true,
   default: () => {
     return () => ({})
@@ -12,12 +12,12 @@ jest.mock('./hooks/useDrag', () => ({
 }))
 
 // Mock isMobileOS so that by default it returns false (non-mobile).
-jest.mock('../../utils/platform', () => ({
+jest.mock('../../src/utils/platform', () => ({
   isMobileOS: jest.fn(() => false)
 }))
 
 // Import the isMobileOS so we can override it in tests.
-import { isMobileOS } from '../../utils/platform'
+import { isMobileOS } from '../../src/utils/platform'
 
 describe('Toast Component', () => {
   beforeEach(() => {

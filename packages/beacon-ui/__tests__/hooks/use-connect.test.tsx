@@ -1,12 +1,12 @@
 import { renderHook, act, cleanup } from '@testing-library/react'
-import useConnect from './useConnect'
+import useConnect from '../../src/ui/alert/hooks/useConnect'
 import { StorageKey, ExtensionMessageTarget, NetworkType } from '@airgap/beacon-types'
 import { windowRef } from '@airgap/beacon-core'
-import getDefaultLogo from '../getDefautlLogo'
-import { OSLink } from '../../../utils/wallets'
-import { AlertState } from '../../../ui/common'
+import getDefaultLogo from '../../src/ui/alert/getDefautlLogo'
+import { OSLink } from '../../src/utils/wallets'
+import { AlertState } from '../../src/ui/common'
 
-jest.mock('../../../utils/get-tzip10-link', () => ({
+jest.mock('../../src/utils/get-tzip10-link', () => ({
   getTzip10Link: jest.fn().mockReturnValue('https://example.com/tzip10')
 }))
 
@@ -15,7 +15,7 @@ jest.mock('@walletconnect/utils', () => ({
   parseUri: (...args: any[]) => mockParseUri(...args)
 }))
 
-jest.mock('../../../utils/platform', () => ({
+jest.mock('../../src/utils/platform', () => ({
   isTwBrowser: jest.fn().mockReturnValue(false),
   isAndroid: jest.fn().mockReturnValue(false),
   isMobileOS: jest.fn().mockReturnValue(false),

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import Info from './index'
-import { InfoProps } from '../../ui/common'
+import Info from '../../src/components/info/index'
+import { InfoProps } from '../../src/ui/common'
 
 // A dummy icon component for testing
 const DummyIcon = () => <span data-testid="dummy-icon">Icon</span>

@@ -1,17 +1,17 @@
 // index.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
-import Alert from './index'
+import Alert from '../../src/components/alert'
 
 // --- Mocks ---
 
 // Force useIsMobile to return false (simulate a desktop environment)
-jest.mock('../../ui/alert/hooks/useIsMobile', () => ({
+jest.mock('../../src/ui/alert/hooks/useIsMobile', () => ({
   __esModule: true,
   default: () => false
 }))
 
 // Mock the icon components so we can easily query for them.
-jest.mock('../icons', () => ({
+jest.mock('../../src/components/icons', () => ({
   __esModule: true,
   CloseIcon: () => <span data-testid="close-icon">CloseIcon</span>,
   LeftIcon: () => <span data-testid="left-icon">LeftIcon</span>,
@@ -19,7 +19,7 @@ jest.mock('../icons', () => ({
 }))
 
 // Mock the Loader component.
-jest.mock('../loader', () => ({
+jest.mock('../../src/components/loader', () => ({
   __esModule: true,
   default: () => <div data-testid="loader">Loader</div>
 }))

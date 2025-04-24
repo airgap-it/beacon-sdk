@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import BugReportForm from './index'
+import BugReportForm from '../../src/components/bug-report-form'
 
 // --- Mocks for external dependencies ---
 jest.mock('@airgap/beacon-core', () => {
@@ -18,7 +18,7 @@ jest.mock('@airgap/beacon-core', () => {
   }
 })
 
-jest.mock('../../utils/platform', () => ({
+jest.mock('../../src/utils/platform', () => ({
   currentBrowser: jest.fn(() => 'TestBrowser'),
   currentOS: jest.fn(() => 'TestOS')
 }))

@@ -1,8 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import InfoAlert from './index'
-import { ConfigurableAlertProps } from '../../../common'
+import InfoAlert from '../../../src/ui/alert/components/info-alert'
+import { ConfigurableAlertProps } from '../../../src/ui/common'
 
-jest.mock('../../hooks/useIsMobile', () => ({
+jest.mock('../../../src/ui/alert/hooks/useIsMobile', () => ({
   __esModule: true,
   default: () => false
 }))

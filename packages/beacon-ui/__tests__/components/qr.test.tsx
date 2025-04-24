@@ -1,14 +1,14 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import QR from './index'
-import { getTzip10Link } from '../../utils/get-tzip10-link'
-import { getQrData } from '../../utils/qr'
+import QR from '../../src/components/qr/index'
+import { getTzip10Link } from '../../src/utils/get-tzip10-link'
+import { getQrData } from '../../src/utils/qr'
 
 // --- Mocks --- //
-jest.mock('../../utils/get-tzip10-link', () => ({
+jest.mock('../../src/utils/get-tzip10-link', () => ({
   getTzip10Link: jest.fn()
 }))
 
-jest.mock('../../utils/qr', () => ({
+jest.mock('../../src/utils/qr', () => ({
   getQrData: jest.fn()
 }))
 

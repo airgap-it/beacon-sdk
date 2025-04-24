@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import Wallet from './index'
+import Wallet from '../../src/components/wallet/index'
 import { WalletProps } from 'src/ui/common'
 
 describe('Wallet Component', () => {

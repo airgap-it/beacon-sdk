@@ -1,28 +1,28 @@
 import { act, render, screen, fireEvent, RenderResult } from '@testing-library/react'
 import { NetworkType, StorageKey } from '@airgap/beacon-types'
-import PairingAlert from './index'
-import { ConfigurableAlertProps } from '../../../common'
+import PairingAlert from '../../../src/ui/alert/components/pairing-alert'
+import { ConfigurableAlertProps } from '../../../src/ui/common'
 
 // --- Mocks for hooks and platform utilities ---
-import useIsMobile from '../../hooks/useIsMobile'
-import useWallets from '../../hooks/useWallets'
-import useConnect from '../../hooks/useConnect'
+import useIsMobile from '../../../src/ui/alert/hooks/useIsMobile'
+import useWallets from '../../../src/ui/alert/hooks/useWallets'
+import useConnect from '../../../src/ui/alert/hooks/useConnect'
 
-jest.mock('../../hooks/useIsMobile', () => ({
+jest.mock('../../../src/ui/alert/hooks/useIsMobile', () => ({
   __esModule: true,
   default: jest.fn()
 }))
-jest.mock('../../hooks/useWallets', () => ({
+jest.mock('../../../src/ui/alert/hooks/useWallets', () => ({
   __esModule: true,
   default: jest.fn()
 }))
-jest.mock('../../hooks/useConnect', () => ({
+jest.mock('../../../src/ui/alert/hooks/useConnect', () => ({
   __esModule: true,
   default: jest.fn()
 }))
 
 // Updated Alert mock: explicitly remove closeOnBackdropClick so it isn’t passed to the DOM
-jest.mock('../../../../components/alert', () => (props: any) => {
+jest.mock('../../../src/components/alert', () => (props: any) => {
   const {
     pairingPayload,
     featuredWallets,
@@ -46,12 +46,12 @@ jest.mock('../../../../components/alert', () => (props: any) => {
 })
 
 // Other mocks
-jest.mock('../../../../components/bug-report-form', () => (props: any) => (
+jest.mock('../../../src/components/bug-report-form', () => (props: any) => (
   <div data-testid="bug-report-form" onClick={props.onSubmit}>
     BugReportForm
   </div>
 ))
-jest.mock('../../../../components/info', () => (props: any) => (
+jest.mock('../../../src/components/info', () => (props: any) => (
   <div data-testid="info">
     <div>{props.title}</div>
     <div>{props.description}</div>
@@ -68,10 +68,10 @@ jest.mock('../../../../components/info', () => (props: any) => (
     )}
   </div>
 ))
-jest.mock('../../../../components/pair-other', () => () => (
+jest.mock('../../../src/components/pair-other', () => () => (
   <div data-testid="pair-other">PairOther</div>
 ))
-jest.mock('../../../../components/top-wallets', () => (props: any) => (
+jest.mock('../../../src/components/top-wallets', () => (props: any) => (
   <div data-testid="top-wallets">
     TopWallets
     {props.otherWallets && (
@@ -81,16 +81,17 @@ jest.mock('../../../../components/top-wallets', () => (props: any) => (
     )}
   </div>
 ))
-jest.mock('../../../../components/wallets', () => () => <div data-testid="wallets">Wallets</div>)
-jest.mock('../../../../components/qr', () => (props: any) => (
+jest.mock('../../../src/components/wallets', () => () => <div data-testid="wallets">Wallets</div>)
+jest.mock('../../../src/components/qr', () => (props: any) => (
   <div data-testid="qr">
     QR: {props.code} - isMobile: {props.isMobile ? 'true' : 'false'}
   </div>
 ))
 
 // Override platform utils.
-import * as platformUtils from '../../../../utils/platform'
-jest.mock('../../../../utils/platform', () => ({
+import * as platformUtils from '../../../src/utils/platform'
+
+jest.mock('../../../src/utils/platform', () => ({
   isIOS: jest.fn(() => false),
   isMobileOS: jest.fn(() => false)
 }))
@@ -426,8 +427,8 @@ describe('PairingAlert Component', () => {
       ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
       await renderPairingAlert(defaultProps)
       const infoElements = screen.getAllByTestId('info')
-      const errorInfo = infoElements.find(
-        (el) => el.textContent?.includes(`Connect with ${walletObj.name} Mobile`)
+      const errorInfo = infoElements.find((el) =>
+        el.textContent?.includes(`Connect with ${walletObj.name} Mobile`)
       )
       expect(errorInfo).toBeDefined()
     })

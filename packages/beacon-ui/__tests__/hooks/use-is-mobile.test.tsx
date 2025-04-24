@@ -1,10 +1,10 @@
 // useIsMobile.test.js
 import { renderHook, act } from '@testing-library/react'
-import useIsMobile from './useIsMobile'
-import * as platformUtils from '../../../utils/platform'
+import useIsMobile from '../../src/ui/alert/hooks/useIsMobile'
+import * as platformUtils from '../../src/utils/platform'
 
 // Mock the external isMobileOS function.
-jest.mock('../../../utils/platform', () => ({
+jest.mock('../../src/utils/platform', () => ({
   isMobileOS: jest.fn()
 }))
 
