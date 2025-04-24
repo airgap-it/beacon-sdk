@@ -28,7 +28,7 @@ jest.mock('@airgap/beacon-core', () => {
 
   class MessageBasedClient {
     public keyPair: any
-    constructor(name: string, keyPair: any) {
+    constructor(_name: string, keyPair: any) {
       this.keyPair = keyPair
     }
   }
