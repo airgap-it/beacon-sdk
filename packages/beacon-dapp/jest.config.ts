@@ -22,13 +22,7 @@ const config: Config = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  collectCoverageFrom: [
-    'src/**/*.tsx',
-    '!src/ui/alert/index.tsx',
-    '!src/ui/toast/index.tsx',
-    '!src/components/pairing.tsx',
-    '!src/components/icons/index.tsx'
-  ],
+  collectCoverageFrom: ['src/dapp-client/DAppClient.ts'],
 
   // The directory where Jest should output its coverage files
   coverageDirectory: 'coverage',
@@ -183,9 +177,7 @@ const config: Config = {
   },
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-  transformIgnorePatterns: [
-    '/node_modules/(?!(@stablelib)/)',
-  ],
+  transformIgnorePatterns: ['/node_modules/(?!(@stablelib)/)']
 
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
   // unmockedModulePathPatterns: undefined,
