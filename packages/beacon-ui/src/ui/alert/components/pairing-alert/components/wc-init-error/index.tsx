@@ -3,6 +3,28 @@ import Info from '../../../../../../components/info'
 import { AlertState, WCInitErrorProps } from '../../../../../common'
 
 const WCInitError: React.FC<WCInitErrorProps> = ({ title, handleUpdateState }) => {
+  const getErrorMessage = (message: string) => {
+    // now accepts strings or JSX fragments
+    const getJSXMessage = (content: React.ReactNode) => <span>{content}</span>
+
+    // non‐relayer errors stay the same
+    if (!message.toLowerCase().includes('failed to connect to relayer')) {
+      return getJSXMessage(message)
+    }
+
+    // for the relayer‐failed case, wrap "here" in a link
+    return getJSXMessage(
+      <>
+        It looks like your network provider is blocking requests to the WalletConnect relayer. As a
+        workaround try connecting through a VPN as shown{' '}
+        <a href="https://google.com" target="_blank" rel="noopener noreferrer">
+          here
+        </a>
+        .
+      </>
+    )
+  }
+
   const errorMessage = localStorage ? localStorage.getItem(StorageKey.WC_INIT_ERROR) : undefined
   const description: any = (
     <>
@@ -17,7 +39,7 @@ const WCInitError: React.FC<WCInitErrorProps> = ({ title, handleUpdateState }) =
           here
         </span>
       </h4>
-      {errorMessage && <span>{errorMessage}</span>}
+      {errorMessage && getErrorMessage(errorMessage)}
     </>
   )
   return <Info title={title} description={description} border />
