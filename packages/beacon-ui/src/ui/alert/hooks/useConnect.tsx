@@ -67,7 +67,7 @@ const useConnect = (
       const isValid = !!parseUri(await wcPayload).symKey
       setIsWCWorking(isValid)
 
-      if (!isValid) {
+      if (!isValid && selectedWallet?.name.toLowerCase().includes('kukai')) {
         setQRCode('error')
         setInstallState(selectedWallet)
         setIsLoading(false)
@@ -91,8 +91,8 @@ const useConnect = (
           isIOS(window) && selectedWallet.deepLink
             ? selectedWallet.deepLink
             : isAndroid(window)
-            ? selectedWallet.links[OSLink.IOS]
-            : 'tezos://',
+              ? selectedWallet.links[OSLink.IOS]
+              : 'tezos://',
           await p2pPayload
         )
 
@@ -149,7 +149,10 @@ const useConnect = (
 
     let link = ''
 
-    if (wallet.supportedInteractionStandards?.includes('wallet_connect')) {
+    if (
+      wallet.supportedInteractionStandards?.includes('wallet_connect') &&
+      !wallet.name.toLowerCase().includes('kukai')
+    ) {
       const isValid = !!parseUri(await wcPayload).symKey
       setIsWCWorking(isValid)
 
