@@ -1,4 +1,4 @@
-import { Logger } from '@airgap/beacon-core'
+import { Logger } from './Logger'
 import { createLeaderElection, BroadcastChannel, LeaderElector } from 'broadcast-channel'
 
 type Message = {

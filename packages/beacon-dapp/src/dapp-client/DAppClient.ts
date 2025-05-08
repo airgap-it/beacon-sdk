@@ -1,5 +1,5 @@
 import axios from 'axios'
-import * as bs58check from 'bs58check'
+import bs58check from 'bs58check'
 import { BeaconEvent, BeaconEventHandlerFunction, BeaconEventType } from '../events'
 import {
   ConnectionContext,
@@ -80,7 +80,6 @@ import {
 import {
   Client,
   Transport,
-  BeaconError,
   AppMetadataManager,
   Serializer,
   LocalStorage,
@@ -92,7 +91,8 @@ import {
   SDK_VERSION,
   IndexedDBStorage,
   MultiTabChannel,
-  BACKEND_URL
+  BACKEND_URL,
+  getError
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -381,8 +381,8 @@ export class DAppClient extends Client {
           connectionInfo.origin === Origin.P2P
             ? this.p2pTransport
             : connectionInfo.origin === Origin.WALLETCONNECT
-            ? this.walletConnectTransport
-            : this.postMessageTransport ?? (await this.transport)
+              ? this.walletConnectTransport
+              : (this.postMessageTransport ?? (await this.transport))
 
         if (relevantTransport) {
           const peers: ExtendedPeerInfo[] = await relevantTransport.getPeers()
@@ -1113,7 +1113,7 @@ export class DAppClient extends Client {
   ): Promise<RequestInit> {
     const wallet = await this.storage.get(StorageKey.LAST_SELECTED_WALLET)
     const transport = this._activeAccount.isResolved()
-      ? (await this.getActiveAccount())?.origin.type ?? 'UNKNOWN'
+      ? ((await this.getActiveAccount())?.origin.type ?? 'UNKNOWN')
       : 'UNKNOWN'
 
     return {
@@ -1363,6 +1363,14 @@ export class DAppClient extends Client {
       throw new Error(`Blockchain "${input.blockchainIdentifier}" not supported by dAppClient`)
     }
 
+    // TODO: add app switching support
+    // needs to be discussed with Acurast lite team
+    if (input.displayQRCode && isMobileOS(window)) {
+      throw new Error(
+        '[BEACON] permissionRequest with "displayQRCode" set to true does not work on mobile.'
+      )
+    }
+
     const request: PermissionRequestV3<string> = {
       ...input,
       type: BeaconMessageType.PermissionRequest,
@@ -1493,9 +1501,12 @@ export class DAppClient extends Client {
       walletInfo: await this.getWalletInfo()
     })
 
-    await this.notifySuccess(request as any, {
-      walletInfo: await this.getWalletInfo()
-    } as any)
+    await this.notifySuccess(
+      request as any,
+      {
+        walletInfo: await this.getWalletInfo()
+      } as any
+    )
 
     return response.message
   }
@@ -1510,11 +1521,9 @@ export class DAppClient extends Client {
   public async requestPermissions(
     input?: RequestPermissionInput
   ): Promise<PermissionResponseOutput> {
-    // Add error message for deprecation of network
-    // TODO: Remove when we remove deprecated preferredNetwork
-    if (input?.network !== undefined && this.network.type !== input?.network?.type) {
-      console.error(
-        '[BEACON] The network specified in the DAppClient constructor does not match the network set in the permission request. Please set the network in the constructor. Setting it during the Permission Request is deprecated.'
+    if ((input as any)?.network) {
+      throw new Error(
+        '[BEACON] the "network" property is no longer accepted in input. Please provide it when instantiating DAppClient.'
       )
     }
 
@@ -2137,7 +2146,7 @@ export class DAppClient extends Client {
         )
         .catch((emitError) => logger.error('handleRequestError', emitError))
 
-      throw BeaconError.getError(beaconError.errorType, beaconError.errorData)
+      throw getError(beaconError.errorType, beaconError.errorData)
     }
 
     throw beaconError

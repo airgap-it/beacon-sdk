@@ -55,10 +55,7 @@ const useConnect = (
       })
     )
 
-    if (
-      (selectedWallet?.types.includes('web') && selectedWallet?.types.length === 1) ||
-      (isAndroid(window) && selectedWallet?.name.toLowerCase().includes('kukai'))
-    ) {
+    if (selectedWallet?.types.includes('web') && selectedWallet?.types.length === 1) {
       handleNewTab(config, selectedWallet)
       return
     }
@@ -94,8 +91,8 @@ const useConnect = (
           isIOS(window) && selectedWallet.deepLink
             ? selectedWallet.deepLink
             : isAndroid(window)
-            ? selectedWallet.links[OSLink.IOS]
-            : 'tezos://',
+              ? selectedWallet.links[OSLink.IOS]
+              : 'tezos://',
           await p2pPayload
         )
 

@@ -1,4 +1,4 @@
-import { AppMetadata } from '..'
+import { AppMetadata } from './beacon/AppMetadata'
 import { PermissionEntity } from './PermissionEntity'
 
 export interface PermissionInfo extends PermissionEntity {

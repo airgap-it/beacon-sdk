@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useDrag } from '@use-gesture/react'
+import useDrag from './hooks/useDrag'
 import { CloseIcon } from '../icons'
 import Loader from '../loader'
 import { isMobileOS } from '../../utils/platform'
