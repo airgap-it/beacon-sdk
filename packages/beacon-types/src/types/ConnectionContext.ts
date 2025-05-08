@@ -1,4 +1,5 @@
-import { Origin } from '..'
+import { Origin } from "./Origin";
+
 
 /**
  * @internalapi

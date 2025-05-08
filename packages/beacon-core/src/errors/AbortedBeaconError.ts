@@ -1,5 +1,5 @@
-import { BeaconError } from '..'
 import { BeaconErrorType } from '@airgap/beacon-types'
+import { BeaconError } from './BeaconError'
 
 /**
  * @category Error

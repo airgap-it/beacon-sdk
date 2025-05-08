@@ -1,4 +1,4 @@
-import * as bs58check from 'bs58check'
+import bs58check from 'bs58check'
 import { box, generateKeyPair, openBox, openSecretBox, secretBox } from '@stablelib/nacl'
 import { randomBytes } from '@stablelib/random'
 import { encode } from '@stablelib/utf8'
@@ -189,7 +189,7 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
       if (publicKey.startsWith(key) && publicKey.length === value.length) {
         prefix = value.prefix
         const decoded = bs58check.decode(publicKey)
-        plainPublicKey = decoded.slice(key.length, decoded.length).toString('hex')
+        plainPublicKey = Buffer.from(decoded.slice(key.length, decoded.length)).toString('hex')
         break
       }
     }

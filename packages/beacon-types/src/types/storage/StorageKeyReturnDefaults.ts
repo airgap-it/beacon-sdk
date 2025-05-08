@@ -1,4 +1,5 @@
-import { StorageKey, StorageKeyReturnType } from '../..'
+import { StorageKey } from './StorageKey'
+import { StorageKeyReturnType } from './StorageKeyReturnType'
 
 /**
  * @internalapi

@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-types",
-  "version": "4.5.1",
+  "version": "4.5.2",
   "description": "This package contains types that are used throughout the Beacon SDK.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -27,13 +27,12 @@
     "url": "git+https://github.com/airgap-it/beacon-sdk.git"
   },
   "scripts": {
-    "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
-    "test": "TS_NODE_PROJECT='tsconfig-cjs.json' nyc mocha --require ts-node/register --require source-map-support/register --full-trace --timeout 40000 ./__tests__/**/**.spec.ts"
+    "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json"
   },
   "bugs": {
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@types/chrome": "0.0.246"
+    "@types/chrome": "0.0.315"
   }
 }

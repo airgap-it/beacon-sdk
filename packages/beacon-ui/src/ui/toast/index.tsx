@@ -27,7 +27,7 @@ const createToast = (config: ToastConfig) => {
   // Attach an open Shadow DOM to the host element
   const shadowRoot = el.attachShadow({ mode: 'open' })
 
-  const styleEl = document.createElement('style')
+  const styleEl: any = document.createElement('style')
   styleEl.textContent = cssText
   shadowRoot.appendChild(styleEl)
 

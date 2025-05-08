@@ -28,7 +28,11 @@ export default [
         sourceMap: true
       }),
       typescript({
-        tsconfig: 'tsconfig.json'
+        tsconfig: 'tsconfig.json',
+        tsconfigOverride: {
+          include: ['src/**/*'],
+          exclude: ['**/__tests__/**', '**/*.test.ts', '**/*.spec.ts']
+        }
       }),
       babel({
         extensions,
@@ -68,7 +72,11 @@ export default [
         sourceMap: true
       }),
       typescript({
-        tsconfig: 'tsconfig.json'
+        tsconfig: 'tsconfig.json',
+        tsconfigOverride: {
+          include: ['src/**/*'],
+          exclude: ['**/__tests__/**', '**/*.test.ts', '**/*.spec.ts']
+        }
       }),
       babel({
         extensions,

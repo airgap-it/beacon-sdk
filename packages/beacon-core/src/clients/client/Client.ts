@@ -13,12 +13,13 @@ import {
   BeaconMessageWrapper,
   NodeDistributions
 } from '@airgap/beacon-types'
-import { Serializer, Transport } from '../..'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { getSenderId } from '../../utils/get-sender-id'
 import { Logger } from '../../utils/Logger'
 import { ClientOptions } from './ClientOptions'
+import { Transport } from '../../transports/Transport'
+import { Serializer } from '../../Serializer'
 
 const logger = new Logger('Client')
 

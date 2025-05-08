@@ -1,4 +1,4 @@
-import * as bs58check from 'bs58check'
+import bs58check from 'bs58check'
 
 /**
  * @internalapi
@@ -27,6 +27,8 @@ export class Serializer {
       throw new Error('Encoded payload needs to be a string')
     }
 
-    return JSON.parse(bs58check.decode(encoded).toString())
+    const decodedBytes = bs58check.decode(encoded)
+    const jsonString = Buffer.from(decodedBytes).toString('utf8')
+    return JSON.parse(jsonString)
   }
 }

@@ -1,4 +1,4 @@
-import { SigningType } from '..'
+import { SigningType } from './beacon/SigningType'
 
 /**
  * @category DApp
