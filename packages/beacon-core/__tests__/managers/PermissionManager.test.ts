@@ -99,6 +99,52 @@ describe('PermissionManager', () => {
       expect(predicate({ ...perm, senderId: 'other' })).toBe(false)
       expect(predicate({ ...perm, accountIdentifier: 'other' })).toBe(false)
     })
+
+    it('allows adding multiple permissions for same account with different senders', async () => {
+      const perm1: PermissionInfo = { accountIdentifier: 'user123', senderId: 'dAppA', scopes: [] } as any
+      const perm2: PermissionInfo = { accountIdentifier: 'user123', senderId: 'dAppB', scopes: [] } as any
+
+      await manager.addPermission(perm1)
+      await manager.addPermission(perm2)
+
+      expect(mockAddOne).toHaveBeenCalledTimes(2)
+      const [passedPerm1, predicate1] = mockAddOne.mock.calls[0]
+      const [passedPerm2, predicate2] = mockAddOne.mock.calls[1]
+
+      expect(passedPerm1).toBe(perm1)
+      expect(passedPerm2).toBe(perm2)
+      expect(predicate1(perm1)).toBe(true)
+      expect(predicate2(perm2)).toBe(true)
+    })
+  })
+
+  describe('removePermission', () => {
+    it('removes only the permission matching both accountIdentifier and senderId', async () => {
+      const perm1: PermissionInfo = { accountIdentifier: 'user123', senderId: 'dAppA', scopes: ['operation_request'] } as any
+      const perm2: PermissionInfo = { accountIdentifier: 'user123', senderId: 'dAppB', scopes: ['sign'] } as any
+      
+      // Setup initial state with two permissions
+      mockGetAll.mockResolvedValueOnce([perm1, perm2])
+      
+      await manager.removePermission('user123', 'dAppA')
+      
+      expect(mockRemove).toHaveBeenCalledTimes(1)
+      const [predicate] = mockRemove.mock.calls[0]
+      
+      // Verify predicate only matches the specific permission to remove
+      expect(predicate(perm1)).toBe(true)
+      expect(predicate(perm2)).toBe(false)
+    })
+
+    it('handles non-existent permission gracefully', async () => {
+      mockGetAll.mockResolvedValueOnce([])
+      
+      await manager.removePermission('nonexistent', 'dAppA')
+      
+      expect(mockRemove).toHaveBeenCalledTimes(1)
+      const [predicate] = mockRemove.mock.calls[0]
+      expect(predicate({ accountIdentifier: 'nonexistent', senderId: 'dAppA', scopes: [] } as any)).toBe(true)
+    })
   })
 
   describe('removeAllPermissions', () => {
