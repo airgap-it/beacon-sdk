@@ -34,7 +34,7 @@ jest.mock('../../../src/components/alert', () => (props: any) => {
     onBackClick,
     closeOnBackdropClick, // remove it
     openBugReport,
-    displayQRCode,
+    substratePairing,
     ...rest
   } = props
   return (
