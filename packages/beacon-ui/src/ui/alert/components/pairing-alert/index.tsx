@@ -84,6 +84,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   )
 
   const MobileInfoCard = () => {
+    handleIsLoading(false)
     return (
       <MobilePairing
         wallet={wallet}
