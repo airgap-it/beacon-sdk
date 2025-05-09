@@ -307,7 +307,8 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               gap: '0.9em'
             }}
           >
-            <MobileInfoCard />
+            {!isMobileOS(window) && <QR isMobile={true} />}
+            {isMobileOS(window) && <MobileInfoCard />}
           </div>
         )}
         {![
