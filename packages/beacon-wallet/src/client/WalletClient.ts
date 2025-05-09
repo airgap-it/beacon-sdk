@@ -318,8 +318,8 @@ export class WalletClient extends Client {
     return this.permissionManager.getPermission(accountIdentifier)
   }
 
-  public async removePermission(accountIdentifier: string): Promise<void> {
-    return this.permissionManager.removePermission(accountIdentifier)
+  public async removePermission(accountIdentifier: string, senderId: string): Promise<void> {
+    return this.permissionManager.removePermission(accountIdentifier, senderId)
   }
 
   public async removeAllPermissions(): Promise<void> {
