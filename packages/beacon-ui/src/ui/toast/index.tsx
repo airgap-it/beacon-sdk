@@ -6,6 +6,7 @@ import { ToastConfig } from '../common'
 
 // Import the bundled CSS as a raw string
 import cssText from './aggregated.css'
+import { getColorMode } from '../../utils/colorMode'
 
 let initDone: boolean = false
 const config$ = new Subject<ToastConfig | undefined>()
@@ -112,16 +113,18 @@ const ToastRoot = (props: ToastConfig) => {
 
   return (
     <>
-      {mount && config && (
-        <Toast
-          label={config.body}
-          open={isOpen}
-          onClickClose={closeToast}
-          actions={config.actions}
-          walletInfo={config.walletInfo}
-          openWalletAction={config.openWalletAction}
-        />
-      )}
+      <div className={`theme__${getColorMode()}`}>
+        {mount && config && (
+          <Toast
+            label={config.body}
+            open={isOpen}
+            onClickClose={closeToast}
+            actions={config.actions}
+            walletInfo={config.walletInfo}
+            openWalletAction={config.openWalletAction}
+          />
+        )}
+      </div>
     </>
   )
 }

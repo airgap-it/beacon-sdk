@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beacon UI Components</title>
+    <link
+      id="theme-css"
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css"
+    />
+
+    <script>
+      // Enable debug mode for beacon
+      window.beaconSdkDebugEnabled = true
+    </script>
+
+    <script src="./walletbeacon.min.js"></script>
+
+    <style>
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .component-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+
+      .component-title {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+
+      .component-controls {
+        margin-bottom: 15px;
+      }
+
+      pre {
+        padding: 10px;
+        border-radius: 4px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 150px;
+        overflow: auto;
+      }
+
+      .dark-mode-toggle {
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .dark-mode-toggle:hover {
+        background-color: #0069d9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Beacon UI Components</h1>
+      <p>This page demonstrates the actual UI components from the Beacon SDK.</p>
+
+      <button id="darkModeToggle" class="dark-mode-toggle">Switch to Dark Mode</button>
+
+      <div class="component-section">
+        <h2 class="component-title">Alert Components</h2>
+        <div class="component-controls">
+          <button id="showPairingAlert">Show Pairing Alert</button>
+          <button id="showBugReportAlert">Show Bug Report Form</button>
+          <button id="showQRCode">Show QR Code</button>
+        </div>
+        <pre id="alertCode"></pre>
+      </div>
+
+      <div class="component-section">
+        <h2 class="component-title">Toast Components</h2>
+        <div class="component-controls">
+          <button id="showBasicToast">Show Basic Toast</button>
+          <button id="showToastWithActions">Show Toast with Actions</button>
+          <button id="showWalletToast">Show Wallet Toast</button>
+        </div>
+        <pre id="toastCode"></pre>
+      </div>
+    </div>
+
+    <script>
+      // Create a simple client to use for the examples
+      const client = new beacon.DAppClient({
+        name: 'UI Components Example'
+      })
+
+      // Helper function to display code in UI
+      function displayCode(elementId, code) {
+        document.getElementById(elementId).textContent = JSON.stringify(code, null, 2)
+      }
+
+      // Destructure the UI components from beacon
+      const { openAlert, closeAlert, openBugReport, openToast, closeToast } = beacon
+
+      // Dark mode toggle functionality
+      const darkModeToggle = document.getElementById('darkModeToggle')
+      const themeCssLink = document.getElementById('theme-css')
+      let isDarkMode = false
+
+      darkModeToggle.addEventListener('click', () => {
+        isDarkMode = !isDarkMode
+
+        // Change the CSS file based on the mode
+        themeCssLink.href = isDarkMode
+          ? 'https://cdn.jsdelivr.net/npm/water.css@2/out/dark.css'
+          : 'https://cdn.jsdelivr.net/npm/water.css@2/out/light.css'
+
+        // Set the color mode in the Beacon SDK
+        if (beacon.setColorMode) {
+          beacon.setColorMode(isDarkMode ? beacon.ColorMode.DARK : beacon.ColorMode.LIGHT)
+        }
+
+        // Update button text
+        darkModeToggle.textContent = isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'
+      })
+
+      // Alert Component Examples
+      document.getElementById('showPairingAlert').addEventListener('click', async () => {
+        // Create dummy pairing payload since we're just demoing
+        const dummyPromise = Promise.resolve('dummy-sync-code')
+
+        const config = {
+          title: 'Connect Your Wallet',
+          pairingPayload: {
+            p2pSyncCode: dummyPromise,
+            postmessageSyncCode: dummyPromise,
+            walletConnectSyncCode: dummyPromise,
+            networkType: beacon.NetworkType.MAINNET
+          },
+          featuredWallets: ['temple-wallet', 'kukai-wallet', 'airgap-wallet'],
+          analytics: client.analytics
+        }
+
+        openAlert(config)
+        displayCode('alertCode', {
+          title: 'Connect Your Wallet',
+          pairingPayload: '/* Pairing payload object */',
+          featuredWallets: ['temple-wallet', 'kukai-wallet', 'airgap-wallet']
+        })
+      })
+
+      document.getElementById('showBugReportAlert').addEventListener('click', () => {
+        openBugReport()
+        displayCode('alertCode', '/* Bug report form opened */')
+      })
+
+      // QR Code Component Example
+      document.getElementById('showQRCode').addEventListener('click', () => {
+        // We can use a QR code by providing a pairingPayload
+        const dummyPromise = Promise.resolve('dummy-sync-code')
+
+        const config = {
+          title: 'Scan QR Code',
+          pairingPayload: {
+            p2pSyncCode: dummyPromise,
+            postmessageSyncCode: dummyPromise,
+            walletConnectSyncCode: dummyPromise,
+            networkType: beacon.NetworkType.MAINNET
+          },
+          displayQRCode: true, // This ensures the QR code is displayed
+          analytics: client.analytics
+        }
+
+        openAlert(config)
+        displayCode('alertCode', {
+          title: 'Scan QR Code',
+          pairingPayload: '/* Pairing payload object */',
+          displayQRCode: true
+        })
+      })
+
+      // Toast Component Examples
+      document.getElementById('showBasicToast').addEventListener('click', () => {
+        const config = {
+          body: 'This is a basic toast notification',
+          state: 'finished',
+          timer: 5000
+        }
+
+        openToast(config)
+        displayCode('toastCode', config)
+      })
+
+      document.getElementById('showToastWithActions').addEventListener('click', () => {
+        const config = {
+          body: 'Toast with actions',
+          state: 'finished',
+          timer: 0,
+          actions: [
+            {
+              text: 'Transaction Hash',
+              actionText: 'Copy to clipboard',
+              isBold: true,
+              actionCallback: async () => {
+                console.log('Copy action clicked')
+                closeToast()
+              }
+            },
+            {
+              text: 'Network',
+              actionText: 'Mainnet'
+            }
+          ]
+        }
+
+        openToast(config)
+        displayCode('toastCode', config)
+      })
+
+      document.getElementById('showWalletToast').addEventListener('click', () => {
+        const config = {
+          body: '{{wallet}} has granted permission',
+          state: 'finished',
+          timer: 5000,
+          walletInfo: {
+            name: 'Temple Wallet',
+            icon: '../assets/logos/ios-temple.png'
+          },
+          actions: [
+            {
+              text: 'Address',
+              actionText: 'tz1abc...xyz',
+              isBold: true
+            },
+            {
+              text: 'Network',
+              actionText: 'Mainnet'
+            }
+          ]
+        }
+
+        openToast(config)
+        displayCode('toastCode', config)
+      })
+    </script>
+  </body>
+</html>
