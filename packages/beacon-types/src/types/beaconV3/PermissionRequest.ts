@@ -60,7 +60,7 @@ export interface PermissionRequestV3<T extends string = string> extends Blockcha
     appMetadata: AppMetadata // Some additional information about the DApp
     scopes: string[]
   }
-  displayQRCode?: boolean
+  substratePairing?: boolean
 }
 export interface PermissionResponseV3<T extends string = string> extends BlockchainMessage<T> {
   blockchainIdentifier: T
