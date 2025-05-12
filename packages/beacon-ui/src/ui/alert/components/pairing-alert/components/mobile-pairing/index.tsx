@@ -1,6 +1,7 @@
 import Info from '../../../../../../components/info'
 import { AlertState } from '../../../../../common'
 import { isIOS } from '../../../../../../utils/platform'
+import suffixMap from './utils/suffix-map'
 
 const MobilePairing: React.FC<any> = ({
   wallet,
@@ -16,7 +17,7 @@ const MobilePairing: React.FC<any> = ({
   return (
     <Info
       border
-      title={`Connect with ${wallet?.name} Mobile`}
+      title={`Connect with ${wallet?.name} ${suffixMap.get(wallet?.id) ?? ''}`}
       description={''}
       buttons={[
         {
