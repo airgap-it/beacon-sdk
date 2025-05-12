@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 import WCInitError from './components/wc-init-error'
 import QRCode from './components/qr-code'
 import MobilePairing from './components/mobile-pairing'
+import useSubstrateWallets from '../../hooks/useSubstrateWallets'
 
 const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const wcPayload = props.pairingPayload!.walletConnectSyncCode
@@ -20,6 +21,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const postPayload = props.pairingPayload!.postmessageSyncCode
   const isMobile = useIsMobile()
   const wallets = useWallets(props.pairingPayload?.networkType, props.featuredWallets)
+  const substrateWallet = useSubstrateWallets()
   const [
     wallet,
     isLoading,
@@ -85,9 +87,12 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
 
   const MobileInfoCard = () => {
     handleIsLoading(false)
+
+    const w = wallet ?? substrateWallet
+
     return (
       <MobilePairing
-        wallet={wallet}
+        wallet={w}
         handleUpdateState={handleUpdateState}
         handleDeepLinking={handleDeepLinking}
         wcPayload={wcPayload}
@@ -122,18 +127,20 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       }
       onClickShowMore={handleShowMoreContent}
       onBackClick={
-        [AlertState.INSTALL, AlertState.QR].includes(state) ||
-        (state === AlertState.WALLETS && isMobile)
-          ? () => handleUpdateState(AlertState.TOP_WALLETS)
-          : state === 'bug-report'
-            ? () => {
-                if (isPairingExpired) {
-                  props.onClose()
-                  return undefined
+        props.substratePairing
+          ? props.onClose
+          : [AlertState.INSTALL, AlertState.QR].includes(state) ||
+              (state === AlertState.WALLETS && isMobile)
+            ? () => handleUpdateState(AlertState.TOP_WALLETS)
+            : state === 'bug-report'
+              ? () => {
+                  if (isPairingExpired) {
+                    props.onClose()
+                    return undefined
+                  }
+                  return handleUpdateState(AlertState.TOP_WALLETS)
                 }
-                return handleUpdateState(AlertState.TOP_WALLETS)
-              }
-            : undefined
+              : undefined
       }
     >
       <div>

@@ -16,7 +16,7 @@ const MobilePairing: React.FC<any> = ({
   return (
     <Info
       border
-      title={wallet?.name ? `Connect with ${wallet?.name} Mobile` : `Connect with Acurast Lite`}
+      title={`Connect with ${wallet?.name} Mobile`}
       description={''}
       buttons={[
         {
