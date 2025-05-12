@@ -209,8 +209,13 @@ const useConnect = (
       return
     }
 
-    const link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(syncCode)}`
-    updateSelectedWalletWithURL(`${wallet.links[OSLink.IOS]}wc?uri=`)
+    let link = getTzip10Link(wallet.links[OSLink.IOS], syncCode)
+
+    if (wallet?.supportedInteractionStandards?.includes('wallet_connect')) {
+      link = `${wallet.links[OSLink.IOS]}wc?uri=${encodeURIComponent(syncCode)}`
+    }
+
+    updateSelectedWalletWithURL(link)
     logger.log('DO DEEPLINK WITH ' + link)
 
     if (isTwBrowser(window) && isAndroid(window)) {
