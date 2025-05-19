@@ -182,7 +182,6 @@ export class P2PCommunicationClient extends CommunicationClient {
       (async () => {
         const start = Date.now()
         try {
-          // you can also pass { timeout: RESPONSE_WAIT_TIME_MS } here to axios if you like
           const info = await this.getBeaconInfo(server)
           results.push({
             server,
