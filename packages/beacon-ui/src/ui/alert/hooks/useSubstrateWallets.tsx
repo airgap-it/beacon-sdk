@@ -1,17 +1,102 @@
-import { MergedWallet } from '../../../utils/wallets'
+import { useEffect, useMemo, useState } from 'react'
+import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
+import { arrangeTopWallets, mergeWallets, parseWallets } from '../../../utils/wallets'
+import { Extension, NetworkType } from '@airgap/beacon-types'
+import { desktopList, extensionList, iOSList, webList } from '../wallet-lists'
+import { windowRef } from '@airgap/beacon-core'
 
-const useSubstrateWallets = (): MergedWallet => {
-  return {
-    id: 'acurast_ios',
-    key: 'acurast_ios',
-    name: 'Acurast',
-    image:
-      'data:image/png;base64,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',
-    types: ['ios'],
-    descriptions: ['Mobile App'],
-    links: ['https://hub.acurast.com/', 'acurast://'],
-    deepLink: 'acurast://'
-  }
+const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
+  const [availableExtensions, setAvailableExtensions] = useState<Extension[]>([])
+
+  useEffect(() => {
+    PostMessageTransport.getAvailableExtensions().then(setAvailableExtensions)
+
+    const handler = async (event: any) => {
+      if (event.data === 'extensionsUpdated') {
+        const exts = await PostMessageTransport.getAvailableExtensions()
+        setAvailableExtensions(exts)
+      }
+    }
+
+    windowRef.addEventListener('message', handler)
+    return () => windowRef.removeEventListener('message', handler)
+  }, [])
+
+  const rawWallets = useMemo(() => {
+    const desktops = desktopList
+      .filter((w) => !availableExtensions.some((e) => e.name === w.name))
+      .map((w) => ({
+        id: w.key,
+        key: w.key,
+        name: w.shortName,
+        image: w.logo,
+        description: 'Desktop App',
+        supportedInteractionStandards: w.supportedInteractionStandards,
+        type: 'desktop' as const,
+        link: w.downloadLink,
+        deepLink: w.deepLink
+      }))
+
+    const extensions = extensionList.map((w) => ({
+      id: w.id,
+      key: w.key,
+      name: w.shortName,
+      image: w.logo,
+      description: 'Browser Extension',
+      supportedInteractionStandards: w.supportedInteractionStandards,
+      type: 'extension' as const,
+      link: w.link
+    }))
+
+    const ios = iOSList.map((w) => ({
+      id: w.key,
+      key: w.key,
+      name: w.shortName,
+      image: w.logo,
+      description: 'Mobile App',
+      supportedInteractionStandards: w.supportedInteractionStandards,
+      type: 'ios' as const,
+      link: w.universalLink,
+      deepLink: w.deepLink
+    }))
+
+    const web = webList.map((w) => {
+      const link = w.links[networkType ?? NetworkType.MAINNET] ?? w.links.mainnet
+      return {
+        id: w.key,
+        key: w.key,
+        name: w.shortName,
+        image: w.logo,
+        description: 'Web App',
+        supportedInteractionStandards: w.supportedInteractionStandards,
+        type: 'web' as const,
+        link
+      }
+    })
+
+    const extras = availableExtensions
+      .filter((e) => !extensionList.some((w) => w.id === e.id))
+      .map((e) => ({
+        id: e.id,
+        key: e.id,
+        name: e.shortName ?? e.name ?? '',
+        image: e.iconUrl ?? '',
+        description: 'Browser Extension',
+        type: 'extension' as const,
+        link: (e as any).link ?? ''
+      }))
+
+    return [...desktops, ...extensions, ...ios, ...web, ...extras]
+  }, [availableExtensions, networkType])
+
+  const wallets = useMemo(() => {
+    const parsed = parseWallets(rawWallets)
+    const merged = mergeWallets(parsed)
+    const arranged = arrangeTopWallets(merged, featuredWallets ?? ['acurast'])
+    return arranged
+  }, [rawWallets, featuredWallets])
+
+  return useMemo(() => new Map(wallets.map((w) => [w.id, w])), [wallets])
 }
 
-export default useSubstrateWallets
+export default useWallets
