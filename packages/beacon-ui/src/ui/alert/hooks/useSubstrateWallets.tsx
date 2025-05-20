@@ -1,41 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
-import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
+import { useMemo } from 'react'
 import { arrangeTopWallets, mergeWallets, parseWallets } from '../../../utils/wallets'
-import { Extension, NetworkType } from '@airgap/beacon-types'
-import { desktopList, extensionList, iOSList, webList } from '../wallet-lists'
-import { windowRef } from '@airgap/beacon-core'
+import { NetworkType } from '@airgap/beacon-types'
+import { desktopList, extensionList, iOSList, webList } from '../substrate-wallet-lists'
 
-const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
-  const [availableExtensions, setAvailableExtensions] = useState<Extension[]>([])
-
-  useEffect(() => {
-    PostMessageTransport.getAvailableExtensions().then(setAvailableExtensions)
-
-    const handler = async (event: any) => {
-      if (event.data === 'extensionsUpdated') {
-        const exts = await PostMessageTransport.getAvailableExtensions()
-        setAvailableExtensions(exts)
-      }
-    }
-
-    windowRef.addEventListener('message', handler)
-    return () => windowRef.removeEventListener('message', handler)
-  }, [])
-
+const useSubstrateWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
   const rawWallets = useMemo(() => {
-    const desktops = desktopList
-      .filter((w) => !availableExtensions.some((e) => e.name === w.name))
-      .map((w) => ({
-        id: w.key,
-        key: w.key,
-        name: w.shortName,
-        image: w.logo,
-        description: 'Desktop App',
-        supportedInteractionStandards: w.supportedInteractionStandards,
-        type: 'desktop' as const,
-        link: w.downloadLink,
-        deepLink: w.deepLink
-      }))
+    const desktops = desktopList.map((w) => ({
+      id: w.key,
+      key: w.key,
+      name: w.shortName,
+      image: w.logo,
+      description: 'Desktop App',
+      supportedInteractionStandards: w.supportedInteractionStandards,
+      type: 'desktop' as const,
+      link: w.downloadLink,
+      deepLink: w.deepLink
+    }))
 
     const extensions = extensionList.map((w) => ({
       id: w.id,
@@ -74,20 +54,8 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
       }
     })
 
-    const extras = availableExtensions
-      .filter((e) => !extensionList.some((w) => w.id === e.id))
-      .map((e) => ({
-        id: e.id,
-        key: e.id,
-        name: e.shortName ?? e.name ?? '',
-        image: e.iconUrl ?? '',
-        description: 'Browser Extension',
-        type: 'extension' as const,
-        link: (e as any).link ?? ''
-      }))
-
-    return [...desktops, ...extensions, ...ios, ...web, ...extras]
-  }, [availableExtensions, networkType])
+    return [...desktops, ...extensions, ...ios, ...web]
+  }, [networkType])
 
   const wallets = useMemo(() => {
     const parsed = parseWallets(rawWallets)
@@ -99,4 +67,4 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
   return useMemo(() => new Map(wallets.map((w) => [w.id, w])), [wallets])
 }
 
-export default useWallets
+export default useSubstrateWallets
