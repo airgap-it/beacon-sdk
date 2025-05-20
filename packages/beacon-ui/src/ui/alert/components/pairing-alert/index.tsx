@@ -20,10 +20,13 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const p2pPayload = props.pairingPayload!.p2pSyncCode
   const postPayload = props.pairingPayload!.postmessageSyncCode
   const isMobile = useIsMobile()
-  const wallets = useWallets(props.pairingPayload?.networkType, props.featuredWallets)
+  const wallets = useWallets(
+    props.pairingPayload?.networkType,
+    !props.substratePairing ? props.featuredWallets : undefined
+  )
   const substrateWalltes = useSubstrateWallets(
     props.pairingPayload?.networkType,
-    props.featuredWallets
+    props.substratePairing ? props.featuredWallets : undefined
   )
   const [
     wallet,
