@@ -51,6 +51,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const walletList = Array.from(
     props.substratePairing ? substrateWalltes.values() : wallets.values()
   )
+
   const [isPairingExpired, setIsPairingExpired] = useState(false)
 
   useEffect(() => {

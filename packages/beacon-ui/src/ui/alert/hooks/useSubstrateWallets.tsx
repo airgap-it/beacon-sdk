@@ -60,8 +60,19 @@ const useSubstrateWallets = (networkType?: NetworkType, featuredWallets?: string
   const wallets = useMemo(() => {
     const parsed = parseWallets(rawWallets)
     const merged = mergeWallets(parsed)
-    const arranged = arrangeTopWallets(merged, featuredWallets ?? ['acurast'])
-    return arranged
+    const arranged = arrangeTopWallets(
+      merged,
+      featuredWallets ?? ['acurast-lite', 'airgap_ios', 'nova_ios', 'fearless_ios']
+    )
+
+    if (!featuredWallets || featuredWallets.length > 1) {
+      return arranged
+    }
+
+    // `filter` instead of `find` for convinient return type
+    const result = arranged.filter((el) => el.id === featuredWallets[0])
+
+    return result.length > 0 ? result : arranged
   }, [rawWallets, featuredWallets])
 
   return useMemo(() => new Map(wallets.map((w) => [w.id, w])), [wallets])
