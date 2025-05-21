@@ -239,7 +239,8 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               (wallet?.types.length as number) <= 1 && <QR isMobile={true} />}
             {isMobileOS(window) &&
               wallet?.types.includes('ios') &&
-              (isWCWorking && wallet?.supportedInteractionStandards?.includes('wallet_connect') ? (
+              ((isWCWorking && wallet?.supportedInteractionStandards?.includes('wallet_connect')) ||
+              wallet?.name.toLowerCase().includes('acurast') ? (
                 <MobileInfoCard />
               ) : (
                 <WCInitError
