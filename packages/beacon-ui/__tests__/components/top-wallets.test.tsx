@@ -93,11 +93,7 @@ describe('TopWallets Component', () => {
     )
     expect(screen.getByRole('heading', { name: /Connect Wallet/i })).toBeInTheDocument()
     // Normal text when ENABLE_METRICS is not 'true'
-    expect(
-      screen.getByText(
-        /If you don't have a wallet, you can select a provider and create one now\./i
-      )
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Do you wish to report a bug\?/i)).toBeInTheDocument()
     expect(screen.getByText(/Learn more/i)).toBeInTheDocument()
   })
 

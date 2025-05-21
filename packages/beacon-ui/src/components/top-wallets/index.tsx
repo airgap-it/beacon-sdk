@@ -1,30 +1,18 @@
 import React from 'react'
 import Wallet from '../wallet'
-import { StorageKey } from '@airgap/beacon-types'
 import { TopWalletsProps } from 'src/ui/common'
 
 const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
-  const enableBugReport = localStorage ? localStorage.getItem(StorageKey.ENABLE_METRICS) : 'false'
-
   return (
     <div className="top-wallets-wrapper">
       <div className="top-wallets-info">
         <h3>Connect Wallet</h3>
-        {enableBugReport === 'true' ? (
-          <span>
-            Do you wish to report a bug?{' '}
-            <span className="top-wallets-learn-more" onClick={props.onClickLearnMore}>
-              Click here
-            </span>
+        <span>
+          Do you wish to report a bug?{' '}
+          <span className="top-wallets-learn-more" onClick={props.onClickLearnMore}>
+            Click here
           </span>
-        ) : (
-          <span>
-            If you don't have a wallet, you can select a provider and create one now.{' '}
-            <span className="top-wallets-learn-more" onClick={props.onClickLearnMore}>
-              Learn more
-            </span>
-          </span>
-        )}
+        </span>
       </div>
       <div
         style={props.wallets.length === 1 ? { gridTemplateColumns: '1fr' } : undefined}
