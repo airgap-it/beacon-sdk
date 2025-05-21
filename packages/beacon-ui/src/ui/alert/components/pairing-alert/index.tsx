@@ -49,7 +49,14 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     handleShowMoreContent,
     handleDisplayQRExtra,
     handleIsLoading
-  ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
+  ] = useConnect(
+    isMobile,
+    wcPayload,
+    p2pPayload,
+    postPayload,
+    props.substratePairing ? substrateWalltes : wallets,
+    props.onClose
+  )
   const isOnline = navigator.onLine
   const walletList = Array.from(
     props.substratePairing ? substrateWalltes.values() : wallets.values()
@@ -343,7 +350,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               onClickLearnMore={() => handleUpdateState(AlertState.BUG_REPORT)}
               disabled={isLoading}
               otherWallets={
-                isMobile
+                isMobile && walletList.length >= 6
                   ? {
                       images: [walletList[3].image, walletList[4].image, walletList[5].image],
                       onClick: () => handleUpdateState(AlertState.WALLETS)
