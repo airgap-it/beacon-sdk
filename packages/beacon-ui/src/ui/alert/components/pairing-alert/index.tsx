@@ -150,7 +150,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       onClickShowMore={handleShowMoreContent}
       onBackClick={
         walletList.length === 1
-          ? props.onClose
+          ? undefined
           : [AlertState.INSTALL, AlertState.QR].includes(state) ||
               (state === AlertState.WALLETS && isMobile)
             ? () => handleUpdateState(AlertState.TOP_WALLETS)
