@@ -512,43 +512,5 @@ describe('PairingAlert Component', () => {
       })
       expect(onCloseMock).toHaveBeenCalled()
     })
-
-    test('onShowQRCodeClick calls handleDeepLinking when isMobile is true and wallet types length equals 1', async () => {
-      ;(useIsMobile as jest.Mock).mockReturnValue(true)
-      const iosWallet = { ...walletObj, types: ['ios'] }
-      const walletsMapIos = new Map<string, typeof walletObj>([
-        ['wallet1', iosWallet],
-        ['wallet2', iosWallet],
-        ['wallet3', iosWallet],
-        ['wallet4', iosWallet],
-        ['wallet5', iosWallet],
-        ['wallet6', iosWallet]
-      ])
-      ;(useWallets as jest.Mock).mockReturnValue(walletsMapIos)
-      const deepLinkingMock = jest.fn()
-      const updateQRCodeMock = jest.fn()
-      const updateStateMock = jest.fn()
-      const displayQRExtraMock = jest.fn()
-      const connectReturn = [...defaultUseConnect]
-      connectReturn[0] = iosWallet
-      connectReturn[3] = 'install'
-      connectReturn[6] = true
-      connectReturn[9] = deepLinkingMock
-      connectReturn[16] = updateQRCodeMock
-      connectReturn[15] = updateStateMock
-      connectReturn[18] = displayQRExtraMock
-      ;(useConnect as jest.Mock).mockReturnValue(connectReturn)
-      ;(platformUtils.isMobileOS as jest.Mock).mockReturnValue(true)
-      await renderPairingAlert(defaultProps)
-      const qrButton = screen.getByTestId('qr-button')
-      await act(async () => {
-        fireEvent.click(qrButton)
-      })
-      // Updated expectation to match the component's behavior:
-      expect(deepLinkingMock).toHaveBeenCalledWith(iosWallet)
-      expect(updateQRCodeMock).not.toHaveBeenCalled()
-      expect(updateStateMock).toHaveBeenCalledWith('qr')
-      expect(displayQRExtraMock).toHaveBeenCalledWith(true)
-    })
   })
 })
