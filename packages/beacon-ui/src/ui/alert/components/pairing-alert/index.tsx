@@ -106,7 +106,6 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
         handleDeepLinking={handleDeepLinking}
         wcPayload={wcPayload}
         p2pPayload={p2pPayload}
-        isMobile={isMobile}
         handleUpdateQRCode={handleUpdateQRCode}
         handleDisplayQRExtra={handleDisplayQRExtra}
         onClose={props.onClose}

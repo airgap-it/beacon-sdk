@@ -9,7 +9,6 @@ const MobilePairing: React.FC<any> = ({
   handleDeepLinking,
   wcPayload,
   p2pPayload,
-  isMobile,
   handleUpdateQRCode,
   handleDisplayQRExtra,
   onClose
@@ -48,11 +47,6 @@ const MobilePairing: React.FC<any> = ({
 
         if (!syncCode.length) {
           onClose()
-          return
-        }
-
-        if (isMobile && wallet && wallet.types.includes('ios') && wallet.types.length === 1) {
-          handleDeepLinking(wallet)
           return
         }
 
