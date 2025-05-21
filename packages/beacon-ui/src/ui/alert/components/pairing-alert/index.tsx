@@ -241,7 +241,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               (wallet?.types.length as number) <= 1 && <QR isMobile={true} />}
             {isMobileOS(window) &&
               wallet?.types.includes('ios') &&
-              (!wallet?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking ? (
+              (isWCWorking && wallet?.supportedInteractionStandards?.includes('wallet_connect') ? (
                 <MobileInfoCard />
               ) : (
                 <WCInitError
@@ -310,30 +310,9 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
             <BugReportForm onSubmit={props.onClose} />
           </div>
         )}
-        {/* {state === AlertState.SUBSTRATE_PAIRING && (
-          <div
-            style={{
-              opacity: 1,
-              height: 'unset',
-              overflow: 'unset',
-              transform: 'scale(1)',
-              transition: 'all ease 0.3s',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.9em'
-            }}
-          >
-            {!isMobileOS(window) && <QR isMobile={true} />}
-            {isMobileOS(window) && <MobileInfoCard />}
-          </div>
-        )} */}
-        {![
-          AlertState.QR,
-          AlertState.WALLETS,
-          AlertState.BUG_REPORT,
-          AlertState.INSTALL
-          // AlertState.SUBSTRATE_PAIRING
-        ].includes(state) && (
+        {![AlertState.QR, AlertState.WALLETS, AlertState.BUG_REPORT, AlertState.INSTALL].includes(
+          state
+        ) && (
           <div
             style={{
               opacity: 1,

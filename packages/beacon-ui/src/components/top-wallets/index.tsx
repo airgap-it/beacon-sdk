@@ -26,7 +26,10 @@ const TopWallets: React.FC<TopWalletsProps> = (props: TopWalletsProps) => {
           </span>
         )}
       </div>
-      <div className="top-wallets-wallets-main">
+      <div
+        style={props.wallets.length === 1 ? { gridTemplateColumns: '1fr' } : undefined}
+        className="top-wallets-wallets-main"
+      >
         {props.wallets.map((wallet) => (
           <Wallet
             key={wallet.id}

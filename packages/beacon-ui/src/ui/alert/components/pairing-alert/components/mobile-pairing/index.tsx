@@ -14,8 +14,6 @@ const MobilePairing: React.FC<any> = ({
   handleDisplayQRExtra,
   onClose
 }) => {
-  const isAcurast = wallet?.name.toLowerCase().includes('acurast')
-
   return (
     <Info
       border
@@ -23,17 +21,11 @@ const MobilePairing: React.FC<any> = ({
       description={''}
       buttons={[
         {
-          label: isAcurast ? 'Show QR code' : 'Use App',
+          label: 'Use App',
           type: 'primary',
-          onClick: async () => {
+          onClick: () => {
             if (!wallet) {
-              return
-            }
-
-            if (isAcurast) {
-              handleUpdateQRCode(await p2pPayload)
-              handleUpdateState(AlertState.QR)
-              handleDisplayQRExtra(true)
+              console.error('No wallet found.')
               return
             }
 
@@ -59,13 +51,7 @@ const MobilePairing: React.FC<any> = ({
           return
         }
 
-        if (
-          isMobile &&
-          wallet &&
-          wallet.types.includes('ios') &&
-          !isAcurast &&
-          wallet.types.length === 1
-        ) {
+        if (isMobile && wallet && wallet.types.includes('ios') && wallet.types.length === 1) {
           handleDeepLinking(wallet)
           return
         }
