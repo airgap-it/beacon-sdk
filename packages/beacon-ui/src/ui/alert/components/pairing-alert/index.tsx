@@ -80,6 +80,20 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     setIsPairingExpired(true)
   }, [state, props.open])
 
+  useEffect(() => {
+    let size = wallets.size
+
+    if (props.substratePairing) {
+      size = substrateWalltes.size
+    }
+
+    if (size !== 1) {
+      return
+    }
+
+    handleClickWallet(walletList[0].id, props)
+  }, [wallets, substrateWalltes])
+
   const QR: React.FC<{ isMobile: boolean }> = ({ isMobile }) => (
     <QRCode
       wallet={wallet}
