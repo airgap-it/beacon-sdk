@@ -136,20 +136,18 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       }
       onClickShowMore={handleShowMoreContent}
       onBackClick={
-        props.substratePairing && walletList.length === 1
-          ? props.onClose
-          : [AlertState.INSTALL, AlertState.QR].includes(state) ||
-              (state === AlertState.WALLETS && isMobile)
-            ? () => handleUpdateState(AlertState.TOP_WALLETS)
-            : state === 'bug-report'
-              ? () => {
-                  if (isPairingExpired) {
-                    props.onClose()
-                    return undefined
-                  }
-                  return handleUpdateState(AlertState.TOP_WALLETS)
+        [AlertState.INSTALL, AlertState.QR].includes(state) ||
+        (state === AlertState.WALLETS && isMobile)
+          ? () => handleUpdateState(AlertState.TOP_WALLETS)
+          : state === 'bug-report'
+            ? () => {
+                if (isPairingExpired) {
+                  props.onClose()
+                  return undefined
                 }
-              : undefined
+                return handleUpdateState(AlertState.TOP_WALLETS)
+              }
+            : undefined
       }
     >
       <div>
