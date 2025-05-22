@@ -142,4 +142,9 @@ export interface DAppClientOptions {
    * Enable metrics tracking (Disabled by Default)
    */
   enableMetrics?: boolean
+
+  /**
+   * Enable pairing with a non-tezos wallet
+   */
+  enableSubstrateLayer?: boolean
 }

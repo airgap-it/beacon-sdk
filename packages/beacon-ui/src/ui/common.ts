@@ -9,7 +9,6 @@ export enum AlertState {
   INSTALL = 'install',
   BUG_REPORT = 'bug-report',
   QR = 'qr',
-  SUBSTRATE_PAIRING = 'substrate-pairing'
 }
 
 export interface AlertButton {

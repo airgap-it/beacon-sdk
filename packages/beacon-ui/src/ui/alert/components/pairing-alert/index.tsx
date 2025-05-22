@@ -20,8 +20,14 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const p2pPayload = props.pairingPayload!.p2pSyncCode
   const postPayload = props.pairingPayload!.postmessageSyncCode
   const isMobile = useIsMobile()
-  const wallets = useWallets(props.pairingPayload?.networkType, props.featuredWallets)
-  const substrateWallet = useSubstrateWallets()
+  const wallets = useWallets(
+    props.pairingPayload?.networkType,
+    !props.substratePairing ? props.featuredWallets : undefined
+  )
+  const substrateWalltes = useSubstrateWallets(
+    props.pairingPayload?.networkType,
+    props.substratePairing ? props.featuredWallets : undefined
+  )
   const [
     wallet,
     isLoading,
@@ -43,9 +49,19 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     handleShowMoreContent,
     handleDisplayQRExtra,
     handleIsLoading
-  ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
+  ] = useConnect(
+    isMobile,
+    wcPayload,
+    p2pPayload,
+    postPayload,
+    props.substratePairing ? substrateWalltes : wallets,
+    props.onClose
+  )
   const isOnline = navigator.onLine
-  const walletList = Array.from(wallets.values())
+  const walletList = Array.from(
+    props.substratePairing ? substrateWalltes.values() : wallets.values()
+  )
+
   const [isPairingExpired, setIsPairingExpired] = useState(false)
 
   useEffect(() => {
@@ -57,21 +73,26 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   }, [props.openBugReport])
 
   useEffect(() => {
-    if (!props.substratePairing || state === AlertState.SUBSTRATE_PAIRING) {
-      return
-    }
-
-    handleUpdateState(AlertState.SUBSTRATE_PAIRING)
-    handleIsLoading(true)
-  }, [props.substratePairing])
-
-  useEffect(() => {
     if (props.open || state !== AlertState.BUG_REPORT) {
       return
     }
 
     setIsPairingExpired(true)
   }, [state, props.open])
+
+  useEffect(() => {
+    let size = wallets.size
+
+    if (props.substratePairing) {
+      size = substrateWalltes.size
+    }
+
+    if (size !== 1) {
+      return
+    }
+
+    handleClickWallet(walletList[0].id, props)
+  }, [wallets, substrateWalltes])
 
   const QR: React.FC<{ isMobile: boolean }> = ({ isMobile }) => (
     <QRCode
@@ -88,16 +109,17 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const MobileInfoCard = () => {
     handleIsLoading(false)
 
-    const w = wallet ?? substrateWallet
+    if (!wallet) {
+      throw new Error('Wallet undefined')
+    }
 
     return (
       <MobilePairing
-        wallet={w}
+        wallet={wallet}
         handleUpdateState={handleUpdateState}
         handleDeepLinking={handleDeepLinking}
         wcPayload={wcPayload}
         p2pPayload={p2pPayload}
-        isMobile={isMobile}
         handleUpdateQRCode={handleUpdateQRCode}
         handleDisplayQRExtra={handleDisplayQRExtra}
         onClose={props.onClose}
@@ -127,8 +149,8 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       }
       onClickShowMore={handleShowMoreContent}
       onBackClick={
-        props.substratePairing
-          ? props.onClose
+        walletList.length === 1
+          ? undefined
           : [AlertState.INSTALL, AlertState.QR].includes(state) ||
               (state === AlertState.WALLETS && isMobile)
             ? () => handleUpdateState(AlertState.TOP_WALLETS)
@@ -232,7 +254,8 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               (wallet?.types.length as number) <= 1 && <QR isMobile={true} />}
             {isMobileOS(window) &&
               wallet?.types.includes('ios') &&
-              (!wallet?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking ? (
+              ((isWCWorking && wallet?.supportedInteractionStandards?.includes('wallet_connect')) ||
+              wallet?.name.toLowerCase().includes('acurast') ? (
                 <MobileInfoCard />
               ) : (
                 <WCInitError
@@ -301,30 +324,9 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
             <BugReportForm onSubmit={props.onClose} />
           </div>
         )}
-        {state === AlertState.SUBSTRATE_PAIRING && (
-          <div
-            style={{
-              opacity: 1,
-              height: 'unset',
-              overflow: 'unset',
-              transform: 'scale(1)',
-              transition: 'all ease 0.3s',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.9em'
-            }}
-          >
-            {!isMobileOS(window) && <QR isMobile={true} />}
-            {isMobileOS(window) && <MobileInfoCard />}
-          </div>
-        )}
-        {![
-          AlertState.QR,
-          AlertState.WALLETS,
-          AlertState.BUG_REPORT,
-          AlertState.INSTALL,
-          AlertState.SUBSTRATE_PAIRING
-        ].includes(state) && (
+        {![AlertState.QR, AlertState.WALLETS, AlertState.BUG_REPORT, AlertState.INSTALL].includes(
+          state
+        ) && (
           <div
             style={{
               opacity: 1,
@@ -341,7 +343,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               onClickLearnMore={() => handleUpdateState(AlertState.BUG_REPORT)}
               disabled={isLoading}
               otherWallets={
-                isMobile
+                isMobile && walletList.length >= 6
                   ? {
                       images: [walletList[3].image, walletList[4].image, walletList[5].image],
                       onClick: () => handleUpdateState(AlertState.WALLETS)
