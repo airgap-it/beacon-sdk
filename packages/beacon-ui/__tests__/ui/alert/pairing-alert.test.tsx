@@ -387,6 +387,11 @@ describe('PairingAlert Component', () => {
   // --- Back Button and Show More Handling Tests ---
   describe('Back Button and Show More Handling', () => {
     test('provides onBackClick prop when state is install, qr, (wallets and mobile) or help', async () => {
+      const newWalletsMap = new Map<string, typeof walletObj>([
+        ['wallet1', walletObj],
+        ['wallet2', { ...walletObj }]
+      ])
+      ;(useWallets as jest.Mock).mockReturnValue(newWalletsMap)
       const connectReturn = [...defaultUseConnect]
       connectReturn[3] = 'install'
       const updateStateMock = jest.fn()
