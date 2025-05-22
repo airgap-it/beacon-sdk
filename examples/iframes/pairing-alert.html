@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pairing Alert</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <script>
+      // Enable debug mode for beacon
+      window.beaconSdkDebugEnabled = true
+    </script>
+
+    <script src="../walletbeacon.min.js"></script>
+  </head>
+  <body class="p-4">
+    <script>
+      // Create a client instance for this component
+      const client = new beacon.DAppClient({
+        name: 'Pairing Alert Example'
+      })
+
+      const { openAlert } = beacon
+
+      // Make the function available to the parent window
+      window.showPairingAlert = function() {
+        const dummyPromise = Promise.resolve('dummy-sync-code')
+
+        const config = {
+          title: 'Connect Your Wallet',
+          pairingPayload: {
+            p2pSyncCode: dummyPromise,
+            postmessageSyncCode: dummyPromise,
+            walletConnectSyncCode: dummyPromise,
+            networkType: beacon.NetworkType.MAINNET
+          },
+          featuredWallets: ['temple-wallet', 'kukai-wallet', 'airgap-wallet'],
+          analytics: client.analytics
+        }
+
+        openAlert(config)
+      }
+
+      // Show alert when the page loads
+      window.addEventListener('load', () => {
+        // Small delay to ensure everything is initialized
+        setTimeout(window.showPairingAlert, 500)
+      })
+
+      // Handle theme changes
+      window.addEventListener('message', (event) => {
+        if (event.data.type === 'themeChange') {
+          // Update document theme
+          document.documentElement.setAttribute('data-theme', event.data.theme)
+          
+          // Update Beacon color mode
+          if (beacon.setColorMode) {
+            beacon.setColorMode(
+              event.data.theme === 'dark' ? beacon.ColorMode.DARK : beacon.ColorMode.LIGHT
+            )
+          }
+        }
+      })
+    </script>
+  </body>
+</html> 

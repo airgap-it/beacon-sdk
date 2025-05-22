@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wallet Toast</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <script>
+      // Enable debug mode for beacon
+      window.beaconSdkDebugEnabled = true
+    </script>
+
+    <script src="../walletbeacon.min.js"></script>
+  </head>
+  <body class="p-4">
+    <script>
+      const client = new beacon.DAppClient({
+        name: 'Wallet Toast Example'
+      })
+
+      const { openToast } = beacon
+
+      // Make the function available to the parent window
+      window.showWalletToast = function () {
+        const config = {
+          body: '{{wallet}} has granted permission',
+          state: 'finished',
+          timer: 5000,
+          walletInfo: {
+            name: 'Temple Wallet',
+            icon: '../../assets/logos/ios-temple.png'
+          },
+          actions: [
+            {
+              text: 'Address',
+              actionText: 'tz1abc...xyz',
+              isBold: true
+            },
+            {
+              text: 'Network',
+              actionText: 'Mainnet'
+            }
+          ]
+        }
+
+        openToast(config)
+      }
+
+      // Show toast when the page loads and set up interval
+      window.addEventListener('load', () => {
+        setTimeout(window.showWalletToast, 500)
+        setInterval(window.showWalletToast, 5000)
+      })
+
+      // Listen for theme changes from parent window
+      window.addEventListener('message', (event) => {
+        if (event.data.type === 'themeChange') {
+          document.documentElement.setAttribute('data-theme', event.data.theme)
+          if (beacon.setColorMode) {
+            beacon.setColorMode(
+              event.data.theme === 'dark' ? beacon.ColorMode.DARK : beacon.ColorMode.LIGHT
+            )
+          }
+        }
+      })
+    </script>
+  </body>
+</html>

@@ -4,6 +4,7 @@ import { CloseIcon } from '../icons'
 import Loader from '../loader'
 import { isMobileOS } from '../../utils/platform'
 import { ToastProps } from '../../ui/common'
+import { ButtonIcon } from '../button-icon/button-icon'
 
 function parseWallet(
   inputString: string,
@@ -100,9 +101,9 @@ const Toast: React.FC<ToastProps> = (props: ToastProps) => {
           </div>
         )}
 
-        <div className="toast-button-icon" onClick={props.onClickClose}>
+        <ButtonIcon onClick={props.onClickClose}>
           <CloseIcon />
-        </div>
+        </ButtonIcon>
       </div>
 
       {props.actions && showMoreInfo && (

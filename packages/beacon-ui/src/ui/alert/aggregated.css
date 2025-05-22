@@ -8,6 +8,7 @@
 @import '../../components/top-wallets/styles.css';
 @import '../../components/wallet/styles.css';
 @import '../../components/wallets/styles.css';
+@import '../../components/button-icon/button-icon.css';
 
 /* UI */
 @import './components/pairing-alert/components/wc-init-error/styles.css';

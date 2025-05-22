@@ -56,7 +56,8 @@
     "bump:major": "lerna version --no-git-tag-version major --exact --yes",
     "bump:minor": "lerna version --no-git-tag-version minor --exact --yes",
     "bump:patch": "lerna version --no-git-tag-version patch --exact --yes",
-    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --exact --yes"
+    "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --exact --yes",
+    "build:ui": "cd packages/beacon-ui && npm run tsc && cd ../.. && npm run webpack:sdk"
   },
   "author": "Papers AG <contact@papers.ch> (https://papers.ch)",
   "dependencies": {

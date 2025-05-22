@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR Code</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <script>
+      // Enable debug mode for beacon
+      window.beaconSdkDebugEnabled = true
+    </script>
+
+    <script src="../walletbeacon.min.js"></script>
+  </head>
+  <body class="p-4">
+    <script>
+      const client = new beacon.DAppClient({
+        name: 'QR Code Example'
+      })
+
+      const { openAlert } = beacon
+
+      function showQRCode() {
+        const dummyPromise = Promise.resolve('dummy-sync-code')
+
+        const config = {
+          title: 'Scan QR Code',
+          pairingPayload: {
+            p2pSyncCode: dummyPromise,
+            postmessageSyncCode: dummyPromise,
+            walletConnectSyncCode: dummyPromise,
+            networkType: beacon.NetworkType.MAINNET
+          },
+          displayQRCode: true,
+          analytics: client.analytics
+        }
+
+        openAlert(config)
+      }
+
+      window.addEventListener('load', () => {
+        setTimeout(showQRCode, 500)
+      })
+
+      // Listen for theme changes from parent window
+      window.addEventListener('message', (event) => {
+        if (event.data.type === 'themeChange') {
+          document.documentElement.setAttribute('data-theme', event.data.theme)
+          if (beacon.setColorMode) {
+            beacon.setColorMode(
+              event.data.theme === 'dark' ? beacon.ColorMode.DARK : beacon.ColorMode.LIGHT
+            )
+          }
+        }
+      })
+    </script>
+  </body>
+</html> 
