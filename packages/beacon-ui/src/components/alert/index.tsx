@@ -3,7 +3,7 @@ import { CloseIcon, LeftIcon, LogoIcon } from '../icons'
 import Loader from '../loader'
 import { AlertProps } from '../../ui/common'
 import useIsMobile from '../../ui/alert/hooks/useIsMobile'
-
+import { ButtonIcon } from '../button-icon/button-icon'
 const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
   const isMobile = useIsMobile()
 
@@ -26,18 +26,18 @@ const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
       >
         <div className="alert-header">
           {props.onBackClick ? (
-            <div className="alert-button-icon" onClick={props.onBackClick}>
+            <ButtonIcon onClick={props.onBackClick}>
               <LeftIcon />
-            </div>
+            </ButtonIcon>
           ) : (
             <div className="alert-button-icon-empty"></div>
           )}
           <div className="alert-logo">
             <LogoIcon />
           </div>
-          <div className="alert-button-icon" onClick={props.onCloseClick}>
+          <ButtonIcon onClick={props.onCloseClick}>
             <CloseIcon />
-          </div>
+          </ButtonIcon>
         </div>
         <div
           className="alert-modal-loading-wrapper"
