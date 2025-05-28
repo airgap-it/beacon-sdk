@@ -167,11 +167,6 @@ export class DAppClient extends Client {
    */
   private enableMetrics?: boolean
 
-  /**
-   * Enable pairing with a non-tezos wallet
-   */
-  private enableSubstrateLayer?: boolean
-
   private userId?: string
 
   public network: Network
@@ -266,8 +261,6 @@ export class DAppClient extends Client {
       config.enableAppSwitching === undefined ? true : !!config.enableAppSwitching
 
     this.enableMetrics = config.enableMetrics ? true : false
-
-    this.enableSubstrateLayer = config.enableSubstrateLayer ? true : false
 
     // Subscribe to storage changes and update the active account if it changes on other tabs
     this.storage.subscribeToStorageChanged(async (event) => {
@@ -2521,7 +2514,7 @@ export class DAppClient extends Client {
     const messageId = otherTabMessageId ?? (await generateGUID())
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
-    await this.init(undefined, this.enableSubstrateLayer)
+    await this.init(undefined, true)
     this.isInitPending = false
     logger.log('makeRequest', 'after init')
 
