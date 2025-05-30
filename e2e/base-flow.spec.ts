@@ -114,6 +114,10 @@ test('should display Temple Wallet', async ({ browser }) => {
     state: 'visible',
     timeout: 5_000
   })
+  ;(await dapp.waitForSelector('div.qr-wrapper', {
+    state: 'visible',
+    timeout: 5000
+  })) as unknown as HTMLElement
 
   // TODO extension pairing??
 })
