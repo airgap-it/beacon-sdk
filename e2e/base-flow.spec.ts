@@ -89,3 +89,27 @@ test('should display AirGap QR code and copy pairing code to clipboard', async (
     throw new Error('QR code copy failed.')
   }
 })
+
+test('should display Temple Wallet', async ({ browser }) => {
+  // --- setup context + grant clipboard permissions ---
+  const dappCtx = await browser.newContext()
+
+  const dapp = await dappCtx.newPage()
+  await dapp.goto('http://localhost:1234/dapp.html')
+
+  // --- trigger the Beacon pairing alert ---
+  await dapp.click('#requestPermission')
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
+
+  await dapp.click('div.alert-footer')
+  await dapp.waitForSelector('div.wallets-list-wrapper', { state: 'visible', timeout: 5_000 })
+
+  await dapp.click('h3:has-text("Temple")')
+
+  await dapp.waitForSelector('h3:has-text("Connect with Temple Browser Extension")', {
+    state: 'visible',
+    timeout: 5_000
+  })
+
+  // TODO extension pairing??
+})
