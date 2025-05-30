@@ -62,6 +62,8 @@ jspm_packages/
 
 dist/
 
+test-results/
+
 .history
 
 storage.json
