@@ -195,3 +195,22 @@ test('should pair other with WalletConnect', async ({ browser }) => {
     throw new Error('QR code copy failed.')
   }
 })
+
+test('should close the pairing alert', async ({ browser }) => {
+  // --- setup context + grant clipboard permissions ---
+  const dappCtx = await browser.newContext()
+  await dappCtx.grantPermissions(['clipboard-read', 'clipboard-write'], {
+    origin: 'http://localhost:1234'
+  })
+
+  const dapp = await dappCtx.newPage()
+  await dapp.goto('http://localhost:1234/dapp.html')
+
+  // --- trigger the Beacon pairing alert ---
+  await dapp.click('#requestPermission')
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
+
+  await dapp.locator('div.alert-button-icon').nth(0).click()
+
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'detached', timeout: 5_000 })
+})
