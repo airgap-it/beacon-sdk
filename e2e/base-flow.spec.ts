@@ -43,6 +43,10 @@ test('should open Kukai Web', async ({ browser }) => {
     state: 'visible',
     timeout: 5000
   })) as unknown as HTMLElement
+  ;(await dapp.waitForSelector('div.qr-wrapper', {
+    state: 'visible',
+    timeout: 5000
+  })) as unknown as HTMLElement
 
   await dapp.click('button:has-text("Use Browser")')
 
