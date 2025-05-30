@@ -24,7 +24,7 @@ test.afterAll(() => {
   server2.kill()
 })
 
-test('P2P basic pairing flow', async ({ browser }) => {
+test('should open Kukai Web', async ({ browser }) => {
   // --- setup contexts + pages ---
   const dappCtx = await browser.newContext()
   const walletCtx = await browser.newContext()
@@ -59,12 +59,8 @@ test('P2P basic pairing flow', async ({ browser }) => {
 
   // 2️⃣ Make sure it’s loaded
   await walletPage.waitForLoadState('domcontentloaded')
-  ;(await walletPage.waitForSelector('div.kukai-modal', {
+  ;(await walletPage.waitForSelector('div.agreement-body', {
     state: 'visible', // other options: 'attached' (in DOM), 'hidden', 'detached'
     timeout: 10_000 // adjust as needed (ms)
   })) as unknown as HTMLElement
-
-  console.log('Wallet URL:', walletPage.url())
-
-  await walletPage.click('button:has-text("Use Browser")')
 })
