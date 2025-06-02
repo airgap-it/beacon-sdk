@@ -44,9 +44,15 @@ export const pairWithBeaconWallet = async (browser: Browser) => {
   await wallet.click('#paste')
 
   await dapp.waitForSelector('#activeAccount', { state: 'visible', timeout: 10_000 })
+
+  const activeAccount = await dapp.evaluate(() => {
+    return window.localStorage.getItem('beacon:active-account')
+  })
+
   await expect(dapp.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
     timeout: 5_000
   })
+  expect(activeAccount).toBeTruthy()
 
   return [dapp, dappCtx, wallet, walletCtx] as const
 }

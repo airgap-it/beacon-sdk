@@ -87,6 +87,12 @@ test('should disconnect on both tabs', async ({ browser }) => {
 
   await expect(dapp.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
   await expect(dapp2.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
+
+  const activeAccount = await dapp.evaluate(() => {
+    return window.localStorage.getItem('beacon:active-account')
+  })
+
+  expect(activeAccount).toBeNull()
 })
 
 test('should clearActiveAccount on both tabs', async ({ browser }) => {
@@ -98,4 +104,10 @@ test('should clearActiveAccount on both tabs', async ({ browser }) => {
 
   await expect(dapp.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
   await expect(dapp2.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
+
+  const activeAccount = await dapp.evaluate(() => {
+    return window.localStorage.getItem('beacon:active-account')
+  })
+
+  expect(activeAccount).toBeNull()
 })
