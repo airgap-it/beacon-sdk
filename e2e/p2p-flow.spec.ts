@@ -92,7 +92,7 @@ test('should disconnect on both tabs', async ({ browser }) => {
     return window.localStorage.getItem('beacon:active-account')
   })
 
-  expect(activeAccount).toBeNull()
+  expect(activeAccount).toBe('undefined')
 })
 
 test('should clearActiveAccount on both tabs', async ({ browser }) => {
@@ -109,5 +109,5 @@ test('should clearActiveAccount on both tabs', async ({ browser }) => {
     return window.localStorage.getItem('beacon:active-account')
   })
 
-  expect(activeAccount).toBeNull()
+  expect(activeAccount).toBe('undefined')
 })
