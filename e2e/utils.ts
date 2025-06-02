@@ -48,5 +48,5 @@ export const pairWithBeaconWallet = async (browser: Browser) => {
 
   await dapp.waitForSelector('#activeAccount', { state: 'visible', timeout: 10_000 })
 
-  return [dapp, wallet] as const
+  return [dapp, dappCtx, wallet, walletCtx] as const
 }

@@ -37,3 +37,37 @@ test('should send 1 mutez', async ({ browser }) => {
   await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
   await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
 })
+
+test('should send 1 mutez on second tab', async ({ browser }) => {
+  const [_dapp, dappCtx] = await pairWithBeaconWallet(browser)
+  const dapp2 = await dappCtx.newPage()
+  await dapp2.goto('http://localhost:1234/dapp.html')
+
+  // #sendToSelf
+  await dapp2.click('#sendToSelf')
+
+  await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+  await dapp2.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+})
+
+test('should send 1 mutez on both tabs', async ({ browser }) => {
+  const [dapp, dappCtx] = await pairWithBeaconWallet(browser)
+  const dapp2 = await dappCtx.newPage()
+  await dapp2.goto('http://localhost:1234/dapp.html')
+
+  // #sendToSelf
+  await dapp.click('#sendToSelf')
+  await dapp2.click('#sendToSelf')
+
+  const step1 = async () => {
+    await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+    await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+  }
+
+  const step2 = async () => {
+    await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+    await dapp2.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+  }
+
+  await Promise.all([step1, step2])
+})
