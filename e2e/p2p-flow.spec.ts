@@ -70,8 +70,6 @@ test('should send 1 mutez on both tabs', async () => {
   const dapp2 = await dappCtx.newPage()
   await dapp2.goto('http://localhost:1234/dapp.html')
 
-  // tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw
-
   // #sendToSelf
   await dapp.click('#sendToSelf')
   await dapp2.click('#sendToSelf')
