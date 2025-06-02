@@ -41,8 +41,12 @@
       const walletData = {
         address: 'tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb',
         publicKey: 'edpkvGfYw3LyB1UcCahKQk4rF2tvbMUk8GFiTuMjL75uGXrpvKXhjn',
-        privateKey: 'mock-tezos-private-key', // In real implementation, this should be securely managed
-        network: { type: 'ghostnet', name: 'Tezos ghostnet', rpcUrl: 'https://ghostnet.api.tez.ie' }
+        privateKey: 'edsktesttesttesttesttesttesttesttesttesttesttestte',
+        network: {
+          type: 'ghostnet',
+          name: 'Tezos Ghostnet',
+          rpcUrl: 'https://ghostnet.api.tez.ie'
+        }
       }
 
       const setStatus = (status) => {
@@ -213,9 +217,9 @@
             case 'tezos_getAccounts':
               result = [
                 {
+                  algo: 'ed25519',
                   address: walletData.address,
-                  publicKey: walletData.publicKey,
-                  network: walletData.network
+                  pubkey: walletData.publicKey
                 }
               ]
               break
