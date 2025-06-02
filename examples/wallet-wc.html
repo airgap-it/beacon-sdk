@@ -42,7 +42,7 @@
         address: 'tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb',
         publicKey: 'edpkvGfYw3LyB1UcCahKQk4rF2tvbMUk8GFiTuMjL75uGXrpvKXhjn',
         privateKey: 'mock-tezos-private-key', // In real implementation, this should be securely managed
-        network: { type: 'mainnet', name: 'Tezos Mainnet', rpcUrl: 'https://mainnet.api.tez.ie' }
+        network: { type: 'ghostnet', name: 'Tezos ghostnet', rpcUrl: 'https://ghostnet.api.tez.ie' }
       }
 
       const setStatus = (status) => {
@@ -138,18 +138,18 @@
           for (const [key, namespace] of Object.entries(requiredNamespaces)) {
             if (key === 'tezos') {
               namespaces[key] = {
-                accounts: [`tezos:NetXdQprcVkpaWU:${walletData.address}`], // Tezos mainnet chain ID
+                accounts: [`tezos:ghostnet:${walletData.address}`], // Tezos ghostnet chain ID
                 methods: namespace.methods || ['tezos_getAccounts', 'tezos_send', 'tezos_sign'],
                 events: namespace.events || [],
-                chains: namespace.chains || ['tezos:NetXdQprcVkpaWU']
+                chains: namespace.chains || ['tezos:ghostnet']
               }
             } else {
               // Fallback for other namespaces
               namespaces[key] = {
-                accounts: [`${key}:mainnet:${walletData.address}`],
+                accounts: [`${key}:ghostnet:${walletData.address}`],
                 methods: namespace.methods,
                 events: namespace.events,
-                chains: namespace.chains || [`${key}:mainnet`]
+                chains: namespace.chains || [`${key}:ghostnet`]
               }
             }
           }
@@ -160,17 +160,17 @@
               if (!namespaces[key]) {
                 if (key === 'tezos') {
                   namespaces[key] = {
-                    accounts: [`tezos:NetXdQprcVkpaWU:${walletData.address}`],
+                    accounts: [`tezos:ghostnet:${walletData.address}`],
                     methods: namespace.methods || ['tezos_getAccounts', 'tezos_send', 'tezos_sign'],
                     events: namespace.events || [],
-                    chains: namespace.chains || ['tezos:NetXdQprcVkpaWU']
+                    chains: namespace.chains || ['tezos:ghostnet']
                   }
                 } else {
                   namespaces[key] = {
-                    accounts: [`${key}:mainnet:${walletData.address}`],
+                    accounts: [`${key}:ghostnet:${walletData.address}`],
                     methods: namespace.methods,
                     events: namespace.events,
-                    chains: namespace.chains || [`${key}:mainnet`]
+                    chains: namespace.chains || [`${key}:ghostnet`]
                   }
                 }
               }
