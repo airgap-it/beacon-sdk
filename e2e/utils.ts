@@ -1,4 +1,4 @@
-import { Browser } from '@playwright/test'
+import { Browser, expect } from '@playwright/test'
 
 export const pairWithBeaconWallet = async (browser: Browser) => {
   // --- setup context + grant clipboard permissions ---
@@ -39,14 +39,14 @@ export const pairWithBeaconWallet = async (browser: Browser) => {
     return await navigator.clipboard.readText()
   })
 
-  if (typeof pairingCode !== 'string') {
-    console.error('Wrong pairing code:', pairingCode)
-    throw new Error('QR code copy failed.')
-  }
+  expect(pairingCode).toBeTruthy()
 
   await wallet.click('#paste')
 
   await dapp.waitForSelector('#activeAccount', { state: 'visible', timeout: 10_000 })
+  await expect(dapp.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+    timeout: 5_000
+  })
 
   return [dapp, dappCtx, wallet, walletCtx] as const
 }

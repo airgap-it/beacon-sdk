@@ -1,5 +1,5 @@
 // e2e/flow.spec.ts
-import { test } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import { spawn, ChildProcess } from 'child_process'
 import fs from 'fs'
 import path from 'path'
@@ -88,10 +88,7 @@ test('should display AirGap QR code and copy pairing code to clipboard', async (
     return await navigator.clipboard.readText()
   })
 
-  if (typeof pairingCode !== 'string') {
-    console.error('Wrong pairing code:', pairingCode)
-    throw new Error('QR code copy failed.')
-  }
+  expect(pairingCode).toBeTruthy()
 })
 
 test('should display Temple Wallet', async ({ browser }) => {
@@ -153,10 +150,7 @@ test('should pair other with Beacon', async ({ browser }) => {
     return await navigator.clipboard.readText()
   })
 
-  if (typeof pairingCode !== 'string') {
-    console.error('Wrong pairing code:', pairingCode)
-    throw new Error('QR code copy failed.')
-  }
+  expect(pairingCode).toBeTruthy()
 })
 
 test('should pair other with WalletConnect', async ({ browser }) => {
@@ -190,10 +184,7 @@ test('should pair other with WalletConnect', async ({ browser }) => {
     return await navigator.clipboard.readText()
   })
 
-  if (typeof pairingCode !== 'string') {
-    console.error('Wrong pairing code:', pairingCode)
-    throw new Error('QR code copy failed.')
-  }
+  expect(pairingCode).toBeTruthy()
 })
 
 test('should close the pairing alert', async ({ browser }) => {
