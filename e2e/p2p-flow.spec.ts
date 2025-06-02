@@ -88,3 +88,14 @@ test('should disconnect on both tabs', async ({ browser }) => {
   await expect(dapp.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
   await expect(dapp2.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
 })
+
+test('should clearActiveAccount on both tabs', async ({ browser }) => {
+  const [dapp, dappCtx] = await pairWithBeaconWallet(browser)
+  const dapp2 = await dappCtx.newPage()
+  await dapp2.goto('http://localhost:1234/dapp.html')
+
+  await dapp.click('#clearActiveAccount')
+
+  await expect(dapp.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
+  await expect(dapp2.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
+})
