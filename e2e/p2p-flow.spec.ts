@@ -27,3 +27,13 @@ test.afterAll(() => {
 test('should pair with example wallet', async ({ browser }) => {
   await pairWithBeaconWallet(browser)
 })
+
+test('should send 1 mutez', async ({ browser }) => {
+  const [dapp] = await pairWithBeaconWallet(browser)
+
+  // #sendToSelf
+  await dapp.click('#sendToSelf')
+
+  await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+})
