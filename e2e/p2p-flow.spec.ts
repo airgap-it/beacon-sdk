@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, Page, BrowserContext } from '@playwright/test'
 import { spawn, ChildProcess } from 'child_process'
 import fs from 'fs'
 import path from 'path'
@@ -6,6 +6,11 @@ import { pairWithBeaconWallet } from './utils'
 
 let server1: ChildProcess
 let server2: ChildProcess
+
+let dapp: Page = {} as unknown as Page
+let dappCtx: BrowserContext = {} as unknown as BrowserContext
+let wallet: Page = {} as unknown as Page
+let walletCtx: BrowserContext = {} as unknown as BrowserContext
 
 test.beforeAll(async () => {
   const out = path.join(__dirname, 'output')
@@ -24,22 +29,29 @@ test.afterAll(() => {
   server2.kill()
 })
 
-test('should pair with example wallet', async ({ browser }) => {
-  await pairWithBeaconWallet(browser)
+test.beforeEach(async ({ browser }) => {
+  const ctx = await pairWithBeaconWallet(browser)
+  dapp = ctx[0]
+  dappCtx = ctx[1]
+  wallet = ctx[2]
+  walletCtx = ctx[3]
 })
 
-test('should send 1 mutez', async ({ browser }) => {
-  const [dapp] = await pairWithBeaconWallet(browser)
+test.afterEach(async () => {
+  await Promise.all([dappCtx.close(), walletCtx.close()])
+})
 
+test('should send 1 mutez', async () => {
   // #sendToSelf
   await dapp.click('#sendToSelf')
 
   await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
   await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+
+  await dappCtx.close()
 })
 
-test('should send 1 mutez on second tab', async ({ browser }) => {
-  const [_dapp, dappCtx] = await pairWithBeaconWallet(browser)
+test('should send 1 mutez on second tab', async () => {
   const dapp2 = await dappCtx.newPage()
   await dapp2.goto('http://localhost:1234/dapp.html')
 
@@ -54,8 +66,7 @@ test('should send 1 mutez on second tab', async ({ browser }) => {
   await dapp2.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
 })
 
-test('should send 1 mutez on both tabs', async ({ browser }) => {
-  const [dapp, dappCtx] = await pairWithBeaconWallet(browser)
+test('should send 1 mutez on both tabs', async () => {
   const dapp2 = await dappCtx.newPage()
   await dapp2.goto('http://localhost:1234/dapp.html')
 
@@ -78,8 +89,7 @@ test('should send 1 mutez on both tabs', async ({ browser }) => {
   await Promise.all([step1, step2])
 })
 
-test('should disconnect on both tabs', async ({ browser }) => {
-  const [dapp, dappCtx] = await pairWithBeaconWallet(browser)
+test('should disconnect on both tabs', async () => {
   const dapp2 = await dappCtx.newPage()
   await dapp2.goto('http://localhost:1234/dapp.html')
 
@@ -95,8 +105,7 @@ test('should disconnect on both tabs', async ({ browser }) => {
   expect(activeAccount).toBe('undefined')
 })
 
-test('should clearActiveAccount on both tabs', async ({ browser }) => {
-  const [dapp, dappCtx] = await pairWithBeaconWallet(browser)
+test('should clearActiveAccount on both tabs', async () => {
   const dapp2 = await dappCtx.newPage()
   await dapp2.goto('http://localhost:1234/dapp.html')
 
