@@ -41,6 +41,15 @@ test.afterEach(async () => {
   await Promise.all([dappCtx.close(), walletCtx.close()])
 })
 
+test('should load activeAccount on page reload', async () => {
+  await dapp.evaluate(() => {
+    return window.location.reload()
+  })
+  await expect(dapp.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+    timeout: 5_000
+  })
+})
+
 test('should send 1 mutez', async () => {
   // #sendToSelf
   await dapp.click('#sendToSelf')
