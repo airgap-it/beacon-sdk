@@ -50,6 +50,16 @@ test('should load activeAccount on page reload', async () => {
   expect(activeAccount).not.toBe('undefined')
 })
 
+test('should send a request to sign', async () => {
+  // #sendToSelf
+  await dapp.click('#signPayloadRaw')
+
+  await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+
+  await dappCtx.close()
+})
+
 test('should send 1 mutez', async () => {
   // #sendToSelf
   await dapp.click('#sendToSelf')
