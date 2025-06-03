@@ -2,7 +2,7 @@ import { test, expect, Page, BrowserContext } from '@playwright/test'
 import { spawn, ChildProcess } from 'child_process'
 import fs from 'fs'
 import path from 'path'
-import { pairWithBeaconWallet } from './utils'
+import { pairWithWCWallet } from './utils'
 
 let server1: ChildProcess
 let server2: ChildProcess
@@ -30,7 +30,7 @@ test.afterAll(() => {
 })
 
 test.beforeEach(async ({ browser }) => {
-  ;[dapp, dappCtx, wallet, walletCtx] = await pairWithBeaconWallet(browser)
+  ;[dapp, dappCtx, wallet, walletCtx] = await pairWithWCWallet(browser)
 })
 
 test.afterEach(async () => {
@@ -41,7 +41,7 @@ test('should load activeAccount on page reload', async () => {
   await dapp.evaluate(() => {
     return window.location.reload()
   })
-  await expect(dapp.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+  await expect(dapp.locator('#activeAccount')).toHaveText('tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb', {
     timeout: 5_000
   })
   const activeAccount = await dapp.evaluate(() => {
@@ -55,7 +55,11 @@ test('should send a request to sign', async () => {
   await dapp.click('#signPayloadRaw')
 
   await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
-  await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+
+  await dapp.waitForSelector('p:has-text("successfully")', {
+    state: 'visible',
+    timeout: 5_000
+  })
 })
 
 test('should send 1 mutez', async () => {
@@ -63,14 +67,19 @@ test('should send 1 mutez', async () => {
   await dapp.click('#sendToSelf')
 
   await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
-  await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('p:has-text("successfully")', {
+    state: 'visible',
+    timeout: 5_000
+  })
+
+  await dappCtx.close()
 })
 
 test('should send 1 mutez on second tab', async () => {
   const dapp2 = await dappCtx.newPage()
   await dapp2.goto('http://localhost:1234/dapp.html')
 
-  await expect(dapp2.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+  await expect(dapp2.locator('#activeAccount')).toHaveText('tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb', {
     timeout: 5_000
   })
 
@@ -78,7 +87,10 @@ test('should send 1 mutez on second tab', async () => {
   await dapp2.click('#sendToSelf')
 
   await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
-  await dapp2.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+  await dapp2.waitForSelector('p:has-text("successfully")', {
+    state: 'visible',
+    timeout: 5_000
+  })
 })
 
 test('should send 1 mutez on both tabs', async () => {
@@ -91,12 +103,18 @@ test('should send 1 mutez on both tabs', async () => {
 
   const step1 = async () => {
     await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
-    await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+    await dapp.waitForSelector('p:has-text("successfully")', {
+      state: 'visible',
+      timeout: 5_000
+    })
   }
 
   const step2 = async () => {
     await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
-    await dapp2.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+    await dapp2.waitForSelector('p:has-text("successfully")', {
+      state: 'visible',
+      timeout: 5_000
+    })
   }
 
   await Promise.all([step1, step2])
@@ -157,7 +175,7 @@ test('should disconnect on tab1 and reconnect on tab2', async () => {
   await dapp2.click('button:has-text("Show QR code")')
   await dapp2.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 5_000 })
 
-  await dapp2.click('button:has-text("Beacon")')
+  await dapp2.click('button:has-text("WalletConnect")')
 
   await dapp2.waitForSelector('div.qr-right', { state: 'visible', timeout: 5_000 })
 
@@ -173,10 +191,10 @@ test('should disconnect on tab1 and reconnect on tab2', async () => {
 
   await wallet.click('#paste')
 
-  await expect(dapp2.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+  await expect(dapp2.locator('#activeAccount')).toHaveText('tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb', {
     timeout: 5_000
   })
-  await expect(dapp.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+  await expect(dapp.locator('#activeAccount')).toHaveText('tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb', {
     timeout: 5_000
   })
 
@@ -190,7 +208,10 @@ test('should disconnect on tab1 and reconnect on tab2', async () => {
   await dapp.click('#sendToSelf')
 
   await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
-  await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('p:has-text("successfully")', {
+    state: 'visible',
+    timeout: 5_000
+  })
 })
 
 test('should disconnect on tab2 and reconnect on tab3', async () => {
@@ -220,7 +241,7 @@ test('should disconnect on tab2 and reconnect on tab3', async () => {
   await dapp3.click('button:has-text("Show QR code")')
   await dapp3.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 5_000 })
 
-  await dapp3.click('button:has-text("Beacon")')
+  await dapp3.click('button:has-text("WalletConnect")')
 
   await dapp3.waitForSelector('div.qr-right', { state: 'visible', timeout: 5_000 })
 
@@ -236,13 +257,13 @@ test('should disconnect on tab2 and reconnect on tab3', async () => {
 
   await wallet.click('#paste')
 
-  await expect(dapp3.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+  await expect(dapp3.locator('#activeAccount')).toHaveText('tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb', {
     timeout: 5_000
   })
-  await expect(dapp2.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+  await expect(dapp2.locator('#activeAccount')).toHaveText('tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb', {
     timeout: 5_000
   })
-  await expect(dapp.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+  await expect(dapp.locator('#activeAccount')).toHaveText('tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb', {
     timeout: 5_000
   })
 
@@ -256,5 +277,8 @@ test('should disconnect on tab2 and reconnect on tab3', async () => {
   await dapp2.click('#sendToSelf')
 
   await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
-  await dapp2.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
+  await dapp2.waitForSelector('p:has-text("successfully")', {
+    state: 'visible',
+    timeout: 5_000
+  })
 })

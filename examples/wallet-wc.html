@@ -16,7 +16,7 @@
     <br /><br />
     <div id="status">Status: Initializing...</div>
     <br /><br />
-    <button id="pair">Pair with URI</button>
+    <button id="paste">Pair with URI</button>
     <br /><br />
     <button id="disconnect">Disconnect Session</button>
     <br /><br />
@@ -318,7 +318,7 @@
       }
 
       // Pair with URI
-      document.getElementById('pair').addEventListener('click', async () => {
+      document.getElementById('paste').addEventListener('click', async () => {
         const uriInput = document.getElementById('uri-input')
         let uri = uriInput.value.trim()
 
