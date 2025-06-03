@@ -137,3 +137,56 @@ test('should clearActiveAccount on both tabs', async () => {
 
   expect(activeAccount).toBe('undefined')
 })
+
+test('should disconnect on tab1 and reconnect on tab2', async () => {
+  const dapp2 = await dappCtx.newPage()
+  await dapp2.goto('http://localhost:1234/dapp.html')
+
+  await dapp.click('#disconnect')
+
+  await expect(dapp.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
+  await expect(dapp2.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
+
+  let activeAccount = await dapp.evaluate(() => {
+    return window.localStorage.getItem('beacon:active-account')
+  })
+
+  expect(activeAccount).toBe('undefined')
+
+  await dapp2.click('#requestPermission')
+  await dapp2.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
+
+  // --- choose AirGap and wait for QR display ---
+  await dapp2.click('div.alert-footer')
+  await dapp2.click('button:has-text("Show QR code")')
+  await dapp2.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 5_000 })
+
+  await dapp2.click('button:has-text("Beacon")')
+
+  await dapp2.waitForSelector('div.qr-right', { state: 'visible', timeout: 5_000 })
+
+  // --- click the QR element to copy the pairing code ---
+  await dapp2.click('div.qr-right')
+
+  // --- read back from the clipboard in the page context ---
+  const pairingCode = await dapp2.evaluate(async () => {
+    return await navigator.clipboard.readText()
+  })
+
+  expect(pairingCode).toBeTruthy()
+
+  await wallet.click('#paste')
+
+  await expect(dapp2.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+    timeout: 5_000
+  })
+  await expect(dapp.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
+    timeout: 5_000
+  })
+
+  activeAccount = await dapp.evaluate(() => {
+    return window.localStorage.getItem('beacon:active-account')
+  })
+
+  expect(activeAccount).not.toBe('undefined')
+})
