@@ -52,7 +52,7 @@ export const pairWithBeaconWallet = async (browser: Browser) => {
   await expect(dapp.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
     timeout: 5_000
   })
-  expect(activeAccount).toBeTruthy()
+  expect(activeAccount).not.toBe('undefined')
 
   return [dapp, dappCtx, wallet, walletCtx] as const
 }

@@ -48,6 +48,10 @@ test('should load activeAccount on page reload', async () => {
   await expect(dapp.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
     timeout: 5_000
   })
+  const activeAccount = await dapp.evaluate(() => {
+    return window.localStorage.getItem('beacon:active-account')
+  })
+  expect(activeAccount).not.toBe('undefined')
 })
 
 test('should send 1 mutez', async () => {
