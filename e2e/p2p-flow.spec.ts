@@ -30,11 +30,7 @@ test.afterAll(() => {
 })
 
 test.beforeEach(async ({ browser }) => {
-  const ctx = await pairWithBeaconWallet(browser)
-  dapp = ctx[0]
-  dappCtx = ctx[1]
-  wallet = ctx[2]
-  walletCtx = ctx[3]
+  ;[dapp, dappCtx, wallet, walletCtx] = await pairWithBeaconWallet(browser)
 })
 
 test.afterEach(async () => {
