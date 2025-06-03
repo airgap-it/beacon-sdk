@@ -189,6 +189,12 @@ test('should disconnect on tab1 and reconnect on tab2', async () => {
   })
 
   expect(activeAccount).not.toBe('undefined')
+
+  // #sendToSelf
+  await dapp.click('#sendToSelf')
+
+  await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
 })
 
 test('should disconnect on tab2 and reconnect on tab3', async () => {
@@ -249,4 +255,10 @@ test('should disconnect on tab2 and reconnect on tab3', async () => {
   })
 
   expect(activeAccount).not.toBe('undefined')
+
+  // #sendToSelf
+  await dapp2.click('#sendToSelf')
+
+  await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+  await dapp2.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 5_000 })
 })
