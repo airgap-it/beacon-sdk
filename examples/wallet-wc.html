@@ -7,9 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Style-Type" content="text/css" />
     <title>WalletConnect Tezos Example Wallet</title>
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
-
     <script src="https://cdn.jsdelivr.net/npm/@walletconnect/sign-client@2.18.0/dist/index.umd.js"></script>
   </head>
 
@@ -18,16 +16,12 @@
     <br /><br />
     <div id="status">Status: Initializing...</div>
     <br /><br />
-    <button id="paste">Pair with URI</button>
-    <br /><br />
-    <button id="disconnect">Disconnect Session</button>
-    <br /><br />
-    ---
-    <br /><br />
-    <button id="reset">Reset and Refresh</button>
 
-    <br /><br />
-    Test URI input: <input id="uri-input" type="text" placeholder="Paste WalletConnect URI here" />
+    <!-- Pair / Disconnect / Reset buttons -->
+    <button id="paste">Pair with URI</button>
+    <button id="disconnect">Disconnect Session</button>
+    <button id="reset">Reset and Refresh</button>
+    <button id="update">Update Session</button>
 
     <br /><br />
     <div id="sessions">
@@ -37,10 +31,10 @@
 
     <script>
       let signClient = null
-      const projectId = '97f804b46f0db632c52af0556586a5f3' // Replace with your WalletConnect Project ID
+      const projectId = '97f804b46f0db632c52af0556586a5f3' // ← your WalletConnect Project ID
 
       // Mock Tezos wallet data
-      const walletData = {
+      let walletData = {
         address: 'tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb',
         publicKey: 'edpkvGfYw3LyB1UcCahKQk4rF2tvbMUk8GFiTuMjL75uGXrpvKXhjn',
         privateKey: 'edsktesttesttesttesttesttesttesttesttesttesttestte',
@@ -57,7 +51,6 @@
 
       const updateSessionList = () => {
         if (!signClient) return
-
         const sessions = signClient.session.getAll()
         const sessionList = document.getElementById('session-list')
 
@@ -77,14 +70,6 @@
       const initializeWalletConnect = async () => {
         try {
           setStatus('Initializing WalletConnect...')
-
-          // Check if WalletConnect is available
-          console.log(
-            'Available globals:',
-            Object.keys(window).filter((key) => key.toLowerCase().includes('wallet'))
-          )
-
-          // Try different possible global variable names
           const SignClientClass =
             window.SignClient ||
             window.WalletConnect?.SignClient ||
@@ -112,15 +97,11 @@
             }
           })
 
-          console.log('SignClient initialized', signClient)
           setStatus('Ready')
-
-          // Set up event listeners
           signClient.on('session_proposal', onSessionProposal)
           signClient.on('session_request', onSessionRequest)
           signClient.on('session_delete', onSessionDelete)
           signClient.on('session_expire', onSessionExpire)
-
           updateSessionList()
         } catch (error) {
           console.error('Failed to initialize WalletConnect:', error)
@@ -128,29 +109,26 @@
         }
       }
 
-      // Handle session proposal
+      // 1) Handle incoming session proposals and auto‐approve
       const onSessionProposal = async (event) => {
         console.log('Session proposal received:', event)
         setStatus('Session proposal received...')
-
         const { id, params } = event
         const { requiredNamespaces, optionalNamespaces, relays } = params
 
         try {
-          // Auto-approve the session with our wallet's capabilities
+          // Build the namespaces object so the dApp knows what methods/events/chains we support
           const namespaces = {}
-
-          // Handle required namespaces (Tezos-specific)
           for (const [key, namespace] of Object.entries(requiredNamespaces)) {
             if (key === 'tezos') {
               namespaces[key] = {
-                accounts: [`tezos:ghostnet:${walletData.address}`], // Tezos ghostnet chain ID
+                accounts: [`tezos:ghostnet:${walletData.address}`],
                 methods: namespace.methods || ['tezos_getAccounts', 'tezos_send', 'tezos_sign'],
                 events: namespace.events || [],
                 chains: namespace.chains || ['tezos:ghostnet']
               }
             } else {
-              // Fallback for other namespaces
+              // Fallback for any other namespace
               namespaces[key] = {
                 accounts: [`${key}:ghostnet:${walletData.address}`],
                 methods: namespace.methods,
@@ -159,8 +137,7 @@
               }
             }
           }
-
-          // Handle optional namespaces if present
+          // If there are optionalNamespaces, mirror them here
           if (optionalNamespaces) {
             for (const [key, namespace] of Object.entries(optionalNamespaces)) {
               if (!namespaces[key]) {
@@ -183,20 +160,16 @@
             }
           }
 
-          console.log('Approving session with namespaces:', namespaces)
-
+          // Approve the session with our “namespaces”
           const session = await signClient.approve({
             id,
             namespaces
           })
-
-          console.log('Session approved:', session)
           setStatus('Session approved')
           updateSessionList()
         } catch (error) {
           console.error('Failed to approve session:', error)
           setStatus('Failed to approve session')
-
           await signClient.reject({
             id,
             reason: { code: 5000, message: 'Failed to approve session' }
@@ -204,7 +177,7 @@
         }
       }
 
-      // Handle session request (method calls)
+      // 2) Handle all incoming method calls (e.g. tezos_getAccounts, tezos_send, tezos_sign, etc.)
       const onSessionRequest = async (event) => {
         console.log('Session request received:', event)
         setStatus('Handling request...')
@@ -214,7 +187,6 @@
 
         try {
           let result
-
           switch (request.method) {
             case 'tezos_getAccounts':
               result = [
@@ -225,42 +197,28 @@
                 }
               ]
               break
-
             case 'tezos_send':
-              // Handle Tezos operation request
               const operations = request.params?.operations || request.params
-              console.log('Tezos operation request:', operations)
-
-              // Mock operation response
               result = {
                 operationHash: `op${Math.random().toString(36).substr(2, 9)}${Date.now().toString(36)}`,
-                operations: operations.map((op, index) => ({
+                operations: operations.map((op, i) => ({
                   ...op,
-                  counter: (12345 + index).toString(),
+                  counter: (12345 + i).toString(),
                   fee: op.fee || '1420',
                   gas_limit: op.gas_limit || '10600',
                   storage_limit: op.storage_limit || '257'
                 }))
               }
-              console.log('Mock Tezos operation sent:', result)
               break
-
             case 'tezos_sign':
-              // Handle Tezos signing request
               const signPayload = request.params?.payload || request.params
-              console.log('Tezos sign request:', signPayload)
-
-              // Mock signature response
               result = {
                 signature: `edsig${Math.random().toString(36).substr(2, 20)}${Date.now().toString(36)}`,
                 signedPayload: signPayload,
                 publicKey: walletData.publicKey
               }
-              console.log('Mock Tezos signature:', result)
               break
-
             case 'tezos_requestPermissions':
-              // Handle permission request (similar to Beacon's permission flow)
               result = {
                 address: walletData.address,
                 publicKey: walletData.publicKey,
@@ -268,12 +226,11 @@
                 scopes: ['tezos_getAccounts', 'tezos_send', 'tezos_sign']
               }
               break
-
             default:
               throw new Error(`Unsupported Tezos method: ${request.method}`)
           }
 
-          // Send successful response
+          // Always respond back to the dApp
           await signClient.respond({
             topic,
             response: {
@@ -282,13 +239,9 @@
               jsonrpc: '2.0'
             }
           })
-
-          console.log('Request handled successfully:', request.method, result)
           setStatus('Request handled')
         } catch (error) {
           console.error('Failed to handle request:', error)
-
-          // Send error response
           await signClient.respond({
             topic,
             response: {
@@ -300,19 +253,16 @@
               jsonrpc: '2.0'
             }
           })
-
           setStatus('Request failed')
         }
       }
 
-      // Handle session deletion
+      // 3) Clean up when the session is deleted or expired
       const onSessionDelete = (event) => {
         console.log('Session deleted:', event)
         setStatus('Session disconnected')
         updateSessionList()
       }
-
-      // Handle session expiration
       const onSessionExpire = (event) => {
         console.log('Session expired:', event)
         setStatus('Session expired')
@@ -321,62 +271,47 @@
 
       // Pair with URI
       document.getElementById('paste').addEventListener('click', async () => {
-        const uriInput = document.getElementById('uri-input')
-        let uri = uriInput.value.trim()
+        if (!signClient) return
 
-        if (!uri) {
-          try {
-            // Try to read from clipboard if no input provided
-            uri = await navigator.clipboard.readText()
-          } catch (error) {
-            alert('Please paste a WalletConnect URI in the input field')
-            return
-          }
+        try {
+          uri = await navigator.clipboard.readText()
+        } catch {
+          alert('Please paste a WalletConnect URI in the input field')
+          return
         }
 
         if (!uri.startsWith('wc:')) {
           alert('Invalid WalletConnect URI. It should start with "wc:"')
           return
         }
-
         try {
           setStatus('Pairing...')
-          console.log('Pairing with URI:', uri)
-
           await signClient.pair({ uri })
-          console.log('Pairing initiated')
-
-          // Clear the input
-          uriInput.value = ''
-        } catch (error) {
-          console.error('Pairing failed:', error)
+          setStatus('Ready')
+          document.getElementById('uri-input').value = ''
+        } catch (err) {
+          console.error('Pairing failed:', err)
           setStatus('Pairing failed')
-          alert('Pairing failed: ' + error.message)
+          alert('Pairing failed: ' + err.message)
         }
       })
 
       // Disconnect all sessions
       document.getElementById('disconnect').addEventListener('click', async () => {
         if (!signClient) return
-
+        const sessions = signClient.session.getAll()
+        if (sessions.length === 0) {
+          alert('No active sessions to disconnect')
+          return
+        }
         try {
-          const sessions = signClient.session.getAll()
-
-          if (sessions.length === 0) {
-            alert('No active sessions to disconnect')
-            return
-          }
-
           setStatus('Disconnecting sessions...')
-
           for (const session of sessions) {
             await signClient.disconnect({
               topic: session.topic,
               reason: { code: 6000, message: 'User disconnected' }
             })
           }
-
-          console.log('All sessions disconnected')
           setStatus('Disconnected')
           updateSessionList()
         } catch (error) {
@@ -385,7 +320,7 @@
         }
       })
 
-      // Reset wallet
+      // Reset wallet (clear storage + disconnect)
       document.getElementById('reset').addEventListener('click', async () => {
         try {
           if (signClient) {
@@ -397,12 +332,8 @@
               })
             }
           }
-
-          // Clear any stored data
           localStorage.clear()
           sessionStorage.clear()
-
-          // Reload the page
           window.location.reload()
         } catch (error) {
           console.error('Reset failed:', error)
@@ -410,9 +341,73 @@
         }
       })
 
+      document.getElementById('update').addEventListener('click', async () => {
+        if (!signClient) {
+          alert('SignClient not initialized yet')
+          return
+        }
+
+        const newAddress = 'tz1TwNWHfczra9ubmB9qbqw49EJN3fVcwsVo'
+        const newPbk = 'edpku28rWpLN6CksuPZMwE3Ew2AdVeRyVoddJhkUEqksrPybgvEWRn'
+
+        // 2) Find the single active session (or let user pick one if you have multiple)
+        const sessions = signClient.session.getAll()
+        if (sessions.length === 0) {
+          alert('No active session to update')
+          return
+        }
+
+        // In this example, we just pick the first session.
+        // If you have multiple sessions, you might show a list or allow selecting by topic.
+        const session = sessions[0]
+        const topic = session.topic
+
+        try {
+          setStatus('Updating session...')
+          // 3) Clone the existing namespaces so we can modify them
+          const namespaces = { ...session.namespaces }
+
+          // 4) Update the Tezos account entry (index 0) to use the new address
+          //    Format is “tezos:ghostnet:<address>”
+          //    (if you also need to update publicKey in index 1, do so here)
+          const oldEntry = namespaces.tezos.accounts[0].split(':')
+          // oldEntry is [ "tezos", "ghostnet", "<oldAddress>" ]
+          oldEntry[2] = newAddress
+          namespaces.tezos.accounts[0] = oldEntry.join(':')
+
+          // 5) (Optional) If this wallet’s namespaces.tezos.accounts[1] was storing a public key,
+          //    you would update that index too. For example:
+          //    if (namespaces.tezos.accounts.length > 1) {
+          //      let pkEntry = namespaces.tezos.accounts[1].split(':');
+          //      pkEntry[2] = YOUR_NEW_PUBLIC_KEY_HERE;
+          //      namespaces.tezos.accounts[1] = pkEntry.join(':');
+          //    }
+
+          console.log('Calling signClient.update with namespaces:', namespaces)
+
+          // 6) Call update(...) and wait for dApp to acknowledge
+          const { acknowledged } = await signClient.update({
+            topic,
+            namespaces
+          })
+          await acknowledged() // wait until dApp acknowledges the update
+
+          // 7) Update our local mock walletData.address as well
+          walletData.address = newAddress
+          walletData.publicKey = newPbk
+
+          setStatus('Session updated!')
+          updateSessionList()
+          setStatus(`Session successfully updated to ${newAddress}`)
+        } catch (err) {
+          console.error('Failed to update session:', err)
+          setStatus('Update failed')
+          alert('Failed to update session: ' + err.message)
+        }
+      })
+
       // Initialize when page loads
       window.addEventListener('load', () => {
-        // Add a small delay to ensure scripts are loaded
         setTimeout(() => {
           if (!projectId || projectId === 'YOUR_PROJECT_ID') {
             setStatus('Please set your WalletConnect Project ID')
@@ -421,7 +416,6 @@
             )
             return
           }
-
           initializeWalletConnect()
         }, 500)
       })

@@ -152,6 +152,26 @@ test('should clearActiveAccount on both tabs', async () => {
   expect(activeAccount).toBe('undefined')
 })
 
+test('should update the session on both tabs', async () => {
+  const dapp2 = await dappCtx.newPage()
+  await dapp2.goto('http://localhost:1234/dapp.html')
+
+  await wallet.click('#update')
+
+  await expect(dapp.locator('#activeAccount')).toHaveText('tz1TwNWHfczra9ubmB9qbqw49EJN3fVcwsVo', {
+    timeout: 5_000
+  })
+  await expect(dapp2.locator('#activeAccount')).toHaveText('tz1TwNWHfczra9ubmB9qbqw49EJN3fVcwsVo', {
+    timeout: 5_000
+  })
+
+  const activeAccount = await dapp.evaluate(() => {
+    return window.localStorage.getItem('beacon:active-account')
+  })
+
+  expect(activeAccount).not.toBe('undefined')
+})
+
 // due to an issue in WalletConnect, we cannot test the flow connect -> disconnect -> reconnect
 
 // test('should disconnect on tab1 and reconnect on tab2', async () => {})
