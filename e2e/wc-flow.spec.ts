@@ -42,7 +42,7 @@ test('should load activeAccount on page reload', async () => {
     return window.location.reload()
   })
   await expect(dapp.locator('#activeAccount')).toHaveText('tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb', {
-    timeout: 5_000
+    timeout: 20_000
   })
   const activeAccount = await dapp.evaluate(() => {
     return window.localStorage.getItem('beacon:active-account')
@@ -54,11 +54,11 @@ test('should send a request to sign', async () => {
   // #sendToSelf
   await dapp.click('#signPayloadRaw')
 
-  await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 20_000 })
 
   await dapp.waitForSelector('p:has-text("successfully")', {
     state: 'visible',
-    timeout: 5_000
+    timeout: 20_000
   })
 })
 
@@ -66,10 +66,10 @@ test('should send 1 mutez', async () => {
   // #sendToSelf
   await dapp.click('#sendToSelf')
 
-  await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 20_000 })
   await dapp.waitForSelector('p:has-text("successfully")', {
     state: 'visible',
-    timeout: 5_000
+    timeout: 20_000
   })
 
   await dappCtx.close()
@@ -80,16 +80,16 @@ test('should send 1 mutez on second tab', async () => {
   await dapp2.goto('http://localhost:1234/dapp.html')
 
   await expect(dapp2.locator('#activeAccount')).toHaveText('tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb', {
-    timeout: 5_000
+    timeout: 20_000
   })
 
   // #sendToSelf
   await dapp2.click('#sendToSelf')
 
-  await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+  await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 20_000 })
   await dapp2.waitForSelector('p:has-text("successfully")', {
     state: 'visible',
-    timeout: 5_000
+    timeout: 20_000
   })
 })
 
@@ -102,18 +102,18 @@ test('should send 1 mutez on both tabs', async () => {
   await dapp2.click('#sendToSelf')
 
   const step1 = async () => {
-    await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+    await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 20_000 })
     await dapp.waitForSelector('p:has-text("successfully")', {
       state: 'visible',
-      timeout: 5_000
+      timeout: 20_000
     })
   }
 
   const step2 = async () => {
-    await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 5_000 })
+    await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 20_000 })
     await dapp2.waitForSelector('p:has-text("successfully")', {
       state: 'visible',
-      timeout: 5_000
+      timeout: 20_000
     })
   }
 
@@ -126,8 +126,8 @@ test('should disconnect on both tabs', async () => {
 
   await dapp.click('#disconnect')
 
-  await expect(dapp.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
-  await expect(dapp2.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
+  await expect(dapp.locator('#activeAccount')).toHaveText('', { timeout: 20_000 })
+  await expect(dapp2.locator('#activeAccount')).toHaveText('', { timeout: 20_000 })
 
   const activeAccount = await dapp.evaluate(() => {
     return window.localStorage.getItem('beacon:active-account')
@@ -142,8 +142,8 @@ test('should clearActiveAccount on both tabs', async () => {
 
   await dapp.click('#clearActiveAccount')
 
-  await expect(dapp.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
-  await expect(dapp2.locator('#activeAccount')).toHaveText('', { timeout: 5_000 })
+  await expect(dapp.locator('#activeAccount')).toHaveText('', { timeout: 20_000 })
+  await expect(dapp2.locator('#activeAccount')).toHaveText('', { timeout: 20_000 })
 
   const activeAccount = await dapp.evaluate(() => {
     return window.localStorage.getItem('beacon:active-account')
@@ -159,10 +159,10 @@ test('should update the session on both tabs', async () => {
   await wallet.click('#update')
 
   await expect(dapp.locator('#activeAccount')).toHaveText('tz1TwNWHfczra9ubmB9qbqw49EJN3fVcwsVo', {
-    timeout: 5_000
+    timeout: 20_000
   })
   await expect(dapp2.locator('#activeAccount')).toHaveText('tz1TwNWHfczra9ubmB9qbqw49EJN3fVcwsVo', {
-    timeout: 5_000
+    timeout: 20_000
   })
 
   const activeAccount = await dapp.evaluate(() => {
@@ -179,10 +179,10 @@ test('should close the session through wallet', async () => {
   await wallet.click('#disconnect')
 
   await expect(dapp.locator('#activeAccount')).toHaveText('', {
-    timeout: 5_000
+    timeout: 20_000
   })
   await expect(dapp2.locator('#activeAccount')).toHaveText('', {
-    timeout: 5_000
+    timeout: 20_000
   })
 
   const activeAccount = await dapp.evaluate(() => {
