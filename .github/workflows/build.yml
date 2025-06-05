@@ -40,28 +40,34 @@ jobs:
         id: setup-ffmpeg
 
       # ───────────────────────────────────────────────────────────────────────────────
-      # ▼ E2E STEPS ▼
+      # ▼ BEGIN E2E STEPS ▼
       # ───────────────────────────────────────────────────────────────────────────────
 
-      # 1. Install Playwright’s browsers & required Linux dependencies
-      #    (this is equivalent to running `npx playwright install --with-deps`)
+      # 1. Install Playwright’s browsers + required Linux deps.
       - name: Install Playwright browsers & system dependencies
         run: npx playwright install --with-deps
 
-      # 2. Run all E2E specs in “e2e/” with a single worker (no parallelism),
-      #    wrapped in xvfb‐run so that any “headed” browsers can still launch.
-      #
-      #    We add “--workers=1” here so that only one spec file in “e2e/” runs at a time.
-      #    That way, each file’s `spawn('npx', ['http-server', 'examples', '-p', 1234], …)`
-      #    happens in isolation, and there’s never a second attempt to bind to 1234 or 4321
-      #    while another server is still running from a previous spec.
-      #
-      #    If you have other flags (e.g. custom timeouts), append them as needed.
+      # 2. Install http-server globally so “npx http-server” inside each spec
+      #    no longer tries to download on the fly.
+      - name: Install http-server (globally)
+        run: npm install -g http-server
+
+      # 3. Run each *.spec.ts under e2e/ one at a time (serially), wrapped in Xvfb.
+      #    After each file, kill any http-server processes before moving on.
       - name: Run E2E tests
         run: |
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" \
-            npx playwright test e2e --workers=1
+          # Loop through each spec in e2e/
+          for spec in e2e/*.spec.ts; do
+            echo "⏳ Running Playwright on $spec …"
+            xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" \
+              npx playwright test "$spec" --workers=1
+            echo "✅ $spec complete. Cleaning up any http-server child processes…"
+            # Guarantee no leftover http-server is still listening on 1234/4321:
+            pkill -f "http-server" || true
+          done
 
+      # ───────────────────────────────────────────────────────────────────────────────
+      # ▼  END E2E STEPS  ▼
       # ───────────────────────────────────────────────────────────────────────────────
 
       # - name: Upload
