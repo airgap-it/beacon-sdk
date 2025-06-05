@@ -30,7 +30,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Test (unit + integration)
+      - name: Test
         run: npm run test
 
       - name: Setup FFMPEG
