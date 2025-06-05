@@ -18,6 +18,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
       - name: Node 18
         uses: actions/setup-node@v1
         with:
@@ -39,13 +40,28 @@ jobs:
           # errors especially on GitHub-hosted macos machines.
           token: ${{ secrets.GITHUB_TOKEN }}
         id: setup-ffmpeg
-      - name: Test E2E
+
+      # ───────────────────────────────────────────────────────────────────────────────
+      # ▼ Updated “Test E2E” section to install Playwright’s OS deps & browsers ▼
+      # ───────────────────────────────────────────────────────────────────────────────
+
+      - name: Install Playwright dependencies & browsers
+        uses: microsoft/playwright-github-action@v1
+        with:
+          install-deps: true # runs `npx playwright install-deps` on Linux
+          install: true # runs `npx playwright install` to fetch all browser binaries
+
+      - name: Run E2E tests
         run: npm run e2e
+
+      # ───────────────────────────────────────────────────────────────────────────────
+
       # - name: Upload
       #   uses: actions/upload-artifact@v1
       #   with:
       #     name: video
       #     path: e2e/output/combined.webm
+
       # - name: Analyze with SonarCloud
       #   uses: sonarsource/sonarcloud-github-action@master
       #   env:
