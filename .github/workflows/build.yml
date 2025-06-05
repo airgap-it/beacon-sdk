@@ -42,14 +42,11 @@ jobs:
         id: setup-ffmpeg
 
       # ───────────────────────────────────────────────────────────────────────────────
-      # ▼ Updated “Test E2E” section to install Playwright’s OS deps & browsers ▼
+      # ▼ Updated “Test E2E” section to use `npx playwright install --with-deps` ▼
       # ───────────────────────────────────────────────────────────────────────────────
 
-      - name: Install Playwright dependencies & browsers
-        uses: microsoft/playwright-github-action@v1
-        with:
-          install-deps: true # runs `npx playwright install-deps` on Linux
-          install: true # runs `npx playwright install` to fetch all browser binaries
+      - name: Install Playwright browsers & system dependencies
+        run: npx playwright install --with-deps
 
       - name: Run E2E tests
         run: npm run e2e
