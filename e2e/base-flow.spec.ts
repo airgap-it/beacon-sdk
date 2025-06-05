@@ -1,11 +1,13 @@
 // e2e/flow.spec.ts
-import { test, expect } from '@playwright/test'
+import { test, expect, BrowserContext } from '@playwright/test'
 import { spawn, ChildProcess } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 
 let server1: ChildProcess
 let server2: ChildProcess
+
+let dappCtx: BrowserContext = {} as BrowserContext
 
 test.beforeAll(async () => {
   const out = path.join(__dirname, 'output')
@@ -24,10 +26,18 @@ test.afterAll(() => {
   server2.kill()
 })
 
-test('should open Kukai Web', async ({ browser }) => {
-  // --- setup contexts + pages ---
-  const dappCtx = await browser.newContext()
+test.beforeEach(async ({ browser }) => {
+  dappCtx = await browser.newContext()
+  await dappCtx.grantPermissions(['clipboard-read', 'clipboard-write'], {
+    origin: 'http://localhost:1234'
+  })
+})
 
+test.afterEach(async () => {
+  await dappCtx.close()
+})
+
+test('should open Kukai Web', async () => {
   const dapp = await dappCtx.newPage()
   await dapp.goto('http://localhost:1234/dapp.html')
 
@@ -62,13 +72,7 @@ test('should open Kukai Web', async ({ browser }) => {
   })) as unknown as HTMLElement
 })
 
-test('should display AirGap QR code and copy pairing code to clipboard', async ({ browser }) => {
-  // --- setup context + grant clipboard permissions ---
-  const dappCtx = await browser.newContext()
-  await dappCtx.grantPermissions(['clipboard-read', 'clipboard-write'], {
-    origin: 'http://localhost:1234'
-  })
-
+test('should display AirGap QR code and copy pairing code to clipboard', async () => {
   const dapp = await dappCtx.newPage()
   await dapp.goto('http://localhost:1234/dapp.html')
 
@@ -91,10 +95,7 @@ test('should display AirGap QR code and copy pairing code to clipboard', async (
   expect(pairingCode).toBeTruthy()
 })
 
-test('should display Temple Wallet', async ({ browser }) => {
-  // --- setup context + grant clipboard permissions ---
-  const dappCtx = await browser.newContext()
-
+test('should display Temple Wallet', async () => {
   const dapp = await dappCtx.newPage()
   await dapp.goto('http://localhost:1234/dapp.html')
 
@@ -119,13 +120,7 @@ test('should display Temple Wallet', async ({ browser }) => {
   // TODO extension pairing??
 })
 
-test('should pair other with Beacon', async ({ browser }) => {
-  // --- setup context + grant clipboard permissions ---
-  const dappCtx = await browser.newContext()
-  await dappCtx.grantPermissions(['clipboard-read', 'clipboard-write'], {
-    origin: 'http://localhost:1234'
-  })
-
+test('should pair other with Beacon', async () => {
   const dapp = await dappCtx.newPage()
   await dapp.goto('http://localhost:1234/dapp.html')
 
@@ -153,13 +148,7 @@ test('should pair other with Beacon', async ({ browser }) => {
   expect(pairingCode).toBeTruthy()
 })
 
-test('should pair other with WalletConnect', async ({ browser }) => {
-  // --- setup context + grant clipboard permissions ---
-  const dappCtx = await browser.newContext()
-  await dappCtx.grantPermissions(['clipboard-read', 'clipboard-write'], {
-    origin: 'http://localhost:1234'
-  })
-
+test('should pair other with WalletConnect', async () => {
   const dapp = await dappCtx.newPage()
   await dapp.goto('http://localhost:1234/dapp.html')
 
@@ -187,13 +176,7 @@ test('should pair other with WalletConnect', async ({ browser }) => {
   expect(pairingCode).toBeTruthy()
 })
 
-test('should close the pairing alert', async ({ browser }) => {
-  // --- setup context + grant clipboard permissions ---
-  const dappCtx = await browser.newContext()
-  await dappCtx.grantPermissions(['clipboard-read', 'clipboard-write'], {
-    origin: 'http://localhost:1234'
-  })
-
+test('should close the pairing alert', async () => {
   const dapp = await dappCtx.newPage()
   await dapp.goto('http://localhost:1234/dapp.html')
 
@@ -201,7 +184,7 @@ test('should close the pairing alert', async ({ browser }) => {
   await dapp.click('#requestPermission')
   await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
 
-  await dapp.locator('div.alert-button-icon').nth(0).click()
+  await dapp.locator('div.button-icon').nth(0).click()
 
   await dapp.waitForSelector('div.alert-wrapper-show', { state: 'detached', timeout: 5_000 })
 })
