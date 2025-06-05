@@ -39,8 +39,8 @@ jobs:
           # errors especially on GitHub-hosted macos machines.
           token: ${{ secrets.GITHUB_TOKEN }}
         id: setup-ffmpeg
-      # - name: Test E2E
-      #   run: npm run e2e:all
+      - name: Test E2E
+        run: npm run e2e
       # - name: Upload
       #   uses: actions/upload-artifact@v1
       #   with:
