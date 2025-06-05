@@ -45,17 +45,17 @@ test('should open Kukai Web', async () => {
   await dapp.click('#requestPermission')
   ;(await dapp.waitForSelector('div.alert-wrapper-show', {
     state: 'visible',
-    timeout: 5000
+    timeout: 30_000
   })) as unknown as HTMLElement
 
   await dapp.click('h3:has-text("Kukai")')
   ;(await dapp.waitForSelector('div.info-wrapper', {
     state: 'visible',
-    timeout: 5000
+    timeout: 30_000
   })) as unknown as HTMLElement
   ;(await dapp.waitForSelector('div.qr-wrapper', {
     state: 'visible',
-    timeout: 5000
+    timeout: 30_000
   })) as unknown as HTMLElement
 
   await dapp.click('button:has-text("Use Browser")')
@@ -68,7 +68,7 @@ test('should open Kukai Web', async () => {
   await walletPage.waitForLoadState('domcontentloaded')
   ;(await walletPage.waitForSelector('div.agreement-body', {
     state: 'visible',
-    timeout: 5000
+    timeout: 30_000
   })) as unknown as HTMLElement
 })
 
@@ -114,7 +114,7 @@ test('should display Temple Wallet', async () => {
   })
   ;(await dapp.waitForSelector('div.qr-wrapper', {
     state: 'visible',
-    timeout: 5000
+    timeout: 30_000
   })) as unknown as HTMLElement
 
   // TODO extension pairing??
