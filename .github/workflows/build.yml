@@ -42,14 +42,15 @@ jobs:
         id: setup-ffmpeg
 
       # ───────────────────────────────────────────────────────────────────────────────
-      # ▼ Updated “Test E2E” section to use `npx playwright install --with-deps` ▼
+      # ▼ “Test E2E” section runs under Xvfb (headless X server) ▼
       # ───────────────────────────────────────────────────────────────────────────────
 
       - name: Install Playwright browsers & system dependencies
         run: npx playwright install --with-deps
 
       - name: Run E2E tests
-        run: npm run e2e
+        run: |
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" npm run e2e
 
       # ───────────────────────────────────────────────────────────────────────────────
 
