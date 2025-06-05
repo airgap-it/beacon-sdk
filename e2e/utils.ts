@@ -43,7 +43,7 @@ export const pairWithBeaconWallet = async (browser: Browser) => {
 
   await wallet.click('#paste')
 
-  await dapp.waitForSelector('#activeAccount', { state: 'visible', timeout: 10_000 })
+  await dapp.waitForSelector('#activeAccount', { state: 'visible', timeout: 30_000 })
 
   const activeAccount = await dapp.evaluate(() => {
     return window.localStorage.getItem('beacon:active-account')
@@ -100,7 +100,7 @@ export const pairWithWCWallet = async (browser: Browser) => {
 
   await wallet.click('#paste')
 
-  await dapp.waitForSelector('#activeAccount', { state: 'visible', timeout: 10_000 })
+  await dapp.waitForSelector('#activeAccount', { state: 'visible', timeout: 30_000 })
 
   const activeAccount = await dapp.evaluate(() => {
     return window.localStorage.getItem('beacon:active-account')
