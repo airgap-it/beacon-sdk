@@ -42,16 +42,41 @@ jobs:
         id: setup-ffmpeg
 
       # ───────────────────────────────────────────────────────────────────────────────
-      # ▼ “Test E2E” section runs under Xvfb (headless X server) ▼
+      # ▼ BEGIN E2E‐RELATED STEPS ▼
       # ───────────────────────────────────────────────────────────────────────────────
 
+      # 1. Install http-server globally (so that `npx http-server` is instant and doesn't try to
+      #    download on the fly in each test file). If you prefer to keep it as a devDependency,
+      #    you can `npm install -D http-server` instead; the key is that the command must exist.
+      - name: Install http-server
+        run: npm install -g http-server
+
+      # 2. Install Playwright’s browsers + Linux deps in one shot.
+      #    (This is the modern replacement for `microsoft/playwright-github-action@v1` with `--with-deps`.)
       - name: Install Playwright browsers & system dependencies
         run: npx playwright install --with-deps
 
+      # 3. Start both static servers (on 1234 and 4321) in the background.
+      #    We assume your “examples” folder (containing dapp.html, wallet.html, etc.) lives
+      #    under e2e/examples. Adjust “examples” to your actual path if it’s different.
+      - name: Start static servers for E2E
+        run: |
+          # Serve “examples” on port 1234 (for the dapp) and port 4321 (for the wallet)
+          http-server e2e/examples -p 1234 &
+          http-server e2e/examples -p 4321 &
+          # Give those servers a moment to boot up before running tests
+          sleep 2
+
+      # 4. Run all Playwright E2E tests (using xvfb‐run so that any “headed” browsers can launch).
+      #    We point Playwright at “e2e” (so it only runs *.spec.ts under e2e/).
+      #    You can limit to a single worker if you prefer: “--workers=1”
       - name: Run E2E tests
         run: |
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" npm run e2e
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" \
+            npx playwright test e2e
 
+      # ───────────────────────────────────────────────────────────────────────────────
+      # ▼ END E2E‐RELATED STEPS ▼
       # ───────────────────────────────────────────────────────────────────────────────
 
       # - name: Upload
