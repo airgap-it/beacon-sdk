@@ -33,12 +33,6 @@ jobs:
       - name: Test
         run: npm run test
 
-      - name: Setup FFMPEG
-        uses: FedericoCarboni/setup-ffmpeg@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-        id: setup-ffmpeg
-
       # ───────────────────────────────────────────────────────────────────────────────
       # ▼ BEGIN E2E STEPS ▼
       # ───────────────────────────────────────────────────────────────────────────────
