@@ -71,6 +71,7 @@ audit.json
 gl-dependency-scanning-report.json
 
 e2e/output
+e2e/playwright-report
 combined.webm
 
 examples/walletbeacon.min.js

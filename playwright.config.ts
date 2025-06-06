@@ -21,7 +21,7 @@ export default defineConfig({
   // 6. Global “use” options for all tests
   use: {
     // a) Run all tests in headless mode by default
-    headless: true,
+    headless: true, // set to 'false' to see the tests playing
 
     // c) Always capture video (only keep video when a test fails)
     video: 'retain-on-failure',
@@ -60,13 +60,13 @@ export default defineConfig({
     //   }
     // }
 
-    // Example: add a mobile-emulation project
+    // TODO: add a mobile-emulation project
     // {
     //   name: 'Mobile Chrome',
     //   use: {
-    //     ...devices['Pixel 5'],
-    //   },
-    // },
+    //     ...devices['Pixel 7']
+    //   }
+    // }
     // {
     //   name: 'Mobile Safari',
     //   use: {
@@ -75,9 +75,32 @@ export default defineConfig({
     // },
   ],
 
+  webServer: [
+    {
+      // Command to start the first server (Dapp on port 1234)
+      command: 'npx http-server examples -p 1234',
+      // Health‐check URL; Playwright waits until http://localhost:1234 responds
+      url: 'http://localhost:1234',
+      // A human‐readable name for logs
+      name: 'Dapp Server',
+      // How long (ms) to wait for this server to come up
+      timeout: 120 * 1000,
+      // If a server is already running on 1234, reuse it (unless on CI)
+      reuseExistingServer: !process.env.CI
+    },
+    {
+      // Command to start the second server (Wallet on port 4321)
+      command: 'npx http-server examples -p 4321',
+      url: 'http://localhost:4321',
+      name: 'Wallet Server',
+      timeout: 120 * 1000,
+      reuseExistingServer: !process.env.CI
+    }
+  ],
+
   // 8. Reporter(s)—console “list” plus HTML report output under “playwright-report/”
   reporter: [
     ['list'], // simple console output
-    ['html', { outputFolder: 'playwright-report', open: 'never' }]
+    ['html', { outputFolder: './e2e/playwright-report', open: 'never' }]
   ]
 })
