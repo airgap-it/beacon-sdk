@@ -188,3 +188,21 @@ test('should close the pairing alert', async () => {
 
   await dapp.waitForSelector('div.alert-wrapper-show', { state: 'detached', timeout: 30_000 })
 })
+
+test('should show "No active account" error alert', async () => {
+  const dapp = await dappCtx.newPage()
+  await dapp.goto('http://localhost:1234/dapp.html')
+
+  // --- trigger the Beacon pairing alert ---
+  await dapp.click('#sendToSelf')
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
+
+  await dapp.waitForSelector('div:has-text("No active account")', {
+    state: 'visible',
+    timeout: 30_000
+  })
+
+  await dapp.click('button:has-text("Close")')
+
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'detached', timeout: 30_000 })
+})

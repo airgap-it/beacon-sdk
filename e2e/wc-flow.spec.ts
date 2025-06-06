@@ -75,6 +75,23 @@ test('should send 1 mutez', async () => {
   await dappCtx.close()
 })
 
+test('should rate limit', async () => {
+  await dapp.click('#sendToSelf')
+  await dapp.click('#sendToSelf')
+
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
+
+  await dapp.waitForSelector('h3:has-text("Error")')
+  await dapp.waitForSelector('div:has-text("Rate")', {
+    state: 'visible',
+    timeout: 30_000
+  })
+
+  await dapp.click('button:has-text("Close")')
+
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'detached', timeout: 30_000 })
+})
+
 test('should send 1 mutez on second tab', async () => {
   const dapp2 = await dappCtx.newPage()
   await dapp2.goto('http://localhost:1234/dapp.html')
