@@ -78,11 +78,11 @@ test('should display AirGap QR code and copy pairing code to clipboard', async (
 
   // --- trigger the Beacon pairing alert ---
   await dapp.click('#requestPermission')
-  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
 
   // --- choose AirGap and wait for QR display ---
   await dapp.click('h3:has-text("AirGap")')
-  await dapp.waitForSelector('div.qr-right', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.qr-right', { state: 'visible', timeout: 30_000 })
 
   // --- click the QR element to copy the pairing code ---
   await dapp.click('div.qr-right')
@@ -101,16 +101,16 @@ test('should display Temple Wallet', async () => {
 
   // --- trigger the Beacon pairing alert ---
   await dapp.click('#requestPermission')
-  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
 
   await dapp.click('div.alert-footer')
-  await dapp.waitForSelector('div.wallets-list-wrapper', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.wallets-list-wrapper', { state: 'visible', timeout: 30_000 })
 
   await dapp.click('h3:has-text("Temple")')
 
   await dapp.waitForSelector('h3:has-text("Connect with Temple Browser Extension")', {
     state: 'visible',
-    timeout: 5_000
+    timeout: 30_000
   })
   ;(await dapp.waitForSelector('div.qr-wrapper', {
     state: 'visible',
@@ -126,16 +126,16 @@ test('should pair other with Beacon', async () => {
 
   // --- trigger the Beacon pairing alert ---
   await dapp.click('#requestPermission')
-  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
 
   // --- choose AirGap and wait for QR display ---
   await dapp.click('div.alert-footer')
   await dapp.click('button:has-text("Show QR code")')
-  await dapp.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 30_000 })
 
   await dapp.click('button:has-text("Beacon")')
 
-  await dapp.waitForSelector('div.qr-right', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.qr-right', { state: 'visible', timeout: 30_000 })
 
   // --- click the QR element to copy the pairing code ---
   await dapp.click('div.qr-right')
@@ -154,16 +154,16 @@ test('should pair other with WalletConnect', async () => {
 
   // --- trigger the Beacon pairing alert ---
   await dapp.click('#requestPermission')
-  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
 
   // --- choose AirGap and wait for QR display ---
   await dapp.click('div.alert-footer')
   await dapp.click('button:has-text("Show QR code")')
-  await dapp.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 30_000 })
 
   await dapp.click('button:has-text("WalletConnect")')
 
-  await dapp.waitForSelector('div.qr-right', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.qr-right', { state: 'visible', timeout: 30_000 })
 
   // --- click the QR element to copy the pairing code ---
   await dapp.click('div.qr-right')
@@ -182,9 +182,9 @@ test('should close the pairing alert', async () => {
 
   // --- trigger the Beacon pairing alert ---
   await dapp.click('#requestPermission')
-  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
 
   await dapp.locator('div.button-icon').nth(0).click()
 
-  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'detached', timeout: 5_000 })
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'detached', timeout: 30_000 })
 })

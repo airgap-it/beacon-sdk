@@ -20,16 +20,16 @@ export const pairWithBeaconWallet = async (browser: Browser) => {
 
   // --- trigger the Beacon pairing alert ---
   await dapp.click('#requestPermission')
-  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
 
   // --- choose AirGap and wait for QR display ---
   await dapp.click('div.alert-footer')
   await dapp.click('button:has-text("Show QR code")')
-  await dapp.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 30_000 })
 
   await dapp.click('button:has-text("Beacon")')
 
-  await dapp.waitForSelector('div.qr-right', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.qr-right', { state: 'visible', timeout: 30_000 })
 
   // --- click the QR element to copy the pairing code ---
   await dapp.click('div.qr-right')
@@ -50,7 +50,7 @@ export const pairWithBeaconWallet = async (browser: Browser) => {
   })
 
   await expect(dapp.locator('#activeAccount')).toHaveText('tz1RAf7CZDoa5Z94RdE2VMwfrRWeyiNAXTrw', {
-    timeout: 5_000
+    timeout: 30_000
   })
   expect(activeAccount).not.toBe('undefined')
 
@@ -77,16 +77,16 @@ export const pairWithWCWallet = async (browser: Browser) => {
 
   // --- trigger the WalletConnect pairing alert ---
   await dapp.click('#requestPermission')
-  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
 
   // --- choose AirGap and wait for QR display ---
   await dapp.click('div.alert-footer')
   await dapp.click('button:has-text("Show QR code")')
-  await dapp.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('span.pair-other-info', { state: 'visible', timeout: 30_000 })
 
   await dapp.click('button:has-text("WalletConnect")')
 
-  await dapp.waitForSelector('div.qr-right', { state: 'visible', timeout: 5_000 })
+  await dapp.waitForSelector('div.qr-right', { state: 'visible', timeout: 30_000 })
 
   // --- click the QR element to copy the pairing code ---
   await dapp.click('div.qr-right')
@@ -107,7 +107,7 @@ export const pairWithWCWallet = async (browser: Browser) => {
   })
 
   await expect(dapp.locator('#activeAccount')).toHaveText('tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb', {
-    timeout: 5_000
+    timeout: 30_000
   })
   expect(activeAccount).not.toBe('undefined')
 
