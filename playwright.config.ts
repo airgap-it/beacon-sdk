@@ -21,7 +21,7 @@ export default defineConfig({
   // 6. Global “use” options for all tests
   use: {
     // a) Run all tests in headless mode by default
-    headless: true, // set to 'false' to see the tests playing
+    headless: true, // set it to 'false' to see the tests playing
 
     // c) Always capture video (only keep video when a test fails)
     video: 'retain-on-failure',
@@ -84,17 +84,14 @@ export default defineConfig({
       // A human‐readable name for logs
       name: 'Dapp Server',
       // How long (ms) to wait for this server to come up
-      timeout: 120 * 1000,
-      // If a server is already running on 1234, reuse it (unless on CI)
-      reuseExistingServer: !process.env.CI
+      timeout: 120 * 1000
     },
     {
       // Command to start the second server (Wallet on port 4321)
       command: 'npx http-server examples -p 4321',
       url: 'http://localhost:4321',
       name: 'Wallet Server',
-      timeout: 120 * 1000,
-      reuseExistingServer: !process.env.CI
+      timeout: 120 * 1000
     }
   ],
 
