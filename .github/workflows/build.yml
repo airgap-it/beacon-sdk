@@ -49,13 +49,7 @@ jobs:
       # 3. Run each *.spec.ts under e2e/ one at a time (serially), wrapped in Xvfb.
       #    After each file, kill any http-server processes before moving on.
       - name: Run E2E tests
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 20
-          max_attempts: 3
-          retry_wait_seconds: 60
-          shell: bash
-          command: npm run e2e
+        run: npm run e2e
 
       # ───────────────────────────────────────────────────────────────────────────────
       # ▼  END E2E STEPS  ▼

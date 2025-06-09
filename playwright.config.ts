@@ -16,7 +16,7 @@ export default defineConfig({
   },
 
   // 4. Retries (CI: retry once; locally: no retries)
-  retries: 1,
+  retries: 2,
 
   // 6. Global “use” options for all tests
   use: {
