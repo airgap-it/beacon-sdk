@@ -591,12 +591,13 @@ describe('useConnect hook', () => {
 
   // Updated test: pass testUri as p2pPayload so that the expected deep link is generated.
   it('should handle handleDeepLinking when wallet.links[OSLink.IOS] is present', async () => {
+    const wcPayload = 'wc-payload'
     const deepLinkWallet = {
       key: 'wallet-deeplink',
       name: 'DeepLink Wallet',
       id: 'wallet-deeplink-id',
       types: ['ios'],
-      supportedInteractionStandards: [],
+      supportedInteractionStandards: ['wallet_connect'] as any,
       links: ['', 'https://ioswallet.com/', '', ''],
       image: 'https://ioswallet.com/icon.png',
       descriptions: ['test']
@@ -621,7 +622,7 @@ describe('useConnect hook', () => {
     const { result } = renderHook(() =>
       useConnect(
         false,
-        Promise.resolve('wc-payload'),
+        Promise.resolve(wcPayload),
         Promise.resolve(testUri), // Use testUri as the p2pPayload value
         Promise.resolve('post-payload'),
         wallets,
@@ -634,12 +635,12 @@ describe('useConnect hook', () => {
     })
 
     const storedWallet = JSON.parse(localStorage.getItem(StorageKey.LAST_SELECTED_WALLET)!)
-    expect(storedWallet.url).toBe('https://ioswallet.com/wc?uri=')
+    expect(storedWallet.url).toBe(`https://ioswallet.com/wc?uri=${wcPayload}`)
 
     expect(createElementSpy).toHaveBeenCalledWith('a')
     expect(setAttributeSpy).toHaveBeenCalledWith(
       'href',
-      `https://ioswallet.com/wc?uri=${encodeURIComponent(testUri)}`
+      `https://ioswallet.com/wc?uri=${encodeURIComponent(wcPayload)}`
     )
     expect(setAttributeSpy).toHaveBeenCalledWith('rel', 'noopener')
     expect(dispatchEventSpy).toHaveBeenCalled()

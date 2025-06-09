@@ -9,7 +9,6 @@ export enum AlertState {
   INSTALL = 'install',
   BUG_REPORT = 'bug-report',
   QR = 'qr',
-  QR_ONLY = 'qr_only'
 }
 
 export interface AlertButton {
@@ -30,7 +29,7 @@ export interface AlertConfig {
   analytics?: AnalyticsInterface
   featuredWallets?: string[]
   openBugReport?: boolean
-  displayQRCode?: boolean
+  substratePairing?: boolean
 }
 
 export interface ConfigurableAlertProps extends Omit<AlertConfig, 'closeButtonCallback'> {

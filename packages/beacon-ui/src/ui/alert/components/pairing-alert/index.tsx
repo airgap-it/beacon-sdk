@@ -5,20 +5,29 @@ import Info from '../../../../components/info'
 import PairOther from '../../../../components/pair-other'
 import TopWallets from '../../../../components/top-wallets'
 import Wallets from '../../../../components/wallets'
-import { isIOS, isMobileOS } from '../../../../utils/platform'
+import { isMobileOS } from '../../../../utils/platform'
 import useWallets from '../../hooks/useWallets'
 import { AlertState, ConfigurableAlertProps } from '../../../common'
 import useIsMobile from '../../hooks/useIsMobile'
 import { useEffect, useState } from 'react'
 import WCInitError from './components/wc-init-error'
 import QRCode from './components/qr-code'
+import MobilePairing from './components/mobile-pairing'
+import useSubstrateWallets from '../../hooks/useSubstrateWallets'
 
 const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const wcPayload = props.pairingPayload!.walletConnectSyncCode
   const p2pPayload = props.pairingPayload!.p2pSyncCode
   const postPayload = props.pairingPayload!.postmessageSyncCode
   const isMobile = useIsMobile()
-  const wallets = useWallets(props.pairingPayload?.networkType, props.featuredWallets)
+  const wallets = useWallets(
+    props.pairingPayload?.networkType,
+    !props.substratePairing ? props.featuredWallets : undefined
+  )
+  const substrateWalltes = useSubstrateWallets(
+    props.pairingPayload?.networkType,
+    props.substratePairing ? props.featuredWallets : undefined
+  )
   const [
     wallet,
     isLoading,
@@ -40,9 +49,19 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     handleShowMoreContent,
     handleDisplayQRExtra,
     handleIsLoading
-  ] = useConnect(isMobile, wcPayload, p2pPayload, postPayload, wallets, props.onClose)
+  ] = useConnect(
+    isMobile,
+    wcPayload,
+    p2pPayload,
+    postPayload,
+    props.substratePairing ? substrateWalltes : wallets,
+    props.onClose
+  )
   const isOnline = navigator.onLine
-  const walletList = Array.from(wallets.values())
+  const walletList = Array.from(
+    props.substratePairing ? substrateWalltes.values() : wallets.values()
+  )
+
   const [isPairingExpired, setIsPairingExpired] = useState(false)
 
   useEffect(() => {
@@ -54,21 +73,26 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   }, [props.openBugReport])
 
   useEffect(() => {
-    if (!props.displayQRCode || state === AlertState.QR_ONLY) {
-      return
-    }
-
-    handleUpdateState(AlertState.QR_ONLY)
-    handleIsLoading(true)
-  }, [props.displayQRCode])
-
-  useEffect(() => {
     if (props.open || state !== AlertState.BUG_REPORT) {
       return
     }
 
     setIsPairingExpired(true)
   }, [state, props.open])
+
+  useEffect(() => {
+    let size = wallets.size
+
+    if (props.substratePairing) {
+      size = substrateWalltes.size
+    }
+
+    if (size !== 1) {
+      return
+    }
+
+    handleClickWallet(walletList[0].id, props)
+  }, [wallets, substrateWalltes])
 
   const QR: React.FC<{ isMobile: boolean }> = ({ isMobile }) => (
     <QRCode
@@ -81,6 +105,27 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       handleIsLoading={handleIsLoading}
     />
   )
+
+  const MobileInfoCard = () => {
+    handleIsLoading(false)
+
+    if (!wallet) {
+      throw new Error('Wallet undefined')
+    }
+
+    return (
+      <MobilePairing
+        wallet={wallet}
+        handleUpdateState={handleUpdateState}
+        handleDeepLinking={handleDeepLinking}
+        wcPayload={wcPayload}
+        p2pPayload={p2pPayload}
+        handleUpdateQRCode={handleUpdateQRCode}
+        handleDisplayQRExtra={handleDisplayQRExtra}
+        onClose={props.onClose}
+      />
+    )
+  }
 
   return (
     <Alert
@@ -104,18 +149,20 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
       }
       onClickShowMore={handleShowMoreContent}
       onBackClick={
-        [AlertState.INSTALL, AlertState.QR].includes(state) ||
-        (state === AlertState.WALLETS && isMobile)
-          ? () => handleUpdateState(AlertState.TOP_WALLETS)
-          : state === 'bug-report'
-          ? () => {
-              if (isPairingExpired) {
-                props.onClose()
-                return undefined
-              }
-              return handleUpdateState(AlertState.TOP_WALLETS)
-            }
-          : undefined
+        walletList.length === 1
+          ? undefined
+          : [AlertState.INSTALL, AlertState.QR].includes(state) ||
+              (state === AlertState.WALLETS && isMobile)
+            ? () => handleUpdateState(AlertState.TOP_WALLETS)
+            : state === 'bug-report'
+              ? () => {
+                  if (isPairingExpired) {
+                    props.onClose()
+                    return undefined
+                  }
+                  return handleUpdateState(AlertState.TOP_WALLETS)
+                }
+              : undefined
       }
     >
       <div>
@@ -207,53 +254,9 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               (wallet?.types.length as number) <= 1 && <QR isMobile={true} />}
             {isMobileOS(window) &&
               wallet?.types.includes('ios') &&
-              (!wallet?.supportedInteractionStandards?.includes('wallet_connect') || isWCWorking ? (
-                <Info
-                  border
-                  title={`Connect with ${wallet?.name} Mobile`}
-                  description={''}
-                  buttons={[
-                    {
-                      label: 'Use App',
-                      type: 'primary',
-                      onClick: () => {
-                        if (!wallet) {
-                          return
-                        }
-                        handleDeepLinking(wallet)
-                      }
-                    }
-                  ]}
-                  downloadLink={
-                    wallet?.name.toLowerCase().includes('kukai') && isIOS(window)
-                      ? {
-                          label: 'Get Kukai Mobile >',
-                          url: 'https://ios.kukai.app'
-                        }
-                      : undefined
-                  }
-                  onShowQRCodeClick={async () => {
-                    const syncCode = await (wallet?.supportedInteractionStandards?.includes(
-                      'wallet_connect'
-                    )
-                      ? wcPayload
-                      : p2pPayload)
-
-                    if (!syncCode.length || !wallet) {
-                      props.onClose()
-                      return
-                    }
-
-                    if (isMobile && wallet.types.includes('ios') && wallet.types.length === 1) {
-                      handleDeepLinking(wallet)
-                    } else {
-                      handleUpdateQRCode(syncCode)
-                    }
-
-                    handleUpdateState(AlertState.QR)
-                    handleDisplayQRExtra(true)
-                  }}
-                />
+              ((isWCWorking && wallet?.supportedInteractionStandards?.includes('wallet_connect')) ||
+              wallet?.name.toLowerCase().includes('acurast') ? (
+                <MobileInfoCard />
               ) : (
                 <WCInitError
                   title={`Connect with ${wallet?.name} Mobile`}
@@ -321,29 +324,9 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
             <BugReportForm onSubmit={props.onClose} />
           </div>
         )}
-        {!isMobileOS(window) && state === AlertState.QR_ONLY && (
-          <div
-            style={{
-              opacity: 1,
-              height: 'unset',
-              overflow: 'unset',
-              transform: 'scale(1)',
-              transition: 'all ease 0.3s',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.9em'
-            }}
-          >
-            <QR isMobile={true} />
-          </div>
-        )}
-        {![
-          AlertState.QR,
-          AlertState.WALLETS,
-          AlertState.BUG_REPORT,
-          AlertState.INSTALL,
-          AlertState.QR_ONLY
-        ].includes(state) && (
+        {![AlertState.QR, AlertState.WALLETS, AlertState.BUG_REPORT, AlertState.INSTALL].includes(
+          state
+        ) && (
           <div
             style={{
               opacity: 1,
@@ -360,7 +343,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               onClickLearnMore={() => handleUpdateState(AlertState.BUG_REPORT)}
               disabled={isLoading}
               otherWallets={
-                isMobile
+                isMobile && walletList.length >= 6
                   ? {
                       images: [walletList[3].image, walletList[4].image, walletList[5].image],
                       onClick: () => handleUpdateState(AlertState.WALLETS)

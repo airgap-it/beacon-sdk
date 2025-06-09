@@ -93,27 +93,7 @@ describe('TopWallets Component', () => {
     )
     expect(screen.getByRole('heading', { name: /Connect Wallet/i })).toBeInTheDocument()
     // Normal text when ENABLE_METRICS is not 'true'
-    expect(
-      screen.getByText(
-        /If you don't have a wallet, you can select a provider and create one now\./i
-      )
-    ).toBeInTheDocument()
-    expect(screen.getByText(/Learn more/i)).toBeInTheDocument()
-  })
-
-  test('calls onClickLearnMore when the learn more text is clicked', () => {
-    localStorage.setItem(StorageKey.ENABLE_METRICS, 'false')
-    render(
-      <TopWallets
-        wallets={dummyWallets}
-        onClickWallet={onClickWallet}
-        onClickLearnMore={onClickLearnMore}
-        isMobile={false}
-      />
-    )
-    const learnMoreEl = screen.getByText(/Learn more/i)
-    fireEvent.click(learnMoreEl)
-    expect(onClickLearnMore).toHaveBeenCalled()
+    expect(screen.getByText(/Do you wish to report a bug\?/i)).toBeInTheDocument()
   })
 
   test('renders a list of wallets and calls onClickWallet when a wallet is clicked', () => {

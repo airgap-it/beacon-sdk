@@ -37,7 +37,8 @@ const generateForBlockchains = (
   extensionList: ExtensionApp[],
   desktopList: DesktopApp[],
   webList: WebApp[],
-  iosList: App[]
+  iosList: App[],
+  outputFileName: string = 'wallet-lists' // default parameter
 ) => {
   const PKG_DIR = path.join(__dirname, '../')
   const REGISTRY_DIR = path.join(PKG_DIR, 'assets', 'logos')
@@ -76,36 +77,25 @@ const generateForBlockchains = (
     const webListWithInlinedLogo = await convert(webList)
     const iosListWithInlinedLogo = await convert(iosList)
 
-    let out = `import { App, DesktopApp, ExtensionApp, WebApp } from '@airgap/beacon-types'`
-    out += `
-  
-  `
+    let out = `import { App, DesktopApp, ExtensionApp, WebApp } from '@airgap/beacon-types'\n\n`
 
     out += `export const extensionList: ExtensionApp[] = ${JSON.stringify(
       extensionListWithInlinedLogo,
       null,
       2
-    )}`
-    out += `
-  
-  `
+    )}\n\n`
+
     out += `export const desktopList: DesktopApp[] = ${JSON.stringify(
       desktopListWithInlinedLogo,
       null,
       2
-    )}`
-    out += `
-  
-  `
-    out += `export const webList: WebApp[] = ${JSON.stringify(webListWithInlinedLogo, null, 2)}`
-    out += `
-  
-  `
-    out += `export const iOSList: App[] = ${JSON.stringify(iosListWithInlinedLogo, null, 2)}`
-    out += `
-  `
+    )}\n\n`
 
-    writeFile(path.join(ALERT_DEST_DIR, 'wallet-lists.ts'), out)
+    out += `export const webList: WebApp[] = ${JSON.stringify(webListWithInlinedLogo, null, 2)}\n\n`
+
+    out += `export const iOSList: App[] = ${JSON.stringify(iosListWithInlinedLogo, null, 2)}\n`
+
+    await writeFile(path.join(ALERT_DEST_DIR, `${outputFileName}.ts`), out)
   }
 
   const createAlert = async () => {
@@ -116,15 +106,11 @@ const generateForBlockchains = (
     const pairCss = (await readFile(path.join(ALERT_SRC_DIR, 'alert-pair.css'))).toString('utf-8')
 
     const x = {
-      default: {
-        css: css
-      },
-      pair: {
-        css: pairCss
-      }
+      default: { css },
+      pair: { css: pairCss }
     }
 
-    writeFile(
+    await writeFile(
       path.join(ALERT_DEST_DIR, 'alert-templates.ts'),
       `export const alertTemplates = ${JSON.stringify(x)}`
     )
@@ -136,13 +122,9 @@ const generateForBlockchains = (
 
     const css = (await readFile(path.join(TOAST_SRC_DIR, 'toast.css'))).toString('utf-8')
 
-    const x = {
-      default: {
-        css: css
-      }
-    }
+    const x = { default: { css } }
 
-    writeFile(
+    await writeFile(
       path.join(TOAST_DEST_DIR, 'toast-templates.ts'),
       `export const toastTemplates = ${JSON.stringify(x)}`
     )
@@ -153,6 +135,7 @@ const generateForBlockchains = (
   createToast()
 }
 
+// Usage examples with default 'wallet-lists'
 generateForBlockchains(
   'beacon-blockchain-tezos',
   tezosExtensionList,
@@ -183,4 +166,14 @@ generateForBlockchains(
   tezosDesktopList,
   tezosWebList,
   tezosIosList
+)
+
+// Custom filename example:
+generateForBlockchains(
+  'beacon-ui',
+  substrateExtensionList,
+  substrateDesktopList,
+  substrateWebList,
+  substrateIosList,
+  'substrate-wallet-lists'
 )

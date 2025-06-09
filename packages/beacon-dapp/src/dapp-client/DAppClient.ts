@@ -726,7 +726,10 @@ export class DAppClient extends Client {
     await super.destroy()
   }
 
-  public async init(transport?: Transport<any>, displayQRCode?: boolean): Promise<TransportType> {
+  public async init(
+    transport?: Transport<any>,
+    substratePairing?: boolean
+  ): Promise<TransportType> {
     if (this._initPromise) {
       return this._initPromise
     }
@@ -892,7 +895,7 @@ export class DAppClient extends Client {
               disclaimerText: this.disclaimerText,
               analytics: this.analytics,
               featuredWallets: this.featuredWallets,
-              displayQRCode
+              substratePairing
             })
             .catch((emitError) => console.warn(emitError))
         }
@@ -1172,6 +1175,7 @@ export class DAppClient extends Client {
   private async checkMakeRequest() {
     const isResolved = this._transport.isResolved()
     const isWCInstance = isResolved && (await this.transport) instanceof WalletConnectTransport
+    await this.multiTabChannel.init()
     const isLeader = this.multiTabChannel.isLeader()
 
     return !isResolved || !isWCInstance || isLeader || isMobileOS(window)
@@ -1361,14 +1365,6 @@ export class DAppClient extends Client {
     const blockchain = this.blockchains.get(input.blockchainIdentifier)
     if (!blockchain) {
       throw new Error(`Blockchain "${input.blockchainIdentifier}" not supported by dAppClient`)
-    }
-
-    // TODO: add app switching support
-    // needs to be discussed with Acurast lite team
-    if (input.displayQRCode && isMobileOS(window)) {
-      throw new Error(
-        '[BEACON] permissionRequest with "displayQRCode" set to true does not work on mobile.'
-      )
     }
 
     const request: PermissionRequestV3<string> = {
@@ -2341,7 +2337,7 @@ export class DAppClient extends Client {
       peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
       if (!peer) {
         // We could not find an exact match for a sender, so we most likely received it over a relay
-        peer = peers.find((peerEl) => (peerEl as any).extensionId === account.origin.id)
+        peer = peers.find((peerEl) => (peerEl as any).id === account.origin.id)
       }
     } else {
       peer = await this._activePeer.promise
@@ -2519,7 +2515,7 @@ export class DAppClient extends Client {
     const messageId = otherTabMessageId ?? (await generateGUID())
     logger.log('makeRequest', 'starting')
     this.isInitPending = true
-    await this.init(undefined, (requestInput as any).displayQRCode)
+    await this.init(undefined, true)
     this.isInitPending = false
     logger.log('makeRequest', 'after init')
 
