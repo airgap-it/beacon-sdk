@@ -162,88 +162,55 @@ export class P2PCommunicationClient extends CommunicationClient {
   public async findBestRegionAndGetServer(): Promise<
     { server: string; timestamp: number } | undefined
   > {
-    // Select random server from each region
-    // Start request to server from each region
-    // After first response, do request again (this is because the first request can be delayed by DNS/SSL/etc.)
-    // After a specified amount of time, we select the fastest response time
-
     if (this.selectedRegion) {
       return this.relayServer?.promiseResult
     }
 
-    const keys: Regions[] = Object.keys(this.ENABLED_RELAY_SERVERS) as any
+    // 1) Flatten out [region, server] pairs and shuffle for randomness
+    type Probe = { server: string; region: Regions }
+    const probes: Probe[] = Object.entries(this.ENABLED_RELAY_SERVERS as Record<string, string[]>)
+      .flatMap(([region, servers]) =>
+        servers.map((server) => ({ server, region: region as Regions }))
+      )
+      .sort(() => Math.random() - 0.5)
 
-    const results: { time: number; server: string; region: Regions; result: BeaconInfoResponse }[] =
-      []
+    // 2) Fire off all probes in parallel, each catching its own errors
+    type Result = { server: string; region: Regions; time: number; timestamp: number }
+    const results: Result[] = []
 
-    const allResponsesReceived = new ExposedPromise()
-    let expectedNumberOfResponses = 0
-
-    const timeoutPromise = new ExposedPromise<boolean>()
-
-    keys.forEach((key) => {
-      const nodes = this.ENABLED_RELAY_SERVERS[key] ?? []
-
-      if (nodes.length === 0) {
-        return
-      }
-
-      expectedNumberOfResponses += 2
-
-      const doRequest = (isFinalRequest: boolean = true) => {
-        const timeStart = Date.now()
-        Promise.race([this.getBeaconInfo(server), timeoutPromise.promise]).then((res) => {
-          if (typeof res === 'boolean') {
-            return
-          }
+    const probePromises = probes.map(({ server, region }) =>
+      (async () => {
+        const start = Date.now()
+        try {
+          const info = await this.getBeaconInfo(server)
           results.push({
-            time: Date.now() - timeStart,
-            server: server,
-            region: key,
-            result: res
+            server,
+            region,
+            time: Date.now() - start,
+            timestamp: info.timestamp
           })
+        } catch (err) {
+          logger.warn(`probe for ${server} failed:`, err)
+          // swallow the error so Promise.all never rejects
+        }
+      })()
+    )
 
-          // If we have received all expected responses, we can continue and don't need to wait anymore
-          if (results.length >= expectedNumberOfResponses) {
-            allResponsesReceived.resolve(undefined)
-          }
+    // 3) Wait until either:
+    //    • all probes settle (fast regions), or
+    //    • we hit our global timeout
+    await Promise.race([Promise.all(probePromises), sleep(RESPONSE_WAIT_TIME_MS)])
 
-          if (!isFinalRequest) {
-            doRequest(true)
-          }
-        })
-      }
-
-      const index = Math.floor(Math.random() * nodes.length)
-      const server = nodes[index]
-      doRequest(false)
-    })
-
-    // Sleep for a specified amount of time to let responses come in
-    await Promise.race([allResponsesReceived.promise, sleep(RESPONSE_WAIT_TIME_MS)])
-
-    let retryCount: number = 0
-    while (results.length <= 0) {
-      // If we have no results yet, we will wait until we get one
-      if (retryCount >= 100) {
-        // If we do not have any server response after 5s, throw error
-        throw new Error('No server responded.')
-      }
-      await sleep(50)
-      retryCount++
+    // 4) If nobody replied, bail out
+    if (results.length === 0) {
+      throw new Error('No server responded.')
     }
 
-    // We have a result after the maximum amount of time, resolve the promise to abort all pending requests
-    timeoutPromise.resolve(true)
+    // 5) Pick the lowest-latency reply
+    const best = results.reduce((a, b) => (b.time < a.time ? b : a))
 
-    // Select fastest response time
-    const lowestTimeEntry = results.reduce((prev, curr) => {
-      return prev.time < curr.time ? prev : curr
-    })
-
-    this.selectedRegion = lowestTimeEntry.region
-
-    return { server: lowestTimeEntry.server, timestamp: lowestTimeEntry.result.timestamp }
+    this.selectedRegion = best.region
+    return { server: best.server, timestamp: best.timestamp }
   }
 
   public async getRelayServer(): Promise<{ server: string; timestamp: number }> {
