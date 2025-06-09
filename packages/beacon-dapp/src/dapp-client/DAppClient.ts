@@ -1175,6 +1175,7 @@ export class DAppClient extends Client {
   private async checkMakeRequest() {
     const isResolved = this._transport.isResolved()
     const isWCInstance = isResolved && (await this.transport) instanceof WalletConnectTransport
+    await this.multiTabChannel.init()
     const isLeader = this.multiTabChannel.isLeader()
 
     return !isResolved || !isWCInstance || isLeader || isMobileOS(window)
@@ -2336,7 +2337,7 @@ export class DAppClient extends Client {
       peer = peers.find((peerEl) => peerEl.senderId === account.senderId)
       if (!peer) {
         // We could not find an exact match for a sender, so we most likely received it over a relay
-        peer = peers.find((peerEl) => (peerEl as any).extensionId === account.origin.id)
+        peer = peers.find((peerEl) => (peerEl as any).id === account.origin.id)
       }
     } else {
       peer = await this._activePeer.promise

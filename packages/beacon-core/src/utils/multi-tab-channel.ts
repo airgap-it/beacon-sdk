@@ -1,4 +1,3 @@
-import { Logger } from './Logger'
 import { createLeaderElection, BroadcastChannel, LeaderElector } from 'broadcast-channel'
 
 type Message = {
@@ -6,8 +5,6 @@ type Message = {
   id: string
   data: any
 }
-
-const logger = new Logger('MultiTabChannel')
 
 export class MultiTabChannel {
   private channel: BroadcastChannel
@@ -21,16 +18,20 @@ export class MultiTabChannel {
   // Auxiliary variable needed for handling beforeUnload.
   // Closing a tab causes the elector to be killed immediately
   private wasLeader: boolean = false
+  private initialized: boolean = false
 
   constructor(name: string, onBCMessageHandler: Function, onElectedLeaderHandler: Function) {
     this.onBCMessageHandler = onBCMessageHandler
     this.onElectedLeaderHandler = onElectedLeaderHandler
     this.channel = new BroadcastChannel(name)
     this.elector = createLeaderElection(this.channel)
-    this.init().then(() => logger.debug('MultiTabChannel', 'constructor', 'init', 'done'))
   }
 
-  private async init() {
+  async init() {
+    if (this.initialized) {
+      return
+    }
+
     const hasLeader = await this.elector.hasLeader()
 
     if (!hasLeader) {
@@ -40,6 +41,8 @@ export class MultiTabChannel {
 
     this.channel.onmessage = this.eventListeners[1]
     window?.addEventListener('beforeunload', this.eventListeners[0])
+
+    this.initialized = true
   }
 
   private async onBeforeUnloadHandler() {
