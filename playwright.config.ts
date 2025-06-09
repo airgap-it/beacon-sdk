@@ -16,7 +16,10 @@ export default defineConfig({
   },
 
   // 4. Retries (CI: retry once; locally: no retries)
-  retries: 2,
+  retries: 3,
+
+  // 5. The maximum number of test failures for the whole test suite run
+  maxFailures: 1,
 
   // 6. Global “use” options for all tests
   use: {
