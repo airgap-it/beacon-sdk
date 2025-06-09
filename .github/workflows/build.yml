@@ -49,16 +49,7 @@ jobs:
       # 3. Run each *.spec.ts under e2e/ one at a time (serially), wrapped in Xvfb.
       #    After each file, kill any http-server processes before moving on.
       - name: Run E2E tests
-        run: |
-          # Loop through each spec in e2e/
-          for spec in e2e/*.spec.ts; do
-            echo "⏳ Running Playwright on $spec …"
-            xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" \
-              npx playwright test "$spec" --workers=1
-            echo "✅ $spec complete. Cleaning up any http-server child processes…"
-            # Guarantee no leftover http-server is still listening on 1234/4321:
-            pkill -f "http-server" || true
-          done
+        run: npm run e2e
 
       # ───────────────────────────────────────────────────────────────────────────────
       # ▼  END E2E STEPS  ▼
