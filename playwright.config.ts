@@ -85,7 +85,7 @@ export default defineConfig({
       // Health‐check URL; Playwright waits until http://localhost:1234 responds
       url: 'http://localhost:1234',
       // A human‐readable name for logs
-      name: 'Dapp Server',
+      name: 'Server1',
       // How long (ms) to wait for this server to come up
       timeout: 120 * 1000
     },
@@ -93,7 +93,7 @@ export default defineConfig({
       // Command to start the second server (Wallet on port 4321)
       command: 'npx http-server examples -p 4321',
       url: 'http://localhost:4321',
-      name: 'Wallet Server',
+      name: 'Server2',
       timeout: 120 * 1000
     }
   ],
