@@ -15,7 +15,7 @@ export default defineConfig({
     timeout: 30_000 // 30 seconds
   },
 
-  // 4. Retries (CI: retry once; locally: no retries)
+  // 4. Retries 3 times
   retries: 3,
 
   // 5. The maximum number of test failures for the whole test suite run
