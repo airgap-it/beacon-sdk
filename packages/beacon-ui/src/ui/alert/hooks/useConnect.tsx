@@ -242,7 +242,7 @@ const useConnect = (
       JSON.stringify({
         key: 'wallet',
         name: 'wallet',
-        type: 'mobile',
+        type: 'web', // we cannot know the destination wallet type since the user can copy paste the QR code
         icon: getDefaultLogo()
       })
     )
