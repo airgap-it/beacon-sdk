@@ -1,5 +1,3 @@
-// PermissionManager.test.ts
-
 import { PermissionManager } from '../../src/managers/PermissionManager'
 import { PermissionValidator } from '../../src/managers/PermissionValidator'
 import { Storage, StorageKey, PermissionInfo, BeaconMessage } from '@airgap/beacon-types'
