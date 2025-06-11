@@ -42,7 +42,7 @@ import { encode } from '@stablelib/utf8'
 
 const logger = new Logger('P2PCommunicationClient')
 
-const RESPONSE_WAIT_TIME_MS: number = 1000
+const RESPONSE_WAIT_TIME_MS: number = 30_000 // total wait time for all the probes
 
 const REGIONS_AND_SERVERS: NodeDistributions = {
   [Regions.EUROPE_WEST]: [
