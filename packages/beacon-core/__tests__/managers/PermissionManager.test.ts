@@ -1,156 +1,237 @@
 // PermissionManager.test.ts
-import { Storage, PermissionInfo } from '@airgap/beacon-types'
-import { StorageManager } from '../../src/managers/StorageManager'
-import { PermissionManager } from '../../src/managers/PermissionManager'
 
-// mock the entire StorageManager module
-jest.mock('../../src/managers/StorageManager')
-// and the PermissionValidator
-jest.mock('../../src/managers/PermissionValidator')
+import { PermissionManager } from '../../src/managers/PermissionManager'
+import { PermissionValidator } from '../../src/managers/PermissionValidator'
+import { Storage, StorageKey, PermissionInfo, BeaconMessage } from '@airgap/beacon-types'
+
+/**
+ * A simple in-memory implementation of the Beacon Storage abstract class
+ */
+class MockStorage extends Storage {
+  private store: Record<string, any> = {}
+
+  // Optional: simulate platform support
+  public static override isSupported(): Promise<boolean> {
+    return Promise.resolve(true)
+  }
+
+  public override async get<K extends StorageKey>(key: K): Promise<any> {
+    return this.store[key] ?? []
+  }
+
+  public override async set<K extends StorageKey>(key: K, value: any): Promise<void> {
+    this.store[key] = value
+  }
+
+  public override async delete<K extends StorageKey>(key: K): Promise<void> {
+    delete this.store[key]
+  }
+
+  public override async subscribeToStorageChanged(
+    _callback: (arg: {
+      eventType: 'storageCleared' | 'entryModified'
+      key: string | null
+      oldValue: string | null
+      newValue: string | null
+    }) => void
+  ): Promise<void> {
+    // no-op for tests
+    return
+  }
+
+  public override getPrefixedKey<K extends StorageKey>(key: K): string {
+    // in real use, this would add a prefix; for tests, return as-is
+    return key
+  }
+}
 
 describe('PermissionManager', () => {
-  let storage: Storage
+  let storage: MockStorage
   let manager: PermissionManager
 
-  // create typed jest mocks for the StorageManager instance methods
-  const mockGetAll = jest.fn<Promise<PermissionInfo[] | null>, []>()
-  const mockGetOne = jest.fn<
-    Promise<PermissionInfo | undefined>,
-    [(perm: PermissionInfo) => boolean]
-  >()
-  const mockAddOne = jest.fn<Promise<void>, [PermissionInfo, (perm: PermissionInfo) => boolean]>()
-  const mockRemove = jest.fn<Promise<void>, [(perm: PermissionInfo) => boolean]>()
-  const mockRemoveAll = jest.fn<Promise<void>, []>()
-
   beforeEach(() => {
-    // reset our mocks
-    jest.clearAllMocks()
-
-    // have StorageManager constructor return an object with our mock methods
-    ;(StorageManager as jest.Mock).mockImplementation(() => ({
-      getAll: mockGetAll,
-      getOne: mockGetOne,
-      addOne: mockAddOne,
-      remove: mockRemove,
-      removeAll: mockRemoveAll
-    }))
-
-    storage = {} as Storage
+    storage = new MockStorage()
     manager = new PermissionManager(storage)
   })
 
-  describe('getPermissions', () => {
-    it('returns [] if storage.getAll() resolves to null', async () => {
-      mockGetAll.mockResolvedValueOnce(null)
-
-      const result = await manager.getPermissions()
-
-      expect(mockGetAll).toHaveBeenCalled()
-      expect(result).toEqual([])
+  describe('getPermissions & getPermission', () => {
+    it('returns an empty array when no permissions have been added', async () => {
+      await expect(manager.getPermissions()).resolves.toEqual([])
     })
 
-    it('returns whatever storage.getAll() returns', async () => {
-      const perms: PermissionInfo[] = [
-        { accountIdentifier: 'A', senderId: 'S', scopes: ['scope1'] }
-      ] as any
-      mockGetAll.mockResolvedValueOnce(perms)
-
-      const result = await manager.getPermissions()
-
-      expect(mockGetAll).toHaveBeenCalled()
-      expect(result).toBe(perms)
+    it('returns undefined for getPermission when none match', async () => {
+      await expect(manager.getPermission('nonexistent')).resolves.toBeUndefined()
     })
-  })
 
-  describe('getPermission', () => {
-    it('forwards the predicate to storage.getOne and returns its result', async () => {
-      const sample: PermissionInfo = { accountIdentifier: 'X', senderId: 'Y', scopes: [] } as any
-      mockGetOne.mockResolvedValueOnce(sample)
-
-      const result = await manager.getPermission('X')
-
-      // storage.getOne should have been called with a function
-      expect(mockGetOne).toHaveBeenCalledTimes(1)
-      const [predicate] = mockGetOne.mock.calls[0]
-      expect(typeof predicate).toBe('function')
-
-      // predicate should match only if accountIdentifier matches
-      expect(predicate(sample)).toBe(true)
-      expect(predicate({ ...sample, accountIdentifier: 'Z' })).toBe(false)
-
-      expect(result).toBe(sample)
-    })
-  })
-
-  describe('addPermission', () => {
-    it('calls storage.addOne with the permission and correct dedupe predicate', async () => {
-      const perm: PermissionInfo = { accountIdentifier: 'foo', senderId: 'bar', scopes: [] } as any
-
+    it('can add a permission and then retrieve it by accountIdentifier', async () => {
+      const perm = {
+        accountIdentifier: 'acc1',
+        senderId: 's1',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'App' }
+      } as unknown as PermissionInfo
       await manager.addPermission(perm)
-
-      expect(mockAddOne).toHaveBeenCalledTimes(1)
-      const [passedPerm, predicate] = mockAddOne.mock.calls[0]
-
-      expect(passedPerm).toBe(perm)
-      expect(typeof predicate).toBe('function')
-
-      // predicate should only match same accountIdentifier AND senderId
-      expect(predicate(perm)).toBe(true)
-      expect(predicate({ ...perm, senderId: 'other' })).toBe(false)
-      expect(predicate({ ...perm, accountIdentifier: 'other' })).toBe(false)
+      await expect(manager.getPermissions()).resolves.toEqual([perm])
+      await expect(manager.getPermission('acc1')).resolves.toEqual(perm)
     })
 
-    it('allows adding multiple permissions for same account with different senders', async () => {
-      const perm1: PermissionInfo = { accountIdentifier: 'user123', senderId: 'dAppA', scopes: [] } as any
-      const perm2: PermissionInfo = { accountIdentifier: 'user123', senderId: 'dAppB', scopes: [] } as any
+    it('overwrites an existing permission when added with same accountIdentifier & senderId', async () => {
+      const oldPerm = {
+        accountIdentifier: 'acc1',
+        senderId: 's1',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'Old' }
+      } as unknown as PermissionInfo
+      const newPerm = {
+        accountIdentifier: 'acc1',
+        senderId: 's1',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'New' }
+      } as unknown as PermissionInfo
+      await manager.addPermission(oldPerm)
+      await manager.addPermission(newPerm)
+      const perms = await manager.getPermissions()
+      expect(perms).toHaveLength(1)
+      expect(perms[0]).toEqual(newPerm)
+    })
 
+    it('allows multiple distinct permissions to coexist', async () => {
+      const perm1 = {
+        accountIdentifier: 'acc1',
+        senderId: 's1',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'One' }
+      } as unknown as PermissionInfo
+      const perm2 = {
+        accountIdentifier: 'acc2',
+        senderId: 's2',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'Two' }
+      } as unknown as PermissionInfo
       await manager.addPermission(perm1)
       await manager.addPermission(perm2)
-
-      expect(mockAddOne).toHaveBeenCalledTimes(2)
-      const [passedPerm1, predicate1] = mockAddOne.mock.calls[0]
-      const [passedPerm2, predicate2] = mockAddOne.mock.calls[1]
-
-      expect(passedPerm1).toBe(perm1)
-      expect(passedPerm2).toBe(perm2)
-      expect(predicate1(perm1)).toBe(true)
-      expect(predicate2(perm2)).toBe(true)
+      const perms = await manager.getPermissions()
+      expect(perms).toHaveLength(2)
+      expect(perms).toEqual(expect.arrayContaining([perm1, perm2]))
     })
   })
 
   describe('removePermission', () => {
     it('removes only the permission matching both accountIdentifier and senderId', async () => {
-      const perm1: PermissionInfo = { accountIdentifier: 'user123', senderId: 'dAppA', scopes: ['operation_request'] } as any
-      const perm2: PermissionInfo = { accountIdentifier: 'user123', senderId: 'dAppB', scopes: ['sign'] } as any
-      
-      // Setup initial state with two permissions
-      mockGetAll.mockResolvedValueOnce([perm1, perm2])
-      
-      await manager.removePermission('user123', 'dAppA')
-      
-      expect(mockRemove).toHaveBeenCalledTimes(1)
-      const [predicate] = mockRemove.mock.calls[0]
-      
-      // Verify predicate only matches the specific permission to remove
-      expect(predicate(perm1)).toBe(true)
-      expect(predicate(perm2)).toBe(false)
-    })
+      const p1 = {
+        accountIdentifier: 'acc1',
+        senderId: 's1',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'A' }
+      } as unknown as PermissionInfo
+      const p2 = {
+        accountIdentifier: 'acc1',
+        senderId: 's2',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'B' }
+      } as unknown as PermissionInfo
+      const p3 = {
+        accountIdentifier: 'acc2',
+        senderId: 's3',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'C' }
+      } as unknown as PermissionInfo
 
-    it('handles non-existent permission gracefully', async () => {
-      mockGetAll.mockResolvedValueOnce([])
-      
-      await manager.removePermission('nonexistent', 'dAppA')
-      
-      expect(mockRemove).toHaveBeenCalledTimes(1)
-      const [predicate] = mockRemove.mock.calls[0]
-      expect(predicate({ accountIdentifier: 'nonexistent', senderId: 'dAppA', scopes: [] } as any)).toBe(true)
+      await manager.addPermission(p1)
+      await manager.addPermission(p2)
+      await manager.addPermission(p3)
+
+      await manager.removePermission('acc1', 's2')
+      const perms = await manager.getPermissions()
+      expect(perms).toHaveLength(2)
+      expect(perms).toEqual(expect.arrayContaining([p1, p3]))
+    })
+  })
+
+  describe('removePermissions', () => {
+    it('removes all permissions whose accountIdentifier is in the given list', async () => {
+      const p1 = {
+        accountIdentifier: 'acc1',
+        senderId: 's1',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'X' }
+      } as unknown as PermissionInfo
+      const p2 = {
+        accountIdentifier: 'acc2',
+        senderId: 's2',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'Y' }
+      } as unknown as PermissionInfo
+      const p3 = {
+        accountIdentifier: 'acc3',
+        senderId: 's3',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'Z' }
+      } as unknown as PermissionInfo
+
+      await manager.addPermission(p1)
+      await manager.addPermission(p2)
+      await manager.addPermission(p3)
+
+      await manager.removePermissions(['acc1', 'acc3'])
+      const perms = await manager.getPermissions()
+      expect(perms).toHaveLength(1)
+      expect(perms[0]).toEqual(p2)
     })
   })
 
   describe('removeAllPermissions', () => {
-    it('delegates to storage.removeAll()', async () => {
+    it('clears out all stored permissions', async () => {
+      const p1 = {
+        accountIdentifier: 'acc1',
+        senderId: 's1',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'First' }
+      } as unknown as PermissionInfo
+      const p2 = {
+        accountIdentifier: 'acc2',
+        senderId: 's2',
+        scopes: [],
+        blockchainIdentifier: 'chain',
+        sender: { name: 'Second' }
+      } as unknown as PermissionInfo
+
+      await manager.addPermission(p1)
+      await manager.addPermission(p2)
+
       await manager.removeAllPermissions()
-      expect(mockRemoveAll).toHaveBeenCalledTimes(1)
+      await expect(manager.getPermissions()).resolves.toEqual([])
+    })
+  })
+
+  describe('hasPermission', () => {
+    it('delegates to PermissionValidator.hasPermission and returns its result', async () => {
+      const dummyMessage = { type: 'DUMMY' } as unknown as BeaconMessage
+      const spy = jest.spyOn(PermissionValidator, 'hasPermission').mockResolvedValue(true)
+
+      await expect(manager.hasPermission(dummyMessage)).resolves.toBe(true)
+      expect(spy).toHaveBeenCalledWith(dummyMessage, expect.any(Function), expect.any(Function))
+
+      spy.mockRestore()
+    })
+
+    it('propagates errors from PermissionValidator', async () => {
+      const dummyMessage = { type: 'BAD' } as unknown as BeaconMessage
+      const error = new Error('not handled')
+      jest.spyOn(PermissionValidator, 'hasPermission').mockRejectedValue(error)
+      await expect(manager.hasPermission(dummyMessage)).rejects.toThrow('not handled')
     })
   })
 })
