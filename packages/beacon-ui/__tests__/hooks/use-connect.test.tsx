@@ -92,7 +92,7 @@ describe('useConnect hook', () => {
     expect(storedWallet).toEqual({
       key: 'wallet',
       name: 'wallet',
-      type: 'mobile',
+      type: 'web',
       icon: getDefaultLogo()
     })
     expect(result.current[3]).toBe('qr')
