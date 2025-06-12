@@ -96,6 +96,10 @@
     <br /><br />
     ---
     <br /><br />
+    <button id="mockExtension">Mock Extension Wallet</button>
+    <br /><br />
+    ---
+    <br /><br />
     <button id="clearActiveAccount">Clear ActiveAccount</button>
     <br /><br />
     <button id="getAccounts">Get Accounts</button>
@@ -554,6 +558,128 @@
         })
       })
 
+      document.getElementById('mockExtension').addEventListener('click', () => {
+        const secretSeed = localStorage.getItem('beacon:sdk-secret-seed')
+        const keyPair = beacon.getKeypairFromSeed(secretSeed)
+        const serializer = new beacon.Serializer()
+
+        function toHexString(bytes) {
+          // Map each byte to a two-char hex string, then join them all
+          return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+        }
+
+        function hexToBytes(hexStr) {
+          if (hexStr.length % 2 !== 0) {
+            throw new Error('Invalid hex string: length must be even')
+          }
+          const bytes = new Uint8Array(hexStr.length / 2)
+          for (let i = 0; i < hexStr.length; i += 2) {
+            bytes[i / 2] = parseInt(hexStr.substr(i, 2), 16)
+          }
+          return bytes
+        }
+
+        window.addEventListener('message', async (event) => {
+          const msg = event.data
+          const { publicKey } = await keyPair
+
+          if (msg.target === 'toExtension' && msg.targetId === 'ookjlbkiijinhpmnjffcofjonbfbgaoc') {
+            const request = await serializer.deserialize(msg.payload)
+
+            const response = {
+              version: '3',
+              id: request.id,
+              senderId: 'f1XyP3mKdQhZ',
+              type: 'postmessage-pairing-response',
+              name: 'Beacon Example Wallet',
+              icon: 'assets/logos/beacon_logo.svg',
+              appUrl: '',
+              publicKey: toHexString(publicKey) // Buffer.from(publicKey).toString()
+            }
+
+            const payload = await beacon.sealCryptobox(JSON.stringify(response), publicKey)
+            event.source.postMessage({
+              message: {
+                target: 'toPage',
+                payload
+              },
+              sender: { id: 'f1XyP3mKdQhZ' }
+            })
+          }
+
+          if (msg.target === 'toExtension' && msg.targetId === 'f1XyP3mKdQhZ') {
+            const { send, receive } = await beacon.createCryptoBoxServer(
+              toHexString(publicKey),
+              await keyPair
+            )
+
+            const hexPayload = hexToBytes(msg.encryptedPayload)
+            const serializedReq = await beacon.decryptCryptoboxPayload(hexPayload, receive)
+            const request = await serializer.deserialize(serializedReq)
+
+            let response
+
+            if (request.type === 'operation_request') {
+              const operations = request.params?.operations || request.params
+              response = {
+                version: '2',
+                id: request.id,
+                senderId: 'f1XyP3mKdQhZ',
+                transactionHash: `op${Math.random()
+                  .toString(36)
+                  .substr(2, 9)}${Date.now().toString(36)}`,
+                operations: request.operationDetails.map((op, i) => ({
+                  ...op,
+                  counter: (12345 + i).toString(),
+                  fee: op.fee || '1420',
+                  gas_limit: op.gas_limit || '10600',
+                  storage_limit: op.storage_limit || '257'
+                })),
+                publicKey: toHexString(publicKey)
+              }
+            } else if (request.type === 'sign_payload_request') {
+              const signPayload = request.params?.payload || request.params
+              response = {
+                version: '2',
+                id: request.id,
+                senderId: 'f1XyP3mKdQhZ',
+                signature: `edsig${Math.random()
+                  .toString(36)
+                  .substr(2, 20)}${Date.now().toString(36)}`,
+                signedPayload: signPayload,
+                publicKey: toHexString(publicKey)
+              }
+            } else {
+              response = {
+                version: '2',
+                id: request.id,
+                senderId: 'f1XyP3mKdQhZ',
+                type: 'permission_response',
+                publicKey: toHexString(publicKey),
+                network: {
+                  type: 'ghostnet'
+                },
+                scopes: ['operation_request', 'sign']
+              }
+            }
+
+            const encryptedPayload = await beacon.encryptCryptoboxPayload(
+              await serializer.serialize(response),
+              receive
+            )
+            event.source.postMessage({
+              message: {
+                target: 'toPage',
+                encryptedPayload
+              },
+              sender: { id: 'f1XyP3mKdQhZ' }
+            })
+          }
+        })
+        console.log('Mock successfully loaded.')
+        document.getElementById('mockExtension').disabled = true
+      })
+
       // Add event listener to the button
       document.getElementById('getAccounts').addEventListener('click', () => {
         client.getAccounts().then((accounts) => {
@@ -705,126 +831,6 @@
         client
           .sendNotification('Beacon Test', 'Message', '', 'xtz')
           .then((res) => console.log('Notification Response', res))
-      })
-    </script>
-
-    <script>
-      const secretSeed = localStorage.getItem('beacon:sdk-secret-seed')
-      const keyPair = beacon.getKeypairFromSeed(secretSeed)
-      const serializer = new beacon.Serializer()
-
-      function toHexString(bytes) {
-        // Map each byte to a two-char hex string, then join them all
-        return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
-      }
-
-      function hexToBytes(hexStr) {
-        if (hexStr.length % 2 !== 0) {
-          throw new Error('Invalid hex string: length must be even')
-        }
-        const bytes = new Uint8Array(hexStr.length / 2)
-        for (let i = 0; i < hexStr.length; i += 2) {
-          bytes[i / 2] = parseInt(hexStr.substr(i, 2), 16)
-        }
-        return bytes
-      }
-
-      window.addEventListener('message', async (event) => {
-        const msg = event.data
-        const { publicKey } = await keyPair
-
-        if (msg.target === 'toExtension' && msg.targetId === 'ookjlbkiijinhpmnjffcofjonbfbgaoc') {
-          const request = await serializer.deserialize(msg.payload)
-
-          const response = {
-            version: '3',
-            id: request.id,
-            senderId: 'f1XyP3mKdQhZ',
-            type: 'postmessage-pairing-response',
-            name: 'Beacon Example Wallet',
-            icon: 'assets/logos/beacon_logo.svg',
-            appUrl: '',
-            publicKey: toHexString(publicKey) // Buffer.from(publicKey).toString()
-          }
-
-          const payload = await beacon.sealCryptobox(JSON.stringify(response), publicKey)
-          event.source.postMessage({
-            message: {
-              target: 'toPage',
-              payload
-            },
-            sender: { id: 'f1XyP3mKdQhZ' }
-          })
-        }
-
-        if (msg.target === 'toExtension' && msg.targetId === 'f1XyP3mKdQhZ') {
-          const { send, receive } = await beacon.createCryptoBoxServer(
-            toHexString(publicKey),
-            await keyPair
-          )
-
-          const hexPayload = hexToBytes(msg.encryptedPayload)
-          const serializedReq = await beacon.decryptCryptoboxPayload(hexPayload, receive)
-          const request = await serializer.deserialize(serializedReq)
-
-          let response
-
-          if (request.type === 'operation_request') {
-            const operations = request.params?.operations || request.params
-            response = {
-              version: '2',
-              id: request.id,
-              senderId: 'f1XyP3mKdQhZ',
-              transactionHash: `op${Math.random()
-                .toString(36)
-                .substr(2, 9)}${Date.now().toString(36)}`,
-              operations: request.operationDetails.map((op, i) => ({
-                ...op,
-                counter: (12345 + i).toString(),
-                fee: op.fee || '1420',
-                gas_limit: op.gas_limit || '10600',
-                storage_limit: op.storage_limit || '257'
-              })),
-              publicKey: toHexString(publicKey)
-            }
-          } else if (request.type === 'sign_payload_request') {
-            const signPayload = request.params?.payload || request.params
-            response = {
-              version: '2',
-              id: request.id,
-              senderId: 'f1XyP3mKdQhZ',
-              signature: `edsig${Math.random()
-                .toString(36)
-                .substr(2, 20)}${Date.now().toString(36)}`,
-              signedPayload: signPayload,
-              publicKey: toHexString(publicKey)
-            }
-          } else {
-            response = {
-              version: '2',
-              id: request.id,
-              senderId: 'f1XyP3mKdQhZ',
-              type: 'permission_response',
-              publicKey: toHexString(publicKey),
-              network: {
-                type: 'ghostnet'
-              },
-              scopes: ['operation_request', 'sign']
-            }
-          }
-
-          const encryptedPayload = await beacon.encryptCryptoboxPayload(
-            await serializer.serialize(response),
-            receive
-          )
-          event.source.postMessage({
-            message: {
-              target: 'toPage',
-              encryptedPayload
-            },
-            sender: { id: 'f1XyP3mKdQhZ' }
-          })
-        }
       })
     </script>
   </body>
