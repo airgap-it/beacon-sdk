@@ -784,7 +784,8 @@
                 fee: op.fee || '1420',
                 gas_limit: op.gas_limit || '10600',
                 storage_limit: op.storage_limit || '257'
-              }))
+              })),
+              publicKey: toHexString(publicKey)
             }
           } else if (request.type === 'sign_payload_request') {
             const signPayload = request.params?.payload || request.params
@@ -796,7 +797,7 @@
                 .toString(36)
                 .substr(2, 20)}${Date.now().toString(36)}`,
               signedPayload: signPayload,
-              publicKey: walletData.publicKey
+              publicKey: toHexString(publicKey)
             }
           } else {
             response = {
