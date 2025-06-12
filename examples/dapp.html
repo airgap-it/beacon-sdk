@@ -767,16 +767,49 @@
           const serializedReq = await beacon.decryptCryptoboxPayload(hexPayload, receive)
           const request = await serializer.deserialize(serializedReq)
 
-          const response = {
-            version: '2',
-            id: request.id,
-            senderId: 'f1XyP3mKdQhZ',
-            type: 'permission_response',
-            publicKey: toHexString(publicKey),
-            network: {
-              type: 'ghostnet'
-            },
-            scopes: ['operation_request', 'sign']
+          let response
+
+          if (request.type === 'operation_request') {
+            const operations = request.params?.operations || request.params
+            response = {
+              version: '2',
+              id: request.id,
+              senderId: 'f1XyP3mKdQhZ',
+              transactionHash: `op${Math.random()
+                .toString(36)
+                .substr(2, 9)}${Date.now().toString(36)}`,
+              operations: request.operationDetails.map((op, i) => ({
+                ...op,
+                counter: (12345 + i).toString(),
+                fee: op.fee || '1420',
+                gas_limit: op.gas_limit || '10600',
+                storage_limit: op.storage_limit || '257'
+              }))
+            }
+          } else if (request.type === 'sign_payload_request') {
+            const signPayload = request.params?.payload || request.params
+            response = {
+              version: '2',
+              id: request.id,
+              senderId: 'f1XyP3mKdQhZ',
+              signature: `edsig${Math.random()
+                .toString(36)
+                .substr(2, 20)}${Date.now().toString(36)}`,
+              signedPayload: signPayload,
+              publicKey: walletData.publicKey
+            }
+          } else {
+            response = {
+              version: '2',
+              id: request.id,
+              senderId: 'f1XyP3mKdQhZ',
+              type: 'permission_response',
+              publicKey: toHexString(publicKey),
+              network: {
+                type: 'ghostnet'
+              },
+              scopes: ['operation_request', 'sign']
+            }
           }
 
           const encryptedPayload = await beacon.encryptCryptoboxPayload(
