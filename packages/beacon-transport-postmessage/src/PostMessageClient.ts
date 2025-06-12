@@ -109,8 +109,8 @@ export class PostMessageClient extends MessageBasedClient {
                 event?.data?.sender.id
               )
             )
-          } catch (decryptionError) {
-            /* NO-OP. We try to decode every message, but some might not be addressed to us. */
+          } catch (decryptionError: any) {
+            console.error('error', decryptionError)
           }
         }
       }

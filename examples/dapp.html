@@ -707,5 +707,91 @@
           .then((res) => console.log('Notification Response', res))
       })
     </script>
+
+    <script>
+      const secretSeed = localStorage.getItem('beacon:sdk-secret-seed')
+      const keyPair = beacon.getKeypairFromSeed(secretSeed)
+      const serializer = new beacon.Serializer()
+
+      function toHexString(bytes) {
+        // Map each byte to a two-char hex string, then join them all
+        return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+      }
+
+      function hexToBytes(hexStr) {
+        if (hexStr.length % 2 !== 0) {
+          throw new Error('Invalid hex string: length must be even')
+        }
+        const bytes = new Uint8Array(hexStr.length / 2)
+        for (let i = 0; i < hexStr.length; i += 2) {
+          bytes[i / 2] = parseInt(hexStr.substr(i, 2), 16)
+        }
+        return bytes
+      }
+
+      window.addEventListener('message', async (event) => {
+        const msg = event.data
+        const { publicKey } = await keyPair
+
+        if (msg.target === 'toExtension' && msg.targetId === 'ookjlbkiijinhpmnjffcofjonbfbgaoc') {
+          const request = await serializer.deserialize(msg.payload)
+
+          const response = {
+            version: '3',
+            id: request.id,
+            senderId: 'f1XyP3mKdQhZ',
+            type: 'postmessage-pairing-response',
+            name: 'Beacon Example Wallet',
+            icon: 'assets/logos/beacon_logo.svg',
+            appUrl: '',
+            publicKey: toHexString(publicKey) // Buffer.from(publicKey).toString()
+          }
+
+          const payload = await beacon.sealCryptobox(JSON.stringify(response), publicKey)
+          event.source.postMessage({
+            message: {
+              target: 'toPage',
+              payload
+            },
+            sender: { id: 'f1XyP3mKdQhZ' }
+          })
+        }
+
+        if (msg.target === 'toExtension' && msg.targetId === 'f1XyP3mKdQhZ') {
+          const { send, receive } = await beacon.createCryptoBoxServer(
+            toHexString(publicKey),
+            await keyPair
+          )
+
+          const hexPayload = hexToBytes(msg.encryptedPayload)
+          const serializedReq = await beacon.decryptCryptoboxPayload(hexPayload, receive)
+          const request = await serializer.deserialize(serializedReq)
+
+          const response = {
+            version: '2',
+            id: request.id,
+            senderId: 'f1XyP3mKdQhZ',
+            type: 'permission_response',
+            publicKey: toHexString(publicKey),
+            network: {
+              type: 'ghostnet'
+            },
+            scopes: ['operation_request', 'sign']
+          }
+
+          const encryptedPayload = await beacon.encryptCryptoboxPayload(
+            await serializer.serialize(response),
+            receive
+          )
+          event.source.postMessage({
+            message: {
+              target: 'toPage',
+              encryptedPayload
+            },
+            sender: { id: 'f1XyP3mKdQhZ' }
+          })
+        }
+      })
+    </script>
   </body>
 </html>

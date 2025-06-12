@@ -4,6 +4,7 @@ export {
   getKeypairFromSeed,
   toHex,
   getAddressFromPublicKey,
+  createCryptoBoxServer,
   decryptCryptoboxPayload,
   encryptCryptoboxPayload,
   getHexHash,

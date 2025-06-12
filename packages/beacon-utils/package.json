@@ -37,6 +37,7 @@
     "@stablelib/nacl": "^2.0.1",
     "@stablelib/random": "^2.0.1",
     "@stablelib/utf8": "^2.0.1",
+    "@stablelib/x25519-session": "^2.0.1",
     "bs58check": "4.0.0"
   }
 }
