@@ -186,7 +186,7 @@ const BugReportForm: React.FC<{ onSubmit: () => void }> = (props) => {
         />
       </div>
       <div className="permissions-group">
-        <label htmlFor="user-permissions">
+        <label htmlFor="user-permissions" className="label-style">
           You agree to share anonymous data with the developers.
         </label>
         <input

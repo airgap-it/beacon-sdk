@@ -18,6 +18,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
       - name: Node 18
         uses: actions/setup-node@v1
         with:
@@ -32,20 +33,34 @@ jobs:
       - name: Test
         run: npm run test
 
-      - name: Setup FFMPEG
-        uses: FedericoCarboni/setup-ffmpeg@v1
-        with:
-          # Not strictly necessary, but it may prevent rate limit
-          # errors especially on GitHub-hosted macos machines.
-          token: ${{ secrets.GITHUB_TOKEN }}
-        id: setup-ffmpeg
-      # - name: Test E2E
-      #   run: npm run e2e:all
+      # ───────────────────────────────────────────────────────────────────────────────
+      # ▼ BEGIN E2E STEPS ▼
+      # ───────────────────────────────────────────────────────────────────────────────
+
+      # 1. Install Playwright’s browsers + required Linux deps.
+      - name: Install Playwright browsers & system dependencies
+        run: npx playwright install --with-deps
+
+      # 2. Install http-server globally so “npx http-server” inside each spec
+      #    no longer tries to download on the fly.
+      - name: Install http-server (globally)
+        run: npm install -g http-server
+
+      # 3. Run each *.spec.ts under e2e/ one at a time (serially), wrapped in Xvfb.
+      #    After each file, kill any http-server processes before moving on.
+      - name: Run E2E tests
+        run: npm run e2e
+
+      # ───────────────────────────────────────────────────────────────────────────────
+      # ▼  END E2E STEPS  ▼
+      # ───────────────────────────────────────────────────────────────────────────────
+
       # - name: Upload
       #   uses: actions/upload-artifact@v1
       #   with:
       #     name: video
       #     path: e2e/output/combined.webm
+
       # - name: Analyze with SonarCloud
       #   uses: sonarsource/sonarcloud-github-action@master
       #   env:

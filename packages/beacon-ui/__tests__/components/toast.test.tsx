@@ -45,8 +45,8 @@ describe('Toast Component', () => {
     const onClickClose = jest.fn()
     render(<Toast label="Test Toast" open={true} onClickClose={onClickClose} />)
 
-    // The close icon is rendered inside a div with the "toast-button-icon" class.
-    const closeIconDiv = document.querySelector('.toast-button-icon')
+    // The close icon is rendered inside a div with the "button-icon" class.
+    const closeIconDiv = document.querySelector('.button-icon')
     expect(closeIconDiv).toBeInTheDocument()
 
     if (closeIconDiv) {

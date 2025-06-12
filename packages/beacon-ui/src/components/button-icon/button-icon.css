@@ -1,0 +1,31 @@
+.button-icon {
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  border-radius: 100%;
+  border: 1px solid #f0f0f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  fill: #64748b;
+  transition: all ease 0.2s;
+  margin-left: auto;
+}
+
+.button-icon:hover {
+  background-color: #475569;
+  border: 1px solid #475569;
+  fill: #e2e8f0;
+}
+
+.theme__dark .button-icon {
+  border: 1px solid #475569;
+  fill: #94a3b8;
+}
+
+.theme__dark .button-icon:hover {
+  background-color: #64748b;
+  border: 1px solid #64748b;
+  fill: #f1f5f9;
+}

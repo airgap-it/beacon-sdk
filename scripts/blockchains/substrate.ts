@@ -41,7 +41,7 @@ export const substrateIosList: App[] = [
     color: '',
     universalLink: 'https://hub.acurast.com/',
     logo: 'ios-acurast-lite.png',
-    deepLink: undefined
+    deepLink: 'acurast://'
   }
 ]
 
