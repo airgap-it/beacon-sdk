@@ -113,3 +113,44 @@ export const pairWithWCWallet = async (browser: Browser) => {
 
   return [dapp, dappCtx, wallet, walletCtx] as const
 }
+
+export const pairWithExtensionWallet = async (browser: Browser) => {
+  // --- setup context + grant clipboard permissions ---
+  const dappCtx = await browser.newContext()
+
+  await dappCtx.grantPermissions(['clipboard-read', 'clipboard-write'], {
+    origin: 'http://localhost:1234'
+  })
+
+  const dapp = await dappCtx.newPage()
+
+  await dapp.goto('http://localhost:1234/dapp.html')
+
+  await dapp.click('#mockExtension')
+
+  await dapp.click('#requestPermission')
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
+
+  await dapp.click('div.alert-footer')
+  await dapp.waitForSelector('div.wallets-list-wrapper', { state: 'visible', timeout: 30_000 })
+
+  await dapp.click('h3:has-text("Temple")')
+
+  await dapp.waitForSelector('h3:has-text("Connect with Temple Browser Extension")', {
+    state: 'visible',
+    timeout: 30_000
+  })
+
+  await dapp.click('button:has-text("Use")')
+
+  await expect(dapp.locator('#activeAccount')).not.toHaveText('', {
+    timeout: 30_000
+  }) // the account is randomized
+
+  const activeAccount = await dapp.evaluate(() => {
+    return window.localStorage.getItem('beacon:active-account')
+  })
+  expect(activeAccount).not.toBe('undefined')
+
+  return [dapp, dappCtx] as const
+}
