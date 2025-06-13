@@ -183,3 +183,24 @@ test('should show "No active account" error alert', async () => {
 
   await dapp.waitForSelector('div.alert-wrapper-show', { state: 'detached', timeout: 30_000 })
 })
+
+test('should display "No server responded" error alert', async () => {
+  const dapp = await dappCtx.newPage()
+  await dapp.goto('http://localhost:1234/dapp.html')
+
+  // Emulate going offline
+  await dappCtx.setOffline(true)
+
+  // --- trigger the Beacon pairing alert ---
+  await dapp.click('#requestPermission')
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
+
+  await dapp.waitForSelector('h3:has-text("No server responded.")', {
+    state: 'detached',
+    timeout: 30_000
+  })
+
+  await dapp.click('button:has-text("Close")')
+
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'detached', timeout: 30_000 })
+})
