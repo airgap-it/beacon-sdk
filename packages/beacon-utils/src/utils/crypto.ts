@@ -5,7 +5,7 @@ import { encode } from '@stablelib/utf8'
 import { hash } from '@stablelib/blake2b'
 import { generateKeyPairFromSeed } from '@stablelib/ed25519'
 import { convertPublicKeyToX25519, convertSecretKeyToX25519, KeyPair } from '@stablelib/ed25519'
-import { serverSessionKeys, SessionKeys } from '@stablelib/x25519-session'
+import { clientSessionKeys, serverSessionKeys, SessionKeys } from '@stablelib/x25519-session'
 import { BLAKE2b } from '@stablelib/blake2b'
 import { concat } from '@stablelib/bytes'
 import { sign } from '@stablelib/ed25519'
@@ -48,6 +48,25 @@ export async function getHexHash(key: string | Buffer | Uint8Array): Promise<str
  */
 export async function getKeypairFromSeed(seed: string): Promise<KeyPair> {
   return generateKeyPairFromSeed(hash(encode(seed), 32))
+}
+
+/**
+ * Create a cryptobox client
+ *
+ * @param otherPublicKey
+ * @param selfKeypair
+ */
+export async function createCryptoBoxClient(
+  otherPublicKey: string,
+  selfKeypair: KeyPair
+): Promise<SessionKeys> {
+  return clientSessionKeys(
+    {
+      publicKey: convertPublicKeyToX25519(selfKeypair.publicKey),
+      secretKey: convertSecretKeyToX25519(selfKeypair.secretKey)
+    },
+    convertPublicKeyToX25519(Buffer.from(otherPublicKey, 'hex'))
+  )
 }
 
 /**
