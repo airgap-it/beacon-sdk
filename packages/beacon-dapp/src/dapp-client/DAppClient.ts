@@ -220,7 +220,7 @@ export class DAppClient extends Client {
 
   private readonly errorMessages: Record<string, Record<string | number, string>>
 
-  private readonly featuredWallets: { tezos: string[]; substrate: string[] } | undefined
+  private readonly featuredWallets: { tezos?: string[]; substrate?: string[] } | undefined
 
   private readonly storageValidator: StorageValidator
 
