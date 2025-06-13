@@ -252,3 +252,17 @@ test('should disconnect on tab2 and reconnect on tab3', async () => {
   await dapp2.waitForSelector('p.toast-label', { state: 'visible', timeout: 30_000 })
   await dapp2.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 30_000 })
 })
+
+test('should send 1 mutez on 3G Network', async ({ browser }) => {
+  await dappCtx.close()
+
+  const [dapp, dappCtx1] = await pairWithBeaconWallet(browser, true)
+
+  // #sendToSelf
+  await dapp.click('#sendToSelf')
+
+  await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 30_000 })
+  await dapp.waitForSelector('div:has-text("Aborted")', { state: 'visible', timeout: 30_000 })
+
+  await dappCtx1.close()
+})

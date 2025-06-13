@@ -186,6 +186,20 @@ test('should close the session through wallet', async () => {
   expect(activeAccount).toBe('undefined')
 })
 
+test('should send 1 mutez on 3G Network', async ({ browser }) => {
+  await dappCtx.close()
+
+  const [dapp, dappCtx1] = await pairWithWCWallet(browser, true)
+
+  // #sendToSelf
+  await dapp.click('#sendToSelf')
+
+  await dapp.waitForSelector('p.toast-label', { state: 'visible', timeout: 30_000 })
+  await dapp.waitForSelector('p:has-text("successfully")', { state: 'visible', timeout: 30_000 })
+
+  await dappCtx1.close()
+})
+
 // due to an issue in WalletConnect, we cannot test the flow connect -> disconnect -> reconnect
 
 // test('should disconnect on tab1 and reconnect on tab2', async () => {})

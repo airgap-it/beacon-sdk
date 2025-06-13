@@ -1,6 +1,17 @@
-import { Browser, expect } from '@playwright/test'
+import { Browser, BrowserContext, expect, Page } from '@playwright/test'
 
-export const pairWithBeaconWallet = async (browser: Browser) => {
+async function applySlowNetwork(ctx: BrowserContext, page: Page) {
+  const client = await ctx.newCDPSession(page)
+  await client.send('Network.enable')
+  await client.send('Network.emulateNetworkConditions', {
+    offline: false,
+    latency: 400, // 400 ms RTT
+    downloadThroughput: (500 * 1024) / 8, // ~500 kbps
+    uploadThroughput: (500 * 1024) / 8 // ~500 kbps
+  })
+}
+
+export const pairWithBeaconWallet = async (browser: Browser, slowNetwork = false) => {
   // --- setup context + grant clipboard permissions ---
   const dappCtx = await browser.newContext()
   const walletCtx = await browser.newContext()
@@ -17,6 +28,11 @@ export const pairWithBeaconWallet = async (browser: Browser) => {
 
   await dapp.goto('http://localhost:1234/dapp.html')
   await wallet.goto('http://localhost:1234/wallet.html')
+
+  if (slowNetwork) {
+    await applySlowNetwork(dappCtx, dapp)
+    await applySlowNetwork(walletCtx, wallet)
+  }
 
   // --- trigger the Beacon pairing alert ---
   await dapp.click('#requestPermission')
@@ -57,7 +73,7 @@ export const pairWithBeaconWallet = async (browser: Browser) => {
   return [dapp, dappCtx, wallet, walletCtx] as const
 }
 
-export const pairWithWCWallet = async (browser: Browser) => {
+export const pairWithWCWallet = async (browser: Browser, slowNetwork: boolean = false) => {
   // --- setup context + grant clipboard permissions ---
   const dappCtx = await browser.newContext()
   const walletCtx = await browser.newContext()
@@ -74,6 +90,11 @@ export const pairWithWCWallet = async (browser: Browser) => {
 
   await dapp.goto('http://localhost:1234/dapp.html')
   await wallet.goto('http://localhost:1234/wallet-wc.html')
+
+  if (slowNetwork) {
+    await applySlowNetwork(dappCtx, dapp)
+    await applySlowNetwork(walletCtx, wallet)
+  }
 
   // --- trigger the WalletConnect pairing alert ---
   await dapp.click('#requestPermission')
