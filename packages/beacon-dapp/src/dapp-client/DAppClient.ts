@@ -220,7 +220,7 @@ export class DAppClient extends Client {
 
   private readonly errorMessages: Record<string, Record<string | number, string>>
 
-  private readonly featuredWallets: string[] | undefined
+  private readonly featuredWallets: { tezos: string[]; substrate: string[] } | undefined
 
   private readonly storageValidator: StorageValidator
 
@@ -894,7 +894,9 @@ export class DAppClient extends Client {
               abortedHandler: abortHandler.bind(this),
               disclaimerText: this.disclaimerText,
               analytics: this.analytics,
-              featuredWallets: this.featuredWallets,
+              featuredWallets: substratePairing
+                ? this.featuredWallets?.substrate
+                : this.featuredWallets?.tezos,
               substratePairing
             })
             .catch((emitError) => console.warn(emitError))
