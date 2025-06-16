@@ -204,3 +204,31 @@ test('should display "No server responded" error alert', async () => {
 
   await dapp.waitForSelector('div.alert-wrapper-show', { state: 'detached', timeout: 30_000 })
 })
+
+test('should open the bug report form', async () => {
+  const dapp = await dappCtx.newPage()
+  await dapp.goto('http://localhost:1234/dapp.html')
+
+  // --- trigger the Beacon pairing alert ---
+  await dapp.click('#requestPermission')
+  await dapp.waitForSelector('div.alert-wrapper-show', { state: 'visible', timeout: 30_000 })
+
+  await dapp.click('span.top-wallets-learn-more:has-text("Click here")')
+
+  await dapp.waitForSelector('label:has-text("Title")', {
+    state: 'visible',
+    timeout: 30_000
+  })
+  await dapp.waitForSelector('input#title', {
+    state: 'visible',
+    timeout: 30_000
+  })
+  await dapp.waitForSelector('label:has-text("Description")', {
+    state: 'visible',
+    timeout: 30_000
+  })
+  await dapp.waitForSelector('textarea#description', {
+    state: 'visible',
+    timeout: 30_000
+  })
+})
