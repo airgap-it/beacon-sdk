@@ -131,7 +131,7 @@ export interface DAppClientOptions {
   /**
    * The wallets that will be featured in the UI.
    */
-  featuredWallets?: string[]
+  featuredWallets?: { tezos?: string[]; substrate?: string[] }
 
   /**
    * Automatically switch between apps on Mobile Devices (Enabled by Default)
