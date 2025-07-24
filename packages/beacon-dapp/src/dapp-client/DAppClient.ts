@@ -740,7 +740,7 @@ export class DAppClient extends Client {
       //
     }
 
-    this._initPromise = new Promise(async (resolve) => {
+    this._initPromise = new Promise(async (resolve, reject) => {
       if (transport) {
         await this.addListener(transport)
 
@@ -860,6 +860,17 @@ export class DAppClient extends Client {
             this.postMessageTransport = this.walletConnectTransport = this.p2pTransport = undefined
             this._activeAccount.isResolved() && this.clearActiveAccount()
             this._initPromise = undefined
+            
+            // Reject the init promise with a special error type that won't show a toast
+            // This is used when user closes the modal during pairing, not when rejecting in wallet
+            reject({
+              type: BeaconMessageType.Error,
+              errorType: BeaconErrorType.ABORTED_ERROR,
+              id: '',
+              senderId: '',
+              version: '2',
+              isModalClosure: true // Custom flag to distinguish modal closure from wallet rejection
+            })
           }
 
           const serializer = new Serializer()
@@ -2130,17 +2141,21 @@ export class DAppClient extends Client {
         await this.setActivePeer()
       }
 
-      this.events
-        .emit(
-          messageEvents[request.type].error,
-          {
-            errorResponse: beaconError,
-            walletInfo: await this.getWalletInfo(peer, activeAccount),
-            errorMessages: this.errorMessages
-          },
-          buttons
-        )
-        .catch((emitError) => logger.error('handleRequestError', emitError))
+      // Don't show error toast if this is a modal closure during pairing (user just closed the modal)
+      const isModalClosure = (beaconError as any).isModalClosure
+      if (!isModalClosure) {
+        this.events
+          .emit(
+            messageEvents[request.type].error,
+            {
+              errorResponse: beaconError,
+              walletInfo: await this.getWalletInfo(peer, activeAccount),
+              errorMessages: this.errorMessages
+            },
+            buttons
+          )
+          .catch((emitError) => logger.error('handleRequestError', emitError))
+      }
 
       throw getError(beaconError.errorType, beaconError.errorData)
     }
