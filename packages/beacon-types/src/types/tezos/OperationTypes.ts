@@ -5,6 +5,7 @@
 export enum TezosOperationType {
   ACTIVATE_ACCOUNT = 'activate_account',
   ATTESTATION = 'attestation',
+  ATTESTATIONS_AGGREGATE = 'attestations_aggregate',
   ATTESTATION_WITH_DAL = 'attestation_with_dal',
   BALLOT = 'ballot',
   DAL_PUBLISH_COMMITMENT = 'dal_publish_commitment',
@@ -22,6 +23,7 @@ export enum TezosOperationType {
   INCREASE_PAID_STORAGE = 'increase_paid_storage',
   ORIGINATION = 'origination',
   PREATTESTATION = 'preattestation',
+  PREATTESTATIONS_AGGREGATE = 'preattestations_aggregate',
   PREENDORSEMENT = 'preendorsement',
   PROPOSALS = 'proposals',
   REGISTER_GLOBAL_CONSTANT = 'register_global_constant',
@@ -40,5 +42,8 @@ export enum TezosOperationType {
   TRANSACTION = 'transaction',
   TRANSFER_TICKET = 'transfer_ticket',
   UPDATE_CONSENSUS_KEY = 'update_consensus_key',
-  VDF_REVELATION = 'vdf_revelation'
+  UPDATE_COMPANION_KEY = 'update_companion_key',
+  VDF_REVELATION = 'vdf_revelation',
+  DOUBLE_CONSENSUS_OPERATION_EVIDENCE = 'double_consensus_operation_evidence',
+  DAL_ENTRAPMENT_EVIDENCE = 'dal_entrapment_evidence'
 }
