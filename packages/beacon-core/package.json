@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-core",
-  "version": "4.6.1-beta.2",
+  "version": "4.6.1-beta.3",
   "description": "This package contains internal methods that are used by both the dApp and wallet client.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
