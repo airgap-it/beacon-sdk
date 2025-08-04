@@ -76,6 +76,34 @@
     <br /><br />
     <button id="sendContractCall">Send Contract Call</button>
     <br /><br />
+    ---
+    <br />
+    <strong>Big Contract Tests:</strong>
+    <br />
+    <small style="color: #666;">
+      Tests large contract operations. Requires 'big-contract.js' file in examples directory.
+    </small>
+    <br /><br />
+    
+    <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px;">
+      <strong>Contract Size Configuration:</strong>
+      <br /><br />
+      <label for="contractEntries">Number of entries:</label>
+      <input type="number" id="contractEntries" value="300" min="1" max="2000" style="width: 80px; margin: 0 10px;">
+      <br /><br />
+      <label for="contractStringLength">String length:</label>
+      <input type="number" id="contractStringLength" value="50" min="1" max="200" style="width: 80px; margin: 0 10px;">
+      <br /><br />
+      <small style="color: #666;">
+        Approximate size: <span id="estimatedSize">~50KB</span>
+      </small>
+    </div>
+    
+
+    <button id="testBigContractOrigination">Test Big Contract Origination</button>
+    <br /><br />
+    ---
+    <br /><br />
     <button id="signPayloadRaw">Sign Payload (Raw)</button>
     <br /><br />
     <button id="signPayloadOperation">Sign Payload (Operation)</button>
@@ -347,6 +375,109 @@
         })
       }
 
+      // Helper function to estimate contract size
+      const estimateContractSize = (entries, stringLength) => {
+        // Rough estimation: each entry has ~100 bytes base + string length
+        const approximateBytes = entries * (100 + stringLength)
+        if (approximateBytes < 1024) {
+          return `~${approximateBytes}B`
+        } else if (approximateBytes < 1024 * 1024) {
+          return `~${Math.round(approximateBytes / 1024)}KB`
+        } else {
+          return `~${Math.round(approximateBytes / (1024 * 1024))}MB`
+        }
+      }
+
+      // Update size estimation when inputs change
+      const updateSizeEstimate = () => {
+        const entries = parseInt(document.getElementById('contractEntries').value) || 300
+        const stringLength = parseInt(document.getElementById('contractStringLength').value) || 50
+        const estimatedSize = estimateContractSize(entries, stringLength)
+        document.getElementById('estimatedSize').textContent = estimatedSize
+      }
+
+      // Helper function to get contract size parameters from UI
+      const getContractSizeParams = () => {
+        const entries = parseInt(document.getElementById('contractEntries').value) || 300
+        const stringLength = parseInt(document.getElementById('contractStringLength').value) || 50
+        return { entries, stringLength }
+      }
+
+      // Helper function to load big contract script
+      const loadBigContractScript = async () => {
+        const response = await fetch('./big-contract.js')
+        if (!response.ok) {
+          throw new Error(`Big contract file not found. Please create 'big-contract.js' in the examples directory.`)
+        }
+        
+        const scriptContent = await response.text()
+        const script = document.createElement('script')
+        script.textContent = scriptContent
+        document.head.appendChild(script)
+        
+        return script
+      }
+
+      // Helper function to execute contract operation
+      const executeBigContractOperation = async (contractData, operationType) => {
+        console.log(`${operationType} generated:`, contractData)
+        
+        if (contractData && contractData.metadata) {
+          console.log('Contract metadata:', contractData.metadata)
+          console.log(`Generated ${contractData.metadata.type || operationType}`)
+          console.log(`Size: ~${contractData.metadata.approximateSize || 'unknown'} bytes`)
+          console.log(`Description: ${contractData.metadata.description || 'No description'}`)
+        }
+        
+        if (contractData && contractData.operationDetails) {
+          const activeAccount = await client.getActiveAccount()
+          if (!activeAccount) {
+            throw new Error('No active account found. Please connect to a wallet first.')
+          }
+          
+          console.log(`Sending ${operationType.toLowerCase()}...`)
+          const startTime = performance.now()
+          const result = await client.requestOperation(contractData)
+          const endTime = performance.now()
+          
+          console.log(`${operationType} result:`, result)
+          console.log(`Operation completed in ${(endTime - startTime).toFixed(2)}ms`)
+          alert(`${operationType} completed successfully!\nTime: ${(endTime - startTime).toFixed(2)}ms`)
+        } else {
+          console.log('Contract data generated but no operation details found')
+          console.log('You can use this data for testing:', contractData)
+          alert('Contract data generated but no operation details found.\nCheck console for details.')
+        }
+      }
+
+
+
+      // Test big contract origination
+      const testBigContractOrigination = async () => {
+        console.log('Starting big contract origination test...')
+        
+        try {
+          const script = await loadBigContractScript()
+          const { entries, stringLength } = getContractSizeParams()
+          // For origination, use half the entries for storage (typical pattern)
+          const storageEntries = Math.floor(entries / 2)
+          
+          if (typeof window.generateBigContractOrigination === 'function') {
+            console.log(`Big contract origination generator loaded successfully - generating with ${storageEntries} storage entries and ${stringLength}-char strings`)
+            const contractData = window.generateBigContractOrigination(storageEntries, stringLength)
+            await executeBigContractOperation(contractData, 'Big Contract Origination')
+          } else {
+            throw new Error(`Big contract origination generator function not found. Make sure 'generateBigContractOrigination' function is exported in big-contract.js`)
+          }
+          
+          document.head.removeChild(script)
+          
+        } catch (error) {
+          console.error('Big contract origination test failed:', error.message)
+          alert(`Big contract origination test failed: ${error.message}`)
+        }
+      }
+
       // Initiate a permission request
       const requestPermission = (callback) => {
         client
@@ -443,6 +574,18 @@
       document.getElementById('sendContractCall').addEventListener('click', () => {
         sendContractCall()
       })
+
+      // Add event listener for big contract test button
+      document.getElementById('testBigContractOrigination').addEventListener('click', () => {
+        testBigContractOrigination()
+      })
+
+      // Add event listeners for contract size inputs
+      document.getElementById('contractEntries').addEventListener('input', updateSizeEstimate)
+      document.getElementById('contractStringLength').addEventListener('input', updateSizeEstimate)
+      
+      // Initialize size estimate
+      updateSizeEstimate()
 
       // Add event listener to the button
       document.getElementById('requestPermission').addEventListener('click', () => {
