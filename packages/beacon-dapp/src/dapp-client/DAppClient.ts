@@ -1896,6 +1896,10 @@ export class DAppClient extends Client {
       sourceAddress: activeAccount.address || ''
     }
 
+    //Measure size of the request in kb
+    const requestSize = new TextEncoder().encode(JSON.stringify(request)).length / 1024
+    console.log('requestSize', requestSize)
+
     this.analytics.track('event', 'DAppClient', 'Operation requested')
 
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'start'))
