@@ -23,7 +23,8 @@ export class TzktBlockExplorer extends BlockExplorer {
       [NetworkType.PARISNET]: 'https://parisnet.tzkt.io',
       [NetworkType.CUSTOM]: 'https://rionet.tzkt.io',
       [NetworkType.QUEBECNET]: 'https://quebecnet.tzkt.io',
-      [NetworkType.RIONET]: 'https://rionet.tzkt.io'
+      [NetworkType.RIONET]: 'https://rionet.tzkt.io',
+      [NetworkType.SHADOWNET]: 'https://shadownet.tzkt.io'
     }
   ) {
     super(rpcUrls)
