@@ -21,9 +21,10 @@ export class TzktBlockExplorer extends BlockExplorer {
       [NetworkType.NAIROBINET]: 'https://nairobinet.tzkt.io',
       [NetworkType.OXFORDNET]: 'https://oxfordnet.tzkt.io',
       [NetworkType.PARISNET]: 'https://parisnet.tzkt.io',
-      [NetworkType.CUSTOM]: 'https://rionet.tzkt.io',
+      [NetworkType.CUSTOM]: 'https://seoulnet.tzkt.io',
       [NetworkType.QUEBECNET]: 'https://quebecnet.tzkt.io',
       [NetworkType.RIONET]: 'https://rionet.tzkt.io',
+      [NetworkType.SEOULNET]: 'https://seoulnet.tzkt.io',
       [NetworkType.SHADOWNET]: 'https://shadownet.tzkt.io'
     }
   ) {
