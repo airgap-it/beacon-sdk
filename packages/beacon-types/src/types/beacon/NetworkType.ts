@@ -18,5 +18,6 @@ export enum NetworkType {
   PARISNET = 'parisnet',
   QUEBECNET = 'quebecnet',
   RIONET = 'rionet',
+  SHADOWNET = 'shadownet',
   CUSTOM = 'custom'
 }
