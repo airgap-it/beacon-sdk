@@ -25,6 +25,7 @@ export class TzktBlockExplorer extends BlockExplorer {
       [NetworkType.QUEBECNET]: 'https://quebecnet.tzkt.io',
       [NetworkType.RIONET]: 'https://rionet.tzkt.io',
       [NetworkType.SEOULNET]: 'https://seoulnet.tzkt.io',
+      [NetworkType.SHADOWNET]: 'https://shadownet.tzkt.io'
     }
   ) {
     super(rpcUrls)
