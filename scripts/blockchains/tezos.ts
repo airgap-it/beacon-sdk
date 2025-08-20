@@ -83,7 +83,7 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.PARISNET]: 'https://metamask.tezos.com/',
       [NetworkType.QUEBECNET]: 'https://metamask.tezos.com/',
       [NetworkType.RIONET]: 'https://metamask.tezos.com/',
-      [NetworkType.SEOULNET]: 'https://metamask.tezos.com/'
+      [NetworkType.SEOULNET]: 'https://metamask.tezos.com/',
       [NetworkType.SHADOWNET]: 'https://metamask.tezos.com/'
     }
   },
@@ -114,7 +114,7 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.PARISNET]: 'https://parisnet.kukai.app',
       [NetworkType.QUEBECNET]: 'https://quebecnet.kukai.app',
       [NetworkType.RIONET]: 'https://rionet.kukai.app',
-      [NetworkType.SEOULNET]: 'https://seoulnet.kukai.app'
+      [NetworkType.SEOULNET]: 'https://seoulnet.kukai.app',
       [NetworkType.SHADOWNET]: 'https://shadownet.kukai.app'
     }
   },
@@ -145,7 +145,7 @@ export const tezosWebList: WebApp[] = [
       [NetworkType.PARISNET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.QUEBECNET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.RIONET]: 'https://ghostnet.tzsafe.marigold.dev',
-      [NetworkType.SEOULNET]: 'https://ghostnet.tzsafe.marigold.dev'
+      [NetworkType.SEOULNET]: 'https://ghostnet.tzsafe.marigold.dev',
       [NetworkType.SHADOWNET]: 'https://ghostnet.tzsafe.marigold.dev'
     }
   }
