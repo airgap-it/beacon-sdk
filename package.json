@@ -69,9 +69,9 @@
     "@airgap/beacon-ui": "file:packages/beacon-ui",
     "@airgap/beacon-utils": "file:packages/beacon-utils",
     "@airgap/beacon-wallet": "file:packages/beacon-wallet",
-    "@walletconnect/sign-client": "2.18.0",
-    "@walletconnect/types": "2.18.0",
-    "@walletconnect/utils": "2.18.0",
+    "@walletconnect/sign-client": "2.21.8",
+    "@walletconnect/types": "2.21.8",
+    "@walletconnect/utils": "2.21.8",
     "@web3modal/standalone": "2.4.3",
     "stream-browserify": "^3.0.0"
   },
