@@ -19,10 +19,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Node 18
+      - name: Node 22 LTS
         uses: actions/setup-node@v1
         with:
-          node-version: 18.x
+          node-version: 22.x
 
       - name: Prepare
         run: npm ci
