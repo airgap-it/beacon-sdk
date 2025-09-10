@@ -1,179 +1,97 @@
 import * as path from 'path'
-import { readFile, writeFile } from 'node:fs/promises'
-
-import {
-  ExtensionApp,
-  WebApp,
-  App,
-  AppBase,
-  DesktopApp
-} from '../packages/beacon-types/src/types/ui'
-
-import {
-  substrateExtensionList,
-  substrateDesktopList,
-  substrateWebList,
-  substrateIosList
-} from './blockchains/substrate'
-
-import {
-  tezosDesktopList,
-  tezosExtensionList,
-  tezosIosList,
-  tezosWebList
-} from './blockchains/tezos'
-
-import {
-  tezosSaplingDesktopList,
-  tezosSaplingExtensionList,
-  tezosSaplingIosList,
-  tezosSaplingWebList
-} from './blockchains/tezos-sapling'
+import { readFile, writeFile, readdir } from 'node:fs/promises'
 
 const resizeImg = require('resize-img')
 
-const generateForBlockchains = (
-  packagePath: string,
-  extensionList: ExtensionApp[],
-  desktopList: DesktopApp[],
-  webList: WebApp[],
-  iosList: App[],
-  outputFileName: string = 'wallet-lists' // default parameter
-) => {
-  const PKG_DIR = path.join(__dirname, '../')
-  const REGISTRY_DIR = path.join(PKG_DIR, 'assets', 'logos')
+const PKG_DIR = path.join(__dirname, '../')
+const REGISTRY_DIR = path.join(PKG_DIR, 'assets', 'logos')
+const WALLET_LISTS_DIR = path.join(PKG_DIR, 'wallet-lists')
 
-  const convert = <T extends AppBase>(list: T[]): Promise<T[]> => {
-    return Promise.all(
-      list.map(async (entry) => {
-        const ext = path.extname(entry.logo).replace('.', '')
-
-        if (!ext) {
-          return entry
-        }
-
-        const imgBuffer = await readFile(path.join(REGISTRY_DIR, entry.logo))
-
-        if (ext === 'svg') {
-          entry.logo = `data:image/svg+xml;base64,${imgBuffer.toString('base64')}`
-        } else {
-          const resizedImage = await resizeImg(imgBuffer, {
-            width: 256,
-            height: 256
-          })
-          entry.logo = `data:image/${ext};base64,${resizedImage.toString('base64')}`
-        }
-
-        return entry
-      })
-    )
-  }
-
-  const createLists = async () => {
-    const ALERT_DEST_DIR = path.join(PKG_DIR, 'packages', packagePath, 'src', 'ui', 'alert')
-
-    const extensionListWithInlinedLogo = await convert(extensionList)
-    const desktopListWithInlinedLogo = await convert(desktopList)
-    const webListWithInlinedLogo = await convert(webList)
-    const iosListWithInlinedLogo = await convert(iosList)
-
-    let out = `import { App, DesktopApp, ExtensionApp, WebApp } from '@airgap/beacon-types'\n\n`
-
-    out += `export const extensionList: ExtensionApp[] = ${JSON.stringify(
-      extensionListWithInlinedLogo,
-      null,
-      2
-    )}\n\n`
-
-    out += `export const desktopList: DesktopApp[] = ${JSON.stringify(
-      desktopListWithInlinedLogo,
-      null,
-      2
-    )}\n\n`
-
-    out += `export const webList: WebApp[] = ${JSON.stringify(webListWithInlinedLogo, null, 2)}\n\n`
-
-    out += `export const iOSList: App[] = ${JSON.stringify(iosListWithInlinedLogo, null, 2)}\n`
-
-    await writeFile(path.join(ALERT_DEST_DIR, `${outputFileName}.ts`), out)
-  }
-
-  const createAlert = async () => {
-    const ALERT_SRC_DIR = path.join(PKG_DIR, 'assets', 'alert')
-    const ALERT_DEST_DIR = path.join(PKG_DIR, 'packages', packagePath, 'src', 'ui', 'alert')
-
-    const css = (await readFile(path.join(ALERT_SRC_DIR, 'alert.css'))).toString('utf-8')
-    const pairCss = (await readFile(path.join(ALERT_SRC_DIR, 'alert-pair.css'))).toString('utf-8')
-
-    const x = {
-      default: { css },
-      pair: { css: pairCss }
+const processLogo = async (logoFile: string): Promise<string | undefined> => {
+  try {
+    if (!logoFile || logoFile.startsWith('data:')) {
+      return logoFile
     }
 
-    await writeFile(
-      path.join(ALERT_DEST_DIR, 'alert-templates.ts'),
-      `export const alertTemplates = ${JSON.stringify(x)}`
-    )
+    const ext = path.extname(logoFile).replace('.', '') || 'png'
+    if (!ext) {
+      return logoFile
+    }
+
+    const imgBuffer = await readFile(path.join(REGISTRY_DIR, logoFile))
+
+    let resizedBuffer = imgBuffer
+    if (ext === 'png' && imgBuffer.length > 25000) {
+      resizedBuffer = await resizeImg(imgBuffer, {
+        width: 256,
+        height: 256
+      })
+    }
+
+    const base64 = resizedBuffer.toString('base64')
+    const mimeType = ext === 'svg' ? 'svg+xml' : ext
+    return `data:image/${mimeType};base64,${base64}`
+  } catch (error) {
+    console.warn(`Failed to process logo ${logoFile}:`, error)
+    return logoFile
   }
-
-  const createToast = async () => {
-    const TOAST_SRC_DIR = path.join(PKG_DIR, 'assets', 'toast')
-    const TOAST_DEST_DIR = path.join(PKG_DIR, 'packages', packagePath, 'src', 'ui', 'toast')
-
-    const css = (await readFile(path.join(TOAST_SRC_DIR, 'toast.css'))).toString('utf-8')
-
-    const x = { default: { css } }
-
-    await writeFile(
-      path.join(TOAST_DEST_DIR, 'toast-templates.ts'),
-      `export const toastTemplates = ${JSON.stringify(x)}`
-    )
-  }
-
-  createLists()
-  createAlert()
-  createToast()
 }
 
-// Usage examples with default 'wallet-lists'
-generateForBlockchains(
-  'beacon-blockchain-tezos',
-  tezosExtensionList,
-  tezosDesktopList,
-  tezosWebList,
-  tezosIosList
-)
+const updateWalletListLogos = async (filename: string) => {
+  const filePath = path.join(WALLET_LISTS_DIR, filename)
+  
+  try {
+    const content = await readFile(filePath, 'utf-8')
+    const walletList = JSON.parse(content)
+    
+    const processWalletArray = async (wallets: any[]) => {
+      if (!Array.isArray(wallets)) return wallets
+      
+      return Promise.all(
+        wallets.map(async (wallet) => {
+          if (wallet.logo && !wallet.logo.startsWith('data:')) {
+            wallet.logo = await processLogo(wallet.logo)
+          }
+          return wallet
+        })
+      )
+    }
+    
+    if (walletList.extensionList) {
+      walletList.extensionList = await processWalletArray(walletList.extensionList)
+    }
+    
+    if (walletList.desktopList) {
+      walletList.desktopList = await processWalletArray(walletList.desktopList)
+    }
+    
+    if (walletList.webList) {
+      walletList.webList = await processWalletArray(walletList.webList)
+    }
+    
+    if (walletList.iOSList) {
+      walletList.iOSList = await processWalletArray(walletList.iOSList)
+    }
+    
+    await writeFile(filePath, JSON.stringify(walletList, null, 2))
+    console.log(`Updated logos in ${filename}`)
+  } catch (error) {
+    console.error(`Failed to update ${filename}:`, error)
+  }
+}
 
-generateForBlockchains(
-  'beacon-blockchain-tezos-sapling',
-  tezosSaplingExtensionList,
-  tezosSaplingDesktopList,
-  tezosSaplingWebList,
-  tezosSaplingIosList
-)
-
-generateForBlockchains(
-  'beacon-blockchain-substrate',
-  substrateExtensionList,
-  substrateDesktopList,
-  substrateWebList,
-  substrateIosList
-)
-
-generateForBlockchains(
-  'beacon-ui',
-  tezosExtensionList,
-  tezosDesktopList,
-  tezosWebList,
-  tezosIosList
-)
-
-// Custom filename example:
-generateForBlockchains(
-  'beacon-ui',
-  substrateExtensionList,
-  substrateDesktopList,
-  substrateWebList,
-  substrateIosList,
-  'substrate-wallet-lists'
-)
+;(async () => {
+  try {
+    const files = await readdir(WALLET_LISTS_DIR)
+    const jsonFiles = files.filter(f => f.endsWith('.json'))
+    
+    for (const file of jsonFiles) {
+      await updateWalletListLogos(file)
+    }
+    
+    console.log('Logo processing complete')
+  } catch (error) {
+    console.error('Error processing wallet lists:', error)
+    process.exit(1)
+  }
+})()

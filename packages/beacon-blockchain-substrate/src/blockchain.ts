@@ -2,13 +2,10 @@ import {
   Blockchain,
   BlockchainMessage,
   ResponseInput,
-  ExtensionApp,
-  DesktopApp,
-  WebApp,
-  App
+  WalletLists
 } from '@airgap/beacon-types'
+import { fetchRemoteWalletLists } from '@airgap/beacon-core'
 import { SubstratePermissionResponse } from './types/messages/permission-response'
-import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-lists'
 
 export class SubstrateBlockchain implements Blockchain {
   public readonly identifier: string = 'substrate'
@@ -26,18 +23,8 @@ export class SubstrateBlockchain implements Blockchain {
     }
   }
 
-  async getWalletLists(): Promise<{
-    extensionList: ExtensionApp[]
-    desktopList: DesktopApp[]
-    webList: WebApp[]
-    iOSList: App[]
-  }> {
-    return {
-      extensionList: extensionList,
-      desktopList: desktopList,
-      webList: webList,
-      iOSList: iOSList
-    }
+  async getWalletLists(): Promise<WalletLists> {
+    return fetchRemoteWalletLists('substrate')
   }
 
   async getAccountInfosFromPermissionResponse(
