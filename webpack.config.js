@@ -1,5 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
+const CopyPlugin = require('copy-webpack-plugin')
 
 module.exports = {
   output: {
@@ -17,6 +18,15 @@ module.exports = {
   plugins: [
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer']
+    }),
+    new CopyPlugin({
+      patterns: [
+        { 
+          from: 'wallet-lists', 
+          to: 'wallet-lists',
+          noErrorOnMissing: true
+        }
+      ]
     })
   ]
 }

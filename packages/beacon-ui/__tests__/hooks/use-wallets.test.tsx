@@ -74,12 +74,15 @@ const dummyWebList = [
   }
 ]
 
-// Mock the module that exports the wallet lists.
-jest.mock('../../src/ui/alert/wallet-lists', () => ({
-  desktopList: dummyDesktopList,
-  extensionList: dummyExtensionList,
-  iOSList: dummyIOSList,
-  webList: dummyWebList
+// Mock the wallet list loader module.
+jest.mock('../../src/utils/wallet-list-loader', () => ({
+  getDefaultWalletLists: jest.fn().mockResolvedValue({
+    version: 1,
+    desktopList: dummyDesktopList,
+    extensionList: dummyExtensionList,
+    iOSList: dummyIOSList,
+    webList: dummyWebList
+  })
 }))
 
 // =====================================================================

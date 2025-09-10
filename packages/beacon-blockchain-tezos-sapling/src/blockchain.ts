@@ -2,13 +2,10 @@ import {
   Blockchain,
   BlockchainMessage,
   ResponseInput,
-  ExtensionApp,
-  DesktopApp,
-  WebApp,
-  App
+  WalletLists
 } from '@airgap/beacon-types'
+import { fetchRemoteWalletLists } from '@airgap/beacon-core'
 import { TezosSaplingPermissionResponse } from './types/messages/permission-response'
-import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-lists'
 
 export class TezosSaplingBlockchain implements Blockchain {
   public readonly identifier: string = 'tezos-sapling'
@@ -21,18 +18,8 @@ export class TezosSaplingBlockchain implements Blockchain {
     // No special response handling required.
   }
 
-  async getWalletLists(): Promise<{
-    extensionList: ExtensionApp[]
-    desktopList: DesktopApp[]
-    webList: WebApp[]
-    iOSList: App[]
-  }> {
-    return {
-      extensionList: extensionList,
-      desktopList: desktopList,
-      webList: webList,
-      iOSList: iOSList
-    }
+  async getWalletLists(): Promise<WalletLists> {
+    return fetchRemoteWalletLists('tezos-sapling')
   }
 
   async getAccountInfosFromPermissionResponse(
