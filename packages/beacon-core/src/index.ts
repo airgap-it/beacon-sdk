@@ -91,3 +91,4 @@ export { Serializer, Logger, setLogger, getLogger }
 export { setDebugEnabled, getDebugEnabled }
 
 export { NOTIFICATION_ORACLE_URL, BACKEND_URL } from './constants'
+export { fetchRemoteWalletLists } from './utils/wallet-list-fetcher'

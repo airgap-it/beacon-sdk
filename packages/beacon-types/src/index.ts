@@ -188,6 +188,8 @@ export * from './types/ui'
 
 export * from './types/Regions'
 
+export * from './types/WalletLists'
+
 // Tezos
 export {
   TezosBaseOperation,

@@ -1,11 +1,19 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { arrangeTopWallets, mergeWallets, parseWallets } from '../../../utils/wallets'
-import { NetworkType } from '@airgap/beacon-types'
-import { desktopList, extensionList, iOSList, webList } from '../substrate-wallet-lists'
+import { NetworkType, WalletLists } from '@airgap/beacon-types'
+import { getSubstrateWalletLists } from '../../../utils/wallet-list-loader'
 
 const useSubstrateWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
+  const [walletLists, setWalletLists] = useState<WalletLists | null>(null)
+  
+  useEffect(() => {
+    getSubstrateWalletLists().then(setWalletLists)
+  }, [])
+  
   const rawWallets = useMemo(() => {
-    const desktops = desktopList.map((w) => ({
+    if (!walletLists) return []
+    
+    const desktops = walletLists.desktopList.map((w) => ({
       id: w.key,
       key: w.key,
       name: w.shortName,
@@ -17,7 +25,7 @@ const useSubstrateWallets = (networkType?: NetworkType, featuredWallets?: string
       deepLink: w.deepLink
     }))
 
-    const extensions = extensionList.map((w) => ({
+    const extensions = walletLists.extensionList.map((w) => ({
       id: w.id,
       key: w.key,
       name: w.shortName,
@@ -28,7 +36,7 @@ const useSubstrateWallets = (networkType?: NetworkType, featuredWallets?: string
       link: w.link
     }))
 
-    const ios = iOSList.map((w) => ({
+    const ios = walletLists.iOSList.map((w) => ({
       id: w.key,
       key: w.key,
       name: w.shortName,
@@ -40,7 +48,7 @@ const useSubstrateWallets = (networkType?: NetworkType, featuredWallets?: string
       deepLink: w.deepLink
     }))
 
-    const web = webList.map((w) => {
+    const web = walletLists.webList.map((w) => {
       const link = w.links[networkType ?? NetworkType.MAINNET] ?? w.links.mainnet
       return {
         id: w.key,
@@ -55,7 +63,7 @@ const useSubstrateWallets = (networkType?: NetworkType, featuredWallets?: string
     })
 
     return [...desktops, ...extensions, ...ios, ...web]
-  }, [networkType])
+  }, [networkType, walletLists])
 
   const wallets = useMemo(() => {
     const parsed = parseWallets(rawWallets)

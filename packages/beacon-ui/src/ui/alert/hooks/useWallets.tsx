@@ -1,14 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { arrangeTopWallets, mergeWallets, parseWallets } from '../../../utils/wallets'
-import { Extension, NetworkType } from '@airgap/beacon-types'
-import { desktopList, extensionList, iOSList, webList } from '../wallet-lists'
+import { Extension, NetworkType, WalletLists } from '@airgap/beacon-types'
+import { getDefaultWalletLists } from '../../../utils/wallet-list-loader'
 import { windowRef } from '@airgap/beacon-core'
 
 const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
   const [availableExtensions, setAvailableExtensions] = useState<Extension[]>([])
+  const [walletLists, setWalletLists] = useState<WalletLists | null>(null)
 
-  // Fetch and listen for extension updates
+  useEffect(() => {
+    getDefaultWalletLists().then(setWalletLists)
+  }, [])
+
   useEffect(() => {
     PostMessageTransport.getAvailableExtensions().then(setAvailableExtensions)
 
@@ -23,11 +27,11 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
     return () => windowRef.removeEventListener('message', handler)
   }, [])
 
-  // Memoize wallet list creation
   const wallets = useMemo(() => {
+    if (!walletLists) return []
+    
     const merged = [
-      // Desktop wallets filtered by available extensions
-      ...desktopList
+      ...walletLists.desktopList
         .filter((w) => !availableExtensions.some((e) => w.name === e.name))
         .map((w) => ({
           id: w.key,
@@ -40,9 +44,7 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
           link: w.downloadLink,
           deepLink: w.deepLink
         })),
-
-      // Browser extensions
-      ...extensionList.map((w) => ({
+      ...walletLists.extensionList.map((w) => ({
         id: w.id,
         key: w.key,
         name: w.shortName,
@@ -52,9 +54,7 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
         type: 'extension' as const,
         link: w.link
       })),
-
-      // iOS wallets
-      ...iOSList.map((w) => ({
+      ...walletLists.iOSList.map((w) => ({
         id: w.key,
         key: w.key,
         name: w.shortName,
@@ -65,9 +65,7 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
         link: w.universalLink,
         deepLink: w.deepLink
       })),
-
-      // Web wallets (networkType sensitive)
-      ...webList.map((w) => {
+      ...walletLists.webList.map((w) => {
         const link = w.links[networkType ?? NetworkType.MAINNET]
         return {
           id: w.key,
@@ -80,10 +78,8 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
           link: link ?? w.links.mainnet
         }
       }),
-
-      // Additional detected extensions
       ...availableExtensions
-        .filter((e) => !extensionList.some((w) => w.id === e.id))
+        .filter((e) => !walletLists.extensionList.some((w) => w.id === e.id))
         .map((e) => ({
           id: e.id,
           key: e.id,
@@ -99,9 +95,8 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
       mergeWallets(parseWallets(merged)),
       featuredWallets ?? ['kukai', 'temple', 'plenty', 'umami']
     )
-  }, [availableExtensions, networkType, featuredWallets])
+  }, [availableExtensions, networkType, featuredWallets, walletLists])
 
-  // Memoize the final Map structure
   return useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets])
 }
 

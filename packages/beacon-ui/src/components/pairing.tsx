@@ -1,15 +1,25 @@
-import { desktopList, extensionList, iOSList, webList } from '../ui/alert/wallet-lists'
 import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
+import { getDefaultWalletLists } from '../utils/wallet-list-loader'
 
-/**
- * Initialize with tezos wallets for backwards compatibility
- */
-let localDesktopList: DesktopApp[] = desktopList
-let localExtensionList: ExtensionApp[] = extensionList
-let localWebList: WebApp[] = webList
-let localiOSList: App[] = iOSList
+let localDesktopList: DesktopApp[] = []
+let localExtensionList: ExtensionApp[] = []
+let localWebList: WebApp[] = []
+let localiOSList: App[] = []
+let initialized = false
 
-export const getDesktopList = (): DesktopApp[] => {
+async function ensureInitialized() {
+  if (!initialized) {
+    const walletLists = await getDefaultWalletLists()
+    localDesktopList = walletLists.desktopList
+    localExtensionList = walletLists.extensionList
+    localWebList = walletLists.webList
+    localiOSList = walletLists.iOSList
+    initialized = true
+  }
+}
+
+export const getDesktopList = async (): Promise<DesktopApp[]> => {
+  await ensureInitialized()
   return localDesktopList
 }
 
@@ -17,7 +27,8 @@ export const setDesktopList = (desktopList: DesktopApp[]): void => {
   localDesktopList = desktopList
 }
 
-export const getExtensionList = (): ExtensionApp[] => {
+export const getExtensionList = async (): Promise<ExtensionApp[]> => {
+  await ensureInitialized()
   return localExtensionList
 }
 
@@ -25,7 +36,8 @@ export const setExtensionList = (extensionList: ExtensionApp[]): void => {
   localExtensionList = extensionList
 }
 
-export const getWebList = (): WebApp[] => {
+export const getWebList = async (): Promise<WebApp[]> => {
+  await ensureInitialized()
   return localWebList
 }
 
@@ -33,7 +45,8 @@ export const setWebList = (webList: WebApp[]): void => {
   localWebList = webList
 }
 
-export const getiOSList = (): App[] => {
+export const getiOSList = async (): Promise<App[]> => {
+  await ensureInitialized()
   return localiOSList
 }
 

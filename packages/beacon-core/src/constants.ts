@@ -5,3 +5,7 @@ export const NOTIFICATION_ORACLE_URL: string =
   'https://beacon-notification-oracle.dev.gke.papers.tech'
 
 export const BACKEND_URL: string = 'https://beacon-backend.prod.gke.papers.tech'
+
+export const WALLET_LISTS_BASE_URL: string =
+  (typeof process !== 'undefined' && process.env?.BEACON_WALLET_LISTS_URL) ||
+  'https://raw.githubusercontent.com/airgap-it/beacon-sdk/feat/remote-wallet-list/wallet-lists/'

@@ -7,46 +7,49 @@ jest.mock('../../src/utils/wallets', () => ({
   parseWallets: jest.fn((wallets) => wallets)
 }))
 
-jest.mock('../../src/ui/alert/substrate-wallet-lists', () => ({
-  desktopList: [
-    {
-      key: 'desktop1',
-      shortName: 'Desktop Wallet',
-      logo: 'desktop.png',
-      downloadLink: 'desktop-link',
-      deepLink: 'desktop-deep',
-      supportedInteractionStandards: []
-    }
-  ],
-  extensionList: [
-    {
-      id: 'ext1',
-      key: 'extension1',
-      shortName: 'Extension Wallet',
-      logo: 'extension.png',
-      link: 'extension-link',
-      supportedInteractionStandards: []
-    }
-  ],
-  iOSList: [
-    {
-      key: 'ios1',
-      shortName: 'iOS Wallet',
-      logo: 'ios.png',
-      universalLink: 'ios-link',
-      deepLink: 'ios-deep',
-      supportedInteractionStandards: []
-    }
-  ],
-  webList: [
-    {
-      key: 'web1',
-      shortName: 'Web Wallet',
-      logo: 'web.png',
-      links: { mainnet: 'web-link-main', ghostnet: 'web-link-ghost' },
-      supportedInteractionStandards: []
-    }
-  ]
+jest.mock('../../src/utils/wallet-list-loader', () => ({
+  getSubstrateWalletLists: jest.fn().mockResolvedValue({
+    version: 1,
+    desktopList: [
+      {
+        key: 'desktop1',
+        shortName: 'Desktop Wallet',
+        logo: 'desktop.png',
+        downloadLink: 'desktop-link',
+        deepLink: 'desktop-deep',
+        supportedInteractionStandards: []
+      }
+    ],
+    extensionList: [
+      {
+        id: 'ext1',
+        key: 'extension1',
+        shortName: 'Extension Wallet',
+        logo: 'extension.png',
+        link: 'extension-link',
+        supportedInteractionStandards: []
+      }
+    ],
+    iOSList: [
+      {
+        key: 'ios1',
+        shortName: 'iOS Wallet',
+        logo: 'ios.png',
+        universalLink: 'ios-link',
+        deepLink: 'ios-deep',
+        supportedInteractionStandards: []
+      }
+    ],
+    webList: [
+      {
+        key: 'web1',
+        shortName: 'Web Wallet',
+        logo: 'web.png',
+        links: { mainnet: 'web-link-main', ghostnet: 'web-link-ghost' },
+        supportedInteractionStandards: []
+      }
+    ]
+  })
 }))
 
 describe('useSubstrateWallets', () => {

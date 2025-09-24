@@ -2265,10 +2265,10 @@ export class DAppClient extends Client {
     const getOrgName = (name: string) => name.split(/[_\s]+/)[0]
 
     const apps: AppBase[] = [
-      ...getiOSList(),
-      ...getWebList(),
-      ...getDesktopList(),
-      ...getExtensionList()
+      ...(await getiOSList()),
+      ...(await getWebList()),
+      ...(await getDesktopList()),
+      ...(await getExtensionList())
     ].filter((app: AppBase) =>
       lowerCaseCompare(getOrgName(app.key), getOrgName(walletInfo?.name ?? 'wallet'))
     )

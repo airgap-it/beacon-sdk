@@ -25,6 +25,67 @@ Besides this Typescript SDK, we also provide SDKs for native iOS and Android Wal
 
 The documentation can be found [here](https://docs.walletbeacon.io/), technical documentation can be found [here](https://typedocs.walletbeacon.io/).
 
+## Contributing Wallet Integrations
+
+The Beacon SDK dynamically loads wallet lists from GitHub, making it easy for wallet developers to add or update their wallets without waiting for SDK releases.
+
+### How Wallet Lists Work
+
+- Wallet lists are loaded remotely from `https://raw.githubusercontent.com/airgap-it/beacon-sdk/main/wallet-lists/`
+- Logos are embedded as base64 data URIs directly in the JSON files
+- If the remote list is unavailable, the SDK falls back to bundled wallet lists
+- Changes to wallet lists are live once a PR is merged - no SDK release required!
+
+### Adding or Updating a Wallet
+
+To add your wallet or update an existing entry:
+
+1. **Add your logo** to `/assets/logos/`
+   - Filename must match your wallet key (e.g., `my_wallet_chrome.png` or `my_wallet_chrome.svg`)
+   - **Logo Requirements:**
+     - Format: PNG or SVG
+     - Dimensions: Maximum 256x256 pixels for PNG files
+     - File size: Maximum 25KB
+     - Quality: Clear, high-quality logo on transparent background preferred
+
+2. **Update the wallet list** in the appropriate blockchain file:
+   - `/scripts/blockchains/tezos.ts` for Tezos wallets
+   - `/scripts/blockchains/substrate.ts` for Substrate wallets
+   - `/scripts/blockchains/tezos-sapling.ts` for Tezos Sapling wallets
+
+3. **Run the build script** to generate the JSON files:
+   ```bash
+   npm run generate:wallet-list
+   ```
+
+4. **Submit a Pull Request**
+   - Automated checks will validate your logo meets requirements
+   - Include a brief description of your wallet
+   - The JSON files will be automatically regenerated on merge
+
+### Example Wallet Entry
+
+Add your wallet to the appropriate TypeScript file:
+
+```typescript
+{
+  key: 'my_wallet_chrome',
+  id: 'chrome-extension-id',
+  name: 'My Wallet',
+  shortName: 'MyWallet',
+  color: 'rgb(52, 147, 218)',
+  logo: 'my_wallet_chrome.png', // Must match filename in /assets/logos/
+  link: 'https://mywallet.com/'
+}
+```
+
+### Important Notes for DApp Developers
+
+- Browser extensions need access to `raw.githubusercontent.com` for fetching wallet lists
+- If your extension has CSP (Content Security Policy) restrictions, add `raw.githubusercontent.com` to allowed domains
+- The SDK will automatically fall back to bundled wallet lists if GitHub is not accessible
+- Wallet lists include embedded base64 logos, so no separate image requests are needed
+
 ## Installation
 
 ```
@@ -83,12 +144,6 @@ client
 ```
 
 For a more complete example, take a look at the `example-wallet.html` file.
-
-## Adding a wallet to beacon-sdk
-
-Please create a PR and add your wallet [here](https://github.com/airgap-it/beacon-sdk/blob/master/scripts/generate-wallet-list.ts).
-
-For iOS wallets, the wallet needs to define a custom url scheme to support the same-device functionality.
 
 ## Development
 
