@@ -1,4 +1,4 @@
 {
-  "version": "4.6.1-beta.3",
+  "version": "4.6.1",
   "$schema": "node_modules/lerna/schemas/lerna-schema.json"
 }
