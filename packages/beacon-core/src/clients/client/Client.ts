@@ -20,6 +20,7 @@ import { Logger } from '../../utils/Logger'
 import { ClientOptions } from './ClientOptions'
 import { Transport } from '../../transports/Transport'
 import { Serializer } from '../../Serializer'
+import { isWrappedMessageVersion } from '../../utils/message-utils'
 
 const logger = new Logger('Client')
 
@@ -57,6 +58,7 @@ export abstract class Client extends BeaconClient {
     TransportType,
     (message: any, connectionInfo: ConnectionContext) => Promise<void>
   > = new Map()
+  private readonly loggedProtocolVersions: Set<string> = new Set()
 
   protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
   protected get transport(): Promise<Transport<any>> {
@@ -237,12 +239,16 @@ export abstract class Client extends BeaconClient {
     }
 
     const subscription = async (message: any, connectionInfo: ConnectionContext) => {
-      if (typeof message === 'string') {
-        const deserializedMessage = (await new Serializer().deserialize(
-          message
-        )) as BeaconRequestMessage
-        this.handleResponse(deserializedMessage, connectionInfo)
+      if (typeof message !== 'string') {
+        return
       }
+
+      const peer = await this.findPeer(connectionInfo.id)
+      const protocolVersion = this.getPeerProtocolVersion(peer)
+      this.logProtocolVersion(peer, connectionInfo.id, protocolVersion)
+
+      const deserializedMessage = (await new Serializer(protocolVersion).deserialize(message)) as BeaconRequestMessage
+      this.handleResponse(deserializedMessage, connectionInfo)
     }
 
     this.transportListeners.set(transport.type, subscription)
@@ -262,7 +268,7 @@ export abstract class Client extends BeaconClient {
     }
 
     const request =
-      peer.version === '3'
+      isWrappedMessageVersion(peer.version)
         ? {
             id,
             version: peer.version,
@@ -273,9 +279,68 @@ export abstract class Client extends BeaconClient {
           }
         : disconnectMessage
 
-    const payload = await new Serializer().serialize(request)
+    const protocolVersion = this.getPeerProtocolVersion(peer)
+    const payload = await new Serializer(protocolVersion).serialize(request)
     const selectedTransport = transport ?? (await this.transport)
 
     await selectedTransport.send(payload, peer)
   }
+
+  protected async findPeer(publicKey?: string): Promise<PeerInfo | undefined> {
+    if (!publicKey) {
+      return undefined
+    }
+
+    try {
+      const transport = await this.transport
+      const peers = await transport.getPeers()
+      return peers.find((peerInfo) => peerInfo.publicKey === publicKey)
+    } catch (error) {
+      logger.warn('findPeer', 'Unable to resolve peer', error)
+      return undefined
+    }
+  }
+
+  protected shouldUseCompressedPayload(peer?: PeerInfo): boolean {
+    return this.getPeerProtocolVersion(peer) >= 2
+  }
+
+  private logProtocolVersion(peer?: PeerInfo, connectionId?: string, negotiatedVersion?: number): void {
+    if (peer) {
+      const key = peer.publicKey || peer.id
+      if (this.loggedProtocolVersions.has(key)) {
+        return
+      }
+
+      const resolved = negotiatedVersion ?? this.getPeerProtocolVersion(peer)
+      logger.log('protocol', `Using message protocol v${resolved} for peer ${key}`)
+      this.loggedProtocolVersions.add(key)
+      return
+    }
+
+    if (connectionId && !this.loggedProtocolVersions.has(connectionId)) {
+      logger.log('protocol', `Message received before peer negotiation, connection id ${connectionId}`)
+      this.loggedProtocolVersions.add(connectionId)
+    }
+  }
+
+  protected getEffectiveProtocolVersion(peer?: PeerInfo): number {
+    return this.getPeerProtocolVersion(peer) >= 2 ? 2 : 1
+  }
+
+  protected getPeerProtocolVersion(peer?: PeerInfo): number {
+    if (!peer) {
+      return 1
+    }
+
+    const protocolVersion = typeof peer.protocolVersion === 'number' ? peer.protocolVersion : Number(peer.protocolVersion)
+    if (Number.isFinite(protocolVersion) && protocolVersion >= 1) {
+      return protocolVersion
+    }
+
+    // Default to v1 when protocolVersion is not set
+    // Do NOT use peer.version - that's the Beacon SDK version!
+    return 1
+  }
+
 }

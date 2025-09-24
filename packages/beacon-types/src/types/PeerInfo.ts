@@ -6,6 +6,7 @@ export interface PeerInfo {
   appUrl?: string
   publicKey: string
   version: string
+  protocolVersion?: number
 }
 
 export interface ExtendedPeerInfo extends PeerInfo {

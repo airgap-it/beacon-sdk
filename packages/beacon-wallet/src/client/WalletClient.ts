@@ -7,7 +7,8 @@ import {
   AppMetadataManager,
   getSenderId,
   Logger,
-  NOTIFICATION_ORACLE_URL
+  NOTIFICATION_ORACLE_URL,
+  isWrappedMessageVersion
 } from '@airgap/beacon-core'
 
 import { ExposedPromise, toHex } from '@airgap/beacon-utils'
@@ -112,7 +113,7 @@ export class WalletClient extends Client {
       message: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage> | DisconnectMessage,
       connectionContext: ConnectionContext
     ): Promise<void> => {
-      if (message.version === '3') {
+      if (isWrappedMessageVersion(message.version)) {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
         if (typedMessage.message.type === BeaconMessageType.Disconnect) {
@@ -141,7 +142,7 @@ export class WalletClient extends Client {
         if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
           this.pendingRequests.push([typedMessage, connectionContext])
 
-          if (typedMessage.version !== '1') {
+          if (typedMessage.version && typedMessage.version !== '1') {
             await this.sendAcknowledgeResponse(typedMessage, connectionContext)
           }
 
@@ -253,7 +254,9 @@ export class WalletClient extends Client {
     transport
       .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
         if (typeof message === 'string') {
-          const deserializedMessage = (await new Serializer().deserialize(
+          const peer = await this.findPeer(connectionInfo.id)
+          const protocolVersion = this.getPeerProtocolVersion(peer)
+          const deserializedMessage = (await new Serializer(protocolVersion).deserialize(
             message
           )) as BeaconRequestMessage
           this.handleResponse(deserializedMessage, connectionInfo)
@@ -328,6 +331,7 @@ export class WalletClient extends Client {
 
   private async getPeerInfo(peer: PeerInfo): Promise<ExtendedPeerInfo> {
     const senderId = await getSenderId(peer.publicKey)
+    const protocolVersion = this.normalizeProtocolVersion(peer.protocolVersion)
 
     if (peer instanceof PostMessagePairingRequest) {
       return new ExtendedPostMessagePairingRequest(
@@ -335,7 +339,8 @@ export class WalletClient extends Client {
         peer.name,
         peer.publicKey,
         peer.version,
-        senderId
+        senderId,
+        protocolVersion
       )
     } else if (peer instanceof P2PPairingRequest) {
       return new ExtendedP2PPairingRequest(
@@ -344,7 +349,8 @@ export class WalletClient extends Client {
         peer.publicKey,
         peer.version,
         peer.relayServer,
-        senderId
+        senderId,
+        protocolVersion
       )
     } else if (peer instanceof ExtendedWalletConnectPairingRequest) {
       return new ExtendedWalletConnectPairingRequest(
@@ -353,14 +359,20 @@ export class WalletClient extends Client {
         peer.publicKey,
         peer.version,
         senderId,
-        peer.uri
+        peer.uri,
+        protocolVersion
       )
     } else {
       return {
         ...peer,
-        senderId
+        senderId,
+        protocolVersion
       }
     }
+  }
+  private normalizeProtocolVersion(raw: unknown): number | undefined {
+    const parsed = Number(raw)
+    return Number.isFinite(parsed) && parsed >= 1 ? parsed : undefined
   }
 
   /**
@@ -454,10 +466,15 @@ export class WalletClient extends Client {
     response: BeaconMessage,
     connectionContext: ConnectionContext
   ): Promise<void> {
-    const serializedMessage: string = await new Serializer().serialize(response)
+    let peer: PeerInfo | undefined
     if (connectionContext) {
       const peerInfos = await this.getPeers()
-      const peer = peerInfos.find((peerInfo) => peerInfo.publicKey === connectionContext.id)
+      peer = peerInfos.find((peerInfo) => peerInfo.publicKey === connectionContext.id)
+    }
+
+    const protocolVersion = this.getPeerProtocolVersion(peer)
+    const serializedMessage: string = await new Serializer(protocolVersion).serialize(response)
+    if (connectionContext) {
       await (await this.transport).send(serializedMessage, peer)
     } else {
       await (await this.transport).send(serializedMessage)
@@ -475,4 +492,5 @@ export class WalletClient extends Client {
 
     return
   }
+
 }

@@ -1,5 +1,6 @@
 import {
   BEACON_VERSION,
+  getPreferredMessageProtocolVersion,
   CommunicationClient,
   Serializer,
   ClientEvents,
@@ -91,6 +92,7 @@ function getStringBetween(str: string | undefined, startChar: string, endChar: s
 
 export class WalletConnectCommunicationClient extends CommunicationClient {
   protected readonly activeListeners: Map<string, (message: string) => void> = new Map()
+  private readonly peerProtocolVersions: Map<string, number | undefined> = new Map()
 
   protected readonly channelOpeningListeners: Map<
     string,
@@ -147,11 +149,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async listenForEncryptedMessage(
     senderPublicKey: string,
-    messageCallback: (message: string) => void
+    messageCallback: (message: string) => void,
+    protocolVersion?: number
   ): Promise<void> {
     if (this.activeListeners.has(senderPublicKey)) {
       return
     }
+
+    this.peerProtocolVersions.set(senderPublicKey, protocolVersion)
 
     const callbackFunction = async (message: string): Promise<void> => {
       messageCallback(message)
@@ -237,10 +242,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   async unsubscribeFromEncryptedMessages(): Promise<void> {
     this.activeListeners.clear()
     this.channelOpeningListeners.clear()
+    this.peerProtocolVersions.clear()
   }
 
   async unsubscribeFromEncryptedMessage(_senderPublicKey: string): Promise<void> {
-    // implementation
+    this.activeListeners.delete(_senderPublicKey)
+    this.peerProtocolVersions.delete(_senderPublicKey)
   }
 
   async closeSignClient() {
@@ -297,8 +304,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   async sendMessage(_message: string, _peer?: any): Promise<void> {
-    const serializer = new Serializer()
-    const message = (await serializer.deserialize(_message)) as any
+    let message: any
+
+    try {
+      message = JSON.parse(_message)
+    } catch {
+      const serializer = new Serializer()
+      message = (await serializer.deserialize(_message)) as any
+    }
 
     if (!message) {
       return
@@ -704,6 +717,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         this.updateStorageWallet(session)
 
+        const remoteMetadata = session.peer.metadata as Record<string, any>
+        const rawProtocolVersion =
+          remoteMetadata?.protocolVersion ?? remoteMetadata?.extensions?.protocolVersion
+        const remoteProtocolVersion = Number(rawProtocolVersion)
+        const resolvedProtocolVersion = Number.isFinite(remoteProtocolVersion)
+          ? remoteProtocolVersion
+          : undefined
+
         const pairingResponse: ExtendedWalletConnectPairingResponse =
           new ExtendedWalletConnectPairingResponse(
             session.topic,
@@ -711,8 +732,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
             session.peer.publicKey,
             '3',
             session.topic,
-            session.peer.metadata.name
+            session.peer.metadata.name,
+            resolvedProtocolVersion
           )
+
+        if (resolvedProtocolVersion !== undefined) {
+          this.peerProtocolVersions.set(session.peer.publicKey, resolvedProtocolVersion)
+        }
 
         this.channelOpeningListeners.forEach((listener) => {
           listener(pairingResponse)
@@ -980,7 +1006,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       await generateGUID(),
       BEACON_VERSION,
       await generateGUID(),
-      _uri
+      _uri,
+      getPreferredMessageProtocolVersion()
     )
   }
 
@@ -1389,12 +1416,26 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       version: '2',
       senderId: topic
     }
-    const serializer = new Serializer()
-    const serialized = await serializer.serialize(response)
+    let legacySerialized: string | undefined
+    let serializer: Serializer | undefined
 
-    this.activeListeners.forEach((listener) => {
-      listener(serialized)
-    })
+    for (const [publicKey, listener] of this.activeListeners.entries()) {
+      const protocolVersion = Number(this.peerProtocolVersions.get(publicKey))
+
+      if (Number.isFinite(protocolVersion) && protocolVersion >= 2) {
+        listener(JSON.stringify(response))
+      } else {
+        if (!serializer) {
+          serializer = new Serializer()
+        }
+
+        if (!legacySerialized) {
+          legacySerialized = await serializer.serialize(response)
+        }
+
+        listener(legacySerialized)
+      }
+    }
   }
 
   public currentSession(): SessionTypes.Struct | undefined {

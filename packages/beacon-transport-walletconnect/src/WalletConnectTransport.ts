@@ -11,7 +11,7 @@ import {
   NetworkType,
   TransportType
 } from '@airgap/beacon-types'
-import { Transport, PeerManager } from '@airgap/beacon-core'
+import { Transport, PeerManager, BEACON_VERSION } from '@airgap/beacon-core'
 import { SignClientTypes } from '@walletconnect/types'
 import { ExposedPromise } from '@airgap/beacon-utils'
 
@@ -119,17 +119,26 @@ export class WalletConnectTransport<
     if (!session) {
       return []
     }
-    return [
-      {
-        senderId: session.peer.publicKey,
-        extensionId: session.peer.metadata.name,
-        id: session.peer.publicKey,
-        type: 'walletconnect-pairing-response',
-        name: session.peer.metadata.name,
-        publicKey: session.peer.publicKey,
-        version: 'first'
-      } as T
-    ]
+    const metadata = session.peer.metadata as Record<string, any>
+    const rawProtocolVersion = metadata?.protocolVersion ?? metadata?.extensions?.protocolVersion
+    const protocolVersion = Number(rawProtocolVersion)
+    const resolvedProtocolVersion = Number.isFinite(protocolVersion) ? protocolVersion : undefined
+
+    const basePeer: any = {
+      senderId: session.peer.publicKey,
+      extensionId: session.peer.metadata.name,
+      id: session.peer.publicKey,
+      type: 'walletconnect-pairing-response',
+      name: session.peer.metadata.name,
+      publicKey: session.peer.publicKey,
+      version: BEACON_VERSION
+    }
+
+    if (resolvedProtocolVersion !== undefined) {
+      basePeer.protocolVersion = resolvedProtocolVersion
+    }
+
+    return [basePeer as T]
   }
 
   public async disconnect(): Promise<void> {
@@ -153,6 +162,7 @@ export class WalletConnectTransport<
   }
 
   public async listen(publicKey: string): Promise<void> {
+    const peer = await this.peerManager.getPeer(publicKey)
     await this.client
       .listenForEncryptedMessage(publicKey, (message) => {
         const connectionContext: ConnectionContext = {
@@ -163,7 +173,7 @@ export class WalletConnectTransport<
         this.notifyListeners(message, connectionContext).catch((error) => {
           throw error
         })
-      })
+      }, peer?.protocolVersion)
       .catch((error) => {
         throw error
       })
