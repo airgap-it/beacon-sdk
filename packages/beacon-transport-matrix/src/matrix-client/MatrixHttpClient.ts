@@ -16,7 +16,7 @@ const CLIENT_API_R0 = '/_matrix/client/r0'
  * Handling the HTTP connection to the matrix synapse node
  */
 export class MatrixHttpClient {
-  private readonly cancelTokenSource: CancelTokenSource
+  private cancelTokenSource: CancelTokenSource
 
   constructor(private readonly baseUrl: string) {
     this.cancelTokenSource = axios.CancelToken.source()
@@ -71,7 +71,9 @@ export class MatrixHttpClient {
   }
 
   public async cancelAllRequests(): Promise<void> {
-    return this.cancelTokenSource.cancel('Manually cancelled')
+    this.cancelTokenSource.cancel('Manually cancelled')
+    // After canceling, the token stays canceled, so create a fresh source for future requests.
+    this.cancelTokenSource = axios.CancelToken.source()
   }
 
   /**
@@ -105,9 +107,22 @@ export class MatrixHttpClient {
         cancelToken: this.cancelTokenSource.token
       })
     } catch (error) {
-      const axiosError: AxiosError = error as any
-      logger.error('send', axiosError.code, axiosError.message, (axiosError as any).response.data)
-      throw (error as any).response.data
+      const axiosError = error as AxiosError
+      const responseData = axiosError.response?.data
+
+      if (axiosError.code === 'ERR_CANCELED') {
+        // Expected when the Matrix client is stopped intentionally.
+        logger.log('send', 'request cancelled')
+        throw axiosError
+      }
+
+      logger.error('send', axiosError.code, axiosError.message, responseData)
+
+      if (responseData !== undefined) {
+        throw responseData
+      }
+
+      throw axiosError
     }
 
     return response.data

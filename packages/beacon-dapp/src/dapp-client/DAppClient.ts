@@ -2678,13 +2678,33 @@ export class DAppClient extends Client {
 
     await this.createStateSnapshot()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
+
+    const peers = await transport.getPeers()
+    if (peers.length > 0) {
+      const shouldNotifyPeers = !(transport instanceof WalletConnectTransport)
+      await this.removeAllPeers(shouldNotifyPeers)
+    }
+
     await this.clearActiveAccount()
     if (!(transport instanceof WalletConnectTransport)) {
-      await transport.disconnect()
+      try {
+        await transport.disconnect()
+      } catch (disconnectError) {
+        const message = disconnectError instanceof Error ? disconnectError.message : String(disconnectError)
+        if (typeof message === 'string' && message.includes('Syncing stopped manually')) {
+          logger.log('disconnect', 'Matrix sync stopped manually')
+        } else {
+          throw disconnectError
+        }
+      }
     }
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
+
+    await this.setTransport()
+    this._initPromise = undefined
+    this.isInitPending = false
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 
