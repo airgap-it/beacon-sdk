@@ -30,6 +30,7 @@
   "scripts": {
     "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
     "build": "npm run check-version && lerna run tsc && npm run webpack:all",
+    "serve": "static-server examples --port 8080",
     "webpack:all": "npm run webpack:sdk && npm run webpack:dapp && npm run webpack:wallet",
     "webpack:sdk": "webpack --mode=development --config webpack.config.js --entry=./packages/beacon-sdk/dist/cjs/index.js --output-path ./webpack_builds/sdk && terser --ecma=12 ./webpack_builds/sdk/main.js -o ./packages/beacon-sdk/dist/walletbeacon.min.js && cp ./packages/beacon-sdk/dist/walletbeacon.min.js ./examples/walletbeacon.min.js",
     "webpack:dapp": "webpack --mode=development --entry=./packages/beacon-dapp/dist/cjs/index.js --output-path ./webpack_builds/dapp && terser --ecma=12 ./webpack_builds/dapp/main.js -o ./packages/beacon-dapp/dist/walletbeacon.dapp.min.js",

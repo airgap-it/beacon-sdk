@@ -291,7 +291,7 @@
         preferredNetwork: beacon.NetworkType.GHOSTNET
       })
 
-      const Tezos = new taquito.TezosToolkit('https://ghostnet.tezos.marigold.dev/')
+      const Tezos = new taquito.TezosToolkit('https://rpc.ghostnet.teztnets.com/')
       Tezos.setWalletProvider(new BeaconWallet(dappClient))
 
       const updateActiveAccount = () => {
