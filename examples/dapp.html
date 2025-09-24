@@ -14,18 +14,6 @@
       window.beaconSdkDebugEnabled = true
     </script>
 
-    <script
-      src="https://browser.sentry-cdn.com/7.91.0/bundle.min.js"
-      crossorigin="anonymous"
-    ></script>
-
-    <script>
-      Sentry.init({
-        dsn: 'https://385962b1cc80428186f09e7a237885c8@sentry.papers.tech/208',
-        tracesSampleRate: 1.0
-      })
-    </script>
-
     <script src="./walletbeacon.min.js"></script>
 
     <style>
@@ -207,7 +195,14 @@
 
       // WC no matching key/topic errors override
       window.addEventListener('unhandledrejection', function (e) {
-        x.error('Error occurred: ' + e.reason.message)
+        const message = e && e.reason && typeof e.reason.message === 'string' ? e.reason.message : ''
+
+        if (message.includes('Syncing stopped manually')) {
+          e.preventDefault()
+          return
+        }
+
+        x.error('Error occurred: ' + message, e.reason)
       })
 
       // Network selection functions
@@ -317,6 +312,18 @@
             document.getElementById('activeAccount').innerText = ''
             document.getElementById('activeAccountNetwork').innerText = ''
             document.getElementById('activeAccountTransport').innerText = ''
+
+            let btn = document.getElementById('disconnect')
+            btn.style.opacity = '0.5'
+            btn.disabled = true
+
+            btn = document.getElementById('requestProofOfEventChallenge')
+            btn.style.opacity = '0.5'
+            btn.disabled = true
+
+            btn = document.getElementById('requestSimulatedProofOfEventChallenge')
+            btn.style.opacity = '0.5'
+            btn.disabled = true
           }
         })
       }
@@ -458,7 +465,10 @@
       const disconnect = () => {
         client
           .disconnect()
-          .then(() => console.log('disconnected.'))
+          .then(() => {
+            console.log('disconnected.')
+            updateActiveAccount()
+          })
           .catch((err) => console.error(err.message))
       }
 

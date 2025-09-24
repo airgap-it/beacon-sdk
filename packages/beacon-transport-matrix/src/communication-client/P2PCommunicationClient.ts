@@ -522,22 +522,33 @@ export class P2PCommunicationClient extends CommunicationClient {
     const encryptedMessage = await encryptCryptoboxPayload(message, sharedKey.send)
 
     logger.log('sendMessage', 'sending encrypted message', peer.publicKey, roomId, message)
-    ;(await this.client.promise).sendTextMessage(roomId, encryptedMessage).catch(async (error) => {
-      if (error.errcode === 'M_FORBIDDEN') {
-        // Room doesn't exist
+    try {
+      await (await this.client.promise).sendTextMessage(roomId, encryptedMessage)
+    } catch (error: any) {
+      if (error?.code === 'ERR_CANCELED') {
+        logger.log('sendMessage', 'request cancelled while stopping transport')
+        return
+      }
+
+      if (error?.errcode === 'M_FORBIDDEN') {
         logger.log(`sendMessage`, `M_FORBIDDEN`, roomId, error)
         await this.deleteRoomIdFromRooms(roomId)
         const newRoomId = await this.getRelevantRoom(recipient)
         logger.log(`sendMessage`, `Old room deleted, new room created`, newRoomId)
-        ;(await this.client.promise)
-          .sendTextMessage(newRoomId, encryptedMessage)
-          .catch(async (error2) => {
-            logger.log(`sendMessage`, `inner error`, newRoomId, error2)
-          })
+        try {
+          await (await this.client.promise).sendTextMessage(newRoomId, encryptedMessage)
+        } catch (innerError: any) {
+          if (innerError?.code === 'ERR_CANCELED') {
+            logger.log('sendMessage', 'inner request cancelled while stopping transport')
+            return
+          }
+
+          logger.log(`sendMessage`, `inner error`, newRoomId, innerError)
+        }
       } else {
         logger.log(`sendMessage`, `unexpected error`, error)
       }
-    })
+    }
   }
 
   public async updatePeerRoom(sender: string, roomId: string): Promise<void> {
@@ -690,20 +701,33 @@ export class P2PCommunicationClient extends CommunicationClient {
     )
 
     const msg = ['@channel-open', recipient, encryptedMessage].join(':')
-    ;(await this.client.promise).sendTextMessage(roomId, msg).catch(async (error) => {
-      if (error.errcode === 'M_FORBIDDEN') {
-        // Room doesn't exist
+    try {
+      await (await this.client.promise).sendTextMessage(roomId, msg)
+    } catch (error: any) {
+      if (error?.code === 'ERR_CANCELED') {
+        logger.log('sendPairingResponse', 'request cancelled while stopping transport')
+        return
+      }
+
+      if (error?.errcode === 'M_FORBIDDEN') {
         logger.log(`sendPairingResponse`, `M_FORBIDDEN`, roomId, error)
         await this.deleteRoomIdFromRooms(roomId)
         const newRoomId = await this.getRelevantRoom(recipient)
         logger.log(`sendPairingResponse`, `Old room deleted, new room created`, newRoomId)
-        ;(await this.client.promise).sendTextMessage(newRoomId, msg).catch(async (error2) => {
-          logger.log(`sendPairingResponse`, `inner error`, newRoomId, error2)
-        })
+        try {
+          await (await this.client.promise).sendTextMessage(newRoomId, msg)
+        } catch (innerError: any) {
+          if (innerError?.code === 'ERR_CANCELED') {
+            logger.log('sendPairingResponse', 'inner request cancelled while stopping transport')
+            return
+          }
+
+          logger.log(`sendPairingResponse`, `inner error`, newRoomId, innerError)
+        }
       } else {
         logger.log(`sendPairingResponse`, `unexpected error`, error)
       }
-    })
+    }
   }
 
   public isTextMessage(

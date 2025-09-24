@@ -473,8 +473,6 @@ export class WalletClient extends Client {
       await this.removePeer(peer as any)
     }
 
-    await transport.disconnect()
-
     return
   }
 }
