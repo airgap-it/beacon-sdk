@@ -20,7 +20,11 @@ import { getStorage } from './storage/getStorage'
 import { Serializer } from './Serializer'
 // import { RequestEncryptPayloadInput } from './types/RequestEncryptPayloadInput'
 import { ClientOptions } from './clients/client/ClientOptions'
-import { SDK_VERSION, BEACON_VERSION } from './constants'
+import { SDK_VERSION, BEACON_VERSION, DEFAULT_MESSAGE_PROTOCOL_VERSION } from './constants'
+import {
+  getPreferredMessageProtocolVersion,
+  setPreferredMessageProtocolVersion
+} from './message-protocol'
 import { AccountManager } from './managers/AccountManager'
 import { AppMetadataManager } from './managers/AppMetadataManager'
 import { PermissionManager } from './managers/PermissionManager'
@@ -79,10 +83,17 @@ export { ChromeStorage, LocalStorage, WCStorage, IndexedDBStorage, StorageValida
 export { PeerManager, AccountManager, AppMetadataManager, PermissionManager }
 
 // Constants
-export { SDK_VERSION, BEACON_VERSION }
+export {
+  SDK_VERSION,
+  BEACON_VERSION,
+  DEFAULT_MESSAGE_PROTOCOL_VERSION,
+  getPreferredMessageProtocolVersion,
+  setPreferredMessageProtocolVersion
+}
 
 // Utils
 export { getSenderId, getAccountIdentifier, windowRef, MultiTabChannel }
+export { isWrappedMessageVersion } from './utils/message-utils'
 
 // Others
 export { Serializer, Logger, setLogger, getLogger }

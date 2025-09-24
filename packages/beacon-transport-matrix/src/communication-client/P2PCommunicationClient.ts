@@ -31,6 +31,7 @@ import {
 import {
   PeerManager,
   BEACON_VERSION,
+  getPreferredMessageProtocolVersion,
   getSenderId,
   Logger,
   CommunicationClient
@@ -122,7 +123,8 @@ export class P2PCommunicationClient extends CommunicationClient {
       this.name,
       await this.getPublicKey(),
       BEACON_VERSION,
-      (await this.getRelayServer()).server
+      (await this.getRelayServer()).server,
+      getPreferredMessageProtocolVersion()
     )
 
     if (this.iconUrl) {
@@ -141,7 +143,8 @@ export class P2PCommunicationClient extends CommunicationClient {
       this.name,
       await this.getPublicKey(),
       request.version,
-      (await this.getRelayServer()).server
+      (await this.getRelayServer()).server,
+      getPreferredMessageProtocolVersion()
     )
 
     if (this.iconUrl) {
@@ -623,9 +626,15 @@ export class P2PCommunicationClient extends CommunicationClient {
 
         if (payload.length >= secretbox_NONCEBYTES + secretbox_MACBYTES) {
           try {
-            const pairingResponse: P2PPairingResponse = JSON.parse(
+            const rawResponse = JSON.parse(
               await openCryptobox(payload, this.keyPair!.publicKey, this.keyPair!.secretKey)
-            )
+            ) as P2PPairingResponse & { protocolVersion?: string | number }
+
+            const normalizedProtocol = Number(rawResponse.protocolVersion)
+            const pairingResponse: P2PPairingResponse = {
+              ...rawResponse,
+              protocolVersion: Number.isFinite(normalizedProtocol) ? normalizedProtocol : undefined
+            }
 
             logger.log(
               `listenForChannelOpening`,

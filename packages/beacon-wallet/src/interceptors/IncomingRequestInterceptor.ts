@@ -15,7 +15,7 @@ import {
   BeaconBaseMessage
   // EncryptPayloadRequestOutput
 } from '@airgap/beacon-types'
-import { AppMetadataManager, Logger } from '@airgap/beacon-core'
+import { AppMetadataManager, Logger, isWrappedMessageVersion } from '@airgap/beacon-core'
 import { SimulatedProofOfEventChallengeRequestOutput } from '@airgap/beacon-types/dist/esm/types/beacon/messages/BeaconRequestOutputMessage'
 
 const logger = new Logger('IncomingRequestInterceptor')
@@ -50,7 +50,7 @@ export class IncomingRequestInterceptor {
 
     if (config.message.version === '2') {
       IncomingRequestInterceptor.handleV2Message(config as IncomingRequestInterceptorOptionsV2)
-    } else if (config.message.version === '3') {
+    } else if (isWrappedMessageVersion(config.message.version)) {
       IncomingRequestInterceptor.handleV3Message(config as IncomingRequestInterceptorOptionsV3)
     }
   }

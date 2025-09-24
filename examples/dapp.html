@@ -43,6 +43,19 @@
       <select id="networkSelect"></select>
     </span>
     <br /><br />
+    <span>
+      Preferred Protocol (max):
+      <select id="protocolSelect">
+        <option value="1">1 - Legacy (base58)</option>
+        <option value="2">2 - Compressed (gzip)</option>
+      </select>
+    </span>
+    <br /><br />
+    <span>
+      Negotiated Protocol:
+      <strong id="negotiatedProtocol">—</strong>
+    </span>
+    <br /><br />
     <button id="requestPermission">Request Permission</button>
     <br /><br />
     <button id="requestPermissionAndSign">Request Permission And Sign Request</button>
@@ -74,6 +87,18 @@
     <button id="signPayloadOperation">Sign Payload (Operation)</button>
     <br /><br />
     <button id="signPayloadMicheline">Sign Payload (Micheline)</button>
+    <br /><br />
+    <button id="signPayloadLarge20">Sign Payload 20 KB (Perf)</button>
+    <span id="signPayloadLarge20Result" class="perf-result"></span>
+    <br /><br />
+    <button id="signPayloadLarge30">Sign Payload 30 KB (Perf)</button>
+    <span id="signPayloadLarge30Result" class="perf-result"></span>
+    <br /><br />
+    <button id="signPayloadLarge50">Sign Payload 50 KB (Perf)</button>
+    <span id="signPayloadLarge50Result" class="perf-result"></span>
+    <br /><br />
+    <button id="signPayloadLarge100">Sign Payload 100 KB (Perf)</button>
+    <span id="signPayloadLarge100Result" class="perf-result"></span>
     <br /><br />
     ---
     <br /><br />
@@ -226,8 +251,71 @@
         select.value = getSelectedNetwork()
       }
 
+      const PROTOCOL_STORAGE_KEY = 'beacon-example-protocol-version'
+
+      const getStoredProtocolVersion = () => {
+        return localStorage.getItem(PROTOCOL_STORAGE_KEY) || '2'
+      }
+
+      const applyProtocolVersion = (version, { silent } = { silent: false }) => {
+        localStorage.setItem(PROTOCOL_STORAGE_KEY, version)
+        if (typeof beacon.setPreferredMessageProtocolVersion === 'function') {
+          beacon.setPreferredMessageProtocolVersion(version)
+        }
+        const select = document.getElementById('protocolSelect')
+        if (select) {
+          select.value = version
+        }
+        if (!silent) {
+          console.log(`[perf][dapp] Preferred protocol version set to ${version}. Re-pair peers to apply if already connected.`)
+        }
+      }
+
       // Initialize client with selected network
       let client
+      let negotiatedProtocolInterval
+      const negotiatedProtocolEl = document.getElementById('negotiatedProtocol')
+      let lastNegotiatedProtocol
+
+      const protocolSelect = document.getElementById('protocolSelect')
+      if (protocolSelect) {
+        protocolSelect.addEventListener('change', (event) => {
+          applyProtocolVersion(event.target.value)
+        })
+      }
+
+      applyProtocolVersion(getStoredProtocolVersion(), { silent: true })
+
+      const updateNegotiatedProtocol = async () => {
+        if (!client || !negotiatedProtocolEl) {
+          return
+        }
+
+        try {
+          const peers = await client.getPeers()
+
+          if (!peers || peers.length === 0) {
+            negotiatedProtocolEl.textContent = '—'
+            lastNegotiatedProtocol = undefined
+            return
+          }
+
+          const preferredPeer = peers.find((peer) => typeof peer.protocolVersion === 'number') ?? peers[0]
+          const rawProtocol = typeof preferredPeer.protocolVersion === 'number' ? preferredPeer.protocolVersion : undefined
+          const displayVersion = rawProtocol ?? 1
+          const suffix = rawProtocol ? '' : ' (legacy)'
+          negotiatedProtocolEl.textContent = `v${displayVersion}${suffix}`
+
+          if (rawProtocol !== undefined && rawProtocol !== lastNegotiatedProtocol) {
+            console.log('[dapp] Negotiated protocol:', negotiatedProtocolEl.textContent, preferredPeer)
+            lastNegotiatedProtocol = rawProtocol
+          }
+        } catch (error) {
+          console.warn('Unable to resolve negotiated protocol', error)
+          negotiatedProtocolEl.textContent = '—'
+          lastNegotiatedProtocol = undefined
+        }
+      }
 
       const initClient = async () => {
         const selectedNetwork = getSelectedNetwork()
@@ -279,9 +367,73 @@
         client.subscribeToEvent('ACTIVE_ACCOUNT_SET', (account) => {
           console.log('ACTIVE_ACCOUNT_SET received', account)
           updateActiveAccount()
+          updateNegotiatedProtocol()
         })
 
         console.log('Client initialized with network:', selectedNetwork)
+        await updateNegotiatedProtocol()
+        if (negotiatedProtocolInterval) {
+          clearInterval(negotiatedProtocolInterval)
+        }
+        negotiatedProtocolInterval = setInterval(updateNegotiatedProtocol, 5000)
+      }
+
+      const generatePrefixedHexPayload = (sizeInBytes) => {
+        const encoder = new TextEncoder()
+        const message = 'x'.repeat(sizeInBytes)
+        const bytes = encoder.encode(message)
+        const hex = Array.from(bytes)
+          .map((byte) => byte.toString(16).padStart(2, '0'))
+          .join('')
+        const lengthHex = bytes.length.toString(16).padStart(8, '0')
+        return `0501${lengthHex}${hex}`
+      }
+
+      const getCurrentProtocolVersion = () => {
+        if (typeof beacon.getPreferredMessageProtocolVersion === 'function') {
+          return beacon.getPreferredMessageProtocolVersion()
+        }
+        return getStoredProtocolVersion()
+      }
+
+      const runSignPayloadPerfTest = async (sizeInKb) => {
+        const resultEl = document.getElementById(`signPayloadLarge${sizeInKb}Result`)
+        if (!resultEl) {
+          console.warn('Missing result element for payload size', sizeInKb)
+        }
+
+        if (!client) {
+          console.warn('Client not ready')
+          return
+        }
+
+        const sizeInBytes = sizeInKb * 1024
+        const generationStart = performance.now()
+        const payload = generatePrefixedHexPayload(sizeInBytes)
+        const generationEnd = performance.now()
+
+        if (resultEl) {
+          resultEl.textContent = `Generated in ${(generationEnd - generationStart).toFixed(2)}ms …`
+        }
+
+        const sendStart = performance.now()
+        if (resultEl) {
+          resultEl.textContent = `Serialized in ${(sendStart - generationEnd).toFixed(2)}ms …`
+        }
+        try {
+          const signature = await client.requestSignPayload({ payload })
+          const sendEnd = performance.now()
+          const elapsed = (sendEnd - sendStart).toFixed(2)
+          if (resultEl) {
+            resultEl.textContent = `Completed ${sizeInKb}KB sign payload in ${elapsed}ms (protocol v${getCurrentProtocolVersion()}).`
+          }
+        } catch (error) {
+          const sendEnd = performance.now()
+          if (resultEl) {
+            resultEl.textContent = `Failed after ${(sendEnd - sendStart).toFixed(2)}ms: ${error.message ?? error}`
+          }
+          console.error('[perf][dapp] Sign payload request failed', error)
+        }
       }
 
       // Display the active account in the UI
@@ -597,6 +749,22 @@
         })
 
         console.log('signature:', signature)
+      })
+
+      document.getElementById('signPayloadLarge50').addEventListener('click', () => {
+        runSignPayloadPerfTest(50)
+      })
+
+      document.getElementById('signPayloadLarge100').addEventListener('click', () => {
+        runSignPayloadPerfTest(100)
+      })
+
+      document.getElementById('signPayloadLarge20').addEventListener('click', () => {
+        runSignPayloadPerfTest(20)
+      })
+
+      document.getElementById('signPayloadLarge30').addEventListener('click', () => {
+        runSignPayloadPerfTest(30)
       })
 
       // Add event listener to the button

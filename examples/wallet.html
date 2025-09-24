@@ -26,6 +26,15 @@
       <select id="networkSelect"></select>
     </span>
     <br /><br />
+    <span>
+      Preferred Protocol (max):
+      <select id="walletProtocolSelect">
+        <option value="1">1 - Legacy (base58)</option>
+        <option value="2">2 - Compressed (gzip)</option>
+      </select>
+    </span>
+    <br /><br />
+    <br /><br />
     <div id="wallet-info-container" style="padding: 15px; background: #333; border-radius: 5px; margin-bottom: 10px; display: none;">
       <div style="margin-bottom: 15px;">
         <strong>Wallet Address:</strong>
@@ -127,6 +136,26 @@
         select.value = getSelectedNetwork()
       }
 
+      const WALLET_PROTOCOL_STORAGE_KEY = 'beacon-wallet-protocol-version'
+
+      const getStoredProtocolVersion = () => {
+        return localStorage.getItem(WALLET_PROTOCOL_STORAGE_KEY) || '2'
+      }
+
+      const applyProtocolVersion = (version, { silent } = { silent: false }) => {
+        localStorage.setItem(WALLET_PROTOCOL_STORAGE_KEY, version)
+        if (typeof beacon.setPreferredMessageProtocolVersion === 'function') {
+          beacon.setPreferredMessageProtocolVersion(version)
+        }
+        const select = document.getElementById('walletProtocolSelect')
+        if (select) {
+          select.value = version
+        }
+        if (!silent) {
+          console.log(`[perf][wallet] Preferred protocol version set to ${version}. Re-pair peers to apply if already connected.`)
+        }
+      }
+
       // Initialize client with selected network
       let client
       let walletSigner = null
@@ -134,6 +163,16 @@
       let walletPublicKey = null
       let walletMnemonic = null
       let peerRefreshInterval = null
+      const signRequestTimings = new Map()
+
+      const protocolSelect = document.getElementById('walletProtocolSelect')
+      if (protocolSelect) {
+        protocolSelect.addEventListener('change', (event) => {
+          applyProtocolVersion(event.target.value)
+        })
+      }
+
+      applyProtocolVersion(getStoredProtocolVersion(), { silent: true })
 
       const hasBip39 = () => !!(window.bip39 && typeof window.bip39.generateMnemonic === 'function')
       const isValidMnemonic = (mnemonic) => {
@@ -435,6 +474,23 @@
 
             await refreshPeers()
 
+            if (message.type === beacon.BeaconMessageType.SignPayloadRequest) {
+              const payloadString = typeof message.payload === 'string' ? message.payload : ''
+              const normalized = payloadString.startsWith('0x')
+                ? payloadString.slice(2)
+                : payloadString
+              const sizeBytes = Math.floor(normalized.length / 2)
+              signRequestTimings.set(message.id, {
+                receivedAt: performance.now(),
+                sizeBytes
+              })
+              console.log(
+                `[perf][wallet] Received sign payload request ${message.id} (~${(
+                  sizeBytes / 1024
+                ).toFixed(2)}KB)`
+              )
+            }
+
             switch (message.type) {
               case beacon.BeaconMessageType.PermissionRequest:
                 await handlePermissionRequest(message)
@@ -450,6 +506,23 @@
                 console.error('Received: ', message)
                 respondWithError(message)
                 break
+            }
+
+            if (message.type === beacon.BeaconMessageType.SignPayloadRequest) {
+              const timing = signRequestTimings.get(message.id)
+              if (timing) {
+                const duration = performance.now() - timing.receivedAt
+                const protocolVersion =
+                  typeof beacon.getPreferredMessageProtocolVersion === 'function'
+                    ? beacon.getPreferredMessageProtocolVersion()
+                    : getStoredProtocolVersion()
+                console.log(
+                  `[perf][wallet] Completed sign payload request ${message.id} in ${duration.toFixed(
+                    2
+                  )}ms (payload ${(timing.sizeBytes / 1024).toFixed(2)}KB, protocol v${protocolVersion})`
+                )
+                signRequestTimings.delete(message.id)
+              }
             }
 
             setStatus('')
@@ -623,6 +696,7 @@
         })
       })
 
+
       const refreshPeers = async () => {
         if (!client) {
           return
@@ -680,6 +754,13 @@
               subtitle.setAttribute('style', 'font-size: 12px; opacity: 0.8')
               detailsWrapper.appendChild(subtitle)
             }
+
+            // Add protocol version indicator
+            const protocolVersion = peer.protocolVersion ?? 1
+            const protocolSpan = document.createElement('span')
+            protocolSpan.textContent = `Protocol v${protocolVersion}${!peer.protocolVersion ? ' (default)' : ''}`
+            protocolSpan.setAttribute('style', 'font-size: 11px; opacity: 0.7; color: #666')
+            detailsWrapper.appendChild(protocolSpan)
 
             item.appendChild(detailsWrapper)
 

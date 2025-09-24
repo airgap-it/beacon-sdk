@@ -92,7 +92,8 @@ import {
   IndexedDBStorage,
   MultiTabChannel,
   BACKEND_URL,
-  getError
+  getError,
+  isWrappedMessageVersion
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -315,17 +316,15 @@ export class DAppClient extends Client {
       message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
-      const typedMessage =
-        message.version === '3'
-          ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
-          : (message as BeaconMessage)
+      const typedMessage = isWrappedMessageVersion(message.version)
+        ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
+        : (message as BeaconMessage)
 
-      let appMetadata: AppMetadata | undefined =
-        message.version === '3'
-          ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData?.appMetadata
-          : (typedMessage as PermissionResponse).appMetadata
+      let appMetadata: AppMetadata | undefined = isWrappedMessageVersion(message.version)
+        ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData?.appMetadata
+        : (typedMessage as PermissionResponse).appMetadata
 
-      if (!appMetadata && message.version === '3') {
+      if (!appMetadata && isWrappedMessageVersion(message.version)) {
         const storedMetadata = await Promise.all([
           this.storage.get(StorageKey.TRANSPORT_P2P_PEERS_DAPP),
           this.storage.get(StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP),
@@ -2432,11 +2431,11 @@ export class DAppClient extends Client {
       this.addOpenRequest(request.id, exposed)
     }
 
-    const payload = await new Serializer().serialize(request)
-
     const account = await this.getActiveAccount()
 
     const peer = await this.getPeer(account)
+
+    const payload = await new Serializer(this.getPeerProtocolVersion(peer)).serialize(request)
 
     const walletInfo = await this.getWalletInfo(peer, account)
 
@@ -2548,11 +2547,11 @@ export class DAppClient extends Client {
 
     this.addOpenRequest(request.id, exposed)
 
-    const payload = await new Serializer().serialize(request)
-
     const account = await this.getActiveAccount()
 
     const peer = await this.getPeer(account)
+
+    const payload = await new Serializer(this.getPeerProtocolVersion(peer)).serialize(request)
 
     const walletInfo = await this.getWalletInfo(peer, account)
 
