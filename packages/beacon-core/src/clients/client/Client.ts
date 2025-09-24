@@ -251,12 +251,27 @@ export abstract class Client extends BeaconClient {
   }
 
   protected async sendDisconnectToPeer(peer: PeerInfo, transport?: Transport<any>): Promise<void> {
-    const request: DisconnectMessage = {
-      id: await generateGUID(),
+    const id = await generateGUID()
+    const senderId = await getSenderId(await this.beaconId)
+
+    const disconnectMessage: DisconnectMessage = {
+      id,
       version: peer.version,
-      senderId: await getSenderId(await this.beaconId),
+      senderId,
       type: BeaconMessageType.Disconnect
     }
+
+    const request =
+      peer.version === '3'
+        ? {
+            id,
+            version: peer.version,
+            senderId,
+            message: {
+              type: disconnectMessage.type
+            }
+          }
+        : disconnectMessage
 
     const payload = await new Serializer().serialize(request)
     const selectedTransport = transport ?? (await this.transport)

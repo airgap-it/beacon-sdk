@@ -14,17 +14,6 @@
       window.beaconSdkDebugEnabled = true
     </script>
 
-    <script
-      src="https://browser.sentry-cdn.com/7.91.0/bundle.min.js"
-      crossorigin="anonymous"
-    ></script>
-
-    <script>
-      Sentry.init({
-        dsn: 'https://385962b1cc80428186f09e7a237885c8@sentry.papers.tech/208',
-        tracesSampleRate: 1.0
-      })
-    </script>
 
     <script src="./walletbeacon.min.js"></script>
   </head>
@@ -32,6 +21,32 @@
   <body>
     Beacon Example Wallet
     <br /><br />
+    <span>
+      Network:
+      <select id="networkSelect"></select>
+    </span>
+    <br /><br />
+    <div id="wallet-info-container" style="padding: 15px; background: #333; border-radius: 5px; margin-bottom: 10px; display: none;">
+      <div style="margin-bottom: 15px;">
+        <strong>Wallet Address:</strong>
+        <div style="margin-top: 5px;">
+          <code id="wallet-address" style="font-size: 14px; word-break: break-all;"></code>
+          <button id="copy-address" style="margin-left: 10px; padding: 5px 10px;">Copy Address</button>
+        </div>
+      </div>
+      <div style="margin-bottom: 15px;">
+        <strong>Balance:</strong>
+        <span id="wallet-balance" style="margin-left: 10px;">Loading...</span>
+      </div>
+      <div>
+        <strong>Mnemonic (KEEP SAFE!):</strong>
+        <button id="toggle-mnemonic" style="margin-left: 10px; padding: 5px 10px;">Show</button>
+        <button id="copy-mnemonic" style="margin-left: 5px; padding: 5px 10px; display: none;">Copy</button>
+        <div id="mnemonic-display" style="margin-top: 10px; padding: 10px; background: #222; border-radius: 5px; display: none;">
+          <code id="wallet-mnemonic" style="font-size: 12px; word-break: break-all;"></code>
+        </div>
+      </div>
+    </div>
     <div id="status"></div>
     <br /><br />
     <button id="paste">Paste Sync Code</button>
@@ -39,6 +54,14 @@
     ---
     <br /><br />
     <button id="removePeer">Remove Peer</button>
+    <div
+      id="peer-list-container"
+      style="margin-top: 10px; padding: 10px; background: #2a2a2a; border-radius: 5px"
+    >
+      <strong>Peers</strong>
+      <p id="peer-list-empty" style="margin-top: 5px">No peers connected.</p>
+      <ul id="peer-list" style="list-style: none; padding-left: 0; margin: 5px 0 0 0"></ul>
+    </div>
     <br /><br />
     ---
     <br /><br />
@@ -47,30 +70,483 @@
     <br /><br />
     Test input: <input id="hidden-input" type="text" />
 
-    <script>
-      // Initiate DAppClient
-      const client = new beacon.WalletClient({
-        name: 'Example Wallet' // Name of the DApp
-        // matrixNodes: {
-        //   [beacon.Regions.EUROPE_WEST]: [
-        //     'beacon-node-1.diamond.papers.tech',
-        //     'beacon-node-1.sky.papers.tech',
-        //     'beacon-node-2.sky.papers.tech',
-        //     'beacon-node-1.hope.papers.tech',
-        //     'beacon-node-1.hope-2.papers.tech',
-        //     'beacon-node-1.hope-3.papers.tech',
-        //     'beacon-node-1.hope-4.papers.tech',
-        //     'beacon-node-1.hope-5.papers.tech'
-        //   ],
-        //   [beacon.Regions.NORTH_AMERICA_EAST]: []
-        // }
-        // matrixNodes: ['beacon-node-0.papers.tech:8448']
-        // matrixNodes: ['beacon.tztip.me']
-      })
+    <script type="module">
+      import * as taquito from 'https://esm.sh/@taquito/taquito@23.0.1?bundle'
+      import { InMemorySigner } from 'https://esm.sh/@taquito/signer@23.0.1?bundle'
+      import * as bip39 from 'https://esm.sh/bip39@3.1.0?bundle'
+
+      window.taquito = taquito
+      window.taquitoSigner = { InMemorySigner }
+      window.bip39 = bip39
+
+      // Network selection functions
+      const getSelectedNetwork = () => {
+        return localStorage.getItem('walletSelectedNetwork') || 'mainnet'
+      }
+
+      const saveSelectedNetwork = (network) => {
+        localStorage.setItem('walletSelectedNetwork', network)
+      }
+
+      const resolveRpcUrl = (networkLike) => {
+        if (networkLike && typeof networkLike === 'object') {
+          if (networkLike.rpcUrl) {
+            return networkLike.rpcUrl
+          }
+          if (networkLike.type) {
+            return resolveRpcUrl(networkLike.type)
+          }
+        }
+
+        const networkType =
+          typeof networkLike === 'string' && networkLike ? networkLike : getSelectedNetwork()
+
+        switch (networkType) {
+          case beacon.NetworkType.GHOSTNET:
+          case 'ghostnet':
+            return 'https://rpc.ghostnet.teztnets.com'
+          case beacon.NetworkType.WEEKLYNET:
+          case 'weeklynet':
+            return 'https://rpc.weeklynet-2025-09-24.teztnets.com'
+          case beacon.NetworkType.MAINNET:
+          case 'mainnet':
+          default:
+            return 'https://mainnet.api.tez.ie'
+        }
+      }
+
+      // Populate network select
+      const populateNetworkSelect = () => {
+        const select = document.getElementById('networkSelect')
+        Object.values(beacon.NetworkType).forEach(network => {
+          const option = document.createElement('option')
+          option.value = network
+          option.text = network.toUpperCase()
+          select.appendChild(option)
+        })
+        select.value = getSelectedNetwork()
+      }
+
+      // Initialize client with selected network
+      let client
+      let walletSigner = null
+      let walletAddress = null
+      let walletPublicKey = null
+      let walletMnemonic = null
+      let peerRefreshInterval = null
+
+      const hasBip39 = () => !!(window.bip39 && typeof window.bip39.generateMnemonic === 'function')
+      const isValidMnemonic = (mnemonic) => {
+        if (!mnemonic) {
+          return false
+        }
+        if (window.bip39 && typeof window.bip39.validateMnemonic === 'function') {
+          try {
+            return window.bip39.validateMnemonic(mnemonic)
+          } catch (validationError) {
+            console.warn('Failed to validate mnemonic, regenerating', validationError)
+            return false
+          }
+        }
+        return true
+      }
+
+      // Initialize or restore wallet
+      const initWallet = async () => {
+        console.log('initWallet called');
+        try {
+          // Check if we have a stored mnemonic
+          const storedMnemonic = localStorage.getItem('walletMnemonic')
+
+          if (storedMnemonic && isValidMnemonic(storedMnemonic)) {
+            walletMnemonic = storedMnemonic
+            console.log('Restoring wallet from stored mnemonic')
+          } else {
+            if (storedMnemonic && !isValidMnemonic(storedMnemonic)) {
+              console.warn('Stored mnemonic invalid, regenerating')
+            }
+            if (!hasBip39()) {
+              throw new Error('bip39 library is required to generate mnemonic')
+            }
+            walletMnemonic = await window.bip39.generateMnemonic(256)
+            if (walletMnemonic && (!window.bip39 || !window.bip39.validateMnemonic || window.bip39.validateMnemonic(walletMnemonic))) {
+              localStorage.setItem('walletMnemonic', walletMnemonic)
+              console.log('Generated new wallet mnemonic')
+            } else {
+              throw new Error('Unable to generate a valid mnemonic')
+            }
+          }
+
+          // Create signer from mnemonic
+          // The minified version exposes InMemorySigner globally
+          // Use Taquito signer from unpkg
+          console.log('Checking for taquitoSigner:', window.taquitoSigner);
+
+          if (!window.taquitoSigner || !window.taquitoSigner.InMemorySigner) {
+            throw new Error('Taquito signer library is required')
+          }
+          if (!walletMnemonic) {
+            throw new Error('No mnemonic available')
+          }
+
+          console.log('Using Taquito signer from unpkg, creating wallet from mnemonic')
+          console.log('Mnemonic to use:', walletMnemonic)
+          walletSigner = await window.taquitoSigner.InMemorySigner.fromMnemonic({
+            mnemonic: walletMnemonic,
+            password: '',
+            derivationPath: "44'/1729'/0'/0'",
+            curve: 'ed25519'
+          })
+          console.log('Signer created:', walletSigner)
+
+          // Get wallet address and public key
+          walletAddress = await walletSigner.publicKeyHash()
+          walletPublicKey = await walletSigner.publicKey()
+
+          console.log('Wallet initialized:', {
+            address: walletAddress,
+            publicKey: walletPublicKey
+          })
+
+          // Display wallet info
+          displayWalletInfo()
+
+          // Update balance
+          updateBalance()
+
+          return { address: walletAddress, publicKey: walletPublicKey }
+        } catch (error) {
+          console.error('Error initializing wallet:', error)
+          throw error
+        }
+      }
+
+      const initClient = async () => {
+        const selectedNetwork = getSelectedNetwork()
+        console.log('Initializing wallet client with network:', selectedNetwork)
+
+        if (client) {
+          console.log('Destroying old wallet client')
+          await client.destroy()
+        }
+
+        client = new beacon.WalletClient({
+          name: 'Example Wallet', // Name of the Wallet
+          appUrl: window.location.origin, // URL of the wallet
+          iconUrl: 'https://beacon-cdn.airgap.it/favicon.png', // Icon for the wallet
+          // Note: You may see CORS errors in the console when running locally.
+          // This is expected as the matrix nodes don't allow cross-origin requests from localhost.
+          // The wallet will still work for pairing via QR code/sync code.
+          // For production, deploy to a proper domain or use a CORS proxy.
+          disableDefaultEvents: false
+        })
+
+        await client.init()
+        console.log('Wallet client initialized with network:', selectedNetwork)
+
+        await refreshPeers()
+        startPeerPolling()
+
+        // Initialize wallet after client
+        try {
+          await initWallet()
+        } catch (error) {
+          console.error('Failed to initialize wallet:', error)
+        }
+
+        const respondWithError = (message, errorType = beacon.BeaconErrorType.ABORTED_ERROR) => {
+          if (!message || !message.id) {
+            return
+          }
+          client.respond({
+            type: beacon.BeaconMessageType.Error,
+            id: message.id,
+            errorType
+          })
+        }
+
+        const handlePermissionRequest = async (message) => {
+          if (!walletPublicKey || !walletAddress) {
+            console.error('Wallet not initialized')
+            return respondWithError(message)
+          }
+
+          const response = {
+            type: beacon.BeaconMessageType.PermissionResponse,
+            network: message.network,
+            scopes: [
+              beacon.PermissionScope.OPERATION_REQUEST,
+              beacon.PermissionScope.NOTIFICATION,
+              beacon.PermissionScope.ENCRYPT,
+              beacon.PermissionScope.SIGN
+            ],
+            id: message.id,
+            publicKey: walletPublicKey,
+            address: walletAddress,
+            appMetadata: {
+              senderId: message.senderId || 'example-wallet',
+              name: 'Example Wallet',
+              icon: 'https://beacon-cdn.airgap.it/favicon.png'
+            }
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+          client.respond(response)
+        }
+
+        const handleSignPayloadRequest = async (message) => {
+          if (!walletSigner) {
+            console.error('Wallet signer unavailable')
+            return respondWithError(message)
+          }
+          if (typeof message.payload !== 'string') {
+            console.error('Invalid payload provided by dApp', message.payload)
+            return respondWithError(message, beacon.BeaconErrorType.PARAMETERS_INVALID_ERROR)
+          }
+
+          const payloadToSign = message.payload.startsWith('0x') ? message.payload.slice(2) : message.payload
+
+          try {
+            const signatureResult = await walletSigner.sign(payloadToSign)
+            const signature = signatureResult.prefixSig || signatureResult.sig || signatureResult.signature
+
+            if (!signature) {
+              throw new Error('Signer did not return a signature')
+            }
+
+            client.respond({
+              type: beacon.BeaconMessageType.SignPayloadResponse,
+              id: message.id,
+              signingType: message.signingType,
+              signature
+            })
+          } catch (signError) {
+            console.error('Failed to sign payload:', signError)
+            respondWithError(message, beacon.BeaconErrorType.UNKNOWN_ERROR)
+          }
+        }
+
+        const handleOperationRequest = async (message) => {
+          if (!walletSigner || !walletAddress) {
+            console.error('Wallet not initialized for operations')
+            return respondWithError(message)
+          }
+
+          const toOptionalNumber = (value) => {
+            if (value === undefined || value === null || value === '') {
+              return undefined
+            }
+            if (typeof value === 'number') {
+              return value
+            }
+            const parsed = Number(value)
+            return Number.isFinite(parsed) ? parsed : undefined
+          }
+
+          const mapOperationToWalletParams = (operation) => {
+            const source = operation.source || walletAddress
+            const fee = toOptionalNumber(operation.fee)
+            const gasLimit = toOptionalNumber(operation.gas_limit ?? operation.gasLimit)
+            const storageLimit = toOptionalNumber(operation.storage_limit ?? operation.storageLimit)
+
+            switch (operation.kind) {
+              case beacon.TezosOperationType.TRANSACTION: {
+                if (!operation.destination) {
+                  throw new Error('Transaction operation missing destination')
+                }
+                const amount = toOptionalNumber(operation.amount)
+                return {
+                  kind: taquito.OpKind.TRANSACTION,
+                  to: operation.destination,
+                  amount: amount ?? 0,
+                  mutez: true,
+                  source,
+                  fee,
+                  gasLimit,
+                  storageLimit,
+                  parameter: operation.parameters
+                }
+              }
+              case beacon.TezosOperationType.DELEGATION:
+                return {
+                  kind: taquito.OpKind.DELEGATION,
+                  source,
+                  delegate: operation.delegate,
+                  fee,
+                  gasLimit,
+                  storageLimit
+                }
+              case beacon.TezosOperationType.REVEAL:
+                return {
+                  kind: taquito.OpKind.REVEAL,
+                  source,
+                  publicKey: operation.public_key || operation.publicKey || walletPublicKey,
+                  fee,
+                  gasLimit,
+                  storageLimit
+                }
+              default:
+                throw new Error(`Unsupported operation kind: ${operation.kind}`)
+            }
+          }
+
+          try {
+            if (!Array.isArray(message.operationDetails) || message.operationDetails.length === 0) {
+              throw new Error('No operation details provided')
+            }
+
+            const rpcUrl = resolveRpcUrl(message.network)
+            const tezos = new taquito.TezosToolkit(rpcUrl)
+            tezos.setProvider({ signer: walletSigner })
+
+            const operations = message.operationDetails.map(mapOperationToWalletParams)
+
+            setStatus('Broadcasting operation...')
+            const batch = tezos.wallet.batch(operations)
+            const operationResult = await batch.send()
+            const transactionHash = operationResult.opHash || operationResult.hash
+
+            if (!transactionHash) {
+              throw new Error('Operation result did not contain a transaction hash')
+            }
+
+            client.respond({
+              type: beacon.BeaconMessageType.OperationResponse,
+              id: message.id,
+              transactionHash
+            })
+
+            try {
+              await operationResult.confirmation(1)
+              updateBalance()
+            } catch (confirmationError) {
+              console.warn('Operation confirmation failed or timed out:', confirmationError)
+            }
+          } catch (operationError) {
+            console.error('Failed to handle operation request:', operationError)
+            respondWithError(message, beacon.BeaconErrorType.UNKNOWN_ERROR)
+          }
+        }
+
+        client
+          .connect(async (message) => {
+            setStatus('Handling request...')
+            console.log('message', message)
+
+            await refreshPeers()
+
+            switch (message.type) {
+              case beacon.BeaconMessageType.PermissionRequest:
+                await handlePermissionRequest(message)
+                break
+              case beacon.BeaconMessageType.SignPayloadRequest:
+                await handleSignPayloadRequest(message)
+                break
+              case beacon.BeaconMessageType.OperationRequest:
+                await handleOperationRequest(message)
+                break
+              default:
+                console.error('Unsupported message type received in demo wallet:', message.type)
+                console.error('Received: ', message)
+                respondWithError(message)
+                break
+            }
+
+            setStatus('')
+          })
+          .catch((error) => console.error('connect error', error))
+      }
 
       const setStatus = (status) => {
         document.getElementById('status').innerText = status ? 'Status: ' + status : status
       }
+
+      // Function to display wallet info
+      const displayWalletInfo = () => {
+        try {
+          console.log('Displaying wallet info:', { walletAddress, walletMnemonic });
+          const container = document.getElementById('wallet-info-container')
+          const addressElement = document.getElementById('wallet-address')
+          const mnemonicElement = document.getElementById('wallet-mnemonic')
+
+          if (!container || !addressElement || !mnemonicElement) {
+            console.error('Required DOM elements not found');
+            return;
+          }
+
+          addressElement.textContent = walletAddress || 'No address generated'
+          mnemonicElement.textContent = walletMnemonic || 'No mnemonic generated'
+          container.style.display = 'block'
+
+          console.log('Wallet info displayed successfully')
+        } catch (error) {
+          console.error('Error displaying wallet info:', error)
+        }
+      }
+
+      // Function to update balance
+      const updateBalance = async () => {
+        try {
+          const selectedNetwork = getSelectedNetwork()
+          const rpcUrl = resolveRpcUrl(selectedNetwork)
+
+          const Tezos = new taquito.TezosToolkit(rpcUrl)
+          const balance = await Tezos.tz.getBalance(walletAddress)
+
+          const balanceElement = document.getElementById('wallet-balance')
+          balanceElement.textContent = `${balance.toNumber() / 1000000} ꜩ`
+        } catch (error) {
+          console.error('Error fetching balance:', error)
+          document.getElementById('wallet-balance').textContent = 'Error'
+        }
+      }
+
+      // Add copy functionality for address
+      document.getElementById('copy-address').addEventListener('click', () => {
+        const address = document.getElementById('wallet-address').textContent
+        navigator.clipboard.writeText(address).then(() => {
+          const btn = document.getElementById('copy-address')
+          const originalText = btn.textContent
+          btn.textContent = 'Copied!'
+          setTimeout(() => {
+            btn.textContent = originalText
+          }, 2000)
+        }).catch(err => {
+          console.error('Failed to copy address:', err)
+        })
+      })
+
+      // Toggle mnemonic visibility
+      document.getElementById('toggle-mnemonic').addEventListener('click', () => {
+        const mnemonicDisplay = document.getElementById('mnemonic-display')
+        const toggleBtn = document.getElementById('toggle-mnemonic')
+        const copyBtn = document.getElementById('copy-mnemonic')
+
+        if (mnemonicDisplay.style.display === 'none') {
+          mnemonicDisplay.style.display = 'block'
+          copyBtn.style.display = 'inline-block'
+          toggleBtn.textContent = 'Hide'
+        } else {
+          mnemonicDisplay.style.display = 'none'
+          copyBtn.style.display = 'none'
+          toggleBtn.textContent = 'Show'
+        }
+      })
+
+      // Copy mnemonic
+      document.getElementById('copy-mnemonic').addEventListener('click', () => {
+        const mnemonic = document.getElementById('wallet-mnemonic').textContent
+        navigator.clipboard.writeText(mnemonic).then(() => {
+          const btn = document.getElementById('copy-mnemonic')
+          const originalText = btn.textContent
+          btn.textContent = 'Copied!'
+          setTimeout(() => {
+            btn.textContent = originalText
+          }, 2000)
+        }).catch(err => {
+          console.error('Failed to copy mnemonic:', err)
+        })
+      })
 
       // Add event listener to the button
       document.getElementById('paste').addEventListener('click', () => {
@@ -81,9 +557,10 @@
             .then((peer) => {
               console.log('Adding peer', peer)
               setStatus('Connecting...')
-              client.addPeer(peer).then(() => {
+              client.addPeer(peer).then(async () => {
                 setStatus('Connected')
                 console.log('Peer added')
+                await refreshPeers()
               })
             })
             .catch((e) => {
@@ -101,90 +578,144 @@
         }
       })
 
-      client.init().then(() => {
-        console.log('init')
-        client
-          .connect(async (message) => {
-            setStatus('Handling request...')
+      // Initialize on page load
+      window.addEventListener('load', () => {
+        populateNetworkSelect();
+        initClient();
+      });
 
-            console.log('message', message)
-            // Example: Handle PermissionRequest. A wallet should handle all request types
-            if (message.type === beacon.BeaconMessageType.PermissionRequest) {
-              // Show a UI to the user where he can confirm sharing an account with the DApp
-
-              // const URL = 'https://beacon-notification-oracle.dev.gke.papers.tech'
-              const publicKey = '3b92229274683b338cf8b040cf91ac0f8e19e410f06eda5537ef077e718e0026'
-
-              // const res = await client.registerPush(
-              //   'https://webhook.site/37e64204-3058-41ea-b681-9466ec70a892', // TODO: Replace this with your own webhook
-              //   publicKey,
-              //   'xtz',
-              //   Math.random().toString(),
-              //   URL
-              // )
-
-              // console.log('res', res)
-
-              const response = {
-                type: beacon.BeaconMessageType.PermissionResponse,
-                network: message.network, // Use the same network that the user requested
-                scopes: [
-                  beacon.PermissionScope.OPERATION_REQUEST,
-                  beacon.PermissionScope.NOTIFICATION,
-                  beacon.PermissionScope.ENCRYPT,
-                  beacon.PermissionScope.SIGN
-                ], // Ignore the scopes that have been requested and instead give only operation permissions
-                id: message.id,
-                publicKey: publicKey
-
-                // notification: {
-                //   version: 1,
-                //   apiUrl: URL,
-                //   token: res.accessToken
-                // }
-              }
-
-              // Let's wait a little to make it more natural (to test the UI on the dApp side)
-              await new Promise((resolve) => setTimeout(resolve, 1000))
-
-              // Send response back to DApp
-              client.respond(response)
-            } else {
-              console.error('Only permission requests are supported in this demo')
-              console.error('Received: ', message)
-
-              const response = {
-                type: beacon.BeaconMessageType.Error,
-                id: message.id,
-                errorType: beacon.BeaconErrorType.ABORTED_ERROR
-              }
-              client.respond(response)
-            }
-
-            setStatus('')
-          })
-          .catch((error) => console.error('connect error', error))
-      }) // Establish P2P connection
-
-      // Add event listener to the button
-      document.getElementById('reset').addEventListener('click', () => {
-        client.destroy().then(() => {
-          window.location.reload()
-        })
-      })
-
-      // Add event listener to the button
-      document.getElementById('removePeer').addEventListener('click', () => {
-        client.getPeers().then((peers) => {
-          if (peers.length > 0) {
-            client.removePeer(peers[0], true).then(() => {
-              console.log('peer removed', peers[0])
-            })
-          } else {
-            console.log('no peers to be removed')
+      // Add network change handler
+      window.addEventListener('load', () => {
+        document.getElementById('networkSelect').addEventListener('change', async (e) => {
+          saveSelectedNetwork(e.target.value)
+          await initClient()
+          // Update balance for new network
+          if (walletAddress) {
+            updateBalance()
           }
         })
       })
+
+      // Add event listeners after load
+      window.addEventListener('load', () => {
+        // Add event listener to the reset button
+        document.getElementById('reset').addEventListener('click', () => {
+          if (confirm('This will delete your wallet mnemonic. Make sure you have backed it up! Continue?')) {
+            localStorage.removeItem('walletMnemonic')
+            client.destroy().then(() => {
+              window.location.reload()
+            })
+          }
+        })
+
+        // Add event listener to the button
+        document.getElementById('removePeer').addEventListener('click', () => {
+          client.getPeers().then((peers) => {
+            if (peers.length > 0) {
+              client.removePeer(peers[0], true).then(async () => {
+                console.log('peer removed', peers[0])
+                await refreshPeers()
+              })
+            } else {
+              console.log('no peers to be removed')
+            }
+          })
+        })
+      })
+
+      const refreshPeers = async () => {
+        if (!client) {
+          return
+        }
+
+        const listElement = document.getElementById('peer-list')
+        const emptyIndicator = document.getElementById('peer-list-empty')
+
+        if (!listElement || !emptyIndicator) {
+          return
+        }
+
+        try {
+          const peers = await client.getPeers()
+
+          listElement.textContent = ''
+
+          if (!peers || peers.length === 0) {
+            emptyIndicator.style.display = 'block'
+            return
+          }
+
+          emptyIndicator.style.display = 'none'
+
+          peers.forEach((peer) => {
+            const item = document.createElement('li')
+            item.setAttribute(
+              'style',
+              'display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; flex-wrap: wrap'
+            )
+
+            const detailsWrapper = document.createElement('div')
+            detailsWrapper.setAttribute('style', 'display: flex; flex-direction: column; gap: 2px')
+
+            const primaryLabel = peer.name || peer.appName || peer.label || 'Unnamed peer'
+            const title = document.createElement('span')
+            title.textContent = primaryLabel
+            title.setAttribute('style', 'font-weight: 600')
+            detailsWrapper.appendChild(title)
+
+            const detailParts = []
+            if (peer.publicKey) {
+              detailParts.push(peer.publicKey)
+            }
+            if (peer.senderId) {
+              detailParts.push(peer.senderId)
+            }
+            if (!detailParts.length && peer.id) {
+              detailParts.push(peer.id)
+            }
+
+            if (detailParts.length) {
+              const subtitle = document.createElement('span')
+              subtitle.textContent = detailParts.join(' · ')
+              subtitle.setAttribute('style', 'font-size: 12px; opacity: 0.8')
+              detailsWrapper.appendChild(subtitle)
+            }
+
+            item.appendChild(detailsWrapper)
+
+            const removeBtn = document.createElement('button')
+            removeBtn.textContent = 'Remove'
+            removeBtn.setAttribute('style', 'padding: 4px 10px')
+            removeBtn.addEventListener('click', async () => {
+              const identifier = primaryLabel
+              try {
+                setStatus(`Removing ${identifier}...`)
+                await client.removePeer(peer, true)
+                setStatus('')
+                await refreshPeers()
+              } catch (removeError) {
+                console.error('Failed to remove peer:', removeError)
+                setStatus('')
+              }
+            })
+
+            item.appendChild(removeBtn)
+            listElement.appendChild(item)
+          })
+        } catch (error) {
+          console.error('Failed to refresh peers:', error)
+        }
+      }
+
+      const startPeerPolling = () => {
+        if (peerRefreshInterval) {
+          clearInterval(peerRefreshInterval)
+        }
+
+        peerRefreshInterval = window.setInterval(() => {
+          refreshPeers()
+        }, 2500)
+      }
     </script>
   </body>
 </html>

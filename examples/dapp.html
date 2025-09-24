@@ -50,6 +50,11 @@
       <span id="activeAccountTransport"></span>
     </span>
     <br /><br />
+    <span>
+      Network:
+      <select id="networkSelect"></select>
+    </span>
+    <br /><br />
     <button id="requestPermission">Request Permission</button>
     <br /><br />
     <button id="requestPermissionAndSign">Request Permission And Sign Request</button>
@@ -205,8 +210,40 @@
         x.error('Error occurred: ' + e.reason.message)
       })
 
-      // Initiate DAppClient
-      const client = beacon.getDAppClientInstance({
+      // Network selection functions
+      const getSelectedNetwork = () => {
+        return localStorage.getItem('selectedNetwork') || 'mainnet'
+      }
+
+      const saveSelectedNetwork = (network) => {
+        localStorage.setItem('selectedNetwork', network)
+      }
+
+      // Populate network select
+      const populateNetworkSelect = () => {
+        const select = document.getElementById('networkSelect')
+        Object.values(beacon.NetworkType).forEach(network => {
+          const option = document.createElement('option')
+          option.value = network
+          option.text = network.toUpperCase()
+          select.appendChild(option)
+        })
+        select.value = getSelectedNetwork()
+      }
+
+      // Initialize client with selected network
+      let client
+
+      const initClient = async () => {
+        const selectedNetwork = getSelectedNetwork()
+        console.log('Initializing client with network:', selectedNetwork)
+
+        if (client) {
+          console.log('Destroying old client')
+          await client.destroy()
+        }
+
+        client = new beacon.DAppClient({
         name: 'Example DApp', // Name of the DApp,
         disclaimerText: 'This is an optional <b>disclaimer</b>.',
         appUrl: 'http://localhost:8080',
@@ -234,14 +271,23 @@
         },
         featuredWallets: ['kukai', 'metamask', 'airgap'],
         network: {
-          type: beacon.NetworkType.GHOSTNET
+          type: selectedNetwork
         },
         enableMetrics: true
         // matrixNodes: ['test.papers.tech', 'test2.papers.tech', 'matrix.papers.tech']
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['matrix.papers.tech']
         // matrixNodes: ['beacon.tztip.me']
-      })
+        })
+
+        // Set up event listeners for the new client
+        client.subscribeToEvent('ACTIVE_ACCOUNT_SET', (account) => {
+          console.log('ACTIVE_ACCOUNT_SET received', account)
+          updateActiveAccount()
+        })
+
+        console.log('Client initialized with network:', selectedNetwork)
+      }
 
       // Display the active account in the UI
       const updateActiveAccount = () => {
@@ -275,8 +321,14 @@
         })
       }
 
-      client.subscribeToEvent('ACTIVE_ACCOUNT_SET', (account) => {
-        console.log('ACTIVE_ACCOUNT_SET received', account)
+      // Initialize on page load
+      populateNetworkSelect()
+      initClient()
+
+      // Add network change handler
+      document.getElementById('networkSelect').addEventListener('change', async (e) => {
+        saveSelectedNetwork(e.target.value)
+        await initClient()
         updateActiveAccount()
       })
 
