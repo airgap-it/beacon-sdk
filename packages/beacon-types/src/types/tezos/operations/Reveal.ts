@@ -12,4 +12,5 @@ export interface TezosRevealOperation extends TezosBaseOperation {
   gas_limit: string
   storage_limit: string
   public_key: string
+  proof?: string
 }
