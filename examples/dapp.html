@@ -96,6 +96,10 @@
     <br /><br />
     ---
     <br /><br />
+    <button id="mockExtension">Mock Extension Wallet</button>
+    <br /><br />
+    ---
+    <br /><br />
     <button id="clearActiveAccount">Clear ActiveAccount</button>
     <br /><br />
     <button id="getAccounts">Get Accounts</button>
@@ -552,6 +556,123 @@
             `There are ${extensions.length} extensions installed. Check the console for more info.`
           )
         })
+      })
+
+      document.getElementById('mockExtension').addEventListener('click', () => {
+        ;(async () => {
+          // ——— init ———
+          const WALLET_ID = 'f1XyP3mKdQhZ'
+          const PAIRING_ID = 'ookjlbkiijinhpmnjffcofjonbfbgaoc'
+          const CRYPTO_ID = WALLET_ID
+          const SEED_KEY = 'beacon:sdk-secret-seed'
+          const NETWORK_TYPE = 'ghostnet'
+          const DEFAULT_SCOPES = ['operation_request', 'sign']
+          const DEFAULT_FEES = { fee: '1420', gas_limit: '10600', storage_limit: '257' }
+
+          const secretSeed = localStorage.getItem(SEED_KEY)
+          const keyPair = await beacon.getKeypairFromSeed(secretSeed)
+          const { publicKey } = keyPair
+          const serializer = new beacon.Serializer()
+
+          // ——— helpers ———
+          const bytesToHex = (bytes) =>
+            Array.from(bytes)
+              .map((b) => b.toString(16).padStart(2, '0'))
+              .join('')
+
+          const hexToBytes = (hex) => {
+            if (hex.length % 2) throw new Error('Invalid hex string')
+            return Uint8Array.from(hex.match(/.{2}/g), (byte) => parseInt(byte, 16))
+          }
+
+          const post = (source, msg) =>
+            source.postMessage({ message: msg, sender: { id: WALLET_ID } })
+
+          const makeId = (prefix, len = 9) =>
+            prefix + Math.random().toString(36).substr(2, len) + Date.now().toString(36)
+
+          // ——— message handler ———
+          window.addEventListener('message', async ({ data: msg, source }) => {
+            if (msg.target !== 'toExtension') return
+
+            switch (msg.targetId) {
+              case PAIRING_ID: {
+                // pairing-response
+                const req = await serializer.deserialize(msg.payload)
+                const resp = {
+                  version: '3',
+                  id: req.id,
+                  senderId: WALLET_ID,
+                  type: 'postmessage-pairing-response',
+                  name: 'Beacon Example Wallet',
+                  icon: 'assets/logos/beacon_logo.svg',
+                  appUrl: '',
+                  publicKey: bytesToHex(publicKey)
+                }
+
+                const sealed = await beacon.sealCryptobox(JSON.stringify(resp), publicKey)
+                post(source, { target: 'toPage', payload: sealed })
+                break
+              }
+
+              case CRYPTO_ID: {
+                // crypto-box handshake
+                const { send, receive } = await beacon.createCryptoBoxServer(
+                  bytesToHex(publicKey),
+                  keyPair
+                )
+
+                // decrypt incoming
+                const plain = await beacon.decryptCryptoboxPayload(
+                  hexToBytes(msg.encryptedPayload),
+                  receive
+                )
+                const req = await serializer.deserialize(plain)
+
+                // build response template
+                let resp = {
+                  version: '2',
+                  id: req.id,
+                  senderId: WALLET_ID,
+                  publicKey: bytesToHex(publicKey)
+                }
+
+                if (req.type === 'operation_request') {
+                  resp.transactionHash = makeId('op')
+                  resp.operations = req.operationDetails.map((op, i) => ({
+                    ...op,
+                    counter: (12345 + i).toString(),
+                    ...DEFAULT_FEES
+                  }))
+                } else if (req.type === 'sign_payload_request') {
+                  resp.signature = makeId('edsig', 20)
+                  resp.signedPayload = req.params?.payload || req.params
+                } else {
+                  // permission_response
+                  Object.assign(resp, {
+                    type: 'permission_response',
+                    network: { type: NETWORK_TYPE },
+                    scopes: DEFAULT_SCOPES
+                  })
+                }
+
+                // encrypt & send back
+                const encryptedPayload = await beacon.encryptCryptoboxPayload(
+                  await serializer.serialize(resp),
+                  receive
+                )
+                post(source, { target: 'toPage', encryptedPayload })
+                break
+              }
+
+              default:
+                // ignore everything else
+                return
+            }
+          })
+          console.log('Mock successfully loaded.')
+          document.getElementById('mockExtension').disabled = true
+        })()
       })
 
       // Add event listener to the button
