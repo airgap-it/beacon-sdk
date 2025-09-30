@@ -113,11 +113,28 @@ export class WalletClient extends Client {
       message: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage> | DisconnectMessage,
       connectionContext: ConnectionContext
     ): Promise<void> => {
+      // Define valid request types that wallets should process
+      const validRequestTypes = [
+        BeaconMessageType.PermissionRequest,
+        BeaconMessageType.OperationRequest,
+        BeaconMessageType.SignPayloadRequest,
+        BeaconMessageType.BroadcastRequest,
+        BeaconMessageType.ProofOfEventChallengeRequest,
+        BeaconMessageType.SimulatedProofOfEventChallengeRequest,
+        BeaconMessageType.BlockchainRequest,
+        BeaconMessageType.ChangeAccountRequest
+      ]
+
       if (isWrappedMessageVersion(message.version)) {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
         if (typedMessage.message.type === BeaconMessageType.Disconnect) {
           return this.disconnect(typedMessage.senderId)
+        }
+
+        // Filter out response types (echoed back from Matrix room)
+        if (!validRequestTypes.includes(typedMessage.message.type)) {
+          return
         }
 
         if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
@@ -137,6 +154,11 @@ export class WalletClient extends Client {
 
         if (typedMessage.type === BeaconMessageType.Disconnect) {
           return this.disconnect(typedMessage.senderId)
+        }
+
+        // Filter out response types (echoed back from Matrix room)
+        if (!validRequestTypes.includes(typedMessage.type)) {
+          return
         }
 
         if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
