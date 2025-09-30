@@ -304,10 +304,6 @@ export abstract class Client extends BeaconClient {
     }
   }
 
-  protected shouldUseCompressedPayload(peer?: PeerInfo): boolean {
-    return this.getPeerProtocolVersion(peer) >= 2
-  }
-
   private logProtocolVersion(peer?: PeerInfo, connectionId?: string, negotiatedVersion?: number): void {
     if (peer) {
       const key = peer.publicKey || peer.id
@@ -325,10 +321,6 @@ export abstract class Client extends BeaconClient {
       logger.log('protocol', `Message received before peer negotiation, connection id ${connectionId}`)
       this.loggedProtocolVersions.add(connectionId)
     }
-  }
-
-  protected getEffectiveProtocolVersion(peer?: PeerInfo): number {
-    return this.getPeerProtocolVersion(peer) >= 2 ? 2 : 1
   }
 
   protected getPeerProtocolVersion(peer?: PeerInfo): number {

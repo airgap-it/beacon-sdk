@@ -1,13 +1,12 @@
 {
-  "name": "@airgap/beacon-sdk",
+  "name": "@airgap/beacon-blockchain-tezos-tezlink",
   "version": "4.6.1",
-  "description": "The `beacon-sdk` simplifies and abstracts the communication between dApps and wallets over different transport layers.",
+  "description": "This package adds support for the `tezos-tezlink` blockchain (Tezos Layer 2). It can be used in combination with the `@airgap/beacon-dapp` or `@airgap/beacon-wallet` packages.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
   "license": "ISC",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "unpkg": "dist/walletbeacon.min.js",
   "types": "dist/esm/index.d.ts",
   "exports": {
     "require": "./dist/cjs/index.js",
@@ -34,16 +33,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-blockchain-substrate": "4.6.1",
-    "@airgap/beacon-blockchain-tezos": "4.6.1",
-    "@airgap/beacon-blockchain-tezos-tezlink": "4.6.1",
-    "@airgap/beacon-core": "4.6.1",
-    "@airgap/beacon-dapp": "4.6.1",
-    "@airgap/beacon-transport-matrix": "4.6.1",
-    "@airgap/beacon-transport-postmessage": "4.6.1",
     "@airgap/beacon-types": "4.6.1",
-    "@airgap/beacon-ui": "4.6.1",
-    "@airgap/beacon-utils": "4.6.1",
-    "@airgap/beacon-wallet": "4.6.1"
+    "@airgap/beacon-ui": "4.6.1"
   }
 }
