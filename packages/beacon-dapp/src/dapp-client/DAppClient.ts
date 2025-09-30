@@ -410,16 +410,37 @@ export class DAppClient extends Client {
           })
           .catch(console.error)
       } else if (openRequest) {
-        if (typedMessage.type === BeaconMessageType.PermissionResponse && appMetadata) {
-          await this.appMetadataManager.addAppMetadata(appMetadata)
-        }
+        // Define valid response types that should resolve a request
+        const validResponseTypes = [
+          BeaconMessageType.PermissionResponse,
+          BeaconMessageType.OperationResponse,
+          BeaconMessageType.SignPayloadResponse,
+          BeaconMessageType.BroadcastResponse,
+          BeaconMessageType.ProofOfEventChallengeResponse,
+          BeaconMessageType.SimulatedProofOfEventChallengeResponse,
+          BeaconMessageType.BlockchainResponse,
+          BeaconMessageType.Error
+        ]
 
-        if (typedMessage.type === BeaconMessageType.Error) {
-          openRequest.reject(typedMessage as ErrorResponse)
+        // Only process if it's a valid response type
+        if (validResponseTypes.includes(typedMessage.type)) {
+          if (typedMessage.type === BeaconMessageType.PermissionResponse && appMetadata) {
+            await this.appMetadataManager.addAppMetadata(appMetadata)
+          }
+
+          if (typedMessage.type === BeaconMessageType.Error) {
+            openRequest.reject(typedMessage as ErrorResponse)
+          } else {
+            openRequest.resolve({ message, connectionInfo })
+          }
+          this.openRequests.delete(typedMessage.id)
         } else {
-          openRequest.resolve({ message, connectionInfo })
+          // Log unexpected message types but don't resolve the request
+          logger.warn(
+            'handleResponse',
+            `Received unexpected message type "${typedMessage.type}" for request ${message.id}. Expected a response type, not a request type.`
+          )
         }
-        this.openRequests.delete(typedMessage.id)
       } else {
         if (typedMessage.type === BeaconMessageType.Disconnect) {
           await handleDisconnect()
