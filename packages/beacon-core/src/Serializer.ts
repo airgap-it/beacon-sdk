@@ -1,4 +1,5 @@
 import bs58check from 'bs58check'
+import { PROTOCOL_VERSION_V2, DEFAULT_PROTOCOL_VERSION } from './constants'
 
 /**
  * @internalapi
@@ -10,7 +11,7 @@ import bs58check from 'bs58check'
 export class Serializer {
   private readonly protocolVersion: number
 
-  constructor(protocolVersion: number = 1) {
+  constructor(protocolVersion: number = DEFAULT_PROTOCOL_VERSION) {
     this.protocolVersion = protocolVersion
   }
 
@@ -21,7 +22,7 @@ export class Serializer {
   public async serialize(message: unknown): Promise<string> {
     const str = JSON.stringify(message)
 
-    if (this.protocolVersion >= 2) {
+    if (this.protocolVersion >= PROTOCOL_VERSION_V2) {
       // v2+: Plain JSON
       return str
     } else {
@@ -39,7 +40,7 @@ export class Serializer {
       throw new Error('Encoded payload needs to be a string')
     }
 
-    if (this.protocolVersion >= 2) {
+    if (this.protocolVersion >= PROTOCOL_VERSION_V2) {
       // v2+: Plain JSON
       return JSON.parse(encoded)
     } else {

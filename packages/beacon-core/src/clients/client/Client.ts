@@ -60,7 +60,6 @@ export abstract class Client extends BeaconClient {
     TransportType,
     (message: any, connectionInfo: ConnectionContext) => Promise<void>
   > = new Map()
-  private readonly loggedProtocolVersions: Set<string> = new Set()
 
   protected _transport: ExposedPromise<Transport<any>> = new ExposedPromise()
   protected get transport(): Promise<Transport<any>> {
@@ -247,7 +246,6 @@ export abstract class Client extends BeaconClient {
 
       const peer = await this.findPeer(connectionInfo.id)
       const protocolVersion = this.getPeerProtocolVersion(peer)
-      this.logProtocolVersion(peer, connectionInfo.id)
 
       const deserializedMessage = (await new Serializer(protocolVersion).deserialize(
         message
@@ -298,25 +296,6 @@ export abstract class Client extends BeaconClient {
     const transport = await this.transport
     const peers = await transport.getPeers()
     return peers.find((peerInfo) => peerInfo.publicKey === publicKey)
-  }
-
-  private logProtocolVersion(peer?: PeerInfo, connectionId?: string): void {
-    if (peer) {
-      const key = peer.publicKey || peer.id
-      if (this.loggedProtocolVersions.has(key)) {
-        return
-      }
-
-      const resolved = this.getPeerProtocolVersion(peer)
-      logger.log('protocol', `Using message protocol v${resolved} for peer ${key}`)
-      this.loggedProtocolVersions.add(key)
-      return
-    }
-
-    if (connectionId && !this.loggedProtocolVersions.has(connectionId)) {
-      logger.log('protocol', `Message received before peer negotiation, connection id ${connectionId}`)
-      this.loggedProtocolVersions.add(connectionId)
-    }
   }
 
   private getLocalProtocolVersion(): number {
