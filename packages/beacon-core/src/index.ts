@@ -93,7 +93,7 @@ export {
 
 // Utils
 export { getSenderId, getAccountIdentifier, windowRef, MultiTabChannel }
-export { isWrappedMessageVersion } from './utils/message-utils'
+export { usesWrappedMessages, MESSAGE_WRAPPED_FROM_VERSION } from './utils/message-utils'
 
 // Others
 export { Serializer, Logger, setLogger, getLogger }

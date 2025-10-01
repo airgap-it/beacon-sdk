@@ -20,7 +20,7 @@ import { Logger } from '../../utils/Logger'
 import { ClientOptions } from './ClientOptions'
 import { Transport } from '../../transports/Transport'
 import { Serializer } from '../../Serializer'
-import { isWrappedMessageVersion } from '../../utils/message-utils'
+import { usesWrappedMessages } from '../../utils/message-utils'
 import { getPreferredMessageProtocolVersion } from '../../message-protocol'
 
 const logger = new Logger('Client')
@@ -271,7 +271,7 @@ export abstract class Client extends BeaconClient {
     }
 
     const request =
-      isWrappedMessageVersion(peer.version)
+      usesWrappedMessages(peer.version)
         ? {
             id,
             version: peer.version,
