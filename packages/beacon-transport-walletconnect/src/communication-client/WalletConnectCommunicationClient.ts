@@ -304,14 +304,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   }
 
   async sendMessage(_message: string, _peer?: any): Promise<void> {
-    let message: any
-
-    try {
-      message = JSON.parse(_message)
-    } catch {
-      const serializer = new Serializer()
-      message = (await serializer.deserialize(_message)) as any
-    }
+    const serializer = new Serializer()
+    const message = (await serializer.deserialize(_message)) as any
 
     if (!message) {
       return
@@ -1416,25 +1410,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       version: '2',
       senderId: topic
     }
-    let legacySerialized: string | undefined
-    let serializer: Serializer | undefined
 
     for (const [publicKey, listener] of this.activeListeners.entries()) {
-      const protocolVersion = Number(this.peerProtocolVersions.get(publicKey))
-
-      if (Number.isFinite(protocolVersion) && protocolVersion >= 2) {
-        listener(JSON.stringify(response))
-      } else {
-        if (!serializer) {
-          serializer = new Serializer()
-        }
-
-        if (!legacySerialized) {
-          legacySerialized = await serializer.serialize(response)
-        }
-
-        listener(legacySerialized)
-      }
+      const protocolVersion = Number(this.peerProtocolVersions.get(publicKey)) || 1
+      const serializer = new Serializer(protocolVersion)
+      const serialized = await serializer.serialize(response)
+      listener(serialized)
     }
   }
 
