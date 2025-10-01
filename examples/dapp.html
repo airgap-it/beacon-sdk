@@ -14,7 +14,7 @@
     </script>
 
     <script src="./walletbeacon.min.js"></script>
-    <script src="./debug-utils.js"></script>
+    <script src="./beacon-utils.js"></script>
   </head>
 
   <body class="bg-gray-900 min-h-screen">
@@ -196,6 +196,17 @@
             <button id="deployContract" class="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition text-sm">
               Deploy Hello World Contract
             </button>
+
+            <!-- Manual Contract Address Input -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Or Set Contract Address Manually</label>
+              <div class="flex gap-2">
+                <input id="manualContractAddress" type="text" placeholder="KT1..." class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" />
+                <button id="setManualContract" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition text-sm">
+                  Set
+                </button>
+              </div>
+            </div>
 
             <!-- Contract Address Display -->
             <div id="contractAddressWrapper" class="hidden">
@@ -456,82 +467,6 @@
         x.error('Error occurred: ' + message, e.reason)
       })
 
-      // Blockchain selection functions
-      const getSelectedBlockchain = () => {
-        return localStorage.getItem('dappSelectedBlockchain') || 'tezos'
-      }
-
-      const saveSelectedBlockchain = (blockchain) => {
-        localStorage.setItem('dappSelectedBlockchain', blockchain)
-      }
-
-      // Network selection functions
-      const getSelectedNetwork = () => {
-        return localStorage.getItem('selectedNetwork') || 'mainnet'
-      }
-
-      const saveSelectedNetwork = (network) => {
-        localStorage.setItem('selectedNetwork', network)
-      }
-
-      // Populate network select
-      const populateNetworkSelect = () => {
-        const select = document.getElementById('networkSelect')
-        select.innerHTML = '' // Clear existing options
-        const selectedBlockchain = getSelectedBlockchain()
-        const rpcInput = document.getElementById('customRpcUrl')
-
-        if (selectedBlockchain === 'tezos-tezlink') {
-          // For Tezlink, only show MAINNET
-          const option = document.createElement('option')
-          option.value = beacon.NetworkType.MAINNET
-          option.text = 'MAINNET'
-          select.appendChild(option)
-
-          // Show RPC input and prefill with Tezlink RPC
-          document.getElementById('customRpcContainer').style.display = 'block'
-          // Use saved Tezlink RPC or default
-          rpcInput.value = localStorage.getItem('tezlinkRpcUrl') || 'http://node.tezlink.nomadic-labs.com:30009/tezlink'
-        } else {
-          // For Tezos, show all networks including CUSTOM
-          document.getElementById('customRpcContainer').style.display = 'none'
-          Object.values(beacon.NetworkType).forEach(network => {
-            const option = document.createElement('option')
-            option.value = network
-            option.text = network.toUpperCase()
-            select.appendChild(option)
-          })
-
-          // If CUSTOM is selected for Tezos, show empty RPC input
-          if (getSelectedNetwork() === beacon.NetworkType.CUSTOM) {
-            document.getElementById('customRpcContainer').style.display = 'block'
-            // For regular Tezos custom, use saved custom RPC or empty
-            rpcInput.value = localStorage.getItem('tezosCustomRpcUrl') || ''
-          }
-        }
-
-        select.value = getSelectedNetwork()
-      }
-
-      const PROTOCOL_STORAGE_KEY = 'beacon-example-protocol-version'
-
-      const getStoredProtocolVersion = () => {
-        return localStorage.getItem(PROTOCOL_STORAGE_KEY) || '2'
-      }
-
-      const applyProtocolVersion = (version, { silent } = { silent: false }) => {
-        localStorage.setItem(PROTOCOL_STORAGE_KEY, version)
-        if (typeof beacon.setPreferredMessageProtocolVersion === 'function') {
-          beacon.setPreferredMessageProtocolVersion(version)
-        }
-        const select = document.getElementById('protocolSelect')
-        if (select) {
-          select.value = version
-        }
-        if (!silent) {
-          console.log(`[perf][dapp] Preferred protocol version set to ${version}. Re-pair peers to apply if already connected.`)
-        }
-      }
 
       // Initialize client with selected network
       let client
@@ -543,11 +478,41 @@
       const protocolSelect = document.getElementById('protocolSelect')
       if (protocolSelect) {
         protocolSelect.addEventListener('change', (event) => {
-          applyProtocolVersion(event.target.value)
+          BeaconUtils.applyProtocolVersion(event.target.value)
         })
       }
 
-      applyProtocolVersion(getStoredProtocolVersion(), { silent: true })
+      BeaconUtils.applyProtocolVersion(BeaconUtils.getStoredProtocolVersion(), { silent: true })
+
+      // Hello World contract definition
+      const HELLO_WORLD_CONTRACT = {
+        code: [
+          { prim: 'parameter', args: [{ prim: 'string', annots: ['%set_value'] }] },
+          { prim: 'storage', args: [{ prim: 'string' }] },
+          {
+            prim: 'code',
+            args: [
+              [
+                { prim: 'UNPAIR' },
+                { prim: 'SWAP' },
+                { prim: 'DROP' },
+                { prim: 'NIL', args: [{ prim: 'operation' }] },
+                { prim: 'PAIR' }
+              ]
+            ]
+          },
+          {
+            prim: 'view',
+            args: [
+              { string: 'get_value' },
+              { prim: 'unit' },
+              { prim: 'string' },
+              [{ prim: 'CDR' }]
+            ]
+          }
+        ],
+        storage: { string: 'Hello World' }
+      }
 
       const updateNegotiatedProtocol = async () => {
         if (!client || !negotiatedProtocolEl) {
@@ -582,23 +547,19 @@
           negotiatedProtocolEl.textContent = `v${negotiatedVersion}${suffix}`
 
           if (negotiatedVersion !== lastNegotiatedProtocol) {
-            console.log('[dapp] Negotiated protocol:', negotiatedProtocolEl.textContent, peers)
             lastNegotiatedProtocol = negotiatedVersion
           }
         } catch (error) {
-          console.warn('Unable to resolve negotiated protocol', error)
           negotiatedProtocolEl.textContent = '—'
           lastNegotiatedProtocol = undefined
         }
       }
 
       const initClient = async () => {
-        const selectedBlockchain = getSelectedBlockchain()
-        const selectedNetwork = getSelectedNetwork()
-        console.log('Initializing client with blockchain:', selectedBlockchain, 'network:', selectedNetwork)
+        const selectedBlockchain = BeaconUtils.getSelectedBlockchain()
+        const selectedNetwork = BeaconUtils.getSelectedNetwork()
 
         if (client) {
-          console.log('Destroying old client')
           await client.destroy()
         }
 
@@ -665,19 +626,16 @@
 
         // Set up event listeners for the new client
         client.subscribeToEvent('ACTIVE_ACCOUNT_SET', (account) => {
-          console.log('ACTIVE_ACCOUNT_SET received', account)
           updateActiveAccount()
           updateNegotiatedProtocol()
         })
 
         if (beacon?.BeaconEvent?.CHANNEL_CLOSED) {
           client.subscribeToEvent(beacon.BeaconEvent.CHANNEL_CLOSED, () => {
-            console.log('[dapp] Channel closed, refreshing negotiated protocol')
             updateNegotiatedProtocol()
           })
         }
 
-        console.log('Client initialized with network:', selectedNetwork)
         await updateNegotiatedProtocol()
         if (negotiatedProtocolInterval) {
           clearInterval(negotiatedProtocolInterval)
@@ -700,17 +658,13 @@
         if (typeof beacon.getPreferredMessageProtocolVersion === 'function') {
           return beacon.getPreferredMessageProtocolVersion()
         }
-        return getStoredProtocolVersion()
+        return BeaconUtils.getStoredProtocolVersion()
       }
 
       const runSignPayloadPerfTest = async (sizeInKb) => {
         const resultEl = document.getElementById(`signPayloadLarge${sizeInKb}Result`)
-        if (!resultEl) {
-          console.warn('Missing result element for payload size', sizeInKb)
-        }
 
         if (!client) {
-          console.warn('Client not ready')
           return
         }
 
@@ -765,34 +719,10 @@
         }
       }
 
-      // Get explorer URL based on network
-      const getExplorerUrl = (address, networkType) => {
-        const network = networkType.toLowerCase()
-        if (network === 'mainnet') {
-          return `https://tzkt.io/${address}`
-        } else if (network === 'ghostnet') {
-          return `https://ghostnet.tzkt.io/${address}`
-        } else if (network === 'weeklynet') {
-          return `https://weeklynet.tzkt.io/${address}`
-        } else {
-          return `https://${network}.tzkt.io/${address}`
-        }
-      }
-
-      // Get RPC URL based on network
-      const getRpcUrl = (networkType) => {
-        const network = networkType.toLowerCase()
-        if (network === 'mainnet') {
-          return 'https://rpc.tzkt.io/mainnet'
-        } else {
-          return `https://rpc.tzkt.io/${network}`
-        }
-      }
-
       // Fetch balance from RPC
       const fetchBalance = async (address, networkType) => {
         try {
-          const rpcUrl = getRpcUrl(networkType)
+          const rpcUrl = BeaconUtils.getRpcUrl(networkType, rpcInput.value)
           const response = await fetch(`${rpcUrl}/chains/main/blocks/head/context/contracts/${address}/balance`)
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`)
@@ -815,107 +745,99 @@
         }
       }
 
+      // Update UI when account is connected
+      const updateAccountUI = async (activeAccount) => {
+        // Update address
+        document.getElementById('activeAccount').innerText = activeAccount.address
+        document.getElementById('copyAddress').classList.remove('hidden')
+
+        // Update explorer link
+        const explorerUrl = await BeaconUtils.getExplorerUrlForAddress(activeAccount.address, activeAccount.network.type, client)
+        const explorerLink = document.getElementById('activeAccountExplorer')
+        explorerLink.href = explorerUrl
+        explorerLink.innerText = explorerUrl
+        document.getElementById('activeAccountExplorerWrapper').classList.remove('hidden')
+
+        // Update network, transport, and RPC
+        document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
+        document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
+
+        const rpcUrl = BeaconUtils.getRpcUrl(activeAccount.network.type, rpcInput.value)
+        document.getElementById('activeAccountRPC').innerText = rpcUrl
+        document.getElementById('activeAccountRPCWrapper').classList.remove('hidden')
+
+        // Fetch and update balance
+        document.getElementById('activeAccountBalance').innerText = 'Loading...'
+        const balance = await fetchBalance(activeAccount.address, activeAccount.network.type)
+        document.getElementById('activeAccountBalance').innerText = balance
+
+        startBalanceRefresh()
+      }
+
+      // Clear UI when account is disconnected
+      const clearAccountUI = () => {
+        stopBalanceRefresh()
+
+        document.getElementById('activeAccount').innerText = 'Not connected'
+        document.getElementById('copyAddress').classList.add('hidden')
+        document.getElementById('activeAccountExplorerWrapper').classList.add('hidden')
+        document.getElementById('activeAccountNetwork').innerText = ''
+        document.getElementById('activeAccountTransport').innerText = ''
+        document.getElementById('activeAccountBalance').innerText = '—'
+        document.getElementById('activeAccountRPCWrapper').classList.add('hidden')
+      }
+
+      // Update button states based on account type
+      const updateButtonStates = (activeAccount) => {
+        const hasAccount = !!activeAccount
+        const isSpecialAccount = activeAccount?.walletType === 'account_abstracted' ||
+                                 activeAccount?.verificationType === 'proof_of_event'
+
+        document.getElementById('disconnect').disabled = !hasAccount
+        document.getElementById('requestProofOfEventChallenge').disabled = !isSpecialAccount
+        document.getElementById('requestSimulatedProofOfEventChallenge').disabled = !isSpecialAccount
+      }
+
       // Display the active account in the UI
-      const updateActiveAccount = () => {
-        client.getActiveAccount().then(async (activeAccount) => {
-          if (activeAccount) {
-            // Update address
-            document.getElementById('activeAccount').innerText = activeAccount.address
-            document.getElementById('copyAddress').classList.remove('hidden')
+      const updateActiveAccount = async () => {
+        const activeAccount = await client.getActiveAccount()
 
-            // Update explorer link
-            const explorerUrl = getExplorerUrl(activeAccount.address, activeAccount.network.type)
-            const explorerLink = document.getElementById('activeAccountExplorer')
-            explorerLink.href = explorerUrl
-            explorerLink.innerText = explorerUrl
-            document.getElementById('activeAccountExplorerWrapper').classList.remove('hidden')
+        if (activeAccount) {
+          await updateAccountUI(activeAccount)
+        } else {
+          clearAccountUI()
+        }
 
-            // Update network
-            document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
-
-            // Update transport
-            document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
-
-            // Update RPC
-            const rpcUrl = getRpcUrl(activeAccount.network.type)
-            document.getElementById('activeAccountRPC').innerText = rpcUrl
-            document.getElementById('activeAccountRPCWrapper').classList.remove('hidden')
-
-            // Fetch and update balance
-            document.getElementById('activeAccountBalance').innerText = 'Loading...'
-            const balance = await fetchBalance(activeAccount.address, activeAccount.network.type)
-            document.getElementById('activeAccountBalance').innerText = balance
-
-            // Start periodic balance refresh
-            startBalanceRefresh()
-
-            // Enable disconnect button
-            let btn = document.getElementById('disconnect')
-            btn.disabled = false
-
-            if (
-              activeAccount.walletType !== 'account_abstracted' &&
-              activeAccount.verificationType !== 'proof_of_event'
-            )
-              return
-
-            btn = document.getElementById('requestProofOfEventChallenge')
-            btn.disabled = false
-
-            btn = document.getElementById('requestSimulatedProofOfEventChallenge')
-            btn.disabled = false
-          } else {
-            // Stop periodic balance refresh
-            stopBalanceRefresh()
-
-            // Reset to disconnected state
-            document.getElementById('activeAccount').innerText = 'Not connected'
-            document.getElementById('copyAddress').classList.add('hidden')
-            document.getElementById('activeAccountExplorerWrapper').classList.add('hidden')
-            document.getElementById('activeAccountNetwork').innerText = ''
-            document.getElementById('activeAccountTransport').innerText = ''
-            document.getElementById('activeAccountBalance').innerText = '—'
-            document.getElementById('activeAccountRPCWrapper').classList.add('hidden')
-
-            let btn = document.getElementById('disconnect')
-            btn.disabled = true
-
-            btn = document.getElementById('requestProofOfEventChallenge')
-            btn.disabled = true
-
-            btn = document.getElementById('requestSimulatedProofOfEventChallenge')
-            btn.disabled = true
-          }
-        })
+        updateButtonStates(activeAccount)
       }
 
       // Initialize on page load
-      populateNetworkSelect()
+      BeaconUtils.populateNetworkSelect()
       // Restore blockchain selection
       const blockchainSelect = document.getElementById('blockchainSelect');
       if (blockchainSelect) {
-        blockchainSelect.value = getSelectedBlockchain();
+        blockchainSelect.value = BeaconUtils.getSelectedBlockchain();
       }
       initClient()
 
       // Add network change handler
       document.getElementById('networkSelect').addEventListener('change', async (e) => {
-        saveSelectedNetwork(e.target.value)
+        BeaconUtils.saveSelectedNetwork(e.target.value)
         await initClient()
         updateActiveAccount()
       })
 
       // Add blockchain change handler
       document.getElementById('blockchainSelect').addEventListener('change', async (e) => {
-        saveSelectedBlockchain(e.target.value)
-        populateNetworkSelect() // Update network options when blockchain changes
+        BeaconUtils.saveSelectedBlockchain(e.target.value)
+        BeaconUtils.populateNetworkSelect() // Update network options when blockchain changes
         await initClient()
         updateActiveAccount()
       })
 
       // Add RPC URL change handler
       rpcInput.addEventListener('input', (e) => {
-        const selectedBlockchain = getSelectedBlockchain()
+        const selectedBlockchain = BeaconUtils.getSelectedBlockchain()
         if (selectedBlockchain === 'tezos-tezlink') {
           localStorage.setItem('tezlinkRpcUrl', e.target.value)
         } else {
@@ -993,7 +915,7 @@
           // Setting the color of TzButton is only possible if you are currently the leader and own a color
           // So this call will likely fail
           try {
-            const result = await client.requestOperation({
+            await client.requestOperation({
               operationDetails: [
                 {
                   kind: beacon.TezosOperationType.TRANSACTION,
@@ -1008,10 +930,8 @@
                 }
               ]
             })
-
-            console.log(result)
           } catch (error) {
-            console.log(`The contract call failed and the following error was returned:`, error)
+            console.error('Contract call failed:', error)
           }
         })
       }
@@ -1021,38 +941,33 @@
         client
           .requestPermissions()
           .then((permissions) => {
-            console.log('permissions', permissions)
             if (callback) {
               callback(permissions)
             }
             updateActiveAccount()
           })
           .catch((error) => {
-            console.log('error during permission request', error)
+            console.error('Permission request failed:', error)
           })
       }
 
       // Initiate a permission request with sign request
       const requestPermissionAndSign = (callback) => {
-        console.log('requestPermissionAndSign')
         client
           .requestPermissions()
           .then(async (permissions) => {
-            console.log('permissions', permissions)
             if (callback) {
               callback(permissions)
             }
             updateActiveAccount()
 
-            const signature = await client.requestSignPayload({
+            await client.requestSignPayload({
               payload:
                 '05010000004254657a6f73205369676e6564204d6573736167653a207465737455726c20323032332d30322d30385431303a33363a31382e3435345a2048656c6c6f20576f726c64'
             })
-
-            console.log('signature:', signature)
           })
           .catch((error) => {
-            console.log('error during permission request', error)
+            console.error('Permission and sign request failed:', error)
           })
       }
 
@@ -1063,11 +978,8 @@
             dAppChallengeId: 'my-id',
             payload: JSON.stringify({ timestamp: Date.now() })
           })
-          .then((response) => {
-            console.log(`ProofOfEventChallenge ${response.isAccepted ? 'accepted' : 'refused'}`)
-          })
           .catch((error) => {
-            console.log('error during Proof Of Event Challenge', error)
+            console.error('Proof Of Event Challenge failed:', error)
           })
       }
 
@@ -1076,11 +988,10 @@
         client
           .disconnect()
           .then(() => {
-            console.log('disconnected.')
             updateActiveAccount()
             updateNegotiatedProtocol()
           })
-          .catch((err) => console.error(err.message))
+          .catch((err) => console.error('Disconnect failed:', err.message))
       }
 
       const requestSimulatedProofOfEventChallenge = () => {
@@ -1088,11 +999,8 @@
           .requestSimulatedProofOfEventChallenge({
             payload: JSON.stringify({ timestamp: Date.now() })
           })
-          .then((response) => {
-            console.log('SimulatedProofOfEventChallenge response', response)
-          })
           .catch((error) => {
-            console.log('error during Proof Of Event Challenge', error)
+            console.error('Simulated Proof Of Event Challenge failed:', error)
           })
       }
 
@@ -1144,7 +1052,6 @@
       // Add event listener to the button
       document.getElementById('reset').addEventListener('click', () => {
         if (document.getElementById('reset').attributes.getNamedItem('disabled') === 'true') {
-          console.log('UI IS LOCKED')
           return
         }
         document.getElementById('reset').innerText = 'Cleaning up and refreshing...'
@@ -1157,12 +1064,10 @@
 
       // Add event listener to the button
       document.getElementById('signPayloadRaw').addEventListener('click', async () => {
-        const signature = await client.requestSignPayload({
+        await client.requestSignPayload({
           payload:
             '05010000004254657a6f73205369676e6564204d6573736167653a207465737455726c20323032332d30322d30385431303a33363a31382e3435345a2048656c6c6f20576f726c64'
         })
-
-        console.log('signature:', signature)
       })
 
       // Add event listener to the button
@@ -1173,38 +1078,30 @@
           payload: 'my-secret-string'
         })
 
-        console.log('encrypted payload', encryptionResponse.payload)
-
         await new Promise((resolve) => setTimeout(resolve, 2000))
 
-        const decryptionResponse = await client.requestEncryptPayload({
+        await client.requestEncryptPayload({
           encryptionType: beacon.EncryptionType.ASYMMETRIC,
           encryptionCryptoOperation: beacon.EncryptionOperation.DECRYPT,
           payload: encryptionResponse.payload
         })
-
-        console.log('decrypted payload', decryptionResponse.payload)
       })
 
       // Add event listener to the button
       document.getElementById('signPayloadOperation').addEventListener('click', async () => {
-        const signature = await client.requestSignPayload({
+        await client.requestSignPayload({
           signingType: beacon.SigningType.OPERATION,
           payload: '03test'
         })
-
-        console.log('signature:', signature)
       })
 
       // Add event listener to the button
       document.getElementById('signPayloadMicheline').addEventListener('click', async () => {
-        const signature = await client.requestSignPayload({
+        await client.requestSignPayload({
           signingType: beacon.SigningType.MICHELINE,
           payload:
             '05010000004254657a6f73205369676e6564204d6573736167653a206d79646170702e636f6d20323032312d30312d31345431353a31363a30345a2048656c6c6f20776f726c6421'
         })
-
-        console.log('signature:', signature)
       })
 
       document.getElementById('signPayloadLarge50').addEventListener('click', () => {
@@ -1233,9 +1130,8 @@
       // Add event listener to the button
       document.getElementById('getExtensions').addEventListener('click', () => {
         beacon.availableTransports.availableExtensions.then((extensions) => {
-          console.log(extensions)
           alert(
-            `There are ${extensions.length} extensions installed. Check the console for more info.`
+            `There are ${extensions.length} extensions installed.`
           )
         })
       })
@@ -1243,8 +1139,7 @@
       // Add event listener to the button
       document.getElementById('getAccounts').addEventListener('click', () => {
         client.getAccounts().then((accounts) => {
-          console.log(accounts)
-          alert(`There are ${accounts.length} accounts stored. Check the console for more info.`)
+          alert(`There are ${accounts.length} accounts stored.`)
         })
       })
 
@@ -1280,21 +1175,15 @@
         client.getPeers().then((peers) => {
           if (peers.length > 0) {
             client.removePeer(peers[0], true).then(() => {
-              console.log('peer removed', peers[0])
               updateActiveAccount()
             })
-          } else {
-            console.log('no peers to be removed')
           }
         })
       })
 
       document.getElementById('externalInit').addEventListener('click', () => {
-        console.log('This method has to be called directly after page load to reproduce the error')
         client.init().then(() => {
-          console.log('init done')
           client.requestPermissions().then((permissions) => {
-            console.log('permissions', permissions)
             if (callback) {
               callback(permissions)
             }
@@ -1328,43 +1217,34 @@
       // Add event listener to the button
       document.getElementById('deserializeData').addEventListener('click', () => {
         const value = document.getElementById('beacon-textbox').value
-        console.log('Deserializing:', value)
-
         new beacon.Serializer()
           .deserialize(value)
-          .then((res) => {
-            console.log(res), console.log(JSON.stringify(res))
-          })
           .catch(console.error)
       })
 
       // Add event listener to the button
       document.getElementById('serializeData').addEventListener('click', () => {
         const value = document.getElementById('beacon-textbox-serialize').value
-        console.log('Serializing:', value)
         const parsed = JSON.parse(value)
-        console.log(parsed)
-        new beacon.Serializer().serialize(parsed).then(console.log).catch(console.error)
+        new beacon.Serializer().serialize(parsed).catch(console.error)
       })
 
       // Add event listener to the button
       document.getElementById('sendNotification').addEventListener('click', () => {
-        client
-          .sendNotification('Beacon Test', 'Message', '', 'xtz')
-          .then((res) => console.log('Notification Response', res))
+        client.sendNotification('Beacon Test', 'Message', '', 'xtz')
       })
 
       // Add event listener to the button
       document.getElementById('dumpState').addEventListener('click', async () => {
         const extraInfo = {
-          'Selected Blockchain': getSelectedBlockchain(),
-          'Selected Network': getSelectedNetwork(),
+          'Selected Blockchain': BeaconUtils.getSelectedBlockchain(),
+          'Selected Network': BeaconUtils.getSelectedNetwork(),
           'Custom RPC URL': document.getElementById('customRpcUrl').value || 'Not set',
           'Protocol Version': getCurrentProtocolVersion(),
           'Negotiated Protocol': document.getElementById('negotiatedProtocol').textContent
         }
 
-        await BeaconDebugUtils.dumpState('DApp', client, extraInfo)
+        await BeaconUtils.dumpState('DApp', client, extraInfo)
       })
 
       // Send Tezos Function
@@ -1373,22 +1253,14 @@
           const recipient = document.getElementById('sendRecipientAddress').value.trim()
           const amount = document.getElementById('sendAmount').value.trim()
 
-          if (!recipient) {
-            console.error('Please enter a recipient address')
-            return
-          }
-
-          if (!amount || parseFloat(amount) <= 0) {
-            console.error('Please enter a valid amount')
+          if (!recipient || !amount || parseFloat(amount) <= 0) {
             return
           }
 
           // Convert tez to mutez (1 tez = 1,000,000 mutez)
           const amountInMutez = Math.floor(parseFloat(amount) * 1000000).toString()
 
-          console.log(`Sending ${amount} ꜩ (${amountInMutez} mutez) to ${recipient}`)
-
-          const result = await client.requestOperation({
+          await client.requestOperation({
             operationDetails: [
               {
                 kind: beacon.TezosOperationType.TRANSACTION,
@@ -1397,8 +1269,6 @@
               }
             ]
           })
-
-          console.log('Transaction result:', result)
 
           // Clear inputs after successful send
           document.getElementById('sendRecipientAddress').value = ''
@@ -1414,6 +1284,28 @@
 
       const getStoredContractAddress = () => localStorage.getItem(CONTRACT_ADDRESS_KEY)
       const getStoredContractOwner = () => localStorage.getItem(CONTRACT_OWNER_KEY)
+
+      // Handle post-deployment contract address discovery
+      const handleContractDeployment = async (transactionHash, ownerAddress) => {
+        try {
+          const network = (await client.getActiveAccount()).network.type
+          const rpcUrl = BeaconUtils.getRpcUrl(network, rpcInput.value)
+
+          const contractAddress = await BeaconUtils.findOriginatedContract(transactionHash, rpcUrl, 20)
+
+          if (contractAddress) {
+            localStorage.setItem(CONTRACT_ADDRESS_KEY, contractAddress)
+            localStorage.setItem(CONTRACT_OWNER_KEY, ownerAddress)
+            updateContractUI()
+          } else {
+            console.error('Could not find contract address in recent blocks')
+            alert('Contract deployment completed, but could not find the contract address. Please set it manually.')
+          }
+        } catch (error) {
+          console.error('Error finding contract address:', error)
+          alert('Error finding contract address. Please set it manually.')
+        }
+      }
 
       const updateContractUI = async () => {
         const contractAddress = getStoredContractAddress()
@@ -1431,7 +1323,7 @@
           // Update explorer link
           const activeAccount = await client.getActiveAccount()
           if (activeAccount) {
-            const explorerUrl = getExplorerUrl(contractAddress, activeAccount.network.type)
+            const explorerUrl = await BeaconUtils.getExplorerUrlForAddress(contractAddress, activeAccount.network.type, client)
             const explorerLink = document.getElementById('contractExplorer')
             explorerLink.href = explorerUrl
             explorerLink.innerText = explorerUrl
@@ -1455,85 +1347,19 @@
             return
           }
 
-          console.log('Deploying Hello World contract...')
-
-          // Michelson contract with storage (string), setValue entrypoint, and getValue view
           const result = await client.requestOperation({
             operationDetails: [
               {
                 kind: beacon.TezosOperationType.ORIGINATION,
                 balance: '0',
-                script: {
-                  code: [
-                    { prim: 'parameter', args: [{ prim: 'string' }] },
-                    { prim: 'storage', args: [{ prim: 'string' }] },
-                    {
-                      prim: 'code',
-                      args: [
-                        [
-                          { prim: 'UNPAIR' },
-                          { prim: 'SWAP' },
-                          { prim: 'DROP' },
-                          { prim: 'NIL', args: [{ prim: 'operation' }] },
-                          { prim: 'PAIR' }
-                        ]
-                      ]
-                    },
-                    {
-                      prim: 'view',
-                      args: [
-                        { string: 'getValue' },
-                        { prim: 'unit' },
-                        { prim: 'string' },
-                        [{ prim: 'CDR' }]
-                      ]
-                    }
-                  ],
-                  storage: { string: 'Hello World' }
-                }
+                script: HELLO_WORLD_CONTRACT
               }
             ]
           })
 
-          console.log('Deployment result:', result)
-
           if (result.transactionHash) {
-            // Wait for the operation to be included and use TzKT API
-            setTimeout(async () => {
-              try {
-                const network = (await client.getActiveAccount()).network.type
-                const tzktUrl = network === 'mainnet'
-                  ? 'https://api.tzkt.io'
-                  : `https://api.${network}.tzkt.io`
-
-                const opResponse = await fetch(`${tzktUrl}/v1/operations/${result.transactionHash}`)
-                const opData = await opResponse.json()
-
-                console.log('TzKT operation data:', opData)
-
-                // Find the originated contract address
-                let contractAddress = null
-                if (Array.isArray(opData)) {
-                  for (const op of opData) {
-                    if (op.type === 'origination' && op.originatedContract?.address) {
-                      contractAddress = op.originatedContract.address
-                      break
-                    }
-                  }
-                }
-
-                if (contractAddress) {
-                  localStorage.setItem(CONTRACT_ADDRESS_KEY, contractAddress)
-                  localStorage.setItem(CONTRACT_OWNER_KEY, activeAccount.address)
-                  console.log('Contract deployed at:', contractAddress)
-                  updateContractUI()
-                } else {
-                  console.error('Could not find contract address in operation result')
-                }
-              } catch (error) {
-                console.error('Error fetching contract address:', error)
-              }
-            }, 5000)
+            // Wait for the operation to be included in a block, then search via RPC
+            setTimeout(() => handleContractDeployment(result.transactionHash, activeAccount.address), 5000)
           }
         } catch (error) {
           console.error('Error deploying contract:', error)
@@ -1550,23 +1376,20 @@
             return
           }
 
-          console.log('Setting contract value to:', newValue)
-
-          const result = await client.requestOperation({
+          await client.requestOperation({
             operationDetails: [
               {
                 kind: beacon.TezosOperationType.TRANSACTION,
                 destination: contractAddress,
                 amount: '0',
                 parameters: {
-                  entrypoint: 'default',
+                  entrypoint: 'set_value',
                   value: { string: newValue }
                 }
               }
             ]
           })
 
-          console.log('Set value result:', result)
           document.getElementById('contractValueInput').value = ''
         } catch (error) {
           console.error('Error setting contract value:', error)
@@ -1578,16 +1401,11 @@
           const contractAddress = getStoredContractAddress()
           const activeAccount = await client.getActiveAccount()
           const network = activeAccount.network.type
-          const rpcUrl = network === 'mainnet'
-            ? 'https://rpc.tzkt.io/mainnet'
-            : `https://rpc.tzkt.io/${network}`
+          const rpcUrl = BeaconUtils.getRpcUrl(network, rpcInput.value)
 
-          console.log('Fetching contract storage from:', rpcUrl)
-
-          const response = await fetch(`${rpcUrl}/chains/main/blocks/head/context/contracts/${contractAddress}/storage`)
-          const storage = await response.json()
-
-          console.log('Contract storage:', storage)
+          const response = await fetch(`${rpcUrl}/chains/main/blocks/head/context/contracts/${contractAddress}`)
+          const contractData = await response.json()
+          const storage = contractData.script?.storage || contractData.storage
 
           const value = storage.string || storage
           document.getElementById('contractCurrentValue').innerText = value
@@ -1612,8 +1430,6 @@
         if (activeAccount) {
           document.getElementById('sendRecipientAddress').value = activeAccount.address
           document.getElementById('sendAmount').value = '0.1'
-        } else {
-          console.warn('No active account connected')
         }
       })
 
@@ -1640,6 +1456,31 @@
         }).catch(err => {
           console.error('Failed to copy:', err)
         })
+      })
+
+      // Set manual contract address
+      document.getElementById('setManualContract').addEventListener('click', async () => {
+        const address = document.getElementById('manualContractAddress').value.trim()
+
+        if (!address) {
+          alert('Please enter a contract address')
+          return
+        }
+
+        if (!address.startsWith('KT1')) {
+          alert('Invalid contract address. Must start with KT1')
+          return
+        }
+
+        const activeAccount = await client.getActiveAccount()
+        if (activeAccount) {
+          localStorage.setItem(CONTRACT_ADDRESS_KEY, address)
+          localStorage.setItem(CONTRACT_OWNER_KEY, activeAccount.address)
+          document.getElementById('manualContractAddress').value = ''
+          await updateContractUI()
+        } else {
+          alert('Please connect your wallet first')
+        }
       })
 
       // Initialize contract UI on page load
