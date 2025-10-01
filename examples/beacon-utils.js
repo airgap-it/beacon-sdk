@@ -219,6 +219,56 @@ window.BeaconUtils = {
     }
   },
 
+  // Fetch balance from RPC
+  async fetchBalance(address, networkType, rpcInputValue) {
+    try {
+      const rpcUrl = this.getRpcUrl(networkType, rpcInputValue)
+      const response = await fetch(`${rpcUrl}/chains/main/blocks/head/context/contracts/${address}/balance`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const balanceText = await response.text()
+
+      // Parse balance - response might be quoted string
+      const balance = balanceText.replace(/"/g, '').trim()
+      const balanceNum = parseInt(balance, 10)
+
+      if (isNaN(balanceNum)) {
+        return '—'
+      }
+
+      // Convert from mutez to tez
+      const balanceInTez = (balanceNum / 1000000).toFixed(6)
+      return `${balanceInTez} ꜩ`
+    } catch (error) {
+      console.error('Error fetching balance:', error)
+      return '—'
+    }
+  },
+
+  // Start balance refresh polling
+  startBalanceRefresh(address, networkType, rpcInputValue, elementId, intervalMs = 5000) {
+    // Set up interval to refresh balance
+    const intervalId = setInterval(async () => {
+      if (address) {
+        const balance = await this.fetchBalance(address, networkType, rpcInputValue)
+        const element = document.getElementById(elementId)
+        if (element) {
+          element.innerText = balance
+        }
+      }
+    }, intervalMs)
+
+    return intervalId
+  },
+
+  // Stop balance refresh polling
+  stopBalanceRefresh(intervalId) {
+    if (intervalId) {
+      clearInterval(intervalId)
+    }
+  },
+
   async dumpState(type, client, extraInfo = {}) {
     console.log('='.repeat(80))
     console.log(`${type.toUpperCase()} STATE DUMP - ${new Date().toISOString()}`)

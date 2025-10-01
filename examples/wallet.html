@@ -457,6 +457,7 @@
       let walletPublicKey = null
       let walletMnemonic = null
       let peerRefreshInterval = null
+      let balanceRefreshInterval = null
       const signRequestTimings = new Map()
 
       const protocolSelect = document.getElementById('walletProtocolSelect')
@@ -534,7 +535,8 @@
 
             showWalletInfo()
             displayWalletInfo()
-            updateBalance()
+            await updateBalance()
+            startBalanceRefresh()
             return { address: walletAddress, publicKey: walletPublicKey }
           }
 
@@ -598,8 +600,9 @@
           showWalletInfo()
           displayWalletInfo()
 
-          // Update balance
-          updateBalance()
+          // Update balance and start polling
+          await updateBalance()
+          startBalanceRefresh()
 
           return { address: walletAddress, publicKey: walletPublicKey }
         } catch (error) {
@@ -1093,16 +1096,42 @@
       const updateBalance = async () => {
         try {
           const selectedNetwork = BeaconUtils.getSelectedNetwork()
-          const rpcUrl = resolveRpcUrl(selectedNetwork)
-
-          const Tezos = new taquito.TezosToolkit(rpcUrl)
-          const balance = await Tezos.tz.getBalance(walletAddress)
+          const customRpcUrl = document.getElementById('customRpcUrl').value
+          const balance = await BeaconUtils.fetchBalance(walletAddress, selectedNetwork, customRpcUrl)
 
           const balanceElement = document.getElementById('wallet-balance')
-          balanceElement.textContent = `${balance.toNumber() / 1000000} ꜩ`
+          balanceElement.textContent = balance
         } catch (error) {
           console.error('Error fetching balance:', error)
           document.getElementById('wallet-balance').textContent = 'Error'
+        }
+      }
+
+      // Start balance polling
+      const startBalanceRefresh = () => {
+        // Clear any existing interval
+        if (balanceRefreshInterval) {
+          BeaconUtils.stopBalanceRefresh(balanceRefreshInterval)
+        }
+
+        const selectedNetwork = BeaconUtils.getSelectedNetwork()
+        const customRpcUrl = document.getElementById('customRpcUrl').value
+
+        // Set up new interval to refresh balance every 5 seconds
+        balanceRefreshInterval = BeaconUtils.startBalanceRefresh(
+          walletAddress,
+          selectedNetwork,
+          customRpcUrl,
+          'wallet-balance',
+          5000
+        )
+      }
+
+      // Stop balance polling
+      const stopBalanceRefresh = () => {
+        if (balanceRefreshInterval) {
+          BeaconUtils.stopBalanceRefresh(balanceRefreshInterval)
+          balanceRefreshInterval = null
         }
       }
 
@@ -1199,20 +1228,24 @@
             document.getElementById('customRpcContainer').style.display = 'none'
           }
 
+          stopBalanceRefresh()
           await initClient()
           // Update balance for new network
           if (walletAddress) {
-            updateBalance()
+            await updateBalance()
+            startBalanceRefresh()
           }
         })
 
         document.getElementById('blockchainSelect').addEventListener('change', async (e) => {
           BeaconUtils.saveSelectedBlockchain(e.target.value)
           BeaconUtils.populateNetworkSelect() // Repopulate networks for new blockchain
+          stopBalanceRefresh()
           await initClient()
           // Update balance for new blockchain
           if (walletAddress) {
-            updateBalance()
+            await updateBalance()
+            startBalanceRefresh()
           }
         })
 
@@ -1282,6 +1315,7 @@
         // Add event listener to the logout/reset button
         document.getElementById('logout-wallet').addEventListener('click', () => {
           if (confirm('This will delete your wallet mnemonic and all data. Make sure you have backed it up! Continue?')) {
+            stopBalanceRefresh()
             localStorage.removeItem('walletMnemonic')
             localStorage.removeItem('walletPrivateKey')
             walletSigner = null
