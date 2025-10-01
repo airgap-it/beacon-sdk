@@ -93,7 +93,7 @@ import {
   MultiTabChannel,
   BACKEND_URL,
   getError,
-  isWrappedMessageVersion
+  usesWrappedMessages
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -316,15 +316,15 @@ export class DAppClient extends Client {
       message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
-      const typedMessage = isWrappedMessageVersion(message.version)
+      const typedMessage = usesWrappedMessages(message.version)
         ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
         : (message as BeaconMessage)
 
-      let appMetadata: AppMetadata | undefined = isWrappedMessageVersion(message.version)
+      let appMetadata: AppMetadata | undefined = usesWrappedMessages(message.version)
         ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData?.appMetadata
         : (typedMessage as PermissionResponse).appMetadata
 
-      if (!appMetadata && isWrappedMessageVersion(message.version)) {
+      if (!appMetadata && usesWrappedMessages(message.version)) {
         const storedMetadata = await Promise.all([
           this.storage.get(StorageKey.TRANSPORT_P2P_PEERS_DAPP),
           this.storage.get(StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP),

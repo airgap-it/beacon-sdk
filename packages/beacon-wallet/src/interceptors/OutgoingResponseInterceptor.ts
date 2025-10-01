@@ -3,7 +3,7 @@ import {
   getAccountIdentifier,
   Logger,
   PermissionManager,
-  isWrappedMessageVersion
+  usesWrappedMessages
 } from '@airgap/beacon-core'
 import {
   ErrorResponse,
@@ -50,7 +50,7 @@ export class OutgoingResponseInterceptor {
   public static async intercept(config: OutgoingResponseInterceptorOptions): Promise<void> {
     if (config.request.version === '2') {
       OutgoingResponseInterceptor.handleV2Message(config)
-    } else if (isWrappedMessageVersion(config.request.version)) {
+    } else if (usesWrappedMessages(config.request.version)) {
       OutgoingResponseInterceptor.handleV3Message(config)
     }
   }

@@ -8,7 +8,7 @@ import {
   getSenderId,
   Logger,
   NOTIFICATION_ORACLE_URL,
-  isWrappedMessageVersion
+  usesWrappedMessages
 } from '@airgap/beacon-core'
 
 import { ExposedPromise, toHex } from '@airgap/beacon-utils'
@@ -126,7 +126,7 @@ export class WalletClient extends Client {
         BeaconMessageType.ChangeAccountRequest
       ]
 
-      if (isWrappedMessageVersion(message.version)) {
+      if (usesWrappedMessages(message.version)) {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
         if (typedMessage.message.type === BeaconMessageType.Disconnect) {
