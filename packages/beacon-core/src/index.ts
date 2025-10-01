@@ -20,7 +20,14 @@ import { getStorage } from './storage/getStorage'
 import { Serializer } from './Serializer'
 // import { RequestEncryptPayloadInput } from './types/RequestEncryptPayloadInput'
 import { ClientOptions } from './clients/client/ClientOptions'
-import { SDK_VERSION, BEACON_VERSION, PROTOCOL_VERSION } from './constants'
+import {
+  SDK_VERSION,
+  BEACON_VERSION,
+  PROTOCOL_VERSION_V1,
+  PROTOCOL_VERSION_V2,
+  LATEST_PROTOCOL_VERSION,
+  DEFAULT_PROTOCOL_VERSION
+} from './constants'
 import {
   getPreferredMessageProtocolVersion,
   setPreferredMessageProtocolVersion
@@ -86,7 +93,10 @@ export { PeerManager, AccountManager, AppMetadataManager, PermissionManager }
 export {
   SDK_VERSION,
   BEACON_VERSION,
-  PROTOCOL_VERSION,
+  PROTOCOL_VERSION_V1,
+  PROTOCOL_VERSION_V2,
+  LATEST_PROTOCOL_VERSION,
+  DEFAULT_PROTOCOL_VERSION,
   getPreferredMessageProtocolVersion,
   setPreferredMessageProtocolVersion
 }

@@ -32,22 +32,13 @@
           <h2 class="text-xl font-semibold text-white mb-4">Configuration</h2>
 
           <div class="space-y-4">
-            <!-- Blockchain Selection -->
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Blockchain</label>
-              <select id="blockchainSelect" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="tezos">Tezos</option>
-                <option value="tezos-tezlink">Tezos-Tezlink</option>
-              </select>
-            </div>
-
             <!-- Network Selection -->
             <div>
               <label class="block text-sm font-medium text-gray-300 mb-2">Network</label>
               <select id="networkSelect" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
             </div>
 
-            <!-- Custom RPC URL (hidden by default, shown for Tezlink or custom network) -->
+            <!-- Custom RPC URL (hidden by default, shown for custom network) -->
             <div id="customRpcContainer" style="display: none;">
               <label class="block text-sm font-medium text-gray-300 mb-2">RPC URL</label>
               <input type="text" id="customRpcUrl" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter RPC URL" />
@@ -405,15 +396,8 @@
 
       const resolveRpcUrl = (networkLike) => {
         const selectedNetwork = BeaconUtils.getSelectedNetwork()
-        const selectedBlockchain = BeaconUtils.getSelectedBlockchain()
 
-        // For Tezlink with MAINNET, use the Tezlink RPC
-        if (selectedBlockchain === 'tezos-tezlink' && selectedNetwork === beacon.NetworkType.MAINNET) {
-          const customUrl = document.getElementById('customRpcUrl').value
-          return customUrl || 'http://node.tezlink.nomadic-labs.com:30009/tezlink'
-        }
-
-        // For CUSTOM network (regular Tezos), use the input value
+        // For CUSTOM network, use the input value
         if (selectedNetwork === beacon.NetworkType.CUSTOM) {
           const customUrl = document.getElementById('customRpcUrl').value
           if (!customUrl) {
@@ -1204,27 +1188,21 @@
       // Initialize on page load
       window.addEventListener('load', () => {
         BeaconUtils.populateNetworkSelect();
-        // Restore blockchain selection
-        const blockchainSelect = document.getElementById('blockchainSelect');
-        if (blockchainSelect) {
-          blockchainSelect.value = BeaconUtils.getSelectedBlockchain();
-        }
         initializeAutoApproveMode();
         initClient();
       });
 
-      // Add network and blockchain change handlers
+      // Add network change handler
       window.addEventListener('load', () => {
         document.getElementById('networkSelect').addEventListener('change', async (e) => {
           BeaconUtils.saveSelectedNetwork(e.target.value)
-          const selectedBlockchain = BeaconUtils.getSelectedBlockchain()
 
-          if (selectedBlockchain === 'tezos' && e.target.value === beacon.NetworkType.CUSTOM) {
-            // Show empty RPC input for Tezos custom
+          if (e.target.value === beacon.NetworkType.CUSTOM) {
+            // Show empty RPC input for custom network
             document.getElementById('customRpcContainer').style.display = 'block'
             document.getElementById('customRpcUrl').value = localStorage.getItem('tezosCustomRpcUrl') || ''
-          } else if (selectedBlockchain === 'tezos') {
-            // Hide RPC input for standard Tezos networks
+          } else {
+            // Hide RPC input for standard networks
             document.getElementById('customRpcContainer').style.display = 'none'
           }
 
@@ -1237,26 +1215,9 @@
           }
         })
 
-        document.getElementById('blockchainSelect').addEventListener('change', async (e) => {
-          BeaconUtils.saveSelectedBlockchain(e.target.value)
-          BeaconUtils.populateNetworkSelect() // Repopulate networks for new blockchain
-          stopBalanceRefresh()
-          await initClient()
-          // Update balance for new blockchain
-          if (walletAddress) {
-            await updateBalance()
-            startBalanceRefresh()
-          }
-        })
-
-        // Save RPC URL changes based on blockchain
+        // Save RPC URL changes
         document.getElementById('customRpcUrl').addEventListener('change', (e) => {
-          const selectedBlockchain = BeaconUtils.getSelectedBlockchain()
-          if (selectedBlockchain === 'tezos-tezlink') {
-            localStorage.setItem('tezlinkRpcUrl', e.target.value)
-          } else {
-            localStorage.setItem('tezosCustomRpcUrl', e.target.value)
-          }
+          localStorage.setItem('tezosCustomRpcUrl', e.target.value)
         })
       })
 

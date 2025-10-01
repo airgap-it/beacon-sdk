@@ -1,16 +1,6 @@
 // Shared utilities for Beacon SDK examples
 
 window.BeaconUtils = {
-  getSelectedBlockchain() {
-    const key = window.location.pathname.includes('wallet') ? 'walletSelectedBlockchain' : 'dappSelectedBlockchain'
-    return localStorage.getItem(key) || 'tezos'
-  },
-
-  saveSelectedBlockchain(blockchain) {
-    const key = window.location.pathname.includes('wallet') ? 'walletSelectedBlockchain' : 'dappSelectedBlockchain'
-    localStorage.setItem(key, blockchain)
-  },
-
   getSelectedNetwork() {
     const key = window.location.pathname.includes('wallet') ? 'walletSelectedNetwork' : 'selectedNetwork'
     return localStorage.getItem(key) || 'mainnet'
@@ -30,36 +20,21 @@ window.BeaconUtils = {
     if (!select) return
 
     select.innerHTML = '' // Clear existing options
-    const selectedBlockchain = this.getSelectedBlockchain()
 
-    if (selectedBlockchain === 'tezos-tezlink') {
-      // For Tezlink, only show MAINNET
+    // Show all networks including CUSTOM
+    if (customRpcContainer) customRpcContainer.style.display = 'none'
+    Object.values(beacon.NetworkType).forEach(network => {
       const option = document.createElement('option')
-      option.value = beacon.NetworkType.MAINNET
-      option.text = 'MAINNET'
+      option.value = network
+      option.text = network.toUpperCase()
       select.appendChild(option)
+    })
 
-      // Show RPC input and prefill with Tezlink RPC
+    // If CUSTOM is selected, show empty RPC input
+    if (this.getSelectedNetwork() === beacon.NetworkType.CUSTOM) {
       if (customRpcContainer) customRpcContainer.style.display = 'block'
       if (rpcInput) {
-        rpcInput.value = localStorage.getItem('tezlinkRpcUrl') || 'http://node.tezlink.nomadic-labs.com:30009/tezlink'
-      }
-    } else {
-      // For Tezos, show all networks including CUSTOM
-      if (customRpcContainer) customRpcContainer.style.display = 'none'
-      Object.values(beacon.NetworkType).forEach(network => {
-        const option = document.createElement('option')
-        option.value = network
-        option.text = network.toUpperCase()
-        select.appendChild(option)
-      })
-
-      // If CUSTOM is selected for Tezos, show empty RPC input
-      if (this.getSelectedNetwork() === beacon.NetworkType.CUSTOM) {
-        if (customRpcContainer) customRpcContainer.style.display = 'block'
-        if (rpcInput) {
-          rpcInput.value = localStorage.getItem('tezosCustomRpcUrl') || ''
-        }
+        rpcInput.value = localStorage.getItem('tezosCustomRpcUrl') || ''
       }
     }
 
@@ -74,15 +49,9 @@ window.BeaconUtils = {
     }
   },
 
-  // Get RPC URL based on blockchain and network
+  // Get RPC URL based on network
   getRpcUrl(networkType, rpcInputValue) {
-    const selectedBlockchain = this.getSelectedBlockchain()
     const network = networkType ? networkType.toLowerCase() : this.getSelectedNetwork().toLowerCase()
-
-    // For Tezlink, use the custom RPC input
-    if (selectedBlockchain === 'tezos-tezlink') {
-      return rpcInputValue || 'http://node.tezlink.nomadic-labs.com:30009/tezlink'
-    }
 
     // For CUSTOM network, use the custom RPC input
     if (network === 'custom') {
@@ -97,37 +66,21 @@ window.BeaconUtils = {
     }
   },
 
-  // Get explorer URL for addresses (blockchain-aware)
+  // Get explorer URL for addresses
   async getExplorerUrlForAddress(address, networkType, client) {
-    const selectedBlockchain = this.getSelectedBlockchain()
-
-    // If client has blockExplorer configured (Tezlink case), use it
+    // If client has blockExplorer configured, use it
     if (client && client.blockExplorer) {
       return await client.blockExplorer.getAddressLink(address, { type: networkType || this.getSelectedNetwork() })
     }
 
-    // For Tezlink, use Tezlink block explorer
-    if (selectedBlockchain === 'tezos-tezlink') {
-      const explorer = new beacon.TezlinkTzktBlockExplorer()
-      return await explorer.getAddressLink(address, { type: beacon.NetworkType.MAINNET })
-    }
-
-    // For regular Tezos, use standard TzKT explorer
+    // For Tezos, use TzKT block explorer
     const explorer = new beacon.TzktBlockExplorer()
     return await explorer.getAddressLink(address, { type: networkType || this.getSelectedNetwork() })
   },
 
-  // Get explorer URL for transaction hashes (blockchain-aware)
+  // Get explorer URL for transaction hashes
   async getExplorerUrlForTransaction(transactionHash, networkType) {
-    const selectedBlockchain = this.getSelectedBlockchain()
-
-    // For Tezlink, use Tezlink block explorer
-    if (selectedBlockchain === 'tezos-tezlink') {
-      const explorer = new beacon.TezlinkTzktBlockExplorer()
-      return await explorer.getTransactionLink(transactionHash, { type: beacon.NetworkType.MAINNET })
-    }
-
-    // For regular Tezos, use standard TzKT explorer
+    // For Tezos, use TzKT block explorer
     const explorer = new beacon.TzktBlockExplorer()
     return await explorer.getTransactionLink(transactionHash, { type: networkType || this.getSelectedNetwork() })
   },
@@ -334,7 +287,6 @@ window.BeaconUtils = {
         key.includes('wallet') ||
         key.includes('dapp') ||
         key.includes('tezos') ||
-        key.includes('tezlink') ||
         key.includes('protocol')
       )
       const storage = {}

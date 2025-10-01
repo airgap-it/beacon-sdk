@@ -1,6 +1,6 @@
-import { PROTOCOL_VERSION } from './constants'
+import { LATEST_PROTOCOL_VERSION } from './constants'
 
-let preferredMessageProtocolVersion: number = PROTOCOL_VERSION
+let preferredMessageProtocolVersion: number = LATEST_PROTOCOL_VERSION
 
 export const getPreferredMessageProtocolVersion = (): number => preferredMessageProtocolVersion
 
