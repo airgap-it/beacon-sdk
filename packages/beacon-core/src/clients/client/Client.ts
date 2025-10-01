@@ -13,6 +13,7 @@ import {
   BeaconMessageWrapper,
   NodeDistributions
 } from '@airgap/beacon-types'
+import { DEFAULT_PROTOCOL_VERSION } from '../../constants'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { getSenderId } from '../../utils/get-sender-id'
@@ -246,7 +247,7 @@ export abstract class Client extends BeaconClient {
 
       const peer = await this.findPeer(connectionInfo.id)
       const protocolVersion = this.getPeerProtocolVersion(peer)
-      this.logProtocolVersion(peer, connectionInfo.id, protocolVersion)
+      this.logProtocolVersion(peer, connectionInfo.id)
 
       const deserializedMessage = (await new Serializer(protocolVersion).deserialize(
         message
@@ -294,28 +295,19 @@ export abstract class Client extends BeaconClient {
       return undefined
     }
 
-    try {
-      const transport = await this.transport
-      const peers = await transport.getPeers()
-      return peers.find((peerInfo) => peerInfo.publicKey === publicKey)
-    } catch (error) {
-      logger.warn('findPeer', 'Unable to resolve peer', error)
-      return undefined
-    }
+    const transport = await this.transport
+    const peers = await transport.getPeers()
+    return peers.find((peerInfo) => peerInfo.publicKey === publicKey)
   }
 
-  protected shouldUseCompressedPayload(peer?: PeerInfo): boolean {
-    return this.getPeerProtocolVersion(peer) >= 2
-  }
-
-  private logProtocolVersion(peer?: PeerInfo, connectionId?: string, negotiatedVersion?: number): void {
+  private logProtocolVersion(peer?: PeerInfo, connectionId?: string): void {
     if (peer) {
       const key = peer.publicKey || peer.id
       if (this.loggedProtocolVersions.has(key)) {
         return
       }
 
-      const resolved = negotiatedVersion ?? this.getPeerProtocolVersion(peer)
+      const resolved = this.getPeerProtocolVersion(peer)
       logger.log('protocol', `Using message protocol v${resolved} for peer ${key}`)
       this.loggedProtocolVersions.add(key)
       return
@@ -327,27 +319,30 @@ export abstract class Client extends BeaconClient {
     }
   }
 
-  protected getEffectiveProtocolVersion(peer?: PeerInfo): number {
-    return this.getPeerProtocolVersion(peer) >= 2 ? 2 : 1
+  private getLocalProtocolVersion(): number {
+    const localPreferredRaw = Number(getPreferredMessageProtocolVersion())
+    return Number.isFinite(localPreferredRaw) && localPreferredRaw >= DEFAULT_PROTOCOL_VERSION
+      ? localPreferredRaw
+      : DEFAULT_PROTOCOL_VERSION
   }
 
-  protected getPeerProtocolVersion(peer?: PeerInfo): number {
-    const defaultProtocol = 1
-    const localPreferredRaw = Number(getPreferredMessageProtocolVersion())
-    const localPreferred = Number.isFinite(localPreferredRaw) && localPreferredRaw >= defaultProtocol
-      ? localPreferredRaw
-      : defaultProtocol
-
+  private extractPeerProtocolVersion(peer?: PeerInfo): number {
     if (!peer) {
-      return defaultProtocol
+      return DEFAULT_PROTOCOL_VERSION
     }
 
     const peerProtocolRaw =
       typeof peer.protocolVersion === 'number' ? peer.protocolVersion : Number(peer.protocolVersion)
-    if (Number.isFinite(peerProtocolRaw) && peerProtocolRaw >= defaultProtocol) {
-      return Math.min(peerProtocolRaw, localPreferred)
-    }
-    return defaultProtocol
+
+    return Number.isFinite(peerProtocolRaw) && peerProtocolRaw >= DEFAULT_PROTOCOL_VERSION
+      ? peerProtocolRaw
+      : DEFAULT_PROTOCOL_VERSION
+  }
+
+  protected getPeerProtocolVersion(peer?: PeerInfo): number {
+    const localVersion = this.getLocalProtocolVersion()
+    const peerVersion = this.extractPeerProtocolVersion(peer)
+    return Math.min(peerVersion, localVersion)
   }
 
 }

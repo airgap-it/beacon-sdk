@@ -517,8 +517,7 @@ export class WalletClient extends Client {
   ): Promise<void> {
     let peer: PeerInfo | undefined
     if (connectionContext) {
-      const peerInfos = await this.getPeers()
-      peer = peerInfos.find((peerInfo) => peerInfo.publicKey === connectionContext.id)
+      peer = await this.findPeer(connectionContext.id)
     }
 
     const protocolVersion = this.getPeerProtocolVersion(peer)
