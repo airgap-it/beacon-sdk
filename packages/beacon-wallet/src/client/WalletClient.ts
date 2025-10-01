@@ -8,8 +8,7 @@ import {
   getSenderId,
   Logger,
   NOTIFICATION_ORACLE_URL,
-  isWrappedMessageVersion,
-  getPreferredMessageProtocolVersion
+  isWrappedMessageVersion
 } from '@airgap/beacon-core'
 
 import { ExposedPromise, toHex } from '@airgap/beacon-utils'
@@ -355,10 +354,9 @@ export class WalletClient extends Client {
 
   private async getPeerInfo(peer: PeerInfo): Promise<ExtendedPeerInfo> {
     const senderId = await getSenderId(peer.publicKey)
-    const protocolVersion = this.resolveNegotiatedProtocolVersion((peer as any)?.protocolVersion)
-    const peerType = this.getPeerType(peer)
+    const protocolVersion = this.getPeerProtocolVersion(peer)
 
-    if (peerType === 'postmessage-pairing-request') {
+    if (peer instanceof PostMessagePairingRequest || peer instanceof ExtendedPostMessagePairingRequest) {
       const base = peer as PostMessagePairingRequest & {
         icon?: string
         appUrl?: string
@@ -376,7 +374,7 @@ export class WalletClient extends Client {
       )
     }
 
-    if (peerType === 'p2p-pairing-request') {
+    if (peer instanceof P2PPairingRequest || peer instanceof ExtendedP2PPairingRequest) {
       const base = peer as P2PPairingRequest & {
         relayServer: string
         icon?: string
@@ -396,7 +394,10 @@ export class WalletClient extends Client {
       )
     }
 
-    if (peerType === 'walletconnect-pairing-request') {
+    if (
+      peer instanceof WalletConnectPairingRequest ||
+      peer instanceof ExtendedWalletConnectPairingRequest
+    ) {
       const base = peer as ExtendedWalletConnectPairingRequest & {
         uri: string
         icon?: string
@@ -421,26 +422,6 @@ export class WalletClient extends Client {
       senderId,
       protocolVersion
     }
-  }
-  private normalizeProtocolVersion(raw: unknown): number | undefined {
-    const parsed = Number(raw)
-    return Number.isFinite(parsed) && parsed >= 1 ? parsed : undefined
-  }
-
-  private getLocalPreferredProtocolVersion(): number {
-    const preferred = Number(getPreferredMessageProtocolVersion())
-    return Number.isFinite(preferred) && preferred >= 1 ? preferred : 1
-  }
-
-  private resolveNegotiatedProtocolVersion(rawRemote: unknown): number {
-    const remote = this.normalizeProtocolVersion(rawRemote)
-    const local = this.getLocalPreferredProtocolVersion()
-
-    if (typeof remote === 'number') {
-      return Math.min(remote, local)
-    }
-
-    return 1
   }
 
   /**
@@ -559,30 +540,5 @@ export class WalletClient extends Client {
     }
 
     return
-  }
-
-  private getPeerType(peer: PeerInfo): string | undefined {
-    const candidate = (peer as any)?.type
-
-    if (typeof candidate === 'string' && candidate.length > 0) {
-      return candidate
-    }
-
-    if (peer instanceof PostMessagePairingRequest || peer instanceof ExtendedPostMessagePairingRequest) {
-      return 'postmessage-pairing-request'
-    }
-
-    if (peer instanceof P2PPairingRequest || peer instanceof ExtendedP2PPairingRequest) {
-      return 'p2p-pairing-request'
-    }
-
-    if (
-      peer instanceof WalletConnectPairingRequest ||
-      peer instanceof ExtendedWalletConnectPairingRequest
-    ) {
-      return 'walletconnect-pairing-request'
-    }
-
-    return undefined
   }
 }
