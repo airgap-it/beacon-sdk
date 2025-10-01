@@ -8,7 +8,8 @@ import {
   getSenderId,
   Logger,
   NOTIFICATION_ORACLE_URL,
-  isWrappedMessageVersion
+  isWrappedMessageVersion,
+  getPreferredMessageProtocolVersion
 } from '@airgap/beacon-core'
 
 import { ExposedPromise, toHex } from '@airgap/beacon-utils'
@@ -37,6 +38,7 @@ import {
   ExtendedPostMessagePairingRequest,
   P2PPairingRequest,
   ExtendedP2PPairingRequest,
+  WalletConnectPairingRequest,
   ExtendedWalletConnectPairingRequest
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
@@ -353,48 +355,92 @@ export class WalletClient extends Client {
 
   private async getPeerInfo(peer: PeerInfo): Promise<ExtendedPeerInfo> {
     const senderId = await getSenderId(peer.publicKey)
-    const protocolVersion = this.normalizeProtocolVersion(peer.protocolVersion)
+    const protocolVersion = this.resolveNegotiatedProtocolVersion((peer as any)?.protocolVersion)
+    const peerType = this.getPeerType(peer)
 
-    if (peer instanceof PostMessagePairingRequest) {
-      return new ExtendedPostMessagePairingRequest(
-        peer.id,
-        peer.name,
-        peer.publicKey,
-        peer.version,
-        senderId,
-        protocolVersion
-      )
-    } else if (peer instanceof P2PPairingRequest) {
-      return new ExtendedP2PPairingRequest(
-        peer.id,
-        peer.name,
-        peer.publicKey,
-        peer.version,
-        peer.relayServer,
-        senderId,
-        protocolVersion
-      )
-    } else if (peer instanceof ExtendedWalletConnectPairingRequest) {
-      return new ExtendedWalletConnectPairingRequest(
-        peer.id,
-        peer.name,
-        peer.publicKey,
-        peer.version,
-        senderId,
-        peer.uri,
-        protocolVersion
-      )
-    } else {
-      return {
-        ...peer,
-        senderId,
-        protocolVersion
+    if (peerType === 'postmessage-pairing-request') {
+      const base = peer as PostMessagePairingRequest & {
+        icon?: string
+        appUrl?: string
       }
+
+      return new ExtendedPostMessagePairingRequest(
+        base.id,
+        base.name,
+        base.publicKey,
+        base.version,
+        senderId,
+        protocolVersion,
+        base.icon,
+        base.appUrl
+      )
+    }
+
+    if (peerType === 'p2p-pairing-request') {
+      const base = peer as P2PPairingRequest & {
+        relayServer: string
+        icon?: string
+        appUrl?: string
+      }
+
+      return new ExtendedP2PPairingRequest(
+        base.id,
+        base.name,
+        base.publicKey,
+        base.version,
+        base.relayServer,
+        senderId,
+        protocolVersion,
+        base.icon,
+        base.appUrl
+      )
+    }
+
+    if (peerType === 'walletconnect-pairing-request') {
+      const base = peer as ExtendedWalletConnectPairingRequest & {
+        uri: string
+        icon?: string
+        appUrl?: string
+      }
+
+      return new ExtendedWalletConnectPairingRequest(
+        base.id,
+        base.name,
+        base.publicKey,
+        base.version,
+        senderId,
+        base.uri,
+        protocolVersion,
+        base.icon,
+        base.appUrl
+      )
+    }
+
+    return {
+      ...peer,
+      senderId,
+      protocolVersion
     }
   }
   private normalizeProtocolVersion(raw: unknown): number | undefined {
     const parsed = Number(raw)
     return Number.isFinite(parsed) && parsed >= 1 ? parsed : undefined
+  }
+
+  private getLocalPreferredProtocolVersion(): number {
+    const preferred = Number(getPreferredMessageProtocolVersion())
+    return Number.isFinite(preferred) && preferred >= 1 ? preferred : 1
+  }
+
+  private resolveNegotiatedProtocolVersion(rawRemote: unknown): number {
+    const remote = this.normalizeProtocolVersion(rawRemote)
+    const local = this.getLocalPreferredProtocolVersion()
+
+    if (typeof remote === 'number') {
+      return Math.min(remote, local)
+    }
+
+    return 1
   }
 
   /**
@@ -515,4 +561,28 @@ export class WalletClient extends Client {
     return
   }
 
+  private getPeerType(peer: PeerInfo): string | undefined {
+    const candidate = (peer as any)?.type
+
+    if (typeof candidate === 'string' && candidate.length > 0) {
+      return candidate
+    }
+
+    if (peer instanceof PostMessagePairingRequest || peer instanceof ExtendedPostMessagePairingRequest) {
+      return 'postmessage-pairing-request'
+    }
+
+    if (peer instanceof P2PPairingRequest || peer instanceof ExtendedP2PPairingRequest) {
+      return 'p2p-pairing-request'
+    }
+
+    if (
+      peer instanceof WalletConnectPairingRequest ||
+      peer instanceof ExtendedWalletConnectPairingRequest
+    ) {
+      return 'walletconnect-pairing-request'
+    }
+
+    return undefined
+  }
 }

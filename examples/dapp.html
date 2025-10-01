@@ -1,12 +1,11 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Style-Type" content="text/css" />
     <title>Beacon Example DApp</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
       // This will enable the debug mode of beacon
@@ -15,151 +14,362 @@
     </script>
 
     <script src="./walletbeacon.min.js"></script>
-
-    <style>
-      /* To test if our UI is affected by global styles */
-      /* div {
-        background-color: red;
-      }
-
-      span {
-        background-color: orange;
-      } */
-    </style>
   </head>
 
-  <body>
-    Beacon Example
-    <br /><br />
-    <span>
-      Active account:
-      <span id="activeAccount"></span>
-      <span id="activeAccountNetwork"></span>
-      <span id="activeAccountTransport"></span>
-    </span>
-    <br /><br />
-    <span>
-      Network:
-      <select id="networkSelect"></select>
-    </span>
-    <br /><br />
-    <span>
-      Preferred Protocol (max):
-      <select id="protocolSelect">
-        <option value="1">1 - Legacy (base58)</option>
-        <option value="2">2 - Compressed (gzip)</option>
-      </select>
-    </span>
-    <br /><br />
-    <span>
-      Negotiated Protocol:
-      <strong id="negotiatedProtocol">—</strong>
-    </span>
-    <br /><br />
-    <button id="requestPermission">Request Permission</button>
-    <br /><br />
-    <button id="requestPermissionAndSign">Request Permission And Sign Request</button>
-    <br /><br />
-    <button id="disconnect" disabled style="opacity: 0.5">Disconnect</button>
-    <br /><br />
-    <button id="reset">Reset and Refresh</button>
-    <br /><br />
-    <button id="requestProofOfEventChallenge" disabled style="opacity: 0.5">
-      Request Proof Of Event Challenge
-    </button>
-    <br /><br />
-    <button id="requestSimulatedProofOfEventChallenge" disabled style="opacity: 0.5">
-      Request Simulated Proof Of Event Challenge
-    </button>
-    <br /><br />
-    <button id="sendToSelf">Send 1 mutez to myself</button>
-    <br /><br />
-    <button id="sendToSelfWithPrepare">Send 1 mutez to myself (with 1s prepare delay)</button>
-    <br /><br />
-    <button id="showPrepareAndHide">Show prepare and then hide</button>
-    <br /><br />
-    <button id="connect">Connect and Delegate</button>
-    <br /><br />
-    <button id="sendContractCall">Send Contract Call</button>
-    <br /><br />
-    <button id="signPayloadRaw">Sign Payload (Raw)</button>
-    <br /><br />
-    <button id="signPayloadOperation">Sign Payload (Operation)</button>
-    <br /><br />
-    <button id="signPayloadMicheline">Sign Payload (Micheline)</button>
-    <br /><br />
-    <button id="signPayloadLarge20">Sign Payload 20 KB (Perf)</button>
-    <span id="signPayloadLarge20Result" class="perf-result"></span>
-    <br /><br />
-    <button id="signPayloadLarge30">Sign Payload 30 KB (Perf)</button>
-    <span id="signPayloadLarge30Result" class="perf-result"></span>
-    <br /><br />
-    <button id="signPayloadLarge50">Sign Payload 50 KB (Perf)</button>
-    <span id="signPayloadLarge50Result" class="perf-result"></span>
-    <br /><br />
-    <button id="signPayloadLarge100">Sign Payload 100 KB (Perf)</button>
-    <span id="signPayloadLarge100Result" class="perf-result"></span>
-    <br /><br />
-    ---
-    <br /><br />
-    <button id="sendNotification">Send notification</button>
-    <br /><br />
-    ---
-    <br /><br />
-    <button id="encryptPayload">Encrypt Payload</button>
-    <br /><br />
-    ---
-    <br /><br />
-    <button id="getExtensions">Get Extensions</button>
-    <br /><br />
-    ---
-    <br /><br />
-    <button id="clearActiveAccount">Clear ActiveAccount</button>
-    <br /><br />
-    <button id="getAccounts">Get Accounts</button>
-    <br /><br />
-    <button id="switchAccount">Switch Accounts</button>
-    <br /><br />
-    ---
-    <br /><br />
-    Reproducing bugs:
-    <br /><br />
-    <button id="externalInit">External Init</button>
-    <br /><br />
-    <button id="2requests">2 requests at once</button>
-    <br /><br />
-    ---
-    <br /><br />
-    <button id="removePeer">Remove Peer</button>
-    <br /><br />
-    ---
-    <br /><br />
-    <span>
-      Color Mode:
-      <span id="activeColorMode"></span>
-    </span>
-    <br /><br />
-    <button id="color-mode-light">Set color mode "light"</button>
-    <br /><br />
-    <button id="color-mode-dark">Set color mode "dark"</button>
-    <br /><br />
-    ---
-    <br /><br />
-    <button id="contractCall">Contract Call</button>
-    <br /><br />
-    <textarea id="beacon-textbox"></textarea>
-    <button id="deserializeData">Deserialize Data</button>
-    <br /><br />
-    ---
-    <textarea id="beacon-textbox-serialize"></textarea>
-    <button id="serializeData">Serialize Data</button>
-    <br /><br />
-    ---
+  <body class="bg-gray-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+      <!-- Header -->
+      <header class="mb-8">
+        <h1 class="text-4xl font-bold text-white mb-2">Beacon Example DApp</h1>
+        <p class="text-gray-400">Test Beacon SDK integration and wallet interactions</p>
+      </header>
 
-    <div id="logger-output"></div>
+      <!-- Configuration and Active Account Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Configuration Section -->
+        <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-white mb-4">Configuration</h2>
 
-    <br /><br />
-    <p style="margin-top: 1000px">End of page</p>
+          <div class="space-y-4">
+            <!-- Network Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Network</label>
+              <select id="networkSelect" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+            </div>
+
+            <!-- Protocol Version -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Preferred Protocol (max)</label>
+              <select id="protocolSelect" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="1">1 - Legacy (base58)</option>
+                <option value="2">2 - Compressed (gzip)</option>
+              </select>
+            </div>
+
+            <!-- Negotiated Protocol -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Negotiated Protocol</label>
+              <div>
+                <span id="negotiatedProtocol" class="inline-block px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs">—</span>
+              </div>
+            </div>
+
+            <!-- Connection Buttons -->
+            <div class="space-y-2 pt-2">
+              <button id="requestPermission" class="w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                Request Permission
+              </button>
+              <button id="requestPermissionAndSign" class="w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                Request Permission & Sign
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Active Account Section -->
+        <section class="bg-gray-800 border-l-4 border-l-blue-600 border-t border-r border-b border-gray-700 rounded-lg shadow-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-white">Active Account</h2>
+            <button id="disconnect" disabled class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+              Disconnect
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <!-- Address -->
+            <div>
+              <div class="text-xs text-gray-400 mb-1">Address</div>
+              <div class="flex items-center gap-2">
+                <code id="activeAccount" class="flex-1 font-mono text-white text-sm break-all">Not connected</code>
+                <button id="copyAddress" class="hidden p-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition flex-shrink-0" title="Copy address">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Explorer Link -->
+            <div id="activeAccountExplorerWrapper" class="hidden">
+              <div class="text-xs text-gray-400 mb-1">Explorer</div>
+              <a id="activeAccountExplorer" href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs break-all underline">
+                https://tzkt.io/...
+              </a>
+            </div>
+
+            <!-- Details Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div>
+                <div class="text-xs text-gray-400 mb-1">Balance</div>
+                <div id="activeAccountBalance" class="text-white text-sm font-medium">—</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-400 mb-1">Network</div>
+                <span id="activeAccountNetwork" class="inline-block px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs"></span>
+              </div>
+              <div>
+                <div class="text-xs text-gray-400 mb-1">Transport</div>
+                <span id="activeAccountTransport" class="inline-block px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs"></span>
+              </div>
+            </div>
+
+            <!-- RPC -->
+            <div id="activeAccountRPCWrapper" class="hidden">
+              <div class="text-xs text-gray-400 mb-1">RPC Endpoint</div>
+              <code id="activeAccountRPC" class="block font-mono text-white text-xs break-all">—</code>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Send Tezos and Signing -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Send Tezos -->
+        <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-white mb-4">Send Tezos</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Recipient Address</label>
+              <div class="flex gap-2">
+                <input id="sendRecipientAddress" type="text" placeholder="tz1..." class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                <button id="fillOwnAddress" class="p-2 bg-gray-600 text-white rounded-md hover:bg-gray-500 transition flex-shrink-0" title="Use my address">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Amount (ꜩ)</label>
+              <input id="sendAmount" type="number" placeholder="0.0" step="0.000001" min="0" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+            </div>
+            <button id="sendTezos" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+              Send
+            </button>
+          </div>
+        </section>
+
+        <!-- Signing Section -->
+        <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-white mb-4">Signing</h2>
+          <div class="space-y-2">
+            <button id="signPayloadRaw" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+              Sign Payload (Raw)
+            </button>
+            <button id="signPayloadOperation" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+              Sign Payload (Operation)
+            </button>
+            <button id="signPayloadMicheline" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+              Sign Payload (Micheline)
+            </button>
+            <button id="encryptPayload" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+              Encrypt Payload
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- Contract Deployment and Performance Tests -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+        <!-- Contract Deployment -->
+        <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-white mb-4">Contract Deployment</h2>
+          <div class="space-y-4">
+            <!-- Deploy Button -->
+            <button id="deployContract" class="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition text-sm">
+              Deploy Hello World Contract
+            </button>
+
+            <!-- Contract Address Display -->
+            <div id="contractAddressWrapper" class="hidden">
+              <div class="text-xs text-gray-400 mb-1">Deployed Contract</div>
+              <div class="flex items-center gap-2 mb-2">
+                <code id="contractAddress" class="flex-1 font-mono text-white text-xs break-all bg-gray-900 p-2 rounded"></code>
+                <button id="copyContractAddress" class="p-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition flex-shrink-0" title="Copy address">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+              <div class="text-xs text-gray-400 mb-1">Explorer</div>
+              <a id="contractExplorer" href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs break-all underline">
+                https://tzkt.io/...
+              </a>
+            </div>
+
+            <!-- Contract Interactions -->
+            <div class="border-t border-gray-700 pt-4">
+              <div class="space-y-3">
+                <!-- Get Value -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-2">Current Value</label>
+                  <div class="flex gap-2">
+                    <div id="contractCurrentValue" class="flex-1 px-3 py-2 bg-gray-900 text-gray-400 rounded-md text-sm">
+                      No value loaded
+                    </div>
+                    <button id="getContractValue" disabled class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                      Get Value
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Set Value -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-2">Set Value</label>
+                  <div class="flex gap-2">
+                    <input id="contractValueInput" type="text" placeholder="Enter new value..." class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" />
+                    <button id="setContractValue" disabled class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                      Set Value
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Clear Contract -->
+                <button id="clearContract" disabled class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                  Clear Contract
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Performance Tests -->
+        <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-white mb-4">Performance Tests</h2>
+          <div class="space-y-2">
+            <button id="signPayloadLarge20" class="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition text-sm text-left flex items-center justify-between">
+              <span>Sign Payload 20 KB</span>
+            </button>
+            <div id="signPayloadLarge20Result" class="text-xs text-gray-400 pl-4 min-h-[1rem]"></div>
+
+            <button id="signPayloadLarge30" class="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition text-sm text-left flex items-center justify-between">
+              <span>Sign Payload 30 KB</span>
+            </button>
+            <div id="signPayloadLarge30Result" class="text-xs text-gray-400 pl-4 min-h-[1rem]"></div>
+
+            <button id="signPayloadLarge50" class="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition text-sm text-left flex items-center justify-between">
+              <span>Sign Payload 50 KB</span>
+            </button>
+            <div id="signPayloadLarge50Result" class="text-xs text-gray-400 pl-4 min-h-[1rem]"></div>
+
+            <button id="signPayloadLarge100" class="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition text-sm text-left flex items-center justify-between">
+              <span>Sign Payload 100 KB</span>
+            </button>
+            <div id="signPayloadLarge100Result" class="text-xs text-gray-400 pl-4 min-h-[1rem]"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Account Management and Utilities -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Account Management -->
+        <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-white mb-4">Account Management</h2>
+          <div class="space-y-2">
+            <button id="getAccounts" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+              Get Accounts
+            </button>
+            <button id="switchAccount" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+              Switch Account
+            </button>
+            <button id="clearActiveAccount" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+              Clear Active Account
+            </button>
+            <button id="requestProofOfEventChallenge" disabled class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+              Request PoE Challenge
+            </button>
+            <button id="requestSimulatedProofOfEventChallenge" disabled class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+              Request Simulated PoE
+            </button>
+          </div>
+        </section>
+
+        <!-- Utilities -->
+        <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-white mb-4">Utilities</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <button id="showPrepareAndHide" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition text-sm">
+              Show Prepare
+            </button>
+            <button id="sendNotification" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition text-sm">
+              Send Notification
+            </button>
+            <button id="getExtensions" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition text-sm">
+              Get Extensions
+            </button>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-400">UI:</span>
+              <button id="color-mode-light" class="px-3 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition text-xs">
+                Light
+              </button>
+              <button id="color-mode-dark" class="px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition text-xs">
+                Dark
+              </button>
+            </div>
+          </div>
+          <div class="mt-3 text-xs text-gray-400">
+            Color Mode: <strong id="activeColorMode" class="text-white"></strong>
+          </div>
+        </section>
+      </div>
+
+      <!-- Testing & Debug and Serialization Tools -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Testing & Debug -->
+        <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-white mb-4">Testing & Debug</h2>
+          <div class="space-y-2">
+            <button id="externalInit" class="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition text-sm">
+              External Init
+            </button>
+            <button id="2requests" class="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition text-sm">
+              2 Requests at Once
+            </button>
+            <button id="removePeer" class="w-full px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition text-sm">
+              Remove Peer
+            </button>
+            <button id="reset" class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm">
+              Reset and Refresh
+            </button>
+            <button id="dumpState" class="w-full px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 font-bold transition text-sm">
+              Dump DApp State
+            </button>
+          </div>
+        </section>
+
+        <!-- Serialization Tools -->
+        <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-white mb-4">Serialization Tools</h2>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Deserialize</label>
+              <div class="flex gap-2">
+                <textarea id="beacon-textbox" class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs" rows="2"></textarea>
+                <button id="deserializeData" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-xs flex-shrink-0">
+                  Run
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Serialize</label>
+              <div class="flex gap-2">
+                <textarea id="beacon-textbox-serialize" class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs" rows="2"></textarea>
+                <button id="serializeData" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-xs flex-shrink-0">
+                  Run
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Logger Output -->
+      <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-semibold text-white mb-4">Logger Output</h2>
+        <div id="logger-output" class="space-y-1 font-mono text-sm max-h-96 overflow-y-auto bg-gray-900 p-4 rounded-md"></div>
+      </section>
+    </div>
 
     <script>
       class MyLogger {
@@ -168,7 +378,7 @@
         debug(name, method, ...args) {
           const el = document.createElement('div')
           el.innerText = `'debug' ${name} ${method} ${args.join(', ')}`
-          el.setAttribute('style', 'background-color: blue')
+          el.className = 'px-3 py-2 bg-blue-900/50 text-blue-200 rounded border border-blue-800'
           document.getElementById('logger-output').appendChild(el)
           console.debug('LOGGER', name, method, ...args)
         }
@@ -176,7 +386,7 @@
         log(name, method, ...args) {
           const el = document.createElement('div')
           el.innerText = `'log' ${name} ${method} ${args.join(', ')}`
-          el.setAttribute('style', 'background-color: green')
+          el.className = 'px-3 py-2 bg-green-900/50 text-green-200 rounded border border-green-800'
           document.getElementById('logger-output').appendChild(el)
           console.log('LOGGER', name, method, ...args)
         }
@@ -184,7 +394,7 @@
         warn(name, method, ...args) {
           const el = document.createElement('div')
           el.innerText = `'warn' ${name} ${method} ${args.join(', ')}`
-          el.setAttribute('style', 'background-color: orange')
+          el.className = 'px-3 py-2 bg-orange-900/50 text-orange-200 rounded border border-orange-800'
           document.getElementById('logger-output').appendChild(el)
           console.warn('LOGGER', name, method, ...args)
         }
@@ -192,7 +402,7 @@
         error(name, method, ...args) {
           const el = document.createElement('div')
           el.innerText = `'error' ${name} ${method} ${args.join(', ')}`
-          el.setAttribute('style', 'background-color: red')
+          el.className = 'px-3 py-2 bg-red-900/50 text-red-200 rounded border border-red-800'
           document.getElementById('logger-output').appendChild(el)
           console.error('LOGGER', name, method, ...args)
         }
@@ -200,7 +410,7 @@
         time(start, label) {
           const el = document.createElement('div')
           el.innerText = `'time' ${start} ${label}`
-          el.setAttribute('style', 'background-color: grey')
+          el.className = 'px-3 py-2 bg-gray-800 text-gray-300 rounded border border-gray-700'
           document.getElementById('logger-output').appendChild(el)
           start ? console.time(label) : console.timeEnd(label)
         }
@@ -208,7 +418,7 @@
         timeLog(method, ...args) {
           const el = document.createElement('div')
           el.innerText = `'timeLog' ${method} ${args.join(', ')}`
-          el.setAttribute('style', 'background-color: grey')
+          el.className = 'px-3 py-2 bg-gray-800 text-gray-300 rounded border border-gray-700'
           document.getElementById('logger-output').appendChild(el)
           console.timeLog(method, ...args)
         }
@@ -300,15 +510,27 @@
             return
           }
 
-          const preferredPeer = peers.find((peer) => typeof peer.protocolVersion === 'number') ?? peers[0]
-          const rawProtocol = typeof preferredPeer.protocolVersion === 'number' ? preferredPeer.protocolVersion : undefined
-          const displayVersion = rawProtocol ?? 1
-          const suffix = rawProtocol ? '' : ' (legacy)'
-          negotiatedProtocolEl.textContent = `v${displayVersion}${suffix}`
+          const numericProtocols = peers
+            .map((peer) => Number(peer.protocolVersion))
+            .filter((version) => Number.isFinite(version) && version >= 1)
 
-          if (rawProtocol !== undefined && rawProtocol !== lastNegotiatedProtocol) {
-            console.log('[dapp] Negotiated protocol:', negotiatedProtocolEl.textContent, preferredPeer)
-            lastNegotiatedProtocol = rawProtocol
+          const localPreferredRaw =
+            typeof beacon.getPreferredMessageProtocolVersion === 'function'
+              ? Number(beacon.getPreferredMessageProtocolVersion())
+              : NaN
+          const localPreferred =
+            Number.isFinite(localPreferredRaw) && localPreferredRaw >= 1 ? localPreferredRaw : 2
+
+          const negotiatedVersion = numericProtocols.length
+            ? Math.min(localPreferred, ...numericProtocols)
+            : 1
+
+          const suffix = numericProtocols.length === 0 ? ' (legacy)' : ''
+          negotiatedProtocolEl.textContent = `v${negotiatedVersion}${suffix}`
+
+          if (negotiatedVersion !== lastNegotiatedProtocol) {
+            console.log('[dapp] Negotiated protocol:', negotiatedProtocolEl.textContent, peers)
+            lastNegotiatedProtocol = negotiatedVersion
           }
         } catch (error) {
           console.warn('Unable to resolve negotiated protocol', error)
@@ -370,6 +592,13 @@
           updateNegotiatedProtocol()
         })
 
+        if (beacon?.BeaconEvent?.CHANNEL_CLOSED) {
+          client.subscribeToEvent(beacon.BeaconEvent.CHANNEL_CLOSED, () => {
+            console.log('[dapp] Channel closed, refreshing negotiated protocol')
+            updateNegotiatedProtocol()
+          })
+        }
+
         console.log('Client initialized with network:', selectedNetwork)
         await updateNegotiatedProtocol()
         if (negotiatedProtocolInterval) {
@@ -412,39 +641,138 @@
         const payload = generatePrefixedHexPayload(sizeInBytes)
         const generationEnd = performance.now()
 
+        const generationTime = (generationEnd - generationStart).toFixed(0)
+
         if (resultEl) {
-          resultEl.textContent = `Generated in ${(generationEnd - generationStart).toFixed(2)}ms …`
+          resultEl.textContent = `${sizeInKb}KB: Preparing…`
         }
 
-        const sendStart = performance.now()
-        if (resultEl) {
-          resultEl.textContent = `Serialized in ${(sendStart - generationEnd).toFixed(2)}ms …`
+        const requestStart = performance.now()
+
+        // Track when message is actually sent via hook
+        let sentTime = null
+        window.__beaconPerf = {
+          onBeforeSend: () => {
+            sentTime = performance.now()
+            const dappTime = (sentTime - requestStart).toFixed(0)
+            if (resultEl) {
+              resultEl.textContent = `${sizeInKb}KB: DApp ${dappTime}ms → Waiting for response…`
+            }
+          }
         }
+
         try {
           const signature = await client.requestSignPayload({ payload })
-          const sendEnd = performance.now()
-          const elapsed = (sendEnd - sendStart).toFixed(2)
+          const responseEnd = performance.now()
+
+          const dappTime = sentTime ? (sentTime - requestStart).toFixed(0) : '—'
+          const roundtripTime = (responseEnd - requestStart).toFixed(0)
+          const protocol = getCurrentProtocolVersion()
+
           if (resultEl) {
-            resultEl.textContent = `Completed ${sizeInKb}KB sign payload in ${elapsed}ms (protocol v${getCurrentProtocolVersion()}).`
+            resultEl.textContent = `${sizeInKb}KB: DApp ${dappTime}ms → Roundtrip ${roundtripTime}ms (v${protocol})`
           }
+
+          console.log(`[perf][dapp] ${sizeInKb}KB test: gen=${generationTime}ms, dapp=${dappTime}ms, roundtrip=${roundtripTime}ms, protocol=v${protocol}`)
+
+          // Clean up hook
+          delete window.__beaconPerf
         } catch (error) {
-          const sendEnd = performance.now()
+          const errorEnd = performance.now()
+          const elapsed = (errorEnd - requestStart).toFixed(0)
           if (resultEl) {
-            resultEl.textContent = `Failed after ${(sendEnd - sendStart).toFixed(2)}ms: ${error.message ?? error}`
+            resultEl.textContent = `Failed after ${elapsed}ms: ${error.message ?? error}`
           }
           console.error('[perf][dapp] Sign payload request failed', error)
         }
       }
 
+      // Get explorer URL based on network
+      const getExplorerUrl = (address, networkType) => {
+        const network = networkType.toLowerCase()
+        if (network === 'mainnet') {
+          return `https://tzkt.io/${address}`
+        } else if (network === 'ghostnet') {
+          return `https://ghostnet.tzkt.io/${address}`
+        } else if (network === 'weeklynet') {
+          return `https://weeklynet.tzkt.io/${address}`
+        } else {
+          return `https://${network}.tzkt.io/${address}`
+        }
+      }
+
+      // Get RPC URL based on network
+      const getRpcUrl = (networkType) => {
+        const network = networkType.toLowerCase()
+        if (network === 'mainnet') {
+          return 'https://rpc.tzkt.io/mainnet'
+        } else {
+          return `https://rpc.tzkt.io/${network}`
+        }
+      }
+
+      // Fetch balance from RPC
+      const fetchBalance = async (address, networkType) => {
+        try {
+          const rpcUrl = getRpcUrl(networkType)
+          const response = await fetch(`${rpcUrl}/chains/main/blocks/head/context/contracts/${address}/balance`)
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+          }
+          const balanceText = await response.text()
+
+          // Parse balance - response might be quoted string
+          const balance = balanceText.replace(/"/g, '').trim()
+          const balanceNum = parseInt(balance, 10)
+
+          if (isNaN(balanceNum)) {
+            return '—'
+          }
+
+          // Convert from mutez to tez
+          const balanceInTez = (balanceNum / 1000000).toFixed(6)
+          return `${balanceInTez} ꜩ`
+        } catch (error) {
+          return '—'
+        }
+      }
+
       // Display the active account in the UI
       const updateActiveAccount = () => {
-        client.getActiveAccount().then((activeAccount) => {
+        client.getActiveAccount().then(async (activeAccount) => {
           if (activeAccount) {
+            // Update address
             document.getElementById('activeAccount').innerText = activeAccount.address
+            document.getElementById('copyAddress').classList.remove('hidden')
+
+            // Update explorer link
+            const explorerUrl = getExplorerUrl(activeAccount.address, activeAccount.network.type)
+            const explorerLink = document.getElementById('activeAccountExplorer')
+            explorerLink.href = explorerUrl
+            explorerLink.innerText = explorerUrl
+            document.getElementById('activeAccountExplorerWrapper').classList.remove('hidden')
+
+            // Update network
             document.getElementById('activeAccountNetwork').innerText = activeAccount.network.type
+
+            // Update transport
             document.getElementById('activeAccountTransport').innerText = activeAccount.origin.type
+
+            // Update RPC
+            const rpcUrl = getRpcUrl(activeAccount.network.type)
+            document.getElementById('activeAccountRPC').innerText = rpcUrl
+            document.getElementById('activeAccountRPCWrapper').classList.remove('hidden')
+
+            // Fetch and update balance
+            document.getElementById('activeAccountBalance').innerText = 'Loading...'
+            const balance = await fetchBalance(activeAccount.address, activeAccount.network.type)
+            document.getElementById('activeAccountBalance').innerText = balance
+
+            // Start periodic balance refresh
+            startBalanceRefresh()
+
+            // Enable disconnect button
             let btn = document.getElementById('disconnect')
-            btn.style.opacity = '1'
             btn.disabled = false
 
             if (
@@ -454,27 +782,30 @@
               return
 
             btn = document.getElementById('requestProofOfEventChallenge')
-            btn.style.opacity = '1'
             btn.disabled = false
 
             btn = document.getElementById('requestSimulatedProofOfEventChallenge')
-            btn.style.opacity = '1'
             btn.disabled = false
           } else {
-            document.getElementById('activeAccount').innerText = ''
+            // Stop periodic balance refresh
+            stopBalanceRefresh()
+
+            // Reset to disconnected state
+            document.getElementById('activeAccount').innerText = 'Not connected'
+            document.getElementById('copyAddress').classList.add('hidden')
+            document.getElementById('activeAccountExplorerWrapper').classList.add('hidden')
             document.getElementById('activeAccountNetwork').innerText = ''
             document.getElementById('activeAccountTransport').innerText = ''
+            document.getElementById('activeAccountBalance').innerText = '—'
+            document.getElementById('activeAccountRPCWrapper').classList.add('hidden')
 
             let btn = document.getElementById('disconnect')
-            btn.style.opacity = '0.5'
             btn.disabled = true
 
             btn = document.getElementById('requestProofOfEventChallenge')
-            btn.style.opacity = '0.5'
             btn.disabled = true
 
             btn = document.getElementById('requestSimulatedProofOfEventChallenge')
-            btn.style.opacity = '0.5'
             btn.disabled = true
           }
         })
@@ -498,6 +829,32 @@
         })
       }
       updateColorMode()
+
+      // Balance refresh interval
+      let balanceRefreshInterval = null
+
+      const startBalanceRefresh = () => {
+        // Clear any existing interval
+        if (balanceRefreshInterval) {
+          clearInterval(balanceRefreshInterval)
+        }
+
+        // Set up new interval to refresh balance every 5 seconds
+        balanceRefreshInterval = setInterval(async () => {
+          const activeAccount = await client.getActiveAccount()
+          if (activeAccount) {
+            const balance = await fetchBalance(activeAccount.address, activeAccount.network.type)
+            document.getElementById('activeAccountBalance').innerText = balance
+          }
+        }, 5000)
+      }
+
+      const stopBalanceRefresh = () => {
+        if (balanceRefreshInterval) {
+          clearInterval(balanceRefreshInterval)
+          balanceRefreshInterval = null
+        }
+      }
 
       // Initiate a delegate operation
       const delegate = () => {
@@ -620,6 +977,7 @@
           .then(() => {
             console.log('disconnected.')
             updateActiveAccount()
+            updateNegotiatedProtocol()
           })
           .catch((err) => console.error(err.message))
       }
@@ -637,26 +995,23 @@
           })
       }
 
-      document.getElementById('connect').addEventListener('click', () => {
-        // Check if we have an active account
-        client.getActiveAccount().then((activeAccount) => {
-          if (activeAccount) {
-            // If we have an active account, send the delegate operation directly
-            delegate()
-          } else {
-            // If we don't have an active account, we need to request permissions first and then send the delegate operation
-            requestPermission((permissions) => {
-              delegate()
-              updateActiveAccount()
-            })
-          }
+      // Add event listener for copy address button
+      document.getElementById('copyAddress').addEventListener('click', () => {
+        const address = document.getElementById('activeAccount').innerText
+        navigator.clipboard.writeText(address).then(() => {
+          const btn = document.getElementById('copyAddress')
+          const originalHTML = btn.innerHTML
+          btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>'
+          btn.title = 'Copied!'
+          setTimeout(() => {
+            btn.innerHTML = originalHTML
+            btn.title = 'Copy address'
+          }, 2000)
+        }).catch(err => {
+          console.error('Failed to copy:', err)
         })
       })
 
-      // Add event listener to the button
-      document.getElementById('sendContractCall').addEventListener('click', () => {
-        sendContractCall()
-      })
 
       // Add event listener to the button
       document.getElementById('requestPermission').addEventListener('click', () => {
@@ -847,46 +1202,7 @@
         })
       })
 
-      // Add event listener to the button
-      document.getElementById('contractCall').addEventListener('click', () => {
-        client
-          .requestOperation({
-            operationDetails: [
-              {
-                kind: beacon.TezosOperationType.TRANSACTION,
-                amount: '0',
-                destination: 'KT1RxKJyi48W3bZR8HErRiisXZQw19HwLGWj',
-                parameters: {
-                  entrypoint: 'toggleStatus',
-                  value: {
-                    prim: 'True'
-                  }
-                }
-              }
-            ]
-          })
-          .then((response) => console.log(response))
-          .catch((error) => console.log(error))
-      })
 
-      // Add event listener to the button
-      document.getElementById('2requests').addEventListener('click', () => {
-        setTimeout(sendToSelf, 0)
-        setTimeout(sendToSelf, 1000)
-      })
-
-      // Add event listener to the button
-      document.getElementById('sendToSelf').addEventListener('click', () => {
-        sendToSelf()
-      })
-
-      // Add event listener to the button
-      document.getElementById('sendToSelfWithPrepare').addEventListener('click', () => {
-        client.showPrepare()
-        setTimeout(() => {
-          sendToSelf()
-        }, 2000)
-      })
 
       // Add event listener to the button
       document.getElementById('showPrepareAndHide').addEventListener('click', () => {
@@ -936,6 +1252,301 @@
           .sendNotification('Beacon Test', 'Message', '', 'xtz')
           .then((res) => console.log('Notification Response', res))
       })
+
+      // Add event listener to the button
+      document.getElementById('dumpState').addEventListener('click', async () => {
+        const extraInfo = {
+          'Selected Network': getSelectedNetwork(),
+          'Protocol Version': getCurrentProtocolVersion(),
+          'Negotiated Protocol': document.getElementById('negotiatedProtocol').textContent
+        }
+
+        console.log('DApp State:', {
+          client,
+          extraInfo,
+          peers: await client.getPeers(),
+          accounts: await client.getAccounts(),
+          activeAccount: await client.getActiveAccount()
+        })
+      })
+
+      // Send Tezos Function
+      const sendTezosTransaction = async () => {
+        try {
+          const recipient = document.getElementById('sendRecipientAddress').value.trim()
+          const amount = document.getElementById('sendAmount').value.trim()
+
+          if (!recipient) {
+            console.error('Please enter a recipient address')
+            return
+          }
+
+          if (!amount || parseFloat(amount) <= 0) {
+            console.error('Please enter a valid amount')
+            return
+          }
+
+          // Convert tez to mutez (1 tez = 1,000,000 mutez)
+          const amountInMutez = Math.floor(parseFloat(amount) * 1000000).toString()
+
+          console.log(`Sending ${amount} ꜩ (${amountInMutez} mutez) to ${recipient}`)
+
+          const result = await client.requestOperation({
+            operationDetails: [
+              {
+                kind: beacon.TezosOperationType.TRANSACTION,
+                destination: recipient,
+                amount: amountInMutez
+              }
+            ]
+          })
+
+          console.log('Transaction result:', result)
+
+          // Clear inputs after successful send
+          document.getElementById('sendRecipientAddress').value = ''
+          document.getElementById('sendAmount').value = ''
+        } catch (error) {
+          console.error('Error sending transaction:', error)
+        }
+      }
+
+      // Contract Deployment Functions
+      const CONTRACT_ADDRESS_KEY = 'beacon-example-contract-address'
+      const CONTRACT_OWNER_KEY = 'beacon-example-contract-owner'
+
+      const getStoredContractAddress = () => localStorage.getItem(CONTRACT_ADDRESS_KEY)
+      const getStoredContractOwner = () => localStorage.getItem(CONTRACT_OWNER_KEY)
+
+      const updateContractUI = async () => {
+        const contractAddress = getStoredContractAddress()
+        const hasContract = !!contractAddress
+
+        if (hasContract) {
+          document.getElementById('contractAddress').innerText = contractAddress
+          document.getElementById('contractAddressWrapper').classList.remove('hidden')
+          document.getElementById('deployContract').innerText = 'Redeploy Contract'
+          document.getElementById('deployContract').disabled = false
+          document.getElementById('setContractValue').disabled = false
+          document.getElementById('getContractValue').disabled = false
+          document.getElementById('clearContract').disabled = false
+
+          // Update explorer link
+          const activeAccount = await client.getActiveAccount()
+          if (activeAccount) {
+            const explorerUrl = getExplorerUrl(contractAddress, activeAccount.network.type)
+            const explorerLink = document.getElementById('contractExplorer')
+            explorerLink.href = explorerUrl
+            explorerLink.innerText = explorerUrl
+          }
+        } else {
+          document.getElementById('contractAddressWrapper').classList.add('hidden')
+          document.getElementById('deployContract').innerText = 'Deploy Hello World Contract'
+          document.getElementById('deployContract').disabled = false
+          document.getElementById('setContractValue').disabled = true
+          document.getElementById('getContractValue').disabled = true
+          document.getElementById('clearContract').disabled = true
+          document.getElementById('contractCurrentValue').innerText = 'No value loaded'
+        }
+      }
+
+      const deployContract = async () => {
+        try {
+          const activeAccount = await client.getActiveAccount()
+          if (!activeAccount) {
+            alert('Please connect your wallet first')
+            return
+          }
+
+          console.log('Deploying Hello World contract...')
+
+          // Michelson contract with storage (string), setValue entrypoint, and getValue view
+          const result = await client.requestOperation({
+            operationDetails: [
+              {
+                kind: beacon.TezosOperationType.ORIGINATION,
+                balance: '0',
+                script: {
+                  code: [
+                    { prim: 'parameter', args: [{ prim: 'string' }] },
+                    { prim: 'storage', args: [{ prim: 'string' }] },
+                    {
+                      prim: 'code',
+                      args: [
+                        [
+                          { prim: 'UNPAIR' },
+                          { prim: 'SWAP' },
+                          { prim: 'DROP' },
+                          { prim: 'NIL', args: [{ prim: 'operation' }] },
+                          { prim: 'PAIR' }
+                        ]
+                      ]
+                    },
+                    {
+                      prim: 'view',
+                      args: [
+                        { string: 'getValue' },
+                        { prim: 'unit' },
+                        { prim: 'string' },
+                        [{ prim: 'CDR' }]
+                      ]
+                    }
+                  ],
+                  storage: { string: 'Hello World' }
+                }
+              }
+            ]
+          })
+
+          console.log('Deployment result:', result)
+
+          if (result.transactionHash) {
+            // Wait for the operation to be included and use TzKT API
+            setTimeout(async () => {
+              try {
+                const network = (await client.getActiveAccount()).network.type
+                const tzktUrl = network === 'mainnet'
+                  ? 'https://api.tzkt.io'
+                  : `https://api.${network}.tzkt.io`
+
+                const opResponse = await fetch(`${tzktUrl}/v1/operations/${result.transactionHash}`)
+                const opData = await opResponse.json()
+
+                console.log('TzKT operation data:', opData)
+
+                // Find the originated contract address
+                let contractAddress = null
+                if (Array.isArray(opData)) {
+                  for (const op of opData) {
+                    if (op.type === 'origination' && op.originatedContract?.address) {
+                      contractAddress = op.originatedContract.address
+                      break
+                    }
+                  }
+                }
+
+                if (contractAddress) {
+                  localStorage.setItem(CONTRACT_ADDRESS_KEY, contractAddress)
+                  localStorage.setItem(CONTRACT_OWNER_KEY, activeAccount.address)
+                  console.log('Contract deployed at:', contractAddress)
+                  updateContractUI()
+                } else {
+                  console.error('Could not find contract address in operation result')
+                }
+              } catch (error) {
+                console.error('Error fetching contract address:', error)
+              }
+            }, 5000)
+          }
+        } catch (error) {
+          console.error('Error deploying contract:', error)
+          alert(`Error deploying contract: ${error.message}`)
+        }
+      }
+
+      const setContractValue = async () => {
+        try {
+          const contractAddress = getStoredContractAddress()
+          const newValue = document.getElementById('contractValueInput').value
+
+          if (!newValue) {
+            return
+          }
+
+          console.log('Setting contract value to:', newValue)
+
+          const result = await client.requestOperation({
+            operationDetails: [
+              {
+                kind: beacon.TezosOperationType.TRANSACTION,
+                destination: contractAddress,
+                amount: '0',
+                parameters: {
+                  entrypoint: 'default',
+                  value: { string: newValue }
+                }
+              }
+            ]
+          })
+
+          console.log('Set value result:', result)
+          document.getElementById('contractValueInput').value = ''
+        } catch (error) {
+          console.error('Error setting contract value:', error)
+        }
+      }
+
+      const getContractValue = async () => {
+        try {
+          const contractAddress = getStoredContractAddress()
+          const activeAccount = await client.getActiveAccount()
+          const network = activeAccount.network.type
+          const rpcUrl = network === 'mainnet'
+            ? 'https://rpc.tzkt.io/mainnet'
+            : `https://rpc.tzkt.io/${network}`
+
+          console.log('Fetching contract storage from:', rpcUrl)
+
+          const response = await fetch(`${rpcUrl}/chains/main/blocks/head/context/contracts/${contractAddress}/storage`)
+          const storage = await response.json()
+
+          console.log('Contract storage:', storage)
+
+          const value = storage.string || storage
+          document.getElementById('contractCurrentValue').innerText = value
+          document.getElementById('contractCurrentValue').classList.remove('text-gray-400')
+          document.getElementById('contractCurrentValue').classList.add('text-white')
+        } catch (error) {
+          console.error('Error getting contract value:', error)
+        }
+      }
+
+      const clearContract = () => {
+        if (confirm('Are you sure you want to clear the stored contract address?')) {
+          localStorage.removeItem(CONTRACT_ADDRESS_KEY)
+          localStorage.removeItem(CONTRACT_OWNER_KEY)
+          updateContractUI()
+        }
+      }
+
+      // Fill own address button event listener
+      document.getElementById('fillOwnAddress').addEventListener('click', async () => {
+        const activeAccount = await client.getActiveAccount()
+        if (activeAccount) {
+          document.getElementById('sendRecipientAddress').value = activeAccount.address
+          document.getElementById('sendAmount').value = '0.1'
+        } else {
+          console.warn('No active account connected')
+        }
+      })
+
+      // Send Tezos event listener
+      document.getElementById('sendTezos').addEventListener('click', sendTezosTransaction)
+
+      // Contract event listeners
+      document.getElementById('deployContract').addEventListener('click', deployContract)
+      document.getElementById('setContractValue').addEventListener('click', setContractValue)
+      document.getElementById('getContractValue').addEventListener('click', getContractValue)
+      document.getElementById('clearContract').addEventListener('click', clearContract)
+
+      document.getElementById('copyContractAddress').addEventListener('click', () => {
+        const address = document.getElementById('contractAddress').innerText
+        navigator.clipboard.writeText(address).then(() => {
+          const btn = document.getElementById('copyContractAddress')
+          const originalHTML = btn.innerHTML
+          btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>'
+          btn.title = 'Copied!'
+          setTimeout(() => {
+            btn.innerHTML = originalHTML
+            btn.title = 'Copy address'
+          }, 2000)
+        }).catch(err => {
+          console.error('Failed to copy:', err)
+        })
+      })
+
+      // Initialize contract UI on page load
+      updateContractUI()
     </script>
   </body>
 </html>

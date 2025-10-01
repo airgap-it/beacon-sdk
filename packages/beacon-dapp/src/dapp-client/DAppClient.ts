@@ -2462,6 +2462,10 @@ export class DAppClient extends Client {
 
     logger.log('makeRequest', 'sending message', request)
     try {
+      // Hook for performance measurement
+      if ((window as any).__beaconPerf?.onBeforeSend) {
+        (window as any).__beaconPerf.onBeforeSend()
+      }
       ;(await this.transport).send(payload, peer)
       if (
         request.type !== BeaconMessageType.PermissionRequest ||
@@ -2578,6 +2582,10 @@ export class DAppClient extends Client {
 
     logger.log('makeRequest', 'sending message', request)
     try {
+      // Hook for performance measurement
+      if ((window as any).__beaconPerf?.onBeforeSend) {
+        (window as any).__beaconPerf.onBeforeSend()
+      }
       ;(await this.transport).send(payload, peer)
       if (
         request.message.type !== BeaconMessageType.PermissionRequest ||

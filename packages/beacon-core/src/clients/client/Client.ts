@@ -21,6 +21,7 @@ import { ClientOptions } from './ClientOptions'
 import { Transport } from '../../transports/Transport'
 import { Serializer } from '../../Serializer'
 import { isWrappedMessageVersion } from '../../utils/message-utils'
+import { getPreferredMessageProtocolVersion } from '../../message-protocol'
 
 const logger = new Logger('Client')
 
@@ -247,7 +248,9 @@ export abstract class Client extends BeaconClient {
       const protocolVersion = this.getPeerProtocolVersion(peer)
       this.logProtocolVersion(peer, connectionInfo.id, protocolVersion)
 
-      const deserializedMessage = (await new Serializer(protocolVersion).deserialize(message)) as BeaconRequestMessage
+      const deserializedMessage = (await new Serializer(protocolVersion).deserialize(
+        message
+      )) as BeaconRequestMessage
       this.handleResponse(deserializedMessage, connectionInfo)
     }
 
@@ -329,18 +332,25 @@ export abstract class Client extends BeaconClient {
   }
 
   protected getPeerProtocolVersion(peer?: PeerInfo): number {
+    const defaultProtocol = 1
+    const localPreferredRaw = Number(getPreferredMessageProtocolVersion())
+    const localPreferred = Number.isFinite(localPreferredRaw) && localPreferredRaw >= defaultProtocol
+      ? localPreferredRaw
+      : defaultProtocol
+
     if (!peer) {
-      return 1
+      return defaultProtocol
     }
 
-    const protocolVersion = typeof peer.protocolVersion === 'number' ? peer.protocolVersion : Number(peer.protocolVersion)
-    if (Number.isFinite(protocolVersion) && protocolVersion >= 1) {
-      return protocolVersion
+    const peerProtocolRaw =
+      typeof peer.protocolVersion === 'number' ? peer.protocolVersion : Number(peer.protocolVersion)
+    if (Number.isFinite(peerProtocolRaw) && peerProtocolRaw >= defaultProtocol) {
+      return Math.min(peerProtocolRaw, localPreferred)
     }
 
-    // Default to v1 when protocolVersion is not set
+    // Default to the lowest supported protocol when no version is supplied
     // Do NOT use peer.version - that's the Beacon SDK version!
-    return 1
+    return defaultProtocol
   }
 
 }
