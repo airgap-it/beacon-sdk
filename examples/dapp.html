@@ -719,31 +719,6 @@
         }
       }
 
-      // Fetch balance from RPC
-      const fetchBalance = async (address, networkType) => {
-        try {
-          const rpcUrl = BeaconUtils.getRpcUrl(networkType, rpcInput.value)
-          const response = await fetch(`${rpcUrl}/chains/main/blocks/head/context/contracts/${address}/balance`)
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
-          }
-          const balanceText = await response.text()
-
-          // Parse balance - response might be quoted string
-          const balance = balanceText.replace(/"/g, '').trim()
-          const balanceNum = parseInt(balance, 10)
-
-          if (isNaN(balanceNum)) {
-            return '—'
-          }
-
-          // Convert from mutez to tez
-          const balanceInTez = (balanceNum / 1000000).toFixed(6)
-          return `${balanceInTez} ꜩ`
-        } catch (error) {
-          return '—'
-        }
-      }
 
       // Update UI when account is connected
       const updateAccountUI = async (activeAccount) => {
@@ -768,10 +743,10 @@
 
         // Fetch and update balance
         document.getElementById('activeAccountBalance').innerText = 'Loading...'
-        const balance = await fetchBalance(activeAccount.address, activeAccount.network.type)
+        const balance = await BeaconUtils.fetchBalance(activeAccount.address, activeAccount.network.type, rpcInput.value)
         document.getElementById('activeAccountBalance').innerText = balance
 
-        startBalanceRefresh()
+        startBalanceRefresh(activeAccount)
       }
 
       // Clear UI when account is disconnected
@@ -856,25 +831,32 @@
       // Balance refresh interval
       let balanceRefreshInterval = null
 
-      const startBalanceRefresh = () => {
+      const startBalanceRefresh = async (activeAccount) => {
         // Clear any existing interval
         if (balanceRefreshInterval) {
-          clearInterval(balanceRefreshInterval)
+          BeaconUtils.stopBalanceRefresh(balanceRefreshInterval)
         }
 
-        // Set up new interval to refresh balance every 5 seconds
-        balanceRefreshInterval = setInterval(async () => {
-          const activeAccount = await client.getActiveAccount()
-          if (activeAccount) {
-            const balance = await fetchBalance(activeAccount.address, activeAccount.network.type)
-            document.getElementById('activeAccountBalance').innerText = balance
-          }
-        }, 5000)
+        // Get active account if not provided
+        if (!activeAccount) {
+          activeAccount = await client.getActiveAccount()
+        }
+
+        if (activeAccount) {
+          // Set up new interval to refresh balance every 5 seconds
+          balanceRefreshInterval = BeaconUtils.startBalanceRefresh(
+            activeAccount.address,
+            activeAccount.network.type,
+            rpcInput.value,
+            'activeAccountBalance',
+            5000
+          )
+        }
       }
 
       const stopBalanceRefresh = () => {
         if (balanceRefreshInterval) {
-          clearInterval(balanceRefreshInterval)
+          BeaconUtils.stopBalanceRefresh(balanceRefreshInterval)
           balanceRefreshInterval = null
         }
       }
