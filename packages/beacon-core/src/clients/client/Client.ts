@@ -347,9 +347,6 @@ export abstract class Client extends BeaconClient {
     if (Number.isFinite(peerProtocolRaw) && peerProtocolRaw >= defaultProtocol) {
       return Math.min(peerProtocolRaw, localPreferred)
     }
-
-    // Default to the lowest supported protocol when no version is supplied
-    // Do NOT use peer.version - that's the Beacon SDK version!
     return defaultProtocol
   }
 

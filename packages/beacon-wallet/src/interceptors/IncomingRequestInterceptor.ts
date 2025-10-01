@@ -170,11 +170,8 @@ export class IncomingRequestInterceptor {
         }
         break
       default:
-        logger.error('intercept', 'Unexpected message type received by wallet', (message as any).type, message)
-        // This should not happen - wallets should only receive request types, not responses
-        // If this occurs, it indicates a message routing issue
+        logger.log('intercept', 'Message not handled')
         assertNever(message)
-        break
     }
   }
 
@@ -218,22 +215,12 @@ export class IncomingRequestInterceptor {
         break
 
       default:
-        logger.error('intercept', 'Unexpected V3 message type received by wallet', (v3Message as any).type, v3Message)
-        // This should not happen - wallets should only receive request types, not responses
-        // If this occurs, it indicates a message routing issue
+        logger.log('intercept', 'Message not handled')
         assertNever(v3Message)
-        break
     }
   }
 }
 
-/**
- * TypeScript exhaustiveness check helper
- * This function should never be called at runtime - it's a compile-time check
- * If it IS called, it means an unexpected message type reached the default case
- */
-function assertNever(value: never): never {
-  throw new Error(
-    `Unexpected message type received: ${(value as any).type}. This indicates a message routing issue where a response or invalid message type was sent to the wallet interceptor.`
-  )
+function assertNever(_message: never) {
+  throw new Error('Function not implemented.')
 }
