@@ -9,7 +9,7 @@
     // "esModuleInterop": true,
     "jsx": "preserve",
     "jsxImportSource": "react",
-    "types": ["vite/client", "node", "jest"],
+    "types": ["vite/client", "node", "chrome", "jest"],
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
