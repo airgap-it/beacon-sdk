@@ -176,9 +176,18 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const lastIndex = client.session.keys.length - 1
 
     if (lastIndex > -1) {
-      this.session = client.session.get(client.session.keys[lastIndex])
-      this.updateStorageWallet(this.session)
-      this.setDefaultAccountAndNetwork()
+      const restoredSession = client.session.get(client.session.keys[lastIndex])
+
+      // Validate session is not stale
+      if (await this.isSessionValid(restoredSession)) {
+        this.session = restoredSession
+        this.updateStorageWallet(this.session)
+        this.setDefaultAccountAndNetwork()
+      } else {
+        logger.warn('Restored session is stale during refresh, cleaning up')
+        await this.cleanupStaleSession(restoredSession)
+        this.clearState()
+      }
     } else {
       this.clearState()
     }
@@ -589,11 +598,20 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const lastIndex = signClient.session.keys.length - 1
 
     if (lastIndex > -1) {
-      this.session = signClient.session.get(signClient.session.keys[lastIndex])
-      this.updateStorageWallet(this.session)
-      this.setDefaultAccountAndNetwork()
+      const restoredSession = signClient.session.get(signClient.session.keys[lastIndex])
 
-      return undefined
+      // Validate session is not stale
+      if (await this.isSessionValid(restoredSession)) {
+        this.session = restoredSession
+        this.updateStorageWallet(this.session)
+        this.setDefaultAccountAndNetwork()
+
+        return undefined
+      } else {
+        logger.warn('Restored session is stale, cleaning up and creating new connection')
+        await this.cleanupStaleSession(restoredSession)
+        // Fall through to create new connection below
+      }
     }
 
     logger.warn('before create')
@@ -1449,5 +1467,59 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.session = undefined
     this.activeAccountOrPbk = undefined
     this.activeNetwork = undefined
+  }
+
+  /**
+   * @description Validates if a restored session is still valid and usable
+   * @param session The session to validate
+   * @returns true if session is valid, false if stale/expired
+   */
+  private async isSessionValid(session: SessionTypes.Struct): Promise<boolean> {
+    // Check 1: Session has not expired
+    // session.expiry is in seconds, Date.now() is in milliseconds
+    const now = Math.floor(Date.now() / 1000)
+    if (session.expiry <= now) {
+      logger.warn('Session validation failed: session expired', {
+        expiry: session.expiry,
+        now
+      })
+      return false
+    }
+
+    // Check 2: Wallet is still responsive (ping test)
+    try {
+      const signClient = await this.getSignClient()
+      if (!signClient) {
+        logger.warn('Session validation failed: no sign client available')
+        return false
+      }
+
+      await signClient.ping({ topic: session.topic })
+      logger.debug('Session validation passed: session is valid')
+      return true
+    } catch (err: any) {
+      logger.warn('Session validation failed: ping failed', err.message)
+      return false
+    }
+  }
+
+  /**
+   * @description Cleans up a stale session by disconnecting and removing it
+   * @param session The stale session to cleanup
+   */
+  private async cleanupStaleSession(session: SessionTypes.Struct): Promise<void> {
+    try {
+      const signClient = await this.getSignClient()
+      if (signClient) {
+        await signClient.disconnect({
+          topic: session.topic,
+          reason: getSdkError('USER_DISCONNECTED')
+        })
+      }
+      logger.debug('Stale session cleaned up successfully', session.topic)
+    } catch (err: any) {
+      logger.warn('Error cleaning up stale session', err.message)
+      // Continue even if cleanup fails - session is stale anyway
+    }
   }
 }
