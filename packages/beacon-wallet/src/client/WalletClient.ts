@@ -7,7 +7,8 @@ import {
   AppMetadataManager,
   getSenderId,
   Logger,
-  NOTIFICATION_ORACLE_URL
+  NOTIFICATION_ORACLE_URL,
+  usesWrappedMessages
 } from '@airgap/beacon-core'
 
 import { ExposedPromise, toHex } from '@airgap/beacon-utils'
@@ -36,6 +37,7 @@ import {
   ExtendedPostMessagePairingRequest,
   P2PPairingRequest,
   ExtendedP2PPairingRequest,
+  WalletConnectPairingRequest,
   ExtendedWalletConnectPairingRequest
 } from '@airgap/beacon-types'
 import { WalletClientOptions } from './WalletClientOptions'
@@ -112,11 +114,28 @@ export class WalletClient extends Client {
       message: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage> | DisconnectMessage,
       connectionContext: ConnectionContext
     ): Promise<void> => {
-      if (message.version === '3') {
+      // Define valid request types that wallets should process
+      const validRequestTypes = [
+        BeaconMessageType.PermissionRequest,
+        BeaconMessageType.OperationRequest,
+        BeaconMessageType.SignPayloadRequest,
+        BeaconMessageType.BroadcastRequest,
+        BeaconMessageType.ProofOfEventChallengeRequest,
+        BeaconMessageType.SimulatedProofOfEventChallengeRequest,
+        BeaconMessageType.BlockchainRequest,
+        BeaconMessageType.ChangeAccountRequest
+      ]
+
+      if (usesWrappedMessages(message.version)) {
         const typedMessage = message as BeaconMessageWrapper<BeaconBaseMessage>
 
         if (typedMessage.message.type === BeaconMessageType.Disconnect) {
           return this.disconnect(typedMessage.senderId)
+        }
+
+        // Filter out response types (echoed back from Matrix room)
+        if (!validRequestTypes.includes(typedMessage.message.type)) {
+          return
         }
 
         if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
@@ -138,10 +157,15 @@ export class WalletClient extends Client {
           return this.disconnect(typedMessage.senderId)
         }
 
+        // Filter out response types (echoed back from Matrix room)
+        if (!validRequestTypes.includes(typedMessage.type)) {
+          return
+        }
+
         if (!this.pendingRequests.some((request) => request[0].id === message.id)) {
           this.pendingRequests.push([typedMessage, connectionContext])
 
-          if (typedMessage.version !== '1') {
+          if (typedMessage.version && typedMessage.version !== '1') {
             await this.sendAcknowledgeResponse(typedMessage, connectionContext)
           }
 
@@ -253,7 +277,9 @@ export class WalletClient extends Client {
     transport
       .addListener(async (message: unknown, connectionInfo: ConnectionContext) => {
         if (typeof message === 'string') {
-          const deserializedMessage = (await new Serializer().deserialize(
+          const peer = await this.findPeer(connectionInfo.id)
+          const protocolVersion = this.getPeerProtocolVersion(peer)
+          const deserializedMessage = (await new Serializer(protocolVersion).deserialize(
             message
           )) as BeaconRequestMessage
           this.handleResponse(deserializedMessage, connectionInfo)
@@ -328,38 +354,73 @@ export class WalletClient extends Client {
 
   private async getPeerInfo(peer: PeerInfo): Promise<ExtendedPeerInfo> {
     const senderId = await getSenderId(peer.publicKey)
+    const protocolVersion = this.getPeerProtocolVersion(peer)
 
-    if (peer instanceof PostMessagePairingRequest) {
-      return new ExtendedPostMessagePairingRequest(
-        peer.id,
-        peer.name,
-        peer.publicKey,
-        peer.version,
-        senderId
-      )
-    } else if (peer instanceof P2PPairingRequest) {
-      return new ExtendedP2PPairingRequest(
-        peer.id,
-        peer.name,
-        peer.publicKey,
-        peer.version,
-        peer.relayServer,
-        senderId
-      )
-    } else if (peer instanceof ExtendedWalletConnectPairingRequest) {
-      return new ExtendedWalletConnectPairingRequest(
-        peer.id,
-        peer.name,
-        peer.publicKey,
-        peer.version,
-        senderId,
-        peer.uri
-      )
-    } else {
-      return {
-        ...peer,
-        senderId
+    if (peer instanceof PostMessagePairingRequest || peer instanceof ExtendedPostMessagePairingRequest) {
+      const base = peer as PostMessagePairingRequest & {
+        icon?: string
+        appUrl?: string
       }
+
+      return new ExtendedPostMessagePairingRequest(
+        base.id,
+        base.name,
+        base.publicKey,
+        base.version,
+        senderId,
+        protocolVersion,
+        base.icon,
+        base.appUrl
+      )
+    }
+
+    if (peer instanceof P2PPairingRequest || peer instanceof ExtendedP2PPairingRequest) {
+      const base = peer as P2PPairingRequest & {
+        relayServer: string
+        icon?: string
+        appUrl?: string
+      }
+
+      return new ExtendedP2PPairingRequest(
+        base.id,
+        base.name,
+        base.publicKey,
+        base.version,
+        base.relayServer,
+        senderId,
+        protocolVersion,
+        base.icon,
+        base.appUrl
+      )
+    }
+
+    if (
+      peer instanceof WalletConnectPairingRequest ||
+      peer instanceof ExtendedWalletConnectPairingRequest
+    ) {
+      const base = peer as ExtendedWalletConnectPairingRequest & {
+        uri: string
+        icon?: string
+        appUrl?: string
+      }
+
+      return new ExtendedWalletConnectPairingRequest(
+        base.id,
+        base.name,
+        base.publicKey,
+        base.version,
+        senderId,
+        base.uri,
+        protocolVersion,
+        base.icon,
+        base.appUrl
+      )
+    }
+
+    return {
+      ...peer,
+      senderId,
+      protocolVersion
     }
   }
 
@@ -454,10 +515,14 @@ export class WalletClient extends Client {
     response: BeaconMessage,
     connectionContext: ConnectionContext
   ): Promise<void> {
-    const serializedMessage: string = await new Serializer().serialize(response)
+    let peer: PeerInfo | undefined
     if (connectionContext) {
-      const peerInfos = await this.getPeers()
-      const peer = peerInfos.find((peerInfo) => peerInfo.publicKey === connectionContext.id)
+      peer = await this.findPeer(connectionContext.id)
+    }
+
+    const protocolVersion = this.getPeerProtocolVersion(peer)
+    const serializedMessage: string = await new Serializer(protocolVersion).serialize(response)
+    if (connectionContext) {
       await (await this.transport).send(serializedMessage, peer)
     } else {
       await (await this.transport).send(serializedMessage)
@@ -472,8 +537,6 @@ export class WalletClient extends Client {
     if (peer) {
       await this.removePeer(peer as any)
     }
-
-    await transport.disconnect()
 
     return
   }

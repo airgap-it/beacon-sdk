@@ -92,7 +92,8 @@ import {
   IndexedDBStorage,
   MultiTabChannel,
   BACKEND_URL,
-  getError
+  getError,
+  usesWrappedMessages
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -315,17 +316,15 @@ export class DAppClient extends Client {
       message: BeaconMessage | BeaconMessageWrapper<BeaconBaseMessage>,
       connectionInfo: ConnectionContext
     ): Promise<void> => {
-      const typedMessage =
-        message.version === '3'
-          ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
-          : (message as BeaconMessage)
+      const typedMessage = usesWrappedMessages(message.version)
+        ? (message as BeaconMessageWrapper<BeaconBaseMessage>).message
+        : (message as BeaconMessage)
 
-      let appMetadata: AppMetadata | undefined =
-        message.version === '3'
-          ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData?.appMetadata
-          : (typedMessage as PermissionResponse).appMetadata
+      let appMetadata: AppMetadata | undefined = usesWrappedMessages(message.version)
+        ? (typedMessage as unknown as PermissionResponseV3<string>).blockchainData?.appMetadata
+        : (typedMessage as PermissionResponse).appMetadata
 
-      if (!appMetadata && message.version === '3') {
+      if (!appMetadata && usesWrappedMessages(message.version)) {
         const storedMetadata = await Promise.all([
           this.storage.get(StorageKey.TRANSPORT_P2P_PEERS_DAPP),
           this.storage.get(StorageKey.TRANSPORT_WALLETCONNECT_PEERS_DAPP),
@@ -411,16 +410,37 @@ export class DAppClient extends Client {
           })
           .catch(console.error)
       } else if (openRequest) {
-        if (typedMessage.type === BeaconMessageType.PermissionResponse && appMetadata) {
-          await this.appMetadataManager.addAppMetadata(appMetadata)
-        }
+        // Define valid response types that should resolve a request
+        const validResponseTypes = [
+          BeaconMessageType.PermissionResponse,
+          BeaconMessageType.OperationResponse,
+          BeaconMessageType.SignPayloadResponse,
+          BeaconMessageType.BroadcastResponse,
+          BeaconMessageType.ProofOfEventChallengeResponse,
+          BeaconMessageType.SimulatedProofOfEventChallengeResponse,
+          BeaconMessageType.BlockchainResponse,
+          BeaconMessageType.Error
+        ]
 
-        if (typedMessage.type === BeaconMessageType.Error) {
-          openRequest.reject(typedMessage as ErrorResponse)
+        // Only process if it's a valid response type
+        if (validResponseTypes.includes(typedMessage.type)) {
+          if (typedMessage.type === BeaconMessageType.PermissionResponse && appMetadata) {
+            await this.appMetadataManager.addAppMetadata(appMetadata)
+          }
+
+          if (typedMessage.type === BeaconMessageType.Error) {
+            openRequest.reject(typedMessage as ErrorResponse)
+          } else {
+            openRequest.resolve({ message, connectionInfo })
+          }
+          this.openRequests.delete(typedMessage.id)
         } else {
-          openRequest.resolve({ message, connectionInfo })
+          // Log unexpected message types but don't resolve the request
+          logger.warn(
+            'handleResponse',
+            `Received unexpected message type "${typedMessage.type}" for request ${message.id}. Expected a response type, not a request type.`
+          )
         }
-        this.openRequests.delete(typedMessage.id)
       } else {
         if (typedMessage.type === BeaconMessageType.Disconnect) {
           await handleDisconnect()
@@ -2432,16 +2452,20 @@ export class DAppClient extends Client {
       this.addOpenRequest(request.id, exposed)
     }
 
-    const payload = await new Serializer().serialize(request)
-
     const account = await this.getActiveAccount()
 
     const peer = await this.getPeer(account)
+
+    const payload = await new Serializer(this.getPeerProtocolVersion(peer)).serialize(request)
 
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
     try {
+      // Hook for performance measurement
+      if ((window as any).__beaconPerf?.onBeforeSend) {
+        (window as any).__beaconPerf.onBeforeSend()
+      }
       ;(await this.transport).send(payload, peer)
       if (
         request.type !== BeaconMessageType.PermissionRequest ||
@@ -2548,16 +2572,20 @@ export class DAppClient extends Client {
 
     this.addOpenRequest(request.id, exposed)
 
-    const payload = await new Serializer().serialize(request)
-
     const account = await this.getActiveAccount()
 
     const peer = await this.getPeer(account)
+
+    const payload = await new Serializer(this.getPeerProtocolVersion(peer)).serialize(request)
 
     const walletInfo = await this.getWalletInfo(peer, account)
 
     logger.log('makeRequest', 'sending message', request)
     try {
+      // Hook for performance measurement
+      if ((window as any).__beaconPerf?.onBeforeSend) {
+        (window as any).__beaconPerf.onBeforeSend()
+      }
       ;(await this.transport).send(payload, peer)
       if (
         request.message.type !== BeaconMessageType.PermissionRequest ||
@@ -2678,13 +2706,33 @@ export class DAppClient extends Client {
 
     await this.createStateSnapshot()
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'start'))
+
+    const peers = await transport.getPeers()
+    if (peers.length > 0) {
+      const shouldNotifyPeers = !(transport instanceof WalletConnectTransport)
+      await this.removeAllPeers(shouldNotifyPeers)
+    }
+
     await this.clearActiveAccount()
     if (!(transport instanceof WalletConnectTransport)) {
-      await transport.disconnect()
+      try {
+        await transport.disconnect()
+      } catch (disconnectError) {
+        const message = disconnectError instanceof Error ? disconnectError.message : String(disconnectError)
+        if (typeof message === 'string' && message.includes('Syncing stopped manually')) {
+          logger.log('disconnect', 'Matrix sync stopped manually')
+        } else {
+          throw disconnectError
+        }
+      }
     }
     this.postMessageTransport = undefined
     this.p2pTransport = undefined
     this.walletConnectTransport = undefined
+
+    await this.setTransport()
+    this._initPromise = undefined
+    this.isInitPending = false
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 

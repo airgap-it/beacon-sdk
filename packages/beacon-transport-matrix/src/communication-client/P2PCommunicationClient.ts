@@ -31,6 +31,7 @@ import {
 import {
   PeerManager,
   BEACON_VERSION,
+  getPreferredMessageProtocolVersion,
   getSenderId,
   Logger,
   CommunicationClient
@@ -122,7 +123,8 @@ export class P2PCommunicationClient extends CommunicationClient {
       this.name,
       await this.getPublicKey(),
       BEACON_VERSION,
-      (await this.getRelayServer()).server
+      (await this.getRelayServer()).server,
+      getPreferredMessageProtocolVersion()
     )
 
     if (this.iconUrl) {
@@ -141,7 +143,8 @@ export class P2PCommunicationClient extends CommunicationClient {
       this.name,
       await this.getPublicKey(),
       request.version,
-      (await this.getRelayServer()).server
+      (await this.getRelayServer()).server,
+      getPreferredMessageProtocolVersion()
     )
 
     if (this.iconUrl) {
@@ -384,6 +387,24 @@ export class P2PCommunicationClient extends CommunicationClient {
 
     logger.log('start', 'login successful, client is ready')
     this.client.resolve(client)
+
+    // Check for any pending invites that we may have missed during the initial sync
+    logger.log('start', 'checking for pending invites')
+    const invites = await client.invitedRooms
+    logger.log('start', `found ${invites.length} pending invites`)
+    const myUserId = `@${await this.getPublicKeyHash()}:${relayServer.server}`
+    for (const invite of invites) {
+      logger.log('start', `joining invited room: ${invite.id}`)
+      await this.tryJoinRooms(invite.id)
+      // Update the peer room mapping for this invite
+      if (invite.members.length > 0) {
+        const member = invite.members.find((m) => m !== myUserId)
+        if (member) {
+          await this.updateRelayServer(member)
+          await this.updatePeerRoom(member, invite.id)
+        }
+      }
+    }
   }
 
   public async stop(): Promise<void> {
@@ -522,22 +543,33 @@ export class P2PCommunicationClient extends CommunicationClient {
     const encryptedMessage = await encryptCryptoboxPayload(message, sharedKey.send)
 
     logger.log('sendMessage', 'sending encrypted message', peer.publicKey, roomId, message)
-    ;(await this.client.promise).sendTextMessage(roomId, encryptedMessage).catch(async (error) => {
-      if (error.errcode === 'M_FORBIDDEN') {
-        // Room doesn't exist
+    try {
+      await (await this.client.promise).sendTextMessage(roomId, encryptedMessage)
+    } catch (error: any) {
+      if (error?.code === 'ERR_CANCELED') {
+        logger.log('sendMessage', 'request cancelled while stopping transport')
+        return
+      }
+
+      if (error?.errcode === 'M_FORBIDDEN') {
         logger.log(`sendMessage`, `M_FORBIDDEN`, roomId, error)
         await this.deleteRoomIdFromRooms(roomId)
         const newRoomId = await this.getRelevantRoom(recipient)
         logger.log(`sendMessage`, `Old room deleted, new room created`, newRoomId)
-        ;(await this.client.promise)
-          .sendTextMessage(newRoomId, encryptedMessage)
-          .catch(async (error2) => {
-            logger.log(`sendMessage`, `inner error`, newRoomId, error2)
-          })
+        try {
+          await (await this.client.promise).sendTextMessage(newRoomId, encryptedMessage)
+        } catch (innerError: any) {
+          if (innerError?.code === 'ERR_CANCELED') {
+            logger.log('sendMessage', 'inner request cancelled while stopping transport')
+            return
+          }
+
+          logger.log(`sendMessage`, `inner error`, newRoomId, innerError)
+        }
       } else {
         logger.log(`sendMessage`, `unexpected error`, error)
       }
-    })
+    }
   }
 
   public async updatePeerRoom(sender: string, roomId: string): Promise<void> {
@@ -612,9 +644,15 @@ export class P2PCommunicationClient extends CommunicationClient {
 
         if (payload.length >= secretbox_NONCEBYTES + secretbox_MACBYTES) {
           try {
-            const pairingResponse: P2PPairingResponse = JSON.parse(
+            const rawResponse = JSON.parse(
               await openCryptobox(payload, this.keyPair!.publicKey, this.keyPair!.secretKey)
-            )
+            ) as P2PPairingResponse & { protocolVersion?: string | number }
+
+            const normalizedProtocol = Number(rawResponse.protocolVersion)
+            const pairingResponse: P2PPairingResponse = {
+              ...rawResponse,
+              protocolVersion: Number.isFinite(normalizedProtocol) ? normalizedProtocol : undefined
+            }
 
             logger.log(
               `listenForChannelOpening`,
@@ -642,20 +680,21 @@ export class P2PCommunicationClient extends CommunicationClient {
     if (room.members.length >= 2) {
       return
     } else {
-      if (retry <= 200) {
-        // On mobile, due to app switching, we potentially have to wait for a long time
+      if (retry < 10) {
         logger.log(`Waiting for join... Try: ${retry}`)
 
         return new Promise((resolve) => {
+          // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 32s, 64s, 128s, 256s, 512s
+          const backoffMs = 1000 * Math.pow(2, retry)
           setTimeout(
             () => {
               resolve(this.waitForJoin(roomId, retry + 1))
             },
-            100 * (retry > 50 ? 10 : 1)
-          ) // After the initial 5 seconds, retry only once per second
+            backoffMs
+          )
         })
       } else {
-        throw new Error(`No one joined after ${retry} tries.`)
+        throw new Error(`No one joined after ${retry} tries. Room may be orphaned.`)
       }
     }
   }
@@ -666,15 +705,82 @@ export class P2PCommunicationClient extends CommunicationClient {
     const recipient = recipientString(recipientHash, pairingRequest.relayServer)
 
     // We force room creation here because if we "re-pair", we need to make sure that we don't send it to an old room.
-    const roomId = await (await this.client.promise).createTrustedPrivateRoom(recipient)
-    logger.debug(`sendPairingResponse`, `Connecting to room "${roomId}"`)
+    let roomId: string
+    let roomWasReused = false
+    try {
+      roomId = await (await this.client.promise).createTrustedPrivateRoom(recipient)
+      logger.debug(`sendPairingResponse`, `Connecting to room "${roomId}"`)
+    } catch (error: any) {
+      if (error?.errcode === 'M_FORBIDDEN' && error?.error?.includes('already in the room')) {
+        logger.log(`sendPairingResponse`, `M_FORBIDDEN during room creation, finding existing room instead`, error)
+        roomWasReused = true
+        // Handle 403 response when invite was sent. Find the existing room, but first, clear our local state to force a fresh lookup
+        const roomIds = await this.storage.get(StorageKey.MATRIX_PEER_ROOM_IDS)
+        const oldRoomId = roomIds[recipient]
+        if (oldRoomId) {
+          logger.log(`sendPairingResponse`, `Clearing old room "${oldRoomId}" from local cache`)
+          await this.deleteRoomIdFromRooms(oldRoomId)
+        }
+        // Now use getRelevantJoinedRoom which will find the existing room from the server
+        // or clear state if we're in an unrecoverable situation with orphaned rooms
+        try {
+          const room = await this.getRelevantJoinedRoom(recipient)
+          roomId = room.id
+          logger.log(`sendPairingResponse`, `Using existing room "${roomId}" from server`)
+        } catch (innerError: any) {
+          // If we still get M_FORBIDDEN here, it means we have orphaned rooms and the state was cleared
+          // We need to stop the client and reconnect to get a fresh sync
+          if (innerError?.errcode === 'M_FORBIDDEN' && innerError?.error?.includes('already in the room')) {
+            logger.log(`sendPairingResponse`, `Still getting M_FORBIDDEN after state clear, stopping and restarting client`)
+            await this.stop()
+            await this.start()
+            // Try one more time with fresh state
+            try {
+              const room = await this.getRelevantJoinedRoom(recipient)
+              roomId = room.id
+              logger.log(`sendPairingResponse`, `Successfully found room "${roomId}" after restart`)
+            } catch (finalError) {
+              logger.error(`sendPairingResponse`, `Failed to recover after restart`, finalError)
+              throw new Error('Unable to pair. Please clear your browser storage and try again.')
+            }
+          } else {
+            logger.log(`sendPairingResponse`, `Failed to find existing room`, innerError)
+            throw error // Re-throw original error if we can't recover
+          }
+        }
+      } else {
+        throw error // Re-throw if it's not the specific error we're handling
+      }
+    }
 
     await this.updatePeerRoom(recipient, roomId)
 
-    // Before we send the message, we have to wait for the join to be accepted.
-    await this.waitForJoin(roomId) // TODO: This can probably be removed because we are now waiting inside the get room method
+    // Check if the other party is in the room
+    const room = await (await this.client.promise).getRoomById(roomId)
+    const hasRecipient = room.members.some((member: string) => member === recipient)
 
-    logger.debug(`sendPairingResponse`, `Successfully joined room.`)
+    if (!hasRecipient) {
+      logger.log(`sendPairingResponse`, `Recipient not in room, inviting them to "${roomId}"`)
+      // The recipient is not in the room. We need to invite them.
+      // Since we're reusing a room, the recipient might have been invited before but never joined.
+      // Try to invite them again.
+      try {
+        await (await this.client.promise).inviteToRooms(recipient, roomId)
+        logger.log(`sendPairingResponse`, `Invited recipient to room, waiting for join`)
+        await this.waitForJoin(roomId)
+      } catch (inviteError) {
+        logger.error(`sendPairingResponse`, `Failed to invite recipient to room`, inviteError)
+        // If invite fails, we're in a bad state. The user should clear storage.
+        throw new Error('Unable to invite dApp to room. Please clear your browser storage and try again.')
+      }
+    } else if (!roomWasReused) {
+      // Room was newly created, wait for the other party to join
+      await this.waitForJoin(roomId)
+      logger.debug(`sendPairingResponse`, `Successfully joined room.`)
+    } else {
+      // Room was reused and recipient is already in it
+      logger.log(`sendPairingResponse`, `Room was reused and recipient is already a member. Sending message immediately.`)
+    }
 
     // TODO: remove v1 backwards-compatibility
     const message: string =
@@ -690,20 +796,33 @@ export class P2PCommunicationClient extends CommunicationClient {
     )
 
     const msg = ['@channel-open', recipient, encryptedMessage].join(':')
-    ;(await this.client.promise).sendTextMessage(roomId, msg).catch(async (error) => {
-      if (error.errcode === 'M_FORBIDDEN') {
-        // Room doesn't exist
+    try {
+      await (await this.client.promise).sendTextMessage(roomId, msg)
+    } catch (error: any) {
+      if (error?.code === 'ERR_CANCELED') {
+        logger.log('sendPairingResponse', 'request cancelled while stopping transport')
+        return
+      }
+
+      if (error?.errcode === 'M_FORBIDDEN') {
         logger.log(`sendPairingResponse`, `M_FORBIDDEN`, roomId, error)
         await this.deleteRoomIdFromRooms(roomId)
         const newRoomId = await this.getRelevantRoom(recipient)
         logger.log(`sendPairingResponse`, `Old room deleted, new room created`, newRoomId)
-        ;(await this.client.promise).sendTextMessage(newRoomId, msg).catch(async (error2) => {
-          logger.log(`sendPairingResponse`, `inner error`, newRoomId, error2)
-        })
+        try {
+          await (await this.client.promise).sendTextMessage(newRoomId, msg)
+        } catch (innerError: any) {
+          if (innerError?.code === 'ERR_CANCELED') {
+            logger.log('sendPairingResponse', 'inner request cancelled while stopping transport')
+            return
+          }
+
+          logger.log(`sendPairingResponse`, `inner error`, newRoomId, innerError)
+        }
       } else {
         logger.log(`sendPairingResponse`, `unexpected error`, error)
       }
-    })
+    }
   }
 
   public isTextMessage(
@@ -792,9 +911,21 @@ export class P2PCommunicationClient extends CommunicationClient {
       )
 
     let room: MatrixRoom
-    // We always create a new room if one has been ignored. This is because if we ignore one, we know the server state changed.
-    // So we cannot trust the current sync state. This can be removed once we have a method to properly clear and refresh the sync state.
-    if (relevantRooms.length === 0 || this.ignoredRooms.length > 0) {
+    // If we found relevant rooms, use them even if there are ignored rooms
+    if (relevantRooms.length > 0) {
+      room = relevantRooms[0]
+      logger.log(`getRelevantJoinedRoom`, `channel already open, reusing room ${room.id}`)
+    } else {
+      // No relevant rooms found. If we have ignored rooms, we're in a bad state and need to reset.
+      if (this.ignoredRooms.length > 0) {
+        logger.log(`getRelevantJoinedRoom`, `no relevant rooms found but have ${this.ignoredRooms.length} ignored rooms, clearing Matrix state`)
+        // Clear the Matrix preserved state to force a fresh sync on next connection
+        await this.storage.delete(StorageKey.MATRIX_PRESERVED_STATE).catch((error) => logger.log(error))
+        await this.storage.delete(StorageKey.MATRIX_PEER_ROOM_IDS).catch((error) => logger.log(error))
+        // Clear ignored rooms list since we're resetting
+        this.ignoredRooms.length = 0
+      }
+
       logger.log(`getRelevantJoinedRoom`, `no relevant rooms found, creating new one`)
 
       const roomId = await (await this.client.promise).createTrustedPrivateRoom(recipient)
@@ -802,9 +933,6 @@ export class P2PCommunicationClient extends CommunicationClient {
       logger.log(`getRelevantJoinedRoom`, `waiting for other party to join room: ${room.id}`)
       await this.waitForJoin(roomId)
       logger.log(`getRelevantJoinedRoom`, `new room created and peer invited: ${room.id}`)
-    } else {
-      room = relevantRooms[0]
-      logger.log(`getRelevantJoinedRoom`, `channel already open, reusing room ${room.id}`)
     }
 
     return room

@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beacon Example Wallet</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      // This will enable the debug mode of beacon
+      // This should only be used during development
+      window.beaconSdkDebugEnabled = true
+    </script>
+
+    <script src="./walletbeacon.min.js"></script>
+    <script src="./beacon-utils.js"></script>
+  </head>
+
+  <body class="bg-gray-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      <!-- Header -->
+      <header class="mb-8">
+        <h1 class="text-4xl font-bold text-white mb-2">Beacon Example Wallet</h1>
+        <p class="text-gray-400">Test wallet for Beacon SDK integration</p>
+      </header>
+
+      <!-- Configuration and Wallet Info Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Configuration Section -->
+        <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-white mb-4">Configuration</h2>
+
+          <div class="space-y-4">
+            <!-- Network Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Network</label>
+              <select id="networkSelect" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+            </div>
+
+            <!-- Custom RPC URL (hidden by default, shown for custom network) -->
+            <div id="customRpcContainer" style="display: none;">
+              <label class="block text-sm font-medium text-gray-300 mb-2">RPC URL</label>
+              <input type="text" id="customRpcUrl" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter RPC URL" />
+            </div>
+
+            <!-- Protocol Version -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Preferred Protocol (max)</label>
+              <select id="walletProtocolSelect" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="1">1 - Legacy (base58)</option>
+                <option value="2">2 - Compressed (gzip)</option>
+              </select>
+            </div>
+
+            <!-- Connection -->
+            <div class="pt-2">
+              <label class="block text-sm font-medium text-gray-300 mb-2">Pairing</label>
+              <button id="paste" class="w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                Paste Sync Code
+              </button>
+            </div>
+
+            <!-- Status -->
+            <div id="status" class="text-sm text-gray-400"></div>
+
+            <!-- Hidden test input -->
+            <input id="hidden-input" type="text" class="hidden" />
+          </div>
+        </section>
+
+        <!-- Wallet Setup / Info Section -->
+        <section class="bg-gray-800 border-l-4 border-l-blue-600 border-t border-r border-b border-gray-700 rounded-lg shadow-lg p-6">
+          <!-- Import Wallet (shown when no wallet) -->
+          <div id="wallet-setup-container">
+            <h2 class="text-xl font-semibold text-white mb-4">Setup Wallet</h2>
+
+            <div class="space-y-4">
+              <!-- Import Type Tabs -->
+              <div class="flex gap-2 border-b border-gray-600 pb-2">
+                <button id="tab-mnemonic" class="px-3 py-1 text-sm text-white bg-blue-600 rounded-t-md">Mnemonic</button>
+                <button id="tab-privatekey" class="px-3 py-1 text-sm text-gray-400 hover:text-white">Private Key</button>
+                <button id="tab-demo" class="px-3 py-1 text-sm text-gray-400 hover:text-white">Demo</button>
+              </div>
+
+              <!-- Mnemonic Import -->
+              <div id="import-mnemonic-section">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Import Mnemonic (24 words)</label>
+                <textarea id="import-mnemonic" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" rows="3" placeholder="Enter your 24-word mnemonic phrase..."></textarea>
+                <div class="flex gap-2 mt-2">
+                  <button id="import-wallet-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+                    Import Wallet
+                  </button>
+                  <button id="generate-wallet-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+                    Generate New
+                  </button>
+                </div>
+              </div>
+
+              <!-- Private Key Import -->
+              <div id="import-privatekey-section" style="display: none;">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Import Private Key</label>
+                <input type="text" id="import-privatekey" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Enter your private key (edsk...)"/>
+                <button id="import-privatekey-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm mt-2">
+                  Import Wallet
+                </button>
+              </div>
+
+              <!-- Demo Wallet -->
+              <div id="demo-section" style="display: none;">
+                <div class="p-4 bg-gray-700/50 border border-gray-600 rounded-md">
+                  <p class="text-sm text-gray-300 mb-3">Load a pre-configured demo wallet for testing purposes.</p>
+                  <div class="text-xs text-gray-400 mb-3">
+                    <strong class="text-gray-300">Address:</strong> tz1NCHJPeGifkubyWVQSAjiDDiVnoz7UfzHB
+                  </div>
+                  <button id="demo-wallet-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+                    Load Demo Wallet
+                  </button>
+                </div>
+              </div>
+
+              <div id="wallet-setup-error" class="text-red-400 text-sm" style="display: none;"></div>
+            </div>
+          </div>
+
+          <!-- Wallet Info (shown when wallet exists) -->
+          <div id="wallet-info-container" style="display: none;">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-semibold text-white">Wallet Information</h2>
+              <button id="logout-wallet" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm">
+                Reset Wallet
+              </button>
+            </div>
+
+            <div class="space-y-3">
+              <!-- Address -->
+              <div>
+                <div class="text-xs text-gray-400 mb-1">Address</div>
+                <div class="flex items-center gap-2">
+                  <code id="wallet-address" class="flex-1 font-mono text-white text-sm break-all">Generating...</code>
+                  <button id="copy-address" class="p-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition flex-shrink-0" title="Copy address">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Explorer Link -->
+              <div id="wallet-explorer-wrapper" class="hidden">
+                <div class="text-xs text-gray-400 mb-1">Explorer</div>
+                <a id="wallet-explorer" href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs break-all underline">
+                  https://tzkt.io/...
+                </a>
+              </div>
+
+              <!-- Balance -->
+              <div>
+                <div class="text-xs text-gray-400 mb-1">Balance</div>
+                <div id="wallet-balance" class="text-white text-sm font-medium">Loading...</div>
+              </div>
+
+              <!-- RPC -->
+              <div id="wallet-rpc-wrapper" class="hidden">
+                <div class="text-xs text-gray-400 mb-1">RPC Endpoint</div>
+                <code id="wallet-rpc" class="block font-mono text-white text-xs break-all">—</code>
+              </div>
+
+              <!-- Mnemonic -->
+              <div id="wallet-mnemonic-section">
+                <div class="text-xs text-gray-400 mb-1">Mnemonic</div>
+                <div class="p-3 bg-yellow-900/30 border border-yellow-700 rounded-md flex items-center justify-between">
+                  <span class="text-yellow-100 text-sm">Hidden for security</span>
+                  <button id="copy-mnemonic" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition text-sm">
+                    Copy to Clipboard
+                  </button>
+                </div>
+                <code id="wallet-mnemonic" class="hidden"></code>
+              </div>
+
+              <!-- Auto-Approve Mode -->
+              <div class="pt-3 border-t border-gray-700">
+                <div class="text-xs text-gray-400 mb-2">Auto-Approve Mode</div>
+                <label class="flex items-center cursor-pointer">
+                  <input type="checkbox" id="auto-approve-checkbox" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2">
+                  <span class="ml-2 text-white text-sm">Automatically approve all requests</span>
+                </label>
+                <p class="text-gray-400 text-xs mt-2">When enabled, all signing requests will be automatically approved without confirmation.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Peers Section -->
+      <section class="bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-2xl font-semibold text-white mb-4">Connected Peers</h2>
+
+        <div id="peer-list-container">
+          <p id="peer-list-empty" class="text-gray-400 text-sm mb-4">No peers connected.</p>
+          <ul id="peer-list" class="space-y-2"></ul>
+        </div>
+      </section>
+
+      <!-- Activity Log Section -->
+      <section class="bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-2xl font-semibold text-white mb-4">Activity Log</h2>
+        <div id="activity-log" class="space-y-2 bg-gray-900 p-4 rounded-md">
+          <p class="text-gray-400 text-sm">No activity yet.</p>
+        </div>
+      </section>
+
+      <!-- Developer Tools -->
+      <section class="bg-gray-800 rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-semibold text-white mb-4">Developer Tools</h2>
+
+        <div class="flex flex-wrap gap-3">
+          <button id="removePeer" class="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition">
+            Remove First Peer
+          </button>
+          <button id="reset" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+            Reset and Refresh
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Approval Modal -->
+    <div id="approval-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+      <div class="bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+        <!-- Modal Header -->
+        <div class="bg-gray-900 px-6 py-4 border-b border-gray-700">
+          <h3 id="modal-title" class="text-xl font-semibold text-white"></h3>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="px-6 py-4 overflow-y-auto max-h-[60vh]">
+          <div id="modal-content" class="space-y-4"></div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="bg-gray-900 px-6 py-4 border-t border-gray-700 flex gap-3 justify-end">
+          <button id="modal-reject" class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition font-medium">
+            Reject
+          </button>
+          <button id="modal-approve" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-medium">
+            Approve
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as taquito from 'https://esm.sh/@taquito/taquito@23.0.1?bundle'
+      import { InMemorySigner } from 'https://esm.sh/@taquito/signer@23.0.1?bundle'
+      import * as bip39 from 'https://esm.sh/bip39@3.1.0?bundle'
+
+      window.taquito = taquito
+      window.taquitoSigner = { InMemorySigner }
+      window.bip39 = bip39
+
+      // Activity Log Functions
+      const logActivity = (type, message, isAuto = false, payload = null) => {
+        const logContainer = document.getElementById('activity-log')
+        const now = new Date()
+        const timestamp = now.toLocaleTimeString()
+        const fullTimestamp = now.toLocaleString()
+
+        // Remove "no activity" message if it exists
+        const noActivityMsg = logContainer.querySelector('p.text-gray-400')
+        if (noActivityMsg && noActivityMsg.textContent === 'No activity yet.') {
+          logContainer.innerHTML = ''
+        }
+
+        const logEntry = document.createElement('div')
+        logEntry.className = 'p-3 bg-gray-800 border border-gray-700 rounded-md text-sm'
+
+        let typeColor = 'text-blue-400'
+        let typeLabel = type
+        if (type === 'PermissionRequest') {
+          typeColor = 'text-green-400'
+          typeLabel = 'Permission Request'
+        } else if (type === 'SignPayloadRequest') {
+          typeColor = 'text-yellow-400'
+          typeLabel = 'Sign Payload Request'
+        } else if (type === 'OperationRequest') {
+          typeColor = 'text-purple-400'
+          typeLabel = 'Operation Request'
+        } else if (type === 'System') {
+          typeColor = 'text-blue-400'
+          typeLabel = 'System'
+        }
+
+        let payloadHtml = ''
+        if (payload) {
+          const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2)
+          payloadHtml = `
+            <div class="mt-2 pt-2 border-t border-gray-700">
+              <div class="text-gray-500 text-xs mb-1">Payload:</div>
+              <pre class="text-gray-300 text-xs font-mono bg-gray-900 p-2 rounded overflow-x-auto max-h-64 overflow-y-auto">${payloadStr}</pre>
+            </div>
+          `
+        }
+
+        logEntry.innerHTML = `
+          <div class="flex items-start justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <span class="${typeColor} font-semibold">${typeLabel}</span>
+              ${isAuto ? '<span class="px-2 py-0.5 bg-green-600 text-white text-xs rounded">AUTO</span>' : '<span class="px-2 py-0.5 bg-blue-600 text-white text-xs rounded">MANUAL</span>'}
+            </div>
+            <span class="text-gray-500 text-xs" title="${fullTimestamp}">${timestamp}</span>
+          </div>
+          <div class="text-gray-400 text-xs">${message}</div>
+          ${payloadHtml}
+        `
+
+        logContainer.insertBefore(logEntry, logContainer.firstChild)
+
+        // Keep only last 50 entries
+        while (logContainer.children.length > 50) {
+          logContainer.removeChild(logContainer.lastChild)
+        }
+      }
+
+      const isAutoApproveEnabled = () => {
+        return document.getElementById('auto-approve-checkbox').checked
+      }
+
+      // Approval Modal Functions
+      const showApprovalModal = (title, content) => {
+        return new Promise((resolve) => {
+          const modal = document.getElementById('approval-modal')
+          const modalTitle = document.getElementById('modal-title')
+          const modalContent = document.getElementById('modal-content')
+          const approveBtn = document.getElementById('modal-approve')
+          const rejectBtn = document.getElementById('modal-reject')
+
+          modalTitle.textContent = title
+          modalContent.innerHTML = content
+
+          modal.classList.remove('hidden')
+
+          const cleanup = () => {
+            modal.classList.add('hidden')
+            approveBtn.replaceWith(approveBtn.cloneNode(true))
+            rejectBtn.replaceWith(rejectBtn.cloneNode(true))
+          }
+
+          document.getElementById('modal-approve').addEventListener('click', () => {
+            cleanup()
+            resolve(true)
+          })
+
+          document.getElementById('modal-reject').addEventListener('click', () => {
+            cleanup()
+            resolve(false)
+          })
+
+          // Close on ESC key
+          const escHandler = (e) => {
+            if (e.key === 'Escape') {
+              cleanup()
+              resolve(false)
+              document.removeEventListener('keydown', escHandler)
+            }
+          }
+          document.addEventListener('keydown', escHandler)
+        })
+      }
+
+      const formatPayload = (payload) => {
+        if (!payload) return 'N/A'
+        const str = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2)
+        return str.length > 500 ? str.substring(0, 500) + '...' : str
+      }
+
+      const getAutoApproveMode = () => {
+        return localStorage.getItem('wallet-auto-approve-mode') === 'true'
+      }
+
+      const saveAutoApproveMode = (enabled) => {
+        localStorage.setItem('wallet-auto-approve-mode', enabled ? 'true' : 'false')
+      }
+
+      const initializeAutoApproveMode = () => {
+        const checkbox = document.getElementById('auto-approve-checkbox')
+        const savedMode = getAutoApproveMode()
+        checkbox.checked = savedMode
+
+        checkbox.addEventListener('change', (event) => {
+          saveAutoApproveMode(event.target.checked)
+          logActivity('System', `Auto-approve mode ${event.target.checked ? 'ENABLED' : 'DISABLED'}`, false)
+        })
+      }
+
+
+      const resolveRpcUrl = (networkLike) => {
+        const selectedNetwork = BeaconUtils.getSelectedNetwork()
+
+        // For CUSTOM network, use the input value
+        if (selectedNetwork === beacon.NetworkType.CUSTOM) {
+          const customUrl = document.getElementById('customRpcUrl').value
+          if (!customUrl) {
+            alert('Please enter an RPC URL for the custom network')
+            return null
+          }
+          return customUrl
+        }
+        if (networkLike && typeof networkLike === 'object') {
+          if (networkLike.rpcUrl) {
+            return networkLike.rpcUrl
+          }
+          if (networkLike.type) {
+            return resolveRpcUrl(networkLike.type)
+          }
+        }
+
+        const networkType =
+          typeof networkLike === 'string' && networkLike ? networkLike : BeaconUtils.getSelectedNetwork()
+
+        switch (networkType) {
+          case beacon.NetworkType.GHOSTNET:
+          case 'ghostnet':
+            return 'https://rpc.ghostnet.teztnets.com'
+          case beacon.NetworkType.WEEKLYNET:
+          case 'weeklynet':
+            return 'https://rpc.weeklynet-2025-09-24.teztnets.com'
+          case beacon.NetworkType.MAINNET:
+          case 'mainnet':
+          default:
+            return 'https://mainnet.api.tez.ie'
+        }
+      }
+
+
+
+      // Initialize client with selected network
+      let client
+      let walletSigner = null
+      let walletAddress = null
+      let walletPublicKey = null
+      let walletMnemonic = null
+      let peerRefreshInterval = null
+      let balanceRefreshInterval = null
+      const signRequestTimings = new Map()
+
+      const protocolSelect = document.getElementById('walletProtocolSelect')
+      if (protocolSelect) {
+        protocolSelect.addEventListener('change', (event) => {
+          BeaconUtils.applyProtocolVersion(event.target.value)
+        })
+      }
+
+      BeaconUtils.applyProtocolVersion(BeaconUtils.getStoredProtocolVersion(), { silent: true })
+
+      const hasBip39 = () => !!(window.bip39 && typeof window.bip39.generateMnemonic === 'function')
+      const isValidMnemonic = (mnemonic) => {
+        if (!mnemonic) {
+          return false
+        }
+        if (window.bip39 && typeof window.bip39.validateMnemonic === 'function') {
+          try {
+            return window.bip39.validateMnemonic(mnemonic)
+          } catch (validationError) {
+            console.warn('Failed to validate mnemonic, regenerating', validationError)
+            return false
+          }
+        }
+        return true
+      }
+
+      // Show/hide wallet setup UI
+      const showWalletSetup = () => {
+        document.getElementById('wallet-setup-container').style.display = 'block'
+        document.getElementById('wallet-info-container').style.display = 'none'
+        document.getElementById('paste').disabled = true
+        document.getElementById('paste').classList.add('opacity-50', 'cursor-not-allowed')
+      }
+
+      const showWalletInfo = () => {
+        document.getElementById('wallet-setup-container').style.display = 'none'
+        document.getElementById('wallet-info-container').style.display = 'block'
+        document.getElementById('paste').disabled = false
+        document.getElementById('paste').classList.remove('opacity-50', 'cursor-not-allowed')
+      }
+
+      const setWalletError = (message) => {
+        const errorEl = document.getElementById('wallet-setup-error')
+        errorEl.textContent = message
+        errorEl.style.display = message ? 'block' : 'none'
+      }
+
+      // Initialize or restore wallet
+      const initWallet = async (mnemonicToImport = null, privateKeyToImport = null) => {
+        console.log('initWallet called');
+        try {
+          setWalletError('')
+
+          // Handle private key import
+          if (privateKeyToImport) {
+            console.log('Importing wallet from private key')
+
+            if (!window.taquitoSigner || !window.taquitoSigner.InMemorySigner) {
+              throw new Error('Taquito signer library is required')
+            }
+
+            walletSigner = await window.taquitoSigner.InMemorySigner.fromSecretKey(privateKeyToImport)
+            walletAddress = await walletSigner.publicKeyHash()
+            walletPublicKey = await walletSigner.publicKey()
+            walletMnemonic = null // No mnemonic for private key imports
+
+            // Store the private key
+            localStorage.setItem('walletPrivateKey', privateKeyToImport)
+
+            console.log('Wallet initialized from private key:', {
+              address: walletAddress,
+              publicKey: walletPublicKey
+            })
+
+            showWalletInfo()
+            displayWalletInfo()
+            await updateBalance()
+            startBalanceRefresh()
+            return { address: walletAddress, publicKey: walletPublicKey }
+          }
+
+          // Check if we have a stored private key
+          const storedPrivateKey = localStorage.getItem('walletPrivateKey')
+          if (storedPrivateKey && !mnemonicToImport) {
+            return initWallet(null, storedPrivateKey)
+          }
+
+          // Check if we have a stored mnemonic or an import
+          const storedMnemonic = mnemonicToImport || localStorage.getItem('walletMnemonic')
+
+          if (storedMnemonic && isValidMnemonic(storedMnemonic)) {
+            walletMnemonic = storedMnemonic
+            console.log('Restoring wallet from', mnemonicToImport ? 'import' : 'stored mnemonic')
+          } else {
+            if (storedMnemonic) {
+              throw new Error('Invalid mnemonic provided')
+            }
+            // No wallet exists - show setup UI
+            showWalletSetup()
+            return null
+          }
+
+          // Store mnemonic if it's an import
+          if (mnemonicToImport) {
+            localStorage.setItem('walletMnemonic', walletMnemonic)
+            localStorage.removeItem('walletPrivateKey') // Clear any stored private key
+          }
+
+          // Create signer from mnemonic
+          console.log('Checking for taquitoSigner:', window.taquitoSigner);
+
+          if (!window.taquitoSigner || !window.taquitoSigner.InMemorySigner) {
+            throw new Error('Taquito signer library is required')
+          }
+          if (!walletMnemonic) {
+            throw new Error('No mnemonic available')
+          }
+
+          console.log('Using Taquito signer from unpkg, creating wallet from mnemonic')
+          console.log('Mnemonic to use:', walletMnemonic)
+          walletSigner = await window.taquitoSigner.InMemorySigner.fromMnemonic({
+            mnemonic: walletMnemonic,
+            password: '',
+            derivationPath: "44'/1729'/0'/0'",
+            curve: 'ed25519'
+          })
+          console.log('Signer created:', walletSigner)
+
+          // Get wallet address and public key
+          walletAddress = await walletSigner.publicKeyHash()
+          walletPublicKey = await walletSigner.publicKey()
+
+          console.log('Wallet initialized:', {
+            address: walletAddress,
+            publicKey: walletPublicKey
+          })
+
+          // Display wallet info
+          showWalletInfo()
+          displayWalletInfo()
+
+          // Update balance and start polling
+          await updateBalance()
+          startBalanceRefresh()
+
+          return { address: walletAddress, publicKey: walletPublicKey }
+        } catch (error) {
+          console.error('Error initializing wallet:', error)
+          setWalletError(error.message || 'Failed to initialize wallet')
+          showWalletSetup()
+          return null
+        }
+      }
+
+      // Generate new wallet
+      const generateNewWallet = async () => {
+        try {
+          if (!hasBip39()) {
+            throw new Error('bip39 library is required to generate mnemonic')
+          }
+          const newMnemonic = await window.bip39.generateMnemonic(256)
+          if (!newMnemonic || !window.bip39.validateMnemonic(newMnemonic)) {
+            throw new Error('Unable to generate a valid mnemonic')
+          }
+          localStorage.setItem('walletMnemonic', newMnemonic)
+          await initWallet()
+        } catch (error) {
+          console.error('Error generating wallet:', error)
+          setWalletError(error.message || 'Failed to generate wallet')
+        }
+      }
+
+      // Import wallet from mnemonic
+      const importWallet = async () => {
+        const mnemonicInput = document.getElementById('import-mnemonic').value.trim()
+        if (!mnemonicInput) {
+          setWalletError('Please enter a mnemonic')
+          return
+        }
+        if (!isValidMnemonic(mnemonicInput)) {
+          setWalletError('Invalid mnemonic phrase')
+          return
+        }
+        await initWallet(mnemonicInput)
+      }
+
+      // Import wallet from private key
+      const importPrivateKey = async () => {
+        const privateKeyInput = document.getElementById('import-privatekey').value.trim()
+        if (!privateKeyInput) {
+          setWalletError('Please enter a private key')
+          return
+        }
+        if (!privateKeyInput.startsWith('edsk')) {
+          setWalletError('Private key must start with "edsk"')
+          return
+        }
+        await initWallet(null, privateKeyInput)
+      }
+
+      // Load demo wallet
+      const loadDemoWallet = async () => {
+        const demoMnemonic = 'sniff raven pudding mercy like culture vendor disorder strategy length cost any harvest enjoy merit recall coil pass family ozone glove predict work ticket'
+        await initWallet(demoMnemonic)
+      }
+
+      const initClient = async () => {
+        const selectedNetwork = BeaconUtils.getSelectedNetwork()
+        console.log('Initializing wallet client with network:', selectedNetwork)
+
+        if (client) {
+          console.log('Destroying old wallet client')
+          await client.destroy()
+        }
+
+        client = new beacon.WalletClient({
+          name: 'Example Wallet', // Name of the Wallet
+          appUrl: window.location.origin, // URL of the wallet
+          iconUrl: 'https://beacon-cdn.airgap.it/favicon.png', // Icon for the wallet
+          disableDefaultEvents: false
+        })
+
+        await client.init()
+        console.log('Wallet client initialized with network:', selectedNetwork)
+
+        await refreshPeers()
+        startPeerPolling()
+
+        // Initialize wallet after client
+        try {
+          await initWallet()
+        } catch (error) {
+          console.error('Failed to initialize wallet:', error)
+        }
+
+        const respondWithError = (message, errorType = beacon.BeaconErrorType.ABORTED_ERROR) => {
+          if (!message || !message.id) {
+            return
+          }
+          client.respond({
+            type: beacon.BeaconMessageType.Error,
+            id: message.id,
+            errorType
+          })
+        }
+
+        const handlePermissionRequest = async (message) => {
+          if (!walletPublicKey || !walletAddress) {
+            console.error('Wallet not initialized')
+            return respondWithError(message)
+          }
+
+          const isAuto = isAutoApproveEnabled()
+          logActivity('PermissionRequest', `App: ${message.appMetadata?.name || 'Unknown'}, Network: ${message.network?.type || 'Unknown'}`, isAuto, {
+            app: message.appMetadata?.name,
+            network: message.network?.type,
+            scopes: ['operation_request', 'sign', 'encrypt', 'notification']
+          })
+
+          if (!isAuto) {
+            const content = `
+              <div class="space-y-3">
+                <div>
+                  <div class="text-xs text-gray-400 mb-1">Application</div>
+                  <div class="text-white font-medium">${message.appMetadata?.name || 'Unknown'}</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-400 mb-1">Network</div>
+                  <div class="text-white font-medium">${message.network?.type || 'Unknown'}</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-400 mb-1">Requested Scopes</div>
+                  <div class="text-white text-sm">Operation Request, Sign, Encrypt, Notification</div>
+                </div>
+              </div>
+            `
+            const confirmed = await showApprovalModal('Permission Request', content)
+            if (!confirmed) {
+              logActivity('PermissionRequest', 'REJECTED by user', false)
+              return respondWithError(message)
+            }
+          }
+
+          const response = {
+            type: beacon.BeaconMessageType.PermissionResponse,
+            network: message.network,
+            scopes: [
+              beacon.PermissionScope.OPERATION_REQUEST,
+              beacon.PermissionScope.NOTIFICATION,
+              beacon.PermissionScope.ENCRYPT,
+              beacon.PermissionScope.SIGN
+            ],
+            id: message.id,
+            publicKey: walletPublicKey,
+            address: walletAddress,
+            appMetadata: {
+              senderId: message.senderId || 'example-wallet',
+              name: 'Example Wallet',
+              icon: 'https://beacon-cdn.airgap.it/favicon.png'
+            }
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+          client.respond(response)
+        }
+
+        const handleSignPayloadRequest = async (message) => {
+          if (!walletSigner) {
+            console.error('Wallet signer unavailable')
+            return respondWithError(message)
+          }
+          if (typeof message.payload !== 'string') {
+            console.error('Invalid payload provided by dApp', message.payload)
+            return respondWithError(message, beacon.BeaconErrorType.PARAMETERS_INVALID_ERROR)
+          }
+
+          const payloadToSign = message.payload.startsWith('0x') ? message.payload.slice(2) : message.payload
+          const payloadPreview = payloadToSign.length > 40 ? payloadToSign.substring(0, 40) + '...' : payloadToSign
+          const isAuto = isAutoApproveEnabled()
+
+          logActivity('SignPayloadRequest', `Type: ${message.signingType || 'raw'}`, isAuto, message.payload)
+
+          if (!isAuto) {
+            const content = `
+              <div class="space-y-3">
+                <div>
+                  <div class="text-xs text-gray-400 mb-1">Signing Type</div>
+                  <div class="text-white font-medium">${message.signingType || 'raw'}</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-400 mb-1">Payload to Sign</div>
+                  <div class="bg-gray-900 p-3 rounded border border-gray-700 font-mono text-xs text-white break-all max-h-48 overflow-y-auto">${formatPayload(message.payload)}</div>
+                </div>
+                <div class="bg-yellow-900/30 border border-yellow-700/50 rounded-md p-3">
+                  <div class="text-yellow-200 text-xs">⚠️ Verify the payload before signing</div>
+                </div>
+              </div>
+            `
+            const confirmed = await showApprovalModal('Sign Payload Request', content)
+            if (!confirmed) {
+              logActivity('SignPayloadRequest', 'REJECTED by user', false)
+              return respondWithError(message)
+            }
+          }
+
+          try {
+            const signatureResult = await walletSigner.sign(payloadToSign)
+            const signature = signatureResult.prefixSig || signatureResult.sig || signatureResult.signature
+
+            if (!signature) {
+              throw new Error('Signer did not return a signature')
+            }
+
+            client.respond({
+              type: beacon.BeaconMessageType.SignPayloadResponse,
+              id: message.id,
+              signingType: message.signingType,
+              signature
+            })
+          } catch (signError) {
+            console.error('Failed to sign payload:', signError)
+            respondWithError(message, beacon.BeaconErrorType.UNKNOWN_ERROR)
+          }
+        }
+
+        const handleOperationRequest = async (message) => {
+          if (!walletSigner || !walletAddress) {
+            console.error('Wallet not initialized for operations')
+            return respondWithError(message)
+          }
+
+          const operationSummary = message.operationDetails?.map(op => `${op.kind}${op.destination ? ' to ' + op.destination.substring(0, 8) + '...' : ''}`).join(', ') || 'Unknown'
+          const isAuto = isAutoApproveEnabled()
+
+          logActivity('OperationRequest', `Operations: ${operationSummary}`, isAuto, message.operationDetails)
+
+          if (!isAuto) {
+            const operationsHtml = message.operationDetails?.map((op, index) => {
+              let details = `<div class="text-xs text-gray-400 mb-1">Operation ${index + 1}</div>`
+              details += `<div class="bg-gray-900 p-3 rounded border border-gray-700 text-xs space-y-1">`
+              details += `<div><span class="text-gray-400">Kind:</span> <span class="text-white font-medium">${op.kind}</span></div>`
+              if (op.destination) {
+                details += `<div><span class="text-gray-400">To:</span> <span class="text-white font-mono">${op.destination}</span></div>`
+              }
+              if (op.amount) {
+                const amountTez = parseInt(op.amount) / 1000000
+                details += `<div><span class="text-gray-400">Amount:</span> <span class="text-white">${amountTez} ꜩ</span></div>`
+              }
+              if (op.parameters) {
+                details += `<div><span class="text-gray-400">Parameters:</span> <pre class="text-white mt-1 text-xs overflow-x-auto">${formatPayload(op.parameters)}</pre></div>`
+              }
+              details += `</div>`
+              return details
+            }).join('') || '<div class="text-white">No operation details</div>'
+
+            const content = `
+              <div class="space-y-3">
+                ${operationsHtml}
+                <div class="bg-yellow-900/30 border border-yellow-700/50 rounded-md p-3">
+                  <div class="text-yellow-200 text-xs">⚠️ Review operations carefully before approving</div>
+                </div>
+              </div>
+            `
+            const confirmed = await showApprovalModal('Operation Request', content)
+            if (!confirmed) {
+              logActivity('OperationRequest', 'REJECTED by user', false)
+              return respondWithError(message)
+            }
+          }
+
+          const toOptionalNumber = (value) => {
+            if (value === undefined || value === null || value === '') {
+              return undefined
+            }
+            if (typeof value === 'number') {
+              return value
+            }
+            const parsed = Number(value)
+            return Number.isFinite(parsed) ? parsed : undefined
+          }
+
+          const mapOperationToWalletParams = (operation) => {
+            const source = operation.source || walletAddress
+            const fee = toOptionalNumber(operation.fee)
+            const gasLimit = toOptionalNumber(operation.gas_limit ?? operation.gasLimit)
+            const storageLimit = toOptionalNumber(operation.storage_limit ?? operation.storageLimit)
+
+            switch (operation.kind) {
+              case beacon.TezosOperationType.TRANSACTION: {
+                if (!operation.destination) {
+                  throw new Error('Transaction operation missing destination')
+                }
+                const amount = toOptionalNumber(operation.amount)
+                return {
+                  kind: taquito.OpKind.TRANSACTION,
+                  to: operation.destination,
+                  amount: amount ?? 0,
+                  mutez: true,
+                  source,
+                  fee,
+                  gasLimit,
+                  storageLimit,
+                  parameter: operation.parameters
+                }
+              }
+              case beacon.TezosOperationType.DELEGATION:
+                return {
+                  kind: taquito.OpKind.DELEGATION,
+                  source,
+                  delegate: operation.delegate,
+                  fee,
+                  gasLimit,
+                  storageLimit
+                }
+              case beacon.TezosOperationType.REVEAL:
+                return {
+                  kind: taquito.OpKind.REVEAL,
+                  source,
+                  publicKey: operation.public_key || operation.publicKey || walletPublicKey,
+                  fee,
+                  gasLimit,
+                  storageLimit
+                }
+              case beacon.TezosOperationType.ORIGINATION:
+                const balance = toOptionalNumber(operation.balance)
+                return {
+                  kind: taquito.OpKind.ORIGINATION,
+                  source,
+                  balance: balance ?? 0,
+                  code: operation.script?.code,
+                  init: operation.script?.storage,
+                  fee,
+                  gasLimit,
+                  storageLimit
+                }
+              default:
+                throw new Error(`Unsupported operation kind: ${operation.kind}`)
+            }
+          }
+
+          try {
+            if (!Array.isArray(message.operationDetails) || message.operationDetails.length === 0) {
+              throw new Error('No operation details provided')
+            }
+
+            const rpcUrl = resolveRpcUrl(message.network)
+            const tezos = new taquito.TezosToolkit(rpcUrl)
+            tezos.setProvider({ signer: walletSigner })
+
+            const operations = message.operationDetails.map(mapOperationToWalletParams)
+
+            setStatus('Broadcasting operation...')
+            const batch = tezos.wallet.batch(operations)
+            const operationResult = await batch.send()
+            const transactionHash = operationResult.opHash || operationResult.hash
+
+            if (!transactionHash) {
+              throw new Error('Operation result did not contain a transaction hash')
+            }
+
+            client.respond({
+              type: beacon.BeaconMessageType.OperationResponse,
+              id: message.id,
+              transactionHash
+            })
+
+            try {
+              await operationResult.confirmation(1)
+              updateBalance()
+            } catch (confirmationError) {
+              console.warn('Operation confirmation failed or timed out:', confirmationError)
+            }
+          } catch (operationError) {
+            console.error('Failed to handle operation request:', operationError)
+            respondWithError(message, beacon.BeaconErrorType.UNKNOWN_ERROR)
+          }
+        }
+
+        client
+          .connect(async (message) => {
+            setStatus('Handling request...')
+            console.log('message', message)
+
+            await refreshPeers()
+
+            if (message.type === beacon.BeaconMessageType.SignPayloadRequest) {
+              const payloadString = typeof message.payload === 'string' ? message.payload : ''
+              const normalized = payloadString.startsWith('0x')
+                ? payloadString.slice(2)
+                : payloadString
+              const sizeBytes = Math.floor(normalized.length / 2)
+              signRequestTimings.set(message.id, {
+                receivedAt: performance.now(),
+                sizeBytes
+              })
+              console.log(
+                `[perf][wallet] Received sign payload request ${message.id} (~${(
+                  sizeBytes / 1024
+                ).toFixed(2)}KB)`
+              )
+            }
+
+            switch (message.type) {
+              case beacon.BeaconMessageType.PermissionRequest:
+                await handlePermissionRequest(message)
+                break
+              case beacon.BeaconMessageType.SignPayloadRequest:
+                await handleSignPayloadRequest(message)
+                break
+              case beacon.BeaconMessageType.OperationRequest:
+                await handleOperationRequest(message)
+                break
+              default:
+                console.error('Unsupported message type received in demo wallet:', message.type)
+                console.error('Received: ', message)
+                respondWithError(message)
+                break
+            }
+
+            if (message.type === beacon.BeaconMessageType.SignPayloadRequest) {
+              const timing = signRequestTimings.get(message.id)
+              if (timing) {
+                const duration = performance.now() - timing.receivedAt
+                const protocolVersion =
+                  typeof beacon.getPreferredMessageProtocolVersion === 'function'
+                    ? beacon.getPreferredMessageProtocolVersion()
+                    : BeaconUtils.getStoredProtocolVersion()
+                console.log(
+                  `[perf][wallet] Completed sign payload request ${message.id} in ${duration.toFixed(
+                    2
+                  )}ms (payload ${(timing.sizeBytes / 1024).toFixed(2)}KB, protocol v${protocolVersion})`
+                )
+                signRequestTimings.delete(message.id)
+              }
+            }
+
+            setStatus('')
+          })
+          .catch((error) => console.error('connect error', error))
+      }
+
+      const setStatus = (status) => {
+        const statusEl = document.getElementById('status')
+        statusEl.innerText = status ? 'Status: ' + status : ''
+        statusEl.className = status ? 'text-sm text-blue-400 font-medium' : 'text-sm text-gray-400'
+      }
+
+
+      // Function to display wallet info
+      const displayWalletInfo = async () => {
+        try {
+          console.log('Displaying wallet info:', { walletAddress, walletMnemonic });
+          const container = document.getElementById('wallet-info-container')
+          const addressElement = document.getElementById('wallet-address')
+          const mnemonicElement = document.getElementById('wallet-mnemonic')
+
+          if (!container || !addressElement || !mnemonicElement) {
+            console.error('Required DOM elements not found');
+            return;
+          }
+
+          // Update address
+          addressElement.textContent = walletAddress || 'No address generated'
+
+          // Update explorer link
+          const selectedNetwork = BeaconUtils.getSelectedNetwork()
+          const explorerUrl = await BeaconUtils.getExplorerUrlForAddress(walletAddress, selectedNetwork, null)
+          const explorerLink = document.getElementById('wallet-explorer')
+          explorerLink.href = explorerUrl
+          explorerLink.textContent = explorerUrl
+          document.getElementById('wallet-explorer-wrapper').classList.remove('hidden')
+
+          // Update RPC
+          const rpcUrl = resolveRpcUrl(selectedNetwork)
+          document.getElementById('wallet-rpc').textContent = rpcUrl
+          document.getElementById('wallet-rpc-wrapper').classList.remove('hidden')
+
+          // Update mnemonic (hide section if no mnemonic - e.g., private key import)
+          if (walletMnemonic) {
+            mnemonicElement.textContent = walletMnemonic
+            document.getElementById('wallet-mnemonic-section').style.display = 'block'
+          } else {
+            document.getElementById('wallet-mnemonic-section').style.display = 'none'
+          }
+
+          container.style.display = 'block'
+
+          console.log('Wallet info displayed successfully')
+        } catch (error) {
+          console.error('Error displaying wallet info:', error)
+        }
+      }
+
+      // Function to update balance
+      const updateBalance = async () => {
+        try {
+          const selectedNetwork = BeaconUtils.getSelectedNetwork()
+          const customRpcUrl = document.getElementById('customRpcUrl').value
+          const balance = await BeaconUtils.fetchBalance(walletAddress, selectedNetwork, customRpcUrl)
+
+          const balanceElement = document.getElementById('wallet-balance')
+          balanceElement.textContent = balance
+        } catch (error) {
+          console.error('Error fetching balance:', error)
+          document.getElementById('wallet-balance').textContent = 'Error'
+        }
+      }
+
+      // Start balance polling
+      const startBalanceRefresh = () => {
+        // Clear any existing interval
+        if (balanceRefreshInterval) {
+          BeaconUtils.stopBalanceRefresh(balanceRefreshInterval)
+        }
+
+        const selectedNetwork = BeaconUtils.getSelectedNetwork()
+        const customRpcUrl = document.getElementById('customRpcUrl').value
+
+        // Set up new interval to refresh balance every 5 seconds
+        balanceRefreshInterval = BeaconUtils.startBalanceRefresh(
+          walletAddress,
+          selectedNetwork,
+          customRpcUrl,
+          'wallet-balance',
+          5000
+        )
+      }
+
+      // Stop balance polling
+      const stopBalanceRefresh = () => {
+        if (balanceRefreshInterval) {
+          BeaconUtils.stopBalanceRefresh(balanceRefreshInterval)
+          balanceRefreshInterval = null
+        }
+      }
+
+      // Add copy functionality for address
+      document.getElementById('copy-address').addEventListener('click', () => {
+        const address = document.getElementById('wallet-address').textContent
+        navigator.clipboard.writeText(address).then(() => {
+          const btn = document.getElementById('copy-address')
+          const originalHTML = btn.innerHTML
+          btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>'
+          btn.title = 'Copied!'
+          setTimeout(() => {
+            btn.innerHTML = originalHTML
+            btn.title = 'Copy address'
+          }, 2000)
+        }).catch(err => {
+          console.error('Failed to copy address:', err)
+        })
+      })
+
+      // Copy mnemonic (without showing it)
+      document.getElementById('copy-mnemonic').addEventListener('click', () => {
+        const mnemonic = document.getElementById('wallet-mnemonic').textContent
+        if (!mnemonic) {
+          console.error('No mnemonic to copy')
+          return
+        }
+        navigator.clipboard.writeText(mnemonic).then(() => {
+          const btn = document.getElementById('copy-mnemonic')
+          const originalText = btn.textContent
+          btn.textContent = 'Copied!'
+          setTimeout(() => {
+            btn.textContent = originalText
+          }, 2000)
+        }).catch(err => {
+          console.error('Failed to copy mnemonic:', err)
+        })
+      })
+
+      // Add event listener to the button
+      document.getElementById('paste').addEventListener('click', () => {
+        const addPeer = (text) => {
+          const serializer = new beacon.Serializer()
+          serializer
+            .deserialize(text)
+            .then((peer) => {
+              console.log('Adding peer', peer)
+              setStatus('Connecting...')
+              client.addPeer(peer).then(async () => {
+                setStatus('Connected')
+                console.log('Peer added')
+                await refreshPeers()
+              })
+            })
+            .catch((e) => {
+              console.error('not a valid sync code: ', text)
+              setStatus('not a valid sync code: ' + text)
+            })
+        }
+        const hiddenInput = document.getElementById('hidden-input')
+        if (hiddenInput && hiddenInput.value) {
+          addPeer(hiddenInput.value)
+        } else {
+          navigator.clipboard.readText().then((clipText) => {
+            addPeer(clipText)
+          })
+        }
+      })
+
+      // Initialize on page load
+      window.addEventListener('load', () => {
+        BeaconUtils.populateNetworkSelect();
+        initializeAutoApproveMode();
+        initClient();
+      });
+
+      // Add network change handler
+      window.addEventListener('load', () => {
+        document.getElementById('networkSelect').addEventListener('change', async (e) => {
+          BeaconUtils.saveSelectedNetwork(e.target.value)
+
+          if (e.target.value === beacon.NetworkType.CUSTOM) {
+            // Show empty RPC input for custom network
+            document.getElementById('customRpcContainer').style.display = 'block'
+            document.getElementById('customRpcUrl').value = localStorage.getItem('tezosCustomRpcUrl') || ''
+          } else {
+            // Hide RPC input for standard networks
+            document.getElementById('customRpcContainer').style.display = 'none'
+          }
+
+          stopBalanceRefresh()
+          await initClient()
+          // Update balance for new network
+          if (walletAddress) {
+            await updateBalance()
+            startBalanceRefresh()
+          }
+        })
+
+        // Save RPC URL changes
+        document.getElementById('customRpcUrl').addEventListener('change', (e) => {
+          localStorage.setItem('tezosCustomRpcUrl', e.target.value)
+        })
+      })
+
+      // Add event listeners after load
+      window.addEventListener('load', () => {
+        // Tab switching
+        const switchTab = (showSection, activeTab) => {
+          document.getElementById('import-mnemonic-section').style.display = 'none'
+          document.getElementById('import-privatekey-section').style.display = 'none'
+          document.getElementById('demo-section').style.display = 'none'
+          document.getElementById(showSection).style.display = 'block'
+
+          document.getElementById('tab-mnemonic').classList.remove('bg-blue-600', 'text-white')
+          document.getElementById('tab-mnemonic').classList.add('text-gray-400')
+          document.getElementById('tab-privatekey').classList.remove('bg-blue-600', 'text-white')
+          document.getElementById('tab-privatekey').classList.add('text-gray-400')
+          document.getElementById('tab-demo').classList.remove('bg-blue-600', 'text-white')
+          document.getElementById('tab-demo').classList.add('text-gray-400')
+
+          document.getElementById(activeTab).classList.add('bg-blue-600', 'text-white')
+          document.getElementById(activeTab).classList.remove('text-gray-400')
+        }
+
+        document.getElementById('tab-mnemonic').addEventListener('click', () => {
+          switchTab('import-mnemonic-section', 'tab-mnemonic')
+        })
+
+        document.getElementById('tab-privatekey').addEventListener('click', () => {
+          switchTab('import-privatekey-section', 'tab-privatekey')
+        })
+
+        document.getElementById('tab-demo').addEventListener('click', () => {
+          switchTab('demo-section', 'tab-demo')
+        })
+
+        // Add event listener to import wallet button (mnemonic)
+        document.getElementById('import-wallet-btn').addEventListener('click', () => {
+          importWallet()
+        })
+
+        // Add event listener to import private key button
+        document.getElementById('import-privatekey-btn').addEventListener('click', () => {
+          importPrivateKey()
+        })
+
+        // Add event listener to generate wallet button
+        document.getElementById('generate-wallet-btn').addEventListener('click', () => {
+          generateNewWallet()
+        })
+
+        // Add event listener to demo wallet button
+        document.getElementById('demo-wallet-btn').addEventListener('click', () => {
+          loadDemoWallet()
+        })
+
+        // Add event listener to the logout/reset button
+        document.getElementById('logout-wallet').addEventListener('click', () => {
+          if (confirm('This will delete your wallet mnemonic and all data. Make sure you have backed it up! Continue?')) {
+            stopBalanceRefresh()
+            localStorage.removeItem('walletMnemonic')
+            localStorage.removeItem('walletPrivateKey')
+            walletSigner = null
+            walletAddress = null
+            walletPublicKey = null
+            walletMnemonic = null
+            showWalletSetup()
+            document.getElementById('import-mnemonic').value = ''
+            document.getElementById('import-privatekey').value = ''
+            if (client) {
+              client.destroy().then(() => {
+                initClient()
+              })
+            }
+          }
+        })
+
+        // Add event listener to the reset button
+        document.getElementById('reset').addEventListener('click', () => {
+          if (confirm('This will delete your wallet mnemonic. Make sure you have backed it up! Continue?')) {
+            localStorage.removeItem('walletMnemonic')
+            client.destroy().then(() => {
+              window.location.reload()
+            })
+          }
+        })
+
+        // Add event listener to the button
+        document.getElementById('removePeer').addEventListener('click', () => {
+          client.getPeers().then((peers) => {
+            if (peers.length > 0) {
+              client.removePeer(peers[0], true).then(async () => {
+                console.log('peer removed', peers[0])
+                await refreshPeers()
+              })
+            } else {
+              console.log('no peers to be removed')
+            }
+          })
+        })
+      })
+
+
+      const refreshPeers = async () => {
+        if (!client) {
+          return
+        }
+
+        const listElement = document.getElementById('peer-list')
+        const emptyIndicator = document.getElementById('peer-list-empty')
+
+        if (!listElement || !emptyIndicator) {
+          return
+        }
+
+        try {
+          const peers = await client.getPeers()
+
+          listElement.textContent = ''
+
+          if (!peers || peers.length === 0) {
+            emptyIndicator.style.display = 'block'
+            return
+          }
+
+          emptyIndicator.style.display = 'none'
+
+          peers.forEach((peer) => {
+            const item = document.createElement('li')
+            item.className = 'flex items-center justify-between gap-4 p-3 bg-gray-700 rounded-md border border-gray-600'
+
+            const detailsWrapper = document.createElement('div')
+            detailsWrapper.className = 'flex-1 min-w-0'
+
+            const primaryLabel = peer.name || peer.appName || peer.label || 'Unnamed peer'
+            const title = document.createElement('div')
+            title.textContent = primaryLabel
+            title.className = 'font-semibold text-white truncate'
+            detailsWrapper.appendChild(title)
+
+            const detailParts = []
+            if (peer.publicKey) {
+              detailParts.push(peer.publicKey)
+            }
+            if (peer.senderId) {
+              detailParts.push(peer.senderId)
+            }
+            if (!detailParts.length && peer.id) {
+              detailParts.push(peer.id)
+            }
+
+            if (detailParts.length) {
+              const subtitle = document.createElement('div')
+              subtitle.textContent = detailParts.join(' · ')
+              subtitle.className = 'text-xs text-gray-400 truncate mt-1'
+              detailsWrapper.appendChild(subtitle)
+            }
+
+            // Add protocol version indicator
+            const protocolVersion = peer.protocolVersion ?? 1
+            const protocolSpan = document.createElement('span')
+            protocolSpan.textContent = `v${protocolVersion}${!peer.protocolVersion ? ' (default)' : ''}`
+            protocolSpan.className = 'inline-block px-2 py-1 bg-blue-600 text-white rounded-full text-xs mt-1'
+            detailsWrapper.appendChild(protocolSpan)
+
+            item.appendChild(detailsWrapper)
+
+            const removeBtn = document.createElement('button')
+            removeBtn.textContent = 'Remove'
+            removeBtn.className = 'px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition flex-shrink-0'
+            removeBtn.addEventListener('click', async () => {
+              const identifier = primaryLabel
+              try {
+                setStatus(`Removing ${identifier}...`)
+                await client.removePeer(peer, true)
+                setStatus('')
+                await refreshPeers()
+              } catch (removeError) {
+                console.error('Failed to remove peer:', removeError)
+                setStatus('')
+              }
+            })
+
+            item.appendChild(removeBtn)
+            listElement.appendChild(item)
+          })
+        } catch (error) {
+          console.error('Failed to refresh peers:', error)
+        }
+      }
+
+      const startPeerPolling = () => {
+        if (peerRefreshInterval) {
+          clearInterval(peerRefreshInterval)
+        }
+
+        peerRefreshInterval = window.setInterval(() => {
+          refreshPeers()
+        }, 2500)
+      }
+    </script>
+  </body>
+</html>
