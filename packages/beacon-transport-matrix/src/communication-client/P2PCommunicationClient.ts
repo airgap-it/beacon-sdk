@@ -714,9 +714,7 @@ export class P2PCommunicationClient extends CommunicationClient {
       if (error?.errcode === 'M_FORBIDDEN' && error?.error?.includes('already in the room')) {
         logger.log(`sendPairingResponse`, `M_FORBIDDEN during room creation, finding existing room instead`, error)
         roomWasReused = true
-        // The wallet user is already in a room on the Matrix server.
-        // Instead of trying to create a new room (which will fail), find the existing room.
-        // First, clear our local state to force a fresh lookup
+        // Handle 403 response when invite was sent. Find the existing room, but first, clear our local state to force a fresh lookup
         const roomIds = await this.storage.get(StorageKey.MATRIX_PEER_ROOM_IDS)
         const oldRoomId = roomIds[recipient]
         if (oldRoomId) {
