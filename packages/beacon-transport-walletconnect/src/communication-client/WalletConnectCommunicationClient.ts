@@ -113,6 +113,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   private messageIds: string[] = []
 
+  /**
+   * Tracks the last time session extension was attempted (Unix timestamp in seconds)
+   * Used to prevent duplicate re-extension attempts that can cause relay conflicts
+   */
+  private lastExtensionAttempt: number = 0
+
   constructor(
     private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
     private isLeader: Function
@@ -198,6 +204,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.removeAllListeners('session_update')
     this.signClient?.removeAllListeners('session_delete')
     this.signClient?.removeAllListeners('session_expire')
+    this.signClient?.removeAllListeners('session_extend')
+    this.signClient?.removeAllListeners('proposal_expire')
     this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
     this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
   }
@@ -436,6 +444,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.SIGN)) {
       throw new MissingRequiredScope(PermissionScopeMethods.SIGN)
     }
+
+    // Extend session if needed before making request
+    await this.checkAndExtendSession()
+
     const network = this.getActiveNetwork()
     const account = await this.getAccountOrPK()
     this.validateNetworkAndAccount(network, account)
@@ -498,6 +510,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.OPERATION_REQUEST)) {
       throw new MissingRequiredScope(PermissionScopeMethods.OPERATION_REQUEST)
     }
+
+    // Extend session if needed before making request
+    await this.checkAndExtendSession()
+
     const network = this.getActiveNetwork()
     const account = await this.getAccountOrPK()
     this.validateNetworkAndAccount(network, account)
@@ -605,6 +621,9 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
         this.session = restoredSession
         this.updateStorageWallet(this.session)
         this.setDefaultAccountAndNetwork()
+
+        // Check if session needs extension (within 24 hours of expiry)
+        await this.checkAndExtendSession()
 
         return undefined
       } else {
@@ -820,6 +839,25 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     signClient.core.pairing.events.on('pairing_expire', (event) => {
       this.disconnectionEvents.add('pairing_expire')
       this.disconnect(signClient, { type: 'pairing', topic: event.topic })
+    })
+
+    signClient.on('proposal_expire', (event) => {
+      logger.debug('Session proposal expired (5 min timeout)', event.id)
+      // Clean up any pending proposal state
+      // This prevents UI from waiting forever after connection timeout
+    })
+
+    signClient.on('session_extend', (event) => {
+      logger.debug('Session extended', event.topic)
+      // Session was extended by 7 days
+      // Update our session reference if it matches
+      if (this.session && this.session.topic === event.topic) {
+        const updatedSession = signClient.session.get(event.topic)
+        if (updatedSession) {
+          this.session = updatedSession
+          logger.log('Active session extended, new expiry:', new Date(updatedSession.expiry * 1000))
+        }
+      }
     })
   }
 
@@ -1467,6 +1505,74 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.session = undefined
     this.activeAccountOrPbk = undefined
     this.activeNetwork = undefined
+    this.lastExtensionAttempt = 0
+  }
+
+  /**
+   * @description Checks if session is close to expiry and extends it if needed
+   * Extends session by 7 days if it will expire within 24 hours
+   * Uses defensive error handling to prevent relay message conflicts (TrustWallet issue)
+   */
+  private async checkAndExtendSession(): Promise<void> {
+    try {
+      if (!this.session) {
+        return
+      }
+
+      const signClient = await this.getSignClient()
+      if (!signClient) {
+        return
+      }
+
+      const ONE_HOUR_IN_SECONDS = 3600
+      const ONE_DAY_IN_SECONDS = 86400
+      const now = Math.floor(Date.now() / 1000)
+      const timeUntilExpiry = this.session.expiry - now
+      const timeSinceLastExtension = now - this.lastExtensionAttempt
+
+      // Skip if we recently attempted extension (within last hour)
+      if (timeSinceLastExtension < ONE_HOUR_IN_SECONDS && this.lastExtensionAttempt > 0) {
+        logger.debug('Skipping session extension - recently attempted', {
+          minutesSinceLastAttempt: (timeSinceLastExtension / 60).toFixed(1)
+        })
+        return
+      }
+
+      // If session expires in the next 24 hours, extend it
+      if (timeUntilExpiry < ONE_DAY_IN_SECONDS && timeUntilExpiry > 0) {
+        logger.log('Session expires soon, extending...', {
+          topic: this.session.topic,
+          currentExpiry: new Date(this.session.expiry * 1000),
+          hoursRemaining: (timeUntilExpiry / 3600).toFixed(1)
+        })
+
+        // Update attempt timestamp before calling extend
+        this.lastExtensionAttempt = now
+
+        try {
+          await signClient.extend({ topic: this.session.topic })
+
+          // Update our session reference with new expiry
+          const updatedSession = signClient.session.get(this.session.topic)
+          if (updatedSession) {
+            this.session = updatedSession
+            logger.log('Session extended successfully', {
+              newExpiry: new Date(updatedSession.expiry * 1000)
+            })
+          }
+        } catch (extendErr: any) {
+          // Log but don't throw - session might still be valid for a while
+          // This error may be harmless (e.g., "No matching key" from duplicate relay messages)
+          logger.warn('Session extension failed, continuing anyway', {
+            error: extendErr.message,
+            remainingHours: (timeUntilExpiry / 3600).toFixed(1)
+          })
+        }
+      }
+    } catch (err: any) {
+      // Catch any unexpected errors to ensure extension never blocks operations
+      logger.error('Unexpected error in checkAndExtendSession', err.message)
+    }
   }
 
   /**
@@ -1475,8 +1581,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    * @returns true if session is valid, false if stale/expired
    */
   private async isSessionValid(session: SessionTypes.Struct): Promise<boolean> {
-    // Check 1: Session has not expired
-    // session.expiry is in seconds, Date.now() is in milliseconds
+    // Check if Session is expired
     const now = Math.floor(Date.now() / 1000)
     if (session.expiry <= now) {
       logger.warn('Session validation failed: session expired', {
@@ -1486,7 +1591,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       return false
     }
 
-    // Check 2: Wallet is still responsive (ping test)
+    // Check if Wallet is still responsive
     try {
       const signClient = await this.getSignClient()
       if (!signClient) {
@@ -1519,7 +1624,7 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       logger.debug('Stale session cleaned up successfully', session.topic)
     } catch (err: any) {
       logger.warn('Error cleaning up stale session', err.message)
-      // Continue even if cleanup fails - session is stale anyway
+      // Continue even if cleanup fails - session is stale
     }
   }
 }
