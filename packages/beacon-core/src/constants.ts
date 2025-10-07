@@ -1,4 +1,4 @@
-export const SDK_VERSION: string = '4.6.1'
+export const SDK_VERSION: string = '5.0.0-alpha.0'
 export const BEACON_VERSION: string = '3'
 export const PROTOCOL_VERSION_V1 = 1
 export const PROTOCOL_VERSION_V2 = 2

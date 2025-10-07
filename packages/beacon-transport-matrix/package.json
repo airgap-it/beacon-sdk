@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-transport-matrix",
-  "version": "4.6.1",
+  "version": "5.0.0-alpha.0",
   "description": "This package contains methods to facilitate communication over the Beacon network, a decentralised P2P network that is based on the matrix protocol.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -34,7 +34,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "4.6.1",
+    "@airgap/beacon-core": "5.0.0-alpha.0",
     "@airgap/beacon-utils": "4.6.1",
     "axios": "^1.8.4"
   }
