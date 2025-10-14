@@ -810,7 +810,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     signClient.on('session_update', (event) => {
-      this.disconnectionEvents.add('session_update')
       const session = signClient.session.get(event.topic)
 
       if (!session) {
@@ -833,18 +832,17 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.disconnect(signClient, { type: 'session', topic: event.topic })
     })
     signClient.core.pairing.events.on('pairing_delete', (event) => {
-      this.disconnectionEvents.add('pairing_delete')
-      this.disconnect(signClient, { type: 'pairing', topic: event.topic })
+      logger.debug('Pairing deleted', { topic: event.topic })
+      // Don't disconnect session - pairings can be deleted while sessions remain active
+      // Sessions communicate directly through the relay after initial pairing
     })
     signClient.core.pairing.events.on('pairing_expire', (event) => {
-      this.disconnectionEvents.add('pairing_expire')
-      this.disconnect(signClient, { type: 'pairing', topic: event.topic })
+      logger.debug('Pairing expired', { topic: event.topic })
+      // Don't disconnect session - pairings expire, but sessions can outlive them. Only disconnect on session_expire/session_delete
     })
 
     signClient.on('proposal_expire', (event) => {
-      logger.debug('Session proposal expired (5 min timeout)', event.id)
-      // Clean up any pending proposal state
-      // This prevents UI from waiting forever after connection timeout
+      logger.debug('Session proposal expired', event.id)
     })
 
     signClient.on('session_extend', (event) => {
@@ -920,18 +918,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     } catch {}
   }
 
-  private async disconnect(
-    signClient: Client,
-    trigger: { type: 'session'; topic: string } | { type: 'pairing'; topic: string }
-  ) {
-    let session
-    if (trigger.type === 'session') {
-      session = await this.onSessionClosed(signClient, trigger.topic)
-    }
-
-    if (trigger.type === 'pairing') {
-      session = await this.onPairingClosed(signClient, trigger.topic)
-    }
+  private async disconnect(signClient: Client, trigger: { type: 'session'; topic: string }) {
+    const session = await this.onSessionClosed(signClient, trigger.topic)
 
     if (!this.activeAccountOrPbk) {
       const fun = this.eventHandlers.get(ClientEvents.RESET_STATE)
@@ -947,37 +935,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       type: BeaconMessageType.Disconnect
     })
     this.clearState()
-  }
-
-  private async onPairingClosed(
-    signClient: Client,
-    topic: string
-  ): Promise<SessionTypes.Struct | undefined> {
-    const session =
-      this.session?.pairingTopic === topic
-        ? this.session
-        : signClient.session
-            .getAll()
-            .find((session: SessionTypes.Struct) => session.pairingTopic === topic)
-
-    if (!session) {
-      return undefined
-    }
-
-    try {
-      await signClient.disconnect({
-        topic: session.topic,
-        reason: {
-          code: -1, // TODO: Use constants
-          message: 'Pairing deleted'
-        }
-      })
-    } catch (error: any) {
-      // If the session was already closed, `disconnect` will throw an error.
-      logger.warn(error)
-    }
-
-    return session
   }
 
   private async onSessionClosed(
