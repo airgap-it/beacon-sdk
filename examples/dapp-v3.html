@@ -122,7 +122,8 @@
       // Initiate DAppClient
       const client = new beacon.DAppClient({
         name: 'Example DApp', // Name of the DApp,
-        disclaimerText: 'This is an optional <b>disclaimer</b>.',
+        termsAndConditionsUrl: 'https://example.com/terms',
+        privacyPolicyUrl: 'https://example.com/privacy',
         appUrl: 'http://localhost:8080',
         walletConnectOptions: {
           projectId: '97f804b46f0db632c52af0556586a5f3',

@@ -217,7 +217,9 @@ export class DAppClient extends Client {
 
   private readonly appMetadataManager: AppMetadataManager
 
-  private readonly disclaimerText?: string
+  private readonly termsAndConditionsUrl?: string
+
+  private readonly privacyPolicyUrl?: string
 
   private readonly errorMessages: Record<string, Record<string | number, string>>
 
@@ -251,7 +253,8 @@ export class DAppClient extends Client {
     this.network = config.network ?? { type: config.preferredNetwork ?? NetworkType.MAINNET }
     setColorMode(config.colorMode ?? ColorMode.LIGHT)
 
-    this.disclaimerText = config.disclaimerText
+    this.termsAndConditionsUrl = config.termsAndConditionsUrl
+    this.privacyPolicyUrl = config.privacyPolicyUrl
 
     this.errorMessages = config.errorMessages ?? {}
 
@@ -912,9 +915,10 @@ export class DAppClient extends Client {
               walletConnectPeerInfo,
               networkType: this.network.type,
               abortedHandler: abortHandler.bind(this),
-              disclaimerText: this.disclaimerText,
               analytics: this.analytics,
               featuredWallets: this.featuredWallets,
+              termsAndConditionsUrl: this.termsAndConditionsUrl,
+              privacyPolicyUrl: this.privacyPolicyUrl,
               substratePairing
             })
             .catch((emitError) => console.warn(emitError))

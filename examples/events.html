@@ -36,7 +36,8 @@
       // Initiate DAppClient
       const client = new beacon.DAppClient({
         name: 'Beacon Events', // Name of the DApp,
-        disclaimerText: 'This is an optional <b>disclaimer</b>.'
+        termsAndConditionsUrl: 'https://example.com/terms',
+        privacyPolicyUrl: 'https://example.com/privacy'
       })
 
       const events = client.events.callbackMap

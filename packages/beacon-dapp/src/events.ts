@@ -210,9 +210,10 @@ export interface BeaconEventType {
     walletConnectPeerInfo: Promise<string>
     networkType: NetworkType
     abortedHandler?(): void
-    disclaimerText?: string
     analytics: AnalyticsInterface
     featuredWallets?: string[]
+    termsAndConditionsUrl?: string
+    privacyPolicyUrl?: string
     substratePairing?: boolean
   }
   [BeaconEvent.PAIR_SUCCESS]:
@@ -521,9 +522,10 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
     },
     // eslint-disable-next-line @typescript-eslint/unbound-method
     closeButtonCallback: data.abortedHandler,
-    disclaimerText: data.disclaimerText,
     analytics: data.analytics,
     featuredWallets: data.featuredWallets,
+    termsAndConditionsUrl: data.termsAndConditionsUrl,
+    privacyPolicyUrl: data.privacyPolicyUrl,
     substratePairing: data.substratePairing
   }
   openAlert(alertConfig)

@@ -25,9 +25,10 @@ export interface AlertConfig {
   buttons?: AlertButton[]
   pairingPayload?: PairingPayload
   closeButtonCallback?: () => void
-  disclaimerText?: string
   analytics?: AnalyticsInterface
   featuredWallets?: string[]
+  termsAndConditionsUrl?: string
+  privacyPolicyUrl?: string
   openBugReport?: boolean
   substratePairing?: boolean
 }
@@ -47,6 +48,8 @@ export interface AlertProps {
   onClickShowMore?: () => void
   onBackClick?: () => void
   closeOnBackdropClick: boolean
+  termsAndConditionsUrl?: string
+  privacyPolicyUrl?: string
 }
 
 export interface PairingPayload {
