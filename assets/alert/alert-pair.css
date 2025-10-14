@@ -22,8 +22,7 @@
 .theme__light .beacon-list__title {
   color: #7c828b;
 }
-.theme__dark .beacon-list__title,
-.theme__dark #beacon--disclaimer {
+.theme__dark .beacon-list__title {
   color: #7c99d6;
 }
 
@@ -82,11 +81,6 @@
   opacity: 0.48;
 }
 
-#beacon--disclaimer {
-  text-align: left;
-  padding-top: 24px;
-  font-size: 0.875rem;
-}
 .progress-line,
 .progress-line:before {
   height: 3px;

@@ -97,9 +97,14 @@ export interface DAppClientOptions {
   colorMode?: ColorMode
 
   /**
-   * A disclaimer text that will be displayed in the pairing alert
+   * A URL to the Terms & Conditions page that will be displayed in the pairing modal
    */
-  disclaimerText?: string
+  termsAndConditionsUrl?: string
+
+  /**
+   * A URL to the Privacy Policy page that will be displayed in the pairing modal
+   */
+  privacyPolicyUrl?: string
 
   /**
    * A list of contracts that the DApp is using. Allows to attach human readable error messages for to error codes
