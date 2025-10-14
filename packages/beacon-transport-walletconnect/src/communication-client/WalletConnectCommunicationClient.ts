@@ -113,6 +113,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
    */
   private messageIds: string[] = []
 
+  /**
+   * Tracks the last time session extension was attempted (Unix timestamp in seconds)
+   * Used to prevent duplicate re-extension attempts that can cause relay conflicts
+   */
+  private lastExtensionAttempt: number = 0
+
   constructor(
     private wcOptions: { network: NetworkType; opts: SignClientTypes.Options },
     private isLeader: Function
@@ -176,9 +182,18 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const lastIndex = client.session.keys.length - 1
 
     if (lastIndex > -1) {
-      this.session = client.session.get(client.session.keys[lastIndex])
-      this.updateStorageWallet(this.session)
-      this.setDefaultAccountAndNetwork()
+      const restoredSession = client.session.get(client.session.keys[lastIndex])
+
+      // Validate session is not stale
+      if (await this.isSessionValid(restoredSession)) {
+        this.session = restoredSession
+        this.updateStorageWallet(this.session)
+        this.setDefaultAccountAndNetwork()
+      } else {
+        logger.warn('Restored session is stale during refresh, cleaning up')
+        await this.cleanupStaleSession(restoredSession)
+        this.clearState()
+      }
     } else {
       this.clearState()
     }
@@ -189,6 +204,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.signClient?.removeAllListeners('session_update')
     this.signClient?.removeAllListeners('session_delete')
     this.signClient?.removeAllListeners('session_expire')
+    this.signClient?.removeAllListeners('session_extend')
+    this.signClient?.removeAllListeners('proposal_expire')
     this.signClient?.core.pairing.events.removeAllListeners('pairing_delete')
     this.signClient?.core.pairing.events.removeAllListeners('pairing_expire')
   }
@@ -427,6 +444,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.SIGN)) {
       throw new MissingRequiredScope(PermissionScopeMethods.SIGN)
     }
+
+    // Extend session if needed before making request
+    await this.checkAndExtendSession()
+
     const network = this.getActiveNetwork()
     const account = await this.getAccountOrPK()
     this.validateNetworkAndAccount(network, account)
@@ -489,6 +510,10 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     if (!this.getPermittedMethods().includes(PermissionScopeMethods.OPERATION_REQUEST)) {
       throw new MissingRequiredScope(PermissionScopeMethods.OPERATION_REQUEST)
     }
+
+    // Extend session if needed before making request
+    await this.checkAndExtendSession()
+
     const network = this.getActiveNetwork()
     const account = await this.getAccountOrPK()
     this.validateNetworkAndAccount(network, account)
@@ -589,11 +614,23 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     const lastIndex = signClient.session.keys.length - 1
 
     if (lastIndex > -1) {
-      this.session = signClient.session.get(signClient.session.keys[lastIndex])
-      this.updateStorageWallet(this.session)
-      this.setDefaultAccountAndNetwork()
+      const restoredSession = signClient.session.get(signClient.session.keys[lastIndex])
 
-      return undefined
+      // Validate session is not stale
+      if (await this.isSessionValid(restoredSession)) {
+        this.session = restoredSession
+        this.updateStorageWallet(this.session)
+        this.setDefaultAccountAndNetwork()
+
+        // Check if session needs extension (within 24 hours of expiry)
+        await this.checkAndExtendSession()
+
+        return undefined
+      } else {
+        logger.warn('Restored session is stale, cleaning up and creating new connection')
+        await this.cleanupStaleSession(restoredSession)
+        // Fall through to create new connection below
+      }
     }
 
     logger.warn('before create')
@@ -773,7 +810,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     })
 
     signClient.on('session_update', (event) => {
-      this.disconnectionEvents.add('session_update')
       const session = signClient.session.get(event.topic)
 
       if (!session) {
@@ -796,12 +832,30 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       this.disconnect(signClient, { type: 'session', topic: event.topic })
     })
     signClient.core.pairing.events.on('pairing_delete', (event) => {
-      this.disconnectionEvents.add('pairing_delete')
-      this.disconnect(signClient, { type: 'pairing', topic: event.topic })
+      logger.debug('Pairing deleted', { topic: event.topic })
+      // Don't disconnect session - pairings can be deleted while sessions remain active
+      // Sessions communicate directly through the relay after initial pairing
     })
     signClient.core.pairing.events.on('pairing_expire', (event) => {
-      this.disconnectionEvents.add('pairing_expire')
-      this.disconnect(signClient, { type: 'pairing', topic: event.topic })
+      logger.debug('Pairing expired', { topic: event.topic })
+      // Don't disconnect session - pairings expire, but sessions can outlive them. Only disconnect on session_expire/session_delete
+    })
+
+    signClient.on('proposal_expire', (event) => {
+      logger.debug('Session proposal expired', event.id)
+    })
+
+    signClient.on('session_extend', (event) => {
+      logger.debug('Session extended', event.topic)
+      // Session was extended by 7 days
+      // Update our session reference if it matches
+      if (this.session && this.session.topic === event.topic) {
+        const updatedSession = signClient.session.get(event.topic)
+        if (updatedSession) {
+          this.session = updatedSession
+          logger.log('Active session extended, new expiry:', new Date(updatedSession.expiry * 1000))
+        }
+      }
     })
   }
 
@@ -864,18 +918,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     } catch {}
   }
 
-  private async disconnect(
-    signClient: Client,
-    trigger: { type: 'session'; topic: string } | { type: 'pairing'; topic: string }
-  ) {
-    let session
-    if (trigger.type === 'session') {
-      session = await this.onSessionClosed(signClient, trigger.topic)
-    }
-
-    if (trigger.type === 'pairing') {
-      session = await this.onPairingClosed(signClient, trigger.topic)
-    }
+  private async disconnect(signClient: Client, trigger: { type: 'session'; topic: string }) {
+    const session = await this.onSessionClosed(signClient, trigger.topic)
 
     if (!this.activeAccountOrPbk) {
       const fun = this.eventHandlers.get(ClientEvents.RESET_STATE)
@@ -891,37 +935,6 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       type: BeaconMessageType.Disconnect
     })
     this.clearState()
-  }
-
-  private async onPairingClosed(
-    signClient: Client,
-    topic: string
-  ): Promise<SessionTypes.Struct | undefined> {
-    const session =
-      this.session?.pairingTopic === topic
-        ? this.session
-        : signClient.session
-            .getAll()
-            .find((session: SessionTypes.Struct) => session.pairingTopic === topic)
-
-    if (!session) {
-      return undefined
-    }
-
-    try {
-      await signClient.disconnect({
-        topic: session.topic,
-        reason: {
-          code: -1, // TODO: Use constants
-          message: 'Pairing deleted'
-        }
-      })
-    } catch (error: any) {
-      // If the session was already closed, `disconnect` will throw an error.
-      logger.warn(error)
-    }
-
-    return session
   }
 
   private async onSessionClosed(
@@ -1449,5 +1462,126 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
     this.session = undefined
     this.activeAccountOrPbk = undefined
     this.activeNetwork = undefined
+    this.lastExtensionAttempt = 0
+  }
+
+  /**
+   * @description Checks if session is close to expiry and extends it if needed
+   * Extends session by 7 days if it will expire within 24 hours
+   * Uses defensive error handling to prevent relay message conflicts (TrustWallet issue)
+   */
+  private async checkAndExtendSession(): Promise<void> {
+    try {
+      if (!this.session) {
+        return
+      }
+
+      const signClient = await this.getSignClient()
+      if (!signClient) {
+        return
+      }
+
+      const ONE_HOUR_IN_SECONDS = 3600
+      const ONE_DAY_IN_SECONDS = 86400
+      const now = Math.floor(Date.now() / 1000)
+      const timeUntilExpiry = this.session.expiry - now
+      const timeSinceLastExtension = now - this.lastExtensionAttempt
+
+      // Skip if we recently attempted extension (within last hour)
+      if (timeSinceLastExtension < ONE_HOUR_IN_SECONDS && this.lastExtensionAttempt > 0) {
+        logger.debug('Skipping session extension - recently attempted', {
+          minutesSinceLastAttempt: (timeSinceLastExtension / 60).toFixed(1)
+        })
+        return
+      }
+
+      // If session expires in the next 24 hours, extend it
+      if (timeUntilExpiry < ONE_DAY_IN_SECONDS && timeUntilExpiry > 0) {
+        logger.log('Session expires soon, extending...', {
+          topic: this.session.topic,
+          currentExpiry: new Date(this.session.expiry * 1000),
+          hoursRemaining: (timeUntilExpiry / 3600).toFixed(1)
+        })
+
+        // Update attempt timestamp before calling extend
+        this.lastExtensionAttempt = now
+
+        try {
+          await signClient.extend({ topic: this.session.topic })
+
+          // Update our session reference with new expiry
+          const updatedSession = signClient.session.get(this.session.topic)
+          if (updatedSession) {
+            this.session = updatedSession
+            logger.log('Session extended successfully', {
+              newExpiry: new Date(updatedSession.expiry * 1000)
+            })
+          }
+        } catch (extendErr: any) {
+          // Log but don't throw - session might still be valid for a while
+          // This error may be harmless (e.g., "No matching key" from duplicate relay messages)
+          logger.warn('Session extension failed, continuing anyway', {
+            error: extendErr.message,
+            remainingHours: (timeUntilExpiry / 3600).toFixed(1)
+          })
+        }
+      }
+    } catch (err: any) {
+      // Catch any unexpected errors to ensure extension never blocks operations
+      logger.error('Unexpected error in checkAndExtendSession', err.message)
+    }
+  }
+
+  /**
+   * @description Validates if a restored session is still valid and usable
+   * @param session The session to validate
+   * @returns true if session is valid, false if stale/expired
+   */
+  private async isSessionValid(session: SessionTypes.Struct): Promise<boolean> {
+    // Check if Session is expired
+    const now = Math.floor(Date.now() / 1000)
+    if (session.expiry <= now) {
+      logger.warn('Session validation failed: session expired', {
+        expiry: session.expiry,
+        now
+      })
+      return false
+    }
+
+    // Check if Wallet is still responsive
+    try {
+      const signClient = await this.getSignClient()
+      if (!signClient) {
+        logger.warn('Session validation failed: no sign client available')
+        return false
+      }
+
+      await signClient.ping({ topic: session.topic })
+      logger.debug('Session validation passed: session is valid')
+      return true
+    } catch (err: any) {
+      logger.warn('Session validation failed: ping failed', err.message)
+      return false
+    }
+  }
+
+  /**
+   * @description Cleans up a stale session by disconnecting and removing it
+   * @param session The stale session to cleanup
+   */
+  private async cleanupStaleSession(session: SessionTypes.Struct): Promise<void> {
+    try {
+      const signClient = await this.getSignClient()
+      if (signClient) {
+        await signClient.disconnect({
+          topic: session.topic,
+          reason: getSdkError('USER_DISCONNECTED')
+        })
+      }
+      logger.debug('Stale session cleaned up successfully', session.topic)
+    } catch (err: any) {
+      logger.warn('Error cleaning up stale session', err.message)
+      // Continue even if cleanup fails - session is stale
+    }
   }
 }

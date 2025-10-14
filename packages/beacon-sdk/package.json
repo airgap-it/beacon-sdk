@@ -36,13 +36,13 @@
   "dependencies": {
     "@airgap/beacon-blockchain-substrate": "4.6.2",
     "@airgap/beacon-blockchain-tezos": "4.6.2",
-    "@airgap/beacon-core": "4.6.1",
+    "@airgap/beacon-core": "4.6.2",
     "@airgap/beacon-dapp": "4.6.2",
-    "@airgap/beacon-transport-matrix": "4.6.1",
-    "@airgap/beacon-transport-postmessage": "4.6.1",
-    "@airgap/beacon-types": "4.6.1",
+    "@airgap/beacon-transport-matrix": "4.6.2",
+    "@airgap/beacon-transport-postmessage": "4.6.2",
+    "@airgap/beacon-types": "4.6.2",
     "@airgap/beacon-ui": "4.6.2",
-    "@airgap/beacon-utils": "4.6.1",
-    "@airgap/beacon-wallet": "4.6.1"
+    "@airgap/beacon-utils": "4.6.2",
+    "@airgap/beacon-wallet": "4.6.2"
   }
 }
