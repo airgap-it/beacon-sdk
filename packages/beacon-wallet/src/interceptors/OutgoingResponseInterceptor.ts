@@ -24,7 +24,9 @@ import {
   PermissionResponseV3,
   BeaconBaseMessage,
   ProofOfEventChallengeResponse,
-  SimulatedProofOfEventChallengeResponse
+  SimulatedProofOfEventChallengeResponse,
+  Blockchain,
+  NetworkType
   // EncryptPayloadResponse
 } from '@airgap/beacon-types'
 import { getAddressFromPublicKey, CONTRACT_PREFIX, isValidAddress } from '@airgap/beacon-utils'
@@ -37,6 +39,7 @@ interface OutgoingResponseInterceptorOptions {
   permissionManager: PermissionManager
   appMetadataManager: AppMetadataManager
   interceptorCallback(message: BeaconMessage): void
+  blockchains: Map<string, Blockchain>
 }
 
 const logger = new Logger('OutgoingResponseInterceptor')
@@ -57,78 +60,105 @@ export class OutgoingResponseInterceptor {
 
   private static async handleV3Message(config: OutgoingResponseInterceptorOptions) {
     const {
-      // senderId,
-      // request,
+      senderId,
+      request,
       message: msg,
-      // ownAppMetadata,
-      // permissionManager,
+      ownAppMetadata,
+      permissionManager,
       appMetadataManager,
-      interceptorCallback
+      interceptorCallback,
+      blockchains
     }: OutgoingResponseInterceptorOptions = config
 
     const wrappedMessage:
       | BeaconMessageWrapper<PermissionResponseV3<string>>
       | BeaconMessageWrapper<BlockchainResponseV3<string>> = msg as any
 
+    logger.log('WRAPPED MESSAGE', wrappedMessage)
+
     const v3Message: PermissionResponseV3<string> | BlockchainResponseV3<string> =
       wrappedMessage.message
 
     logger.log('LOGGING OUTGOING V3', v3Message, appMetadataManager)
 
-    interceptorCallback(msg as any)
+    if (v3Message === undefined) {
+      interceptorCallback(msg as any)
+      return
+    }
 
-    // switch (v3Message.type) {
-    //   case BeaconMessageType.PermissionResponse:
-    //     {
-    //       const response: PermissionResponse = {
-    //         senderId,
-    //         version: BEACON_VERSION,
-    //         appMetadata: ownAppMetadata,
-    //         ...msg
-    //       }
+    const blockchain = blockchains.get(v3Message.blockchainIdentifier)
+    if (blockchain === undefined) {
+      throw new Error(`Blockchain "${v3Message.blockchainIdentifier}" not supported`)
+    }
 
-    //       const publicKey = response.publicKey
+    switch (v3Message.type) {
+      case BeaconMessageType.PermissionResponse:
+        {
+          const response: BeaconMessageWrapper<PermissionResponseV3<string>> = {
+            id: wrappedMessage.id,
+            version: request.version,
+            senderId,
+            message: {
+              blockchainIdentifier: v3Message.blockchainIdentifier,
+              type: BeaconMessageType.PermissionResponse,
+              blockchainData: {
+                ...(v3Message.blockchainData as any),
+                appMetadata: ownAppMetadata
+              }
+            }
+          }
 
-    //       const address: string = await getAddressFromPublicKey(publicKey)
-    //       const appMetadata = await appMetadataManager.getAppMetadata(request.senderId)
-    //       if (!appMetadata) {
-    //         throw new Error('AppMetadata not found')
-    //       }
+          const appMetadata = await appMetadataManager.getAppMetadata(request.senderId)
+          if (!appMetadata) {
+            throw new Error('AppMetadata not found')
+          }
 
-    //       const permission: PermissionInfo = {
-    //         accountIdentifier: await getAccountIdentifier(address, response.network),
-    //         senderId: request.senderId,
-    //         appMetadata,
-    //         website: '',
-    //         address,
-    //         publicKey,
-    //         network: response.network,
-    //         scopes: response.scopes,
-    //         connectedAt: new Date().getTime()
-    //       }
+          const accountInfos = await blockchain.getAccountInfosFromPermissionResponse(response.message)
+          for (const accountInfo of accountInfos) {
+            const permission: PermissionInfo = {
+              accountIdentifier: accountInfo.accountId,
+              senderId: request.senderId,
+              appMetadata,
+              website: '',
+              address: accountInfo.address,
+              publicKey: accountInfo.publicKey,
+              network: accountInfo.network ?? { type: NetworkType.MAINNET },
+              scopes: accountInfo.scopes,
+              connectedAt: new Date().getTime()
+            }
 
-    //       permissionManager.addPermission(permission).catch(console.error)
+            permissionManager.addPermission(permission).catch(console.error)
+          }
 
-    //       interceptorCallback(response)
-    //     }
-    //     break
-    //   case BeaconMessageType.BlockchainResponse:
-    //     {
-    //       // const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
-    //       //   appMetadataManager,
-    //       //   msg.senderId
-    //       // )
-    //       const request: any /* BeaconMessageWrapper<BlockchainRequestV3<string>> */ = {
-    //         ...wrappedMessage
-    //       }
-    //       interceptorCallback(request)
-    //     }
-    //     break
+          interceptorCallback(response as any)
+        }
+        break
+      case BeaconMessageType.BlockchainResponse:
+        {
+          // const appMetadata: AppMetadata = await IncomingRequestInterceptor.getAppMetadata(
+          //   appMetadataManager,
+          //   msg.senderId
+          // )
+          const response: BeaconMessageWrapper<BlockchainResponseV3<string>> = {
+            id: wrappedMessage.id,
+            version: request.version,
+            senderId,
+            message: {
+              blockchainIdentifier: wrappedMessage.message.blockchainIdentifier,
+              type: BeaconMessageType.BlockchainResponse,
+              blockchainData: {
+                ...(wrappedMessage.message.blockchainData as any)
+              }
+            }
+          }
+          interceptorCallback(response as any)
+        }
+        break
 
-    //   default:
-    //     logger.log('intercept', 'Message not handled')
-    //     assertNever(v3Message)
-    // }
+      default:
+        logger.log('intercept', 'Message not handled')
+        assertNever(v3Message)
+    }
   }
 
   private static async handleV2Message(config: OutgoingResponseInterceptorOptions) {
