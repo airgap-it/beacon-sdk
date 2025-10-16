@@ -11,7 +11,8 @@ import {
   AppMetadata,
   BeaconRequestMessage,
   BeaconMessageWrapper,
-  NodeDistributions
+  NodeDistributions,
+  Blockchain
 } from '@airgap/beacon-types'
 import { DEFAULT_PROTOCOL_VERSION } from '../../constants'
 import { BeaconClient } from '../beacon-client/BeaconClient'
@@ -34,6 +35,7 @@ const logger = new Logger('Client')
  */
 export abstract class Client extends BeaconClient {
   protected readonly accountManager: AccountManager
+  protected readonly blockchains: Map<string, Blockchain> = new Map()
 
   protected handleResponse: (
     _event: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage>,
@@ -109,6 +111,22 @@ export abstract class Client extends BeaconClient {
       )
       this.transportListeners.clear()
     }
+  }
+
+  /**
+   * Register a blockchain to the client
+   * @param chain The blockchain to register
+   */
+  public addBlockchain(chain: Blockchain) {
+    this.blockchains.set(chain.identifier, chain)
+  }
+
+  /**
+   * Remove a blockchain from the client by its identifier
+   * @param chainIdentifier The identifier of the blockchain to remove
+   */
+  public removeBlockchain(chainIdentifier: string) {
+    this.blockchains.delete(chainIdentifier)
   }
 
   /**
@@ -323,5 +341,4 @@ export abstract class Client extends BeaconClient {
     const peerVersion = this.extractPeerProtocolVersion(peer)
     return Math.min(peerVersion, localVersion)
   }
-
 }

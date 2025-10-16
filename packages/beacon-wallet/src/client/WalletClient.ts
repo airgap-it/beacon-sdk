@@ -316,7 +316,8 @@ export class WalletClient extends Client {
       appMetadataManager: this.appMetadataManager,
       interceptorCallback: async (response: BeaconMessage): Promise<void> => {
         await this.respondToMessage(response, request[1])
-      }
+      },
+      blockchains: this.blockchains
     })
   }
 
@@ -502,7 +503,8 @@ export class WalletClient extends Client {
       appMetadataManager: this.appMetadataManager,
       interceptorCallback: async (response: BeaconMessage): Promise<void> => {
         await this.respondToMessage(response, connectionContext)
-      }
+      },
+      blockchains: this.blockchains
     })
   }
 

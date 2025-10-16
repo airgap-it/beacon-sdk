@@ -5,7 +5,9 @@ import {
   ExtensionApp,
   DesktopApp,
   WebApp,
-  App
+  App,
+  Network,
+  PermissionScope
 } from '@airgap/beacon-types'
 import { SubstratePermissionResponse } from './types/messages/permission-response'
 import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-lists'
@@ -42,11 +44,19 @@ export class SubstrateBlockchain implements Blockchain {
 
   async getAccountInfosFromPermissionResponse(
     permissionResponse: SubstratePermissionResponse
-  ): Promise<{ accountId: string; address: string; publicKey: string }[]> {
+  ): Promise<{
+    accountId: string;
+    address: string;
+    publicKey: string;
+    network?: Network;
+    scopes: PermissionScope[];
+  }[]> {
     return permissionResponse.blockchainData.accounts.map((account) => ({
       accountId: account.accountId,
       address: account.address,
-      publicKey: account.publicKey
+      publicKey: account.publicKey,
+      network: account.network as any,
+      scopes: permissionResponse.blockchainData.scopes as any
     }))
   }
 }
