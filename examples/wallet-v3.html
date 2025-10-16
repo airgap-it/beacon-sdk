@@ -55,6 +55,7 @@
         // matrixNodes: ['beacon-node-0.papers.tech:8448']
         // matrixNodes: ['beacon.tztip.me']
       })
+      client.addBlockchain(new beacon.SubstrateBlockchain())
 
       const setStatus = (status) => {
         document.getElementById('status').innerHTML = status ? 'Status: ' + status : status
@@ -108,20 +109,21 @@
 
                 const response = {
                   id: message.id,
-                  type: beacon.BeaconMessageType.PermissionResponse,
-                  blockchainData: {
-                    appMetadata: { name: 'Example Wallet' },
-                    scopes: [0],
-                    accounts: [
-                      {
-                        network: { genesisHash: 'xxx' },
-                        addressPrefix: 0,
-                        publicKey:
-                          '3b92229274683b338cf8b040cf91ac0f8e19e410f06eda5537ef077e718e0024'
-                        // should we add a curve type here?
-                      }
-                    ]
+                  message: {
+                    type: beacon.BeaconMessageType.PermissionResponse,
+                    blockchainIdentifier: message.message.blockchainIdentifier,
+                    blockchainData: {
+                      scopes: [0],
+                      accounts: [
+                        {
+                          publicKey: '3b92229274683b338cf8b040cf91ac0f8e19e410f06eda5537ef077e718e0024',
+                          address: '5CSRxJ2mRu2MkdQdGwXBopmSUZU2wsDi7idKzNxVWbrAXXfG'
+                          // should we add a curve type here?
+                        }
+                      ]
+                    }
                   }
+
                 }
 
                 // Let's wait a little to make it more natural (to test the UI on the dApp side)
