@@ -1366,20 +1366,14 @@ export class DAppClient extends Client {
     })
   }
 
-  private blockchains: Map<string, Blockchain> = new Map()
-
-  addBlockchain(chain: Blockchain) {
-    this.blockchains.set(chain.identifier, chain)
+  public override addBlockchain(chain: Blockchain): void {
+    super.addBlockchain(chain)
     chain.getWalletLists().then((walletLists) => {
       setDesktopList(walletLists.desktopList)
       setExtensionList(walletLists.extensionList)
       setWebList(walletLists.webList)
       setiOSList(walletLists.iOSList)
     })
-  }
-
-  removeBlockchain(chainIdentifier: string) {
-    this.blockchains.delete(chainIdentifier)
   }
 
   public async permissionRequest(

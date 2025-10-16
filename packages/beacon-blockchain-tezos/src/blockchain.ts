@@ -6,7 +6,9 @@ import {
   App,
   DesktopApp,
   ExtensionApp,
-  WebApp
+  WebApp,
+  Network,
+  PermissionScope
 } from '@airgap/beacon-types'
 import { desktopList, extensionList, iOSList, webList } from './ui/alert/wallet-lists'
 
@@ -41,7 +43,19 @@ export class TezosBlockchain implements Blockchain {
 
   async getAccountInfosFromPermissionResponse(
     _permissionResponse: PermissionResponseV3<'tezos'>
-  ): Promise<{ accountId: string; address: string; publicKey: string }[]> {
-    return [{ accountId: '', address: '', publicKey: '' }]
+  ): Promise<{
+    accountId: string;
+    address: string;
+    publicKey: string;
+    network?: Network;
+    scopes: PermissionScope[];
+  }[]> {
+    return [{
+      accountId: '',
+      address: '',
+      publicKey: '',
+      network: undefined,
+      scopes: []
+    }]
   }
 }
