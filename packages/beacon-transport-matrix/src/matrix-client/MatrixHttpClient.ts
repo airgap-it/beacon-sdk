@@ -104,6 +104,7 @@ export class MatrixHttpClient {
         headers,
         data,
         params,
+        timeout: 45000,
         cancelToken: this.cancelTokenSource.token
       })
     } catch (error) {
