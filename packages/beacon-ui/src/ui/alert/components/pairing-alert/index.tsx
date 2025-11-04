@@ -20,7 +20,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const p2pPayload = props.pairingPayload!.p2pSyncCode
   const postPayload = props.pairingPayload!.postmessageSyncCode
   const isMobile = useIsMobile()
-  const wallets = useWallets(
+  const { wallets, availableExtensions } = useWallets(
     props.pairingPayload?.networkType,
     !props.substratePairing ? props.featuredWallets : undefined
   )
@@ -179,71 +179,114 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
               gap: '0.9em'
             }}
           >
-            {isOnline && wallet?.types.includes('web') && (
-              <Info
-                border
-                title={`Connect with ${wallet?.name} Web`}
-                description={`(It will open the wallet in a new tab)`}
-                buttons={[
-                  {
-                    label: 'Use Browser',
-                    type: 'primary',
-                    onClick: () => handleNewTab(props, wallet)
+            {isOnline && wallet?.types.includes('web') && (() => {
+              const isDeprecated = wallet.deprecated
+
+              return (
+                <Info
+                  border
+                  title={
+                    isDeprecated
+                      ? `${wallet?.name} Web (No Longer Maintained)`
+                      : `Connect with ${wallet?.name} Web`
                   }
-                ]}
-              />
-            )}
-            {!isMobile && wallet?.types.includes('extension') && (
-              <Info
-                border
-                title={
-                  wallet.firefoxId
-                    ? `Connect with ${wallet?.name} Browser Extension`
-                    : `Install ${wallet?.name} Wallet`
-                }
-                description={
-                  wallet.firefoxId
-                    ? `Please connect below to use your ${wallet?.name} Wallet browser extension.`
-                    : `To connect your ${wallet?.name} Wallet, install the browser extension.`
-                }
-                buttons={
-                  wallet.firefoxId
-                    ? [
-                        {
-                          label: 'Use Extension',
-                          type: 'primary',
-                          onClick: () => handleClickConnectExtension()
-                        }
-                      ]
-                    : [
-                        {
-                          label: 'Install extension',
-                          type: 'primary',
-                          onClick: () => handleClickInstallExtension()
-                        }
-                      ]
-                }
-              />
-            )}
-            {!isMobileOS(window) && wallet?.types.includes('desktop') && (
-              <Info
-                border
-                title={`Connect with ${wallet?.name} Desktop App`}
-                description={`If you don't have the desktop app installed, click below to download it.`}
-                buttons={[
-                  {
-                    label: 'Open desktop app',
-                    type: 'primary',
-                    onClick: () => handleClickOpenDesktopApp()
-                  },
-                  {
-                    label: 'Download desktop app',
-                    type: 'secondary',
-                    onClick: () => handleClickDownloadDesktopApp()
+                  description={
+                    isDeprecated
+                      ? `This wallet is no longer maintained.`
+                      : `(It will open the wallet in a new tab)`
                   }
-                ]}
-              />
-            )}
+                  buttons={[
+                    {
+                      label: 'Use Browser',
+                      type: 'primary',
+                      onClick: () => handleNewTab(props, wallet)
+                    }
+                  ]}
+                />
+              )
+            })()}
+            {!isMobile && wallet?.types.includes('extension') && (() => {
+              // Check if extension is actually installed (not just defined in wallet list)
+              const isExtensionInstalled = props.substratePairing
+                ? false // Substrate wallets don't use extension detection
+                : availableExtensions.some(
+                    (ext) => ext.id === wallet.id || ext.id === wallet.firefoxId
+                  )
+
+              return (
+                <Info
+                  border
+                  title={
+                    isExtensionInstalled
+                      ? `Connect with ${wallet?.name} Browser Extension`
+                      : `Install ${wallet?.name} Wallet`
+                  }
+                  description={
+                    isExtensionInstalled
+                      ? `Please connect below to use your ${wallet?.name} Wallet browser extension.`
+                      : `To connect your ${wallet?.name} Wallet, install the browser extension.`
+                  }
+                  buttons={
+                    isExtensionInstalled
+                      ? [
+                          {
+                            label: 'Use Extension',
+                            type: 'primary',
+                            onClick: () => handleClickConnectExtension()
+                          }
+                        ]
+                      : [
+                          {
+                            label: 'Install extension',
+                            type: 'primary',
+                            onClick: () => handleClickInstallExtension()
+                          }
+                        ]
+                  }
+                />
+              )
+            })()}
+            {!isMobileOS(window) && wallet?.types.includes('desktop') && (() => {
+              const isDeprecated = wallet.deprecated
+
+              return (
+                <Info
+                  border
+                  title={
+                    isDeprecated
+                      ? `${wallet?.name} Desktop App (No Longer Maintained)`
+                      : `Connect with ${wallet?.name} Desktop App`
+                  }
+                  description={
+                    isDeprecated
+                      ? `This wallet is no longer maintained.`
+                      : `If you don't have the desktop app installed, click below to download it.`
+                  }
+                  buttons={
+                    isDeprecated
+                      ? [
+                          {
+                            label: 'Open desktop app',
+                            type: 'primary',
+                            onClick: () => handleClickOpenDesktopApp()
+                          }
+                        ]
+                      : [
+                          {
+                            label: 'Open desktop app',
+                            type: 'primary',
+                            onClick: () => handleClickOpenDesktopApp()
+                          },
+                          {
+                            label: 'Download desktop app',
+                            type: 'secondary',
+                            onClick: () => handleClickDownloadDesktopApp()
+                          }
+                        ]
+                  }
+                />
+              )
+            })()}
             {!isMobileOS(window) &&
               (qrCode?.length ?? 0) > 0 &&
               wallet?.types.includes('ios') &&

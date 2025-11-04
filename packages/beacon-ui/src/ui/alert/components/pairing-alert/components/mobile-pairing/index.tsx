@@ -13,11 +13,21 @@ const MobilePairing: React.FC<any> = ({
   handleDisplayQRExtra,
   onClose
 }) => {
+  const isDeprecated = wallet?.deprecated
+
   return (
     <Info
       border
-      title={`Connect with ${wallet?.name} ${suffixMap.get(wallet?.id) ?? ''}`}
-      description={''}
+      title={
+        isDeprecated
+          ? `${wallet?.name} (No Longer Maintained)`
+          : `Connect with ${wallet?.name} ${suffixMap.get(wallet?.id) ?? ''}`
+      }
+      description={
+        isDeprecated
+          ? 'This wallet is no longer maintained.'
+          : ''
+      }
       buttons={[
         {
           label: 'Use App',
@@ -33,12 +43,14 @@ const MobilePairing: React.FC<any> = ({
         }
       ]}
       downloadLink={
-        wallet?.name.toLowerCase().includes('kukai') && isIOS(window)
-          ? {
-              label: 'Get Kukai Mobile >',
-              url: 'https://ios.kukai.app'
-            }
-          : undefined
+        isDeprecated
+          ? undefined
+          : wallet?.name.toLowerCase().includes('kukai') && isIOS(window)
+            ? {
+                label: 'Get Kukai Mobile >',
+                url: 'https://ios.kukai.app'
+              }
+            : undefined
       }
       onShowQRCodeClick={async () => {
         const syncCode = await (wallet?.supportedInteractionStandards?.includes('wallet_connect')
