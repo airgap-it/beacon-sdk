@@ -1,0 +1,44 @@
+/**
+ * CSS Reset for Shadow DOM
+ *
+ * Prevents host page styles from leaking into the modal.
+ * Even though we use Shadow DOM, inherited properties (font-size, font-family,
+ * line-height, color, etc.) still cross the shadow boundary by design.
+ * This reset establishes a consistent baseline that all component styles build upon.
+ */
+
+.theme__dark,
+.theme__light {
+  /* Reset typography to consistent baseline */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #000;
+
+  /* Reset text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Reset other inherited properties */
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-transform: none;
+  text-align: left;
+  direction: ltr;
+}
+
+.theme__dark {
+  color: #fff;
+}
+
+/* Apply box-sizing to all elements */
+.theme__dark *,
+.theme__dark *::before,
+.theme__dark *::after,
+.theme__light *,
+.theme__light *::before,
+.theme__light *::after {
+  box-sizing: border-box;
+}
