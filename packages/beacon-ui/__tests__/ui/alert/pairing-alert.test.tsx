@@ -170,7 +170,7 @@ async function renderPairingAlert(props: ConfigurableAlertProps): Promise<Render
 describe('PairingAlert Component', () => {
   beforeEach(() => {
     ;(useIsMobile as jest.Mock).mockReturnValue(false)
-    ;(useWallets as jest.Mock).mockReturnValue(walletsMap)
+    ;(useWallets as jest.Mock).mockReturnValue({ wallets: walletsMap, availableExtensions: [] })
     ;(useConnect as jest.Mock).mockReturnValue(defaultUseConnect)
     Object.defineProperty(window.navigator, 'onLine', { value: true, writable: true })
     localStorage.clear()
@@ -191,6 +191,10 @@ describe('PairingAlert Component', () => {
     })
 
     test('renders Info components for web, extension, and desktop branches', async () => {
+      // Mock that the extension is installed to see "Connect with" instead of "Install"
+      const mockAvailableExtensions = [{ id: walletObj.id, name: walletObj.name }]
+      ;(useWallets as jest.Mock).mockReturnValue({ wallets: walletsMap, availableExtensions: mockAvailableExtensions })
+
       await renderPairingAlert(defaultProps)
       const infoTitles = screen.getAllByTestId('info').map((el) => el.textContent)
       expect(infoTitles).toEqual(
@@ -214,7 +218,7 @@ describe('PairingAlert Component', () => {
     test('renders QR component with isMobile true when wallet.types length equals 1', async () => {
       const iosWallet = { ...walletObj, types: ['ios'] }
       const walletsMapSingle = new Map([['wallet1', iosWallet]])
-      ;(useWallets as jest.Mock).mockReturnValue(walletsMapSingle)
+      ;(useWallets as jest.Mock).mockReturnValue({ wallets: walletsMapSingle, availableExtensions: [] })
       const connectReturn = [...defaultUseConnect]
       connectReturn[0] = iosWallet
       connectReturn[3] = 'install'
@@ -236,7 +240,11 @@ describe('PairingAlert Component', () => {
       expect(newTabMock).toHaveBeenCalled()
     })
 
-    test('clicking "Use Extension" button calls handleClickConnectExtension when firefoxId exists', async () => {
+    test('clicking "Use Extension" button calls handleClickConnectExtension when extension is installed', async () => {
+      // Mock that the extension is actually installed
+      const mockAvailableExtensions = [{ id: walletObj.id, name: walletObj.name }]
+      ;(useWallets as jest.Mock).mockReturnValue({ wallets: walletsMap, availableExtensions: mockAvailableExtensions })
+
       const clickConnectMock = jest.fn()
       const connectReturn = [...defaultUseConnect]
       connectReturn[3] = 'install'
@@ -251,7 +259,7 @@ describe('PairingAlert Component', () => {
     test('clicking "Install extension" button calls handleClickInstallExtension when firefoxId is missing', async () => {
       const walletNoFirefox = { ...walletObj, firefoxId: undefined }
       const walletsMapNoFirefox = new Map([['wallet1', walletNoFirefox]])
-      ;(useWallets as jest.Mock).mockReturnValue(walletsMapNoFirefox)
+      ;(useWallets as jest.Mock).mockReturnValue({ wallets: walletsMapNoFirefox, availableExtensions: [] })
       const connectReturn = [...defaultUseConnect]
       connectReturn[0] = walletNoFirefox as any
       connectReturn[3] = 'install'
@@ -391,7 +399,7 @@ describe('PairingAlert Component', () => {
         ['wallet1', walletObj],
         ['wallet2', { ...walletObj }]
       ])
-      ;(useWallets as jest.Mock).mockReturnValue(newWalletsMap)
+      ;(useWallets as jest.Mock).mockReturnValue({ wallets: newWalletsMap, availableExtensions: [] })
       const connectReturn = [...defaultUseConnect]
       connectReturn[3] = 'install'
       const updateStateMock = jest.fn()
@@ -465,7 +473,7 @@ describe('PairingAlert Component', () => {
     test('does not render mobile OS branch when wallet does not include ios', async () => {
       const nonIosWallet = { ...walletObj, types: ['web', 'extension', 'desktop'] }
       const walletsMapNonIos = new Map([['wallet1', nonIosWallet]])
-      ;(useWallets as jest.Mock).mockReturnValue(walletsMapNonIos)
+      ;(useWallets as jest.Mock).mockReturnValue({ wallets: walletsMapNonIos, availableExtensions: [] })
       const connectReturn = [...defaultUseConnect]
       connectReturn[0] = nonIosWallet
       connectReturn[3] = 'install'

@@ -7,6 +7,7 @@ export interface AppBase {
   color: string
   logo: string
   supportedInteractionStandards?: ('wallet_connect' | 'beacon')[] // 'wallet_connect' or 'beacon'
+  deprecated?: boolean
 }
 
 export interface ExtensionApp extends AppBase {

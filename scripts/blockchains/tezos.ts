@@ -34,7 +34,8 @@ export const tezosExtensionList: ExtensionApp[] = [
     shortName: 'Spire',
     color: '',
     logo: 'extension-spire.png',
-    link: 'https://spirewallet.com/'
+    link: 'https://spirewallet.com/',
+    deprecated: true
   },
   {
     key: 'temple_chrome',
@@ -168,7 +169,8 @@ export const tezosDesktopList: DesktopApp[] = [
     color: '',
     logo: 'desktop-galleon.png',
     deepLink: 'galleon://',
-    downloadLink: 'https://cryptonomic.tech/galleon.html'
+    downloadLink: 'https://cryptonomic.tech/galleon.html',
+    deprecated: true
   },
   {
     key: 'umami_desktop',
@@ -207,7 +209,8 @@ export const tezosIosList: App[] = [
     color: '',
     logo: 'ios-plenty-wallet.png',
     universalLink: 'https://www.naan.app/',
-    deepLink: 'naan://'
+    deepLink: 'naan://',
+    deprecated: true
   },
   {
     key: 'altme_wallet',

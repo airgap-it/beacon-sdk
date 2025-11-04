@@ -45,6 +45,7 @@ const QRCode: React.FC<QRCodeProps> = ({
           code={codeQr}
           onClickLearnMore={() => {}}
           onClickQrCode={() => {}}
+          isDeprecated={wallet?.deprecated || false}
         />
       ) : (
         <WCInitError

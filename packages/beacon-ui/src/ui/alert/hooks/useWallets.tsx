@@ -38,7 +38,8 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
           supportedInteractionStandards: w.supportedInteractionStandards,
           type: 'desktop' as const,
           link: w.downloadLink,
-          deepLink: w.deepLink
+          deepLink: w.deepLink,
+          deprecated: w.deprecated
         })),
 
       // Browser extensions
@@ -50,7 +51,8 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
         description: 'Browser Extension',
         supportedInteractionStandards: w.supportedInteractionStandards,
         type: 'extension' as const,
-        link: w.link
+        link: w.link,
+        deprecated: w.deprecated
       })),
 
       // iOS wallets
@@ -63,7 +65,8 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
         supportedInteractionStandards: w.supportedInteractionStandards,
         type: 'ios' as const,
         link: w.universalLink,
-        deepLink: w.deepLink
+        deepLink: w.deepLink,
+        deprecated: w.deprecated
       })),
 
       // Web wallets (networkType sensitive)
@@ -77,7 +80,8 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
           description: 'Web App',
           supportedInteractionStandards: w.supportedInteractionStandards,
           type: 'web' as const,
-          link: link ?? w.links.mainnet
+          link: link ?? w.links.mainnet,
+          deprecated: w.deprecated
         }
       }),
 
@@ -95,14 +99,35 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
         }))
     ]
 
+    const mergedWallets = mergeWallets(parseWallets(merged))
+
+    // Filter out deprecated wallets based on type
+    const filteredWallets = mergedWallets.filter((wallet) => {
+      if (!wallet.deprecated) {
+        return true // Keep all non-deprecated wallets
+      }
+
+      // For deprecated extension wallets, only keep if actually installed
+      // (extensions can be auto-detected)
+      if (wallet.types.includes('extension')) {
+        return availableExtensions.some((ext) => ext.id === wallet.id || ext.id === wallet.firefoxId)
+      }
+
+      // For deprecated desktop/iOS/web wallets, keep them in the list
+      // (they cannot be auto-detected, so we show them with deprecation message)
+      return true
+    })
+
     return arrangeTopWallets(
-      mergeWallets(parseWallets(merged)),
+      filteredWallets,
       featuredWallets ?? ['kukai', 'temple', 'plenty', 'umami']
     )
   }, [availableExtensions, networkType, featuredWallets])
 
   // Memoize the final Map structure
-  return useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets])
+  const walletsMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets])
+
+  return { wallets: walletsMap, availableExtensions }
 }
 
 export default useWallets

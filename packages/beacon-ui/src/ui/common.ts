@@ -73,6 +73,7 @@ export interface QRProps {
   code: string
   onClickLearnMore?: () => void
   onClickQrCode?: () => void
+  isDeprecated?: boolean
 }
 
 export interface QRCodeProps {
