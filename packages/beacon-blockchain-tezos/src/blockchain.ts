@@ -10,7 +10,10 @@ import {
   Network,
   PermissionScope
 } from '@airgap/beacon-types'
-import { desktopList, extensionList, iOSList, webList } from './ui/alert/wallet-lists'
+import bundledTezosRegistry from '../../beacon-ui/src/data/tezos.json'
+import { loadWalletLists } from '@airgap/beacon-utils'
+
+const { desktopList, extensionList, iOSList, webList } = loadWalletLists(bundledTezosRegistry)
 
 export class TezosBlockchain implements Blockchain {
   public readonly identifier: string = 'xtz'

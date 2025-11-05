@@ -1,13 +1,13 @@
-import { desktopList, extensionList, iOSList, webList } from '../ui/alert/wallet-lists'
 import { DesktopApp, App, ExtensionApp, WebApp } from '@airgap/beacon-types'
+import bundledTezosRegistry from '../data/tezos.json'
 
 /**
  * Initialize with tezos wallets for backwards compatibility
  */
-let localDesktopList: DesktopApp[] = desktopList
-let localExtensionList: ExtensionApp[] = extensionList
-let localWebList: WebApp[] = webList
-let localiOSList: App[] = iOSList
+let localDesktopList: DesktopApp[] = bundledTezosRegistry.desktopList as DesktopApp[]
+let localExtensionList: ExtensionApp[] = bundledTezosRegistry.extensionList as ExtensionApp[]
+let localWebList: WebApp[] = bundledTezosRegistry.webList as WebApp[]
+let localiOSList: App[] = bundledTezosRegistry.iOSList as App[]
 
 export const getDesktopList = (): DesktopApp[] => {
   return localDesktopList

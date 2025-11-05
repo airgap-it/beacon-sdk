@@ -1,12 +1,61 @@
 import { useEffect, useMemo, useState } from 'react'
 import { PostMessageTransport } from '@airgap/beacon-transport-postmessage'
 import { arrangeTopWallets, mergeWallets, parseWallets } from '../../../utils/wallets'
-import { Extension, NetworkType } from '@airgap/beacon-types'
-import { desktopList, extensionList, iOSList, webList } from '../wallet-lists'
+import { Extension, NetworkType, ExtensionApp, DesktopApp, App, WebApp } from '@airgap/beacon-types'
 import { windowRef } from '@airgap/beacon-core'
+import { fetchWalletListsFromGitHub } from '../../../utils/walletListFetcher'
+import bundledTezosRegistry from '../../../data/tezos.json'
+import bundledSubstrateRegistry from '../../../data/substrate.json'
 
-const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
+type Blockchain = 'tezos' | 'substrate'
+
+const BUNDLED_REGISTRIES = {
+  tezos: bundledTezosRegistry,
+  substrate: bundledSubstrateRegistry
+}
+
+const useWallets = (
+  blockchain: Blockchain,
+  networkType?: NetworkType,
+  featuredWallets?: string[],
+  skipGitHubFetch: boolean = false
+) => {
   const [availableExtensions, setAvailableExtensions] = useState<Extension[]>([])
+
+  // Get bundled registry for this blockchain
+  const bundledRegistry = BUNDLED_REGISTRIES[blockchain]
+
+  // Log bundled version on mount
+  useEffect(() => {
+    console.log(
+      `Loaded preshipped wallet list (version ${bundledRegistry.version}, updated ${bundledRegistry.updated})`
+    )
+  }, [blockchain])
+
+  // Start with bundled wallet lists (instant display)
+  const [desktopList, setDesktopList] = useState<DesktopApp[]>(bundledRegistry.desktopList as DesktopApp[])
+  const [extensionList, setExtensionList] = useState<ExtensionApp[]>(bundledRegistry.extensionList as ExtensionApp[])
+  const [iOSList, setIOSList] = useState<App[]>(bundledRegistry.iOSList as App[])
+  const [webList, setWebList] = useState<WebApp[]>(bundledRegistry.webList as WebApp[])
+
+  // Fetch wallet lists from GitHub in background (only if this blockchain is active)
+  useEffect(() => {
+    if (skipGitHubFetch) return
+
+    const loadWalletLists = async () => {
+      const githubRegistry = await fetchWalletListsFromGitHub(blockchain)
+
+      if (githubRegistry) {
+        // Hot-swap to GitHub data when available
+        setDesktopList(githubRegistry.desktopList)
+        setExtensionList(githubRegistry.extensionList)
+        setIOSList(githubRegistry.iOSList)
+        setWebList(githubRegistry.webList)
+      }
+    }
+
+    loadWalletLists()
+  }, [blockchain, skipGitHubFetch])
 
   // Fetch and listen for extension updates
   useEffect(() => {
@@ -122,7 +171,7 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
       filteredWallets,
       featuredWallets ?? ['kukai', 'temple', 'plenty', 'umami']
     )
-  }, [availableExtensions, networkType, featuredWallets])
+  }, [desktopList, extensionList, iOSList, webList, availableExtensions, networkType, featuredWallets])
 
   // Memoize the final Map structure
   const walletsMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets])

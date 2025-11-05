@@ -10,7 +10,10 @@ import {
   PermissionScope
 } from '@airgap/beacon-types'
 import { TezosSaplingPermissionResponse } from './types/messages/permission-response'
-import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-lists'
+import bundledTezosSaplingRegistry from '../../beacon-ui/src/data/tezos-sapling.json'
+import { loadWalletLists } from '@airgap/beacon-utils'
+
+const { desktopList, extensionList, iOSList, webList } = loadWalletLists(bundledTezosSaplingRegistry)
 
 export class TezosSaplingBlockchain implements Blockchain {
   public readonly identifier: string = 'tezos-sapling'

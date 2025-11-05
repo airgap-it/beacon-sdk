@@ -13,7 +13,6 @@ import { useEffect, useState } from 'react'
 import WCInitError from './components/wc-init-error'
 import QRCode from './components/qr-code'
 import MobilePairing from './components/mobile-pairing'
-import useSubstrateWallets from '../../hooks/useSubstrateWallets'
 
 const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const wcPayload = props.pairingPayload!.walletConnectSyncCode
@@ -21,12 +20,9 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const postPayload = props.pairingPayload!.postmessageSyncCode
   const isMobile = useIsMobile()
   const { wallets, availableExtensions } = useWallets(
+    props.substratePairing ? 'substrate' : 'tezos',
     props.pairingPayload?.networkType,
-    !props.substratePairing ? props.featuredWallets : undefined
-  )
-  const substrateWalltes = useSubstrateWallets(
-    props.pairingPayload?.networkType,
-    props.substratePairing ? props.featuredWallets : undefined
+    props.featuredWallets
   )
   const [
     wallet,
@@ -54,13 +50,11 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
     wcPayload,
     p2pPayload,
     postPayload,
-    props.substratePairing ? substrateWalltes : wallets,
+    wallets,
     props.onClose
   )
   const isOnline = navigator.onLine
-  const walletList = Array.from(
-    props.substratePairing ? substrateWalltes.values() : wallets.values()
-  )
+  const walletList = Array.from(wallets.values())
 
   const [isPairingExpired, setIsPairingExpired] = useState(false)
 
@@ -81,18 +75,12 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   }, [state, props.open])
 
   useEffect(() => {
-    let size = wallets.size
-
-    if (props.substratePairing) {
-      size = substrateWalltes.size
-    }
-
-    if (size !== 1) {
+    if (wallets.size !== 1) {
       return
     }
 
     handleClickWallet(walletList[0].id, props)
-  }, [wallets, substrateWalltes])
+  }, [wallets])
 
   const QR: React.FC<{ isMobile: boolean }> = ({ isMobile }) => (
     <QRCode
