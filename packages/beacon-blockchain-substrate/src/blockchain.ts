@@ -10,7 +10,10 @@ import {
   PermissionScope
 } from '@airgap/beacon-types'
 import { SubstratePermissionResponse } from './types/messages/permission-response'
-import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-lists'
+import bundledSubstrateRegistry from '../../beacon-ui/src/data/substrate.json'
+import { loadWalletLists } from '@airgap/beacon-utils'
+
+const { desktopList, extensionList, iOSList, webList } = loadWalletLists(bundledSubstrateRegistry)
 
 export class SubstrateBlockchain implements Blockchain {
   public readonly identifier: string = 'substrate'

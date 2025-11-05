@@ -9,15 +9,19 @@
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "exports": {
-    "require": "./dist/cjs/index.js",
-    "import": "./dist/esm/index.js"
+    ".": {
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js"
+    },
+    "./data/*.json": "./src/data/*.json"
   },
   "directories": {
     "lib": "dist/esm",
     "test": "__tests__"
   },
   "files": [
-    "dist"
+    "dist",
+    "src/data"
   ],
   "publishConfig": {
     "access": "public"

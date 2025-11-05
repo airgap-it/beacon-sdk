@@ -28,7 +28,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
+    "prebuild": "npx tsx scripts/download-wallet-lists.ts",
     "build": "npm run check-version && lerna run tsc && npm run webpack:all",
     "serve": "static-server examples --port 8080",
     "webpack:all": "npm run webpack:sdk && npm run webpack:dapp && npm run webpack:wallet",
