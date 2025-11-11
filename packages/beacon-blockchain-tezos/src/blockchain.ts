@@ -10,7 +10,7 @@ import {
   Network,
   PermissionScope
 } from '@airgap/beacon-types'
-import bundledTezosRegistry from '../../beacon-ui/src/data/tezos.json'
+import bundledTezosRegistry from '@airgap/beacon-ui/data/tezos.json'
 import { loadWalletLists } from '@airgap/beacon-utils'
 
 const { desktopList, extensionList, iOSList, webList } = loadWalletLists(bundledTezosRegistry)

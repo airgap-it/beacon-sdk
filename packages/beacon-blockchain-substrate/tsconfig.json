@@ -1,11 +1,13 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "rootDir": "./src",
     "outDir": "./dist/esm",
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@airgap/beacon-blockchain-substrate": ["./src"]
+      "@airgap/beacon-blockchain-substrate": ["./src"],
+      "@airgap/beacon-ui/data/*": ["../beacon-ui/src/data/*"]
     }
   },
   "include": ["./src"]

@@ -179,7 +179,7 @@ export abstract class Client extends BeaconClient {
    *
    * @param transport A transport that can be provided by the user
    */
-  public async init(transport: Transport<any>): Promise<TransportType> {
+  public async init(transport: Transport<any, any, any>): Promise<TransportType> {
     if (this._transport.isResolved()) {
       return (await this.transport).type
     }
