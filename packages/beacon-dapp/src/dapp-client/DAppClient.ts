@@ -908,11 +908,43 @@ export class DAppClient extends Client {
             resolve(await serializer.serialize(await postMessageTransport.getPairingRequestInfo()))
           })
 
+          // Generate unified QR code with WC format + embedded Beacon params
+          const unifiedPeerInfo = new Promise<string>(async (resolve) => {
+            try {
+              const wcUri = await walletConnectPeerInfo
+              const p2pPairingRequest = await p2pTransport.getPairingRequestInfo()
+
+              // Parse WC URI to add beacon params
+              const url = new URL(wcUri)
+              url.searchParams.set('beacon-id', p2pPairingRequest.id)
+              url.searchParams.set('beacon-name', p2pPairingRequest.name)
+              url.searchParams.set('beacon-pubkey', p2pPairingRequest.publicKey)
+              url.searchParams.set('beacon-relay', p2pPairingRequest.relayServer)
+              url.searchParams.set('beacon-version', p2pPairingRequest.version)
+              if (p2pPairingRequest.protocolVersion) {
+                url.searchParams.set('beacon-protocol', p2pPairingRequest.protocolVersion.toString())
+              }
+              if (p2pPairingRequest.icon) {
+                url.searchParams.set('beacon-icon', p2pPairingRequest.icon)
+              }
+              if (p2pPairingRequest.appUrl) {
+                url.searchParams.set('beacon-appurl', p2pPairingRequest.appUrl)
+              }
+
+              resolve(url.toString())
+            } catch (err: any) {
+              logger.error('Failed to generate unified QR:', err)
+              // Fallback to WC only
+              resolve(await walletConnectPeerInfo)
+            }
+          })
+
           this.events
             .emit(BeaconEvent.PAIR_INIT, {
               p2pPeerInfo,
               postmessagePeerInfo,
               walletConnectPeerInfo,
+              unifiedPeerInfo,
               networkType: this.network.type,
               abortedHandler: abortHandler.bind(this),
               analytics: this.analytics,

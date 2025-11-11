@@ -1158,6 +1158,54 @@
       // Add event listener to the button
       document.getElementById('paste').addEventListener('click', () => {
         const addPeer = (text) => {
+          // Check if this is a unified QR code (WC format with beacon params)
+          if (text.startsWith('wc:')) {
+            try {
+              const url = new URL(text)
+              const beaconId = url.searchParams.get('beacon-id')
+              const beaconName = url.searchParams.get('beacon-name')
+              const beaconPubkey = url.searchParams.get('beacon-pubkey')
+              const beaconRelay = url.searchParams.get('beacon-relay')
+              const beaconVersion = url.searchParams.get('beacon-version')
+              const beaconProtocol = url.searchParams.get('beacon-protocol')
+              const beaconIcon = url.searchParams.get('beacon-icon')
+              const beaconAppUrl = url.searchParams.get('beacon-appurl')
+
+              // If beacon params exist, use Beacon transport
+              if (beaconId && beaconName && beaconPubkey && beaconRelay && beaconVersion) {
+                console.log('Unified QR detected! Using Beacon transport.')
+
+                // Construct P2PPairingRequest
+                const p2pPairingRequest = {
+                  type: 'p2p-pairing-request',
+                  id: beaconId,
+                  name: beaconName,
+                  publicKey: beaconPubkey,
+                  relayServer: beaconRelay,
+                  version: beaconVersion,
+                  protocolVersion: beaconProtocol ? parseInt(beaconProtocol) : undefined,
+                  icon: beaconIcon || undefined,
+                  appUrl: beaconAppUrl || undefined
+                }
+
+                console.log('Extracted Beacon params:', p2pPairingRequest)
+                setStatus('Connecting via Beacon...')
+                client.addPeer(p2pPairingRequest).then(async () => {
+                  setStatus('Connected via Beacon')
+                  console.log('Peer added via Beacon transport')
+                  await refreshPeers()
+                })
+                return
+              } else {
+                console.log('WalletConnect QR detected (no Beacon params). Using WalletConnect transport.')
+                setStatus('WalletConnect not supported in this demo wallet')
+              }
+            } catch (e) {
+              console.error('Failed to parse unified QR:', e)
+            }
+          }
+
+          // Fallback to traditional Beacon QR (base58 encoded)
           const serializer = new beacon.Serializer()
           serializer
             .deserialize(text)

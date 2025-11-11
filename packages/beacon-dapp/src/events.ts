@@ -208,6 +208,7 @@ export interface BeaconEventType {
     p2pPeerInfo: Promise<string>
     postmessagePeerInfo: Promise<string>
     walletConnectPeerInfo: Promise<string>
+    unifiedPeerInfo?: Promise<string>
     networkType: NetworkType
     abortedHandler?(): void
     analytics: AnalyticsInterface
@@ -518,6 +519,7 @@ const showPairAlert = async (data: BeaconEventType[BeaconEvent.PAIR_INIT]): Prom
       p2pSyncCode: data.p2pPeerInfo,
       walletConnectSyncCode: data.walletConnectPeerInfo,
       postmessageSyncCode: data.postmessagePeerInfo,
+      unifiedSyncCode: data.unifiedPeerInfo,
       networkType: data.networkType
     },
     // eslint-disable-next-line @typescript-eslint/unbound-method

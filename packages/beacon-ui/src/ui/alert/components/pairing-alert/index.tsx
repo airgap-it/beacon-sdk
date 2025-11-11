@@ -18,6 +18,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
   const wcPayload = props.pairingPayload!.walletConnectSyncCode
   const p2pPayload = props.pairingPayload!.p2pSyncCode
   const postPayload = props.pairingPayload!.postmessageSyncCode
+  const unifiedPayload = props.pairingPayload?.unifiedSyncCode
   const isMobile = useIsMobile()
   const { wallets, availableExtensions } = useWallets(
     props.substratePairing ? 'substrate' : 'tezos',
@@ -315,6 +316,7 @@ const PairingAlert: React.FC<ConfigurableAlertProps> = (props) => {
                 onClickLearnMore={() => {}}
                 p2pPayload={p2pPayload}
                 wcPayload={wcPayload}
+                unifiedPayload={unifiedPayload}
               />
             ) : (
               <QR isMobile={true} />

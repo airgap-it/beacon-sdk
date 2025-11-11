@@ -56,6 +56,7 @@ export interface PairingPayload {
   p2pSyncCode: Promise<string>
   postmessageSyncCode: Promise<string>
   walletConnectSyncCode: Promise<string>
+  unifiedSyncCode?: Promise<string>
   networkType: NetworkType
 }
 
@@ -63,6 +64,7 @@ export interface PairOtherProps {
   walletList: MergedWallet[]
   p2pPayload: Promise<string>
   wcPayload: Promise<string>
+  unifiedPayload?: Promise<string>
   onClickLearnMore: () => void
 }
 
