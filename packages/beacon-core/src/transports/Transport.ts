@@ -37,7 +37,7 @@ export abstract class Transport<
   /**
    * The name of the app
    */
-  protected readonly name: string
+  public readonly name: string
 
   /**
    * The status of the transport

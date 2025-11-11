@@ -10,7 +10,7 @@ import {
   PermissionScope
 } from '@airgap/beacon-types'
 import { TezosSaplingPermissionResponse } from './types/messages/permission-response'
-import bundledTezosSaplingRegistry from '../../beacon-ui/src/data/tezos-sapling.json'
+import bundledTezosSaplingRegistry from '@airgap/beacon-ui/data/tezos-sapling.json'
 import { loadWalletLists } from '@airgap/beacon-utils'
 
 const { desktopList, extensionList, iOSList, webList } = loadWalletLists(bundledTezosSaplingRegistry)
