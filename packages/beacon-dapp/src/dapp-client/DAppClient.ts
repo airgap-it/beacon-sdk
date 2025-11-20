@@ -70,7 +70,8 @@ import {
   SimulatedProofOfEventChallengeRequest,
   SimulatedProofOfEventChallengeResponse,
   RequestSimulatedProofOfEventChallengeInput,
-  TransportStatus
+  TransportStatus,
+  ErrorContext
   // PermissionRequestV3
   // RequestEncryptPayloadInput,
   // EncryptPayloadResponseOutput,
@@ -83,6 +84,7 @@ import {
   AppMetadataManager,
   Serializer,
   LocalStorage,
+  BeaconError,
   getAccountIdentifier,
   getSenderId,
   Logger,
@@ -93,7 +95,9 @@ import {
   MultiTabChannel,
   BACKEND_URL,
   getError,
-  usesWrappedMessages
+  usesWrappedMessages,
+  buildErrorContext,
+  UnknownBeaconError
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -699,7 +703,12 @@ export class DAppClient extends Client {
   private async onRelayerError() {
     await this.resetInvalidState(false)
 
-    this.events.emit(BeaconEvent.RELAYER_ERROR)
+    const error = new UnknownBeaconError()
+    await this.emitEventWithErrorContext(
+      BeaconEvent.RELAYER_ERROR,
+      error,
+      async (errorContext) => errorContext
+    )
   }
 
   private async wcToastHandler(status: string) {
@@ -719,10 +728,16 @@ export class DAppClient extends Client {
         walletInfo
       })
     } else {
-      this.events.emit(BeaconEvent.PERMISSION_REQUEST_ERROR, {
-        errorResponse: { errorType: BeaconErrorType.ABORTED_ERROR } as any,
-        walletInfo
-      })
+      const error = getError(BeaconErrorType.ABORTED_ERROR, undefined)
+      await this.emitEventWithErrorContext(
+        BeaconEvent.PERMISSION_REQUEST_ERROR,
+        error,
+        async (errorContext) => ({
+          errorResponse: { errorType: BeaconErrorType.ABORTED_ERROR } as any,
+          walletInfo,
+          errorContext
+        })
+      )
     }
   }
   private async channelClosedHandler(type: TransportType) {
@@ -892,7 +907,17 @@ export class DAppClient extends Client {
             } catch (err: any) {
               logger.error(err)
               await this.hideUI(['alert']) // hide pairing alert
-              setTimeout(() => this.events.emit(BeaconEvent.GENERIC_ERROR, err.message), 1000)
+              const error = new UnknownBeaconError()
+              setTimeout(() => {
+                this.emitEventWithErrorContext(
+                  BeaconEvent.GENERIC_ERROR,
+                  error,
+                  async (errorContext) => ({
+                    message: err.message,
+                    errorContext
+                  })
+                ).catch((emitError) => console.warn(emitError))
+              }, 1000)
               abortHandler()
               resolve('')
               return
@@ -1725,6 +1750,7 @@ export class DAppClient extends Client {
     const { message, connectionInfo } = (await res)!
 
     logger.time(false, logId)
+
     this.analytics.track(
       'event',
       'DAppClient',
@@ -1817,7 +1843,6 @@ export class DAppClient extends Client {
     })
 
     const { message, connectionInfo } = (await res)!
-
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1933,7 +1958,6 @@ export class DAppClient extends Client {
     })
 
     const { message, connectionInfo } = (await res)!
-
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1993,7 +2017,6 @@ export class DAppClient extends Client {
     })
 
     const { message, connectionInfo } = (await res)!
-
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -2062,8 +2085,28 @@ export class DAppClient extends Client {
    * @param errorMessage The error message to send.
    */
   private async sendInternalError(errorMessage: string): Promise<void> {
-    await this.events.emit(BeaconEvent.INTERNAL_ERROR, { text: errorMessage })
+    const error = new UnknownBeaconError()
+    await this.emitEventWithErrorContext(
+      BeaconEvent.INTERNAL_ERROR,
+      error,
+      async (errorContext) => ({
+        text: errorMessage,
+        errorContext
+      })
+    )
     throw new Error(errorMessage)
+  }
+
+  private async emitEventWithErrorContext<T extends BeaconEvent>(
+    event: T,
+    error: BeaconError | Error,
+    buildPayload: (errorContext: ErrorContext) => Promise<BeaconEventType[T]> | BeaconEventType[T],
+    ...additionalArgs: any[]
+  ): Promise<void> {
+    const transport = this._transport.isResolved() ? await this.transport : undefined
+    const errorContext = await buildErrorContext(error, this.storage, transport?.type)
+    const payload = await buildPayload(errorContext)
+    await this.events.emit(event, payload, ...additionalArgs)
   }
 
   /**
@@ -2148,17 +2191,18 @@ export class DAppClient extends Client {
         await this.setActivePeer()
       }
 
-      this.events
-        .emit(
-          messageEvents[request.type].error,
-          {
-            errorResponse: beaconError,
-            walletInfo: await this.getWalletInfo(peer, activeAccount),
-            errorMessages: this.errorMessages
-          },
-          buttons
-        )
-        .catch((emitError) => logger.error('handleRequestError', emitError))
+      const error = getError(beaconError.errorType, beaconError.errorData)
+      await this.emitEventWithErrorContext(
+        messageEvents[request.type].error,
+        error,
+        async (errorContext) => ({
+          errorResponse: beaconError,
+          walletInfo: await this.getWalletInfo(peer, activeAccount),
+          errorMessages: this.errorMessages,
+          errorContext
+        }),
+        buttons
+      ).catch((emitError) => logger.error('handleRequestError', emitError))
 
       throw getError(beaconError.errorType, beaconError.errorData)
     }
@@ -2472,18 +2516,24 @@ export class DAppClient extends Client {
         this.tryToAppSwitch()
       }
     } catch (sendError) {
-      this.events.emit(BeaconEvent.INTERNAL_ERROR, {
-        text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
-        buttons: [
-          {
-            text: 'Reset Connection',
-            actionCallback: async () => {
-              closeToast()
-              this.disconnect()
+      const error = new UnknownBeaconError()
+      await this.emitEventWithErrorContext(
+        BeaconEvent.INTERNAL_ERROR,
+        error,
+        async (errorContext) => ({
+          text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
+          errorContext,
+          buttons: [
+            {
+              text: 'Reset Connection',
+              actionCallback: async () => {
+                closeToast()
+                this.disconnect()
+              }
             }
-          }
-        ]
-      })
+          ]
+        })
+      )
       throw sendError
     }
 
@@ -2592,18 +2642,24 @@ export class DAppClient extends Client {
         this.tryToAppSwitch()
       }
     } catch (sendError) {
-      this.events.emit(BeaconEvent.INTERNAL_ERROR, {
-        text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
-        buttons: [
-          {
-            text: 'Reset Connection',
-            actionCallback: async () => {
-              closeToast()
-              this.disconnect()
+      const error = new UnknownBeaconError()
+      await this.emitEventWithErrorContext(
+        BeaconEvent.INTERNAL_ERROR,
+        error,
+        async (errorContext) => ({
+          text: 'Unable to send message. If this problem persists, please reset the connection and pair your wallet again.',
+          errorContext,
+          buttons: [
+            {
+              text: 'Reset Connection',
+              actionCallback: async () => {
+                closeToast()
+                this.disconnect()
+              }
             }
-          }
-        ]
-      })
+          ]
+        })
+      )
       throw sendError
     }
 

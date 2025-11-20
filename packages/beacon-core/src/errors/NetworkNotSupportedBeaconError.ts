@@ -1,4 +1,6 @@
 import { BeaconErrorType } from '@airgap/beacon-types'
+
+import { BEACON_ERROR_CODES } from './error-codes'
 import { BeaconError } from './BeaconError'
 
 /**
@@ -11,7 +13,8 @@ export class NetworkNotSupportedBeaconError extends BeaconError {
   constructor() {
     super(
       BeaconErrorType.NETWORK_NOT_SUPPORTED,
-      'The wallet does not support this network. Please select another one.'
+      'The wallet does not support this network. Please select another one.',
+      BEACON_ERROR_CODES.NETWORK_NOT_SUPPORTED
     )
   }
 }

@@ -1,4 +1,6 @@
 import { BeaconErrorType } from '@airgap/beacon-types'
+
+import { BEACON_ERROR_CODES } from './error-codes'
 import { BeaconError } from './BeaconError'
 
 /**
@@ -11,7 +13,8 @@ export class TooManyOperationsBeaconError extends BeaconError {
   constructor() {
     super(
       BeaconErrorType.TOO_MANY_OPERATIONS,
-      'The request contains too many transactions. Please include fewer operations and try again.'
+      'The request contains too many transactions. Please include fewer operations and try again.',
+      BEACON_ERROR_CODES.TOO_MANY_OPERATIONS
     )
   }
 }

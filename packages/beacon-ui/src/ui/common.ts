@@ -1,4 +1,4 @@
-import { NetworkType, AnalyticsInterface, WalletInfo } from '@airgap/beacon-types'
+import { NetworkType, AnalyticsInterface, WalletInfo, ErrorContext } from '@airgap/beacon-types'
 import { MergedWallet } from '../utils/wallets'
 
 // ALERT
@@ -21,6 +21,7 @@ export interface AlertConfig {
   title: string
   body?: string
   data?: string
+  errorContext?: ErrorContext
   timer?: number
   buttons?: AlertButton[]
   pairingPayload?: PairingPayload
@@ -95,6 +96,7 @@ export interface InfoProps {
   title: string
   description?: string
   data?: string
+  errorContext?: ErrorContext
   icon?: any
   border?: boolean
   iconBadge?: boolean

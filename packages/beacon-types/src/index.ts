@@ -345,6 +345,7 @@ export {
 
 // Errors
 export { BeaconErrorType, ErrorResponse }
+export { ErrorContext, DiagnosticSnapshot } from './types/ErrorContext'
 
 // Transport
 export { TransportStatus, TransportType }

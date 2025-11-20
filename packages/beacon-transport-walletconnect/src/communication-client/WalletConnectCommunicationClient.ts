@@ -18,7 +18,8 @@ import {
   InvalidReceivedSessionNamespace,
   InvalidSession,
   MissingRequiredScope,
-  NotConnected
+  NotConnected,
+  mapWCErrorToBeaconError
 } from '../error'
 import {
   AcknowledgeResponseInput,
@@ -487,11 +488,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
-      .catch(async () => {
+      .catch(async (error: Error) => {
+        const { errorType, errorData, errorCode } = mapWCErrorToBeaconError(error)
+
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
           id: this.messageIds.pop(),
-          errorType: BeaconErrorType.ABORTED_ERROR
+          errorType,
+          errorData: typeof errorData === 'object' ? { ...errorData as object, errorCode } : { errorCode }
         } as ErrorResponse
 
         this.notifyListeners(this.getTopicFromSession(session), errorResponse)
@@ -558,11 +562,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
-      .catch(async () => {
+      .catch(async (error: Error) => {
+        const { errorType, errorData, errorCode } = mapWCErrorToBeaconError(error)
+
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
           id: this.messageIds.pop(),
-          errorType: BeaconErrorType.ABORTED_ERROR
+          errorType,
+          errorData: typeof errorData === 'object' ? { ...errorData as object, errorCode } : { errorCode }
         } as ErrorResponse
 
         this.notifyListeners(this.getTopicFromSession(session), errorResponse)
@@ -773,10 +780,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           const _pairingTopic = topic ?? signClient.core.pairing.getPairings()[0]?.topic
           logger.debug('New pairing topic?', [])
 
+          const { errorType, errorData, errorCode } = mapWCErrorToBeaconError(error)
+
           const errorResponse: ErrorResponseInput = {
             type: BeaconMessageType.Error,
             id: this.messageIds.pop(),
-            errorType: BeaconErrorType.ABORTED_ERROR
+            errorType,
+            errorData: typeof errorData === 'object' ? { ...errorData as object, errorCode } : { errorCode }
           } as ErrorResponse
 
           this.notifyListeners(_pairingTopic, errorResponse)

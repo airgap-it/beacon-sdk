@@ -27,7 +27,8 @@ import {
   ExtendedWalletConnectPairingResponse,
   AnalyticsInterface,
   ProofOfEventChallengeResponseOutput,
-  SimulatedProofOfEventChallengeResponseOutput
+  SimulatedProofOfEventChallengeResponseOutput,
+  ErrorContext
 } from '@airgap/beacon-types'
 import {
   UnknownBeaconError,
@@ -127,7 +128,11 @@ export interface BeaconEventType {
     connectionContext: ConnectionContext
     walletInfo: WalletInfo
   }
-  [BeaconEvent.PERMISSION_REQUEST_ERROR]: { errorResponse: ErrorResponse; walletInfo: WalletInfo }
+  [BeaconEvent.PERMISSION_REQUEST_ERROR]: {
+    errorResponse: ErrorResponse
+    walletInfo: WalletInfo
+    errorContext?: ErrorContext
+  }
   [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SENT]: RequestSentInfo
   [BeaconEvent.PROOF_OF_EVENT_CHALLENGE_REQUEST_SUCCESS]: {
     account: AccountInfo
@@ -200,7 +205,7 @@ export interface BeaconEventType {
   [BeaconEvent.ACTIVE_ACCOUNT_SET]: AccountInfo
   [BeaconEvent.ACTIVE_TRANSPORT_SET]: Transport
   [BeaconEvent.INVALID_ACTIVE_ACCOUNT_STATE]: undefined
-  [BeaconEvent.GENERIC_ERROR]: string
+  [BeaconEvent.GENERIC_ERROR]: { message: string; errorContext?: ErrorContext }
   [BeaconEvent.INVALID_ACCOUNT_DEACTIVATED]: undefined
   [BeaconEvent.SHOW_PREPARE]: { walletInfo?: WalletInfo }
   [BeaconEvent.HIDE_UI]: ('alert' | 'toast')[] | undefined
@@ -221,9 +226,9 @@ export interface BeaconEventType {
     | ExtendedP2PPairingResponse
     | ExtendedWalletConnectPairingResponse
   [BeaconEvent.CHANNEL_CLOSED]: string
-  [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[] }
+  [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[]; errorContext?: ErrorContext }
   [BeaconEvent.OPEN_BUG_REPORT]: undefined
-  [BeaconEvent.RELAYER_ERROR]: undefined
+  [BeaconEvent.RELAYER_ERROR]: ErrorContext
   [BeaconEvent.UNKNOWN]: undefined
 }
 
@@ -352,10 +357,11 @@ const showInvalidAccountDeactivated = async (): Promise<void> => {
 /**
  * Show an "Invalid state" alert
  */
-const showGenericErrorAlert = async (errorMessage: string): Promise<void> => {
+const showGenericErrorAlert = async (data: { message: string; errorContext?: ErrorContext }): Promise<void> => {
   openAlert({
-    title: `${errorMessage}`,
+    title: `${data.message}`,
     body: 'Please try again. If this problem persists please send us a bug report.',
+    errorContext: data.errorContext,
     buttons: [
       {
         label: 'Send Report',
@@ -375,6 +381,7 @@ const showErrorToast = async (
   response: {
     errorResponse: ErrorResponse
     walletInfo: WalletInfo
+    errorContext?: ErrorContext
     errorMessages?: Record<string, Record<string | number, string>>
   },
   buttons?: AlertButton[]
@@ -427,6 +434,22 @@ const showErrorToast = async (
           // eslint-disable-next-line @typescript-eslint/unbound-method
           body: error.fullDescription.description,
           data: error.fullDescription.data,
+          errorContext: response.errorContext,
+          buttons
+        })
+      }
+    })
+  } else {
+    // For non-transaction errors, add "Show Details" action
+    actions.push({
+      text: '',
+      actionText: 'Show Details',
+      actionCallback: async (): Promise<void> => {
+        closeToast()
+        openAlert({
+          title: error.title,
+          body: error.description,
+          errorContext: response.errorContext,
           buttons
         })
       }
@@ -468,10 +491,11 @@ const showBugReportForm = async () => {
   await openBugReport()
 }
 
-const showRelayerErrorAlert = async (): Promise<void> => {
+const showRelayerErrorAlert = async (errorContext: ErrorContext): Promise<void> => {
   openAlert({
     title: 'Error',
     body: `Failed to connect to the relayer. Please check that your system time is synchronized with the current time and reload the page.`,
+    errorContext,
     buttons: [{ text: 'Done', style: 'outline' }],
     timer: 1500
   })
@@ -499,6 +523,7 @@ const showInternalErrorAlert = async (
   const alertConfig: AlertConfig = {
     title: 'Internal Error',
     body: data.text,
+    errorContext: data.errorContext,
     buttons
   }
   openAlert(alertConfig)
