@@ -105,6 +105,19 @@ export {
 export { getSenderId, getAccountIdentifier, windowRef, MultiTabChannel }
 export { usesWrappedMessages, MESSAGE_WRAPPED_FROM_VERSION } from './utils/message-utils'
 
+// Diagnostics
+export {
+  gatherDiagnostics,
+  buildErrorContext,
+  serializeErrorContext,
+  copyErrorContextToClipboard,
+  SENSITIVE_STORAGE_KEYS
+} from './utils/diagnostics'
+
+// Error codes
+export { ERROR_CODES, WC_ERROR_CODES, MATRIX_ERROR_CODES, PM_ERROR_CODES, BLOCKCHAIN_ERROR_CODES, BEACON_ERROR_CODES } from './errors/error-codes'
+export type { ErrorCode } from './errors/error-codes'
+
 // Others
 export { Serializer, Logger, setLogger, getLogger }
 
