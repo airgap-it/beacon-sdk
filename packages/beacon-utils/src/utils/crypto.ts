@@ -5,6 +5,7 @@ import { encode } from '@stablelib/utf8'
 import { hash } from '@stablelib/blake2b'
 import { generateKeyPairFromSeed } from '@stablelib/ed25519'
 import { convertPublicKeyToX25519, convertSecretKeyToX25519, KeyPair } from '@stablelib/ed25519'
+import { clientSessionKeys, serverSessionKeys, SessionKeys } from '@stablelib/x25519-session'
 import { BLAKE2b } from '@stablelib/blake2b'
 import { concat } from '@stablelib/bytes'
 import { sign } from '@stablelib/ed25519'
@@ -315,5 +316,43 @@ export function isPublicKeySC(publicKey: string): boolean {
     publicKey.startsWith('BLpk')
   )
 }
+
+/**
+ * Create session keys for receiving encrypted messages from a peer.
+ * Use sharedKey.receive for decryption with decryptCryptoboxPayload.
+ *
+ * @param selfKeyPair Your Ed25519 keypair
+ * @param senderPublicKey The sender's public key (hex string)
+ * @returns Session keys with .receive for decryption
+ */
+export function createReceiverSessionKey(selfKeyPair: KeyPair, senderPublicKey: string): SessionKeys {
+  return serverSessionKeys(
+    {
+      publicKey: convertPublicKeyToX25519(selfKeyPair.publicKey),
+      secretKey: convertSecretKeyToX25519(selfKeyPair.secretKey)
+    },
+    convertPublicKeyToX25519(Buffer.from(senderPublicKey, 'hex'))
+  )
+}
+
+/**
+ * Create session keys for sending encrypted messages to a peer.
+ * Use sharedKey.send for encryption with encryptCryptoboxPayload.
+ *
+ * @param selfKeyPair Your Ed25519 keypair
+ * @param receiverPublicKey The receiver's public key (hex string)
+ * @returns Session keys with .send for encryption
+ */
+export function createSenderSessionKey(selfKeyPair: KeyPair, receiverPublicKey: string): SessionKeys {
+  return clientSessionKeys(
+    {
+      publicKey: convertPublicKeyToX25519(selfKeyPair.publicKey),
+      secretKey: convertSecretKeyToX25519(selfKeyPair.secretKey)
+    },
+    convertPublicKeyToX25519(Buffer.from(receiverPublicKey, 'hex'))
+  )
+}
+
+export type { KeyPair, SessionKeys }
 
 /* eslint-enable prefer-arrow/prefer-arrow-functions */

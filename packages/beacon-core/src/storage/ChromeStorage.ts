@@ -8,11 +8,12 @@ import { Storage, StorageKey, StorageKeyReturnType, defaultValues } from '@airga
 export class ChromeStorage implements Storage {
   public static async isSupported(): Promise<boolean> {
     return (
-      typeof window !== 'undefined' &&
       typeof chrome !== 'undefined' &&
       Boolean(chrome) &&
       Boolean(chrome.runtime) &&
-      Boolean(chrome.runtime.id)
+      Boolean(chrome.runtime.id) &&
+      Boolean(chrome.storage) &&
+      Boolean(chrome.storage.local)
     )
   }
 
