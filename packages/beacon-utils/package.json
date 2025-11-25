@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-utils",
-  "version": "5.0.0-alpha.4",
+  "version": "5.0.0-beta.1",
   "description": "This package contains utility functions that are used throughout the beacon-sdk",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -33,7 +33,7 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-types": "5.0.0-alpha.4",
+    "@airgap/beacon-types": "5.0.0-beta.1",
     "@stablelib/ed25519": "^2.0.2",
     "@stablelib/nacl": "^2.0.1",
     "@stablelib/random": "^2.0.1",

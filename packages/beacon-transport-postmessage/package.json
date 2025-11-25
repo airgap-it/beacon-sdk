@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-transport-postmessage",
-  "version": "5.0.0-alpha.4",
+  "version": "5.0.0-beta.1",
   "description": "This package contains methods to facilitate communication over the postmessage interface of the browser to talk to browser extensions.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
@@ -34,8 +34,8 @@
     "url": "https://github.com/airgap-it/beacon-sdk/issues"
   },
   "dependencies": {
-    "@airgap/beacon-core": "5.0.0-alpha.4",
-    "@airgap/beacon-types": "5.0.0-alpha.4",
-    "@airgap/beacon-utils": "5.0.0-alpha.4"
+    "@airgap/beacon-core": "5.0.0-beta.1",
+    "@airgap/beacon-types": "5.0.0-beta.1",
+    "@airgap/beacon-utils": "5.0.0-beta.1"
   }
 }
