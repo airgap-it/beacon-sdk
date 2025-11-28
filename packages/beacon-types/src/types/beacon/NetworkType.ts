@@ -20,5 +20,6 @@ export enum NetworkType {
   RIONET = 'rionet',
   SEOULNET = 'seoulnet',
   SHADOWNET = 'shadownet',
+  TALLINNNET = 'tallinnnet',
   CUSTOM = 'custom'
 }
