@@ -221,19 +221,14 @@
             }
             updateActiveAccount()
           })
-
-        // client
-        //   .requestPermissions(/*{ network: { type: beacon.NetworkType.DELPHINET } }*/)
-        //   .then((permissions) => {
-        //     console.log('permissions', permissions)
-        //     if (callback) {
-        //       callback(permissions)
-        //     }
-        //     updateActiveAccount()
-        //   })
-        //   .catch((error) => {
-        //     console.log('error during permission request', error)
-        //   })
+          .catch((error) => {
+            if (error.errorType === beacon.BeaconErrorType.ABORTED_ERROR) {
+              console.log('User closed the modal - connection aborted')
+              // User can retry by clicking the button again
+              return
+            }
+            console.log('error during permission request', error)
+          })
       }
 
       // Add event listener to the button

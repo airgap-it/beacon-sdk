@@ -11,15 +11,12 @@ export abstract class BeaconError extends Error {
   public title: string = 'Error' // Visible in the UI
   public description: string // Visible in the UI
 
-  /**
-   * The Beacon error type (maps to BeaconErrorType enum)
-   */
   public type: BeaconErrorType
-
-  /**
-   * Unique error code for debugging and support
-   */
   public code: ErrorCode
+
+  public get errorType(): BeaconErrorType {
+    return this.type
+  }
 
   public get fullDescription(): { description: string; data?: string } {
     return { description: this.description }

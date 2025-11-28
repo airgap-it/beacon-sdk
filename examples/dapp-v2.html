@@ -888,6 +888,11 @@
             updateActiveAccount()
           })
           .catch((error) => {
+            if (error.errorType === beacon.BeaconErrorType.ABORTED_ERROR) {
+              console.log('User closed the modal - connection aborted')
+              // User can retry by clicking the button again
+              return
+            }
             console.error('Permission request failed:', error)
           })
       }
@@ -908,6 +913,12 @@
             })
           })
           .catch((error) => {
+            // Check if user closed the modal (aborted)
+            if (error.errorType === beacon.BeaconErrorType.ABORTED_ERROR) {
+              console.log('User closed the modal - connection aborted')
+              // User can retry by clicking the button again
+              return
+            }
             console.error('Permission and sign request failed:', error)
           })
       }

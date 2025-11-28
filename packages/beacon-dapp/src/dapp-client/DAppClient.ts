@@ -97,7 +97,8 @@ import {
   getError,
   usesWrappedMessages,
   buildErrorContext,
-  UnknownBeaconError
+  UnknownBeaconError,
+  AbortedBeaconError
 } from '@airgap/beacon-core'
 import {
   getAddressFromPublicKey,
@@ -214,8 +215,7 @@ export class DAppClient extends Client {
   private _activePeer: ExposedPromise<PeerInfoType | undefined> = new ExposedPromise()
 
   private _initPromise: Promise<TransportType> | undefined
-
-  private isInitPending: boolean = false
+  private _initPromiseReject: ((reason?: ErrorResponse | AbortedBeaconError) => void) | undefined
 
   private readonly activeAccountLoaded: Promise<AccountInfo | undefined>
 
@@ -403,6 +403,13 @@ export class DAppClient extends Client {
 
         await this.removeAccountsForPeerIds([message.senderId])
         await this.events.emit(BeaconEvent.CHANNEL_CLOSED)
+
+        // Reset transport state so next requestPermissions() shows pairing modal
+        this.postMessageTransport = undefined
+        this.p2pTransport = undefined
+        this.walletConnectTransport = undefined
+        await this.setTransport(undefined)
+        await this.setActivePeer(undefined)
       }
 
       if (openRequest && typedMessage.type === BeaconMessageType.Acknowledge) {
@@ -778,7 +785,9 @@ export class DAppClient extends Client {
       //
     }
 
-    this._initPromise = new Promise(async (resolve) => {
+    this._initPromise = new Promise<TransportType>(async (resolve, reject) => {
+      this._initPromiseReject = reject
+
       if (transport) {
         await this.addListener(transport)
 
@@ -881,6 +890,7 @@ export class DAppClient extends Client {
             })
             .catch((error) => {
               this._initPromise = undefined
+              this._initPromiseReject = undefined
               console.error(error)
             })
 
@@ -897,7 +907,14 @@ export class DAppClient extends Client {
             ])
             this.postMessageTransport = this.walletConnectTransport = this.p2pTransport = undefined
             this._activeAccount.isResolved() && this.clearActiveAccount()
+
+            this.events.emit(BeaconEvent.PAIR_ABORTED).catch((emitError) => console.warn(emitError))
+
+            if (this._initPromiseReject) {
+              this._initPromiseReject(new AbortedBeaconError())
+            }
             this._initPromise = undefined
+            this._initPromiseReject = undefined
           }
 
           const serializer = new Serializer()
@@ -1425,16 +1442,15 @@ export class DAppClient extends Client {
 
     const logId = `makeRequestV3 ${Date.now()}`
     logger.time(true, logId)
-    const { message: response, connectionInfo } = await this.makeRequestV3<
-      PermissionRequestV3<string>,
-      BeaconMessageWrapper<PermissionResponseV3<string>>
-    >(request).catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request as any, requestError)
-    })
+
+    const { message: response, connectionInfo } = await this.requireResponse(
+      this.makeRequestV3<
+        PermissionRequestV3<string>,
+        BeaconMessageWrapper<PermissionResponseV3<string>>
+      >(request),
+      request as any,
+      logId
+    )
     logger.time(false, logId)
 
     this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'start'))
@@ -1518,16 +1534,11 @@ export class DAppClient extends Client {
         >(request)
       : this.makeRequestBC<any, any>(request)
 
-    res.catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request as any, requestError)
-    })
-
-    const { message: response, connectionInfo } = (await res)!
-
+    const { message: response, connectionInfo } = await this.requireResponse(
+      res,
+      request as any,
+      logId
+    )
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1588,15 +1599,7 @@ export class DAppClient extends Client {
         ? this.makeRequest<PermissionRequest, PermissionResponse>(request, undefined, undefined)
         : this.makeRequestBC<PermissionRequest, PermissionResponse>(request)
 
-    res.catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request, requestError)
-    })
-
-    const { message, connectionInfo } = (await res)!
+    const { message, connectionInfo } = await this.requireResponse(res, request, logId)
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('connect', 'success'))
 
@@ -1666,16 +1669,7 @@ export class DAppClient extends Client {
       ? this.makeRequest<ProofOfEventChallengeRequest, ProofOfEventChallengeResponse>(request)
       : this.makeRequestBC<ProofOfEventChallengeRequest, ProofOfEventChallengeResponse>(request)
 
-    res.catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request, requestError)
-    })
-
-    const { message, connectionInfo } = (await res)!
-
+    const { message, connectionInfo } = await this.requireResponse(res, request, logId)
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1739,16 +1733,7 @@ export class DAppClient extends Client {
           SimulatedProofOfEventChallengeResponse
         >(request)
 
-    res.catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request, requestError)
-    })
-
-    const { message, connectionInfo } = (await res)!
-
+    const { message, connectionInfo } = await this.requireResponse(res, request, logId)
     logger.time(false, logId)
 
     this.analytics.track(
@@ -1834,15 +1819,7 @@ export class DAppClient extends Client {
       ? this.makeRequest<SignPayloadRequest, SignPayloadResponse>(request)
       : this.makeRequestBC<SignPayloadRequest, SignPayloadResponse>(request)
 
-    res.catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request, requestError)
-    })
-
-    const { message, connectionInfo } = (await res)!
+    const { message, connectionInfo } = await this.requireResponse(res, request, logId)
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -1949,15 +1926,7 @@ export class DAppClient extends Client {
       ? this.makeRequest<OperationRequest, OperationResponse>(request)
       : this.makeRequestBC<OperationRequest, OperationResponse>(request)
 
-    res.catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request, requestError)
-    })
-
-    const { message, connectionInfo } = (await res)!
+    const { message, connectionInfo } = await this.requireResponse(res, request, logId)
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -2008,15 +1977,7 @@ export class DAppClient extends Client {
       ? this.makeRequest<BroadcastRequest, BroadcastResponse>(request)
       : this.makeRequestBC<BroadcastRequest, BroadcastResponse>(request)
 
-    res.catch(async (requestError: ErrorResponse) => {
-      requestError.errorType === BeaconErrorType.ABORTED_ERROR
-        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
-        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
-      logger.time(false, logId)
-      throw await this.handleRequestError(request, requestError)
-    })
-
-    const { message, connectionInfo } = (await res)!
+    const { message, connectionInfo } = await this.requireResponse(res, request, logId)
     logger.time(false, logId)
     this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'success'))
 
@@ -2137,6 +2098,29 @@ export class DAppClient extends Client {
       if (accountIdentifiersToRemove.includes(activeAccount.accountIdentifier)) {
         await this.setActiveAccount(undefined)
       }
+    }
+  }
+
+  private async requireResponse<T>(
+    responsePromise: Promise<T | undefined>,
+    request: BeaconRequestInputMessage,
+    logId: string
+  ): Promise<T> {
+    try {
+      return (await responsePromise)!
+    } catch (requestError) {
+      const error = requestError as ErrorResponse | AbortedBeaconError
+      if (error instanceof AbortedBeaconError) {
+        this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        logger.time(false, logId)
+        throw error
+      }
+      const errorResponse = error as ErrorResponse
+      errorResponse.errorType === BeaconErrorType.ABORTED_ERROR
+        ? this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'abort'))
+        : this.sendMetrics('performance-metrics/save', await this.buildPayload('message', 'error'))
+      logger.time(false, logId)
+      throw await this.handleRequestError(request, errorResponse)
     }
   }
 
@@ -2439,19 +2423,22 @@ export class DAppClient extends Client {
   ) {
     const messageId = otherTabMessageId ?? (await generateGUID())
 
-    if (this._initPromise && this.isInitPending) {
+    if (this._initPromise && this._initPromiseReject) {
+      this._initPromiseReject(new AbortedBeaconError())
       await Promise.all([
         this.postMessageTransport?.disconnect(),
         this.walletConnectTransport?.disconnect()
       ])
       this._initPromise = undefined
+      this._initPromiseReject = undefined
       this.hideUI(['toast'])
     }
 
+    this.postMessageTransport = undefined
+    this.walletConnectTransport = undefined
+
     logger.log('makeRequest', 'starting')
-    this.isInitPending = true
     await this.init()
-    this.isInitPending = false
     logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -2575,20 +2562,23 @@ export class DAppClient extends Client {
     message: U
     connectionInfo: ConnectionContext
   }> {
-    if (this._initPromise && this.isInitPending) {
+    if (this._initPromise && this._initPromiseReject) {
+      this._initPromiseReject(new AbortedBeaconError())
       await Promise.all([
         this.postMessageTransport?.disconnect(),
         this.walletConnectTransport?.disconnect()
       ])
       this._initPromise = undefined
+      this._initPromiseReject = undefined
       this.hideUI(['toast'])
     }
 
+    this.postMessageTransport = undefined
+    this.walletConnectTransport = undefined
+
     const messageId = otherTabMessageId ?? (await generateGUID())
     logger.log('makeRequest', 'starting')
-    this.isInitPending = true
     await this.init(undefined, true)
-    this.isInitPending = false
     logger.log('makeRequest', 'after init')
 
     if (await this.addRequestAndCheckIfRateLimited()) {
@@ -2786,7 +2776,7 @@ export class DAppClient extends Client {
 
     await this.setTransport()
     this._initPromise = undefined
-    this.isInitPending = false
+    this._initPromiseReject = undefined
     this.sendMetrics('performance-metrics/save', await this.buildPayload('disconnect', 'success'))
   }
 

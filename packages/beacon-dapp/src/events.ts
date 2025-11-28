@@ -98,6 +98,7 @@ export enum BeaconEvent {
   INVALID_ACCOUNT_DEACTIVATED = 'INVALID_ACCOUNT_DEACTIVATED',
   PAIR_INIT = 'PAIR_INIT',
   PAIR_SUCCESS = 'PAIR_SUCCESS',
+  PAIR_ABORTED = 'PAIR_ABORTED',
   CHANNEL_CLOSED = 'CHANNEL_CLOSED',
   GENERIC_ERROR = 'GENERIC_ERROR',
   OPEN_BUG_REPORT = 'OPEN_BUG_REPORT',
@@ -225,6 +226,7 @@ export interface BeaconEventType {
     | ExtendedPostMessagePairingResponse
     | ExtendedP2PPairingResponse
     | ExtendedWalletConnectPairingResponse
+  [BeaconEvent.PAIR_ABORTED]: undefined
   [BeaconEvent.CHANNEL_CLOSED]: string
   [BeaconEvent.INTERNAL_ERROR]: { text: string; buttons?: AlertButton[]; errorContext?: ErrorContext }
   [BeaconEvent.OPEN_BUG_REPORT]: undefined
@@ -860,6 +862,7 @@ export const defaultEventCallbacks: {
   [BeaconEvent.HIDE_UI]: hideUI,
   [BeaconEvent.PAIR_INIT]: showPairAlert,
   [BeaconEvent.PAIR_SUCCESS]: showExtensionConnectedAlert,
+  [BeaconEvent.PAIR_ABORTED]: emptyHandler(),
   [BeaconEvent.OPEN_BUG_REPORT]: showBugReportForm,
   [BeaconEvent.RELAYER_ERROR]: showRelayerErrorAlert,
   [BeaconEvent.CHANNEL_CLOSED]: showChannelClosedAlert,
@@ -926,6 +929,7 @@ export class BeaconEventHandler {
     [BeaconEvent.HIDE_UI]: [defaultEventCallbacks.HIDE_UI],
     [BeaconEvent.PAIR_INIT]: [defaultEventCallbacks.PAIR_INIT],
     [BeaconEvent.PAIR_SUCCESS]: [defaultEventCallbacks.PAIR_SUCCESS],
+    [BeaconEvent.PAIR_ABORTED]: [defaultEventCallbacks.PAIR_ABORTED],
     [BeaconEvent.OPEN_BUG_REPORT]: [showBugReportForm],
     [BeaconEvent.CHANNEL_CLOSED]: [defaultEventCallbacks.CHANNEL_CLOSED],
     [BeaconEvent.INTERNAL_ERROR]: [defaultEventCallbacks.INTERNAL_ERROR],

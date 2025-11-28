@@ -281,6 +281,11 @@
         updateActiveAccount()
       })
 
+      // Subscribe to pairing aborted event
+      client.subscribeToEvent(beacon.BeaconEvent.PAIR_ABORTED, (data) => {
+        console.log('PAIR_ABORTED received - reason:', data.reason)
+      })
+
       // Display the active account in the UI
       const updateColorMode = () => {
         client.getColorMode().then((colorMode) => {
@@ -360,6 +365,11 @@
             updateActiveAccount()
           })
           .catch((error) => {
+            if (error.errorType === beacon.BeaconErrorType.ABORTED_ERROR) {
+              console.log('User closed the modal - connection aborted')
+              // User can retry by clicking the button again
+              return
+            }
             console.log('error during permission request', error)
           })
       }
@@ -384,6 +394,11 @@
             console.log('signature:', signature)
           })
           .catch((error) => {
+            // Check if user closed the modal (aborted)
+            if (error.errorType === beacon.BeaconErrorType.ABORTED_ERROR) {
+              console.log('User closed the modal - connection aborted')
+              return
+            }
             console.log('error during permission request', error)
           })
       }

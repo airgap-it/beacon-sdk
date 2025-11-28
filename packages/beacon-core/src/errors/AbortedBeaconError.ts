@@ -7,7 +7,7 @@ import { BeaconError } from './BeaconError'
  * @category Error
  */
 export class AbortedBeaconError extends BeaconError {
-  public name: string = 'UnknownBeaconError'
+  public name: string = 'AbortedBeaconError'
   public title: string = 'Aborted'
 
   constructor() {
