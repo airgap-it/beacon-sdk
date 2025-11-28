@@ -146,6 +146,27 @@
                 </div>
               </div>
 
+              <!-- Curve Selection -->
+              <div id="curve-select-wrapper">
+                <div class="text-xs text-gray-400 mb-1">Signing Curve</div>
+                <select id="curve-select" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="ed25519">ed25519 (tz1)</option>
+                  <option value="secp256k1">secp256k1 (tz2)</option>
+                  <option value="p256">p256 (tz3)</option>
+                  <option value="bls">bls (tz4)</option>
+                </select>
+                <p class="text-gray-500 text-xs mt-1">Changing curve will regenerate address from the same mnemonic</p>
+              </div>
+
+              <!-- Test Toggle: Omit Address -->
+              <div id="omit-address-wrapper" class="mt-3">
+                <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                  <input type="checkbox" id="omit-address-toggle" class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-gray-800">
+                  <span>Omit address in response</span>
+                </label>
+                <p class="text-gray-500 text-xs mt-1">Test SDK's getAddressFromPublicKey() - forces dApp to derive address from public key</p>
+              </div>
+
               <!-- Explorer Link -->
               <div id="wallet-explorer-wrapper" class="hidden">
                 <div class="text-xs text-gray-400 mb-1">Explorer</div>
@@ -254,10 +275,14 @@
       import * as taquito from 'https://esm.sh/@taquito/taquito@23.0.1?bundle'
       import { InMemorySigner } from 'https://esm.sh/@taquito/signer@23.0.1?bundle'
       import * as bip39 from 'https://esm.sh/bip39@3.1.0?bundle'
+      import { deriveKeyFromMnemonic } from 'https://esm.sh/@chainsafe/bls-keygen@0.4.0?bundle'
+      import { b58cencode, prefix } from 'https://esm.sh/@taquito/utils@23.0.1?bundle'
 
       window.taquito = taquito
       window.taquitoSigner = { InMemorySigner }
       window.bip39 = bip39
+      window.blsKeygen = { deriveKeyFromMnemonic }
+      window.taquitoUtils = { b58cencode, prefix }
 
       // Activity Log Functions
       const logActivity = (type, message, isAuto = false, payload = null) => {
@@ -454,6 +479,77 @@
       BeaconUtils.applyProtocolVersion(BeaconUtils.getStoredProtocolVersion(), { silent: true })
 
       const hasBip39 = () => !!(window.bip39 && typeof window.bip39.generateMnemonic === 'function')
+
+      // Curve selection helpers
+      const getSelectedCurve = () => {
+        const curveSelect = document.getElementById('curve-select')
+        return curveSelect ? curveSelect.value : localStorage.getItem('walletCurve') || 'ed25519'
+      }
+
+      const saveSelectedCurve = (curve) => {
+        localStorage.setItem('walletCurve', curve)
+      }
+
+      const initializeCurveSelect = () => {
+        const curveSelect = document.getElementById('curve-select')
+        if (curveSelect) {
+          const savedCurve = localStorage.getItem('walletCurve') || 'ed25519'
+          curveSelect.value = savedCurve
+        }
+      }
+
+      // Omit address toggle helpers (for testing SDK's getAddressFromPublicKey)
+      const getOmitAddressMode = () => {
+        return localStorage.getItem('wallet-omit-address') === 'true'
+      }
+
+      const saveOmitAddressMode = (enabled) => {
+        localStorage.setItem('wallet-omit-address', enabled.toString())
+      }
+
+      const initializeOmitAddressToggle = () => {
+        const toggle = document.getElementById('omit-address-toggle')
+        if (toggle) {
+          toggle.checked = getOmitAddressMode()
+          toggle.addEventListener('change', (e) => {
+            saveOmitAddressMode(e.target.checked)
+          })
+        }
+      }
+
+      // =======================================================================
+      // BLS (tz4) Mnemonic Support - TODO: Remove when Taquito adds native support
+      // See: https://github.com/ecadlabs/taquito/blob/master/packages/taquito-signer/src/helpers.ts
+      // Taquito's fromMnemonic only supports ed25519, secp256k1, p256 as of v23.0.3
+      // =======================================================================
+      const createBLSSignerFromMnemonic = async (mnemonic) => {
+        if (!window.blsKeygen || !window.blsKeygen.deriveKeyFromMnemonic) {
+          throw new Error('BLS keygen library not loaded')
+        }
+        if (!window.taquitoUtils || !window.taquitoUtils.b58cencode) {
+          throw new Error('Taquito utils not loaded')
+        }
+
+        // Derive BLS secret key using EIP-2333 standard
+        // Using Tezos derivation path: m/44'/1729'/0'/0' mapped to EIP-2334 format
+        // Note: There's no official Tezos BLS derivation path yet, using master key
+        const secretKeyBytes = window.blsKeygen.deriveKeyFromMnemonic(mnemonic)
+
+        // Encode as BLsk (Tezos BLS secret key format)
+        // Prefix for BLsk is [3, 150, 192, 40]
+        const blskPrefix = new Uint8Array([3, 150, 192, 40])
+        const blskSecretKey = window.taquitoUtils.b58cencode(secretKeyBytes, blskPrefix)
+
+        console.log('Derived BLS secret key (BLsk format):', blskSecretKey.substring(0, 10) + '...')
+
+        // Create InMemorySigner from the BLsk secret key
+        const signer = await window.taquitoSigner.InMemorySigner.fromSecretKey(blskSecretKey)
+        return signer
+      }
+      // =======================================================================
+      // End BLS Support
+      // =======================================================================
+
       const isValidMnemonic = (mnemonic) => {
         if (!mnemonic) {
           return false
@@ -563,12 +659,20 @@
 
           console.log('Using Taquito signer from unpkg, creating wallet from mnemonic')
           console.log('Mnemonic to use:', walletMnemonic)
-          walletSigner = await window.taquitoSigner.InMemorySigner.fromMnemonic({
-            mnemonic: walletMnemonic,
-            password: '',
-            derivationPath: "44'/1729'/0'/0'",
-            curve: 'ed25519'
-          })
+          const selectedCurve = getSelectedCurve()
+          console.log('Using curve:', selectedCurve)
+
+          // Handle BLS curve separately (Taquito doesn't support BLS in fromMnemonic yet)
+          if (selectedCurve === 'bls') {
+            walletSigner = await createBLSSignerFromMnemonic(walletMnemonic)
+          } else {
+            walletSigner = await window.taquitoSigner.InMemorySigner.fromMnemonic({
+              mnemonic: walletMnemonic,
+              password: '',
+              derivationPath: "44'/1729'/0'/0'",
+              curve: selectedCurve
+            })
+          }
           console.log('Signer created:', walletSigner)
 
           // Get wallet address and public key
@@ -726,6 +830,35 @@
             }
           }
 
+          // Switch wallet to the requested network
+          const requestedNetwork = message.network?.type
+          if (requestedNetwork) {
+            const networkSelect = document.getElementById('networkSelect')
+            const currentNetwork = BeaconUtils.getSelectedNetwork()
+            if (currentNetwork !== requestedNetwork) {
+              console.log(`Switching wallet network from ${currentNetwork} to ${requestedNetwork}`)
+              networkSelect.value = requestedNetwork
+              BeaconUtils.saveSelectedNetwork(requestedNetwork)
+              // Handle custom network RPC visibility
+              if (requestedNetwork === beacon.NetworkType.CUSTOM) {
+                document.getElementById('customRpcContainer').style.display = 'block'
+                if (message.network?.rpcUrl) {
+                  document.getElementById('customRpcUrl').value = message.network.rpcUrl
+                  localStorage.setItem('tezosCustomRpcUrl', message.network.rpcUrl)
+                }
+              } else {
+                document.getElementById('customRpcContainer').style.display = 'none'
+              }
+              // Update balance for new network
+              stopBalanceRefresh()
+              if (walletAddress) {
+                await updateBalance()
+                startBalanceRefresh()
+              }
+            }
+          }
+
+          const omitAddress = document.getElementById('omit-address-toggle')?.checked ?? false
           const response = {
             type: beacon.BeaconMessageType.PermissionResponse,
             network: message.network,
@@ -737,7 +870,8 @@
             ],
             id: message.id,
             publicKey: walletPublicKey,
-            address: walletAddress,
+            // Only include address if toggle is OFF - tests SDK's getAddressFromPublicKey()
+            ...(omitAddress ? {} : { address: walletAddress }),
             appMetadata: {
               senderId: message.senderId || 'example-wallet',
               name: 'Example Wallet',
@@ -1064,8 +1198,11 @@
           if (walletMnemonic) {
             mnemonicElement.textContent = walletMnemonic
             document.getElementById('wallet-mnemonic-section').style.display = 'block'
+            document.getElementById('curve-select-wrapper').style.display = 'block'
           } else {
             document.getElementById('wallet-mnemonic-section').style.display = 'none'
+            // Hide curve selector for private key imports (curve is determined by key type)
+            document.getElementById('curve-select-wrapper').style.display = 'none'
           }
 
           container.style.display = 'block'
@@ -1189,6 +1326,8 @@
       window.addEventListener('load', () => {
         BeaconUtils.populateNetworkSelect();
         initializeAutoApproveMode();
+        initializeCurveSelect();
+        initializeOmitAddressToggle();
         initClient();
       });
 
@@ -1218,6 +1357,18 @@
         // Save RPC URL changes
         document.getElementById('customRpcUrl').addEventListener('change', (e) => {
           localStorage.setItem('tezosCustomRpcUrl', e.target.value)
+        })
+
+        // Curve change handler
+        document.getElementById('curve-select').addEventListener('change', async (e) => {
+          const newCurve = e.target.value
+          saveSelectedCurve(newCurve)
+
+          // Only reinitialize if we have a mnemonic (not for private key imports)
+          if (walletMnemonic) {
+            stopBalanceRefresh()
+            await initWallet(walletMnemonic)
+          }
         })
       })
 

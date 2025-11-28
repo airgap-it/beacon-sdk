@@ -169,9 +169,6 @@
             <button id="signPayloadMicheline" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
               Sign Payload (Micheline)
             </button>
-            <button id="encryptPayload" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
-              Encrypt Payload
-            </button>
           </div>
         </section>
       </div>
@@ -1014,28 +1011,13 @@
         })
       })
 
-      // Add event listener to the button
-      document.getElementById('encryptPayload').addEventListener('click', async () => {
-        const encryptionResponse = await client.requestEncryptPayload({
-          encryptionType: beacon.EncryptionType.ASYMMETRIC,
-          encryptionCryptoOperation: beacon.EncryptionOperation.ENCRYPT,
-          payload: 'my-secret-string'
-        })
-
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-
-        await client.requestEncryptPayload({
-          encryptionType: beacon.EncryptionType.ASYMMETRIC,
-          encryptionCryptoOperation: beacon.EncryptionOperation.DECRYPT,
-          payload: encryptionResponse.payload
-        })
-      })
 
       // Add event listener to the button
       document.getElementById('signPayloadOperation').addEventListener('click', async () => {
         await client.requestSignPayload({
           signingType: beacon.SigningType.OPERATION,
-          payload: '03test'
+          // 03 = operation watermark, followed by valid hex bytes representing a dummy operation
+          payload: '0300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         })
       })
 
