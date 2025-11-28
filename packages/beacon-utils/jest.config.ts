@@ -7,6 +7,7 @@ const config: Config = {
   coverageDirectory: 'coverage',
   testEnvironment: 'node',
   testMatch: ['**/?(*.)+(spec|test).[tj]s?(x)'],
+  setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest'
   },
