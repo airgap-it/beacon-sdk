@@ -928,11 +928,26 @@ export class P2PCommunicationClient extends CommunicationClient {
 
       logger.log(`getRelevantJoinedRoom`, `no relevant rooms found, creating new one`)
 
-      const roomId = await (await this.client.promise).createTrustedPrivateRoom(recipient)
-      room = await (await this.client.promise).getRoomById(roomId)
-      logger.log(`getRelevantJoinedRoom`, `waiting for other party to join room: ${room.id}`)
-      await this.waitForJoin(roomId)
-      logger.log(`getRelevantJoinedRoom`, `new room created and peer invited: ${room.id}`)
+      try {
+        const roomId = await (await this.client.promise).createTrustedPrivateRoom(recipient)
+        room = await (await this.client.promise).getRoomById(roomId)
+        logger.log(`getRelevantJoinedRoom`, `waiting for other party to join room: ${room.id}`)
+        await this.waitForJoin(roomId)
+        logger.log(`getRelevantJoinedRoom`, `new room created and peer invited: ${room.id}`)
+      } catch (error: any) {
+        if (error?.errcode === 'M_FORBIDDEN' && error?.error?.includes('already in the room')) {
+          // Server knows about a room we don't have locally
+          // Clear preserved state so next reconnect gets a fresh sync
+          logger.log(
+            `getRelevantJoinedRoom`,
+            `M_FORBIDDEN on room creation, clearing preserved state for fresh sync on reconnect`
+          )
+          await this.storage.delete(StorageKey.MATRIX_PRESERVED_STATE).catch((e) => logger.log(e))
+          // Re-throw the error so caller (sendPairingResponse) can handle the restart
+          throw error
+        }
+        throw error
+      }
     }
 
     return room
