@@ -172,7 +172,7 @@ export async function getAddressFromPublicKey(publicKey: string): Promise<string
     },
     // tz4...
     BLpk: {
-      length: 55,
+      length: 76,
       prefix: Buffer.from(new Uint8Array([6, 161, 166]))
     }
   }
