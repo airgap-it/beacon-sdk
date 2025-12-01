@@ -1,4 +1,4 @@
-import QRCode from 'qrcode-svg'
+import qrcode from 'qrcode-generator'
 import { Logger } from '@airgap/beacon-core'
 
 const logger = new Logger('QR')
@@ -17,15 +17,18 @@ export const getQrData = (payload: string, height?: number, width?: number): str
     )
   }
   try {
-    const qrcode = new QRCode({
-      color: 'black',
-      content: payload,
-      join: true, // Join adjacent modules into a single path element
-      ecl: 'L', // Error correction level,
-      height: height,
-      width: width
-    })
-    return qrcode.svg()
+    const size = height || width || 160
+    const typeNumber = 0 // Auto-detect size based on data length
+    const errorCorrectionLevel = 'L' // Low error correction
+    const qr = qrcode(typeNumber, errorCorrectionLevel)
+    qr.addData(payload)
+    qr.make()
+    
+    // Generate SVG with proper sizing
+    const cellSize = Math.floor(size / qr.getModuleCount())
+    const margin = 0
+    
+    return qr.createSvgTag(cellSize, margin)
   } catch (qrError) {
     console.error('error', qrError)
     throw qrError
