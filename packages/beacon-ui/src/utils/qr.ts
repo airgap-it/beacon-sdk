@@ -24,7 +24,6 @@ export const getQrData = (payload: string, height?: number, width?: number): str
     qr.addData(payload)
     qr.make()
     
-    // Generate SVG with proper sizing
     const cellSize = Math.floor(size / qr.getModuleCount())
     const margin = 0
     
