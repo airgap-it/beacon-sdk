@@ -20,8 +20,14 @@ export default [
       sourcemap: true
     },
     plugins: [
-      resolve({ extensions }),
-      commonjs(),
+      resolve({ 
+        extensions,
+        browser: true,
+        preferBuiltins: false
+      }),
+      commonjs({
+        ignoreDynamicRequires: true
+      }),
       postcss({
         inject: true,
         minimize: true,
@@ -46,11 +52,19 @@ export default [
   },
   {
     input: 'src/index.ts',
+    external: ['module', 'fs', 'path', 'crypto', 'worker_threads'],
     output: [
       {
         file: 'dist/cjs/index.js',
         format: 'cjs',
-        sourcemap: true
+        sourcemap: true,
+        globals: {
+          module: 'module',
+          fs: 'fs',
+          path: 'path',
+          crypto: 'crypto',
+          worker_threads: 'worker_threads'
+        }
       },
       {
         file: 'dist/esm/index.js',
@@ -59,8 +73,15 @@ export default [
       }
     ],
     plugins: [
-      resolve({ extensions }),
-      commonjs(),
+      resolve({ 
+        extensions,
+        browser: true,
+        preferBuiltins: false
+      }),
+      commonjs({
+        ignoreDynamicRequires: true,
+        transformMixedEsModules: true
+      }),
       // Add the string plugin to import CSS files as raw text
       string({
         include: './ui/**/aggregated.css'

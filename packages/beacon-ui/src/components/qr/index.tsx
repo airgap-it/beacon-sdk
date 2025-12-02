@@ -14,7 +14,9 @@ const QR: React.FC<QRProps> = (props: QRProps) => {
       ? props.code
       : getTzip10Link('tezos://', props.code)
 
-    const svg = props.isMobile ? getQrData(payload, 300, 300) : getQrData(payload, 160, 160)
+    const svg = props.isMobile 
+      ? getQrData(payload, 300, 300) 
+      : getQrData(payload, 160, 160)
     setQrSVG(svg)
   }, [props.code, props.isMobile])
 

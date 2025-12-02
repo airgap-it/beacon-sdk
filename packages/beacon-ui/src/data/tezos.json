@@ -1,6 +1,6 @@
 {
-  "version": "1.0.8",
-  "updated": "2025-11-05T15:28:19.437Z",
+  "version": "1.0.9",
+  "updated": "2025-11-28T17:09:58.325Z",
   "extensionList": [
     {
       "key": "spire_chrome",
@@ -98,7 +98,8 @@
         "quebecnet": "https://metamask.tezos.com/",
         "rionet": "https://metamask.tezos.com/",
         "seoulnet": "https://metamask.tezos.com/",
-        "shadownet": "https://metamask.tezos.com/"
+        "shadownet": "https://metamask.tezos.com/",
+        "tallinnnet": "https://metamask.tezos.com/"
       }
     },
     {
@@ -131,7 +132,8 @@
         "quebecnet": "https://quebecnet.kukai.app",
         "rionet": "https://rionet.kukai.app",
         "seoulnet": "https://seoulnet.kukai.app",
-        "shadownet": "https://shadownet.kukai.app"
+        "shadownet": "https://shadownet.kukai.app",
+        "tallinnnet": "https://tallinnnet.kukai.app"
       }
     },
     {
@@ -161,7 +163,8 @@
         "quebecnet": "https://ghostnet.tzsafe.marigold.dev",
         "rionet": "https://ghostnet.tzsafe.marigold.dev",
         "seoulnet": "https://ghostnet.tzsafe.marigold.dev",
-        "shadownet": "https://ghostnet.tzsafe.marigold.dev"
+        "shadownet": "https://ghostnet.tzsafe.marigold.dev",
+        "tallinnnet": "https://ghostnet.tzsafe.marigold.dev"
       }
     }
   ],
