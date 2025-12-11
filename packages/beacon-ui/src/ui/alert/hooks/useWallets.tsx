@@ -86,12 +86,16 @@ const useWallets = (networkType?: NetworkType, featuredWallets?: string[]) => {
         .filter((e) => !extensionList.some((w) => w.id === e.id))
         .map((e) => ({
           id: e.id,
-          key: e.id,
+          // If extension provides firefoxId, include it in the key so mergeWallets()
+          // can detect it and set the firefoxId property on the merged wallet
+          key: e.firefoxId ? `${e.id}-firefox` : e.id,
           name: e.shortName ?? e.name ?? '',
           image: e.iconUrl ?? '',
           description: 'Browser Extension',
           type: 'extension' as const,
-          link: (e as any).link ?? ''
+          link: (e as any).link ?? '',
+          // Also pass through the firefoxId for direct access
+          firefoxId: e.firefoxId
         }))
     ]
 
