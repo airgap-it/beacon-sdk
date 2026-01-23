@@ -8,6 +8,7 @@ export interface Wallet {
   link: string
   supportedInteractionStandards?: ('wallet_connect' | 'beacon')[] // 'wallet_connect' or 'beacon'
   deepLink?: string
+  deprecated?: boolean
 }
 
 export interface MergedWallet {
@@ -22,6 +23,7 @@ export interface MergedWallet {
   supportedInteractionStandards?: ('wallet_connect' | 'beacon')[] // 'wallet_connect' or 'beacon',
   tags?: string[]
   deepLink?: string
+  deprecated?: boolean
 }
 
 export enum OSLink {

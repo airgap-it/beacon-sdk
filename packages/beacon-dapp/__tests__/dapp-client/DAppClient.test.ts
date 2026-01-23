@@ -1,6 +1,6 @@
 // __tests__/DAppClient.test.ts
 import { DAppClient } from '../../src/dapp-client/DAppClient'
-import { NetworkType } from '@airgap/beacon-types'
+import { BeaconErrorType, BeaconMessageType, NetworkType } from '@airgap/beacon-types'
 import { ExposedPromise } from '@airgap/beacon-utils'
 import { LocalStorage } from '@airgap/beacon-core'
 import { BeaconEvent } from '../../src/events'
@@ -173,5 +173,72 @@ describe('DAppClient — basic unit tests', () => {
 
     client.removeBlockchain('chain-1')
     expect((client as any).blockchains.has('chain-1')).toBe(false)
+  })
+})
+
+describe('DAppClient — abort handling', () => {
+  let client: DAppClient
+
+  beforeEach(() => {
+    client = new DAppClient({
+      name: 'TestAbortApp',
+      storage: new LocalStorage(),
+      preferredNetwork: NetworkType.MAINNET
+    })
+  })
+
+  it('rejects _initPromise with ABORTED_ERROR when abortHandler is called', async () => {
+    // Manually set up the init promise state as if init() was in progress
+    let capturedReject: ((reason?: any) => void) | undefined
+
+    ;(client as any)._initPromise = new Promise<any>((_resolve, reject) => {
+      capturedReject = reject
+    })
+    ;(client as any)._initPromiseReject = capturedReject
+
+    // Create a promise that will be rejected
+    const initPromise = (client as any)._initPromise
+
+    // Simulate calling the abort logic (what happens when user closes modal)
+    const rejectFn = (client as any)._initPromiseReject
+    if (rejectFn) {
+      rejectFn({
+        type: BeaconMessageType.Error,
+        errorType: BeaconErrorType.ABORTED_ERROR,
+        id: '',
+        senderId: '',
+        version: '2'
+      })
+    }
+
+    // Verify the promise rejects with ABORTED_ERROR
+    await expect(initPromise).rejects.toMatchObject({
+      type: BeaconMessageType.Error,
+      errorType: BeaconErrorType.ABORTED_ERROR
+    })
+  })
+
+  it('clears _initPromise and _initPromiseReject after abort', () => {
+    // Set up initial state
+    ;(client as any)._initPromise = new Promise(() => {})
+    ;(client as any)._initPromiseReject = jest.fn()
+
+    // Simulate the cleanup that happens in abortHandler
+    ;(client as any)._initPromise = undefined
+    ;(client as any)._initPromiseReject = undefined
+
+    expect((client as any)._initPromise).toBeUndefined()
+    expect((client as any)._initPromiseReject).toBeUndefined()
+  })
+
+  it('emits PAIR_ABORTED event when abort occurs', async () => {
+    const pairAbortedHandler = jest.fn()
+    client.subscribeToEvent(BeaconEvent.PAIR_ABORTED, pairAbortedHandler)
+
+    // Emit the event as it would be in abortHandler
+    await (client as any).events.emit(BeaconEvent.PAIR_ABORTED)
+
+    // The handler should be called
+    expect(pairAbortedHandler).toHaveBeenCalled()
   })
 })

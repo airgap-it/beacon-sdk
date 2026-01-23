@@ -1,4 +1,7 @@
-/* components */
+/* Reset - establish baseline first */
+@import './reset.css';
+
+/* Components */
 @import '../../components/alert/styles.css';
 @import '../../components/bug-report-form/styles.css';
 @import '../../components/info/styles.css';

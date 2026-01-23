@@ -7,7 +7,9 @@ import {
   ExtensionApp,
   DesktopApp,
   WebApp,
-  App
+  App,
+  Network,
+  PermissionScope
 } from '@airgap/beacon-types'
 
 export interface ResponseInput {
@@ -33,7 +35,13 @@ export interface Blockchain {
 
   getAccountInfosFromPermissionResponse(
     permissionResponse: PermissionResponseV3
-  ): Promise<{ accountId: string; address: string; publicKey: string }[]>
+  ): Promise<{
+    accountId: string;
+    address: string;
+    publicKey: string;
+    network?: Network;
+    scopes: PermissionScope[];
+  }[]>
 }
 
 export interface BeaconMessageWrapper<T extends BeaconBaseMessage> {

@@ -12,6 +12,7 @@ export class P2PPairingRequest implements PeerInfo {
   appUrl?: string | undefined
   publicKey: string
   version: string
+  protocolVersion?: number
 
   constructor(
     id: string,
@@ -19,6 +20,7 @@ export class P2PPairingRequest implements PeerInfo {
     publicKey: string,
     version: string,
     relayServer: string,
+    protocolVersion?: number,
     icon?: string,
     appUrl?: string
   ) {
@@ -29,6 +31,7 @@ export class P2PPairingRequest implements PeerInfo {
     this.publicKey = publicKey
     this.version = version
     this.relayServer = relayServer
+    this.protocolVersion = protocolVersion
   }
 }
 
@@ -45,10 +48,11 @@ export class ExtendedP2PPairingRequest extends P2PPairingRequest implements Exte
     version: string,
     relayServer: string,
     senderId: string,
+    protocolVersion?: number,
     icon?: string,
     appUrl?: string
   ) {
-    super(id, name, publicKey, version, relayServer, icon, appUrl)
+    super(id, name, publicKey, version, relayServer, protocolVersion, icon, appUrl)
     this.senderId = senderId
   }
 }

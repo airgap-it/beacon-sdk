@@ -43,6 +43,14 @@
   margin: 0px;
 }
 
+.qr-left span.deprecated-warning {
+  color: #f76b8a;
+}
+
+.theme__dark .qr-left span.deprecated-warning {
+  color: #f76b8a;
+}
+
 .qr-more-info {
   font-size: 0.95em !important;
   text-decoration: underline;

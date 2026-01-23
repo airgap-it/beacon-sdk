@@ -1,4 +1,4 @@
-import { NetworkType, AnalyticsInterface, WalletInfo } from '@airgap/beacon-types'
+import { NetworkType, AnalyticsInterface, WalletInfo, ErrorContext } from '@airgap/beacon-types'
 import { MergedWallet } from '../utils/wallets'
 
 // ALERT
@@ -21,13 +21,15 @@ export interface AlertConfig {
   title: string
   body?: string
   data?: string
+  errorContext?: ErrorContext
   timer?: number
   buttons?: AlertButton[]
   pairingPayload?: PairingPayload
   closeButtonCallback?: () => void
-  disclaimerText?: string
   analytics?: AnalyticsInterface
   featuredWallets?: string[]
+  termsAndConditionsUrl?: string
+  privacyPolicyUrl?: string
   openBugReport?: boolean
   substratePairing?: boolean
 }
@@ -47,6 +49,8 @@ export interface AlertProps {
   onClickShowMore?: () => void
   onBackClick?: () => void
   closeOnBackdropClick: boolean
+  termsAndConditionsUrl?: string
+  privacyPolicyUrl?: string
 }
 
 export interface PairingPayload {
@@ -70,6 +74,7 @@ export interface QRProps {
   code: string
   onClickLearnMore?: () => void
   onClickQrCode?: () => void
+  isDeprecated?: boolean
 }
 
 export interface QRCodeProps {
@@ -91,6 +96,7 @@ export interface InfoProps {
   title: string
   description?: string
   data?: string
+  errorContext?: ErrorContext
   icon?: any
   border?: boolean
   iconBadge?: boolean

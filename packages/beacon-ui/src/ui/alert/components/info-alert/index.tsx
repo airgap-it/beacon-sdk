@@ -6,6 +6,7 @@ const InfoAlert = ({
   title,
   body,
   data,
+  errorContext,
   open,
   onClose,
   closeOnBackdropClick
@@ -47,6 +48,7 @@ const InfoAlert = ({
         title={title || 'No title'}
         description={body || 'No description'}
         data={data}
+        errorContext={errorContext}
         buttons={[
           {
             label: 'Close',

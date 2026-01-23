@@ -129,6 +129,8 @@ export class MatrixClient {
       accessToken: response.access_token
     })
 
+    this.isActive = true
+
     const initialPollingResult = new Promise<void>(async (resolve, reject) => {
       await this.poll(
         0,
@@ -176,6 +178,9 @@ export class MatrixClient {
     logger.log(`MATRIX CLIENT STOPPED`)
     this.isActive = false
     this._isReady = new ExposedPromise()
+    await this.store.update({
+      isRunning: false
+    })
 
     return this.httpClient.cancelAllRequests()
   }

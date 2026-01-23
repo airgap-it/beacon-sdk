@@ -85,7 +85,7 @@ test('should display Temple Wallet', async () => {
 
   await dapp.click('h3:has-text("Temple")')
 
-  await dapp.waitForSelector('h3:has-text("Connect with Temple Browser Extension")', {
+  await dapp.waitForSelector('h3:has-text("Install Temple Wallet")', {
     state: 'visible',
     timeout: 30_000
   })

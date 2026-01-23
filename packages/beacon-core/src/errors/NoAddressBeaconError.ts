@@ -1,4 +1,6 @@
 import { BeaconErrorType } from '@airgap/beacon-types'
+
+import { BEACON_ERROR_CODES } from './error-codes'
 import { BeaconError } from './BeaconError'
 
 /**
@@ -11,7 +13,8 @@ export class NoAddressBeaconError extends BeaconError {
   constructor() {
     super(
       BeaconErrorType.NO_ADDRESS_ERROR,
-      'The wallet does not have an account set up. Please make sure to set up your wallet and try again.'
+      'The wallet does not have an account set up. Please make sure to set up your wallet and try again.',
+      BEACON_ERROR_CODES.NO_ADDRESS
     )
   }
 }

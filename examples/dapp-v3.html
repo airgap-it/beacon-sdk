@@ -122,7 +122,8 @@
       // Initiate DAppClient
       const client = new beacon.DAppClient({
         name: 'Example DApp', // Name of the DApp,
-        disclaimerText: 'This is an optional <b>disclaimer</b>.',
+        termsAndConditionsUrl: 'https://example.com/terms',
+        privacyPolicyUrl: 'https://example.com/privacy',
         appUrl: 'http://localhost:8080',
         walletConnectOptions: {
           projectId: '97f804b46f0db632c52af0556586a5f3',
@@ -220,19 +221,14 @@
             }
             updateActiveAccount()
           })
-
-        // client
-        //   .requestPermissions(/*{ network: { type: beacon.NetworkType.DELPHINET } }*/)
-        //   .then((permissions) => {
-        //     console.log('permissions', permissions)
-        //     if (callback) {
-        //       callback(permissions)
-        //     }
-        //     updateActiveAccount()
-        //   })
-        //   .catch((error) => {
-        //     console.log('error during permission request', error)
-        //   })
+          .catch((error) => {
+            if (error.errorType === beacon.BeaconErrorType.ABORTED_ERROR) {
+              console.log('User closed the modal - connection aborted')
+              // User can retry by clicking the button again
+              return
+            }
+            console.log('error during permission request', error)
+          })
       }
 
       // Add event listener to the button

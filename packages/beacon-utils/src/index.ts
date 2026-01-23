@@ -14,9 +14,13 @@ export {
   isValidAddress,
   prefixPublicKey,
   encodePoeChallengePayload,
-  isPublicKeySC
+  isPublicKeySC,
+  createReceiverSessionKey,
+  createSenderSessionKey
 } from './utils/crypto'
+export type { KeyPair, SessionKeys } from './utils/crypto'
 export { generateGUID } from './utils/generate-uuid'
+export { loadWalletLists, WalletLists } from './wallet-list-loader'
 
 export const CONTRACT_PREFIX = 'KT1'
 export const secretbox_NONCEBYTES = 24 // crypto_secretbox_NONCEBYTES

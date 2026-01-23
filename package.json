@@ -28,8 +28,9 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "prebuild": "ts-node --project tsconfig-cjs.json scripts/generate-wallet-list.ts",
+    "prebuild": "npx tsx scripts/download-wallet-lists.ts",
     "build": "npm run check-version && lerna run tsc && npm run webpack:all",
+    "serve": "static-server examples --port 8080",
     "webpack:all": "npm run webpack:sdk && npm run webpack:dapp && npm run webpack:wallet",
     "webpack:sdk": "webpack --mode=development --config webpack.config.js --entry=./packages/beacon-sdk/dist/cjs/index.js --output-path ./webpack_builds/sdk && terser --ecma=12 ./webpack_builds/sdk/main.js -o ./packages/beacon-sdk/dist/walletbeacon.min.js && cp ./packages/beacon-sdk/dist/walletbeacon.min.js ./examples/walletbeacon.min.js",
     "webpack:dapp": "webpack --mode=development --entry=./packages/beacon-dapp/dist/cjs/index.js --output-path ./webpack_builds/dapp && terser --ecma=12 ./webpack_builds/dapp/main.js -o ./packages/beacon-dapp/dist/walletbeacon.dapp.min.js",
@@ -51,6 +52,7 @@
     "bump:major": "lerna version --no-git-tag-version major --exact --yes",
     "bump:minor": "lerna version --no-git-tag-version minor --exact --yes",
     "bump:patch": "lerna version --no-git-tag-version patch --exact --yes",
+    "bump:alpha": "lerna version --no-git-tag-version prerelease --preid alpha --exact --yes",
     "bump:beta": "lerna version --no-git-tag-version prerelease --preid beta --exact --yes",
     "build:ui": "cd packages/beacon-ui && npm run tsc && cd ../.. && npm run webpack:sdk"
   },

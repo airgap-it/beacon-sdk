@@ -70,6 +70,50 @@ const Alert: React.FC<React.PropsWithChildren<AlertProps>> = (props) => {
             </div>
           )}
         </div>
+        {(props.termsAndConditionsUrl || props.privacyPolicyUrl) && (
+          <div className="alert-legal-footer">
+            By logging in I agree to the{' '}
+            {props.termsAndConditionsUrl && props.privacyPolicyUrl ? (
+              <>
+                <a
+                  href={props.termsAndConditionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="alert-legal-link"
+                >
+                  Terms
+                </a>{' '}
+                &{' '}
+                <a
+                  href={props.privacyPolicyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="alert-legal-link"
+                >
+                  Privacy Policy
+                </a>
+              </>
+            ) : props.termsAndConditionsUrl ? (
+              <a
+                href={props.termsAndConditionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="alert-legal-link"
+              >
+                Terms & Conditions
+              </a>
+            ) : (
+              <a
+                href={props.privacyPolicyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="alert-legal-link"
+              >
+                Privacy Policy
+              </a>
+            )}
+          </div>
+        )}
         {!isMobile && props.extraContent && (
           <div
             className="alert-footer"

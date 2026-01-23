@@ -11,8 +11,10 @@ import {
   AppMetadata,
   BeaconRequestMessage,
   BeaconMessageWrapper,
-  NodeDistributions
+  NodeDistributions,
+  Blockchain
 } from '@airgap/beacon-types'
+import { DEFAULT_PROTOCOL_VERSION } from '../../constants'
 import { BeaconClient } from '../beacon-client/BeaconClient'
 import { AccountManager } from '../../managers/AccountManager'
 import { getSenderId } from '../../utils/get-sender-id'
@@ -20,6 +22,8 @@ import { Logger } from '../../utils/Logger'
 import { ClientOptions } from './ClientOptions'
 import { Transport } from '../../transports/Transport'
 import { Serializer } from '../../Serializer'
+import { usesWrappedMessages } from '../../utils/message-utils'
+import { getPreferredMessageProtocolVersion } from '../../message-protocol'
 
 const logger = new Logger('Client')
 
@@ -31,6 +35,7 @@ const logger = new Logger('Client')
  */
 export abstract class Client extends BeaconClient {
   protected readonly accountManager: AccountManager
+  protected readonly blockchains: Map<string, Blockchain> = new Map()
 
   protected handleResponse: (
     _event: BeaconRequestMessage | BeaconMessageWrapper<BeaconBaseMessage>,
@@ -109,6 +114,22 @@ export abstract class Client extends BeaconClient {
   }
 
   /**
+   * Register a blockchain to the client
+   * @param chain The blockchain to register
+   */
+  public addBlockchain(chain: Blockchain) {
+    this.blockchains.set(chain.identifier, chain)
+  }
+
+  /**
+   * Remove a blockchain from the client by its identifier
+   * @param chainIdentifier The identifier of the blockchain to remove
+   */
+  public removeBlockchain(chainIdentifier: string) {
+    this.blockchains.delete(chainIdentifier)
+  }
+
+  /**
    * Return all locally known accounts
    */
   public async getAccounts(): Promise<AccountInfo[]> {
@@ -158,7 +179,7 @@ export abstract class Client extends BeaconClient {
    *
    * @param transport A transport that can be provided by the user
    */
-  public async init(transport: Transport<any>): Promise<TransportType> {
+  public async init(transport: Transport<any, any, any>): Promise<TransportType> {
     if (this._transport.isResolved()) {
       return (await this.transport).type
     }
@@ -237,12 +258,17 @@ export abstract class Client extends BeaconClient {
     }
 
     const subscription = async (message: any, connectionInfo: ConnectionContext) => {
-      if (typeof message === 'string') {
-        const deserializedMessage = (await new Serializer().deserialize(
-          message
-        )) as BeaconRequestMessage
-        this.handleResponse(deserializedMessage, connectionInfo)
+      if (typeof message !== 'string') {
+        return
       }
+
+      const peer = await this.findPeer(connectionInfo.id)
+      const protocolVersion = this.getPeerProtocolVersion(peer)
+
+      const deserializedMessage = (await new Serializer(protocolVersion).deserialize(
+        message
+      )) as BeaconRequestMessage
+      this.handleResponse(deserializedMessage, connectionInfo)
     }
 
     this.transportListeners.set(transport.type, subscription)
@@ -251,16 +277,68 @@ export abstract class Client extends BeaconClient {
   }
 
   protected async sendDisconnectToPeer(peer: PeerInfo, transport?: Transport<any>): Promise<void> {
-    const request: DisconnectMessage = {
-      id: await generateGUID(),
+    const id = await generateGUID()
+    const senderId = await getSenderId(await this.beaconId)
+
+    const disconnectMessage: DisconnectMessage = {
+      id,
       version: peer.version,
-      senderId: await getSenderId(await this.beaconId),
+      senderId,
       type: BeaconMessageType.Disconnect
     }
 
-    const payload = await new Serializer().serialize(request)
+    const request =
+      usesWrappedMessages(peer.version)
+        ? {
+            id,
+            version: peer.version,
+            senderId,
+            message: {
+              type: disconnectMessage.type
+            }
+          }
+        : disconnectMessage
+
+    const protocolVersion = this.getPeerProtocolVersion(peer)
+    const payload = await new Serializer(protocolVersion).serialize(request)
     const selectedTransport = transport ?? (await this.transport)
 
     await selectedTransport.send(payload, peer)
+  }
+
+  protected async findPeer(publicKey?: string): Promise<PeerInfo | undefined> {
+    if (!publicKey) {
+      return undefined
+    }
+
+    const transport = await this.transport
+    const peers = await transport.getPeers()
+    return peers.find((peerInfo) => peerInfo.publicKey === publicKey)
+  }
+
+  private getLocalProtocolVersion(): number {
+    const localPreferredRaw = Number(getPreferredMessageProtocolVersion())
+    return Number.isFinite(localPreferredRaw) && localPreferredRaw >= DEFAULT_PROTOCOL_VERSION
+      ? localPreferredRaw
+      : DEFAULT_PROTOCOL_VERSION
+  }
+
+  private extractPeerProtocolVersion(peer?: PeerInfo): number {
+    if (!peer) {
+      return DEFAULT_PROTOCOL_VERSION
+    }
+
+    const peerProtocolRaw =
+      typeof peer.protocolVersion === 'number' ? peer.protocolVersion : Number(peer.protocolVersion)
+
+    return Number.isFinite(peerProtocolRaw) && peerProtocolRaw >= DEFAULT_PROTOCOL_VERSION
+      ? peerProtocolRaw
+      : DEFAULT_PROTOCOL_VERSION
+  }
+
+  protected getPeerProtocolVersion(peer?: PeerInfo): number {
+    const localVersion = this.getLocalProtocolVersion()
+    const peerVersion = this.extractPeerProtocolVersion(peer)
+    return Math.min(peerVersion, localVersion)
   }
 }

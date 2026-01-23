@@ -12,6 +12,7 @@ export class WalletConnectPairingRequest implements PeerInfo {
   appUrl?: string | undefined
   publicKey: string
   version: string
+  protocolVersion?: number
 
   constructor(
     id: string,
@@ -19,6 +20,7 @@ export class WalletConnectPairingRequest implements PeerInfo {
     publicKey: string,
     version: string,
     uri: string,
+    protocolVersion?: number,
     icon?: string,
     appUrl?: string
   ) {
@@ -28,6 +30,7 @@ export class WalletConnectPairingRequest implements PeerInfo {
     this.appUrl = appUrl
     this.publicKey = publicKey
     this.version = version
+    this.protocolVersion = protocolVersion
     this.uri = uri
   }
 }
@@ -48,10 +51,11 @@ export class ExtendedWalletConnectPairingRequest
     version: string,
     senderId: string,
     uri: string,
+    protocolVersion?: number,
     icon?: string,
     appUrl?: string
   ) {
-    super(id, name, publicKey, version, uri, icon, appUrl)
+    super(id, name, publicKey, version, uri, protocolVersion, icon, appUrl)
     this.senderId = senderId
   }
 }

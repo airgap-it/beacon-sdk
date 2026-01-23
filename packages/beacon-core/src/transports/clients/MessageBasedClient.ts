@@ -1,4 +1,5 @@
 import { BEACON_VERSION } from '../../constants'
+import { getPreferredMessageProtocolVersion } from '../../message-protocol'
 import {
   decryptCryptoboxPayload,
   encryptCryptoboxPayload,
@@ -44,7 +45,8 @@ export abstract class MessageBasedClient extends CommunicationClient {
       await generateGUID(),
       this.name,
       await this.getPublicKey(),
-      BEACON_VERSION
+      BEACON_VERSION,
+      getPreferredMessageProtocolVersion()
     )
   }
 
@@ -58,7 +60,8 @@ export abstract class MessageBasedClient extends CommunicationClient {
       request.id,
       this.name,
       await this.getPublicKey(),
-      request.version
+      request.version,
+      getPreferredMessageProtocolVersion()
     )
   }
 

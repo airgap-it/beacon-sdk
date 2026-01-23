@@ -1,5 +1,6 @@
 import {
   BEACON_VERSION,
+  getPreferredMessageProtocolVersion,
   CommunicationClient,
   Serializer,
   ClientEvents,
@@ -17,7 +18,8 @@ import {
   InvalidReceivedSessionNamespace,
   InvalidSession,
   MissingRequiredScope,
-  NotConnected
+  NotConnected,
+  mapWCErrorToBeaconError
 } from '../error'
 import {
   AcknowledgeResponseInput,
@@ -91,6 +93,7 @@ function getStringBetween(str: string | undefined, startChar: string, endChar: s
 
 export class WalletConnectCommunicationClient extends CommunicationClient {
   protected readonly activeListeners: Map<string, (message: string) => void> = new Map()
+  private readonly peerProtocolVersions: Map<string, number | undefined> = new Map()
 
   protected readonly channelOpeningListeners: Map<
     string,
@@ -147,11 +150,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
   public async listenForEncryptedMessage(
     senderPublicKey: string,
-    messageCallback: (message: string) => void
+    messageCallback: (message: string) => void,
+    protocolVersion?: number
   ): Promise<void> {
     if (this.activeListeners.has(senderPublicKey)) {
       return
     }
+
+    this.peerProtocolVersions.set(senderPublicKey, protocolVersion)
 
     const callbackFunction = async (message: string): Promise<void> => {
       messageCallback(message)
@@ -237,10 +243,12 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
   async unsubscribeFromEncryptedMessages(): Promise<void> {
     this.activeListeners.clear()
     this.channelOpeningListeners.clear()
+    this.peerProtocolVersions.clear()
   }
 
   async unsubscribeFromEncryptedMessage(_senderPublicKey: string): Promise<void> {
-    // implementation
+    this.activeListeners.delete(_senderPublicKey)
+    this.peerProtocolVersions.delete(_senderPublicKey)
   }
 
   async closeSignClient() {
@@ -480,11 +488,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
-      .catch(async () => {
+      .catch(async (error: Error) => {
+        const { errorType, errorData, errorCode } = mapWCErrorToBeaconError(error)
+
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
           id: this.messageIds.pop(),
-          errorType: BeaconErrorType.ABORTED_ERROR
+          errorType,
+          errorData: typeof errorData === 'object' ? { ...errorData as object, errorCode } : { errorCode }
         } as ErrorResponse
 
         this.notifyListeners(this.getTopicFromSession(session), errorResponse)
@@ -551,11 +562,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           this.checkWalletReadiness(this.getTopicFromSession(session))
         }
       })
-      .catch(async () => {
+      .catch(async (error: Error) => {
+        const { errorType, errorData, errorCode } = mapWCErrorToBeaconError(error)
+
         const errorResponse: ErrorResponseInput = {
           type: BeaconMessageType.Error,
           id: this.messageIds.pop(),
-          errorType: BeaconErrorType.ABORTED_ERROR
+          errorType,
+          errorData: typeof errorData === 'object' ? { ...errorData as object, errorCode } : { errorCode }
         } as ErrorResponse
 
         this.notifyListeners(this.getTopicFromSession(session), errorResponse)
@@ -704,6 +718,14 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
 
         this.updateStorageWallet(session)
 
+        const remoteMetadata = session.peer.metadata as Record<string, any>
+        const rawProtocolVersion =
+          remoteMetadata?.protocolVersion ?? remoteMetadata?.extensions?.protocolVersion
+        const remoteProtocolVersion = Number(rawProtocolVersion)
+        const resolvedProtocolVersion = Number.isFinite(remoteProtocolVersion)
+          ? remoteProtocolVersion
+          : undefined
+
         const pairingResponse: ExtendedWalletConnectPairingResponse =
           new ExtendedWalletConnectPairingResponse(
             session.topic,
@@ -711,8 +733,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
             session.peer.publicKey,
             '3',
             session.topic,
-            session.peer.metadata.name
+            session.peer.metadata.name,
+            resolvedProtocolVersion
           )
+
+        if (resolvedProtocolVersion !== undefined) {
+          this.peerProtocolVersions.set(session.peer.publicKey, resolvedProtocolVersion)
+        }
 
         this.channelOpeningListeners.forEach((listener) => {
           listener(pairingResponse)
@@ -753,10 +780,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
           const _pairingTopic = topic ?? signClient.core.pairing.getPairings()[0]?.topic
           logger.debug('New pairing topic?', [])
 
+          const { errorType, errorData, errorCode } = mapWCErrorToBeaconError(error)
+
           const errorResponse: ErrorResponseInput = {
             type: BeaconMessageType.Error,
             id: this.messageIds.pop(),
-            errorType: BeaconErrorType.ABORTED_ERROR
+            errorType,
+            errorData: typeof errorData === 'object' ? { ...errorData as object, errorCode } : { errorCode }
           } as ErrorResponse
 
           this.notifyListeners(_pairingTopic, errorResponse)
@@ -980,7 +1010,8 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       await generateGUID(),
       BEACON_VERSION,
       await generateGUID(),
-      _uri
+      _uri,
+      getPreferredMessageProtocolVersion()
     )
   }
 
@@ -1389,12 +1420,13 @@ export class WalletConnectCommunicationClient extends CommunicationClient {
       version: '2',
       senderId: topic
     }
-    const serializer = new Serializer()
-    const serialized = await serializer.serialize(response)
 
-    this.activeListeners.forEach((listener) => {
+    for (const [publicKey, listener] of this.activeListeners.entries()) {
+      const protocolVersion = Number(this.peerProtocolVersions.get(publicKey)) || 1
+      const serializer = new Serializer(protocolVersion)
+      const serialized = await serializer.serialize(response)
       listener(serialized)
-    })
+    }
   }
 
   public currentSession(): SessionTypes.Struct | undefined {

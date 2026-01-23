@@ -53,14 +53,24 @@ const QR: React.FC<QRProps> = (props: QRProps) => {
     >
       <div className="qr-left">
         {!props.isMobile && <h3>Or scan to connect</h3>}
-        {!props.isMobile && (
+        {!props.isMobile && !props.isDeprecated && (
           <span>{`Open ${props.walletName} Wallet on your mobile phone and scan.`}</span>
         )}
-        {props.isMobile && (
+        {!props.isMobile && props.isDeprecated && (
+          <span className="deprecated-warning">
+            {`${props.walletName} is no longer maintained.`}
+          </span>
+        )}
+        {props.isMobile && !props.isDeprecated && (
           <span>
             {`Scan QR code with a ${
               props.isWalletConnect ? 'WalletConnect' : 'Beacon'
             }-compatible wallet.`}
+          </span>
+        )}
+        {props.isMobile && props.isDeprecated && (
+          <span className="deprecated-warning">
+            {`${props.walletName} is no longer maintained.`}
           </span>
         )}
       </div>

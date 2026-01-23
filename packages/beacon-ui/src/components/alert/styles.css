@@ -201,3 +201,21 @@
     transform: scale(0.8);
   }
 }
+
+.alert-legal-footer {
+  padding: 0 1.8em 1.2em 1.8em;
+  text-align: center;
+  font-size: 0.813rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.theme__dark .alert-legal-footer {
+  color: #9ab0d6;
+}
+
+.alert-legal-link {
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

@@ -74,13 +74,24 @@ const dummyWebList = [
   }
 ]
 
-// Mock the module that exports the wallet lists.
-jest.mock('../../src/ui/alert/wallet-lists', () => ({
+// Mock the JSON imports
+jest.mock('../../src/data/tezos.json', () => ({
+  version: '1.0.0',
+  updated: new Date().toISOString(),
   desktopList: dummyDesktopList,
   extensionList: dummyExtensionList,
   iOSList: dummyIOSList,
   webList: dummyWebList
-}))
+}), { virtual: true })
+
+jest.mock('../../src/data/substrate.json', () => ({
+  version: '1.0.0',
+  updated: new Date().toISOString(),
+  desktopList: [],
+  extensionList: [],
+  iOSList: [],
+  webList: []
+}), { virtual: true })
 
 // =====================================================================
 // Mock PostMessageTransport so we can control the returned available extensions.
@@ -133,14 +144,14 @@ describe('useWallets hook', () => {
     ;(PostMessageTransport.getAvailableExtensions as any).mockResolvedValueOnce([fakeExtension])
 
     // Render the hook.
-    const { result } = renderHook(() => useWallets())
+    const { result } = renderHook(() => useWallets('tezos'))
 
     // Wait for the async effect (fetching available extensions) to complete.
     await waitFor(() => {
-      expect(result.current.size).toBe(5)
+      expect(result.current.wallets.size).toBe(5)
     })
 
-    const walletMap = result.current
+    const walletMap = result.current.wallets
     expect(walletMap).toBeInstanceOf(Map)
     expect(walletMap.has('desktopWallet')).toBe(true)
     expect(walletMap.has('extWallet')).toBe(true)
@@ -164,13 +175,13 @@ describe('useWallets hook', () => {
     // Initially return an empty array.
     ;(PostMessageTransport.getAvailableExtensions as any).mockResolvedValueOnce([])
 
-    const { result } = renderHook(() => useWallets())
+    const { result } = renderHook(() => useWallets('tezos'))
 
     // Wait for the initial effect.
-    await waitFor(() => result.current instanceof Map)
+    await waitFor(() => result.current.wallets instanceof Map)
 
     // Initially, the wallet map should not include any extra extension.
-    expect(result.current.has('updatedExt')).toBe(false)
+    expect(result.current.wallets.has('updatedExt')).toBe(false)
 
     // Now, simulate receiving an "extensionsUpdated" message with new extension data.
     const updatedExtension = {
@@ -191,23 +202,23 @@ describe('useWallets hook', () => {
     })
 
     // Wait for the state update after handling the message.
-    await waitFor(() => result.current.has('updatedExt'))
-    expect(result.current.has('updatedExt')).toBe(true)
+    await waitFor(() => result.current.wallets.has('updatedExt'))
+    expect(result.current.wallets.has('updatedExt')).toBe(true)
   })
 
   test('respects networkType parameter for web wallets', async () => {
     // For this test, pass networkType as 'testnet' to match our dummy webList.
     ;(PostMessageTransport.getAvailableExtensions as any).mockResolvedValueOnce([])
 
-    const { result } = renderHook(() => useWallets(NetworkType.GHOSTNET))
+    const { result } = renderHook(() => useWallets('tezos', NetworkType.GHOSTNET))
 
     await waitFor(() => {
-      const walletMap = result.current
+      const walletMap = result.current.wallets
       const webWallet = walletMap.get('webWallet')
       return Boolean(webWallet && webWallet.links[0] === 'http://web.testnet')
     })
 
-    const walletMap = result.current
+    const walletMap = result.current.wallets
     const webWallet = walletMap.get('webWallet')
     expect(webWallet).toBeDefined()
     expect(webWallet!.links[0]).toBe('http://web.testnet')
@@ -216,8 +227,8 @@ describe('useWallets hook', () => {
   test('removes event listener on unmount', async () => {
     ;(PostMessageTransport.getAvailableExtensions as any).mockResolvedValueOnce([])
 
-    const { unmount, result } = renderHook(() => useWallets())
-    await waitFor(() => result.current instanceof Map)
+    const { unmount, result } = renderHook(() => useWallets('tezos'))
+    await waitFor(() => result.current.wallets instanceof Map)
 
     unmount()
     expect(mockRemoveEventListener).toHaveBeenCalledWith('message', expect.any(Function))
@@ -228,7 +239,7 @@ describe('useWallets hook', () => {
     const featuredWallets = ['custom1', 'custom2']
     ;(PostMessageTransport.getAvailableExtensions as any).mockResolvedValueOnce([])
 
-    renderHook(() => useWallets(undefined, featuredWallets))
+    renderHook(() => useWallets('tezos', undefined, featuredWallets))
     // Wait for the effect to run.
     await waitFor(() => {
       const { arrangeTopWallets } = require('../../src/utils/wallets')

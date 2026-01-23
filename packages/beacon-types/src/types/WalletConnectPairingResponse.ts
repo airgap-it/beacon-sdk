@@ -11,12 +11,14 @@ export class WalletConnectPairingResponse implements PeerInfo {
   appUrl?: string | undefined
   publicKey: string
   version: string
+  protocolVersion?: number
 
   constructor(
     id: string,
     name: string,
     publicKey: string,
     version: string,
+    protocolVersion?: number,
     icon?: string,
     appUrl?: string
   ) {
@@ -26,6 +28,7 @@ export class WalletConnectPairingResponse implements PeerInfo {
     this.appUrl = appUrl
     this.publicKey = publicKey
     this.version = version
+    this.protocolVersion = protocolVersion
   }
 }
 
@@ -43,10 +46,11 @@ export class ExtendedWalletConnectPairingResponse extends WalletConnectPairingRe
     version: string,
     senderId: string,
     extensionId: string,
+    protocolVersion?: number,
     icon?: string,
     appUrl?: string
   ) {
-    super(id, name, publicKey, version, icon, appUrl)
+    super(id, name, publicKey, version, protocolVersion, icon, appUrl)
     this.senderId = senderId
     this.extensionId = extensionId
   }

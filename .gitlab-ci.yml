@@ -65,11 +65,12 @@ build:
 #   tags:
 #     - docker
 
-publish_beta:
+# Publishes prerelease versions (alpha or beta) with --dist-tag next
+publish_prerelease:
   stage: publish
   when: manual
   script:
-    - docker run --env NPM_AUTH_TOKEN --rm $GOOGLE_TAG ./npm-ci-publish-beta-only.sh
+    - docker run --env NPM_AUTH_TOKEN --rm $GOOGLE_TAG ./npm-ci-publish-prerelease.sh
   tags:
     - docker
 

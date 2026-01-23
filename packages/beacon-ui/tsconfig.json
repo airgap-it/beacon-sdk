@@ -11,6 +11,7 @@
     "jsxImportSource": "react",
     "types": ["vite/client", "node", "chrome", "jest"],
     "noEmit": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
       "@airgap/beacon-ui": ["./src"]

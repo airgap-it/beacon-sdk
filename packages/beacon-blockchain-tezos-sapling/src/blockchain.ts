@@ -5,10 +5,15 @@ import {
   ExtensionApp,
   DesktopApp,
   WebApp,
-  App
+  App,
+  Network,
+  PermissionScope
 } from '@airgap/beacon-types'
 import { TezosSaplingPermissionResponse } from './types/messages/permission-response'
-import { extensionList, desktopList, webList, iOSList } from './ui/alert/wallet-lists'
+import bundledTezosSaplingRegistry from '@airgap/beacon-ui/data/tezos-sapling.json'
+import { loadWalletLists } from '@airgap/beacon-utils'
+
+const { desktopList, extensionList, iOSList, webList } = loadWalletLists(bundledTezosSaplingRegistry)
 
 export class TezosSaplingBlockchain implements Blockchain {
   public readonly identifier: string = 'tezos-sapling'
@@ -37,11 +42,19 @@ export class TezosSaplingBlockchain implements Blockchain {
 
   async getAccountInfosFromPermissionResponse(
     permissionResponse: TezosSaplingPermissionResponse
-  ): Promise<{ accountId: string; address: string; publicKey: string }[]> {
+  ): Promise<{
+    accountId: string;
+    address: string;
+    publicKey: string;
+    network?: Network;
+    scopes: PermissionScope[];
+  }[]> {
     return permissionResponse.blockchainData.accounts.map((account) => ({
       accountId: account.accountId,
       address: account.address,
-      publicKey: account.viewingKey ?? '' // Public key or viewing key is not shared in permission request for privacy reasons
+      publicKey: account.viewingKey ?? '', // Public key or viewing key is not shared in permission request for privacy reasons
+      network: account.network,
+      scopes: []
     }))
   }
 }

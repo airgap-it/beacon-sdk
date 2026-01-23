@@ -4,6 +4,8 @@
     "lib": ["es2015", "es2017.string", "dom"],
     "module": "ESNext",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "declaration": true,
     "outDir": "./dist/esm",
     "typeRoots": ["./node_modules/@types", "./src/typings", "./node_modules"],
@@ -24,9 +26,8 @@
     "noUnusedParameters": true /* Report errors on unused parameters. */,
     "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
     "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */,
-    "allowSyntheticDefaultImports": true
-  },
-  "paths": {
+    "allowSyntheticDefaultImports": true,
+    "paths": {
     "beacon-core": ["packages/beacon-core/lib/beacon-core", "packages/beacon-core/lib"],
     "beacon-dapp": ["packages/beacon-dapp/lib/beacon-dapp", "packages/beacon-dapp/lib"],
     "beacon-blockchain-substrate": [
@@ -53,5 +54,6 @@
     "beacon-ui": ["packages/beacon-ui/lib/beacon-ui", "packages/beacon-ui/lib"],
     "beacon-utils": ["packages/beacon-utils/lib/beacon-utils", "packages/beacon-utils/lib"],
     "beacon-wallet": ["packages/beacon-wallet/lib/beacon-wallet", "packages/beacon-wallet/lib"]
+    }
   }
 }
