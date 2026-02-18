@@ -56,7 +56,13 @@ const REGIONS_AND_SERVERS: NodeDistributions = {
     'beacon-node-1.hope-5.papers.tech'
   ],
   [Regions.NORTH_AMERICA_EAST]: ['beacon-node-1.beacon-server-1.papers.tech'],
-  [Regions.NORTH_AMERICA_WEST]: ['beacon-node-1.beacon-server-2.papers.tech'],
+  [Regions.NORTH_AMERICA_WEST]: [
+    'beacon-node-1.beacon-server-2.papers.tech',
+    'beacon-1.ecadinfra.com',
+    'beacon-2.ecadinfra.com',
+    'beacon-3.ecadinfra.com',
+    'beacon-4.ecadinfra.com'
+  ],
   [Regions.ASIA_EAST]: ['beacon-node-1.beacon-server-3.papers.tech'],
   [Regions.AUSTRALIA]: ['beacon-node-1.beacon-server-4.papers.tech']
 }
