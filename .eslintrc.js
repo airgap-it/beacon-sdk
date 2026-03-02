@@ -9,7 +9,7 @@ module.exports = {
     project: 'tsconfig.json',
     sourceType: 'module'
   },
-  plugins: ['@typescript-eslint', '@typescript-eslint/tslint', 'prefer-arrow', 'import'],
+  plugins: ['@typescript-eslint', 'prefer-arrow', 'import'],
   extends: ['plugin:@typescript-eslint/recommended', 'prettier', 'prettier/@typescript-eslint'],
   rules: {
     '@typescript-eslint/adjacent-overload-signatures': 'error',
@@ -140,7 +140,6 @@ module.exports = {
     'no-magic-numbers': 'off',
     'no-multiple-empty-lines': 'off',
     'no-new-wrappers': 'error',
-    'no-null/no-null': 'off',
     'no-redeclare': 'error',
     'no-return-await': 'error',
     'no-sequences': 'error',
@@ -183,43 +182,12 @@ module.exports = {
     'use-isnan': 'error',
     'valid-typeof': 'off',
     yoda: 'error',
-    '@typescript-eslint/tslint/config': [
-      'error',
-      {
-        rules: {
-          ban: [true, 'fit', 'fdescribe', 'xit', 'xdescribe'],
-          encoding: true,
-          'import-blacklist': [true, 'rxjs', 'rxjs/Rx', 'lodash'],
-          'jsdoc-format': true,
-          'match-default-export-name': true,
-          'no-boolean-literal-compare': true,
-          'no-dynamic-delete': true,
-          'no-inferred-empty-object-type': true,
-          'no-mergeable-namespace': true,
-          'no-reference-import': true,
-          'no-unnecessary-callback-wrapper': true,
-          'no-unused-variable': true,
-          'prefer-conditional-expression': true,
-          'prefer-method-signature': true,
-          'prefer-switch': true,
-          'prefer-while': true,
-          'return-undefined': true,
-          'switch-final-break': true,
-          typedef: [
-            false,
-            'call-signature',
-            'arrow-call-signature',
-            'parameter',
-            'arrow-parameter',
-            'property-declaration',
-            'variable-declaration',
-            'member-variable-declaration',
-            'object-destructuring',
-            'array-destructuring'
-          ]
-        }
-      }
-    ],
+    'no-restricted-globals': ['error', 'fit', 'fdescribe', 'xit', 'xdescribe'],
+    'no-restricted-imports': ['error', 'rxjs', 'rxjs/Rx', 'lodash'],
+    '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
+    '@typescript-eslint/no-dynamic-delete': 'error',
+    '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/method-signature-style': 'error',
     'no-implicit-coercion': 'error'
   }
 }

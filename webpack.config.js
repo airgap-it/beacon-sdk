@@ -11,7 +11,8 @@ module.exports = {
     fallback: {
       crypto: false,
       fs: false,
-      stream: require.resolve('stream-browserify')
+      stream: require.resolve('stream-browserify'),
+      util: false
     }
   },
   plugins: [
