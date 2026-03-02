@@ -62,11 +62,7 @@ const REGIONS_AND_SERVERS: NodeDistributions = {
     'beacon-node-6.octez.io',
     'beacon-node-7.octez.io',
     'beacon-node-8.octez.io'
-  ],
-  [Regions.NORTH_AMERICA_EAST]: ['beacon-node-1.beacon-server-1.papers.tech'],
-  [Regions.NORTH_AMERICA_WEST]: ['beacon-node-1.beacon-server-2.papers.tech'],
-  [Regions.ASIA_EAST]: ['beacon-node-1.beacon-server-3.papers.tech'],
-  [Regions.AUSTRALIA]: ['beacon-node-1.beacon-server-4.papers.tech']
+  ]
 }
 
 interface BeaconInfoResponse {

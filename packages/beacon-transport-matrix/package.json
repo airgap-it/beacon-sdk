@@ -1,6 +1,6 @@
 {
   "name": "@airgap/beacon-transport-matrix",
-  "version": "4.8.0",
+  "version": "4.8.1",
   "description": "This package contains methods to facilitate communication over the Beacon network, a decentralised P2P network that is based on the matrix protocol.",
   "author": "Andreas Gassmann <a.gassmann@papers.ch>",
   "homepage": "https://walletbeacon.io",
