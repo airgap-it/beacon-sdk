@@ -15,6 +15,8 @@ jest.mock('@airgap/beacon-utils', () => {
         this._resolve = res
         this._reject = rej
       })
+      // Prevent unhandled rejection when promise is rejected without a concurrent awaiter
+      this.promise.catch(() => {})
     }
     resolve(value: T) {
       this._resolve(value)
@@ -150,12 +152,111 @@ describe('P2PCommunicationClient', () => {
         }
       })
       const info = await client.getBeaconInfo('relay.test')
-      expect(axios.get).toHaveBeenCalledWith('https://relay.test/_synapse/client/beacon/info')
+      expect(axios.get).toHaveBeenCalledWith(
+        'https://relay.test/_synapse/client/beacon/info',
+        { timeout: 10_000 }
+      )
       expect(info).toEqual({
         region: 'eu',
         known_servers: ['a', 'b'],
         timestamp: 9876
       })
+    })
+  })
+
+  describe('getRelayServer (dead node recovery)', () => {
+    let freshClient: P2PCommunicationClient
+
+    beforeEach(() => {
+      freshClient = new P2PCommunicationClient('MyApp', fakeKeyPair as any, 2, mockStorage as any)
+    })
+
+    it('falls through to server discovery when stored node is unreachable', async () => {
+      // Stored node exists but is dead
+      mockStorage.get.mockResolvedValue('dead-node.papers.tech')
+      mockStorage.delete.mockResolvedValue(undefined)
+      mockStorage.set.mockResolvedValue(undefined)
+
+      // First call (stored node) rejects, second call (discovery probe) succeeds
+      ;(axios.get as jest.Mock)
+        .mockRejectedValueOnce(new Error('ECONNREFUSED'))
+        .mockResolvedValue({
+          data: { region: 'eu', known_servers: ['a'], timestamp: 5000 }
+        })
+
+      const result = await freshClient.getRelayServer()
+
+      // Should have deleted the dead node from storage
+      expect(mockStorage.delete).toHaveBeenCalledWith(StorageKey.MATRIX_SELECTED_NODE)
+
+      // Should have resolved via discovery
+      expect(result.server).toBeDefined()
+      expect(result.timestamp).toBe(5000)
+    })
+
+    it('uses stored node when it is reachable', async () => {
+      mockStorage.get.mockResolvedValue('healthy-node.papers.tech')
+
+      ;(axios.get as jest.Mock).mockResolvedValue({
+        data: { region: 'eu', known_servers: ['a'], timestamp: 7777 }
+      })
+
+      const result = await freshClient.getRelayServer()
+
+      expect(result.server).toBe('healthy-node.papers.tech')
+      expect(result.timestamp).toBe(7777)
+      // Should NOT have deleted the node
+      expect(mockStorage.delete).not.toHaveBeenCalledWith(StorageKey.MATRIX_SELECTED_NODE)
+    })
+
+    it('rejects ExposedPromise when all servers fail, preventing concurrent caller deadlock', async () => {
+      mockStorage.get.mockResolvedValue('')
+      mockStorage.delete.mockResolvedValue(undefined)
+
+      // All discovery probes fail
+      ;(axios.get as jest.Mock).mockRejectedValue(new Error('ECONNREFUSED'))
+
+      await expect(freshClient.getRelayServer()).rejects.toThrow()
+
+      // The ExposedPromise should be cleared so subsequent callers get a fresh attempt
+      expect((freshClient as any).relayServer).toBeUndefined()
+    })
+
+    it('resets and retries when cached relay server becomes unreachable on timestamp refresh', async () => {
+      mockStorage.get.mockResolvedValue('')
+      mockStorage.set.mockResolvedValue(undefined)
+      mockStorage.delete.mockResolvedValue(undefined)
+
+      // First getRelayServer call: no stored node, discovery finds a server
+      ;(axios.get as jest.Mock).mockResolvedValue({
+        data: { region: 'eu', known_servers: ['a'], timestamp: 1000 }
+      })
+
+      const firstResult = await freshClient.getRelayServer()
+      expect(firstResult.timestamp).toBe(1000)
+
+      // Force the localTimestamp to be old so the stale-timestamp refresh path triggers
+      const relayServerPromise = (freshClient as any).relayServer
+      if (relayServerPromise) {
+        const resolved = await relayServerPromise.promise
+        resolved.localTimestamp = 0
+      }
+
+      // The refresh call to the cached server fails (ETIMEDOUT).
+      // The recovery path resets state and retries via findBestRegionAndGetServer(),
+      // which probes all servers. Set up the mock so the first call rejects,
+      // then all subsequent calls (discovery probes) succeed with a new timestamp.
+      ;(axios.get as jest.Mock)
+        .mockReset()
+        .mockRejectedValueOnce(new Error('ETIMEDOUT'))
+        .mockResolvedValue({
+          data: { region: 'us', known_servers: ['b'], timestamp: 2000 }
+        })
+
+      const secondResult = await freshClient.getRelayServer()
+
+      expect(secondResult.timestamp).toBe(2000)
+      expect(mockStorage.delete).toHaveBeenCalledWith(StorageKey.MATRIX_SELECTED_NODE)
     })
   })
 

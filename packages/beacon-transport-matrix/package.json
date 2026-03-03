@@ -37,5 +37,8 @@
     "@airgap/beacon-core": "4.8.0",
     "@airgap/beacon-utils": "4.8.0",
     "axios": "^1.8.4"
+  },
+  "devDependencies": {
+    "jest-environment-jsdom": "^29.7.0"
   }
 }
