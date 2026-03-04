@@ -218,58 +218,81 @@ export class P2PCommunicationClient extends CommunicationClient {
   }
 
   public async getRelayServer(): Promise<{ server: string; timestamp: number }> {
+    // Fast path: in-memory cached relay server that's still fresh
     if (this.relayServer) {
       const relayServer = await this.relayServer.promise
 
-      // We make sure the locally cached timestamp is not older than 1 minute, if it is, we refresh it
       if (Date.now() - relayServer.localTimestamp < 60 * 1000) {
         return { server: relayServer.server, timestamp: relayServer.timestamp }
       }
 
-      const info = await this.getBeaconInfo(relayServer.server)
+      try {
+        const info = await this.getBeaconInfo(relayServer.server)
+        this.relayServer.resolve({
+          server: relayServer.server,
+          timestamp: info.timestamp,
+          localTimestamp: new Date().getTime()
+        })
+        return { server: relayServer.server, timestamp: info.timestamp }
+      } catch (error) {
+        logger.log('getRelayServer', `cached server ${relayServer.server} is unreachable, resetting`)
+        await this.storage.delete(StorageKey.MATRIX_SELECTED_NODE).catch((e: unknown) => logger.log(e))
+        this.relayServer = undefined
+        this.selectedRegion = undefined
+        // Fall through to discovery below
+      }
+    }
+
+    // First caller creates the promise; concurrent callers will await it above
+    this.relayServer = new ExposedPromise()
+
+    try {
+      // Try the localStorage-cached node first
+      const node = await this.storage.get(StorageKey.MATRIX_SELECTED_NODE)
+      if (node && node.length > 0) {
+        try {
+          const info = await this.getBeaconInfo(node)
+          this.relayServer.resolve({
+            server: node,
+            timestamp: info.timestamp,
+            localTimestamp: new Date().getTime()
+          })
+          return { server: node, timestamp: info.timestamp }
+        } catch (error) {
+          logger.log('getRelayServer', `stored node ${node} is unreachable, falling through to discovery`)
+          await this.storage.delete(StorageKey.MATRIX_SELECTED_NODE).catch((e: unknown) => logger.log(e))
+        }
+      }
+
+      // Full discovery: probe all servers, pick the fastest
+      const server = await this.findBestRegionAndGetServer()
+
+      if (!server) {
+        throw new Error('No servers found')
+      }
+
+      this.storage
+        .set(StorageKey.MATRIX_SELECTED_NODE, server.server)
+        .catch((error) => logger.log(error))
+
       this.relayServer.resolve({
-        server: relayServer.server,
-        timestamp: info.timestamp,
+        server: server.server,
+        timestamp: server.timestamp,
         localTimestamp: new Date().getTime()
       })
-      return { server: relayServer.server, timestamp: info.timestamp }
-    } else {
-      this.relayServer = new ExposedPromise()
+
+      return { server: server.server, timestamp: server.timestamp }
+    } catch (error) {
+      // Always settle the ExposedPromise so concurrent callers don't hang forever
+      this.relayServer.reject(error)
+      this.relayServer = undefined
+      throw error
     }
-
-    const node = await this.storage.get(StorageKey.MATRIX_SELECTED_NODE)
-    if (node && node.length > 0) {
-      const info = await this.getBeaconInfo(node)
-      this.relayServer.resolve({
-        server: node,
-        timestamp: info.timestamp,
-        localTimestamp: new Date().getTime()
-      })
-      return { server: node, timestamp: info.timestamp }
-    }
-
-    const server = await this.findBestRegionAndGetServer()
-
-    if (!server) {
-      throw new Error(`No servers found`)
-    }
-
-    this.storage
-      .set(StorageKey.MATRIX_SELECTED_NODE, server.server)
-      .catch((error) => logger.log(error))
-
-    this.relayServer.resolve({
-      server: server.server,
-      timestamp: server.timestamp,
-      localTimestamp: new Date().getTime()
-    })
-
-    return { server: server.server, timestamp: server.timestamp }
   }
 
   public async getBeaconInfo(server: string): Promise<BeaconInfoResponse> {
     return axios
-      .get<BeaconInfoResponse>(`https://${server}/_synapse/client/beacon/info`)
+      .get<BeaconInfoResponse>(`https://${server}/_synapse/client/beacon/info`, { timeout: 10_000 })
       .then((res) => ({
         region: res.data.region,
         known_servers: res.data.known_servers,
