@@ -31,7 +31,8 @@ const useConnect = (
       !wallet ||
       (wallet.types.length <= 1 &&
         !wallet.types.includes('ios') &&
-        !wallet.types.includes('desktop')) ||
+        !wallet.types.includes('desktop') &&
+        !wallet.types.includes('extension')) ||
       (isMobileOS(window) && wallet.types.length === 1 && wallet.types.includes('desktop'))
     ) {
       return

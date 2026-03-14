@@ -8,6 +8,7 @@ export interface Wallet {
   link: string
   supportedInteractionStandards?: ('wallet_connect' | 'beacon')[] // 'wallet_connect' or 'beacon'
   deepLink?: string
+  firefoxId?: string // Firefox extension ID for dynamically detected extensions
 }
 
 export interface MergedWallet {
@@ -113,16 +114,18 @@ export function mergeWallets(wallets: Wallet[]): MergedWallet[] {
       }
       mergedWallets[index].types.push(wallet.type)
       mergedWallets[index].deepLink = wallet.deepLink
-      mergedWallets[index].firefoxId = wallet.key.includes('firefox')
-        ? wallet.id
-        : mergedWallets[index].firefoxId
+      // Set firefoxId from: 1) wallet's explicit firefoxId, 2) key containing 'firefox', 3) existing value
+      mergedWallets[index].firefoxId = wallet.firefoxId
+        ?? (wallet.key.includes('firefox') ? wallet.id : undefined)
+        ?? mergedWallets[index].firefoxId
     } else {
       const newWallet: MergedWallet = {
         ...wallet,
         descriptions: [wallet.description],
         links: ['', '', '', ''],
         types: [wallet.type],
-        firefoxId: wallet.key.includes('firefox') ? wallet.id : undefined
+        // Set firefoxId from explicit property or from key pattern
+        firefoxId: wallet.firefoxId ?? (wallet.key.includes('firefox') ? wallet.id : undefined)
       }
 
       setWallet(newWallet, wallet)

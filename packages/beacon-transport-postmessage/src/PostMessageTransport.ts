@@ -108,7 +108,7 @@ export class PostMessageTransport<
 
       const data = event.data as ExtensionMessage<
         string,
-        { id: string; name: string; iconURL: string }
+        { id: string; name: string; iconURL: string; firefoxId?: string }
       >
       const sender = data.sender
       if (data && data.payload === 'pong' && sender) {
